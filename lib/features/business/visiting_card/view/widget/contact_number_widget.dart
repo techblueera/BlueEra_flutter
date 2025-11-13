@@ -185,24 +185,24 @@ class _LandlineField extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: CommonTextField(
-              textEditController: codeController,
-              inputLength: 5,
-              keyBoardType: TextInputType.number,
-              regularExpression: RegularExpressionUtils.digitsPattern,
-              // validationType: ValidationTypeEnum.pNumber,
-              hintText: appLocalizations.prefix,
-              isValidate: true,
-              onChange: (value) {
-                final cursorPosition = codeController.selection;
-                codeController.text = value;
-                codeController.selection = cursorPosition;
-                updateSubmitButtonState();
-                prefixOnChange(value);
-              },
-            ),
-          ),
+          // Expanded(
+          //   child: CommonTextField(
+          //     textEditController: codeController,
+          //     inputLength: 5,
+          //     keyBoardType: TextInputType.number,
+          //     regularExpression: RegularExpressionUtils.digitsPattern,
+          //     // validationType: ValidationTypeEnum.pNumber,
+          //     hintText: appLocalizations.prefix,
+          //     isValidate: true,
+          //     onChange: (value) {
+          //       final cursorPosition = codeController.selection;
+          //       codeController.text = value;
+          //       codeController.selection = cursorPosition;
+          //       updateSubmitButtonState();
+          //       prefixOnChange(value);
+          //     },
+          //   ),
+          // ),
           SizedBox(
             width: SizeConfig.size10,
           ),

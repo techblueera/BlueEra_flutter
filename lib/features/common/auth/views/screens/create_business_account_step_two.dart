@@ -137,7 +137,7 @@ class _CreateBusinessAccountStepTwoState
     nameTextController.dispose();
     yourRoleController.dispose();
     emailTextController.dispose();
-    viewBusinessDetailsController.listingDescriptionController.value.dispose();
+
     picCodeController.dispose();
     // landmarkController.dispose();
     super.dispose();
@@ -270,7 +270,7 @@ class _CreateBusinessAccountStepTwoState
                     title: "Pin Code",
                     hintText: "345434",
                     isValidate: true,
-                    readOnly: true,
+                  //  readOnly: true,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return "Please enter Pin Code";
@@ -475,16 +475,21 @@ class _CreateBusinessAccountStepTwoState
                                   Map<String, dynamic> reqParam = {
                                     ApiKeys.businessId: businessId,
                                     ApiKeys.office_mob_no_Pre: 91,
-                                    if (mobileController.text.isNotEmpty)
-                                      ApiKeys.office_mob_no_number:
-                                          mobileController.text,
-                                    if (landlineCodeController.text.isNotEmpty)
-                                      ApiKeys.office_landline_no_pre:
-                                          landlineCodeController.text,
-                                    if (landlineNumberController
-                                        .text.isNotEmpty)
-                                      ApiKeys.office_landline_no_number:
-                                          landlineNumberController.text,
+                                    "business_number": {
+                                      "office_mob_no": mobileController.text.isNotEmpty
+                                          ? {
+                                        "pre": "91",
+                                        "number": mobileController.text,
+                                      }
+                                          : null,
+                                      "office_landline_no": landlineNumberController.text.isNotEmpty
+                                          ? {
+                                        "pre": landlineCodeController.text,
+                                        "number": landlineNumberController.text,
+                                      }
+                                          : null,
+                                    },
+
                                     ApiKeys.city_state_pincode:
                                         cityController.text,
                                     ApiKeys.address:

@@ -186,9 +186,10 @@ class _RateAndReviewBottomSheetState extends State<RateAndReviewBottomSheet> {
   @override
   Widget build(BuildContext context) {
     return CommonDraggableBottomSheet(
-      initialChildSize: 0.55,
+      initialChildSize: 0.46,
       minChildSize: 0.3,
       maxChildSize: 0.9,
+
       builder: (scrollController) {
         return Padding(
           padding: EdgeInsets.only(
@@ -209,7 +210,7 @@ class _RateAndReviewBottomSheetState extends State<RateAndReviewBottomSheet> {
                 children: [
                   Center(
                     child: CustomText(
-                      "Rate And Review",
+                      "Rate and Review",
                       fontWeight: FontWeight.w700,
                       fontSize: SizeConfig.size18,
                     ),
@@ -258,44 +259,44 @@ class _RateAndReviewBottomSheetState extends State<RateAndReviewBottomSheet> {
                     },
                   ),
 
-                  SizedBox(height: SizeConfig.size20),
+                  // SizedBox(height: SizeConfig.size20),
+                  //
+                  // // 📎 Upload section (optional)
+                  // CustomText(
+                  //   "Share Image or Video (Optional)",
+                  //   fontSize: SizeConfig.size13,
+                  //   color: AppColors.grayText,
+                  // ),
+                  // SizedBox(height: SizeConfig.size10),
+                  // GestureDetector(
+                  //   onTap: () {
+                  //     // TODO: Handle upload
+                  //   },
+                  //   child: Container(
+                  //     padding: EdgeInsets.all(SizeConfig.size14),
+                  //     decoration: BoxDecoration(
+                  //       border: Border.all(color: AppColors.greyE5),
+                  //       borderRadius: BorderRadius.circular(SizeConfig.size10),
+                  //     ),
+                  //     child: Row(
+                  //       mainAxisAlignment: MainAxisAlignment.center,
+                  //       children: [
+                  //         Image.asset(
+                  //           'assets/diwali_card/upload.png',
+                  //           color: AppColors.secondaryTextColor,
+                  //         ),
+                  //         SizedBox(width: SizeConfig.size10),
+                  //         CustomText(
+                  //           "Upload Image or Video",
+                  //           color: AppColors.grayText,
+                  //           fontSize: SizeConfig.size14,
+                  //         ),
+                  //       ],
+                  //     ),
+                  //   ),
+                  // ),
 
-                  // 📎 Upload section (optional)
-                  CustomText(
-                    "Share Image or Video (Optional)",
-                    fontSize: SizeConfig.size13,
-                    color: AppColors.grayText,
-                  ),
-                  SizedBox(height: SizeConfig.size10),
-                  GestureDetector(
-                    onTap: () {
-                      // TODO: Handle upload
-                    },
-                    child: Container(
-                      padding: EdgeInsets.all(SizeConfig.size14),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: AppColors.greyE5),
-                        borderRadius: BorderRadius.circular(SizeConfig.size10),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Image.asset(
-                            'assets/diwali_card/upload.png',
-                            color: AppColors.secondaryTextColor,
-                          ),
-                          SizedBox(width: SizeConfig.size10),
-                          CustomText(
-                            "Upload Image or Video",
-                            color: AppColors.grayText,
-                            fontSize: SizeConfig.size14,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  SizedBox(height: SizeConfig.size20),
+                  SizedBox(height: SizeConfig.size40),
 
                   // 🔘 Buttons
                   Row(
