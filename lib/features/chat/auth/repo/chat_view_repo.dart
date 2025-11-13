@@ -79,7 +79,7 @@ class ChatViewRepo extends BaseService {
   }
 
 
-  Future<ResponseModel?> uploadVideoToS3({required Function(double progress) onProgress,required File file, required String fileType, required String preSignedUrl}) async {
+  Future<ResponseModel?> uploadVideoToS3({required Function(double progress) onProgress, required File file, required String fileType, required String preSignedUrl}) async {
     final response = await ApiBaseHelper().uploadVideoToS3(
       preSignedUrl,
       file: file,

@@ -306,76 +306,57 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
           padding: const EdgeInsets.all(16),
           child:  Obx(()=> AbsorbPointer(
             absorbing: controller.isAddFoodLoading.value,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildSectionContainer(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Upload images
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: const [
-                          Text("Upload Images",
-                              style: TextStyle(fontWeight: FontWeight.w500)),
-                          Text("Min-1 / Max-2",
-                              style: TextStyle(color: Colors.grey)),
-                        ],
-                      ),
+            child: Form(
+              key: controller.formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildSectionContainer(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Upload images
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: const [
+                            Text("Upload Images",
+                                style: TextStyle(fontWeight: FontWeight.w500)),
+                            Text("Min-1 / Max-2",
+                                style: TextStyle(color: Colors.grey)),
+                          ],
+                        ),
 
-                      const SizedBox(height: 8),
-                      SizedBox(
-                        height: 90,
-                        child: Obx(() {
-                          return ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: controller.imageLocalPaths.length < 2
-                                ? controller.imageLocalPaths.length +
-                                1 // add + button
-                                : controller.imageLocalPaths.length, // max 2
-                            // +1 for add button
-                            itemBuilder: (context, index) {
-                              if (index == controller.imageLocalPaths.length) {
-                                // Add Button
-                                return InkWell(
-                                  onTap: () async {
-                                    final String? selected =
-                                    await SelectProfilePictureDialog
-                                        .showLogoDialog(
-                                      context,
-                                      "Select Photo",
-                                    );
-                                    if ((selected?.isNotEmpty ?? false) &&
-                                        selected != null) {
-                                      controller.imageLocalPaths.add(selected);
-                                    } else {
-                                      commonSnackBar(
-                                          message: "Something went wrong please try again");
-                                    }
-                                  },
-                                  child: Container(
-                                    height: 80,
-                                    width: 80,
-                                    margin: const EdgeInsets.symmetric(
-                                        horizontal: 6),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.whiteFE,
-                                      borderRadius: BorderRadius.circular(8),
-                                      border: Border.all(
-                                          color: AppColors.whiteE5),
-                                    ),
-                                    child: const Icon(
-                                      CupertinoIcons.photo,
-                                      color: AppColors.greyAF,
-                                    ),
-                                  ),
-                                );
-                              } else {
-                                // Image Item
-                                return Stack(
-                                  children: [
-                                    Container(
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          height: 90,
+                          child: Obx(() {
+                            return ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: controller.imageLocalPaths.length < 2
+                                  ? controller.imageLocalPaths.length +
+                                  1 // add + button
+                                  : controller.imageLocalPaths.length, // max 2
+                              // +1 for add button
+                              itemBuilder: (context, index) {
+                                if (index == controller.imageLocalPaths.length) {
+                                  // Add Button
+                                  return InkWell(
+                                    onTap: () async {
+                                      final String? selected =
+                                      await SelectProfilePictureDialog
+                                          .showLogoDialog(
+                                        context,
+                                        "Select Photo",
+                                      );
+                                      if ((selected?.isNotEmpty ?? false) &&
+                                          selected != null) {
+                                        controller.imageLocalPaths.add(selected);
+                                      } else {
+                                        commonSnackBar(
+                                            message: "Something went wrong please try again");
+                                      }
+                                    },
+                                    child: Container(
                                       height: 80,
                                       width: 80,
                                       margin: const EdgeInsets.symmetric(
@@ -386,579 +367,601 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
                                         border: Border.all(
                                             color: AppColors.whiteE5),
                                       ),
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(8),
-                                        child: Image.file(
-                                          File(controller.imageLocalPaths[index]),
-                                          fit: BoxFit.cover,
-                                        ),
+                                      child: const Icon(
+                                        CupertinoIcons.photo,
+                                        color: AppColors.greyAF,
                                       ),
                                     ),
-                                    // Cancel Icon
-                                    Positioned(
-                                      top: 4,
-                                      right: 4,
-                                      child: GestureDetector(
-                                        onTap: () {
-                                          controller.imageLocalPaths.removeAt(
-                                              index);
-                                        },
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            color: Colors.black.withValues(alpha: 0.5),
-                                            shape: BoxShape.circle,
-                                          ),
-                                          child: const Icon(
-                                            Icons.close,
-                                            size: 18,
-                                            color: Colors.white,
+                                  );
+                                } else {
+                                  // Image Item
+                                  return Stack(
+                                    children: [
+                                      Container(
+                                        height: 80,
+                                        width: 80,
+                                        margin: const EdgeInsets.symmetric(
+                                            horizontal: 6),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.whiteFE,
+                                          borderRadius: BorderRadius.circular(8),
+                                          border: Border.all(
+                                              color: AppColors.whiteE5),
+                                        ),
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadius.circular(8),
+                                          child: Image.file(
+                                            File(controller.imageLocalPaths[index]),
+                                            fit: BoxFit.cover,
                                           ),
                                         ),
+                                      ),
+                                      // Cancel Icon
+                                      Positioned(
+                                        top: 4,
+                                        right: 4,
+                                        child: GestureDetector(
+                                          onTap: () {
+                                            controller.imageLocalPaths.removeAt(
+                                                index);
+                                          },
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              color: Colors.black.withValues(alpha: 0.5),
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: const Icon(
+                                              Icons.close,
+                                              size: 18,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                }
+                              },
+                            );
+                          }),
+                        ),
+                        const SizedBox(height: 16),
+
+                        _buildTextField("Food Name", "E.g. Paneer Butter Masala...",
+                            controller: controller.foodNameCtrl),
+
+                        SizedBox(height: SizeConfig.size10),
+
+                        // Category
+                        Obx(() {
+                          return AbsorbPointer(
+                            absorbing: widget.providerType == ProductServiceProviderType.user,
+                            child: _buildDropdown(
+                                "Category tag", "E.g. Main Course...",
+                                selectedValue: controller.selectedCategory.value,
+                                onChanged: (v) =>
+                                controller.selectedCategory.value = v!,
+                                items: controller.foodType1Options),
+                          );
+                        }),
+
+                        SizedBox(height: SizeConfig.size6),
+
+
+                        Obx(() {
+                          return _buildDropdown(
+                              "Sub Category", "E.g. Veg, North Indian...",
+                              selectedValue: controller.selectedSubCategory.value,
+                              onChanged: (v) =>
+                              controller.selectedSubCategory.value = v!,
+                              items: controller.foodType2Options);
+                        }),
+
+                        SizedBox(height: SizeConfig.size10),
+
+                        // Description
+                        _buildTextField("Food Description",
+                            "Horem ipsum dolor sit amet, consectetur adipiscing...",
+                            controller: controller.descCtrl,
+                            maxLines: 5),
+
+                        const SizedBox(height: 16),
+                        // Add Ons
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 0),
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                  color: AppColors.whiteE5
+                              )
+                          ),
+                          child: ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: const Icon(Icons.add_circle_outline),
+                            title: const Text("Add ons"),
+                            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                            onTap: () async {
+                              final result = await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      AddOnsPage(
+                                        initialAddOns: List<Map<String, dynamic>>.from(controller.addOns),
+                                      ),
+                                ),
+                              );
+
+                              if (result != null && result is List<Map<String, dynamic>>) {
+                                log('result length  before  -- > $result');
+                                controller.addOns.assignAll(result);
+                                 log('result length after -- > ${controller.addOns.length}');
+                              }
+                            },
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        Obx(() {
+                          final addOns = controller.addOns;
+
+                          if (addOns.isEmpty) {
+                            return const SizedBox();
+                          }
+                          return Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: List.generate(addOns.length, (index) {
+                              final item = addOns[index];
+                              return Chip(
+                                label: Text(
+                                  "${item['name']} (+₹${item['price']})",
+                                  style: const TextStyle(fontWeight: FontWeight.w500, color: AppColors.mainTextColor),
+                                ),
+                                backgroundColor: AppColors.primaryColor.withValues(alpha: 0.1),
+                                deleteIcon: const Icon(Icons.close, size: 18),
+                                onDeleted: () {
+                                   addOns.removeAt(index);
+                                },
+                              );
+                            }),
+                          );
+                        }),
+
+                        SafeArea(
+                          child: CommonCardWidget(
+                            padding: 0,
+                            child: SingleChildScrollView(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // 🔹 Key Ingredients
+                                  const SizedBox(height: 10),
+                                  _buildSectionTitle("Cooking Method"),
+                                  const SizedBox(height: 6),
+                                  CustomText("${controller.selectedCookingMethod.value}",fontSize: 16,fontWeight: FontWeight.w500,),
+                                  const SizedBox(height: 10),
+                                  _buildSectionTitle("Item Nature"),
+                                  const SizedBox(height: 6),
+                                  CustomText("${controller.selectedItemNature.value}",fontSize: 16,fontWeight: FontWeight.w500,),
+                                  const SizedBox(height: 10),
+                                  _buildSectionTitle("Key Ingredients"),
+                                  const SizedBox(height: 4),
+                                  Obx(() {
+                                    return Wrap(
+                                      spacing: 8,
+                                      children: controller.ingredients.map((e) {
+                                        return Chip(
+                                          shadowColor: AppColors.secondaryTextColor,
+                                          elevation: 1,
+                                          label: CustomText(e),
+                                          backgroundColor: AppColors.white
+                                              .withValues(
+                                              alpha: 0.5),
+                                          deleteIcon: const Icon(
+                                              Icons.close, size: 18),
+                                          onDeleted: () {
+                                            setState(() {
+                                              controller.ingredients.remove(e);
+                                            });
+                                          },
+                                        );
+                                      }).toList(),
+                                    );
+                                  }),
+
+                                  SizedBox(height: SizeConfig.size12),
+
+                                  // 🔹 Serving Options
+                                  _buildSectionTitle("Serving Options"),
+                                  const SizedBox(height: 4),
+                                  Column(
+                                    children: List<Map<String, dynamic>>.from(
+                                        widget.foodData["servingOptions"] ?? [])
+                                        .map((e) {
+                                      return Card(
+                                        child: ListTile(
+                                          leading: const Icon(Icons.restaurant),
+                                          title: CustomText("${e["size"]}"),
+                                          subtitle: CustomText(
+                                              "Serves ${e["serves"]}"),
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+
+                                  SizedBox(height: SizeConfig.size12),
+
+                                  // 🔹 Accompaniments
+                                  _buildSectionTitle("Accompaniments"),
+                                  const SizedBox(height: 4),
+
+                                  Obx(() {
+                                    return Wrap(
+                                      spacing: 8,
+                                      children: controller.accompaniments.map((e) {
+                                        return Chip(
+                                          shadowColor: AppColors.secondaryTextColor,
+                                          elevation: 1,
+                                          label: CustomText(e),
+                                          backgroundColor: AppColors.white
+                                              .withValues(
+                                              alpha: 0.5),
+                                          deleteIcon: const Icon(
+                                              Icons.close, size: 18),
+                                          onDeleted: () {
+                                            // 9789
+                                            controller.accompaniments.remove(e);
+                                          },
+                                        );
+                                      }).toList(),
+                                    );
+                                  }),
+
+                                  SizedBox(height: SizeConfig.size12),
+
+                                  // 🔹 Nutrition Summary
+                                  _buildSectionTitle(
+                                      "Nutritional Summary (per 100g)"),
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment
+                                        .spaceAround,
+                                    children: [
+                                      _nutritionCard(
+                                          "Calories",
+                                          widget
+                                              .foodData["nutritionalSummary_per100g"]
+                                          ["calories_kcal"]),
+                                      _nutritionCard(
+                                          "Protein",
+                                          widget
+                                              .foodData["nutritionalSummary_per100g"]
+                                          ["protein_g"]),
+                                      _nutritionCard(
+                                          "Carbs",
+                                          widget
+                                              .foodData["nutritionalSummary_per100g"]
+                                          ["carbs_g"]),
+                                      _nutritionCard(
+                                          "Fat",
+                                          widget
+                                              .foodData["nutritionalSummary_per100g"]
+                                          ["fat_g"]),
+                                    ],
+                                  ),
+
+                                  SizedBox(height: SizeConfig.size12),
+
+                                  // 🔹 Key Minerals
+                                  _buildSectionTitle("Key Minerals"),
+                                  const SizedBox(height: 4),
+                                  Wrap(
+                                    spacing: 8,
+                                    children:
+                                    List<String>.from(
+                                        widget.foodData["keyMinerals"] ?? [])
+                                        .map((e) {
+                                      return Chip(
+                                        backgroundColor: Colors.teal[50],
+                                        label: CustomText(e),
+                                      );
+                                    }).toList(),
+                                  ),
+
+                                  SizedBox(height: SizeConfig.size12),
+
+                                  // 🔹 SEO Tags
+                                  _buildSectionTitle("SEO Tags"),
+                                  const SizedBox(height: 4),
+                                  Wrap(
+                                    spacing: 8,
+                                    children:
+                                    List<String>.from(
+                                        widget.foodData["seoTags"] ?? [])
+                                        .map((e) {
+                                      return Chip(
+                                        backgroundColor: Colors.orange[50],
+                                        label: CustomText("#$e"),
+                                      );
+                                    }).toList(),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  _buildSectionContainer(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(height: SizeConfig.size10),
+                        _discountSection(),
+                        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            CustomText("Price",),
+                            Row(
+                              children: [
+                                Row(
+                                  children: [
+                                    Obx(() {
+                                      return Radio(
+                                        visualDensity: const VisualDensity(
+                                            horizontal: -4, vertical: -4),
+                                        value: true,
+                                        groupValue: controller.isSingleProduct
+                                            .value,
+                                        onChanged: (v) =>
+                                        controller.isSingleProduct.value = true,
+                                      );
+                                    }),
+                                    const CustomText(
+                                      "Single Product", fontSize: 12,)
+                                  ],
+                                ),
+                                const SizedBox(width: 16),
+                                Row(
+                                  children: [
+                                    Obx(() {
+                                      return Radio(
+                                        visualDensity: const VisualDensity(
+                                            horizontal: -4, vertical: -4),
+                                        value: false,
+                                        groupValue: controller.isSingleProduct
+                                            .value,
+                                        onChanged: (v) =>
+                                            setState(() =>
+                                            controller.isSingleProduct.value =
+                                            false),
+                                      );
+                                    }),
+                                    const CustomText("Multiple type", fontSize: 12,)
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: SizeConfig.size10,),
+
+                        Obx(() {
+                              return (controller.isSingleProduct.value)? Obx(() {
+                                return Row(
+                                  children: [
+                                    (controller.isSingleProduct.value)
+                                        ? SizedBox()
+                                        : Expanded(
+                                      child: CommonTextField(
+                                        contentPadding: EdgeInsets.symmetric(
+                                            vertical: 14, horizontal: 12),
+                                        hintText: "E.g. Small",
+                                        textEditController: TextEditingController(),
+                                        keyBoardType: TextInputType.number,
+                                      ),
+                                    ),
+                                    SizedBox(width: SizeConfig.size10),
+                                    Expanded(
+                                      child: CommonTextField(
+                                        contentPadding: EdgeInsets.symmetric(
+                                            vertical: 14, horizontal: 12),
+                                        hintText: "E.g. ₹300",
+                                        textEditController: controller
+                                            .singlePriceController,
+                                        keyBoardType: TextInputType.number,
+                                        isValidate: true
                                       ),
                                     ),
                                   ],
                                 );
-                              }
-                            },
-                          );
-                        }),
-                      ),
-                      const SizedBox(height: 16),
-
-                      _buildTextField("Food Name", "E.g. Paneer Butter Masala...",
-                          controller: controller.foodNameCtrl),
-
-                      SizedBox(height: SizeConfig.size10),
-
-                      // Category
-                      Obx(() {
-                        return _buildDropdown(
-                            "Category tag", "E.g. Main Course...",
-                            selectedValue: controller.selectedCategory.value,
-                            onChanged: (v) =>
-
-                            controller.selectedCategory.value = v!,
-                            items: controller.foodType1Options);
-                      }),
-
-                      SizedBox(height: SizeConfig.size6),
-
-
-                      Obx(() {
-                        return _buildDropdown(
-                            "Sub Category", "E.g. Veg, North Indian...",
-                            selectedValue: controller.selectedSubCategory.value,
-                            onChanged: (v) =>
-                            controller.selectedSubCategory.value = v!,
-                            items: controller.foodType2Options);
-                      }),
-
-                      SizedBox(height: SizeConfig.size10),
-
-                      // Description
-                      _buildTextField("Food Description",
-                          "Horem ipsum dolor sit amet, consectetur adipiscing...",
-                          controller: controller.descCtrl,
-                          maxLines: 5),
-
-                      const SizedBox(height: 16),
-                      // Add Ons
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 0),
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                                color: AppColors.whiteE5
-                            )
-                        ),
-                        child: ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          leading: const Icon(Icons.add_circle_outline),
-                          title: const Text("Add ons"),
-                          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                          onTap: () async {
-                            final result = await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    AddOnsPage(
-                                      initialAddOns: List<Map<String, dynamic>>.from(controller.addOns),
-                                    ),
-                              ),
-                            );
-
-                            if (result != null && result is List<Map<String, dynamic>>) {
-                              log('result length  before  -- > $result');
-                              controller.addOns.assignAll(result);
-                               log('result length after -- > ${controller.addOns.length}');
+                              }): PriceOptionsWidget();
                             }
-                          },
                         ),
-                      ),
-                      SizedBox(height: 10),
-                      Obx(() {
-                        final addOns = controller.addOns;
 
-                        if (addOns.isEmpty) {
-                          return const SizedBox();
-                        }
-                        return Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: List.generate(addOns.length, (index) {
-                            final item = addOns[index];
-                            return Chip(
-                              label: Text(
-                                "${item['name']} (+₹${item['price']})",
-                                style: const TextStyle(fontWeight: FontWeight.w500, color: AppColors.mainTextColor),
-                              ),
-                              backgroundColor: AppColors.primaryColor.withValues(alpha: 0.1),
-                              deleteIcon: const Icon(Icons.close, size: 18),
-                              onDeleted: () {
-                                 addOns.removeAt(index);
-                              },
-                            );
-                          }),
-                        );
-                      }),
+                        // SizedBox(height: SizeConfig.size10,),
+                        // Obx(() {
+                        //     return (controller.isSingleProduct.value) ? SizedBox() : Row(
+                        //       children: [
+                        //         Expanded(
+                        //           child: CommonTextField(
+                        //             contentPadding: EdgeInsets.symmetric(
+                        //                 vertical: 14, horizontal: 12),
+                        //
+                        //             hintText: "E.g. Medium",
+                        //             textEditController: TextEditingController(),
+                        //             keyBoardType: TextInputType.number,
+                        //           ),
+                        //         ),
+                        //         SizedBox(width: SizeConfig.size10),
+                        //         Expanded(
+                        //           child: CommonTextField(
+                        //             contentPadding: EdgeInsets.symmetric(
+                        //                 vertical: 14, horizontal: 12),
+                        //             hintText: "E.g. ₹300",
+                        //             textEditController: TextEditingController(),
+                        //             keyBoardType: TextInputType.number,
+                        //           ),
+                        //         ),
+                        //       ],
+                        //     );
+                        //   }
+                        // ),
+                        // Obx(() {
+                        //     return (controller.isSingleProduct.value) ? SizedBox() : SizedBox(
+                        //       height: SizeConfig.size10,);
+                        //   }
+                        // ),
+                        // Obx(
+                        //   () {
+                        //     return (controller.isSingleProduct.value) ? SizedBox() : Row(
+                        //       children: [
+                        //         Expanded(
+                        //           child: CommonTextField(
+                        //             contentPadding: EdgeInsets.symmetric(
+                        //                 vertical: 14, horizontal: 12),
+                        //
+                        //             hintText: "E.g. Large",
+                        //             textEditController: TextEditingController(),
+                        //             keyBoardType: TextInputType.number,
+                        //           ),
+                        //         ),
+                        //         SizedBox(width: SizeConfig.size10),
+                        //         Expanded(
+                        //           child: CommonTextField(
+                        //             contentPadding: EdgeInsets.symmetric(
+                        //                 vertical: 14, horizontal: 12),
+                        //             hintText: "E.g. ₹300",
+                        //             textEditController: TextEditingController(),
+                        //             keyBoardType: TextInputType.number,
+                        //           ),
+                        //         ),
+                        //       ],
+                        //     );
+                        //   }
+                        // ),
 
-                      SafeArea(
-                        child: CommonCardWidget(
-                          padding: 0,
-                          child: SingleChildScrollView(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // 🔹 Key Ingredients
-                                const SizedBox(height: 10),
-                                _buildSectionTitle("Cooking Method"),
-                                const SizedBox(height: 6),
-                                CustomText("${controller.selectedCookingMethod.value}",fontSize: 16,fontWeight: FontWeight.w500,),
-                                const SizedBox(height: 10),
-                                _buildSectionTitle("Item Nature"),
-                                const SizedBox(height: 6),
-                                CustomText("${controller.selectedItemNature.value}",fontSize: 16,fontWeight: FontWeight.w500,),
-                                const SizedBox(height: 10),
-                                _buildSectionTitle("Key Ingredients"),
-                                const SizedBox(height: 4),
-                                Obx(() {
-                                  return Wrap(
-                                    spacing: 8,
-                                    children: controller.ingredients.map((e) {
-                                      return Chip(
-                                        shadowColor: AppColors.secondaryTextColor,
-                                        elevation: 1,
-                                        label: CustomText(e),
-                                        backgroundColor: AppColors.white
-                                            .withValues(
-                                            alpha: 0.5),
-                                        deleteIcon: const Icon(
-                                            Icons.close, size: 18),
-                                        onDeleted: () {
-                                          setState(() {
-                                            controller.ingredients.remove(e);
-                                          });
-                                        },
-                                      );
-                                    }).toList(),
-                                  );
-                                }),
 
-                                SizedBox(height: SizeConfig.size12),
+                        const SizedBox(height: 10),
 
-                                // 🔹 Serving Options
-                                _buildSectionTitle("Serving Options"),
-                                const SizedBox(height: 4),
-                                Column(
-                                  children: List<Map<String, dynamic>>.from(
-                                      widget.foodData["servingOptions"] ?? [])
-                                      .map((e) {
-                                    return Card(
-                                      child: ListTile(
-                                        leading: const Icon(Icons.restaurant),
-                                        title: CustomText("${e["size"]}"),
-                                        subtitle: CustomText(
-                                            "Serves ${e["serves"]}"),
-                                      ),
-                                    );
-                                  }).toList(),
-                                ),
 
-                                SizedBox(height: SizeConfig.size12),
+                        // Column(
+                        //   crossAxisAlignment: CrossAxisAlignment.start,
+                        //   children: [
+                        //     const CustomText(
+                        //         "Discount", fontWeight: FontWeight.w400),
+                        //     SizedBox(
+                        //       height: SizeConfig.size8,
+                        //     ),
+                        //     Container(
+                        //       decoration: BoxDecoration(
+                        //           borderRadius: BorderRadius.circular(10),
+                        //           border: Border.all(
+                        //               color: AppColors.whiteE5
+                        //           )
+                        //       ),
+                        //       padding: EdgeInsets.symmetric(horizontal: SizeConfig
+                        //           .size14),
+                        //       child: ListTile(
+                        //         contentPadding: EdgeInsets.zero,
+                        //         title: CustomText("Discount Coupon",
+                        //           fontFamily: "Arial",
+                        //         ),
+                        //         trailing: const Icon(
+                        //             CupertinoIcons.chevron_forward),
+                        //         onTap: () {},
+                        //       ),
+                        //     ),
+                        //     SizedBox(
+                        //       height: SizeConfig.size8,
+                        //     ),
+                        //     Row(mainAxisAlignment: MainAxisAlignment.end,
+                        //       children: [
+                        //         GestureDetector(
+                        //           onTap: () {
+                        //             showDiscountCouponDialog(context);
+                        //           },
+                        //           child: Row(
+                        //             children: [
+                        //               const Icon(
+                        //                 CupertinoIcons.add, color: Colors.blue,
+                        //                 size: 20,),
+                        //               SizedBox(width: 6),
+                        //               const CustomText(
+                        //                 "Add More Coupon",
+                        //                 color: Colors.blue,
+                        //                 fontWeight: FontWeight.w500,
+                        //               ),
+                        //             ],
+                        //           ),
+                        //         ),
+                        //       ],
+                        //     )
+                        //   ],
+                        // )
+                      ],
+                    ),
+                  ),
 
-                                // 🔹 Accompaniments
-                                _buildSectionTitle("Accompaniments"),
-                                const SizedBox(height: 4),
+                  const SizedBox(height: 16),
 
-                                Obx(() {
-                                  return Wrap(
-                                    spacing: 8,
-                                    children: controller.accompaniments.map((e) {
-                                      return Chip(
-                                        shadowColor: AppColors.secondaryTextColor,
-                                        elevation: 1,
-                                        label: CustomText(e),
-                                        backgroundColor: AppColors.white
-                                            .withValues(
-                                            alpha: 0.5),
-                                        deleteIcon: const Icon(
-                                            Icons.close, size: 18),
-                                        onDeleted: () {
-                                          // 9789
-                                          controller.accompaniments.remove(e);
-                                        },
-                                      );
-                                    }).toList(),
-                                  );
-                                }),
+                  Container(
+                    padding: EdgeInsets.all(SizeConfig.size16),
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      // boxShadow: [AppShadows.textFieldShadow],
+                    ),
 
-                                SizedBox(height: SizeConfig.size12),
-
-                                // 🔹 Nutrition Summary
-                                _buildSectionTitle(
-                                    "Nutritional Summary (per 100g)"),
-                                const SizedBox(height: 4),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment
-                                      .spaceAround,
-                                  children: [
-                                    _nutritionCard(
-                                        "Calories",
-                                        widget
-                                            .foodData["nutritionalSummary_per100g"]
-                                        ["calories_kcal"]),
-                                    _nutritionCard(
-                                        "Protein",
-                                        widget
-                                            .foodData["nutritionalSummary_per100g"]
-                                        ["protein_g"]),
-                                    _nutritionCard(
-                                        "Carbs",
-                                        widget
-                                            .foodData["nutritionalSummary_per100g"]
-                                        ["carbs_g"]),
-                                    _nutritionCard(
-                                        "Fat",
-                                        widget
-                                            .foodData["nutritionalSummary_per100g"]
-                                        ["fat_g"]),
-                                  ],
-                                ),
-
-                                SizedBox(height: SizeConfig.size12),
-
-                                // 🔹 Key Minerals
-                                _buildSectionTitle("Key Minerals"),
-                                const SizedBox(height: 4),
-                                Wrap(
-                                  spacing: 8,
-                                  children:
-                                  List<String>.from(
-                                      widget.foodData["keyMinerals"] ?? [])
-                                      .map((e) {
-                                    return Chip(
-                                      backgroundColor: Colors.teal[50],
-                                      label: CustomText(e),
-                                    );
-                                  }).toList(),
-                                ),
-
-                                SizedBox(height: SizeConfig.size12),
-
-                                // 🔹 SEO Tags
-                                _buildSectionTitle("SEO Tags"),
-                                const SizedBox(height: 4),
-                                Wrap(
-                                  spacing: 8,
-                                  children:
-                                  List<String>.from(
-                                      widget.foodData["seoTags"] ?? [])
-                                      .map((e) {
-                                    return Chip(
-                                      backgroundColor: Colors.orange[50],
-                                      label: CustomText("#$e"),
-                                    );
-                                  }).toList(),
-                                ),
-                              ],
-                            ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        //   children: [
+                        //     CustomText("Add More Details",
+                        //       fontWeight: FontWeight.w600,),
+                        //     GestureDetector(
+                        //       onTap: () {
+                        //         showAddMoreDetailsDialog(context);
+                        //       },
+                        //       child: Container(
+                        //           height: 28,
+                        //           width: 28,
+                        //           decoration: BoxDecoration(
+                        //               borderRadius: BorderRadius.circular(8),
+                        //               color: Colors.blue
+                        //           ),
+                        //           child: Center(child: const Icon(CupertinoIcons.add,
+                        //             color: Colors.white,size: 21,))),
+                        //     ),
+                        //   ],
+                        // ),
+                        // SizedBox(height: SizeConfig.size30,),
+                        SizedBox(
+                          width: double.infinity,
+                          child: CustomBtn(
+                            onTap: ()  {
+                              controller.addFoodServices(
+                                  widget.foodData,
+                                  widget.providerType,
+                                  serviceSubType: widget.serviceSubType);
+                            },
+                            title: controller.isAddFoodLoading.value
+                                ? null
+                                : 'Post Food',
+                            isLoading: controller.isAddFoodLoading.value,
+                            bgColor: AppColors.primaryColor,
                           ),
                         ),
-                      )
-                    ],
+
+                      ],
+                    ),
                   ),
-                ),
-
-                const SizedBox(height: 16),
-
-                _buildSectionContainer(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(height: SizeConfig.size10),
-                      _discountSection(),
-                      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          CustomText("Price",),
-                          Row(
-                            children: [
-                              Row(
-                                children: [
-                                  Obx(() {
-                                    return Radio(
-                                      visualDensity: const VisualDensity(
-                                          horizontal: -4, vertical: -4),
-                                      value: true,
-                                      groupValue: controller.isSingleProduct
-                                          .value,
-                                      onChanged: (v) =>
-                                      controller.isSingleProduct.value = true,
-                                    );
-                                  }),
-                                  const CustomText(
-                                    "Single Product", fontSize: 12,)
-                                ],
-                              ),
-                              const SizedBox(width: 16),
-                              Row(
-                                children: [
-                                  Obx(() {
-                                    return Radio(
-                                      visualDensity: const VisualDensity(
-                                          horizontal: -4, vertical: -4),
-                                      value: false,
-                                      groupValue: controller.isSingleProduct
-                                          .value,
-                                      onChanged: (v) =>
-                                          setState(() =>
-                                          controller.isSingleProduct.value =
-                                          false),
-                                    );
-                                  }),
-                                  const CustomText("Multiple type", fontSize: 12,)
-                                ],
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: SizeConfig.size10,),
-
-                      Obx(
-                              () {
-                            return (controller.isSingleProduct.value)? Obx(() {
-                              return Row(
-                                children: [
-                                  (controller.isSingleProduct.value)
-                                      ? SizedBox()
-                                      : Expanded(
-                                    child: CommonTextField(
-                                      contentPadding: EdgeInsets.symmetric(
-                                          vertical: 14, horizontal: 12),
-
-                                      hintText: "E.g. Small",
-                                      textEditController: TextEditingController(),
-                                      keyBoardType: TextInputType.number,
-                                    ),
-                                  ),
-                                  SizedBox(width: SizeConfig.size10),
-                                  Expanded(
-                                    child: CommonTextField(
-                                      contentPadding: EdgeInsets.symmetric(
-                                          vertical: 14, horizontal: 12),
-                                      hintText: "E.g. ₹300",
-                                      textEditController: controller
-                                          .singlePriceController,
-                                      keyBoardType: TextInputType.number,
-                                    ),
-                                  ),
-                                ],
-                              );
-                            }): PriceOptionsWidget();
-                          }
-                      ),
-                      //
-
-                      // SizedBox(height: SizeConfig.size10,),
-                      // Obx(() {
-                      //     return (controller.isSingleProduct.value) ? SizedBox() : Row(
-                      //       children: [
-                      //         Expanded(
-                      //           child: CommonTextField(
-                      //             contentPadding: EdgeInsets.symmetric(
-                      //                 vertical: 14, horizontal: 12),
-                      //
-                      //             hintText: "E.g. Medium",
-                      //             textEditController: TextEditingController(),
-                      //             keyBoardType: TextInputType.number,
-                      //           ),
-                      //         ),
-                      //         SizedBox(width: SizeConfig.size10),
-                      //         Expanded(
-                      //           child: CommonTextField(
-                      //             contentPadding: EdgeInsets.symmetric(
-                      //                 vertical: 14, horizontal: 12),
-                      //             hintText: "E.g. ₹300",
-                      //             textEditController: TextEditingController(),
-                      //             keyBoardType: TextInputType.number,
-                      //           ),
-                      //         ),
-                      //       ],
-                      //     );
-                      //   }
-                      // ),
-                      // Obx(() {
-                      //     return (controller.isSingleProduct.value) ? SizedBox() : SizedBox(
-                      //       height: SizeConfig.size10,);
-                      //   }
-                      // ),
-                      // Obx(
-                      //   () {
-                      //     return (controller.isSingleProduct.value) ? SizedBox() : Row(
-                      //       children: [
-                      //         Expanded(
-                      //           child: CommonTextField(
-                      //             contentPadding: EdgeInsets.symmetric(
-                      //                 vertical: 14, horizontal: 12),
-                      //
-                      //             hintText: "E.g. Large",
-                      //             textEditController: TextEditingController(),
-                      //             keyBoardType: TextInputType.number,
-                      //           ),
-                      //         ),
-                      //         SizedBox(width: SizeConfig.size10),
-                      //         Expanded(
-                      //           child: CommonTextField(
-                      //             contentPadding: EdgeInsets.symmetric(
-                      //                 vertical: 14, horizontal: 12),
-                      //             hintText: "E.g. ₹300",
-                      //             textEditController: TextEditingController(),
-                      //             keyBoardType: TextInputType.number,
-                      //           ),
-                      //         ),
-                      //       ],
-                      //     );
-                      //   }
-                      // ),
-
-
-                      const SizedBox(height: 10),
-
-
-                      // Column(
-                      //   crossAxisAlignment: CrossAxisAlignment.start,
-                      //   children: [
-                      //     const CustomText(
-                      //         "Discount", fontWeight: FontWeight.w400),
-                      //     SizedBox(
-                      //       height: SizeConfig.size8,
-                      //     ),
-                      //     Container(
-                      //       decoration: BoxDecoration(
-                      //           borderRadius: BorderRadius.circular(10),
-                      //           border: Border.all(
-                      //               color: AppColors.whiteE5
-                      //           )
-                      //       ),
-                      //       padding: EdgeInsets.symmetric(horizontal: SizeConfig
-                      //           .size14),
-                      //       child: ListTile(
-                      //         contentPadding: EdgeInsets.zero,
-                      //         title: CustomText("Discount Coupon",
-                      //           fontFamily: "Arial",
-                      //         ),
-                      //         trailing: const Icon(
-                      //             CupertinoIcons.chevron_forward),
-                      //         onTap: () {},
-                      //       ),
-                      //     ),
-                      //     SizedBox(
-                      //       height: SizeConfig.size8,
-                      //     ),
-                      //     Row(mainAxisAlignment: MainAxisAlignment.end,
-                      //       children: [
-                      //         GestureDetector(
-                      //           onTap: () {
-                      //             showDiscountCouponDialog(context);
-                      //           },
-                      //           child: Row(
-                      //             children: [
-                      //               const Icon(
-                      //                 CupertinoIcons.add, color: Colors.blue,
-                      //                 size: 20,),
-                      //               SizedBox(width: 6),
-                      //               const CustomText(
-                      //                 "Add More Coupon",
-                      //                 color: Colors.blue,
-                      //                 fontWeight: FontWeight.w500,
-                      //               ),
-                      //             ],
-                      //           ),
-                      //         ),
-                      //       ],
-                      //     )
-                      //   ],
-                      // )
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-
-                Container(
-                  padding: EdgeInsets.all(SizeConfig.size16),
-                  decoration: BoxDecoration(
-                    color: AppColors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    // boxShadow: [AppShadows.textFieldShadow],
-                  ),
-
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      //   children: [
-                      //     CustomText("Add More Details",
-                      //       fontWeight: FontWeight.w600,),
-                      //     GestureDetector(
-                      //       onTap: () {
-                      //         showAddMoreDetailsDialog(context);
-                      //       },
-                      //       child: Container(
-                      //           height: 28,
-                      //           width: 28,
-                      //           decoration: BoxDecoration(
-                      //               borderRadius: BorderRadius.circular(8),
-                      //               color: Colors.blue
-                      //           ),
-                      //           child: Center(child: const Icon(CupertinoIcons.add,
-                      //             color: Colors.white,size: 21,))),
-                      //     ),
-                      //   ],
-                      // ),
-                      // SizedBox(height: SizeConfig.size30,),
-                      SizedBox(
-                        width: double.infinity,
-                        child: CustomBtn(
-                          onTap: ()  {
-                            controller.addFoodServices(
-                                widget.foodData,
-                                widget.providerType,
-                                serviceSubType: widget.serviceSubType);
-                          },
-                          title: controller.isAddFoodLoading.value
-                              ? null
-                              : 'Post Food',
-                          isLoading: controller.isAddFoodLoading.value,
-                          bgColor: AppColors.primaryColor,
-                        ),
-                      ),
-
-                    ],
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           )),
         ),
@@ -1008,6 +1011,7 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
           title: label,
           hintText: hint,
           textEditController: controller,
+          isValidate: true,
         ),
       ],
     );

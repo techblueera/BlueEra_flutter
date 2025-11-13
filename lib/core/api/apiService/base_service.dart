@@ -499,7 +499,7 @@ abstract class BaseService {
   final String channelsRecommendations = "channel-service/channels/recommendations/trending";
   final String channelServiceFollower = "channel-service/follower/";
 
-  final String addRentalService = "booking-enquiry-service/rentals";
+  final String rentalService = "booking-enquiry-service/rentals";
   final String generateHomeRentalService = "ai-service/api/ai-property/generate-description";
 
 

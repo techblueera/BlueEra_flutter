@@ -1458,6 +1458,33 @@ enum PickUpTab {
   const PickUpTab(this.label);
 }
 
+enum InventoryMenuItem {
+  addProduct,
+  addService,
+  addFood,
+}
+
+extension InventoryMenuItemExt on InventoryMenuItem {
+  String get title {
+    switch (this) {
+      case InventoryMenuItem.addProduct:
+        return 'Add Product';
+      case InventoryMenuItem.addService:
+        return 'Add Service';
+      case InventoryMenuItem.addFood:
+        return 'Add Food';
+    }
+  }
+}
+
+enum RentalServiceTab {
+  homeStay("Home Stay"),
+  flatRoom("Flat/Room"),
+  vehicle("Vehicle");
+
+  final String label;
+  const RentalServiceTab(this.label);
+}
 
 
 

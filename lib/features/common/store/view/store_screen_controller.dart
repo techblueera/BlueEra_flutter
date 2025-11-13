@@ -387,22 +387,28 @@ class StoreScreenController extends GetxController {
   }
 
   ///GET STORE PRODUCT ONLY....
-  Future<void> getAllStoreProductNearBy({bool isLoadMore = false, String? query}) async {
+  Future<void> getAllStoreProductNearBy({
+          bool isLoadMore = false,
+          String? query}
+      ) async {
     if (isLoadMore) {
       if (isStoreProductDataLoadingMore.value || !storeProductDataHasMore) return;
       isStoreProductDataLoadingMore.value = true;
     } else {
       isStoreProductDataFirstLoading.value = true;
-      final cachedProduct = await HiveServices().getAllStoreProduct(userId);
-      if (cachedProduct != null && cachedProduct.isNotEmpty) {
-        storeProductDataList.assignAll(cachedProduct);
-        isStoreProductDataFirstLoading.value = false;
-      } else {
-        storeProductDataList.clear();
-      }
-
       storeProductDataPage = 1;
       storeProductDataHasMore = true;
+      storeProductDataList.clear();
+
+      /// fetch local data not for search
+      if(query == null){
+        final cachedProduct = await HiveServices().getAllStoreProduct(userId);
+        if (cachedProduct != null && cachedProduct.isNotEmpty) {
+          storeProductDataList.assignAll(cachedProduct);
+          isStoreProductDataFirstLoading.value = false;
+        }
+      }
+
     }
 
     try {
@@ -413,7 +419,8 @@ class StoreScreenController extends GetxController {
             lat: LocationService.lat != 0.0 ? "${LocationService.lat}" : "",
             long: LocationService.lng != 0.0
                 ? "${LocationService.lng}"
-                : ""
+                : "",
+           query: query
          );
       }else{
         response = await StoreRepo().homePageProductRepo(
@@ -430,15 +437,20 @@ class StoreScreenController extends GetxController {
         final getOwnProductModel =
         GetProductModel.fromJson(response.response?.data);
 
-        final List<GetProductData> newData =
-            getOwnProductModel.data;
+        final List<GetProductData> newData = getOwnProductModel.data;
 
         if (newData.isNotEmpty) {
           if (isLoadMore) {
             storeProductDataList.addAll(newData);
           } else {
             storeProductDataList.assignAll(newData);
-            await HiveServices().saveAllStoreProduct(storeProductDataList, userId);
+            log('product data length--> ${storeProductDataList.length}');
+            log('loggggg 1--> ${storeProductDataList[0].product.business_name}');
+
+            if(query == null) {
+              await HiveServices().saveAllStoreProduct(
+                  storeProductDataList, userId);
+            }
           }
           storeProductDataPage++;
         }
@@ -446,8 +458,8 @@ class StoreScreenController extends GetxController {
         storeProductDataHasMore = false;
         getAllStoreProductResponse.value = ApiResponse.error('error');
       }
-    } catch (e) {
-      print("stack: $e");
+    } catch (e, s) {
+      print("stack: $s");
       getAllStoreProductResponse.value = ApiResponse.error('error');
     } finally{
       if (isLoadMore) {

@@ -1,7 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/business/business_description/business_description_controller.dart';
-import 'package:BlueEra/features/common/rental/controller/home_stay_rental_service_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/rental/controller/home_stay_rental_service_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';

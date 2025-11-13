@@ -87,6 +87,10 @@ class SharingBusinessServiceCard extends StatelessWidget {
                             width: cardSize * 0.35,
                             height: cardSize * 0.48,
                             fit: BoxFit.cover,
+                            memCacheWidth: 600,
+                            memCacheHeight: 600,
+                            fadeInDuration: const Duration(milliseconds: 100),
+                            fadeOutDuration: Duration.zero,
                             placeholder: (context, url) => ClipRRect(
                               borderRadius: BorderRadius.circular(8.0 * scaleFactor),
                               child: LocalAssets(

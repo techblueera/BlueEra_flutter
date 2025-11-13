@@ -8,7 +8,6 @@ import 'package:BlueEra/features/common/food/view/food_details_view_screen.dart'
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../../../../core/api/apiService/api_keys.dart';
@@ -108,7 +107,7 @@ class _FoodAndGroceryScreenState extends State<FoodAndGroceryScreen>
                       controller: controller,
                       foodData: food,
                       isFromEarnWithBlueEra: isFromEarnWithBlueEra
-                    ); // ✅ dynamic card
+                    ); // dynamic card
                   },
                 ),
               ),
@@ -181,8 +180,7 @@ class FoodItemCard extends StatelessWidget {
                     bottomLeft: Radius.circular(12),
                   ),
                   child: (foodData.photos?.isNotEmpty??false)
-                      ?
-                  CustomImageSlideshow(
+                      ? CustomImageSlideshow(
                     isLoading: false,
                     width: 140, // fixed width for image column
                     height: 200, // fixed height (adjust as needed)
@@ -365,7 +363,8 @@ class FoodItemCard extends StatelessWidget {
                           const SizedBox(height: 6),
 
                           // Add-ons
-                          if (foodData.addOns != null && foodData.addOns!.isNotEmpty)
+                          if (foodData.addOns != null
+                              && foodData.addOns!.isNotEmpty)
                             Wrap(
                               spacing: 12,
                               runSpacing: 4,

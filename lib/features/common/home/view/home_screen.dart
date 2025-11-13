@@ -268,7 +268,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             /*  VideoFeedScreen(
                           onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
                           query: searchController.text,
-                          headerHeight: _headerHeight),
+                           headerHeight: _headerHeight),
                       ShortsFeedScreen(
                           query: searchController.text,
                           headerHeight: _headerHeight

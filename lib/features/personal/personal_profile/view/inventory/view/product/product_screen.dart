@@ -2,13 +2,13 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product_preview_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/product_preview_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/own_product_card.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../model/get_product_model.dart';
+import '../../model/get_product_model.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
  
 class ProductScreen extends StatefulWidget {

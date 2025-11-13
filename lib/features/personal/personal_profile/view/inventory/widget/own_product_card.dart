@@ -4,7 +4,7 @@ import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product_preview_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/product_preview_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/attribute_two_rows.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';

@@ -151,6 +151,7 @@ class _FoodServiceGuideBottomSheetState extends State<FoodServiceGuideBottomShee
                   arguments: {
                     ApiKeys.providerType: ProductServiceProviderType.user,
                     ApiKeys.serviceSubType: EarnWithBlueEraServiceTypes.homeMadeFood,
+                    ApiKeys.category: selectedService?.name,
                   },
                 );
               },

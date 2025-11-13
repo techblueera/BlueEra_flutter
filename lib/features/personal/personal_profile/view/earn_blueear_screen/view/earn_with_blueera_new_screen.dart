@@ -7,7 +7,7 @@ import 'package:BlueEra/features/personal/auth/controller/view_personal_details_
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/controller/earn_with_blueera_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/foodandgrocery/food_and_grocery_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/view_service_list.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/service/view_service_list.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/own_product_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/earn_with_blue_era_bottom_sheet.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -191,7 +191,7 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> wit
             selectedIndex: earnWithBlueEraController.selectedProductsServicesTabIndex.value,
             horizontalMargin: 0.0,
             onTabSelected: (index, value) {
-              onProductsServicesTabChanged(index);
+              onEarnServiceTabChanged(index);
             },
             labelBuilder: (label) => label,
           ),
@@ -209,26 +209,30 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> wit
     return DeliveryPartnerOrders();
   }
 
-  void onProductsServicesTabChanged(int index) async {
+  void onEarnServiceTabChanged(int index) async {
     earnWithBlueEraController.selectedProductsServicesTabIndex.value = index;
 
     switch (index) {
-      case 0: // Product
+      case 0: // Self Work
+
+        break;
+
+      case 1: // Delivery Partner
+        break;
+
+      case 2: // Product
         // if (earnWithBlueEraController.ownProductDataList.isEmpty) {
-          await earnWithBlueEraController.fetchOwnProducts();
+        await earnWithBlueEraController.fetchOwnProducts();
         // }
         break;
 
-      case 1: // Food
+      case 3: // Food
         break;
 
-      case 2: // Service
+      case 4: // Home Services
         break;
 
-      case 3: // rental Service
-        // if (foodDataList.isEmpty) {
-        //   await getAllFoodService();
-        // }
+      case 5: // Rental Services
         break;
 
     }

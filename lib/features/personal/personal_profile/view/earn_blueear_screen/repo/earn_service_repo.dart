@@ -17,7 +17,7 @@ class EarnServiceRepo extends BaseService {
   }
 
   /// Get Earn Services
-  Future<ResponseModel> getServiceRepo({required Map<String, dynamic> queryParams}) async {
+  Future<ResponseModel> getEarnServiceRepo({required Map<String, dynamic> queryParams}) async {
     final response = await ApiBaseHelper().getHTTP(
       earnServices,
       params: queryParams,
