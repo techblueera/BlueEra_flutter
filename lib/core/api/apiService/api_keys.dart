@@ -509,4 +509,5 @@ class ApiKeys {
   static const propertyHighlight = 'property_highlight';
   static const deliveryOTP = 'deliveryOTP';
   static const searchTerm = 'searchTerm';
+  static const newContactNo = 'new_contact_no';
 }

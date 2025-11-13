@@ -365,9 +365,9 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                      onTap: () {
                        widget.controller.addProductToInventory(
                            id: widget.id,
+                           providerType: widget.providerType,
                            addProductViaAiController: widget.controller,
                            products: widget.controller.listedProducts,
-                           providerType: widget.providerType
                        );
                      },
                      isLoading: widget.controller.isAddProductToInventoryLoading.value

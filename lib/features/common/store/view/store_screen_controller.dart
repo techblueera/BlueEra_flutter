@@ -62,6 +62,7 @@ class StoreScreenController extends GetxController {
 
   /// All Stores feed data(Product, stores, food, services)
   RxList<AllStoresFeedData> allNearByStoresFeed = <AllStoresFeedData>[].obs;
+  final RxList<List<AllStoresFeedData>> groupedStoreFeed = <List<AllStoresFeedData>>[].obs;
   RxBool isAllStoreFeedLoadingMore = false.obs;
   RxBool isAllStoreFeedFirstLoading = false.obs;
   int allStoreFeedPage = 1;
@@ -102,10 +103,15 @@ class StoreScreenController extends GetxController {
       // Try to load cached feed first
       final cachedFeed = await HiveServices().getAllStoresFeeds(userId);
       if (cachedFeed != null && cachedFeed.isNotEmpty) {
-        allNearByStoresFeed.assignAll(cachedFeed);
         isAllStoreFeedFirstLoading.value = false;
+        allNearByStoresFeed.assignAll(cachedFeed);
+        await Future(() {
+          final newBlocks = _groupStoreFeed(allNearByStoresFeed);
+          groupedStoreFeed.assignAll(newBlocks);
+        });
       }else{
         allNearByStoresFeed.clear();
+        groupedStoreFeed.clear();
       }
 
       final locationData = await LocationService.fetchLocation(
@@ -127,8 +133,6 @@ class StoreScreenController extends GetxController {
     }
   }
 
-
-
   ///GET All Stores feed data(Product, stores, food, services)...
   Future<void> getAllStoresFeedNearBy({bool isLoadMore = false}) async {
     if (isLoadMore) {
@@ -138,41 +142,90 @@ class StoreScreenController extends GetxController {
       allStoreFeedPage = 1;
       allStoreFeedHasMore = true;
     }
+
     try {
       final response = await StoreRepo().getAllStoresFeed(
-          page: allStoreFeedPage,
-          lat: LocationService.lat != 0.0 ? "${LocationService.lat}" : "",
-          long: LocationService.lng != 0.0
-              ? "${LocationService.lng}"
-              : "");
+        page: allStoreFeedPage,
+        lat: LocationService.lat != 0.0 ? "${LocationService.lat}" : "",
+        long: LocationService.lng != 0.0 ? "${LocationService.lng}" : "",
+      );
 
-      if (response.isSuccess) {
-        getAllStoreFeedResponse.value = ApiResponse.complete(response);
-        final AllStoresFeedResponseModel allStoresFeedResponseModel =
-        AllStoresFeedResponseModel.fromJson(response.response?.data);
-
-        final List<AllStoresFeedData> newData =
-            allStoresFeedResponseModel.data ?? [];
-
-        if (newData.isNotEmpty) {
-          if (isLoadMore) {
-            allNearByStoresFeed.addAll(newData);
-          } else {
-            allNearByStoresFeed.assignAll(newData);
-            await HiveServices().saveAllStoresFeeds(allNearByStoresFeed, userId);
-          }
-          allStoreFeedPage++;
-        }
-      } else {
+      if (!response.isSuccess) {
         allStoreFeedHasMore = false;
         getAllStoreFeedResponse.value = ApiResponse.error('error');
+        return;
       }
+
+      // Parse API response
+      final model = AllStoresFeedResponseModel.fromJson(response.response?.data);
+      final List<AllStoresFeedData> newData = model.data ?? [];
+
+      if (newData.isEmpty) {
+        allStoreFeedHasMore = false;
+        return;
+      }
+
+      if (isLoadMore) {
+        allNearByStoresFeed.addAll(newData);
+      } else {
+        allNearByStoresFeed
+          ..clear()
+          ..addAll(newData);
+
+        Future.microtask(() => HiveServices().saveAllStoresFeeds(newData, userId));
+      }
+
+      // Update grouped list in background (non-blocking)
+      Future.microtask(() async {
+        final newBlocks = _groupStoreFeed(newData);
+        if (isLoadMore) {
+          groupedStoreFeed.addAll(newBlocks);
+        } else {
+          groupedStoreFeed
+            ..clear()
+            ..addAll(newBlocks);
+        }
+      });
+
+      //  Move to next page for pagination
+      allStoreFeedPage++;
+
+      getAllStoreFeedResponse.value = ApiResponse.complete(response);
     } catch (e, s) {
-      log('stack trace--> $s');
+      log('Error in getAllStoresFeedNearBy → $e\nStacktrace → $s');
       getAllStoreFeedResponse.value = ApiResponse.error('error');
-    } finally{
+    } finally {
       isAllStoreFeedLoadingMore.value = false;
     }
+  }
+
+  List<List<AllStoresFeedData>> _groupStoreFeed(List<AllStoresFeedData> items) {
+    final List<List<AllStoresFeedData>> grouped = [];
+    final List<AllStoresFeedData> tempFood = [];
+
+    for (var item in items) {
+      final type = StoreTypeExtension.fromString(item.type);
+
+      if (type == StoreType.food) {
+        tempFood.add(item);
+        if (tempFood.length == 2) {
+          grouped.add(List.from(tempFood));
+          tempFood.clear();
+        }
+      } else {
+        if (tempFood.isNotEmpty) {
+          grouped.add(List.from(tempFood));
+          tempFood.clear();
+        }
+        grouped.add([item]);
+      }
+    }
+
+    if (tempFood.isNotEmpty) {
+      grouped.add(List.from(tempFood));
+    }
+
+    return grouped;
   }
 
   ///GET FOOD SERVICES ONLY....

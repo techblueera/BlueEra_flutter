@@ -6,10 +6,12 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/common/business_service/model/get_service_model.dart';
 import 'package:BlueEra/features/common/business_service/model/service_ai_generate_model.dart';
 import 'package:BlueEra/features/common/business_service/repo/service_ai_repo.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/repo/earn_with_blueera_repo.dart';
+import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/repo/earn_service_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/add_services_screen.dart';
 import 'package:get/get.dart';
@@ -122,7 +124,7 @@ class ServiceController extends GetxController {
       if(!isFromEarnWithBlueEra){
          response = await ServiceAiRepo().getServiceRepo(queryParams: queryParams);
       }else{
-        response = await EarnWithBlueEraRepo().getServiceRepo(queryParams: queryParams);
+        response = await EarnServiceRepo().getServiceRepo(queryParams: queryParams);
       }
 
       if (response.isSuccess) {
@@ -179,7 +181,7 @@ class ServiceController extends GetxController {
       if(!isFromEarnWithBlueEra){
         response = await ServiceAiRepo().deleteServiceRepo(serviceId: serviceId);
       }else{
-        response = await EarnWithBlueEraRepo().deleteServiceRepo(serviceId: serviceId);
+        response = await EarnServiceRepo().deleteServiceRepo(serviceId: serviceId);
       }
 
       if (response.isSuccess) {
@@ -187,6 +189,15 @@ class ServiceController extends GetxController {
         Get.back();
         serviceDataList.removeWhere((service) => service.id == serviceId);
         serviceDataList.refresh();
+
+        if(isFromEarnWithBlueEra){
+          final viewPersonalDetailsController = Get.isRegistered<ViewPersonalDetailsController>()
+              ? Get.find<ViewPersonalDetailsController>()
+              : Get.put(ViewPersonalDetailsController());
+        earnServiceCreatedStatusGlobal = 'false';
+        viewPersonalDetailsController.getEarnServiceStatus();
+        }
+
         print('Total: ${serviceDataList.length}');
       } else {
         deleteServiceResponse.value = ApiResponse.error('error');

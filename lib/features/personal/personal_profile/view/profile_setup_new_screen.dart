@@ -161,6 +161,9 @@ class _PersonalProfileSetupNewScreenState
 
   Future<void> _loadInitialData() async {
     await viewProfileController.viewPersonalProfile();
+    if(userProfileGlobal == SELF_EMPLOYED && earnServiceCreatedStatusGlobal == 'false'){
+      viewProfileController.partiallyForceToCreateService();
+    }
     await viewProfileController.UserFollowersAndPostsCount(userId);
     // viewProfileController.isChannelCreated.value = channelId.isNotEmpty;
     checkAndGetAvailabilityBookingData();
@@ -171,7 +174,7 @@ class _PersonalProfileSetupNewScreenState
     final cached = await bookingTabController.getCachedAvailability();
 
     if (cached != null) {
-      logs('✅ Loaded availability from cache');
+      logs('Loaded availability from cache');
       viewProfileController.availabilityDetails.value = cached;
     } else {
       // No cache found, fetch from API
@@ -242,7 +245,6 @@ class _PersonalProfileSetupNewScreenState
           viewProfileController.website.value;
     }
   }
-
 
   bool _hasAnyLinks() {
     // Check if any social link is not null and not empty

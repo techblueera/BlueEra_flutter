@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/delivery_partner_orders/delivery_partner_orders.dart';
+import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/controller/earn_with_blueera_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/foodandgrocery/food_and_grocery_screen.dart';
@@ -55,6 +56,9 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> wit
   // final foodUploadController = Get.put(FoodUploadController());
   // final serviceController = Get.put(ServiceController());
   final deliveryPartnerController = Get.put(DeliveryPartnerController());
+  final viewPersonalDetailsController = Get.isRegistered<ViewPersonalDetailsController>()
+      ? Get.find<ViewPersonalDetailsController>()
+      : Get.put(ViewPersonalDetailsController());
 
   @override
   void initState() {
@@ -67,9 +71,15 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> wit
     earnWithBlueEraController.fetchOwnProducts();
 
     /// check riding status
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAndOpenEarnServiceSheet();
+    });
     deliveryPartnerController.ridersOnboardingStatusRepoApi();
-    WidgetsBinding.instance.addPostFrameCallback((_)=> _openEarnWithBlueEraSheet());
     super.initState();
+  }
+
+  void _checkAndOpenEarnServiceSheet() async {
+    _openEarnWithBlueEraSheet();
   }
 
   @override

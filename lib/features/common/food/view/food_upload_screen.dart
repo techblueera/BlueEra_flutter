@@ -151,9 +151,6 @@ class _FoodUploadScreenState extends State<FoodUploadScreen> {
             );
             if ((selected?.isNotEmpty ?? false) && selected != null) {
               controller.selectedImage.value = File(selected);
-            } else {
-              commonSnackBar(
-                  message: "Something went wrong please try again");
             }
           },
           child: Container(

@@ -194,22 +194,38 @@ class AuthRepo extends BaseService {
     return response;
   }
 
-  // GET PROVIDER STATUS Patch
-  Future<ResponseModel> getServiceExistsStatusRepo() async {
+
+
+  // GET PROVIDER STATUS Patch All(product, service and booking )
+  Future<ResponseModel> getServiceExistenceStatusRepo() async {
     final response = await ApiBaseHelper().getHTTP(
-      "${serviceExistsStatus}",
-      showProgress: false,
-      params: {ApiKeys.type: "service"},
+      serviceExistenceStatus,
       onError: (error) {},
       onSuccess: (data) {},
     );
     return response;
   }
 
-  // GET PROVIDER STATUS Patch All(product, service and booking )
-  Future<ResponseModel> getServiceExistenceStatusRepo() async {
-    final response = await ApiBaseHelper().getHTTP(
-      serviceExistenceStatus,
+  ///requestMobileUpdateOtpRepo...
+  Future<ResponseModel> requestMobileUpdateOtpRepo(
+      {Map<String, dynamic>? bodyRequest}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      requestMobileUpdateOtp,
+      params: bodyRequest,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  ///verifyMobileUpdateOtp...
+  Future<ResponseModel> verifyMobileUpdateOtpRepo(
+      {Map<String, dynamic>? bodyRequest}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      verifyMobileUpdateOtp,
+      params: bodyRequest,
+      showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );

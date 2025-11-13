@@ -23,6 +23,8 @@ import 'package:BlueEra/features/personal/personal_profile/controller/email_veri
 import 'package:BlueEra/features/personal/personal_profile/controller/introduction_video_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/create_profile_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/repo/earn_service_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -68,7 +70,7 @@ class ViewPersonalDetailsController extends GetxController {
     await callApiForChangeStatus();
   }
 
-  getServiceProviderStatus() async {
+  void getServiceProviderStatus() async {
     try {
       ResponseModel responseModel =
           await PersonalProfileRepo().getServiceStatusRepo();
@@ -175,7 +177,7 @@ class ViewPersonalDetailsController extends GetxController {
   List<_ProfileFieldStatus> fields = [];
   RxDouble myProfileCompletionPercent = 0.0.obs;
 
-  Future<void> viewPersonalProfile({bool isCheckServiceOpt = true}) async {
+  Future<void> viewPersonalProfile() async {
     final personalController = Get.put(PersonalCreateProfileController());
 
     try {
@@ -281,13 +283,13 @@ class ViewPersonalDetailsController extends GetxController {
 
 
           /// need to verify (for checking is service exists or not)
-          if (personalProfileDetails.value.user?.profession?.toUpperCase() == SELF_EMPLOYED ) {
-            if(isCheckServiceOpt){
-            await getUserServiceCreatedStatusUtils();
-            if (userServiceCreatedStatusGlobal.isEmpty || userServiceCreatedStatusGlobal == "false") {
-              await getUserServiceStatusController();
-            }
-          }
+          if (personalProfileDetails.value.user?.profession?.toUpperCase() == SELF_EMPLOYED) {
+          //   if(isCheckServiceOpt){
+          //   await getUserServiceCreatedStatusUtils();
+          //   if (userServiceCreatedStatusGlobal.isEmpty || userServiceCreatedStatusGlobal == "false") {
+          //     await getUserServiceStatusController();
+          //   }
+          // }
 
             await getServiceProviderStatusUtils();
             if (serviceProviderStatusGlobal.isNotEmpty) {
@@ -450,29 +452,29 @@ class ViewPersonalDetailsController extends GetxController {
     }
   }
 
+  // String checkIsEranServiceAlreadyCreated(){
+  //   return earnServiceCreatedStatusGlobal;
+  // }
+
   ///GET STATUS OF USER SERVICE...
-  Future<void> getUserServiceStatusController() async {
+  Future<void> getEarnServiceStatus() async {
     try {
+      log('is Earn Service created --> $earnServiceCreatedStatusGlobal');
+      if(earnServiceCreatedStatusGlobal == "true"){
+        return;
+      }
+
       ResponseModel responseModel =
-          await AuthRepo().getServiceExistsStatusRepo();
+          await EarnServiceRepo().getEarnServiceExistsStatusRepo();
 
       if (responseModel.isSuccess) {
-        final statusData = responseModel.response?.data['exists'].toString();
-
+        final statusData = responseModel.response?.data['exists'] != null
+            ? responseModel.response!.data['exists'].toString()
+            : 'false';
+        log('from api check is Earn Service created --> $earnServiceCreatedStatusGlobal');
         await SharedPreferenceUtils.setSecureValue(
-            SharedPreferenceUtils.userServiceCreatedStatusKey, statusData);
-        await getUserServiceCreatedStatusUtils();
-        if (statusData == "false") {
-          Get.toNamed(
-            RouteHelper.getAddServicesScreenRoute(),
-            arguments: {
-              ApiKeys.providerType: ProductServiceProviderType.user,
-              ApiKeys.isFromEarnWithBlueEraService: true,
-              ApiKeys.designation: userProfessionGlobal,
-              ApiKeys.serviceSubType: EarnWithBlueEraServiceTypes.selfWork,
-            },
-          );
-        }
+            SharedPreferenceUtils.earnServiceCreatedStatusKey, statusData);
+        await getEarnServiceCreatedStatusUtils();
       } else {
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
@@ -480,6 +482,39 @@ class ViewPersonalDetailsController extends GetxController {
     } catch (e) {
       update();
     }
+  }
+
+  void partiallyForceToCreateService(){
+    final viewProfileController = Get.isRegistered<ViewPersonalDetailsController>()
+       ? Get.find<ViewPersonalDetailsController>()
+       : Get.put(ViewPersonalDetailsController());
+
+    final bool isSelfService = selfWorkServiceList.any(
+          (service) => service.name == userProfessionGlobal,
+    );
+
+    if (viewProfileController
+        .personalProfileDetails.value.isProfileCreated ==
+        false) {
+      Navigator.push(
+          Get.context!,
+          MaterialPageRoute(
+              builder: (context) => CreateProfileScreen()));
+    } else {
+       Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
+
+      // Get.toNamed(
+      //   RouteHelper.getAddServicesScreenRoute(),
+      //   arguments: {
+      //     ApiKeys.providerType: ProductServiceProviderType.user,
+      //     ApiKeys.isFromEarnWithBlueEraService: true,
+      //     ApiKeys.designation: userProfessionGlobal,
+      //     ApiKeys.serviceSubType: isSelfService ? EarnWithBlueEraServiceTypes.selfWork : EarnWithBlueEraServiceTypes.homeService,
+      //   },
+      // );
+
+    }
+
   }
 
   RxString isUserServiceExistsKey = 'false'.obs;

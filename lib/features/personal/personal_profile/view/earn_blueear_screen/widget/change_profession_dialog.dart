@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -6,6 +8,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
+import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
@@ -19,9 +22,15 @@ Future<void> showProfessionChangeDialog({
   required String designation,
   EarnWithBlueEraServiceTypes? serviceSubType,
 }) async {
+
+  final viewPersonalDetailsController = Get.isRegistered<ViewPersonalDetailsController>()
+      ? Get.find<ViewPersonalDetailsController>()
+      : Get.put(ViewPersonalDetailsController());
+
   final controller = Get.isRegistered<PersonalCreateProfileController>()
       ? Get.find<PersonalCreateProfileController>()
       : Get.put(PersonalCreateProfileController());
+
 
   await showDialog(
     context: context,
@@ -104,7 +113,7 @@ Future<void> showProfessionChangeDialog({
                                 if(designation == AppConstants.DELIVERY_PARTNER){
                                   _onDeliveryPartnerOnClick();
                                 }else{
-                                  Get.offNamedUntil(
+                                  await Get.offNamedUntil(
                                     RouteHelper.getAddServicesScreenRoute(),
                                     ModalRoute.withName(
                                       RouteHelper
@@ -117,6 +126,9 @@ Future<void> showProfessionChangeDialog({
                                       ApiKeys.serviceSubType: serviceSubType,
                                     },
                                   );
+
+                                  log('change and update is earn service added or not');
+                                  viewPersonalDetailsController.getEarnServiceStatus();
                                 }
                               },
                               title:
