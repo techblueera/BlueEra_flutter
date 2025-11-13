@@ -1280,7 +1280,7 @@ Future<void> updateLocationDialog(BuildContext context,
                     onTap: () {
                       if (isFromMailScreen) {
                         Get.back();
-                        Get.back();
+                       // Get.back();
                       } else {
                         Get.back();
                       }
@@ -1321,7 +1321,7 @@ Future<void> updateLocationDialog(BuildContext context,
                       onTap: () {
                         if (isFromMailScreen) {
                           Get.back();
-                          Get.back();
+                         // Get.back();
                         } else {
                           Get.back();
                         }
@@ -1444,7 +1444,7 @@ class VisitingCardPreview extends StatelessWidget {
                         infoRow(
                             icon: Icons.call,
                             title:
-                                (details?.businessNumber?.officeMobNo?.number ??
+                                (details?.businessNumber?.officeLandlineNo?.number ??
                                         0)
                                     .toString(),
                             fontSize: 10,
