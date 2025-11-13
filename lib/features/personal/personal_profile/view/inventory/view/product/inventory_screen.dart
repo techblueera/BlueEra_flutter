@@ -9,13 +9,13 @@ import 'package:BlueEra/features/common/business_service/controller/service_cont
 import 'package:BlueEra/features/common/food/controller/food_upload_controller.dart';
 import 'package:BlueEra/features/common/food/view/food_upload_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/view_service_list.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/product_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/service/view_service_list.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../controller/inventory_controller.dart';
-import 'foodandgrocery/food_and_grocery_screen.dart';
+import '../../controller/inventory_controller.dart';
+import '../foodandgrocery/food_and_grocery_screen.dart';
 
 class InventoryScreen extends StatefulWidget {
   const InventoryScreen({super.key});
@@ -173,17 +173,6 @@ class _InventoryScreenState extends State<InventoryScreen>
     );
   }
 
-  // Widget _buildSelectedTabContent(InventoryController controller) {
-  //   switch (selectedIndex) {
-  //     case 0:
-  //       return _buildProductsList(controller);
-  //     case 1:
-  //       return _buildCategoriesList(controller);
-  //     default:
-  //       return const SizedBox();
-  //   }
-  // }
-
   void showPopUpMenu(
       BuildContext context, InventoryController controller) async {
     final RenderBox button = context.findRenderObject() as RenderBox;
@@ -219,7 +208,7 @@ class _InventoryScreenState extends State<InventoryScreen>
     controller.isMenuOpen.value = false;
 
     if (result != null) {
-      if (result.toUpperCase() == "ADD PRODUCT") {
+      if (result == InventoryMenuItem.addProduct) {
         await Get.toNamed(
             RouteHelper.getAddProductScreenRoute(),
             arguments: {
@@ -228,14 +217,14 @@ class _InventoryScreenState extends State<InventoryScreen>
             }
         );
         controller.callApi(forceRefresh: true);
-      } else if (result.toUpperCase() == "ADD SERVICE") {
+      } else if (result == InventoryMenuItem.addService) {
         Get.toNamed(
             RouteHelper.getAddServicesScreenRoute(),
             arguments: {
               ApiKeys.providerType: ProductServiceProviderType.business,
             }
         );
-      } else if (result.toUpperCase() == "ADD FOOD") {
+      } else if (result == InventoryMenuItem.addFood) {
         Get.toNamed(
           RouteHelper.getFoodUploadScreenRoute(),
           arguments: {

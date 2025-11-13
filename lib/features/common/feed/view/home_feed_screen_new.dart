@@ -20,6 +20,7 @@ import 'package:BlueEra/features/common/reel/widget/single_shorts_structure.dart
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/create_profile_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/service/share_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/business_product_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
@@ -649,6 +650,7 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
               width: SizeConfig.size160,
               title: 'Let\'s Start Earning Now',
               onTap: () {
+                // Get.to(() => ShareServiceScreen(serviceId: '68f319ca6e8f907aadee126d'));
                 final ViewPersonalDetailsController
                     viewPersonalDetailsController =
                     Get.isRegistered<ViewPersonalDetailsController>()

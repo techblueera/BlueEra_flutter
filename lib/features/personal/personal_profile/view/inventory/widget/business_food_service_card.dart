@@ -88,7 +88,7 @@ class _BusinessFoodServiceCardState extends State<BusinessFoodServiceCard> {
                         final currentFoodServices = widget.allFoodServices[index];
                         await VisitingCardHelper().shareVisitingCard(
                             _cardKey[index],
-                            foodServiceId: currentFoodServices.id
+                            serviceId: currentFoodServices.id
                         );
                       },
                       child: Container(

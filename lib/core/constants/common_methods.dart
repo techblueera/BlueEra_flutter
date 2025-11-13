@@ -175,13 +175,13 @@ String productDeepLink({String? productId}) {
 }
 
 /// Generate deep link for a Product item
-String serviceDeepLink({String? productId}) {
-  return 'https://blueera.ai/app/product/${productId ?? ""}';
+String serviceDeepLink({String? serviceId}) {
+  return 'https://blueera.ai/app/food/${serviceId ?? ""}';
 }
 
 /// Generate deep link for a Product item
-String foodServiceDeepLink({String? productId}) {
-  return 'https://blueera.ai/app/product/${productId ?? ""}';
+String foodServiceDeepLink({String? foodServiceId}) {
+  return 'https://blueera.ai/app/food/${foodServiceId ?? ""}';
 }
 
 /// Generate "5 days ago" or something similar

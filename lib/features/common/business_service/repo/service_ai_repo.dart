@@ -16,7 +16,7 @@ class ServiceAiRepo extends BaseService {
     return response;
   }
 
-  ///Add Product...
+  ///Add Service...
   Future<ResponseModel> addService({required Map<String, dynamic> params}) async {
     final response = await ApiBaseHelper().postHTTP(
       createService,
@@ -49,4 +49,16 @@ class ServiceAiRepo extends BaseService {
     );
     return response;
   }
+
+  ///Get Single Service...
+  Future<ResponseModel> fetchSingleServiceDataApi({required String serviceId}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      businessServicesById(serviceId),
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
 }

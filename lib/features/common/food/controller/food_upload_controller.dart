@@ -4,6 +4,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/upload_s3_image_model.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -42,11 +43,16 @@ class FoodUploadController extends GetxController {
   final foodNameCtrl = TextEditingController();
   final descCtrl = TextEditingController();
   final singlePriceController = TextEditingController();
-  ApiResponse uploadFileToS3Response = ApiResponse.initial('Initial');
+  ApiResponse uploadFileToS3Response =
+      ApiResponse.initial('Initial');
   Rx<ApiResponse> getFoodServiceResponse =
       ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> deleteServiceResponse
-                = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> deleteServiceResponse =
+      ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> singleFoodServiceDataResponse =
+      ApiResponse.initial('Initial').obs;
+
+  final GlobalKey<FormState> formKey = GlobalKey();
 
   // Form controllers
   final TextEditingController foodNameController = TextEditingController();
@@ -110,7 +116,14 @@ class FoodUploadController extends GetxController {
   final RxBool isLoading = false.obs;
 
   // Food type 1 options
-  final List<String> foodType1Options = ["Food Item", "Beverage"];
+  // final List<String> foodType1Options = ["Food Item", "Beverage"];
+  final List<String> foodType1Options = [
+    AppConstants.TIFFIN,
+    AppConstants.BAKERY,
+    AppConstants.SWEETS,
+    AppConstants.OTHER
+  ];
+  bool isCategoryLocked = false;
 
   final List<String> foodType2Options = [
     "Veg",
@@ -158,7 +171,9 @@ class FoodUploadController extends GetxController {
 
   // Generate food data
   Future<void> generateFood(
-      { required ProductServiceProviderType providerType, EarnWithBlueEraServiceTypes? serviceSubType}) async {
+      {
+        required ProductServiceProviderType providerType,
+        EarnWithBlueEraServiceTypes? serviceSubType}) async {
     try {
       isGenerateFoodLoading.value = true;
       String fileName = selectedImage.value?.path.split('/').last ?? "";
@@ -188,8 +203,8 @@ class FoodUploadController extends GetxController {
         Get.to(()=> SubmitFoodProductPage(
           providerType: providerType,
           serviceSubType: serviceSubType,
-          categoryTag:selectedFoodType1.value ,
-          subCategory:selectedFoodType2.value ,
+          categoryTag: selectedFoodType1.value ,
+          subCategory: selectedFoodType2.value ,
           foodDatas:  foodAiResponseModel.value,
           foodData: responseModel.response?.data,
           imagePath:  selectedImage.value?.path ?? "",
@@ -205,6 +220,7 @@ class FoodUploadController extends GetxController {
       isGenerateFoodLoading.value = false;
     }
   }
+
   List<UploadS3ImageModel> images = [];
   double? _parsePriceToDouble(String raw) {
     if (raw
@@ -277,58 +293,60 @@ class FoodUploadController extends GetxController {
   RxBool isAddFoodLoading = false.obs;
 
   Future<void> addFoodServices(Map<String,dynamic> foodData, ProductServiceProviderType providerType, {EarnWithBlueEraServiceTypes? serviceSubType}) async {
-    try {
-      isAddFoodLoading.value = true;
-      Map<String, dynamic> data = await buildRequestBody(
-          foodData,
-          providerType,
-          serviceSubType: serviceSubType
-      );
+   if(formKey.currentState!.validate()){
+     try {
+       isAddFoodLoading.value = true;
+       Map<String, dynamic> data = await buildRequestBody(
+           foodData,
+           providerType,
+           serviceSubType: serviceSubType
+       );
 
-      final ResponseModel responseModel;
-      if (providerType == ProductServiceProviderType.user) {
-        responseModel =
-        await EarnServiceRepo().addServiceRepo(params: data);
-      } else {
-        responseModel = await FoodAiRepo().addFoodService(queryParam: data);
-      }
+       final ResponseModel responseModel;
+       if (providerType == ProductServiceProviderType.user) {
+         responseModel = await EarnServiceRepo().addServiceRepo(params: data);
+       } else {
+         responseModel = await FoodAiRepo().addFoodService(queryParam: data);
+       }
 
 
-      if (responseModel.isSuccess) {
-        UploadFoodLoadUrlModel data = UploadFoodLoadUrlModel.fromJson(responseModel.response?.data);
+       if (responseModel.isSuccess) {
+         UploadFoodLoadUrlModel data = UploadFoodLoadUrlModel.fromJson(responseModel.response?.data);
 
-        UploadProgressDialog.update(0.2);
-        List<String> preSignedUrlImages = data.uploadUrls?.images ?? [];
+         UploadProgressDialog.update(0.2);
+         List<String> preSignedUrlImages = data.uploadUrls?.images ?? [];
 
-        if (images.length == preSignedUrlImages.length) {
-          for (var i = 0; i < images.length; i++) {
-            images[i].preSignedUrl = preSignedUrlImages[i];
-          }
+         if (images.length == preSignedUrlImages.length) {
+           for (var i = 0; i < images.length; i++) {
+             images[i].preSignedUrl = preSignedUrlImages[i];
+           }
 
-          // Upload all images with combined progress
-          await uploadAllImages(images);
-        }
-        UploadProgressDialog.close();
-        commonSnackBar(message: 'Food Added Successfully');
-        // Map<String, dynamic> params = {
-        //   ApiKeys.all: false,
-        //   ApiKeys.type: "food",
-        //   ApiKeys.radius: kmRadius1000
-        // };
-        // getFoodService(params);
-       Get.close(2);
-        // Get.back();
-        // Get.back();
-      } else {
-        UploadProgressDialog.close();
-        commonSnackBar(message: responseModel.message);
-      }
-    } catch (e) {
-      UploadProgressDialog.close();
-      commonSnackBar(message: 'Something went wrong.');
-    }finally{
-      isAddFoodLoading.value = false;
-    }
+           // Upload all images with combined progress
+           await uploadAllImages(images);
+         }
+         UploadProgressDialog.close();
+         commonSnackBar(message: 'Food Added Successfully');
+         // Map<String, dynamic> params = {
+         //   ApiKeys.all: false,
+         //   ApiKeys.type: "food",
+         //   ApiKeys.radius: kmRadius1000
+         // };
+         // getFoodService(params);
+         Get.close(2);
+         // Get.back();
+         // Get.back();
+       } else {
+         UploadProgressDialog.close();
+         commonSnackBar(message: responseModel.message);
+       }
+     } catch (e) {
+       UploadProgressDialog.close();
+       commonSnackBar(message: 'Something went wrong.');
+     }finally{
+       isAddFoodLoading.value = false;
+     }
+   }
+
   }
 
   Future<void> uploadAllImages(List<UploadS3ImageModel> images) async {
@@ -415,7 +433,7 @@ class FoodUploadController extends GetxController {
        if(!isFromEarnWithBlueEra){
          responseModel = await FoodAiRepo().getFoodService(queryParam: queryParams);
        }else{
-         responseModel = await EarnServiceRepo().getServiceRepo(queryParams: queryParams);
+         responseModel = await EarnServiceRepo().getEarnServiceRepo(queryParams: queryParams);
        }
 
       if (responseModel.isSuccess) {
@@ -465,12 +483,10 @@ class FoodUploadController extends GetxController {
   }
 
   RxBool isDeleteServiceLoading = false.obs;
-
   Future<void> deleteFoodService({required String serviceId, required bool isFromEarnWithBlueEra}) async {
     isDeleteServiceLoading.value = true;
 
     try {
-
       ResponseModel response;
       if(!isFromEarnWithBlueEra){
         response = await FoodAiRepo().deleteFoodServiceRepo(serviceId: serviceId);
@@ -495,19 +511,28 @@ class FoodUploadController extends GetxController {
     }
   }
 
-  // @override
-  // void onClose() {
-  //   log('done, now deleted');
-  //   Get.delete<FoodUploadController>();
-  //   // foodNameController.dispose();
-  //   // cityNameController.dispose();
-  //   super.onClose();
-  // }
-  //
-  // @override
-  // void dispose() {
-  //   log('done, now deleted');
-  //   Get.delete<FoodUploadController>();
-  //   super.dispose();
-  // }
+  RxBool isSingleFoodServiceLoading = false.obs;
+  Rxn<GetFoodDetailsModel> singleFoodServiceData = Rxn<GetFoodDetailsModel>();
+
+  Future<void> fetchSingleFoodDataApi({required String serviceId}) async {
+    try {
+      isSingleFoodServiceLoading.value = true;
+
+      final response = await FoodAiRepo().fetchSingleFoodDataApi(serviceId: serviceId);
+      if (response.isSuccess) {
+        singleFoodServiceDataResponse.value = ApiResponse.complete(response);
+        final singleFoodDetailsModel = GetFoodDetailsModel.fromJson(response.response!.data);
+        singleFoodServiceData.value = singleFoodDetailsModel;
+      } else {
+        print("API failed with status: ${response.statusCode}");
+        singleFoodServiceDataResponse.value = ApiResponse.error('error');
+      }
+    } catch (e, s) {
+      print("stack trace: $s");
+      singleFoodServiceDataResponse.value = ApiResponse.error('error');
+    } finally {
+      isSingleFoodServiceLoading.value = false;
+    }
+  }
+
 }

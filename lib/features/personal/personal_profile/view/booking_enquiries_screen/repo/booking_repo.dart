@@ -12,6 +12,7 @@ class BookingRepo extends BaseService{
     final response = await ApiBaseHelper().postHTTP(
       bookings,
       params: bodyRequest,
+      showProgress: false,
       isMultipart: false,
       onError: (error) {},
       onSuccess: (data) {},

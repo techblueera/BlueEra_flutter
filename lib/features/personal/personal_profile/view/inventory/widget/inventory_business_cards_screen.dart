@@ -22,11 +22,10 @@ class InventoryBusinessCardsScreen extends StatefulWidget {
       _InventoryBusinessCardsScreenState();
 }
 
-class _InventoryBusinessCardsScreenState
-    extends State<InventoryBusinessCardsScreen>
+class _InventoryBusinessCardsScreenState extends State<InventoryBusinessCardsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  final inventoryController = Get.find<InventoryController>();
+  final inventoryController = Get.put(InventoryController());
   final serviceController = Get.put(ServiceController());
   final foodUploadController = Get.put(FoodUploadController());
 
@@ -42,8 +41,6 @@ class _InventoryBusinessCardsScreenState
   }
 
   Future<void> _initializeTabs()  async {
-    // final type = businessTypeGlobal;
-    // // final type = await getBusinessType();
     final business = businessTypeGlobal.toLowerCase();
 
     _tabs = [];
@@ -157,9 +154,12 @@ class _InventoryBusinessCardsScreenState
                 if (inventoryController.allProducts.isEmpty) {
                   return const Center(child: Text('No products found'));
                 }
-                return BusinessProductCard(
-                  allProducts: inventoryController.allProducts,
-                  showHorizontal: false,
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: kBottomNavigationBarHeight),
+                  child: BusinessProductCard(
+                    allProducts: inventoryController.allProducts,
+                    showHorizontal: false,
+                  ),
                 );
               });
 
@@ -171,8 +171,11 @@ class _InventoryBusinessCardsScreenState
                 if (serviceController.serviceDataList.isEmpty) {
                   return const Center(child: Text('No services found'));
                 }
-                return BusinessServiceCard(
-                    allServices: serviceController.serviceDataList);
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: kBottomNavigationBarHeight),
+                  child: BusinessServiceCard(
+                      allServices: serviceController.serviceDataList),
+                );
               });
 
             case 'food':
@@ -183,8 +186,11 @@ class _InventoryBusinessCardsScreenState
                 if (foodUploadController.foodDataList.isEmpty) {
                   return const Center(child: Text('No food items found'));
                 }
-                return BusinessFoodServiceCard(
-                    allFoodServices: foodUploadController.foodDataList);
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: kBottomNavigationBarHeight),
+                  child: BusinessFoodServiceCard(
+                      allFoodServices: foodUploadController.foodDataList),
+                );
               });
 
             default:

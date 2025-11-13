@@ -27,6 +27,8 @@ class ServiceController extends GetxController {
       ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> deleteServiceResponse
              = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> singleServiceDataResponse =
+      ApiResponse.initial('Initial').obs;
 
   // Form controllers
   final TextEditingController serviceNameController = TextEditingController();
@@ -124,7 +126,7 @@ class ServiceController extends GetxController {
       if(!isFromEarnWithBlueEra){
          response = await ServiceAiRepo().getServiceRepo(queryParams: queryParams);
       }else{
-        response = await EarnServiceRepo().getServiceRepo(queryParams: queryParams);
+        response = await EarnServiceRepo().getEarnServiceRepo(queryParams: queryParams);
       }
 
       if (response.isSuccess) {
@@ -172,7 +174,6 @@ class ServiceController extends GetxController {
   }
 
   RxBool isDeleteServiceLoading = false.obs;
-
   Future<void> deleteService({required String serviceId, required bool isFromEarnWithBlueEra}) async {
     isDeleteServiceLoading.value = true;
 
@@ -210,11 +211,28 @@ class ServiceController extends GetxController {
     }
   }
 
+  RxBool isSingleServiceLoading = false.obs;
+  Rxn<GetServiceModel> singleServiceData = Rxn<GetServiceModel>();
 
-  // @override
-  // void onClose() {
-  //   serviceNameController.dispose();
-  //   serviceShortDescriptionController.dispose();
-  //   super.onClose();
-  // }
+  Future<void> fetchSingleServiceDataApi({required String serviceId}) async {
+    try {
+      isSingleServiceLoading.value = true;
+
+      final response = await ServiceAiRepo().fetchSingleServiceDataApi(serviceId: serviceId);
+      if (response.isSuccess) {
+        singleServiceDataResponse.value = ApiResponse.complete(response);
+        final singleServiceDetailsModel = GetServiceModel.fromJson(response.response!.data);
+        singleServiceData.value = singleServiceDetailsModel;
+      } else {
+        print("API failed with status: ${response.statusCode}");
+        singleServiceDataResponse.value = ApiResponse.error('error');
+      }
+    } catch (e, s) {
+      print("stack trace: $s");
+      singleServiceDataResponse.value = ApiResponse.error('error');
+    } finally {
+      isSingleServiceLoading.value = false;
+    }
+  }
+
 }

@@ -973,35 +973,28 @@ String? businessType() {
   return controller.businessProfileDetails?.data?.typeOfBusiness?.toLowerCase();
 }
 
-List<PopupMenuEntry<String>> popupMenuInventoryItems(String businessType) {
-  log('businessType-- $businessType');
-  final items = <Map<String, dynamic>>[
-    if (isShowProduct.contains(businessType))
-      {"id": "ADD PRODUCT", 'title': 'Add Product'},
-    if (isShowService.contains(businessType))
-      {"id": "ADD SERVICE", 'title': 'Add Service'},
-    if (isShowFood.contains(businessType))
-      {"id": "ADD FOOD", 'title': 'Add Food'},
-    // {"id": "DOWNLOAD", 'icon': AppIconAssets.downloadIcon, 'title': 'Download'},
+List<PopupMenuEntry<InventoryMenuItem>> popupMenuInventoryItems(String businessType) {
+  final items = <InventoryMenuItem>[
+    if (isShowProduct.contains(businessType)) InventoryMenuItem.addProduct,
+    if (isShowService.contains(businessType)) InventoryMenuItem.addService,
+    if (isShowFood.contains(businessType)) InventoryMenuItem.addFood,
   ];
 
-  final List<PopupMenuEntry<String>> entries = [];
+  final List<PopupMenuEntry<InventoryMenuItem>> entries = [];
+
   for (int i = 0; i < items.length; i++) {
+    final item = items[i];
+
     entries.add(
-      PopupMenuItem<String>(
-        padding: EdgeInsets.all(10),
-        height: SizeConfig.size35,
-        value: items[i]['title'],
-        // onTap: () {
-        //
-        //   if (items[i]['id'] == "SHARE") {}
-        //
-        // },
+      PopupMenuItem<InventoryMenuItem>(
+        padding: const EdgeInsets.all(10),
+        height: 35,
+        value: item,
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             CustomText(
-              items[i]['title'],
+              item.title,
               color: AppColors.secondaryTextColor,
             ),
           ],
@@ -1011,13 +1004,11 @@ List<PopupMenuEntry<String>> popupMenuInventoryItems(String businessType) {
 
     if (i != items.length - 1) {
       entries.add(
-        const PopupMenuItem<String>(
+        const PopupMenuItem<InventoryMenuItem>(
           enabled: false,
           padding: EdgeInsets.zero,
           height: 1,
           child: Divider(
-            indent: 0,
-            endIndent: 0,
             height: 1,
             thickness: 0.2,
             color: AppColors.grey99,
@@ -1029,6 +1020,7 @@ List<PopupMenuEntry<String>> popupMenuInventoryItems(String businessType) {
 
   return entries;
 }
+
 
 List<PopupMenuEntry<String>> popupMenuVisitProfileItems() {
   final items = <Map<String, dynamic>>[
