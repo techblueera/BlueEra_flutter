@@ -1,4 +1,5 @@
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_controllar.dart';
+import 'package:BlueEra/features/common/channel_feed_view/channel_feed_post_listing_screen.dart';
 import 'package:BlueEra/features/common/channel_feed_view/unjoin_channel_card_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
@@ -66,9 +67,9 @@ class _WhatsNewChannelListScreenState extends State<WhatsNewChannelListScreen> {
 
                         // final channelData =
                         //     channelFeedController.unJoinChannelDataList[index];
-                        // Get.to(() => ChannelFeedPostListingScreen(
-                        //       channelData: channelData,
-                        //     ));
+                        Get.to(() => ChannelFeedPostListingScreen(
+                              channelData: channelData,
+                            ));
                       },
                       child: UnjoinChannelCardWidget(
                         channelModel: channelData,

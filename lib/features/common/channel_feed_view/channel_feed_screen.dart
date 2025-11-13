@@ -88,286 +88,116 @@ class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: CustomScrollView(
-        controller: scrollController, // 👈 attach this!
-        slivers: [
-          // Header
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Obx(() {
-                    return CustomText(
-                      "Joined ${formatNumberLikePost(channelFeedController.channelFeedModel.value.pagination?.total ?? 0)} Channels",
-                      fontWeight: FontWeight.w500,
-                      fontSize: SizeConfig.size16,
-                      color: AppColors.mainTextColor,
-                    );
-                  }),
-                  InkWell(
-                    onTap: () => Get.to(WhatsNewChannelListScreen()),
-                    child: CustomText(
-                      "What’s New!",
-                      fontWeight: FontWeight.w500,
-                      fontSize: SizeConfig.size16,
-                      color: AppColors.primaryColor,
+      body: RefreshIndicator(
+        onRefresh: () async {
+          channelFeedController.clearList();
+          await Future.delayed(Duration(microseconds: 200));
+
+          await channelFeedController.fetchChannelData(loadMore: true);
+
+          await channelFeedController.fetchUnJoinChannelData(loadMore: true);
+        },
+        child: CustomScrollView(
+          controller: scrollController, // 👈 attach this!
+          slivers: [
+            // Header
+            SliverToBoxAdapter(
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Obx(() {
+                      return CustomText(
+                        "Joined ${formatNumberLikePost(channelFeedController.channelFeedModel.value.pagination?.total ?? 0)} Channels",
+                        fontWeight: FontWeight.w500,
+                        fontSize: SizeConfig.size16,
+                        color: AppColors.mainTextColor,
+                      );
+                    }),
+                    InkWell(
+                      onTap: () => Get.to(WhatsNewChannelListScreen()),
+                      child: CustomText(
+                        "What’s New!",
+                        fontWeight: FontWeight.w500,
+                        fontSize: SizeConfig.size16,
+                        color: AppColors.primaryColor,
+                      ),
                     ),
+                  ],
+                ),
+              ),
+            ),
+
+            // Joined Channels
+            Obx(() => SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final channel =
+                          channelFeedController.channelDataList[index];
+                      return InkWell(
+                        onTap: () => Get.to(
+                          () => ChannelFeedPostListingScreen(
+                              channelData: channel),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 0, vertical: 0),
+                          child: ChannelCardWidget(channelModel: channel),
+                        ),
+                      );
+                    },
+                    childCount: channelFeedController.channelDataList.length,
                   ),
-                ],
+                )),
+
+            // Suggested Header
+            SliverToBoxAdapter(
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                child: CustomText(
+                  "Suggested",
+                  fontWeight: FontWeight.w500,
+                  fontSize: SizeConfig.size16,
+                  color: AppColors.mainTextColor,
+                ),
               ),
             ),
-          ),
 
-          // Joined Channels
-          Obx(() => SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final channel =
-                        channelFeedController.channelDataList[index];
-                    return InkWell(
-                      onTap: () => Get.to(
-                        () =>
-                            ChannelFeedPostListingScreen(channelData: channel),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 0, vertical: 0),
-                        child: ChannelCardWidget(channelModel: channel),
-                      ),
-                    );
-                  },
-                  childCount: channelFeedController.channelDataList.length,
-                ),
-              )),
+            // Suggested Channels
+            Obx(() => SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final newChannel =
+                          channelFeedController.unJoinChannelDataList[index];
+                      return InkWell(
+                        onTap: () async {
+                          await Get.to(() => ChannelFeedPostListingScreen(
+                              channelData: newChannel));
 
-          // Suggested Header
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              child: CustomText(
-                "Suggested",
-                fontWeight: FontWeight.w500,
-                fontSize: SizeConfig.size16,
-                color: AppColors.mainTextColor,
-              ),
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 4),
+                          child:
+                              UnjoinChannelCardWidget(channelModel: newChannel),
+                        ),
+                      );
+                    },
+                    childCount:
+                        channelFeedController.unJoinChannelDataList.length,
+                  ),
+                )),
+
+            // Bottom Spacer
+            const SliverToBoxAdapter(
+              child: SizedBox(height: kBottomNavigationBarHeight + 20),
             ),
-          ),
-
-          // Suggested Channels
-          Obx(() => SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final newChannel =
-                        channelFeedController.unJoinChannelDataList[index];
-                    return InkWell(
-                      onTap: () => Get.to(() => ChannelFeedPostListingScreen(
-                          channelData: newChannel)),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 4),
-                        child:
-                            UnjoinChannelCardWidget(channelModel: newChannel),
-                      ),
-                    );
-                  },
-                  childCount:
-                      channelFeedController.unJoinChannelDataList.length,
-                ),
-              )),
-
-          // Bottom Spacer
-          const SliverToBoxAdapter(
-            child: SizedBox(height: kBottomNavigationBarHeight + 20),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
-
-/*  @override
-  Widget build(BuildContext context) {
-    return NotificationListener<ScrollNotification>(
-      onNotification: (scrollNotification) {
-        // Pagination for Joined Channels
-        if (scrollNotification.metrics.pixels ==
-            scrollNotification.metrics.maxScrollExtent) {
-          channelFeedController.fetchChannelData(loadMore: true);
-        }
-        return false;
-      },
-      child: CustomScrollView(
-        slivers: [
-          // 🔹 Header
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Obx(() {
-                    return CustomText(
-                      "Joined ${formatNumberLikePost(channelFeedController
-                          .channelFeedModel.value.pagination?.total ??
-                          0)} Channels",
-                      fontWeight: FontWeight.w500,
-                      fontSize: SizeConfig.size16,
-                      color: AppColors.mainTextColor,
-                    );
-                  }),
-                  InkWell(
-                    onTap: () {
-                      Get.to(WhatsNewChannelListScreen());
-                    },
-                    child: CustomText(
-                      "What’s New!",
-                      fontWeight: FontWeight.w500,
-                      fontSize: SizeConfig.size16,
-                      color: AppColors.primaryColor,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // 🔹 Joined Channels List
-          Obx(() =>
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                    final channel =
-                    channelFeedController.channelDataList[index];
-                    return InkWell(
-                      onTap: () =>
-                          Get.to(
-                                  () =>
-                                  ChannelFeedPostListingScreen(
-                                      channelData: channel)),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-                        child: ChannelCardWidget(channelModel: channel),
-                      ),
-                    );
-                  },
-                  childCount: channelFeedController.channelDataList.length,
-                ),
-              )),
-
-          // 🔹 Section Divider
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              child: CustomText(
-                "Suggested",
-                fontWeight: FontWeight.w500,
-                fontSize: SizeConfig.size16,
-                color: AppColors.mainTextColor,
-              ),
-            ),
-          ),
-
-          // 🔹 “What’s New” List (has its own pagination)
-          Obx(() =>
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                    final newChannel = channelFeedController
-                        .unJoinChannelDataList[index];
-                    return InkWell(
-                      onTap: () =>
-                          Get.to(() =>
-                              ChannelFeedPostListingScreen(
-                                channelData: newChannel,
-                              )),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-                        child: UnjoinChannelCardWidget(channelModel: newChannel),
-                      ),
-                    );
-                  },
-                  childCount: channelFeedController.unJoinChannelDataList
-                      .length,
-                ),
-              )),
-
-          // 🔹 Bottom Spacing
-          const SliverToBoxAdapter(
-            child: SizedBox(height: kBottomNavigationBarHeight + 20),
-          ),
-        ],
-      ),
-    );
-  }*/
 }
-// return SafeArea(
-// child: Obx(() {
-// if (channelFeedController.isLoading.value &&
-// channelFeedController.channelDataList.isEmpty) {
-// return const Center(child: CircularProgressIndicator());
-// }
-//
-// return Column(
-// children: [
-// Padding(
-// padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
-// child: Row(
-// mainAxisAlignment: MainAxisAlignment.spaceBetween,
-// children: [
-// CustomText(
-// "Joined ${formatNumberLikePost(
-// channelFeedController.channelFeedModel.value.pagination
-//     ?.total ?? 0)} Channels",
-// fontWeight: FontWeight.w500,
-// fontSize: SizeConfig.size16,
-// color: AppColors.mainTextColor,
-// ),
-// InkWell(
-// onTap: () {
-// Get.to(WhatsNewChannelListScreen());
-// },
-// child: CustomText(
-// "What’s New!",
-// fontWeight: FontWeight.w500,
-// fontSize: SizeConfig.size16,
-// color: AppColors.primaryColor,
-// ),
-// ),
-// ],
-// ),
-// ),
-// Expanded(
-// child: ListView.builder(
-// controller: scrollController,
-// padding: const EdgeInsets.all(10),
-// itemCount: channelFeedController.channelDataList.length,
-// shrinkWrap: true,
-// itemBuilder: (context, index) {
-// final channelData =
-// channelFeedController.channelDataList[index];
-//
-// return InkWell(
-// onTap: () {
-// final channelData =
-// channelFeedController.channelDataList[index];
-// Get.to(() =>
-// ChannelFeedPostListingScreen(
-// channelData: channelData,
-// ));
-// },
-// child: ChannelCardWidget(
-// channelModel: channelData,
-// ),
-// );
-// },
-// ),
-// ),
-// SizedBox(
-// height: kBottomNavigationBarHeight + 20,
-// ),
-// Expanded(child: WhatsNewChannelListScreen())
-// ],
-// );
-// }),
-// );

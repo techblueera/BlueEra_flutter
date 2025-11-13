@@ -33,7 +33,8 @@ class _ChannelFeedPostListingScreenState
   @override
   void initState() {
     // TODO: implement initState
-    controller.isChannelJoin.value = true;
+    controller.isChannelJoin.value = widget.channelData?.isFollowing??false;
+
     super.initState();
   }
 

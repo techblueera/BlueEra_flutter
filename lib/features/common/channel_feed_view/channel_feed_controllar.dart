@@ -15,6 +15,15 @@ class ChannelFeedController extends GetxController {
   var hasMore = true.obs;
   int _page = 1;
 
+  clearList() {
+    _page = 1;
+    hasMore = true.obs;
+    channelDataList.clear();
+    unJoinHasMore = true.obs;
+    _unJoinPage = 1;
+    unJoinChannelDataList.clear();
+  }
+
   Future<void> fetchChannelData({bool loadMore = false}) async {
     if (isLoading.value) return;
     isLoading.value = true;
@@ -137,6 +146,7 @@ class ChannelFeedController extends GetxController {
       } else {
         await unFollowUserController(candidateResumeId: channelId);
       }
+
     } catch (e) {
       // 🔹 3. Rollback if API fails
       unJoinChannelDataList[index] =
@@ -154,6 +164,11 @@ class ChannelFeedController extends GetxController {
         await UserRepo().channelFollowUser(followUserId: candidateResumeId);
     if (responseModel.isSuccess) {
       isChannelJoin.value = true;
+      clearList();
+
+      await fetchChannelData(loadMore: true);
+
+      await fetchUnJoinChannelData(loadMore: true);
     } else {
       isChannelJoin.value = false;
     }
@@ -166,9 +181,13 @@ class ChannelFeedController extends GetxController {
 
     if (responseModel.isSuccess) {
       isChannelJoin.value = false;
+      clearList();
+
+      await fetchChannelData(loadMore: true);
+
+      await fetchUnJoinChannelData(loadMore: true);
     } else {
       isChannelJoin.value = true;
     }
   }
 }
-// https://be.blueera.ai/api/channel-service/follower/690c3d0d0ad6fa1f88e3dc67/followers
