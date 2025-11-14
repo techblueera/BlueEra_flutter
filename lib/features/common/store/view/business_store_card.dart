@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:developer';
+
 import 'package:BlueEra/core/api/model/get_all_store_res_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -30,6 +33,7 @@ class BusinessStoreCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    log('Store Data: ${ getAllStoreResData?.userId ?? ""}');
     return Container(
       padding: EdgeInsets.all(ds(10)),
       decoration: BoxDecoration(
@@ -306,7 +310,7 @@ class BusinessStoreCard extends StatelessWidget {
                     onTap: (){
                       Get.to(() => FollowersFollowingPage(
                         tabIndex: 1,
-                        userID: getAllStoreResData?.id ?? "",
+                        userID: getAllStoreResData?.userId ?? "",
                       ));
                     },
                     child: Row(

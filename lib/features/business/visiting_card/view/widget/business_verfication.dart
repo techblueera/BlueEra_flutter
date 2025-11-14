@@ -161,7 +161,7 @@ class _BusinessVerificationState extends State<BusinessVerification> {
                   height: 8,
                 ),
                 CustomText(
-                  "Choose one method to verify your business.",
+                  "Add Details to verify your business.",
                   fontWeight: FontWeight.w700,
                   fontSize: SizeConfig.size18,
                   color: AppColors.black,
@@ -176,14 +176,14 @@ class _BusinessVerificationState extends State<BusinessVerification> {
                   hintText: appLocalizations?.enterGSTNumber,
                   isValidate: false,
                 ),
-                SizedBox(height: 16),
-                Center(
-                    child: CustomText(
-                  "Or",
-                  fontWeight: FontWeight.w600,
-                  fontSize: SizeConfig.size18,
-                  color: AppColors.black,
-                )),
+                // SizedBox(height: 16),
+                // Center(
+                //     child: CustomText(
+                //   "Or",
+                //   fontWeight: FontWeight.w600,
+                //   fontSize: SizeConfig.size18,
+                //   color: AppColors.black,
+                // )),
                 SizedBox(height: 16),
                 CustomText("Choose Document Type",
                     fontWeight: FontWeight.w400,

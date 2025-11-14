@@ -11,20 +11,16 @@ import 'package:BlueEra/features/common/product_listing/view/standalone_service_
 import 'package:BlueEra/features/personal/personal_profile/controller/profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/widget/rating_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:get/get.dart';
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_enum.dart';
-import '../../../../core/constants/snackbar_helper.dart';
 import '../../../../widgets/local_assets.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../personal/personal_profile/view/visit_personal_profile/visit_personal_profile.dart';
 import '../../auth/controller/view_business_details_controller.dart';
-import '../../auth/model/visitBusinessDetailedRatingModel.dart';
 import '../../widgets/live_photos_of_business_widget.dart';
 import 'package:BlueEra/features/common/product_listing/view/standalone_product_screen.dart';
 
@@ -71,6 +67,7 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
   void dispose() {
     _tabController.dispose();
     super.dispose();
+
   }
 
   setFilters() {
@@ -100,8 +97,7 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
               if(isShowService.contains(businessData?.typeOfBusiness?.toLowerCase())) 'Service',
               if(isShowFood.contains(businessData?.typeOfBusiness?.toLowerCase())) 'Foods'
             ];
-            print("sd;kcmlskdmcsdc ${businessData?.businessLocation?.lat}");
-            print("sd;kcmlskdmcsdc ${businessData?.businessLocation?.lon}");
+
 
             return DefaultTabController(
               length: tabs.length,

@@ -397,7 +397,7 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
                                     FollowersFollowingPage(
                                       tabIndex: 1,
                                       userID: widget.businessProfileDetails
-                                          ?.id ?? "",
+                                          ?.userId ?? "",
                                     ));
                               },
                               child: buildInfo("Followers",
