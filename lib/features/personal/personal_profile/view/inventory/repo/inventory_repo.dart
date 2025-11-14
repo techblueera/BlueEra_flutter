@@ -21,6 +21,7 @@ class InventoryRepo extends BaseService {
 
   ///Get Own Products...
   Future<ResponseModel> fetchOwnDraftedAndPublicProductsApi({required Map<String, dynamic> queryParams}) async {
+
     final response = await ApiBaseHelper().getHTTP(
       getOwnDraftedAndPublicProducts,
       params: queryParams,

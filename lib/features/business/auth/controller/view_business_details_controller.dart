@@ -187,7 +187,7 @@ class ViewBusinessDetailsController extends GetxController {
                     : businessProfileDetails?.data?.typeOfBusiness == "Food"
                         ? BusinessType.Food
                         : BusinessType.Both;
-          log("wkjcnslkdclskcmsdc ${businessProfileDetails?.data?.typeOfBusiness} ___ ${ BusinessType.Product.name}");
+
         if (businessProfileDetails?.data?.typeOfBusiness ==
             BusinessType.Product.name) {
           selectedTypeOfBusiness.value = BusinessCategory(
@@ -704,8 +704,9 @@ class ViewBusinessDetailsController extends GetxController {
   // Fetch service from API
   final RxList<GetServiceModel> services = <GetServiceModel>[].obs;
   Future<void> fetchServices({required String visitBusinessId}) async {
-    try {
-      services.clear();
+    print("sdllkmslkdcmsdlcmksdc ");
+    // try {
+    //   services.clear();
       errorMessage.value = '';
       final response =
       await BusinessProfileRepo().getServices(
@@ -714,10 +715,25 @@ class ViewBusinessDetailsController extends GetxController {
             'type': 'service'
           }
       );
+      final queryParam = {
+        'type': 'service',
+      };
+
+      print("=== FETCH SERVICES DEBUG ===");
+      print("Business ID: $visitBusinessId");
+      print("Query Params: $queryParam");
+
+      final responsedd = await BusinessProfileRepo().getServices(
+        businessId: visitBusinessId,
+        queryParam: queryParam,
+      );
+
+
       if (response.isSuccess) {
         businessServiceResponse.value = ApiResponse.complete(response);
         List<dynamic> jsonData =
         json.decode(jsonEncode(response.response?.data));
+        log("API Response: --------- ${response.response?.data}");
         services.value =
             jsonData.map((e) => GetServiceModel.fromJson(e)).toList();
 
@@ -727,10 +743,10 @@ class ViewBusinessDetailsController extends GetxController {
         print("API failed with status: ${response.statusCode}");
       }
 
-    } catch (e) {
-      businessServiceResponse.value = ApiResponse.error('error');
-      errorMessage.value = e.toString();
-    } finally {}
+    // } catch (e) {
+    //   businessServiceResponse.value = ApiResponse.error('error');
+    //   errorMessage.value = e.toString();
+    // } finally {}
   }
 
   // Fetch foods from API

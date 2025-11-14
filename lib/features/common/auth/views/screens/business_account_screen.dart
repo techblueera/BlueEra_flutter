@@ -37,7 +37,7 @@ class _BusinessAccountScreenState extends State<BusinessAccountScreen> {
   final _formKey = GlobalKey<FormState>();
   AutovalidateMode _autoValidate = AutovalidateMode.disabled;
 
-  BusinessType? _typeOfBusiness = BusinessType.Product;
+  BusinessType? _typeOfBusiness;
   SizeOfBusiness? _selectedNatureOfBusiness;
   CategoryData? _selectedCategoryOfBusiness;
   SubCategories? _selectedSubCategoryOfBusiness;
@@ -207,6 +207,7 @@ class _BusinessAccountScreenState extends State<BusinessAccountScreen> {
                         setState(() {});
                       },
                     ),
+
                     SizedBox(width: SizeConfig.size8),
                     BusinessTypeCard(
                       type: BusinessType.Service,
@@ -272,16 +273,10 @@ class _BusinessAccountScreenState extends State<BusinessAccountScreen> {
                   displayValueImagePath: (profession) => profession.icon,
                 ),
 
-                SizedBox(
-                  height: SizeConfig.size20,
-                ),
-                CustomText(
-                  appLocalizations?.categoryOfBusiness,
-                  fontSize: SizeConfig.medium,
-                ),
-                SizedBox(
-                  height: SizeConfig.size10,
-                ),
+                // SizedBox(
+                //   height: SizeConfig.size20,
+                // ),
+
                 _typeOfBusiness?.name.toLowerCase() != "both"
                     ? GetBuilder<AuthController>(
                         builder: (controller) {
@@ -290,7 +285,18 @@ class _BusinessAccountScreenState extends State<BusinessAccountScreen> {
                             return const SizedBox.shrink();
 
                           return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              SizedBox(
+                                height: SizeConfig.size20,
+                              ),
+                              CustomText(
+                                appLocalizations?.categoryOfBusiness,
+                                fontSize: SizeConfig.medium,
+                              ),
+                              SizedBox(
+                                height: SizeConfig.size10,
+                              ),
                               CommonDropdownDialog<CategoryData>(
                                 items: categoriesList
                                     .where((e) =>
@@ -428,34 +434,40 @@ class _BusinessAccountScreenState extends State<BusinessAccountScreen> {
                             ],
                           );
                         },
-                      )
-                    : CommonTextField(
-                        textEditController:
-                            authController.businessOtherCategoryTextController,
-                        // inputLength: AppConstants.inputCharterLimit30,
-                        maxLength: AppConstants.inputCharterLimit30,
-                        keyBoardType: TextInputType.text,
-                        regularExpression:
-                            RegularExpressionUtils.alphabetSpacePattern,
-
-                        title: "",
-                        hintText: "Enter Category of Business",
-                        isValidate: true,
-                        // autovalidateMode: _autoValidate,
-                        onChange: (val) {
-                          setState(() {});
-                        },
-
-                        validator: (value) {
-                          // if (authController.businessName.value.isEmpty) {
-                          //   return 'Please enter your business or organization name';
-                          // } else if (authController.businessName.value.length <
-                          //     5) {
-                          //   return 'Minimum 5 characters required';
-                          // }
-                          return null;
-                        },
-                      ),
+                      ):
+                SizedBox(),
+      //               : CommonTextField(
+      //                   textEditController:
+      //                       authController.businessOtherCategoryTextController,
+      //                   // inputLength: AppConstants.inputCharterLimit30,
+      //                   maxLength: AppConstants.inputCharterLimit30,
+      //                   keyBoardType: TextInputType.text,
+      //                   regularExpression:
+      //                       RegularExpressionUtils.alphabetSpacePattern,
+      //
+      //                   title: "",
+      //                   hintText: "Enter Category of Business",
+      //                   isValidate: true,
+      //                  //  autovalidateMode: _autoValidate,
+      //                   // onChange: (val) {
+      //                   //   setState(() {});
+      //                   // },
+      //
+      //               onChange: (val) {
+      // authController.businessName.value = val;
+      // setState(() {});
+      // },
+      //
+      //   validator: (value) {
+      //     if (authController.businessName.value.isEmpty) {
+      //       return 'Please enter your Category of Business';
+      //     } else if (authController.businessName.value.length <
+      //         5) {
+      //       return 'Minimum 5 characters required';
+      //     }
+      //     return null;
+      //   },
+      //                 ),
                 SizedBox(height: SizeConfig.size20),
 
                 if (selectedTypeOfBusiness?.type ==
@@ -562,81 +574,98 @@ class _BusinessAccountScreenState extends State<BusinessAccountScreen> {
   }
 
   Future<void> _onSubmit() async {
-    if (_formKey.currentState?.validate() ?? false) {
-      if (authController.selectedDay?.value == null ||
-          authController.selectedMonth?.value == null ||
-          authController.selectedYear?.value == null) {
-        commonSnackBar(message: "Please select date of incorporation");
-        return;
-      }
-      if (_typeOfBusiness == null) {
-        commonSnackBar(message: "Please select type of business");
-        return;
-      }
-      if (_typeOfBusiness?.name.toLowerCase() == "both") {
-        if (authController
-            .businessOtherCategoryTextController.value.text.isEmpty) {
-          commonSnackBar(message: "Please Enter Category of Business");
-        }
-      }
-
-      final imageFile = (UserSession().imagePath != null)
-          ? File(UserSession().imagePath!)
-          : null;
-      dio.MultipartFile? imageByPart;
-      if (imageFile?.path.isNotEmpty ?? false) {
-        String fileName = imageFile?.path.split('/').last ?? "";
-        imageByPart = await dio.MultipartFile.fromFile(imageFile?.path ?? "",
-            filename: fileName);
-      }
-      Map<String, dynamic> requestData = {
-        ApiKeys.logo_image: imageByPart,
-        ApiKeys.business_name: authController.businessNameTextController.text,
-        ApiKeys.date_of_incorporation: jsonEncode({
-          ApiKeys.date: authController.selectedDay?.value,
-          ApiKeys.month: authController.selectedMonth?.value,
-          ApiKeys.year: authController.selectedYear?.value,
-        }),
-        ApiKeys.type_of_business: _typeOfBusiness?.name,
-        ApiKeys.nature_of_business: _selectedNatureOfBusiness?.name,
-
-        ///ADDED KEY OTHER KEY HARD CODED AS PER DISCUSIION
-        ApiKeys.category_Of_Business:
-            (_typeOfBusiness?.name.toLowerCase() == "both")
-                ? "68a80b766fdb4e82b42b77c0"
-                : _selectedCategoryOfBusiness?.id,
-        if (_typeOfBusiness?.name.toLowerCase() == "both")
-          ApiKeys.category_other:
-              authController.businessOtherCategoryTextController.text,
-        if (_selectedSubCategoryOfBusiness?.sId?.isNotEmpty ?? false)
-          ApiKeys.sub_category_Of_Business: _selectedSubCategoryOfBusiness?.sId,
-
-        if ((authController.gstVerifyModel?.value.success ?? false) &&
-            (authController.gstVerifyModel?.value.data?.gstin?.isNotEmpty ??
-                false))
-          ApiKeys.gst_have: true,
-        if ((authController.gstVerifyModel?.value.success ?? false) &&
-            (authController.gstVerifyModel?.value.data?.gstin?.isNotEmpty ??
-                false))
-          ApiKeys.gst_number: authController.gstVerifyModel?.value.data?.gstin,
-        ApiKeys.gst_verified: ((authController.gstVerifyModel?.value.success ??
-                    false) &&
-                (authController.gstVerifyModel?.value.data?.gstin?.isNotEmpty ??
-                    false))
-            ? true
-            : false,
-        if (authController.referralCodeController.text.isNotEmpty)
-          ApiKeys.referral_code: authController.referralCodeController.text,
-        if (authController
-            .subCategorySpecializationTextController.text.isNotEmpty)
-          ApiKeys.specification:
-              authController.subCategorySpecializationTextController.text,
-      };
-      await authController.addBusinessUser(reqData: requestData);
-    } else {
+    if (!(_formKey.currentState?.validate() ?? false)) {
       setState(() {
         _autoValidate = AutovalidateMode.always;
       });
+      return;
     }
+
+    print("Selected Business Type: $_typeOfBusiness");
+
+    // 1️⃣ Type of business required
+    if (_typeOfBusiness == null ||
+        (_typeOfBusiness?.name.trim().isEmpty ?? true)) {
+      commonSnackBar(message: "Please select type of business");
+      return;
+    }
+
+    // 2️⃣ Business name required
+    if (authController.businessNameTextController.text.trim().isEmpty) {
+      commonSnackBar(message: "Please enter business name");
+      return;
+    }
+
+    // 3️⃣ Category required ONLY IF type != "both"
+    if (_typeOfBusiness?.name.toLowerCase() != "both") {
+      if (_selectedCategoryOfBusiness?.id == null ||
+          _selectedCategoryOfBusiness!.id!.isEmpty) {
+        commonSnackBar(message: "Please select business category");
+        return;
+      }
+    }
+
+    // Sub-category NOT required anymore — removed
+
+    // ---------- FILE + REQUEST BELOW NO CHANGE ----------
+    final imageFile = (UserSession().imagePath != null)
+        ? File(UserSession().imagePath!)
+        : null;
+
+    dio.MultipartFile? imageByPart;
+    if (imageFile?.path.isNotEmpty ?? false) {
+      String fileName = imageFile?.path.split('/').last ?? "";
+      imageByPart = await dio.MultipartFile.fromFile(
+        imageFile!.path,
+        filename: fileName,
+      );
+    }
+
+    Map<String, dynamic> requestData = {
+      ApiKeys.logo_image: imageByPart,
+      ApiKeys.business_name: authController.businessNameTextController.text,
+
+      ApiKeys.type_of_business: _typeOfBusiness?.name,
+      ApiKeys.nature_of_business: _selectedNatureOfBusiness?.name,
+
+      // Category logic based on "both"
+      ApiKeys.category_Of_Business:
+      (_typeOfBusiness?.name.toLowerCase() == "both")
+          ? "68a80b766fdb4e82b42b77c0"
+          : _selectedCategoryOfBusiness?.id,
+
+      if (_typeOfBusiness?.name.toLowerCase() == "both")
+        ApiKeys.category_other:
+        authController.businessOtherCategoryTextController.text,
+
+      if (_selectedSubCategoryOfBusiness?.sId?.isNotEmpty ?? false)
+        ApiKeys.sub_category_Of_Business:
+        _selectedSubCategoryOfBusiness?.sId,
+
+      if ((authController.gstVerifyModel?.value.success ?? false) &&
+          (authController.gstVerifyModel?.value.data?.gstin?.isNotEmpty ?? false))
+        ApiKeys.gst_have: true,
+
+      if ((authController.gstVerifyModel?.value.success ?? false) &&
+          (authController.gstVerifyModel?.value.data?.gstin?.isNotEmpty ?? false))
+        ApiKeys.gst_number:
+        authController.gstVerifyModel?.value.data?.gstin,
+
+      ApiKeys.gst_verified:
+      ((authController.gstVerifyModel?.value.success ?? false) &&
+          (authController.gstVerifyModel?.value.data?.gstin?.isNotEmpty ?? false))
+          ? true
+          : false,
+
+      if (authController.referralCodeController.text.isNotEmpty)
+        ApiKeys.referral_code:
+        authController.referralCodeController.text,
+
+      if (authController.subCategorySpecializationTextController.text.isNotEmpty)
+        ApiKeys.specification:
+        authController.subCategorySpecializationTextController.text,
+    };
+
+    await authController.addBusinessUser(reqData: requestData);
   }
 }

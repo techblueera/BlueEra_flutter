@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -52,15 +54,15 @@ class EarnWithBlueEraController extends GetxController{
       isOwnProductDataFirstLoading.value = true;
       ownProductDataPage = 1;
       ownProductDataHasMore = true;
-      ownProductDataList.clear();
+
     }
 
     try {
 
       Map<String, dynamic> queryParams = {
         'DRAFT': false,
-        'ownerId': userId,
-        'ownerType': ProductServiceProviderType.user.title,
+        'ownerId': businessId,
+        'ownerType': ProductServiceProviderType.business.title,
       };
 
 
@@ -75,7 +77,7 @@ class EarnWithBlueEraController extends GetxController{
 
         if (newData.isNotEmpty) {
           if (isLoadMore) {
-            ownProductDataList.addAll(newData);
+            ownProductDataList.value=newData;
           } else {
             ownProductDataList.assignAll(newData);
           }

@@ -1,3 +1,6 @@
+
+import 'dart:developer';
+
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/features/common/reel/models/follow_following_res_model.dart';
@@ -19,10 +22,12 @@ RxInt selectedIndex=0.obs;
     try {
       ResponseModel response = await FollowerRepo().getFollowerList(userId: userID);
 
+
       if (response.isSuccess) {
         followerResponse.value = ApiResponse.complete(response);
         FollowerResModel followerResModel = FollowerResModel.fromJson(response.response?.data);
         followerList.value = followerResModel.data ?? [];
+        print(followerList.length);
       }
     } catch (e) {
       followerResponse.value = ApiResponse.error('error');

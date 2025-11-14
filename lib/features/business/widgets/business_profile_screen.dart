@@ -66,7 +66,7 @@ class BusinessProfileScreen extends StatefulWidget {
 
 class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
   final viewBusinessDetailsController =
-      Get.find<ViewBusinessDetailsController>();
+  Get.find<ViewBusinessDetailsController>();
   final locationController = Get.put(LocationController());
 
   // List<String> postTab = [
@@ -211,10 +211,16 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
                 horizontalMargin: 2,
                 tabs: postTabs,
                 selectedIndex:
-                    viewBusinessDetailsController.selectedIndex.value,
+                viewBusinessDetailsController.selectedIndex.value,
                 onTabSelected: (index, value) {
-                  setState(() => viewBusinessDetailsController
+                  setState(() =>
+                  viewBusinessDetailsController
                       .selectedIndex.value = index);
+                  if (index == 1) {
+                    final earnWithBlueEraController = Get.put(
+                        EarnWithBlueEraController());
+                    earnWithBlueEraController.fetchOwnProducts();
+                  }
                 },
                 labelBuilder: (label) => label,
               ),
@@ -310,51 +316,51 @@ class MyProductCardDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final earnWithBlueEraController = Get.put(EarnWithBlueEraController())
-      ..fetchOwnProducts();
+    final earnWithBlueEraController = Get.put(EarnWithBlueEraController());
 
     final productList = earnWithBlueEraController.ownProductDataList;
+    return Obx(() {
+      return Column(
+        children: [
+          (productList.isEmpty)
+              ? Center(
+            child: EmptyStateWidget(
+              message: 'No Products available.',
+            ),
+          )
+              : SafeArea(
+            child: ListView.builder(
+              physics: const NeverScrollableScrollPhysics(),
+              shrinkWrap: true,
+              itemCount: productList.length,
+              padding: EdgeInsets.only(bottom: 20),
+              itemBuilder: (context, index) {
+                final productData = productList[index];
 
-    return Column(
-      children: [
-        (productList.isEmpty)
-            ? Center(
-                child: EmptyStateWidget(
-                  message: 'No Products available.',
-                ),
-              )
-            : SizedBox(
-                height: 600,
-                child: ListView.builder(
-                  physics: const NeverScrollableScrollPhysics(),
-                  shrinkWrap: true,
-                  itemCount: productList.length,
-                  itemBuilder: (context, index) {
-                    final productData = productList[index];
-
-                    return Padding(
-                      padding: EdgeInsets.only(
-                          bottom: SizeConfig.size8,
-                          left: SizeConfig.size8,
-                          right: SizeConfig.size8),
-                      child: OwnProductCard(
-                        product: productData,
-                        isGridShow: false,
-                        deleteProductApi: () {
-                          // earnWithBlueEraController.deleteProduct();
-                        },
-                      ),
-                    );
-                  },
-                ),
-              ),
-        if (earnWithBlueEraController.isOwnProductDataLoadingMore.value)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 20),
-            child: Center(child: CircularProgressIndicator()),
+                return Padding(
+                  padding: EdgeInsets.only(
+                      bottom: SizeConfig.size8,
+                      left: SizeConfig.size8,
+                      right: SizeConfig.size8),
+                  child: OwnProductCard(
+                    product: productData,
+                    isGridShow: false,
+                    deleteProductApi: () {
+                      // earnWithBlueEraController.deleteProduct();
+                    },
+                  ),
+                );
+              },
+            ),
           ),
-      ],
-    );
+          if (earnWithBlueEraController.isOwnProductDataLoadingMore.value)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 20),
+              child: Center(child: CircularProgressIndicator()),
+            ),
+        ],
+      );
+    });
   }
 }
 
@@ -364,6 +370,7 @@ class BusinessProfileHeader extends StatelessWidget {
 
   const BusinessProfileHeader(
       {super.key, required this.details, required this.controller});
+
   String cleanValue(String? value) {
     if (value == null) return '';
     if (value.trim().toLowerCase() == 'na') return '';
@@ -375,13 +382,15 @@ class BusinessProfileHeader extends StatelessWidget {
     final theme = Theme.of(context);
     bool _isBottomSheetOpen = false;
     String ownerName = cleanValue(details!.ownerDetails?.first.name);
-    String ownerRole = cleanValue(details?.ownerDetails?.first.role_in_business);
+    String ownerRole = cleanValue(
+        details?.ownerDetails?.first.role_in_business);
     String finalText = ownerRole.isNotEmpty
         ? "$ownerName ($ownerRole)"
         : ownerName;
     String _getCoverImage(controller) {
       final cover = controller.coverImage?.value;
-      final profile = controller.imagePath?.value; // or controller.businessImage?.value
+      final profile = controller.imagePath
+          ?.value; // or controller.businessImage?.value
 
       if (cover != null && cover.isNotEmpty) {
         return cover;
@@ -448,7 +457,9 @@ class BusinessProfileHeader extends StatelessWidget {
                       // if (viewBusinessDetailsController.isImageUpdated.value) {
                       if (controller.imagePath?.value.isNotEmpty ?? false) {
                         String fileName =
-                            controller.imagePath?.value.split('/').last ?? "";
+                            controller.imagePath?.value
+                                .split('/')
+                                .last ?? "";
                         imageByPart = await dio.MultipartFile.fromFile(
                             controller.imagePath?.value ?? "",
                             filename: fileName);
@@ -471,13 +482,13 @@ class BusinessProfileHeader extends StatelessWidget {
                         onTap: () async {
                           try {
                             final newPath =
-                                await SelectProfilePictureDialog.showLogoDialog(
-                                        context, "Edit Cover Picture",
-                                        cropAspectRatio:
-                                            CropAspectRatio(width: 3, height: 1)
-                                        // cropAspectRatio: CropAspectRatio(width: 16, height: 9)
-                                        )
-                                    .catchError((_) => null);
+                            await SelectProfilePictureDialog.showLogoDialog(
+                                context, "Edit Cover Picture",
+                                cropAspectRatio:
+                                CropAspectRatio(width: 3, height: 1)
+                              // cropAspectRatio: CropAspectRatio(width: 16, height: 9)
+                            )
+                                .catchError((_) => null);
 
                             if (newPath == null || newPath.isEmpty) {
                               commonSnackBar(message: "No image selected");
@@ -489,7 +500,7 @@ class BusinessProfileHeader extends StatelessWidget {
                             // Compress before upload
                             final file = File(newPath);
                             final compressed =
-                                await FlutterImageCompress.compressAndGetFile(
+                            await FlutterImageCompress.compressAndGetFile(
                               file.absolute.path,
                               "${file.path}_compressed.jpg",
                               quality: 75,
@@ -517,7 +528,7 @@ class BusinessProfileHeader extends StatelessWidget {
                                 "❌ Crash in cover picture upload: $e\n$s");
                             commonSnackBar(
                                 message:
-                                    "Something went wrong while updating picture");
+                                "Something went wrong while updating picture");
                           }
                         },
                         child: Image.asset('assets/diwali_card/camera.png'))),
@@ -535,30 +546,30 @@ class BusinessProfileHeader extends StatelessWidget {
                       children: [
                         (details?.businessIsVerified ?? false)
                             ? Flexible(
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 13, vertical: 5),
-                                  decoration: BoxDecoration(
-                                    color: Color(0xffC5FFC9),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: CustomText(
-                                    "Verified Profile",
-                                    color: AppColors.secondaryTextColor,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              )
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 13, vertical: 5),
+                            decoration: BoxDecoration(
+                              color: Color(0xffC5FFC9),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: CustomText(
+                              "Verified Profile",
+                              color: AppColors.secondaryTextColor,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        )
                             : Flexible(
-                                child: BlinkingVerifyButton(
-                                  onTap: () {
-                                    Get.to(BusinessVerification());
+                          child: BlinkingVerifyButton(
+                            onTap: () {
+                              Get.to(BusinessVerification());
 
-                                    //commonSnackBar(message: "Coming soon....");
-                                  },
-                                ),
-                              ),
+                              //commonSnackBar(message: "Coming soon....");
+                            },
+                          ),
+                        ),
 
                         SizedBox(
                           width: SizeConfig.size10,
@@ -570,8 +581,8 @@ class BusinessProfileHeader extends StatelessWidget {
                                 MaterialPageRoute(
                                   builder: (context) =>
                                       BusinessDetailsEditPageOne(
-                                    prevBusinessDetails: details,
-                                  ),
+                                        prevBusinessDetails: details,
+                                      ),
                                 ));
                           },
                           child: Container(
@@ -613,6 +624,7 @@ class BusinessProfileHeader extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+
                 /// ---- Business Name ----
                 CustomText(
                   "${details?.businessName ?? ''}",
@@ -676,7 +688,8 @@ class BusinessProfileHeader extends StatelessWidget {
                         );
 
                         TextEditingController ownerRoleCtrl = TextEditingController(
-                          text: cleanValue(details?.ownerDetails?.first.role_in_business),
+                          text: cleanValue(details?.ownerDetails?.first
+                              .role_in_business),
                         );
 
                         TextEditingController ownerEmailCtrl = TextEditingController(
@@ -717,7 +730,7 @@ class BusinessProfileHeader extends StatelessWidget {
                           color: AppColors.white,
                           borderRadius: BorderRadius.circular(12),
                           border:
-                              Border.all(color: AppColors.secondaryTextColor),
+                          Border.all(color: AppColors.secondaryTextColor),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -762,9 +775,9 @@ class BusinessProfileHeader extends StatelessWidget {
                         ),
                         onPressed: () {
                           if ((controller.businessProfileDetails?.data
-                                          ?.livePhotos ??
-                                      [])
-                                  .length <
+                              ?.livePhotos ??
+                              [])
+                              .length <
                               3) {
                             showLivePhotoDialog(context: context);
                           } else {
@@ -831,7 +844,7 @@ class BusinessProfileHeader extends StatelessWidget {
                         scrollDirection: Axis.horizontal,
                         child: ConstrainedBox(
                           constraints:
-                              BoxConstraints(minWidth: constraints.maxWidth),
+                          BoxConstraints(minWidth: constraints.maxWidth),
                           child: IntrinsicWidth(
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -840,13 +853,15 @@ class BusinessProfileHeader extends StatelessWidget {
                                   flex: 2,
                                   child: Column(
                                     crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                    CrossAxisAlignment.start,
                                     children: [
                                       buildInfo("Rating",
-                                          "★ ${(details?.rating ?? 0).toStringAsFixed(1)}"),
+                                          "★ ${(details?.rating ?? 0)
+                                              .toStringAsFixed(1)}"),
                                       SizedBox(height: SizeConfig.size12),
                                       buildInfo("Views",
-                                          "${formatIndianNumber(details?.total_views ?? 0)}"),
+                                          "${formatIndianNumber(
+                                              details?.total_views ?? 0)}"),
                                     ],
                                   ),
                                 ),
@@ -862,21 +877,23 @@ class BusinessProfileHeader extends StatelessWidget {
                                   flex: 2,
                                   child: Column(
                                     crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                    CrossAxisAlignment.start,
                                     children: [
                                       buildInfo(
                                           "Inquiries", formatIndianNumber(0)),
                                       SizedBox(height: SizeConfig.size12),
                                       InkWell(
                                         onTap: () {
-                                          Get.to(() => FollowersFollowingPage(
+                                          Get.to(() =>
+                                              FollowersFollowingPage(
                                                 tabIndex: 1,
-                                                userID: details?.id ?? "",
+                                                userID: details?.userId ?? "",
                                               ));
                                         },
                                         child: buildInfo(
                                           "Followers",
-                                          "${formatIndianNumber(details?.total_followers ?? 0)}",
+                                          "${formatIndianNumber(
+                                              details?.total_followers ?? 0)}",
                                         ),
                                       ),
                                     ],
@@ -1019,7 +1036,10 @@ void openOwnerEditSheet({
           // this ensures the bottom sheet moves *above* the keyboard
 
           padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
+            bottom: MediaQuery
+                .of(context)
+                .viewInsets
+                .bottom,
           ),
           child: Container(
             decoration: const BoxDecoration(
@@ -1054,7 +1074,7 @@ void openOwnerEditSheet({
                   inputLength: 50,
                   keyBoardType: TextInputType.text,
                   regularExpression:
-                      RegularExpressionUtils.alphabetSpacePattern,
+                  RegularExpressionUtils.alphabetSpacePattern,
                   title: "Your Name",
                   hintText: "Eg., Rahul Sharma",
                   isValidate: false,
@@ -1065,7 +1085,7 @@ void openOwnerEditSheet({
                   inputLength: 50,
                   keyBoardType: TextInputType.text,
                   regularExpression:
-                      RegularExpressionUtils.alphabetSpacePattern,
+                  RegularExpressionUtils.alphabetSpacePattern,
                   title: "Your Role in the Business",
                   hintText: "Eg., Co-founder / Owner",
                   isValidate: false,
@@ -1098,7 +1118,7 @@ void openOwnerEditSheet({
 
 void openBusinessDetailsEditSheet(BuildContext context) {
   final viewBusinessDetailsController =
-      Get.find<ViewBusinessDetailsController>();
+  Get.find<ViewBusinessDetailsController>();
   final data = viewBusinessDetailsController.businessProfileDetails?.data;
 
   viewBusinessDetailsController.shopOpenTime.value =
@@ -1109,7 +1129,7 @@ void openBusinessDetailsEditSheet(BuildContext context) {
   // Controllers prSizeOfBusiness? selectedBusiness;e-filled with existing data
   TextEditingController specializationCtrl = TextEditingController(
     text: viewBusinessDetailsController
-            .businessProfileDetails?.data?.specification ??
+        .businessProfileDetails?.data?.specification ??
         '',
   );
   SizeOfBusiness? selectedBusiness;
@@ -1117,7 +1137,7 @@ void openBusinessDetailsEditSheet(BuildContext context) {
     if (input == null) return null;
 
     return SizeOfBusiness.values.firstWhere(
-      (e) => e.displayName.toLowerCase() == input.toLowerCase(),
+          (e) => e.displayName.toLowerCase() == input.toLowerCase(),
       orElse: () => SizeOfBusiness.OTHERS,
     );
   }
@@ -1126,11 +1146,11 @@ void openBusinessDetailsEditSheet(BuildContext context) {
       .businessProfileDetails?.data?.natureOfBusiness);
 
   final subCategoryTextController = TextEditingController(
-    text: viewBusinessDetailsController
-        .businessProfileDetails?.data?.category_other??""
+      text: viewBusinessDetailsController
+          .businessProfileDetails?.data?.category_other ?? ""
   );
- print("sldkslkdlc ${viewBusinessDetailsController
-     .businessProfileDetails?.data?.category_other??""}");
+  print("sldkslkdlc ${viewBusinessDetailsController
+      .businessProfileDetails?.data?.category_other ?? ""}");
   viewBusinessDetailsController.selectedCategoryOfBusiness.value = CategoryData(
       id: viewBusinessDetailsController
           .businessProfileDetails?.data?.categoryDetails?.id,
@@ -1144,7 +1164,61 @@ void openBusinessDetailsEditSheet(BuildContext context) {
               .businessProfileDetails?.data?.subCategoryDetails?.name);
 
   final appLocalizations = AppLocalizations.of(context);
-
+  if (viewBusinessDetailsController.businessProfileDetails?.data
+      ?.typeOfBusiness ==
+      BusinessType.Product.name) {
+    viewBusinessDetailsController.selectedTypeOfBusiness.value =
+        BusinessCategory(
+          title: "Product Sales: Shop/Store/Showroom",
+          subTitle:
+          "(e.g., Clothes, Electronics, Pharmacy, Toy, Beauty product)",
+          icon: AppIconAssets.product_sale,
+          type: BusinessType.Product.name,
+        );
+    viewBusinessDetailsController
+        .selectedBusinessType
+        ?.value = BusinessType.Product;
+  } else if (viewBusinessDetailsController.businessProfileDetails?.data
+      ?.typeOfBusiness ==
+      BusinessType.Service.name) {
+    viewBusinessDetailsController.selectedTypeOfBusiness.value =
+        BusinessCategory(
+          title: "Service Provider: Education/Hospital/Hotel etc.",
+          subTitle: "(Consulting Farm, Doctors, All Service providers)",
+          icon: AppIconAssets.service_provider,
+          type: BusinessType.Service.name,
+        );
+    viewBusinessDetailsController
+        .selectedBusinessType
+        ?.value = BusinessType.Service;
+  } else if (viewBusinessDetailsController.businessProfileDetails?.data
+      ?.typeOfBusiness ==
+      BusinessType.Food.name) {
+    viewBusinessDetailsController.selectedTypeOfBusiness.value =
+        BusinessCategory(
+          title: "Grocerie /Food /Restaurant/Beverage",
+          subTitle:
+          "All Kind of Cooking/Eatable Shops/Stall/Dairy\nRestaurants, Sweet Shops, Tea Stalls, Juice Centers",
+          icon: AppIconAssets.food_service,
+          type: BusinessType.Food.name,
+        );
+    viewBusinessDetailsController
+        .selectedBusinessType
+        ?.value = BusinessType.Food;
+  } else {
+    viewBusinessDetailsController.selectedTypeOfBusiness.value =
+        BusinessCategory(
+          title: "Others: Manufacturing Unit/Industry/Factory",
+          subTitle:
+          "If Your Business Is related to Manufacturing / create products Or other activity",
+          icon: AppIconAssets.other_type,
+          type: BusinessType
+              .Both.name, // (requires Flutter 3.7+, else use Icons.work)
+        );
+    viewBusinessDetailsController
+        .selectedBusinessType
+        ?.value = BusinessType.Both;
+  }
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -1177,7 +1251,10 @@ void openBusinessDetailsEditSheet(BuildContext context) {
                         left: 16,
                         right: 16,
                         top: 16,
-                        bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+                        bottom: MediaQuery
+                            .of(context)
+                            .viewInsets
+                            .bottom + 16,
                       ),
                       child: Obx(() {
                         return Column(
@@ -1213,7 +1290,7 @@ void openBusinessDetailsEditSheet(BuildContext context) {
                                 selectedValue: viewBusinessDetailsController
                                     .selectedTypeOfBusiness.value,
                                 hintText: appLocalizations
-                                        ?.selectNatureOfTheBusiness ??
+                                    ?.selectNatureOfTheBusiness ??
                                     "",
                                 displayValue: (profession) => profession.title,
                                 title: appLocalizations?.natureOfBusiness ??
@@ -1248,123 +1325,132 @@ void openBusinessDetailsEditSheet(BuildContext context) {
                                   viewBusinessDetailsController
                                       .businessSubCategoriesList
                                       .clear();
+                                  viewBusinessDetailsController
+                                      .getAllCategories();
                                 },
                                 displayValueSubTitle: (profession) =>
-                                    profession.subTitle,
+                                profession.subTitle,
                                 displayValueImagePath: (profession) =>
-                                    profession.icon,
+                                profession.icon,
                               );
                             }),
 
                             const SizedBox(height: 16),
                             viewBusinessDetailsController
-                                        .selectedBusinessType?.value.name
-                                        .toLowerCase() !=
-                                    "both"
-                                ? Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      CustomText(
-                                        "Category of Business ${viewBusinessDetailsController.selectedBusinessType?.value.name}",
-                                        fontSize: SizeConfig.medium,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                      SizedBox(height: SizeConfig.size10),
-                                      CommonDropdownDialog<CategoryData>(
-                                        items: viewBusinessDetailsController
-                                            .businessCategoriesList,
-                                        title: "Category of Business Service",
-                                        selectedValue:
-                                            viewBusinessDetailsController
-                                                .selectedCategoryOfBusiness
-                                                .value,
-                                        hintText: "Select Business Category",
-                                        displayValue: (category) =>
-                                            "${category.name}",
-                                        onChanged: (value) {
-                                          viewBusinessDetailsController
-                                              .businessSubCategoriesList
-                                              .clear();
-                                          viewBusinessDetailsController
-                                              .businessSubCategoriesList
-                                              .addAll(
-                                                  value?.subCategories ?? []);
-                                          viewBusinessDetailsController
-                                              .selectedCategoryOfBusiness
-                                              .value = value!;
-                                          viewBusinessDetailsController
-                                              .selectedSubCategoryOfBusinessNew
-                                              .value = null;
-                                        },
-                                      ),
-                                      const SizedBox(height: 16),
-                                      Align(
-                                        alignment: Alignment.centerLeft,
-                                        child: CustomText(
-                                          appLocalizations?.subCategory,
-                                          fontSize: SizeConfig.medium,
-                                        ),
-                                      ),
-                                      SizedBox(height: SizeConfig.size10),
-                                      CommonDropdownDialog<SubCategories>(
-                                        items: viewBusinessDetailsController
-                                            .businessSubCategoriesList,
-                                        title: "Sub-Category",
-                                        selectedValue:
-                                            viewBusinessDetailsController
-                                                .selectedSubCategoryOfBusinessNew
-                                                .value,
-                                        hintText: "Select Sub Category",
-                                        displayValue: (sub) => "${sub.name}",
-                                        onChanged: (value) {
-                                          viewBusinessDetailsController
-                                              .selectedSubCategoryOfBusinessNew
-                                              .value = value;
-                                        },
-                                      ),
-                                    ],
-                                  )
-                                : Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    CustomText(
-
-
-                                      "Category of Business ${viewBusinessDetailsController.selectedBusinessType?.value.name}",
-                                      fontSize: SizeConfig.medium,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                    SizedBox(height: SizeConfig.size10),
-
-                                    CommonTextField(
-                                        textEditController:
-                                            subCategoryTextController,
-                                        maxLength: AppConstants.inputCharterLimit30,
-                                        keyBoardType: TextInputType.text,
-                                        regularExpression: RegularExpressionUtils
-                                            .alphabetSpacePattern,
-                                        title: "",
-                                        hintText: "Enter Category of Business",
-                                        isValidate: true,
-                                        onChange: (val) {
-                                          //setState(() {});
-                                        },
-                                        validator: (value) {
-                                          // if (authController.businessName.value.isEmpty) {
-                                          //   return 'Please enter your business or organization name';
-                                          // } else if (authController.businessName.value.length <
-                                          //     5) {
-                                          //   return 'Minimum 5 characters required';
-                                          // }
-                                          return null;
-                                        },
-                                      ),
-                                  ],
+                                .selectedBusinessType?.value.name
+                                .toLowerCase() !=
+                                "both"
+                                ?
+                            Column(
+                              crossAxisAlignment:
+                              CrossAxisAlignment.start,
+                              children: [
+                                CustomText(
+                                  "Category of Business ${viewBusinessDetailsController
+                                      .selectedBusinessType?.value.name}",
+                                  fontSize: SizeConfig.medium,
+                                  fontWeight: FontWeight.w500,
                                 ),
+                                SizedBox(height: SizeConfig.size10),
+                                CommonDropdownDialog<CategoryData>(
+                                  items: viewBusinessDetailsController
+                                      .businessCategoriesList,
+                                  title: "Category of Business Service",
+                                  selectedValue:
+                                  viewBusinessDetailsController
+                                      .selectedCategoryOfBusiness
+                                      .value,
+                                  hintText: "Select Business Category",
+                                  displayValue: (category) =>
+                                  "${category.name}",
+                                  onChanged: (value) {
+                                    viewBusinessDetailsController
+                                        .businessSubCategoriesList
+                                        .clear();
+                                    viewBusinessDetailsController
+                                        .businessSubCategoriesList
+                                        .addAll(
+                                        value?.subCategories ?? []);
+                                    viewBusinessDetailsController
+                                        .selectedCategoryOfBusiness
+                                        .value = value!;
+                                    viewBusinessDetailsController
+                                        .selectedSubCategoryOfBusinessNew
+                                        .value = null;
+                                  },
+                                ),
+                                const SizedBox(height: 16),
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: CustomText(
+                                    appLocalizations?.subCategory,
+                                    fontSize: SizeConfig.medium,
+                                  ),
+                                ),
+                                SizedBox(height: SizeConfig.size10),
+                                CommonDropdownDialog<SubCategories>(
+                                  items: viewBusinessDetailsController
+                                      .businessSubCategoriesList,
+                                  title: "Sub-Category",
+                                  selectedValue:
+                                  viewBusinessDetailsController
+                                      .selectedSubCategoryOfBusinessNew
+                                      .value,
+                                  hintText: "Select Sub Category",
+                                  displayValue: (sub) => "${sub.name}",
+                                  onChanged: (value) {
+                                    viewBusinessDetailsController
+                                        .selectedSubCategoryOfBusinessNew
+                                        .value = value;
+                                  },
+                                ),
+                              ],
+                            )
+                                : SizedBox(),
+                            // Column(
+                            //   crossAxisAlignment: CrossAxisAlignment.start,
+                            //       children: [
+                            //         CustomText(
+                            //
+                            //
+                            //           "Category of Business ${viewBusinessDetailsController.selectedBusinessType?.value.name}",
+                            //           fontSize: SizeConfig.medium,
+                            //           fontWeight: FontWeight.w500,
+                            //         ),
+                            //         SizedBox(height: SizeConfig.size10),
+                            //
+                            //         CommonTextField(
+                            //             textEditController:
+                            //                 subCategoryTextController,
+                            //             maxLength: AppConstants.inputCharterLimit30,
+                            //             keyBoardType: TextInputType.text,
+                            //             regularExpression: RegularExpressionUtils
+                            //                 .alphabetSpacePattern,
+                            //             title: "",
+                            //             hintText: "Enter Category of Business",
+                            //             isValidate: true,
+                            //             onChange: (val) {
+                            //               //setState(() {});
+                            //             },
+                            //             validator: (value) {
+                            //               // if (authController.businessName.value.isEmpty) {
+                            //               //   return 'Please enter your business or organization name';
+                            //               // } else if (authController.businessName.value.length <
+                            //               //     5) {
+                            //               //   return 'Minimum 5 characters required';
+                            //               // }
+                            //               return null;
+                            //             },
+                            //           ),
+                            //       ],
+                            //     ),
 
-                            const SizedBox(height: 16),
-
+                            const SizedBox(height: 10),
+                            viewBusinessDetailsController
+                                .selectedBusinessType?.value.name
+                                .toLowerCase() !=
+                                "both"
+                                ?
                             CommonTextField(
                               textEditController: specializationCtrl,
                               title: "Business Specialization (Optional)",
@@ -1373,7 +1459,7 @@ void openBusinessDetailsEditSheet(BuildContext context) {
                               maxLine: 1,
                               maxLength: 24,
                               isValidate: false,
-                            ),
+                            ) : SizedBox(),
                             const SizedBox(height: 16),
 
                             Row(
@@ -1381,7 +1467,7 @@ void openBusinessDetailsEditSheet(BuildContext context) {
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                    CrossAxisAlignment.start,
                                     children: [
                                       CustomText(
                                         "Shop Open Time",
@@ -1398,15 +1484,18 @@ void openBusinessDetailsEditSheet(BuildContext context) {
                                               .shopOpenTime.value,
                                           items: List.generate(
                                             48,
-                                            (i) =>
-                                                "${(i ~/ 2).toString().padLeft(2, '0')}:${(i % 2 == 0 ? "00" : "30")}",
+                                                (i) =>
+                                            "${(i ~/ 2).toString().padLeft(
+                                                2, '0')}:${(i % 2 == 0
+                                                ? "00"
+                                                : "30")}",
                                           ),
                                           onChanged: (val) {
                                             viewBusinessDetailsController
                                                 .shopOpenTime.value = val ?? '';
                                           }
-                                          // addServiceController.startTime.value = val!,
-                                          ),
+                                        // addServiceController.startTime.value = val!,
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -1414,7 +1503,7 @@ void openBusinessDetailsEditSheet(BuildContext context) {
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                    CrossAxisAlignment.start,
                                     children: [
                                       CustomText(
                                         "Shop Close Time",
@@ -1431,16 +1520,19 @@ void openBusinessDetailsEditSheet(BuildContext context) {
                                               .shopCloseTime.value,
                                           items: List.generate(
                                             48,
-                                            (i) =>
-                                                "${(i ~/ 2).toString().padLeft(2, '0')}:${(i % 2 == 0 ? "00" : "30")}",
+                                                (i) =>
+                                            "${(i ~/ 2).toString().padLeft(
+                                                2, '0')}:${(i % 2 == 0
+                                                ? "00"
+                                                : "30")}",
                                           ),
                                           onChanged: (val) {
                                             viewBusinessDetailsController
                                                 .shopCloseTime
                                                 .value = val ?? '';
                                           }
-                                          // addServiceController.startTime.value = val!,
-                                          ),
+                                        // addServiceController.startTime.value = val!,
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -1454,33 +1546,38 @@ void openBusinessDetailsEditSheet(BuildContext context) {
                               bgColor: AppColors.primaryColor,
                               title: "Save",
                               onTap: () async {
-                                final controller = Get.find<ViewBusinessDetailsController>();
+                                final controller = Get.find<
+                                    ViewBusinessDetailsController>();
 
                                 final selectedType =
-                                    controller.selectedBusinessType?.value.name.toLowerCase() ?? '';
+                                    controller.selectedBusinessType?.value.name
+                                        .toLowerCase() ?? '';
                                 if (selectedType != "both") {
                                   // Only validate these if NOT "both"
-                                  if (controller.selectedCategoryOfBusiness.value?.id == null) {
-                                    commonSnackBar(message: "Please select category");
+                                  if (controller.selectedCategoryOfBusiness
+                                      .value?.id == null) {
+                                    commonSnackBar(
+                                        message: "Please select category");
                                     return;
                                   }
 
-                                  if (controller.selectedSubCategoryOfBusinessNew.value?.sId == null) {
-                                    commonSnackBar(message: "Please select sub-category");
-                                    return;
-                                  }
-                                } else {
-                                  // Validate text field for "both"
-                                  if (subCategoryTextController.text.trim().isEmpty) {
-                                    commonSnackBar(message: "Please enter Category of Business");
-                                    return;
-                                  }
+                                  // if (controller.selectedSubCategoryOfBusinessNew.value?.sId == null) {
+                                  //   commonSnackBar(message: "Please select sub-category");
+                                  //   return;
+                                  // }
+                                  // if (subCategoryTextController.text.trim().isEmpty) {
+                                  //   commonSnackBar(message: "Please enter Category of Business");
+                                  //   return;
+                                  // }
                                 }
-
                                 Map<String, dynamic> updatedParams = {
                                   ApiKeys.businessId: businessId,
-                                  ApiKeys.opening_time:viewBusinessDetailsController.shopOpenTime.value,
-                                  ApiKeys.closing_time:viewBusinessDetailsController.shopCloseTime.value,
+                                  ApiKeys
+                                      .opening_time: viewBusinessDetailsController
+                                      .shopOpenTime.value,
+                                  ApiKeys
+                                      .closing_time: viewBusinessDetailsController
+                                      .shopCloseTime.value,
                                   if (viewBusinessDetailsController
                                       .selectedBusinessType?.value.name
                                       .toLowerCase() ==
@@ -1488,37 +1585,37 @@ void openBusinessDetailsEditSheet(BuildContext context) {
                                     ApiKeys.category_other:
                                     subCategoryTextController.text,
                                   ApiKeys.category:
-                                      viewBusinessDetailsController
-                                          .selectedCategoryOfBusiness.value?.id,
+                                  viewBusinessDetailsController
+                                      .selectedCategoryOfBusiness.value?.id,
                                   ApiKeys.sub_category_Of_Business:
-                                      viewBusinessDetailsController
-                                          .selectedSubCategoryOfBusinessNew
-                                          .value
-                                          ?.sId,
+                                  viewBusinessDetailsController
+                                      .selectedSubCategoryOfBusinessNew
+                                      .value
+                                      ?.sId,
                                   ApiKeys.type_of_business:
-                                      viewBusinessDetailsController
-                                              .selectedBusinessType
-                                              ?.value
-                                              .name ??
-                                          '',
+                                  viewBusinessDetailsController
+                                      .selectedBusinessType
+                                      ?.value
+                                      .name ??
+                                      '',
                                   ApiKeys.specification:
-                                      specializationCtrl.text.trim(),
+                                  specializationCtrl.text.trim(),
                                   ApiKeys.category_Of_Business:
-                                      (viewBusinessDetailsController
-                                                  .selectedBusinessType
-                                                  ?.value
-                                                  .name
-                                                  .toLowerCase() ==
-                                              "both")
-                                          ? '68a80b766fdb4e82b42b77c0'
-                                          : viewBusinessDetailsController
-                                              .selectedCategoryOfBusiness
-                                              .value
-                                              ?.id,
+                                  (viewBusinessDetailsController
+                                      .selectedBusinessType
+                                      ?.value
+                                      .name
+                                      .toLowerCase() ==
+                                      "both")
+                                      ? '68a80b766fdb4e82b42b77c0'
+                                      : viewBusinessDetailsController
+                                      .selectedCategoryOfBusiness
+                                      .value
+                                      ?.id,
                                   ApiKeys.Nature_of_Business:
-                                      selectedBusiness ==
-                                              selectedBusiness?.displayName ??
-                                          '',
+                                  selectedBusiness ==
+                                      selectedBusiness?.displayName ??
+                                      '',
                                 };
                                 log("sdlksmdclksdmcdlskc ${updatedParams}");
                                 await Get.find<ViewBusinessDetailsController>()
@@ -1561,7 +1658,7 @@ Widget _buildDropdown({
         isDense: true,
         value: value.isEmpty ? null : value,
         hint:
-            Text(hint, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
+        Text(hint, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
         icon: Icon(Icons.keyboard_arrow_down, color: Colors.grey[600]),
         style: TextStyle(color: Colors.black87, fontSize: 14),
         items: items.map((String t) {
@@ -1597,7 +1694,8 @@ class _BlinkingVerifyButtonState extends State<BlinkingVerifyButton>
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 1), // speed
-    )..repeat(reverse: true);
+    )
+      ..repeat(reverse: true);
 
     _animation = Tween<double>(begin: 1.0, end: 0.3).animate(_controller);
   }
