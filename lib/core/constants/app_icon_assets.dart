@@ -450,4 +450,8 @@ class AppIconAssets {
   static String commentSuggest = "${iconPath}comment_suggest.svg";
   static String commentSupport = "${iconPath}comment_support.svg";
   static String commentWarn = "${iconPath}comment_warn.svg";
+  static String bedIcon = "${iconPath}bed_icon.svg";
+  static String multiPersonsIcon = "${iconPath}multi_persons_icon.svg";
+  static String seatIcon = "${iconPath}seat_icon.svg";
+  static String fuelIcon = "${iconPath}fuel_icon.svg";
 }

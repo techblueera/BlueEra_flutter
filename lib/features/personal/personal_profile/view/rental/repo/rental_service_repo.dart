@@ -4,7 +4,7 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 
 class RentalServiceRepo extends BaseService{
 
-  ///GET RENTAL SERVICE...
+  ///ADD RENTAL SERVICE...
   Future<ResponseModel> addRentalServiceRepo({required Map<String, dynamic> params}) async {
     final response = await ApiBaseHelper().postHTTP(
       rentalService,
@@ -17,10 +17,10 @@ class RentalServiceRepo extends BaseService{
     return response;
   }
 
-  ///GET RENTAL SERVICE...
-  Future<ResponseModel> generateHomeRentalServiceRepo({required Map<String, dynamic> params}) async {
+  /// GET HOME DESCRIPTION VIA AI...
+  Future<ResponseModel> generateHomeDescriptionRepo({required Map<String, dynamic> params}) async {
     final response = await ApiBaseHelper().postHTTP(
-      generateHomeRentalService,
+      generateHomeDescription,
       isMultipart: true,
       params: params,
       showProgress: false,
@@ -30,10 +30,11 @@ class RentalServiceRepo extends BaseService{
     return response;
   }
 
-  Future<ResponseModel> getRentalService({required Map<String, dynamic> params}) async {
-    final response = await ApiBaseHelper().postHTTP(
+  /// GET RENTAL SERVICES
+  Future<ResponseModel> getRentalService({required Map<String, dynamic> queryParams}) async {
+    final response = await ApiBaseHelper().getHTTP(
       rentalService,
-      params: params,
+      params: queryParams,
       showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
