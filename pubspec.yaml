@@ -78,6 +78,7 @@ dependencies:
   shared_preferences: ^2.5.3
   video_trimmer: ^5.0.0
   get_thumbnail_video: ^0.7.3
+  flutter_callkit_incoming: ^3.0.0
 #  video_compress: ^3.1.4
 #  googleapis_auth: ^2.0.0
 #  googleapis: ^15.0.0

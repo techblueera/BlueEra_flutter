@@ -54,8 +54,10 @@ class _PickupOrderScreenState extends State<PickupOrderScreen> {
                   child: GestureDetector(
                     onTap: () {
                       controller.selectedPickUp.value = tab;
-                      if(controller.selectedPickUp.value != PickUpTab.newOrder && controller.selectedPickUp.value != PickUpTab.onGoing){
+                      if(controller.selectedPickUp.value != PickUpTab.newOrder && controller.selectedPickUp.value != PickUpTab.onGoing&& controller.selectedPickUp.value != PickUpTab.rejected){
                         controller.getRidersBookingOrders();
+                      }else if(controller.selectedPickUp.value == PickUpTab.rejected){
+                        controller.getRiderRejectOrderList();
                       }
                     },
                     child: CustomText(

@@ -35,12 +35,9 @@ Stream<dynamic> getOrderFromUserStream() async* {
     );
   }
 
-  print("SSE connected ✅");
-
   // Listen to the stream
   await for (final chunk in response.stream.transform(utf8.decoder)) {
     for (final line in chunk.split('\n')) {
-      log("SSE connected ${line}");
 
       if (line.startsWith('data:')) {
         final jsonStr = line.substring(5).trim();

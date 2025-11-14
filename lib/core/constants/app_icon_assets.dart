@@ -454,4 +454,6 @@ class AppIconAssets {
   static String multiPersonsIcon = "${iconPath}multi_persons_icon.svg";
   static String seatIcon = "${iconPath}seat_icon.svg";
   static String fuelIcon = "${iconPath}fuel_icon.svg";
+  static String rider_otp = "${iconPath}rider_otp.svg";
+  static String rider_call_icon = "${iconPath}rider_call_icon.svg";
 }

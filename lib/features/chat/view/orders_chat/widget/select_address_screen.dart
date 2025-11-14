@@ -232,11 +232,10 @@ class _AddressListScreenState extends State<AddressListScreen> {
 
                 Future.delayed(Duration(seconds: 2),(){
                   if(riders!=null&&riders.isNotEmpty){
-
                     Get.off(() => DeliveryPilotScreen(
                       shopName: widget.message.seller?.name??'',
-                      lat: double.parse(orderController.lat.value),
-                      long:   double.parse(orderController.long.value),
+                      dropLat: double.parse(orderController.lat.value),
+                      dropLong:   double.parse(orderController.long.value),
                       startLat: double.parse("${selectedAddress?.lat??"0.0"}"),
                       startLng: double.parse("${selectedAddress?.lng??"0.0"}"),
                     ));

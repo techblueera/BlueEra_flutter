@@ -504,11 +504,13 @@ abstract class BaseService {
 
 
   final String getRiderBookingList = "rider-service/riders/orders/requested";
+  final String getRiderRejectOrder = "rider-service/riders/orders/rejected";
   String updateOrderStatusFromPialot(String orderId) => 'rider-service/riders/orders/$orderId/status';
   String updatePaymentStaus(String orderId) => 'rider-service/riders/orders/$orderId/confirm-payment';
   String cancelOrderForceFully(String orderId) => 'rider-service/riders/orders/$orderId/admin/status';
   String deliverOtpVerify(String orderId) => "rider-service/riders/orders/$orderId/deliver";
   String updateOrderStatusFromAdmin(String orderId) => "rider-service/riders/orders/$orderId/admin/status";
+  String updateThePickupOtpUrl(String orderId) => "rider-service/riders/orders/$orderId/pickup";
 
   final String productSearchFilter = 'product-service/api/product/sort/filter';
   final String checkAnyEarnServiceCreated = 'earn-service/services/any/check';

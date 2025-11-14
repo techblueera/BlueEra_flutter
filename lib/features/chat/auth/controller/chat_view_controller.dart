@@ -182,7 +182,6 @@ class ChatViewController extends GetxController {
     // }
 
     chatSocket.listenEvent('ChatList', (data) async {
-
       final parsedData = GetChatListModel.fromJson(data);
       loadChatListWithType(chatListModel: parsedData);
       getPersonalFilteredChatListModel?.value = parsedData;
@@ -228,26 +227,31 @@ class ChatViewController extends GetxController {
       }
     });
     chatSocket.listenEvent('newMessageReceived', (data) {
-      Messages? message = Messages.fromJson(data['message']);
+      Messages? message;
 
-      if (message.myMessage == null) {
+      if (data['message'] != null) {
+        message = Messages.fromJson(data['message']);
+      } else {
+        message = null;
+      }
+      if (message?.myMessage == null) {
         final currentUserId =
             userId; // Global variable from shared_preference_utils.dart
-        final senderId = message.senderId;
-        message.myMessage = currentUserId == senderId;
+        final senderId = message?.senderId;
+        message?.myMessage = currentUserId == senderId;
       }
 
-      if (message.conversation?.type == "personal") {
+      if (message?.conversation?.type == "personal") {
         emitEvent("ChatList", {ApiKeys.type: "personal"}, true);
       } else {
         emitEvent("ChatList", {ApiKeys.type: "business"}, true);
       }
       String chekedConversationId = userOpenConversationId.value;
-      if (chekedConversationId == message.conversationId) {
-        getListOfMessageData?.add(message); // Add message to UI
+      if (chekedConversationId == message?.conversationId) {
+        getListOfMessageData?.add(message??Messages()); // Add message to UI
         getListOfMessageResponse.value =
             ApiResponse.complete(getListOfMessageData);
-        saveSingleMessageToLocal(message.conversationId ?? '', message);
+        saveSingleMessageToLocal(message?.conversationId ?? '', message??Messages());
         scrollDown();
       }
     });
@@ -465,7 +469,7 @@ class ChatViewController extends GetxController {
     if (isWithProductSend == true) {
      await sendProductMessages(shareProductParams ?? {});
     }
-    await getLocalConversation(conversationId, userId, otherUserId);
+    await getLocalConversation(conversationId, userId, otherUserId,contactName);
 
     if (type == "business") {
       if (isFromContactList != null && isFromContactList) {
@@ -527,7 +531,7 @@ class ChatViewController extends GetxController {
   }
 
   Future<void> getLocalConversation(String conversationId, userId,
-      [String? otherUserId]) async {
+      [String? otherUserId,String? name]) async {
     // final connectivityResult = await NetworkUtils.isConnected();
     getListOfMessageResponse.value = ApiResponse.initial('Initial');
     // if (connectivityResult) {
@@ -545,12 +549,16 @@ class ChatViewController extends GetxController {
                 ApiKeys.page: 1,
                 ApiKeys.is_online_user: userId,
                 ApiKeys.per_page_message: 30,
+          if(name!=null&&name=="BlueEra Orders")
+            ApiKeys.orders_conversation:true
               }
             : {
                 ApiKeys.conversation_id: conversationId,
                 ApiKeys.page: 1,
                 ApiKeys.is_online_user: userId,
                 ApiKeys.per_page_message: 30,
+          if(name!=null&&name=="BlueEra Orders")
+            ApiKeys.orders_conversation:true
               });
 
     // }

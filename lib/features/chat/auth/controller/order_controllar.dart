@@ -1,4 +1,4 @@
-import 'dart:developer';
+
 import 'dart:math' hide log;
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -51,6 +51,7 @@ class OrderNowController extends GetxController {
   Rx<GetPorterVehicleOptionModel> getPorterVehicleOptionModel=GetPorterVehicleOptionModel().obs;
   Rx<PaymentResponseModel> paymentResponseModel=PaymentResponseModel().obs;
   RxBool isDefault = false.obs;
+  RxBool ownerOtpLoading = false.obs;
   RxInt? selectedIndex;
   RxString distanceKm="0.0".obs;
   RxList<Riders?> selectedIndexes = <Riders>[].obs;
@@ -64,6 +65,27 @@ class OrderNowController extends GetxController {
     commonSnackBar(message: "Copied Store Long");
   }
 
+  Future<String?> getAddressFromLatLngAsString({required double lat ,required double lng}) async {
+    try {
+      List<Placemark> placemarks = await placemarkFromCoordinates(
+        lat,
+        lng,
+      );
+
+      if (placemarks.isNotEmpty) {
+        final place = placemarks.first;
+        String locationString =
+        "${place.name ?? ''}, ${place.subLocality ?? ''}, ${place.subAdministrativeArea ?? ''}, ${place.locality ?? ''} - ${place.postalCode ?? ''}".trim();
+
+        return locationString;
+      } else {
+
+        return "";
+      }
+    } catch (e) {
+      return "Location not found";
+    }
+  }
 
   void calculateDistanceInKm(
       {required double startLat,required double startLng,required double endLat,required double endLng}) {
@@ -144,9 +166,23 @@ class OrderNowController extends GetxController {
   }
   Future<void> updateOrderStatus(Map<String,dynamic> params) async {
     try {
+      // ResponseModel responseModel =
+      // await BusinessProfileRepo().updateMsgOrderStatus(params);
+
+      // if (responseModel.isSuccess) {
+      //   final data = responseModel.response?.data;
+      //
+      // }else{
+      //
+      // }
+    }catch(e){
+
+    }
+  }
+  Future<void> updateMessageOrderStatus(Map<String,dynamic> params) async {
+    try {
       ResponseModel responseModel =
       await BusinessProfileRepo().updateMsgOrderStatus(params);
-
       if (responseModel.isSuccess) {
         final data = responseModel.response?.data;
 
@@ -157,11 +193,29 @@ class OrderNowController extends GetxController {
 
     }
   }
+  Future<void> uploadThePickupOtp(Map<String,dynamic> params,String orderId) async {
+    try {
+      ownerOtpLoading.value=true;
+      ResponseModel responseModel =
+      await MakeOrderRepo().uploadThePickupOtp(params,orderId);
+      if (responseModel.isSuccess) {
+        final data = responseModel.response?.data;
+        commonSnackBar(message: "Pickup Order Verified Successfully");
+      }else{
+        commonSnackBar(message: responseModel.message);
+      }
+      ownerOtpLoading.value=false;
+    }catch(e){
+      ownerOtpLoading.value=false;
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+  }
   Future<bool> sendMessageToOrderTab(
       {required Map<String,dynamic> params})
   async {
-    try {
+    // try {
       ResponseModel? response = await MakeOrderRepo().messageToOrder(params);
+
       if (response.isSuccess ?? false) {
      return true;
       } else {
@@ -169,10 +223,10 @@ class OrderNowController extends GetxController {
             message: response.message ?? AppStrings.somethingWentWrong);
         return false;
       }
-    } catch (e) {
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-      return false;
-    }
+    // } catch (e) {
+    //   commonSnackBar(message: AppStrings.somethingWentWrong);
+    //   return false;
+    // }
   }
   Future<void> VerifyPayment(
       {required Map<String,dynamic> params}) async {
@@ -390,13 +444,12 @@ class OrderNowController extends GetxController {
         paymentResponse.value= ApiResponse.complete(paymentResponseModel.value);
 
         Map<String,dynamic> addOrderTabPara={
-          ApiKeys.conversation_id: openedMessage?.conversationId,
           ApiKeys.message_id:openedMessage?.id,
-          ApiKeys.other_user_id :userId,
+          ApiKeys.other_user_id :openedMessage?.seller?.id,
           ApiKeys.price: "${orderValueController.text}",
           ApiKeys.order : data,
           // "rider": {},
-          ApiKeys.rider_id: "$userId",
+
           ApiKeys.ride_by: MakeOrderType.porter
         };
         sendMessageToOrderTab(params: addOrderTabPara);
@@ -424,7 +477,7 @@ class OrderNowController extends GetxController {
   }
   void createSelfPickupOrder(String? messageId,String? userid,String? conversationId,) async {
     Map<String,dynamic> addOrderTabPara={
-      ApiKeys.conversation_id: "$conversationId",
+
       ApiKeys.message_id: "$messageId",
       ApiKeys.other_user_id :userid,
       ApiKeys.price: "${orderValueController.text}",
@@ -453,24 +506,24 @@ class OrderNowController extends GetxController {
   }
   void createRiderPickupOrder(String? messageId,String? userid,String? conversationId,) async {
     Map<String,dynamic> addOrderTabPara={
-      ApiKeys.conversation_id: "$conversationId",
       ApiKeys.message_id: "$messageId",
       ApiKeys.other_user_id :userid,
       ApiKeys.price: "${orderValueController.text}",
       // "order": {},
       // "rider": {},
-      ApiKeys.rider_id: "$userId",
-      ApiKeys.ride_by: MakeOrderType.self
+      // ApiKeys.rider_id: "$userId",
+      ApiKeys.ride_by: MakeOrderType.rider
     };
         bool value=await sendMessageToOrderTab(params: addOrderTabPara);
+
         if(value){
           final chatViewController = Get.find<ChatViewController>();
 
-          Map<String,dynamic>datadd={
-            ApiKeys.messageId: messageId,
-            ApiKeys.order_status : true
-          };
-          await updateOrderStatus(datadd);
+          // Map<String,dynamic>datadd={
+          //   ApiKeys.messageId: messageId,
+          //   ApiKeys.order_status : true
+          // };
+          // await updateOrderStatus(datadd);
           chatViewController.emitEvent("messageReceived", {
             ApiKeys.conversation_id: conversationId??userId,
             ApiKeys.page: 1,

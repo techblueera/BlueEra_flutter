@@ -1,10 +1,8 @@
 import 'dart:async';
-import 'dart:developer';
 import 'dart:typed_data';          // For Uint8List
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/chat/view/orders_chat/widget/waiting_for_payment_dialog.dart';
-import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:flutter/services.dart';  // For rootBundle and ByteData
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -19,18 +17,17 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../../core/api/apiService/api_response.dart';
 import '../../../../../core/constants/common_methods.dart';
 import '../../../../../core/constants/snackbar_helper.dart';
-import '../../../../../core/services/razor_pay_services.dart';
 import '../../../auth/controller/order_controllar.dart';
 import '../../../auth/model/GetBlueeraPiolotModel.dart';
 import '../../../auth/stream/rider_response_stream.dart';
 
 class DeliveryPilotScreen extends StatefulWidget {
   const DeliveryPilotScreen(
-      {super.key, required this.lat, required this.long, required this.shopName, required this.startLat, required this.startLng});
+      {super.key, required this.dropLat, required this.dropLong, required this.shopName, required this.startLat, required this.startLng});
 
-  final double lat;
+  final double dropLat;
   final double startLat;
-  final double long;
+  final double dropLong;
   final double startLng;
   final String shopName;
 
@@ -46,26 +43,18 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
   List<dynamic> orders = [];
   Future<void> _showMarkerAndZoom() async {
     if (mapController == null) return;
-
-    // 1️⃣ Load your marker image bytes from assets
     final ByteData bytes = await rootBundle.load('assets/svg/2_wheeler.svg');
     final Uint8List list = bytes.buffer.asUint8List();
-
-    // 2️⃣ Add the image to the map style with a custom name
     await mapController!.addImage('customMarker', list);
-
-    // 3️⃣ Add the marker symbol
     await mapController!.addSymbol(
       SymbolOptions(
-        geometry: LatLng(widget.lat, widget.long),
+        geometry: LatLng(widget. dropLat, widget. dropLong),
         iconImage: 'customMarker', // must match the name above
         iconSize: 1.8,
       ),
     );
-
-    // 4️⃣ Move camera to marker position
     await mapController!.animateCamera(
-      CameraUpdate.newLatLngZoom(LatLng(widget.lat, widget.long), 14.0),
+      CameraUpdate.newLatLngZoom(LatLng(widget. dropLat, widget. dropLong), 14.0),
     );
   }
   bool paymentDialogShow=false;
@@ -103,7 +92,6 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
   _stream = await riderOrderStream(userId);
 
   _subscription = _stream.listen((event) {
-
     if (event is List) {
       if(event.isEmpty){
         if(paymentDialogShow==true){
@@ -114,7 +102,7 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
           final status = item['status'];
 
           if (status == 'payment-pending') {
-            // Show payment dialog (only once per new event)
+
             if(paymentDialogShow==false){
               _showPaymentDialog(Get.context!,item['_id'],
                   driverImageUrl: '${item['assignedRider']['profile_image']}',
@@ -124,14 +112,18 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
               );
               paymentDialogShow=true;
             }
-
             break; // stop after first match
+          }else if(status == 'cancelled'){
+            if(paymentDialogShow==true){
+              Get.back();
+            }
+            commonSnackBar(message: "Your order rejected by rider choose any other available riders please");
+
           }
         }
       }
 
     } else if (event is Map) {
-      // If server sends a single object
       final status = event['status'];
 
       if (status == 'payment-pending') {
@@ -160,18 +152,15 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
     super.dispose();
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
       appBar: CommonBackAppBar(
         title: "Delivery Pilot Near to ${widget.shopName}",
       ),
       body: Obx(() {
         if(orderController.getRidersListResponse.value.status==Status.COMPLETE&&orderController.getFaireAmountResponse.value.status==Status.COMPLETE){
           GetBlueeraPiolotModel data=orderController.getBlueeraPiolotModel.value;
-
           return
             SafeArea(
             child: Column(
@@ -182,7 +171,7 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
                   color: AppColors.white,
                   child: MapplsMap(
                     initialCameraPosition: CameraPosition(
-                      target: LatLng(widget.lat, widget.long),
+                      target: LatLng(widget. dropLat, widget. dropLong),
                       zoom: 14.0,
                     ),
                     myLocationEnabled: true,
@@ -386,15 +375,19 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
                       ),
                       onPressed: () async{
                         List<String?> userIdList=orderController.selectedIndexes.map((e)=>e?.userId).toList();
+                        String? pickupLocation= await orderController.getAddressFromLatLngAsString(lat: widget.startLat,lng: widget.startLng);
+                        String? dropLocation= await orderController.getAddressFromLatLngAsString(lat: widget.dropLat,lng: widget.dropLong);
                         Map<String,dynamic> params={
                           ApiKeys.selectedRiders: userIdList,
                           ApiKeys.pickupLocation: {
+                            ApiKeys.address: pickupLocation,
                             ApiKeys.latitude: widget.startLat,
                             ApiKeys.longitude: widget.startLng
                           },
                           ApiKeys.dropLocation: {
-                            ApiKeys.latitude: widget.lat,
-                            ApiKeys.longitude: widget.long
+                            ApiKeys.address: dropLocation,
+                            ApiKeys.latitude: widget.dropLat,
+                            ApiKeys.longitude: widget.dropLong
                           },
                           ApiKeys.orderId: "${(orderController.openedMessage?.metadata?.foodId!=null&&orderController.openedMessage?.metadata?.foodId!='')?
                           orderController.openedMessage?.metadata?.foodId

@@ -368,6 +368,7 @@ class MessageMetadata {
   String? foodId;
   String? productId;
   String? serviceId;
+  String? orderId;
   String? price;
   String? discount;
   bool? missedCall;
@@ -383,13 +384,15 @@ class MessageMetadata {
   String? variant;
   String? mrp;
 
-  // 🔹 Added nested model
   PaymentResponseModel? order;
+
+  Rider? rider;
 
   MessageMetadata({
     this.foodId,
     this.productId,
     this.serviceId,
+    this.orderId,
     this.price,
     this.discount,
     this.orderStatus,
@@ -404,6 +407,7 @@ class MessageMetadata {
     this.variant,
     this.mrp,
     this.order,
+    this.rider, // ✅ added
   });
 
   factory MessageMetadata.fromJson(Map<String, dynamic> json) {
@@ -411,9 +415,10 @@ class MessageMetadata {
       foodId: json['food_id']?.toString(),
       productId: json['product_id']?.toString(),
       serviceId: json['service_id']?.toString(),
+      orderId: json['orderId']?.toString(),
       price: json['price']?.toString(),
       discount: json['discount']?.toString(),
-      orderStatus: json['order_status'] ?? false,
+      orderStatus: json['order_status'],
       is_cancelled: json['is_cancelled'] ?? false,
       missedCall: json['missed_call'] ?? false,
       callAccept: json['call_accept'] ?? false,
@@ -427,6 +432,9 @@ class MessageMetadata {
       order: json['order'] != null
           ? PaymentResponseModel.fromJson(json['order'])
           : null,
+      rider: json['rider'] != null
+          ? Rider.fromJson(json['rider'])
+          : null,
     );
   }
 
@@ -436,6 +444,7 @@ class MessageMetadata {
       'product_id': productId,
       'service_id': serviceId,
       'price': price,
+      'orderId': orderId,
       'discount': discount,
       'missed_call': missedCall,
       'call_accept': callAccept,
@@ -448,10 +457,56 @@ class MessageMetadata {
       'calories': calories,
       'variant': variant,
       'mrp': mrp,
-      'order': order?.toJson(), // ✅ nested model serialization
+      'order': order?.toJson(),
+      'rider': rider?.toJson(),
     };
   }
 }
+
+class Rider {
+  String? contactNo;
+  int? noOfOrder;
+  double? starRating;
+  String? profilePicture;
+  String? name;
+  String? userId;
+
+  Rider({
+    this.contactNo,
+    this.noOfOrder,
+    this.starRating,
+    this.profilePicture,
+    this.name,
+    this.userId,
+  });
+
+  factory Rider.fromJson(Map<String, dynamic> json) {
+    return Rider(
+      contactNo: json['contactNo']?.toString(),
+      noOfOrder: json['noOfOrder'] is int
+          ? json['noOfOrder']
+          : int.tryParse(json['noOfOrder']?.toString() ?? '0'),
+      starRating: json['starrating'] != null
+          ? double.tryParse(json['starrating'].toString())
+          : null,
+      profilePicture: json['profilepicture']?.toString(),
+      name: json['name']?.toString(),
+      userId: json['userid']?.toString(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'contactNo': contactNo,
+      'noOfOrder': noOfOrder,
+      'starrating': starRating,
+      'profilepicture': profilePicture,
+      'name': name,
+      'userid': userId,
+    };
+  }
+}
+
 /// profile_image : ""
 /// _id : 0
 /// username : ""
