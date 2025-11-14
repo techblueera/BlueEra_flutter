@@ -8,6 +8,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/features/common/food/model/food_ai_res_model.dart';
 import 'package:BlueEra/features/common/food/repo/food_ai_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/repo/earn_service_repo.dart';
@@ -176,16 +177,14 @@ class FoodUploadController extends GetxController {
         EarnWithBlueEraServiceTypes? serviceSubType}) async {
     try {
       isGenerateFoodLoading.value = true;
-      String fileName = selectedImage.value?.path.split('/').last ?? "";
-      dio.MultipartFile? imageByPart = await dio.MultipartFile.fromFile(
-          selectedImage.value?.path ?? "",
-          filename: fileName);
+      dio.MultipartFile? imageByPart = await multiPartImage(imagePath: selectedImage.value?.path ?? "");
       Map<String, dynamic> reqParm = {
         ApiKeys.product_details: jsonEncode({
           ApiKeys.product_name: foodNameController.text,
-          ApiKeys.category: selectedItemNature.value,
+          ApiKeys.category: selectedFoodType1.value,
+          // ApiKeys.category: selectedItemNature.value,
           ApiKeys.keywords:
-          "${selectedFoodType1.value}, ${selectedFoodType2.value},${selectedCookingMethod.value}",
+          "${selectedFoodType1.value}, ${selectedFoodType2.value}, ${selectedCookingMethod.value}, ${selectedItemNature.value}",
           if (cityNameController.text.isNotEmpty)
             ApiKeys.city: cityNameController.text
         }),

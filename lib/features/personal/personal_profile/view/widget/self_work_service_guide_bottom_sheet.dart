@@ -1,6 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
@@ -101,7 +100,7 @@ class _SelfWorkServiceGuideBottomSheetState extends State<SelfWorkServiceGuideBo
 
               final filteredServices = selfWorkServiceList.where((service) {
                 return apiSubcategories.any((api) =>
-                api.name == service.name);
+                api.name == service.slugId);
               }).toList();
 
               // 3-column grid
@@ -148,44 +147,10 @@ class _SelfWorkServiceGuideBottomSheetState extends State<SelfWorkServiceGuideBo
 
                 showProfessionChangeDialog(
                   context: context,
-                  designation: selectedService?.name ?? AppConstants.OTHER,
+                  designation: selectedService?.slugId ?? AppConstants.OTHER,
                   serviceSubType: EarnWithBlueEraServiceTypes.selfWork,
                 );
 
-                // await showCommonDialog(
-                // context: context,
-                // text: 'Your profession and work type will be changed. Continue?',
-                // confirmText: 'Update',
-                // cancelText: 'Cancel',
-                // confirmCallback: () async {
-                //   final personalCreateProfileController = Get.isRegistered<PersonalCreateProfileController>()
-                //     ? Get.find<PersonalCreateProfileController>()
-                //      : Get.put(PersonalCreateProfileController());
-                //
-                //   personalCreateProfileController
-                //       .updateUserProfileProfessionDesignation(
-                //     params: {
-                //       ApiKeys.profession: SELF_EMPLOYED,
-                //       ApiKeys.designation: selectedService?.label
-                //     },
-                //   ).then((value){
-                //     Get.offNamedUntil(
-                //       RouteHelper.getAddServicesScreenRoute(),
-                //       ModalRoute.withName(RouteHelper.getEarnWithBlueEraNewScreenRoute()),
-                //       arguments: {
-                //         ApiKeys.providerType: ProductServiceProviderType.user,
-                //         ApiKeys.isFromEarnWithBlueEraService: true,
-                //         ApiKeys.designation: selectedService?.label,
-                //         ApiKeys.serviceSubType: EarnWithBlueEraServiceTypes.selfWork,
-                //       },
-                //     );
-                //   });
-                //
-                // },
-                // cancelCallback: () {
-                //   Get.back();
-                //  },
-                // );
 
               },
               bgColor: AppColors.primaryColor,

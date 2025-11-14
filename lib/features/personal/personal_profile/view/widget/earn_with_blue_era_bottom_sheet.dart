@@ -78,10 +78,10 @@ class EarnWithBlueEraBottomSheet extends StatelessWidget {
   }
 
   void _handleServiceTap(BuildContext context, ServiceItem service) async {
-    switch (service.name) {
+    switch (service.slugId) {
       case AppConstants.SELF_WORK_OPTION:
         if(earnServiceCreatedStatusGlobal == 'true'){
-          commonSnackBar(message: 'You can only opt one service');
+          commonSnackBar(message: 'You can opt only one service');
         }else{
           showModalBottomSheet(
             context: context,
@@ -120,7 +120,7 @@ class EarnWithBlueEraBottomSheet extends StatelessWidget {
 
       case AppConstants.HOME_SERVICES_OPTION:
         if(earnServiceCreatedStatusGlobal == 'true'){
-          commonSnackBar(message: 'You can only opt one service');
+          commonSnackBar(message: 'You can opt only one service');
         }else {
           showModalBottomSheet(
             context: context,
@@ -142,7 +142,7 @@ class EarnWithBlueEraBottomSheet extends StatelessWidget {
 
       case AppConstants.COUNSELLING_CONSULTING_OPTION:
         if(earnServiceCreatedStatusGlobal == 'true'){
-          commonSnackBar(message: 'You can only opt one service');
+          commonSnackBar(message: 'You can opt only one service');
         }else {
           showProfessionChangeDialog(
             context: context,
@@ -150,12 +150,11 @@ class EarnWithBlueEraBottomSheet extends StatelessWidget {
             serviceSubType: EarnWithBlueEraServiceTypes.homeService,
           );
         }
-
         break;
 
       case AppConstants.TUITION_CLASSES_ONLINE_OFFLINE_OPTION:
         if(earnServiceCreatedStatusGlobal == 'true'){
-          commonSnackBar(message: 'You can only opt one service');
+          commonSnackBar(message: 'You can opt only one service');
         }else {
           showProfessionChangeDialog(
             context: context,
@@ -163,7 +162,6 @@ class EarnWithBlueEraBottomSheet extends StatelessWidget {
             serviceSubType: EarnWithBlueEraServiceTypes.homeService,
           );
         }
-
         break;
 
       default:

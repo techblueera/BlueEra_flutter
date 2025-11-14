@@ -458,7 +458,7 @@ class ViewPersonalDetailsController extends GetxController {
   ///GET STATUS OF USER SERVICE...
   Future<void> getEarnServiceStatus() async {
     try {
-      log('is Earn Service created --> $earnServiceCreatedStatusGlobal');
+      log('is Earn Service created (local db check) --> $earnServiceCreatedStatusGlobal');
       if(earnServiceCreatedStatusGlobal == "true"){
         return;
       }
@@ -470,7 +470,7 @@ class ViewPersonalDetailsController extends GetxController {
         final statusData = responseModel.response?.data['exists'] != null
             ? responseModel.response!.data['exists'].toString()
             : 'false';
-        log('from api check is Earn Service created --> $earnServiceCreatedStatusGlobal');
+        log('from api check is Earn Service created --> $statusData');
         await SharedPreferenceUtils.setSecureValue(
             SharedPreferenceUtils.earnServiceCreatedStatusKey, statusData);
         await getEarnServiceCreatedStatusUtils();
@@ -489,7 +489,7 @@ class ViewPersonalDetailsController extends GetxController {
        : Get.put(ViewPersonalDetailsController());
 
     final bool isSelfService = selfWorkServiceList.any(
-          (service) => service.name == userProfessionGlobal,
+          (service) => service.slugId == userProfessionGlobal,
     );
 
     if (viewProfileController
