@@ -305,7 +305,10 @@ class InventoryController extends GetxController {
 
   }
 
-  Future<void> cloneProductVariantApi() async {
+  Future<void> cloneProductVariantApi(
+      { required String ownerID,
+        required ProductServiceProviderType providerType}
+      ) async {
     cloneProductVariantLoading.value = true;
     try {
       final clones = _buildSelectedVariantsPayload(searchProductVariantsList);
@@ -318,8 +321,8 @@ class InventoryController extends GetxController {
       // Construct body
       final body = {
         ApiKeys.owner: {
-          ApiKeys.id: businessId,
-          ApiKeys.type: ProductServiceProviderType.business.title,
+          ApiKeys.id: ownerID,
+          ApiKeys.type: providerType.title,
         },
         ApiKeys.clones: clones,
         //  'clones': jsonEncode(clones),
@@ -331,11 +334,20 @@ class InventoryController extends GetxController {
 
       if (responseModel.isSuccess) {
         cloneVariantProductResponse.value = ApiResponse.complete(responseModel);
-         Get.until(
-          (route) =>
-                route.settings.name ==
-                    RouteHelper.getInventoryScreenRoute(),
-            );
+        if((providerType==ProductServiceProviderType.business)){
+          Get.until(
+                (route) =>
+            route.settings.name ==
+                RouteHelper.getInventoryScreenRoute(),
+          );
+        }else{
+          Get.until(
+                (route) =>
+            route.settings.name ==
+                RouteHelper.getEarnWithBlueEraNewScreenRoute(),
+
+          );
+        }
 
       } else {
         cloneVariantProductResponse.value = ApiResponse.error('error');

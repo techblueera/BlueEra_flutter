@@ -511,4 +511,5 @@ class ApiKeys {
   static const searchTerm = 'searchTerm';
   static const orders_conversation = 'orders_conversation';
   static const pickupOTP = 'pickupOTP';
+  static const newContactNo = 'new_contact_no';
 }

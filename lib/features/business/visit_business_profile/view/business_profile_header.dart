@@ -288,7 +288,7 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
             child: Row(
               children: [
                 _buildTag(
-                    "Shop",
+                    widget.businessProfileDetails.categoryDetails?.name ?? '',
                     bgColor: AppColors.white,
                     textColor: AppColors.blackLite
                 ),

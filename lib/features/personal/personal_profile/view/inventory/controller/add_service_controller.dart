@@ -13,7 +13,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/business_service/repo/service_ai_repo.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/repo/earn_with_blueera_repo.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/repo/earn_service_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/add_service_response_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/detail_item.dart';
@@ -303,7 +303,7 @@ class AddServiceController extends GetxController {
       // Call API once
       final ResponseModel responseModel;
       if(providerType == ProductServiceProviderType.user){
-        responseModel = await EarnWithBlueEraRepo().addServiceRepo(params: params);
+        responseModel = await EarnServiceRepo().addServiceRepo(params: params);
       }else{
         responseModel = await ServiceAiRepo().addService(params: params);
       }

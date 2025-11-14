@@ -12,7 +12,7 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/inventory_based_search_product_response.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product_preview_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/product_preview_screen.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -296,7 +296,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                               }
 
                                               // Now all variants have prices, safe to proceed
-                                              controller.cloneProductVariantApi();
+                                              controller.cloneProductVariantApi(
+                                                  ownerID: widget.id,
+                                                  providerType: widget.providerType
+                                              );
                                             }
                                                 : null,
                                           title: controller.cloneProductVariantLoading.value
@@ -530,59 +533,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                         ],
                       ),
                     ),
-              
-                    // SizedBox(height: SizeConfig.size10),
-                    //
-                    // (controller.searchProduct.isEmpty)
-                    //     ? GestureDetector(
-                    //     onTap: () {
-                    //       Get.toNamed(
-                    //         RouteHelper.getAddProductViaAiStep1Route(),
-                    //         arguments: {
-                    //           ApiKeys.id: widget.id,
-                    //           ApiKeys.providerType: widget.providerType
-                    //         }
-                    //       );
-                    //     },
-                    //     child: Container(
-                    //       padding: EdgeInsets.symmetric(
-                    //           horizontal: SizeConfig.size15,
-                    //           vertical: SizeConfig.size25),
-                    //       decoration: BoxDecoration(
-                    //           color: AppColors.white,
-                    //           borderRadius: BorderRadius.circular(10)
-                    //       ),
-                    //       child: Row(
-                    //         children: [
-                    //           LocalAssets(imagePath: AppIconAssets
-                    //               .pencilEditIcon), // Pencil icon
-                    //           const SizedBox(width: 15.0),
-                    //           Expanded(
-                    //             child: Column(
-                    //               crossAxisAlignment: CrossAxisAlignment.start,
-                    //               children: [
-                    //                 CustomText(
-                    //                   "Generate Product With AI Within 1 Min. ",
-                    //                   fontSize: SizeConfig.medium15,
-                    //                   fontWeight: FontWeight.bold,
-                    //                   color: AppColors.mainTextColor,
-                    //                 ),
-                    //                 SizedBox(height: 10.0),
-                    //                 CustomText(
-                    //                   "Open the full manual form\nto add detailed information section by section.",
-                    //                   color: AppColors.secondaryTextColor,
-                    //                   fontSize: SizeConfig.medium,
-                    //                   fontWeight: FontWeight.w600,
-                    //                   fontFamily: AppConstants.OpenSans,
-                    //                 ),
-                    //               ],
-                    //             ),
-                    //           ),
-                    //         ],
-                    //       ),
-                    //     ))
-                    //     : SizedBox(),
-              
+
                   ],
                 ),
               ),
@@ -662,6 +613,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
                         imageUrl: productVariants.finalVariant.mediaRelatedToVarient
                             .isNotEmpty ? productVariants.finalVariant
                             .mediaRelatedToVarient[0] : '',
+                        memCacheWidth: 600,
+                        memCacheHeight: 600,
+                        fadeInDuration: const Duration(milliseconds: 100),
+                        fadeOutDuration: Duration.zero,
                         fit: BoxFit.cover,
                         placeholder: (context, url) =>
                             Container(

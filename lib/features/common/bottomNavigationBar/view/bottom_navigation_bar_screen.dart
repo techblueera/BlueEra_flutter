@@ -14,6 +14,9 @@ import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/common/store/view/newstore_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
+import 'package:BlueEra/main.dart';
+import 'package:BlueEra/widgets/service_provider_dialoge.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_callkit_incoming/entities/call_event.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
@@ -88,7 +91,9 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   }
 
   Future<void> _initializeIndividualUser() async {
-    // checkServiceExistence();
+    viewPersonalDetailsController.getEarnServiceStatus();
+    await Future.delayed(Duration(seconds: 2));
+    showEnableServiceDialog();
 
     if (channelId.isNotEmpty) return;
 
@@ -108,6 +113,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       SharedPreferenceUtils.setSecureValue(
           SharedPreferenceUtils.channelOwner, channelOwner),
     ]);
+
   }
 
   Future<void> _initializeBusinessUser() async {
@@ -135,6 +141,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     }
   }
 
+  ///GET BUSINESS PRODUCTS...
   Future<void> getBusinessUserOwnProduct() async {
     await inventoryController.fetchProducts();
   }

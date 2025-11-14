@@ -74,10 +74,6 @@ class _HomeScreenState extends State<HomeScreen> {
     _selectedSavedTab = SavedFeedTab.posts;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       _calculateHeaderHeight();
-      if (isIndividual()) {
-        await Future.delayed(Duration(seconds: 2));
-        showEnableServiceDialog();
-      }
     });
   }
 
@@ -272,7 +268,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             /*  VideoFeedScreen(
                           onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
                           query: searchController.text,
-                          headerHeight: _headerHeight),
+                           headerHeight: _headerHeight),
                       ShortsFeedScreen(
                           query: searchController.text,
                           headerHeight: _headerHeight

@@ -126,6 +126,10 @@ class StoreLivePhotoWidget extends StatelessWidget {
         height: height,
         width: SizeConfig.screenWidth,
         fit: BoxFit.cover,
+        memCacheWidth: 600,
+        memCacheHeight: 600,
+        fadeInDuration: const Duration(milliseconds: 100),
+        fadeOutDuration: Duration.zero,
         placeholder: (context, url) => LocalAssets(
           imagePath: AppIconAssets.place_holder_image, boxFix: BoxFit.fill),
         errorWidget: (context, url, error) => LocalAssets(

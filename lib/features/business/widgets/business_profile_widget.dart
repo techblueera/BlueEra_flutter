@@ -67,7 +67,8 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
     return Column(
       children: [
 
-     /*   CustomFormCard(
+
+        /*   CustomFormCard(
             padding: EdgeInsets.all(SizeConfig.size10),
             child: Column(
               children: [
@@ -579,6 +580,7 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
+
                     CustomText(
                       letterSpacing: 0.4,
                       "Business Description",
@@ -705,13 +707,18 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                           )
                   ],
                 ),
+                SizedBox(
+                  height: SizeConfig.size6,
+                ),
                 CustomText(
                   appLocalizations?.tellCustomersWhatYouOffer,
                   fontSize: SizeConfig.size12,
                   color: AppColors.secondaryTextColor,
                   fontWeight: FontWeight.w400,
                 ),
-
+                SizedBox(
+                  height: SizeConfig.size6,
+                ),
                 (controller.isListingDescriptionEdit.value)
                     ? SizedBox()
                     : const SizedBox(
@@ -1000,7 +1007,7 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                       ),
 
                       InkWell(
-                          onTap: () => updateLocationDialog(context),
+                          onTap: () => updateLocationDialog(context, details, false),
                           child: LocalAssets(
                             height: 16,
                             imagePath: AppIconAssets.pen_line,
@@ -1049,7 +1056,7 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
         ],
 
         SizedBox(
-          height: SizeConfig.size20,
+          height: SizeConfig.size65,
         ),
       ],
     );
@@ -1243,101 +1250,117 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
     );
   }
 
-  Future<void> updateLocationDialog(BuildContext context) {
-    return showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          insetPadding: EdgeInsets.symmetric(horizontal: SizeConfig.size40),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
-          backgroundColor: AppColors.white,
-          contentPadding: EdgeInsets.zero,
-          content: Container(
-            margin: EdgeInsets.only(
-                left: SizeConfig.size16,
-                right: SizeConfig.size16,
-                bottom: SizeConfig.size16,
-                top: SizeConfig.size8),
-            // vertical: SizeConfig.size30, horizontal: SizeConfig.size40),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Align(
-                    alignment: Alignment.topRight,
-                    child: InkWell(
-                      onTap: () => Get.back(),
-                      child: Icon(
-                        Icons.close,
-                        color: AppColors.secondaryTextColor,
-                      ),
-                    )),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    LocalAssets(imagePath: AppIconAssets.warningIcon),
-                    SizedBox(width: SizeConfig.size5),
-                    CustomText(
-                      "Update Location?",
-                      fontSize: SizeConfig.large,
-                      fontWeight: FontWeight.w700,
-                      textAlign: TextAlign.center,
-                      color: AppColors.mainTextColor,
+
+}
+Future<void> updateLocationDialog(BuildContext context,
+    BusinessProfileDetails? details, bool isFromMailScreen) {
+  return showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        insetPadding: EdgeInsets.symmetric(horizontal: SizeConfig.size40),
+        shape:
+        RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+        backgroundColor: AppColors.white,
+        contentPadding: EdgeInsets.zero,
+        content: Container(
+          margin: EdgeInsets.only(
+              left: SizeConfig.size16,
+              right: SizeConfig.size16,
+              bottom: SizeConfig.size16,
+              top: SizeConfig.size8),
+          // vertical: SizeConfig.size30, horizontal: SizeConfig.size40),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Align(
+                  alignment: Alignment.topRight,
+                  child: InkWell(
+                    onTap: () {
+                      if (isFromMailScreen) {
+                        Get.back();
+                       // Get.back();
+                      } else {
+                        Get.back();
+                      }
+                    },
+                    child: Icon(
+                      Icons.close,
+                      color: AppColors.secondaryTextColor,
                     ),
-                  ],
-                ),
-                SizedBox(
-                  height: SizeConfig.size7,
-                ),
-                CustomText(
-                    "You can only update your location once in your lifetime. Make sure your in right location.",
-                    fontSize: SizeConfig.medium,
+                  )),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  LocalAssets(imagePath: AppIconAssets.warningIcon),
+                  SizedBox(width: SizeConfig.size5),
+                  CustomText(
+                    "Update Location?",
+                    fontSize: SizeConfig.large,
+                    fontWeight: FontWeight.w700,
                     textAlign: TextAlign.center,
-                    color: AppColors.secondaryTextColor),
-                SizedBox(height: SizeConfig.size15),
-                Row(
-                  children: [
-                    Expanded(
-                      child: CustomBtn(
-                        height: SizeConfig.size45,
-                        onTap: () => Get.back(),
-                        title: "Cancel",
-                        textColor: AppColors.secondaryTextColor,
-                        bgColor: AppColors.white,
-                        borderColor: AppColors.secondaryTextColor,
-                        radius: 8.0,
-                      ),
-                    ),
-                    SizedBox(width: SizeConfig.size6),
-                    Expanded(
-                      child: CustomBtn(
-                        height: SizeConfig.size45,
-                        onTap: () {
+                    color: AppColors.mainTextColor,
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: SizeConfig.size7,
+              ),
+              CustomText(
+                  "You can only update your location once in your lifetime. Make sure your in right location.",
+                  fontSize: SizeConfig.medium,
+                  textAlign: TextAlign.center,
+                  color: AppColors.secondaryTextColor),
+              SizedBox(height: SizeConfig.size15),
+              Row(
+                children: [
+                  Expanded(
+                    child: CustomBtn(
+                      height: SizeConfig.size45,
+                      onTap: () {
+                        if (isFromMailScreen) {
                           Get.back();
-                          showModalBottomSheet(
-                            context: context,
-                            isScrollControlled: true,
-                            backgroundColor: Colors.transparent,
-                            builder: (context) => BusinessLocationBottomSheet(
-                                prevBusinessDetails: details),
-                          );
-                        },
-                        title: "Confirm",
-                        isValidate: true,
-                        bgColor: AppColors.red02,
-                        radius: 8.0,
-                      ),
+                         // Get.back();
+                        } else {
+                          Get.back();
+                        }
+                      },
+                      title: "Cancel",
+                      textColor: AppColors.secondaryTextColor,
+                      bgColor: AppColors.white,
+                      borderColor: AppColors.secondaryTextColor,
+                      radius: 8.0,
                     ),
-                  ],
-                )
-              ],
-            ),
+                  ),
+                  SizedBox(width: SizeConfig.size6),
+                  Expanded(
+                    child: CustomBtn(
+                      height: SizeConfig.size45,
+                      onTap: () {
+                        Get.back();
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (context) => BusinessLocationBottomSheet(
+                              prevBusinessDetails: details),
+                        );
+                      },
+                      title: "Confirm",
+                      isValidate: true,
+                      bgColor: AppColors.red02,
+                      radius: 8.0,
+                    ),
+                  ),
+                ],
+              )
+            ],
           ),
-        );
-      },
-    );
-  }
+        ),
+      );
+    },
+  );
 }
 
 class VisitingCardPreview extends StatelessWidget {
@@ -1374,10 +1397,10 @@ class VisitingCardPreview extends StatelessWidget {
                       children: [
                         // Avatar
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             CircleAvatar(
-                              radius: 50,
+                              radius: 30,
                               backgroundImage: (details?.logo != null &&
                                       (details?.logo ?? '').isNotEmpty)
                                   ? NetworkImage(details?.logo ?? '')
@@ -1421,7 +1444,7 @@ class VisitingCardPreview extends StatelessWidget {
                         infoRow(
                             icon: Icons.call,
                             title:
-                                (details?.businessNumber?.officeMobNo?.number ??
+                                (details?.businessNumber?.officeLandlineNo?.number ??
                                         0)
                                     .toString(),
                             fontSize: 10,
@@ -1436,6 +1459,8 @@ class VisitingCardPreview extends StatelessWidget {
                               'to unique custom designs, we offer something special for every occasion.',
                           color: AppColors.white,
                           fontSize: SizeConfig.small,
+                          maxLines: 4,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
@@ -1520,6 +1545,7 @@ class VisitingCardPreview extends StatelessWidget {
                               title: details?.address ?? "",
                               fontSize: 10,
                               fontWeight: FontWeight.w400,
+
                               textColor: AppColors.white)
                           // _infoRow(
                           //   Icons.add_location,
@@ -1603,6 +1629,8 @@ class VisitingCardPreview extends StatelessWidget {
           fontSize: fontSize,
           fontWeight: fontWeight,
           color: textColor,
+              maxLines: 3,
+
         ))
       ],
     );
@@ -1725,7 +1753,9 @@ class _DescriptionPreviewState extends State<DescriptionPreview> {
                   ),
                 ),
               ),
+
             ],
+
           ),
         ),
       ),

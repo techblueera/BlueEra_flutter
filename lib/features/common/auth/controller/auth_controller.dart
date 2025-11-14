@@ -12,7 +12,6 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/auth/model/guest_res_model.dart';
@@ -86,14 +85,9 @@ class AuthController extends GetxController {
 
   ///VERIFY OTP...
   Future<void> verifyOTP({required String? otp}) async {
-    String? token = "";
+    String? token;
     try {
-      // token = await FirebaseMessaging.instance.getToken();
-      // AppNotificationHandler.getFcmToken();
       token = await SharedPreferenceUtils.getSecureValue(SharedPreferenceUtils.notificationDeviceToken);
-
-    } catch (e) {}
-    try {
       Map<String, dynamic> requestData = {
         ApiKeys.contact_no: mobileNumberEditController.text,
         ApiKeys.otp: otp,

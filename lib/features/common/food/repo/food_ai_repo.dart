@@ -42,11 +42,10 @@ class FoodAiRepo extends BaseService {
     return response;
   }
 
-  Future<ResponseModel> getProductDetailsById({Map<String, dynamic>? queryParam,required String userId}) async {
-
+  ///FETCH SINGLE FOOD SERVICES....
+  Future<ResponseModel> fetchSingleFoodDataApi({required String serviceId}) async {
     final response = await ApiBaseHelper().getHTTP(
-      "${businessServices}/$userId",
-      // params:queryParam,
+      businessServicesById(serviceId),
       showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},

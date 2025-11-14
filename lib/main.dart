@@ -20,6 +20,8 @@ import 'package:BlueEra/features/app_maintannace/maintenance_screen.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
 import 'package:BlueEra/features/common/onboarding/view/splash_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/foodandgrocery/share_food_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/service/share_service_screen.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/permissionCentralize/permission_gate.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -41,7 +43,7 @@ import 'package:mappls_gl/mappls_gl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'core/services/home_cache_service.dart';
 import 'features/personal/personal_profile/controller/languge_list_controller.dart';
-import 'features/personal/personal_profile/view/inventory/view/share_product_screen.dart';
+import 'features/personal/personal_profile/view/inventory/view/product/share_product_screen.dart';
 
 final AudioPlayer audioPlayer = AudioPlayer();
 
@@ -69,7 +71,7 @@ Future<void> main() async {
   await getUserLoginData();
   await getChannelData();
   await getServiceProviderStatusUtils();
-  await getUserServiceCreatedStatusUtils();
+  await getEarnServiceCreatedStatusUtils();
 
   unFocus();
   Get.put(NavigationHelperController());
@@ -224,6 +226,14 @@ class _MyAppState extends State<MyApp> {
           case 'product':
             logs('Deep link -> job id: $id');
             Get.to(() => ShareProductScreen(productId: id));
+            break;
+          case 'service':
+            logs('Deep link -> job id: $id');
+            Get.to(() => ShareServiceScreen(serviceId: id));
+            break;
+          case 'food':
+            logs('Deep link -> job id: $id');
+            Get.to(() => ShareFoodScreen(foodServiceId: id));
             break;
           default:
             logs('Unknown deep link type: $type');

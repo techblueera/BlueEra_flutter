@@ -12,7 +12,7 @@ import 'package:BlueEra/features/common/store/repo/product_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/generate_ai_product_content.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/single_product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/repo/inventory_repo.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product_preview_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/product_preview_screen.dart';
 import 'package:BlueEra/widgets/select_product_image_dialog.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';

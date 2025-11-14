@@ -9,7 +9,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/share_product_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/share_product_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:app_links/app_links.dart';

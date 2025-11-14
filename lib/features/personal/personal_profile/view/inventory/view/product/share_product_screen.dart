@@ -1,14 +1,14 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/single_product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/attribute_two_rows.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -27,24 +27,6 @@ class _ShareProductScreenState extends State<ShareProductScreen> {
   void initState() {
     controller.fetchSingleProductDataApi(productId: widget.productId);
     super.initState();
-  }
-
-  void _openNextScreen() async {
-    final tempLoginType = await SharedPreferenceUtils.getSecureValue(
-        SharedPreferenceUtils.accountType);
-    accountTypeGlobal = tempLoginType.toString();
-
-    dynamic isLoginStatus = await SharedPreferenceUtils.getSecureValue(
-        SharedPreferenceUtils.isUserLogin);
-    if (isLoginStatus == null) isLoginStatus = "false";
-
-    if (isLoginStatus == "false") {
-      Navigator.of(context).pushNamedAndRemoveUntil(
-        RouteHelper.getOnboardingSliderScreenRoute(),
-            (Route<dynamic> route) => false,
-      );
-    }
-
   }
 
   @override
@@ -132,18 +114,35 @@ class _ShareProductScreenState extends State<ShareProductScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Product Image
-              AspectRatio(
-                aspectRatio: 1.1, // square-ish image (adjust if needed)
-                child: Stack(
-                  children: [
-                    CustomImageSlideshow(
-                      isLoading: false,
-                      width: double.infinity,
-                      height: double.infinity,
-                      imagePaths: singleProductData?.media ?? [],
-                      borderRadius: BorderRadius.zero,
+              InkWell(
+                onTap: (){
+                  if(singleProductData?.media.isEmpty??false){
+                    return;
+                  }
+
+                  navigatePushTo(
+                    context,
+                    ImageViewScreen(
+                      appBarTitle: singleProductData?.name ?? "N/A",
+                      subTitle: singleProductData?.description,
+                      imageUrls: singleProductData!.media,
+                      initialIndex: 0,
                     ),
-                  ],
+                  );
+                },
+                child: AspectRatio(
+                  aspectRatio: 1.2, // square-ish image (adjust if needed)
+                  child: Stack(
+                    children: [
+                      CustomImageSlideshow(
+                        isLoading: false,
+                        width: double.infinity,
+                        height: double.infinity,
+                        imagePaths: singleProductData?.media ?? [],
+                        borderRadius: BorderRadius.zero,
+                      ),
+                    ],
+                  ),
                 ),
               ),
 

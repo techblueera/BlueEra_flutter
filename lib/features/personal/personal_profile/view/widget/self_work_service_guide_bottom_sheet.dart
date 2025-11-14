@@ -1,4 +1,3 @@
-
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -25,93 +24,6 @@ class _SelfWorkServiceGuideBottomSheetState extends State<SelfWorkServiceGuideBo
   final authController = Get.find<AuthController>();
   int? selectedIndex;
   ServiceItem? selectedService;
-
-  final List<ServiceItem> _services = [
-    ServiceItem(
-      label: 'Electrician',
-      name: AppConstants.ELECTRICIAN,
-      icon: AppIconAssets.electricianIcon,
-      bgColor: const Color(0xFFFFF2DF),
-      labelColor: const Color(0xFFAF6800),
-    ),
-    ServiceItem(
-      label: 'Plumber',
-      name: AppConstants.PLUMBER,
-      icon: AppIconAssets.plumberIcon,
-      bgColor: const Color(0xFFFFF2C3),
-      labelColor: const Color(0xFF5D4900),
-    ),
-    ServiceItem(
-      label: 'Technician',
-      name: AppConstants.TECHNICIAN,
-      icon: AppIconAssets.technicianIcon,
-      bgColor: const Color(0xFFF0F4C2),
-      labelColor: const Color(0xFF4E5500),
-    ),
-    ServiceItem(
-      label: 'Maid - Cleaner',
-      name: AppConstants.MAID_CLEANER,
-      icon: AppIconAssets.mainCleanerIcon,
-      bgColor: const Color(0xFFD7EAC9),
-      labelColor: const Color(0xFF183A00),
-    ),
-    ServiceItem(
-      label: 'Carpenter',
-      name: AppConstants.CARPENTER,
-      icon: AppIconAssets.carpenterIcon,
-      bgColor: const Color(0xFFE1FCB3),
-      labelColor: const Color(0xFF375700),
-    ),
-    ServiceItem(
-      label: 'Taxi - Car Driver',
-      name: AppConstants.CAR_DRIVER_TAXI,
-      icon: AppIconAssets.taxiDriverIcon,
-      bgColor: const Color(0xFFB2DFDC),
-      labelColor: const Color(0xFF00625C),
-    ),
-    ServiceItem(
-      label: 'Mechanic',
-      name: AppConstants.MECHANIC,
-      icon: AppIconAssets.mechanicIcon,
-      bgColor: const Color(0xFFB3E5FC),
-      labelColor: const Color(0xFF003E5B),
-    ),
-    ServiceItem(
-      label: 'Home Renovator',
-      name: AppConstants.HOME_RENOVATION,
-      icon: AppIconAssets.mistryIcon,
-      bgColor: const Color(0xFFD0C4E8),
-      labelColor: const Color(0xFF24006D),
-    ),
-    ServiceItem(
-      label: 'Painter',
-      name: AppConstants.PAINTER,
-      icon: AppIconAssets.painterIcon,
-      bgColor: const Color(0xFFF9BBD0),
-      labelColor: const Color(0xFF84002D),
-    ),
-    ServiceItem(
-      label: 'Gardener',
-      name: AppConstants.GARDENER,
-      icon: AppIconAssets.gardenerIcon,
-      bgColor: const Color(0xFFA3E7A3),
-      labelColor: const Color(0xFF006300),
-    ),
-    ServiceItem(
-      label: 'Security Person',
-      name: AppConstants.SECURITY,
-      icon: AppIconAssets.securityPersonIcon,
-      bgColor: const Color(0xFFD7CCC8),
-      labelColor: const Color(0xFF5B3F38),
-    ),
-    ServiceItem(
-      label: 'Other',
-      name: AppConstants.OTHER,
-      icon: AppIconAssets.staggeredIcon,
-      bgColor: const Color(0xFFCFD8DD),
-      labelColor: const Color(0xFF36444D),
-    ),
-  ];
 
 
 
@@ -187,7 +99,7 @@ class _SelfWorkServiceGuideBottomSheetState extends State<SelfWorkServiceGuideBo
 
               final apiSubcategories = selfEmployedData?.subcategoriesFiledName ?? [];
 
-              final filteredServices = _services.where((service) {
+              final filteredServices = selfWorkServiceList.where((service) {
                 return apiSubcategories.any((api) =>
                 api.name == service.name);
               }).toList();

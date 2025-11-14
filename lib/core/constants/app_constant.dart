@@ -37,6 +37,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../features/business/visit_business_profile/view/visit_business_profile_new.dart';
+import '../../features/personal/personal_profile/view/widget/service_item.dart';
 import '../../l10n/app_localizations.dart';
 
 class AppConstants {
@@ -972,35 +973,28 @@ String? businessType() {
   return controller.businessProfileDetails?.data?.typeOfBusiness?.toLowerCase();
 }
 
-List<PopupMenuEntry<String>> popupMenuInventoryItems(String businessType) {
-  log('businessType-- $businessType');
-  final items = <Map<String, dynamic>>[
-    if (isShowProduct.contains(businessType))
-      {"id": "ADD PRODUCT", 'title': 'Add Product'},
-    if (isShowService.contains(businessType))
-      {"id": "ADD SERVICE", 'title': 'Add Service'},
-    if (isShowFood.contains(businessType))
-      {"id": "ADD FOOD", 'title': 'Add Food'},
-    // {"id": "DOWNLOAD", 'icon': AppIconAssets.downloadIcon, 'title': 'Download'},
+List<PopupMenuEntry<InventoryMenuItem>> popupMenuInventoryItems(String businessType) {
+  final items = <InventoryMenuItem>[
+    if (isShowProduct.contains(businessType)) InventoryMenuItem.addProduct,
+    if (isShowService.contains(businessType)) InventoryMenuItem.addService,
+    if (isShowFood.contains(businessType)) InventoryMenuItem.addFood,
   ];
 
-  final List<PopupMenuEntry<String>> entries = [];
+  final List<PopupMenuEntry<InventoryMenuItem>> entries = [];
+
   for (int i = 0; i < items.length; i++) {
+    final item = items[i];
+
     entries.add(
-      PopupMenuItem<String>(
-        padding: EdgeInsets.all(10),
-        height: SizeConfig.size35,
-        value: items[i]['title'],
-        // onTap: () {
-        //
-        //   if (items[i]['id'] == "SHARE") {}
-        //
-        // },
+      PopupMenuItem<InventoryMenuItem>(
+        padding: const EdgeInsets.all(10),
+        height: 35,
+        value: item,
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             CustomText(
-              items[i]['title'],
+              item.title,
               color: AppColors.secondaryTextColor,
             ),
           ],
@@ -1010,13 +1004,11 @@ List<PopupMenuEntry<String>> popupMenuInventoryItems(String businessType) {
 
     if (i != items.length - 1) {
       entries.add(
-        const PopupMenuItem<String>(
+        const PopupMenuItem<InventoryMenuItem>(
           enabled: false,
           padding: EdgeInsets.zero,
           height: 1,
           child: Divider(
-            indent: 0,
-            endIndent: 0,
             height: 1,
             thickness: 0.2,
             color: AppColors.grey99,
@@ -1028,6 +1020,7 @@ List<PopupMenuEntry<String>> popupMenuInventoryItems(String businessType) {
 
   return entries;
 }
+
 
 List<PopupMenuEntry<String>> popupMenuVisitProfileItems() {
   final items = <Map<String, dynamic>>[
@@ -2092,3 +2085,149 @@ bool isVideoUrl(String? url) {
       lower.endsWith('.wmv') ||
       lower.endsWith('.3gp');
 }
+
+final List<ServiceItem> earnWithBlueEraServiceList = [
+  ServiceItem(
+    label: 'Self Work',
+    name: AppConstants.SELF_WORK_OPTION,
+    icon: AppIconAssets.plumberIcon,
+    bgColor: const Color(0xFFCBEAFC),
+    labelColor: const Color(0xFF004E7C),
+  ),
+  ServiceItem(
+    label: 'Delivery\nPartner',
+    name: AppConstants.DELIVERY_PARTNER_OPTION,
+    icon: AppIconAssets.deliveryPartnerIcon,
+    bgColor: const Color(0xFFDAEDCF),
+    labelColor: const Color(0xFF204A08),
+  ),
+  ServiceItem(
+    label: 'Home Made\nProducts',
+    name:  AppConstants.HOME_MADE_PRODUCTS_OPTION,
+    icon: AppIconAssets.homeMadeProductIcon,
+    bgColor: const Color(0xFFFDD5A4),
+    labelColor: const Color(0xFF8C4D00),
+  ),
+  ServiceItem(
+    label: 'Home Made\nFood Items',
+    name:  AppConstants.HOME_MADE_FOOD_ITEMS_OPTION,
+    icon: AppIconAssets.homeMadeFoodIcon,
+    bgColor: const Color(0xFFFEF2B6),
+    labelColor: const Color(0xFF856F00),
+  ),
+  ServiceItem(
+    label: 'Home\nServices',
+    name:  AppConstants.HOME_SERVICES_OPTION,
+    icon: AppIconAssets.homeServiceIcon,
+    bgColor: const Color(0xFFDBD5F7),
+    labelColor: const Color(0xFF140074),
+  ),
+  ServiceItem(
+    label: 'Rental\nServices',
+    name:  AppConstants.RENTAL_SERVICES_OPTION,
+    icon: AppIconAssets.rentalServiceIcon,
+    bgColor: const Color(0xFFFAD7D3),
+    labelColor: const Color(0xFF740C00),
+  ),
+  ServiceItem(
+    label: 'Counselling /\nConsulting',
+    name:  AppConstants.COUNSELLING_CONSULTING_OPTION,
+    icon: AppIconAssets.consultingIcon,
+    bgColor: const Color(0xFFBCEEE2),
+    labelColor: const Color(0xFF006950),
+  ),
+  ServiceItem(
+    label: 'Tuition Classes\nOnline/Offline',
+    name:  AppConstants.TUITION_CLASSES_ONLINE_OFFLINE_OPTION,
+    icon: AppIconAssets.teachingIcon,
+    bgColor: const Color(0xFFEEBCE7),
+    labelColor: const Color(0xFF8B0077),
+  ),
+];
+
+final List<ServiceItem> selfWorkServiceList = [
+  ServiceItem(
+    label: 'Electrician',
+    name: AppConstants.ELECTRICIAN,
+    icon: AppIconAssets.electricianIcon,
+    bgColor: const Color(0xFFFFF2DF),
+    labelColor: const Color(0xFFAF6800),
+  ),
+  ServiceItem(
+    label: 'Plumber',
+    name: AppConstants.PLUMBER,
+    icon: AppIconAssets.plumberIcon,
+    bgColor: const Color(0xFFFFF2C3),
+    labelColor: const Color(0xFF5D4900),
+  ),
+  ServiceItem(
+    label: 'Technician',
+    name: AppConstants.TECHNICIAN,
+    icon: AppIconAssets.technicianIcon,
+    bgColor: const Color(0xFFF0F4C2),
+    labelColor: const Color(0xFF4E5500),
+  ),
+  ServiceItem(
+    label: 'Maid - Cleaner',
+    name: AppConstants.MAID_CLEANER,
+    icon: AppIconAssets.mainCleanerIcon,
+    bgColor: const Color(0xFFD7EAC9),
+    labelColor: const Color(0xFF183A00),
+  ),
+  ServiceItem(
+    label: 'Carpenter',
+    name: AppConstants.CARPENTER,
+    icon: AppIconAssets.carpenterIcon,
+    bgColor: const Color(0xFFE1FCB3),
+    labelColor: const Color(0xFF375700),
+  ),
+  ServiceItem(
+    label: 'Taxi - Car Driver',
+    name: AppConstants.CAR_DRIVER_TAXI,
+    icon: AppIconAssets.taxiDriverIcon,
+    bgColor: const Color(0xFFB2DFDC),
+    labelColor: const Color(0xFF00625C),
+  ),
+  ServiceItem(
+    label: 'Mechanic',
+    name: AppConstants.MECHANIC,
+    icon: AppIconAssets.mechanicIcon,
+    bgColor: const Color(0xFFB3E5FC),
+    labelColor: const Color(0xFF003E5B),
+  ),
+  ServiceItem(
+    label: 'Home Renovator',
+    name: AppConstants.HOME_RENOVATION,
+    icon: AppIconAssets.mistryIcon,
+    bgColor: const Color(0xFFD0C4E8),
+    labelColor: const Color(0xFF24006D),
+  ),
+  ServiceItem(
+    label: 'Painter',
+    name: AppConstants.PAINTER,
+    icon: AppIconAssets.painterIcon,
+    bgColor: const Color(0xFFF9BBD0),
+    labelColor: const Color(0xFF84002D),
+  ),
+  ServiceItem(
+    label: 'Gardener',
+    name: AppConstants.GARDENER,
+    icon: AppIconAssets.gardenerIcon,
+    bgColor: const Color(0xFFA3E7A3),
+    labelColor: const Color(0xFF006300),
+  ),
+  ServiceItem(
+    label: 'Security Person',
+    name: AppConstants.SECURITY,
+    icon: AppIconAssets.securityPersonIcon,
+    bgColor: const Color(0xFFD7CCC8),
+    labelColor: const Color(0xFF5B3F38),
+  ),
+  ServiceItem(
+    label: 'Other',
+    name: AppConstants.OTHER,
+    icon: AppIconAssets.staggeredIcon,
+    bgColor: const Color(0xFFCFD8DD),
+    labelColor: const Color(0xFF36444D),
+  ),
+];

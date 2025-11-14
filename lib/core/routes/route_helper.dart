@@ -59,9 +59,6 @@ import 'package:BlueEra/features/common/reel/view/tag_people_screen.dart';
 import 'package:BlueEra/features/common/reel/view/video/full_video_preview_screen.dart';
 import 'package:BlueEra/features/common/reel/view/video/video_player_screen.dart';
 import 'package:BlueEra/features/common/reel/view/video/video_recorder_screen.dart';
-import 'package:BlueEra/features/common/rental/view/add_flat_room_rental_service_screen.dart';
-import 'package:BlueEra/features/common/rental/view/home_stay_rental_service.dart';
-import 'package:BlueEra/features/common/rental/view/vehicle_rental_service.dart';
 import 'package:BlueEra/features/common/store/view/newstore_screen.dart';
 import 'package:BlueEra/features/journey/view/journey_planning_screen.dart';
 import 'package:BlueEra/features/journey/view/update_journy_screen.dart';
@@ -73,19 +70,22 @@ import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_scr
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/inventory_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/add_product_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/add_product_via_ai_step1.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/add_product_via_ai_step2.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/create_varient_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/inventory_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/generate_ai_product_content.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/add_product_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/add_product_via_ai_step1.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/add_product_via_ai_step2.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/create_varient_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product_preview_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/store_product_preview_screen_product.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/product_preview_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/store_product_preview_screen_product.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/inventory_business_cards_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents_screen/add_document_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/payment_setting_screen/add_account_screen/add_account_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/payment_setting_screen/add_account_upi/add_accountupi_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/product_listing_screen/product_listing_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/rental/view/add_flat_room_rental_service_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/rental/view/home_stay_rental_service.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/rental/view/vehicle_rental_service.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/wallet/all_transactions/see_all_transactions.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/wallet/wallet_screen.dart';
 import 'package:BlueEra/features/personal/resume/create_resume_screen.dart';
@@ -1000,11 +1000,12 @@ class RouteHelper {
 
         return MaterialPageRoute(
             builder: (_) => ProductPreviewScreen(
+                id: id,
+                providerType: providerType,
                 productPreviewArgs: argProductData,
                 isFromProductCreation: isFromProductCreation ?? false,
                 isUserCanCreateVariants: isUserCanCreateVariants ?? true,
-                id: id,
-                providerType: providerType,
+
             ),
             settings: RouteSettings(name: getProductPreviewScreenRoute()));
       case RouteConstant.storeProductPreviewScreenProduct:
@@ -1062,11 +1063,13 @@ class RouteHelper {
         final args = settings.arguments as Map<String, dynamic>;
         final ProductServiceProviderType providerType = args[ApiKeys.providerType] as ProductServiceProviderType;
         final EarnWithBlueEraServiceTypes? serviceSubType = args[ApiKeys.serviceSubType] as EarnWithBlueEraServiceTypes?;
+        final String? category = args[ApiKeys.category] as String?;
 
         return MaterialPageRoute(
             builder: (_) => FoodUploadScreen(
                 providerType: providerType,
-                serviceSubType: serviceSubType
+                serviceSubType: serviceSubType,
+                category: category
             ),
             settings: RouteSettings(name: getFoodUploadScreenRoute()));
       case RouteConstant.addFlatRoomRentalServiceScreen:

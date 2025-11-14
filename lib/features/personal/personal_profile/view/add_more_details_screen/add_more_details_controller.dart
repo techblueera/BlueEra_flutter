@@ -1,8 +1,8 @@
 import 'package:BlueEra/core/routes/route_constant.dart';
-import 'package:BlueEra/features/common/rental/controller/add_flat_rental_service_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_service_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/detail_item.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/rental/controller/add_flat_rental_service_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

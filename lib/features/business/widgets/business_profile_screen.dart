@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -22,20 +23,25 @@ import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../../core/api/apiService/api_keys.dart';
 import '../../../core/api/apiService/api_response.dart';
+import '../../../core/api/model/type_of_business_model.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_constant.dart';
 import '../../../core/constants/regular_expression.dart';
 import '../../../core/controller/location_controller.dart';
+import '../../../core/routes/route_helper.dart';
 import '../../../core/services/multipart_image_service.dart';
 import '../../../widgets/commom_textfield.dart';
 import '../../../widgets/common_box_shadow.dart';
 import '../../../widgets/common_drop_down-dialoge.dart';
+import '../../../widgets/common_drop_down_icon_dialoge.dart';
 import '../../../widgets/custom_btn.dart';
 import '../../../widgets/empty_state_widget.dart';
 import '../../../widgets/horizontal_tab_selector.dart';
 import '../../../widgets/local_assets.dart';
+import '../../../widgets/update_live_photo_dialog.dart';
 import '../../common/auth/model/get_categories_model.dart';
 import '../../common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import '../../common/auth/views/screens/gst_verification_screen.dart';
 import '../../common/reel/view/channel/follower_following_screen.dart';
 import '../../personal/personal_profile/view/earn_blueear_screen/controller/earn_with_blueera_controller.dart';
 import '../../personal/personal_profile/view/inventory/widget/own_product_card.dart';
@@ -45,6 +51,8 @@ import '../visit_business_profile/view/business_profile_header.dart';
 
 import '../visiting_card/view/business_details_edit_page_one.dart';
 import 'package:dio/dio.dart' as dio;
+
+import '../visiting_card/view/widget/business_verfication.dart';
 
 class BusinessProfileScreen extends StatefulWidget {
   final int? selectedIndex;
@@ -80,6 +88,7 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
   ];
   List<SortBy>? filters;
   SortBy selectedFilter = SortBy.Latest;
+
   Future<void> noLocationPermissionDialogBox() async {
     Get.dialog(
       WillPopScope(
@@ -125,6 +134,7 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
       barrierDismissible: false,
     );
   }
+
   Future<void> _handleLocationFlow() async {
     final locationData = await locationController.checkPermissionAndSetData();
 
@@ -144,18 +154,19 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
         widget.selectedIndex ?? 0;
     // details ;
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _handleLocationFlow();
-    }); // ✅ Show after build
-   setFilters();
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   _handleLocationFlow();
+    // }); // ✅ Show after build
+    setFilters();
     super.initState();
   }
+
   Future<void> updateAddressFromLocation() async {
     final locationData = await locationController.checkPermissionAndSetData();
     if (locationData != null) {
-  locationData.fullAddress;
-     locationData.city;
-     locationData.pinCode;
+      locationData.fullAddress;
+      locationData.city;
+      locationData.pinCode;
       viewBusinessDetailsController.addressLat?.value =
           double.parse(locationData.lat);
       viewBusinessDetailsController.addressLong?.value =
@@ -168,32 +179,48 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
   }
 
   final controllerInventory = Get.put(InventoryController());
+  bool isDialogShown = false;
 
   @override
   Widget build(BuildContext context) {
     return GetBuilder<ViewBusinessDetailsController>(builder: (controller) {
       if (controller.viewBusinessResponse.status == Status.COMPLETE) {
-        BusinessProfileDetails? details = viewBusinessDetailsController.businessProfileDetails?.data;
-
+        BusinessProfileDetails? details =
+            viewBusinessDetailsController.businessProfileDetails?.data;
+        if ((!isDialogShown &&
+            (details?.businessLocation == null ||
+                details?.businessLocation?.lat == null ||
+                details?.businessLocation?.lon == null ||
+                details?.businessLocation?.lat == 0.0 ||
+                details?.businessLocation?.lon == 0.0))) {
+          isDialogShown = true;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            updateLocationDialog(context, details, true);
+          });
+        }
         return Padding(
           padding: EdgeInsets.symmetric(
               horizontal: SizeConfig.size8, vertical: SizeConfig.size8),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: 12,),
+              SizedBox(
+                height: 12,
+              ),
               HorizontalTabSelector(
                 horizontalMargin: 2,
                 tabs: postTabs,
                 selectedIndex:
-                viewBusinessDetailsController.selectedIndex.value,
+                    viewBusinessDetailsController.selectedIndex.value,
                 onTabSelected: (index, value) {
                   setState(() => viewBusinessDetailsController
                       .selectedIndex.value = index);
                 },
                 labelBuilder: (label) => label,
               ),
-              SizedBox(height: 14,),
-
+              SizedBox(
+                height: 14,
+              ),
 
               // HorizontalTabSelector(
               //   tabs: postTab,
@@ -214,8 +241,8 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
               // SizedBox(
               //   height: SizeConfig.size10,
               // ),
-              _buildTabContent(
-                  controller, viewBusinessDetailsController.selectedIndex.value,details)
+              _buildTabContent(controller,
+                  viewBusinessDetailsController.selectedIndex.value, details)
             ],
           ),
         );
@@ -234,7 +261,8 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
     });
   }
 
-  Widget _buildTabContent(ViewBusinessDetailsController controller, int index,BusinessProfileDetails? details) {
+  Widget _buildTabContent(ViewBusinessDetailsController controller, int index,
+      BusinessProfileDetails? details) {
     switch (postTabs[index]) {
       case 'Profile':
         return Column(
@@ -275,53 +303,51 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
         return const Center(child: CustomText('Coming soon'));
     }
   }
-
 }
+
 class MyProductCardDetails extends StatelessWidget {
   const MyProductCardDetails({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final earnWithBlueEraController = Get.put(EarnWithBlueEraController())..fetchOwnProducts();
+    final earnWithBlueEraController = Get.put(EarnWithBlueEraController())
+      ..fetchOwnProducts();
 
     final productList = earnWithBlueEraController.ownProductDataList;
 
-    return  Column(
+    return Column(
       children: [
-        (productList.isEmpty)?
-        Center(
-          child: EmptyStateWidget(
-            message:  'No Products available.',
-          ),
-        )
-            :SizedBox(
-          height: 600,
-          child: ListView.builder(
-
-            physics: const AlwaysScrollableScrollPhysics(),
-            shrinkWrap: true,
-            itemCount: productList.length,
-            itemBuilder: (context, index) {
-              final productData = productList[index];
-
-              return Padding(
-                padding: EdgeInsets.only(
-                    bottom: SizeConfig.size8,
-                    left: SizeConfig.size8,
-                    right: SizeConfig.size8
+        (productList.isEmpty)
+            ? Center(
+                child: EmptyStateWidget(
+                  message: 'No Products available.',
                 ),
-                child: OwnProductCard(
-                  product: productData,
-                  isGridShow: false,
-                  deleteProductApi: (){
-                    // earnWithBlueEraController.deleteProduct();
+              )
+            : SizedBox(
+                height: 600,
+                child: ListView.builder(
+                  physics: const NeverScrollableScrollPhysics(),
+                  shrinkWrap: true,
+                  itemCount: productList.length,
+                  itemBuilder: (context, index) {
+                    final productData = productList[index];
+
+                    return Padding(
+                      padding: EdgeInsets.only(
+                          bottom: SizeConfig.size8,
+                          left: SizeConfig.size8,
+                          right: SizeConfig.size8),
+                      child: OwnProductCard(
+                        product: productData,
+                        isGridShow: false,
+                        deleteProductApi: () {
+                          // earnWithBlueEraController.deleteProduct();
+                        },
+                      ),
+                    );
                   },
                 ),
-              );
-            },
-          ),
-        ),
-
+              ),
         if (earnWithBlueEraController.isOwnProductDataLoadingMore.value)
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 20),
@@ -331,8 +357,6 @@ class MyProductCardDetails extends StatelessWidget {
     );
   }
 }
-
-
 
 class BusinessProfileHeader extends StatelessWidget {
   final BusinessProfileDetails? details;
@@ -344,7 +368,7 @@ class BusinessProfileHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    bool _isBottomSheetOpen =false;
+    bool _isBottomSheetOpen = false;
 
     return Container(
       // margin: const EdgeInsets.all(8),
@@ -378,7 +402,8 @@ class BusinessProfileHeader extends StatelessWidget {
                     height: 130,
                     width: double.infinity,
                     child: Image.network(
-                      (controller.coverImage?.value != null && controller.coverImage!.value!.isNotEmpty)
+                      (controller.coverImage?.value != null &&
+                              controller.coverImage!.value!.isNotEmpty)
                           ? controller.coverImage!.value!
                           : (controller.coverImage?.value ?? ''),
                       width: double.infinity,
@@ -427,12 +452,14 @@ class BusinessProfileHeader extends StatelessWidget {
                     child: InkWell(
                         onTap: () async {
                           try {
-                            final newPath = await SelectProfilePictureDialog.showLogoDialog(
-                              context,
-                              "Edit Cover Picture",
-                              cropAspectRatio: CropAspectRatio(width: 3, height: 1)
-                              // cropAspectRatio: CropAspectRatio(width: 16, height: 9)
-                            ).catchError((_) => null);
+                            final newPath =
+                                await SelectProfilePictureDialog.showLogoDialog(
+                                        context, "Edit Cover Picture",
+                                        cropAspectRatio:
+                                            CropAspectRatio(width: 3, height: 1)
+                                        // cropAspectRatio: CropAspectRatio(width: 16, height: 9)
+                                        )
+                                    .catchError((_) => null);
 
                             if (newPath == null || newPath.isEmpty) {
                               commonSnackBar(message: "No image selected");
@@ -443,7 +470,8 @@ class BusinessProfileHeader extends StatelessWidget {
 
                             // Compress before upload
                             final file = File(newPath);
-                            final compressed = await FlutterImageCompress.compressAndGetFile(
+                            final compressed =
+                                await FlutterImageCompress.compressAndGetFile(
                               file.absolute.path,
                               "${file.path}_compressed.jpg",
                               quality: 75,
@@ -454,24 +482,26 @@ class BusinessProfileHeader extends StatelessWidget {
                             );
 
                             if (dataImage == null) {
-                              commonSnackBar(message: "Image processing failed");
+                              commonSnackBar(
+                                  message: "Image processing failed");
                               return;
                             }
 
                             final reqProfile = {
-
                               ApiKeys.businessId: businessId,
                               ApiKeys.business_name: details?.businessName,
-
-                             "coverPicture": dataImage};
-                            await controller.updateBusinessProfileDetails(reqProfile);
+                              "coverPicture": dataImage
+                            };
+                            await controller
+                                .updateBusinessProfileDetails(reqProfile);
                           } catch (e, s) {
-                            debugPrint("❌ Crash in cover picture upload: $e\n$s");
-                            commonSnackBar(message: "Something went wrong while updating picture");
+                            debugPrint(
+                                "❌ Crash in cover picture upload: $e\n$s");
+                            commonSnackBar(
+                                message:
+                                    "Something went wrong while updating picture");
                           }
                         },
-
-
                         child: Image.asset('assets/diwali_card/camera.png'))),
 
                 // Follow button & menu
@@ -487,38 +517,43 @@ class BusinessProfileHeader extends StatelessWidget {
                       children: [
                         (details?.businessIsVerified ?? false)
                             ? Flexible(
-                              child:  Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 13, vertical: 5),
-                                decoration: BoxDecoration(
-                                  color:  Color(0xffC5FFC9),
-                                  borderRadius: BorderRadius.circular(8),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 13, vertical: 5),
+                                  decoration: BoxDecoration(
+                                    color: Color(0xffC5FFC9),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: CustomText(
+                                    "Verified Profile",
+                                    color: AppColors.secondaryTextColor,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
-                                child:  CustomText(
-                                  "Verified Profile",
-                                  color:  AppColors.secondaryTextColor,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w600,
+                              )
+                            : Flexible(
+                                child: BlinkingVerifyButton(
+                                  onTap: () {
+                                    Get.to(BusinessVerification());
+
+                                    //commonSnackBar(message: "Coming soon....");
+                                  },
                                 ),
                               ),
-                            )
-                            : Flexible(
-                          child: BlinkingVerifyButton(
-                            onTap: () {
-                              commonSnackBar(message: "Coming soon....");
-                            },
-                          ),
-                        ),
 
-                        SizedBox(width: SizeConfig.size10,),
+                        SizedBox(
+                          width: SizeConfig.size10,
+                        ),
                         InkWell(
                           onTap: () {
-
                             Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) =>
-                                      BusinessDetailsEditPageOne(prevBusinessDetails: details,),
+                                      BusinessDetailsEditPageOne(
+                                    prevBusinessDetails: details,
+                                  ),
                                 ));
                           },
                           child: Container(
@@ -560,213 +595,186 @@ class BusinessProfileHeader extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                /// ---- Business Name ----
                 CustomText(
                   "${details?.businessName ?? ''}",
                   fontWeight: FontWeight.w600,
                   fontSize: SizeConfig.size24,
                 ),
+
                 const SizedBox(height: 8),
-                Row(
+
+                /// ---- Category + Owner Edit Buttons ----
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
                   children: [
-                    Container(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                      decoration: BoxDecoration(
+                    InkWell(
+                      onTap: () {
+                        openBusinessDetailsEditSheet(context);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 4),
+                        decoration: BoxDecoration(
                           color: AppColors.white,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                             color: AppColors.secondaryTextColor,
-                          )),
-                      child:  Row(
-                        children: [
-                          CustomText(
-                            "${details?.categoryDetails?.name ?? ''}",
-                            color: AppColors.secondaryTextColor,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w400,
                           ),
-                          SizedBox(width:  SizeConfig.size10),
-
-                          GestureDetector(
-
-                            onTap: () {
-                              TextEditingController ownerNameCtrl = TextEditingController(
-                                text: details!.ownerDetails?.first.name ?? '',
-                              );
-
-                              TextEditingController ownerRoleCtrl = TextEditingController(
-                                text: details?.ownerDetails?.first
-                                    .role_in_business ?? '',
-                              );
-
-                              TextEditingController ownerEmailCtrl = TextEditingController(
-                                text: details?.ownerDetails?.first.email ??
-                                    '',
-                              );
-
-                              openBusinessDetailsEditSheet(context);
-
-
-
-
-
-
-                            },
-
-
-                            child: LocalAssets(
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Flexible(
+                              child: CustomText(
+                                "${details?.categoryDetails?.name ?? ''}",
+                                color: AppColors.secondaryTextColor,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w400,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            SizedBox(width: SizeConfig.size10),
+                            LocalAssets(
                               imagePath: AppIconAssets.editIcon,
                               height: SizeConfig.size12,
                               width: SizeConfig.size12,
                               imgColor: AppColors.primaryColor,
                             ),
-                          )
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                      decoration: BoxDecoration(
+                    GestureDetector(
+                      onTap: () {
+                        TextEditingController ownerNameCtrl =
+                            TextEditingController(
+                          text: details!.ownerDetails?.first.name ?? '',
+                        );
+                        TextEditingController ownerRoleCtrl =
+                            TextEditingController(
+                          text: details?.ownerDetails?.first.role_in_business ??
+                              '',
+                        );
+                        TextEditingController ownerEmailCtrl =
+                            TextEditingController(
+                          text: details?.ownerDetails?.first.email ?? '',
+                        );
+
+                        openOwnerEditSheet(
+                          context: context,
+                          nameController: ownerNameCtrl,
+                          roleController: ownerRoleCtrl,
+                          emailController: ownerEmailCtrl,
+                          onSave: () async {
+                            if (!GetUtils.isEmail(ownerEmailCtrl.text.trim())) {
+                              commonSnackBar(message: "Enter valid email");
+                              return;
+                            }
+
+                            Map<String, dynamic> updatedParams = {
+                              ApiKeys.owner_details: jsonEncode([
+                                {
+                                  ApiKeys.name: ownerNameCtrl.text,
+                                  ApiKeys.role_in_business: ownerRoleCtrl.text,
+                                  ApiKeys.email: ownerEmailCtrl.text,
+                                }
+                              ]),
+                            };
+
+                            await Get.find<ViewBusinessDetailsController>()
+                                .updateBusinessDetails(updatedParams);
+                            Get.back();
+                          },
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 4),
+                        decoration: BoxDecoration(
                           color: AppColors.white,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: AppColors.secondaryTextColor,
-                          )),
-                      child:  Row(
-
-                        children: [
-                          CustomText(
-                            "${details!.ownerDetails?.first.name??''} (${details?.ownerDetails?.first.role_in_business})",
-                            color: AppColors.secondaryTextColor,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w400,
-                          ),
-                           SizedBox(width:  SizeConfig.size10),
-
-                          GestureDetector(
-
-                              onTap: () {
-                                TextEditingController ownerNameCtrl = TextEditingController(
-                                  text: details!.ownerDetails?.first.name ?? '',
-                                );
-
-                                TextEditingController ownerRoleCtrl = TextEditingController(
-                                  text: details?.ownerDetails?.first
-                                      .role_in_business ?? '',
-                                );
-
-                                TextEditingController ownerEmailCtrl = TextEditingController(
-                                  text: details?.ownerDetails?.first.email ??
-                                      '',
-                                );
-
-                                openOwnerEditSheet(
-                                  context: context,
-                                  nameController: ownerNameCtrl,
-                                  roleController: ownerRoleCtrl,
-                                  emailController: ownerEmailCtrl,
-                                  onSave: () async {
-
-                                    if (!GetUtils.isEmail(
-                                        ownerEmailCtrl.text.trim())) {
-                                      commonSnackBar(
-                                          message: "Enter valid email");
-                                      return;
-                                    }else{
-                                      Map<String, dynamic> updatedParams = {
-                                        ApiKeys.owner_details: jsonEncode([
-                                          {
-                                            ApiKeys.name: ownerNameCtrl.text,
-                                            ApiKeys.role_in_business:
-                                            ownerRoleCtrl.text,
-                                            ApiKeys.email: ownerEmailCtrl.text
-                                          }
-                                        ]),
-                                      };
-
-
-                                      await Get.find<ViewBusinessDetailsController>()
-                                          .updateBusinessDetails(updatedParams);
-                                      Get.back();
-                                    }
-
-
-
-
-                                  },
-                                );
-                              },
-
-
-                            child: LocalAssets(
+                          border:
+                              Border.all(color: AppColors.secondaryTextColor),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Flexible(
+                              child: CustomText(
+                                "${details!.ownerDetails?.first.name ?? ''} "
+                                "(${details?.ownerDetails?.first.role_in_business ?? ''})",
+                                color: AppColors.secondaryTextColor,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w400,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            SizedBox(width: SizeConfig.size10),
+                            LocalAssets(
                               imagePath: AppIconAssets.editIcon,
                               height: SizeConfig.size12,
                               width: SizeConfig.size12,
                               imgColor: AppColors.primaryColor,
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ],
                 ),
+
                 const SizedBox(height: 16),
 
+                /// ---- My Store & Visiting Card Buttons ----
                 Row(
                   children: [
                     Expanded(
                       child: TextButton(
                         style: TextButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                  8), // Set your desired radius here
-                            ),
-                            side: BorderSide(color: theme.colorScheme.primary),
-                            backgroundColor: theme.colorScheme.primary),
-                        onPressed: null,
-                        // onPressed: _captureAndShareCard,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          side: BorderSide(color: theme.colorScheme.primary),
+                          backgroundColor: theme.colorScheme.primary,
+                        ),
+                        onPressed: () {
+                          if ((controller.businessProfileDetails?.data
+                                          ?.livePhotos ??
+                                      [])
+                                  .length <
+                              3) {
+                            showLivePhotoDialog(context: context);
+                          } else {
+                            Get.toNamed(RouteHelper.getInventoryScreenRoute());
+                          }
+                        },
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 4),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              SizedBox(
-                                width: SizeConfig.paddingXSmall,
-                              ),
-                              CustomText(
-                                "Your Orders" ,
-                                color: theme.colorScheme.surface,
-                                fontSize: 15,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ],
+                          child: CustomText(
+                            "My Store",
+                            color: theme.colorScheme.surface,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ),
                     ),
-                    SizedBox(
-                      width: SizeConfig.size10,
-                    ),
+                    SizedBox(width: SizeConfig.size10),
                     Expanded(
                       child: TextButton(
                         style: TextButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                  8), // Set your desired radius here
-                            ),
-                            side: BorderSide(
-                              color: theme.colorScheme.primary,
-                            )),
-                        onPressed: () async{
-
-                          if (_isBottomSheetOpen) return; // ✅ Block second tap instantly
-                          _isBottomSheetOpen = true; // ✅ Lock immediately
-
-                          await _showVisitingCardDialog(context); // Wait for sheet to close
-
-                          _isBottomSheetOpen = false; //
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          side: BorderSide(color: theme.colorScheme.primary),
+                        ),
+                        onPressed: () async {
+                          if (_isBottomSheetOpen) return;
+                          _isBottomSheetOpen = true;
+                          await _showVisitingCardDialog(context);
+                          _isBottomSheetOpen = false;
                         },
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 4),
@@ -781,126 +789,112 @@ class BusinessProfileHeader extends StatelessWidget {
                     ),
                   ],
                 ),
-                // TextButton(
-                //   onPressed: () {},
-                //   child: const Text("Read More"),
-                // ),
-                 SizedBox(height: SizeConfig.size10,),
 
+                SizedBox(height: SizeConfig.size10),
+
+                /// ---- Info Stats Container ----
                 Container(
-                  // margin: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
                   padding: EdgeInsets.symmetric(
                     vertical: SizeConfig.size10,
                     horizontal: SizeConfig.size10,
                   ),
                   decoration: BoxDecoration(
                     color: AppColors.white,
-                    border: Border.all(
-                      color: AppColors.whiteE5, // #E5E5E5 border
-                      width: 1,
-                    ),
+                    border: Border.all(color: AppColors.whiteE5, width: 1),
                     borderRadius: BorderRadius.circular(SizeConfig.size10),
                     boxShadow: [AppShadows.textFieldShadow],
-                    // color: Colors.white, // optional background
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Expanded(
-                        flex: 2,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            buildInfo("Rating",
-                                "★ ${(details?.rating ?? 0).toStringAsFixed(1)}"),
-                            SizedBox(
-                              height: SizeConfig.size12,
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: ConstrainedBox(
+                          constraints:
+                              BoxConstraints(minWidth: constraints.maxWidth),
+                          child: IntrinsicWidth(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                Expanded(
+                                  flex: 2,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      buildInfo("Rating",
+                                          "★ ${(details?.rating ?? 0).toStringAsFixed(1)}"),
+                                      SizedBox(height: SizeConfig.size12),
+                                      buildInfo("Views",
+                                          "${formatIndianNumber(details?.total_views ?? 0)}"),
+                                    ],
+                                  ),
+                                ),
+                                SizedBox(
+                                  height: SizeConfig.size50,
+                                  child: VerticalDivider(
+                                    color: AppColors.coloGreyText,
+                                    width: 12,
+                                    thickness: 1.2,
+                                  ),
+                                ),
+                                Flexible(
+                                  flex: 2,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      buildInfo(
+                                          "Inquiries", formatIndianNumber(0)),
+                                      SizedBox(height: SizeConfig.size12),
+                                      InkWell(
+                                        onTap: () {
+                                          Get.to(() => FollowersFollowingPage(
+                                                tabIndex: 1,
+                                                userID: details?.id ?? "",
+                                              ));
+                                        },
+                                        child: buildInfo(
+                                          "Followers",
+                                          "${formatIndianNumber(details?.total_followers ?? 0)}",
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                SizedBox(
+                                  height: SizeConfig.size50,
+                                  child: VerticalDivider(
+                                    color: AppColors.coloGreyText,
+                                    width: 12,
+                                    thickness: 1.2,
+                                  ),
+                                ),
+                                SizedBox(width: SizeConfig.size15),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    CustomText(
+                                      "Joined",
+                                      fontSize: SizeConfig.size12,
+                                      color: AppColors.secondaryTextColor,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                    SizedBox(height: SizeConfig.size2),
+                                    CustomText(
+                                      formattedCreatedAt(details?.createdAt),
+                                      fontSize: SizeConfig.size12,
+                                      maxLines: 1,
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                    SizedBox(height: SizeConfig.size10),
+                                  ],
+                                ),
+                              ],
                             ),
-                            buildInfo("Views",
-                                "${formatIndianNumber(details?.total_views ?? 0)}"),
-                          ],
-                        ),
-                      ),
-                      // SizedBox(
-                      //   width: 100,
-                      // ),
-                      Expanded(
-                        child: SizedBox(
-                          height: SizeConfig.size50,
-                          child: VerticalDivider(
-                            color: AppColors.coloGreyText,
-                            width: 12,
-                            thickness: 1.2,
                           ),
                         ),
-                      ),
-                      // SizedBox(
-                      //   width: SizeConfig.size24,
-                      // ),
-                      Flexible(
-                        flex: 2,
-                        child: Container(
-                          // color: Colors.red,
-                          width: Get.width,
-                          alignment: Alignment.center,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              buildInfo("Inquiries", formatIndianNumber(0)),
-                              SizedBox(
-                                height: SizeConfig.size12,
-                              ),
-                              InkWell(
-                                  onTap: () {
-                                    Get.to(() => FollowersFollowingPage(
-                                          tabIndex: 1,
-                                          userID: details?.id ?? "",
-                                        ));
-                                  },
-                                  child: buildInfo("Followers",
-                                      "${formatIndianNumber(details?.total_followers ?? 0)}")),
-                            ],
-                          ),
-                        ),
-                      ),
-                      // SizedBox(
-                      //   width: SizeConfig.size20,
-                      // ),
-                      SizedBox(
-                        height: SizeConfig.size50,
-                        child: VerticalDivider(
-                          color: AppColors.coloGreyText,
-                          width: 12,
-                          thickness: 1.2,
-                        ),
-                      ),
-                      SizedBox(
-                        width: SizeConfig.size15,
-                      ),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          CustomText(
-                            "Joined",
-                            fontSize: SizeConfig.size12,
-                            color: AppColors.secondaryTextColor,
-                            fontWeight: FontWeight.w700,
-                          ),
-                          SizedBox(height: SizeConfig.size2),
-                          CustomText(
-                            formattedCreatedAt(details?.createdAt),
-                            fontSize: SizeConfig.size12,
-                            maxLines: 1,
-                            fontWeight: FontWeight.w400,
-                          ),
-
-                          SizedBox(height: SizeConfig.size10),
-                        ],
-                      )
-                    ],
+                      );
+                    },
                   ),
                 ),
               ],
@@ -937,7 +931,6 @@ class BusinessProfileHeader extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 12),
-
                   Padding(
                     padding: EdgeInsets.all(SizeConfig.size12),
                     child: Column(
@@ -961,10 +954,12 @@ class BusinessProfileHeader extends StatelessWidget {
                         SizedBox(height: 20),
                         buildCard7(details!),
                         SizedBox(height: 20),
+
                         buildCard8(details!),
                         SizedBox(height: 20),
                         buildCard9(details!),
                         SizedBox(height: 20),
+
                         buildCard10(details!),
                         SizedBox(height: 20),
                         buildCard11(details!),
@@ -980,6 +975,7 @@ class BusinessProfileHeader extends StatelessWidget {
     );
   }
 }
+
 void openOwnerEditSheet({
   required BuildContext context,
   required TextEditingController nameController,
@@ -990,83 +986,525 @@ void openOwnerEditSheet({
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
+    // important
+    useSafeArea: true,
     backgroundColor: Colors.transparent,
-    builder: (_) {
-      return Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-        child: Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
+    enableDrag: false,
+    builder: (context) {
+      return GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        // close keyboard on tap outside
+        child: Padding(
+          // this ensures the bottom sheet moves *above* the keyboard
+
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+              ),
+            ),
+            padding: EdgeInsets.symmetric(
+                horizontal: SizeConfig.size16, vertical: SizeConfig.size16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: const [
+                    Text(
+                      "Owner Detail",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    CloseButton(),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                CommonTextField(
+                  textEditController: nameController,
+                  inputLength: 50,
+                  keyBoardType: TextInputType.text,
+                  regularExpression:
+                      RegularExpressionUtils.alphabetSpacePattern,
+                  title: "Your Name",
+                  hintText: "Eg., Rahul Sharma",
+                  isValidate: false,
+                ),
+                const SizedBox(height: 16),
+                CommonTextField(
+                  textEditController: roleController,
+                  inputLength: 50,
+                  keyBoardType: TextInputType.text,
+                  regularExpression:
+                      RegularExpressionUtils.alphabetSpacePattern,
+                  title: "Your Role in the Business",
+                  hintText: "Eg., Co-founder / Owner",
+                  isValidate: false,
+                ),
+                const SizedBox(height: 16),
+                CommonTextField(
+                  textEditController: emailController,
+                  inputLength: 50,
+                  keyBoardType: TextInputType.emailAddress,
+                  regularExpression: RegularExpressionUtils.emailPattern,
+                  title: "Email",
+                  hintText: "Eg., yourname@email.com",
+                  isValidate: false,
+                ),
+                const SizedBox(height: 24),
+                CustomBtn(
+                  radius: 10,
+                  bgColor: AppColors.primaryColor,
+                  title: "Save",
+                  onTap: onSave,
+                ),
+              ],
             ),
           ),
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: const [
-                      Text(
-                        "Owner Detail",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                        ),
+        ),
+      );
+    },
+  );
+}
+
+void openBusinessDetailsEditSheet(BuildContext context) {
+  final viewBusinessDetailsController =
+      Get.find<ViewBusinessDetailsController>();
+
+  // Controllers prSizeOfBusiness? selectedBusiness;e-filled with existing data
+  TextEditingController specializationCtrl = TextEditingController(
+    text: viewBusinessDetailsController
+            .businessProfileDetails?.data?.specification ??
+        '',
+  );
+  SizeOfBusiness? selectedBusiness;
+  SizeOfBusiness? getBusinessFromString(String? input) {
+    if (input == null) return null;
+
+    return SizeOfBusiness.values.firstWhere(
+      (e) => e.displayName.toLowerCase() == input.toLowerCase(),
+      orElse: () => SizeOfBusiness.OTHERS,
+    );
+  }
+
+  selectedBusiness = getBusinessFromString(viewBusinessDetailsController
+      .businessProfileDetails?.data?.natureOfBusiness);
+
+  final subCategoryTextController = TextEditingController(
+    text: viewBusinessDetailsController
+        .businessProfileDetails?.data?.category_other??""
+  );
+ print("sldkslkdlc ${viewBusinessDetailsController
+     .businessProfileDetails?.data?.category_other??""}");
+  viewBusinessDetailsController.selectedCategoryOfBusiness.value = CategoryData(
+      id: viewBusinessDetailsController
+          .businessProfileDetails?.data?.categoryDetails?.id,
+      name: viewBusinessDetailsController
+          .businessProfileDetails?.data?.categoryDetails?.name);
+  viewBusinessDetailsController.selectedSubCategoryOfBusinessNew.value =
+      SubCategories(
+          sId: viewBusinessDetailsController
+              .businessProfileDetails?.data?.subCategoryDetails?.id,
+          name: viewBusinessDetailsController
+              .businessProfileDetails?.data?.subCategoryDetails?.name);
+
+  final appLocalizations = AppLocalizations.of(context);
+
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    backgroundColor: Colors.transparent,
+    enableDrag: false,
+    builder: (context) {
+      return GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        // dismiss keyboard on tap outside
+        child: Container(
+          color: Colors.transparent,
+          child: Align(
+            alignment: Alignment.bottomCenter,
+            child: Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  topRight: Radius.circular(20),
+                ),
+              ),
+              child: SafeArea(
+                top: false,
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return SingleChildScrollView(
+                      // this ensures bottom padding adjusts dynamically with keyboard
+                      padding: EdgeInsets.only(
+                        left: 16,
+                        right: 16,
+                        top: 16,
+                        bottom: MediaQuery.of(context).viewInsets.bottom + 16,
                       ),
-                      CloseButton(),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
+                      child: Obx(() {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Header
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: const [
+                                Text(
+                                  "Edit Business Details",
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                CloseButton(),
+                              ],
+                            ),
+                            const SizedBox(height: 20),
 
-                  CommonTextField(
-                    textEditController: nameController,
-                    inputLength: 50,
-                    keyBoardType: TextInputType.text,
-                    regularExpression: RegularExpressionUtils.alphabetSpacePattern,
-                    title: "Your Name",
-                    hintText: "Eg., Rahul Sharma",
-                    isValidate: false,
-                  ),
+                            CustomText(
+                              "Type of the Business",
+                              fontSize: SizeConfig.medium,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.black,
+                            ),
+                            SizedBox(height: SizeConfig.size10),
 
-                  const SizedBox(height: 16),
+                            Obx(() {
+                              return CommonDropdownIconDialog<BusinessCategory>(
+                                items: typeOfBusinessList,
+                                selectedValue: viewBusinessDetailsController
+                                    .selectedTypeOfBusiness.value,
+                                hintText: appLocalizations
+                                        ?.selectNatureOfTheBusiness ??
+                                    "",
+                                displayValue: (profession) => profession.title,
+                                title: appLocalizations?.natureOfBusiness ??
+                                    "Type of the Business",
+                                onChanged: (value) {
+                                  viewBusinessDetailsController
+                                      .selectedTypeOfBusiness.value = value!;
+                                  if (value.type == BusinessType.Product.name) {
+                                    viewBusinessDetailsController
+                                        .selectedBusinessType
+                                        ?.value = BusinessType.Product;
+                                  } else if (value.type ==
+                                      BusinessType.Service.name) {
+                                    viewBusinessDetailsController
+                                        .selectedBusinessType
+                                        ?.value = BusinessType.Service;
+                                  } else if (value.type ==
+                                      BusinessType.Food.name) {
+                                    viewBusinessDetailsController
+                                        .selectedBusinessType
+                                        ?.value = BusinessType.Food;
+                                  } else {
+                                    viewBusinessDetailsController
+                                        .selectedBusinessType
+                                        ?.value = BusinessType.Both;
+                                  }
+                                  viewBusinessDetailsController
+                                      .selectedCategoryOfBusiness.value = null;
+                                  viewBusinessDetailsController
+                                      .selectedSubCategoryOfBusinessNew
+                                      .value = null;
+                                  viewBusinessDetailsController
+                                      .businessSubCategoriesList
+                                      .clear();
+                                },
+                                displayValueSubTitle: (profession) =>
+                                    profession.subTitle,
+                                displayValueImagePath: (profession) =>
+                                    profession.icon,
+                              );
+                            }),
 
-                  CommonTextField(
-                    textEditController: roleController,
-                    inputLength: 50,
-                    keyBoardType: TextInputType.text,
-                    regularExpression: RegularExpressionUtils.alphabetSpacePattern,
-                    title: "Your Role in the Business",
-                    hintText: "Eg., Co-founder / Owner",
-                    isValidate: false,
-                  ),
+                            const SizedBox(height: 16),
+                            viewBusinessDetailsController
+                                        .selectedBusinessType?.value.name
+                                        .toLowerCase() !=
+                                    "both"
+                                ? Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      CustomText(
+                                        "Category of Business ${viewBusinessDetailsController.selectedBusinessType?.value.name}",
+                                        fontSize: SizeConfig.medium,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      SizedBox(height: SizeConfig.size10),
+                                      CommonDropdownDialog<CategoryData>(
+                                        items: viewBusinessDetailsController
+                                            .businessCategoriesList,
+                                        title: "Category of Business Service",
+                                        selectedValue:
+                                            viewBusinessDetailsController
+                                                .selectedCategoryOfBusiness
+                                                .value,
+                                        hintText: "Select Business Category",
+                                        displayValue: (category) =>
+                                            "${category.name}",
+                                        onChanged: (value) {
+                                          viewBusinessDetailsController
+                                              .businessSubCategoriesList
+                                              .clear();
+                                          viewBusinessDetailsController
+                                              .businessSubCategoriesList
+                                              .addAll(
+                                                  value?.subCategories ?? []);
+                                          viewBusinessDetailsController
+                                              .selectedCategoryOfBusiness
+                                              .value = value!;
+                                          viewBusinessDetailsController
+                                              .selectedSubCategoryOfBusinessNew
+                                              .value = null;
+                                        },
+                                      ),
+                                      const SizedBox(height: 16),
+                                      Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: CustomText(
+                                          appLocalizations?.subCategory,
+                                          fontSize: SizeConfig.medium,
+                                        ),
+                                      ),
+                                      SizedBox(height: SizeConfig.size10),
+                                      CommonDropdownDialog<SubCategories>(
+                                        items: viewBusinessDetailsController
+                                            .businessSubCategoriesList,
+                                        title: "Sub-Category",
+                                        selectedValue:
+                                            viewBusinessDetailsController
+                                                .selectedSubCategoryOfBusinessNew
+                                                .value,
+                                        hintText: "Select Sub Category",
+                                        displayValue: (sub) => "${sub.name}",
+                                        onChanged: (value) {
+                                          viewBusinessDetailsController
+                                              .selectedSubCategoryOfBusinessNew
+                                              .value = value;
+                                        },
+                                      ),
+                                    ],
+                                  )
+                                : Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    CustomText(
 
-                  const SizedBox(height: 16),
 
-                  CommonTextField(
-                    textEditController: emailController,
-                    inputLength: 50,
-                    keyBoardType: TextInputType.emailAddress,
-                    regularExpression: RegularExpressionUtils.emailPattern,
-                    title: "Email",
-                    hintText: "Eg., yourname@email.com",
-                    isValidate: false,
-                  ),
+                                      "Category of Business ${viewBusinessDetailsController.selectedBusinessType?.value.name}",
+                                      fontSize: SizeConfig.medium,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                    SizedBox(height: SizeConfig.size10),
 
-                  const SizedBox(height: 24),
+                                    CommonTextField(
+                                        textEditController:
+                                            subCategoryTextController,
+                                        maxLength: AppConstants.inputCharterLimit30,
+                                        keyBoardType: TextInputType.text,
+                                        regularExpression: RegularExpressionUtils
+                                            .alphabetSpacePattern,
+                                        title: "",
+                                        hintText: "Enter Category of Business",
+                                        isValidate: true,
+                                        onChange: (val) {
+                                          //setState(() {});
+                                        },
+                                        validator: (value) {
+                                          // if (authController.businessName.value.isEmpty) {
+                                          //   return 'Please enter your business or organization name';
+                                          // } else if (authController.businessName.value.length <
+                                          //     5) {
+                                          //   return 'Minimum 5 characters required';
+                                          // }
+                                          return null;
+                                        },
+                                      ),
+                                  ],
+                                ),
 
-                  CustomBtn(
-                    radius: 10,
-                    bgColor: AppColors.primaryColor,
-                    title: "Save",
-                    onTap: onSave,
-                  ),
-                ],
+                            const SizedBox(height: 16),
+
+                            CommonTextField(
+                              textEditController: specializationCtrl,
+                              title: "Business Specialization (Optional)",
+                              hintText: "Eg. South Indian Restaurant",
+                              keyBoardType: TextInputType.text,
+                              maxLine: 1,
+                              maxLength: 24,
+                              isValidate: false,
+                            ),
+                            const SizedBox(height: 16),
+
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      CustomText(
+                                        "Shop Open Time",
+                                        fontSize: SizeConfig.medium,
+                                        fontWeight: FontWeight.w500,
+                                        color: AppColors.black,
+                                      ),
+                                      SizedBox(
+                                        height: SizeConfig.size10,
+                                      ),
+                                      _buildDropdown(
+                                          hint: "Shop Open Time",
+                                          value: viewBusinessDetailsController
+                                              .shopOpenTime.value,
+                                          items: List.generate(
+                                            48,
+                                            (i) =>
+                                                "${(i ~/ 2).toString().padLeft(2, '0')}:${(i % 2 == 0 ? "00" : "30")}",
+                                          ),
+                                          onChanged: (val) {
+                                            viewBusinessDetailsController
+                                                .shopOpenTime.value = val ?? '';
+                                          }
+                                          // addServiceController.startTime.value = val!,
+                                          ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      CustomText(
+                                        "Shop Close Time",
+                                        fontSize: SizeConfig.medium,
+                                        fontWeight: FontWeight.w500,
+                                        color: AppColors.black,
+                                      ),
+                                      SizedBox(
+                                        height: SizeConfig.size10,
+                                      ),
+                                      _buildDropdown(
+                                          hint: "Shop Close Time",
+                                          value: viewBusinessDetailsController
+                                              .shopCloseTime.value,
+                                          items: List.generate(
+                                            48,
+                                            (i) =>
+                                                "${(i ~/ 2).toString().padLeft(2, '0')}:${(i % 2 == 0 ? "00" : "30")}",
+                                          ),
+                                          onChanged: (val) {
+                                            viewBusinessDetailsController
+                                                .shopCloseTime
+                                                .value = val ?? '';
+                                          }
+                                          // addServiceController.startTime.value = val!,
+                                          ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 24),
+
+                            CustomBtn(
+                              radius: 10,
+                              bgColor: AppColors.primaryColor,
+                              title: "Save",
+                              onTap: () async {
+                                final controller = Get.find<ViewBusinessDetailsController>();
+
+                                final selectedType =
+                                    controller.selectedBusinessType?.value.name.toLowerCase() ?? '';
+                                if (selectedType != "both") {
+                                  // Only validate these if NOT "both"
+                                  if (controller.selectedCategoryOfBusiness.value?.id == null) {
+                                    commonSnackBar(message: "Please select category");
+                                    return;
+                                  }
+
+                                  if (controller.selectedSubCategoryOfBusinessNew.value?.sId == null) {
+                                    commonSnackBar(message: "Please select sub-category");
+                                    return;
+                                  }
+                                } else {
+                                  // Validate text field for "both"
+                                  if (subCategoryTextController.text.trim().isEmpty) {
+                                    commonSnackBar(message: "Please enter Category of Business");
+                                    return;
+                                  }
+                                }
+
+                                Map<String, dynamic> updatedParams = {
+                                  ApiKeys.businessId: businessId,
+                                  ApiKeys.opening_time:viewBusinessDetailsController.shopOpenTime.value,
+                                  ApiKeys.closing_time:viewBusinessDetailsController.shopCloseTime.value,
+                                  if (viewBusinessDetailsController
+                                      .selectedBusinessType?.value.name
+                                      .toLowerCase() ==
+                                      "both")
+                                    ApiKeys.category_other:
+                                    subCategoryTextController.text,
+                                  ApiKeys.category:
+                                      viewBusinessDetailsController
+                                          .selectedCategoryOfBusiness.value?.id,
+                                  ApiKeys.sub_category_Of_Business:
+                                      viewBusinessDetailsController
+                                          .selectedSubCategoryOfBusinessNew
+                                          .value
+                                          ?.sId,
+                                  ApiKeys.type_of_business:
+                                      viewBusinessDetailsController
+                                              .selectedBusinessType
+                                              ?.value
+                                              .name ??
+                                          '',
+                                  ApiKeys.specification:
+                                      specializationCtrl.text.trim(),
+                                  ApiKeys.category_Of_Business:
+                                      (viewBusinessDetailsController
+                                                  .selectedBusinessType
+                                                  ?.value
+                                                  .name
+                                                  .toLowerCase() ==
+                                              "both")
+                                          ? '68a80b766fdb4e82b42b77c0'
+                                          : viewBusinessDetailsController
+                                              .selectedCategoryOfBusiness
+                                              .value
+                                              ?.id,
+                                  ApiKeys.Nature_of_Business:
+                                      selectedBusiness ==
+                                              selectedBusiness?.displayName ??
+                                          '',
+                                };
+                                log("sdlksmdclksdmcdlskc ${updatedParams}");
+                                await Get.find<ViewBusinessDetailsController>()
+                                    .updateBusinessDetails(updatedParams);
+                                Navigator.pop(context);
+                              },
+                            ),
+                          ],
+                        );
+                      }),
+                    );
+                  },
+                ),
               ),
             ),
           ),
@@ -1075,157 +1513,45 @@ void openOwnerEditSheet({
     },
   );
 }
-void openBusinessDetailsEditSheet(BuildContext context) {
-  final viewBusinessDetailsController =
-  Get.find<ViewBusinessDetailsController>();
 
-  // Controllers pre-filled with existing data
-  TextEditingController specializationCtrl = TextEditingController(
-    text: viewBusinessDetailsController
-        .businessProfileDetails?.data?.specification ??
-        '',
-  );
-
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    builder: (_) {
-      return Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-        child: Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
-            ),
-          ),
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Header
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: const [
-                      Text(
-                        "Edit Business Details",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      CloseButton(),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Category
-                  CommonDropdownDialog<CategoryData>(
-                    items: viewBusinessDetailsController.businessCategoriesList,
-                    title: "Category of Business Service",
-                    selectedValue: viewBusinessDetailsController
-                        .selectedCategoryOfBusiness.value,
-                    hintText: "Select Business Category",
-                    displayValue: (category) => "${category.name}",
-                    onChanged: (value) {
-                      viewBusinessDetailsController
-                          .businessSubCategoriesList
-                          .clear();
-                      viewBusinessDetailsController
-                          .businessSubCategoriesList
-                          .addAll(value?.subCategories ?? []);
-                      viewBusinessDetailsController
-                          .selectedCategoryOfBusiness.value = value!;
-                      viewBusinessDetailsController
-                          .selectedSubCategoryOfBusinessNew.value = null;
-                    },
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Sub-Category
-                  CommonDropdownDialog<SubCategories>(
-                    items: viewBusinessDetailsController.businessSubCategoriesList,
-                    title: "Sub-Category",
-                    selectedValue: viewBusinessDetailsController
-                        .selectedSubCategoryOfBusinessNew.value,
-                    hintText: "Select Sub Category",
-                    displayValue: (sub) => "${sub.name}",
-                    onChanged: (value) {
-                      viewBusinessDetailsController
-                          .selectedSubCategoryOfBusinessNew.value = value;
-                    },
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Specialization (optional)
-                  CommonTextField(
-                    textEditController: specializationCtrl,
-                    title: "Business Specialization (Optional)",
-                    hintText: "Eg. South Indian Restaurant",
-                    keyBoardType: TextInputType.text,
-                    maxLine: 1,
-                    maxLength: 24,
-                    isValidate: false,
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Save Button
-                  CustomBtn(
-                    radius: 10,
-                    bgColor: AppColors.primaryColor,
-                    title: "Save",
-                    onTap: () async {
-                      if (viewBusinessDetailsController
-                          .selectedCategoryOfBusiness.value?.id ==
-                          null) {
-                        commonSnackBar(message: "Please select category");
-                        return;
-                      }
-
-                      if (viewBusinessDetailsController
-                          .selectedSubCategoryOfBusinessNew.value?.sId ==
-                          null) {
-                        commonSnackBar(message: "Please select sub-category");
-                        return;
-                      }
-
-                      Map<String, dynamic> updatedParams = {
-                        ApiKeys.category: viewBusinessDetailsController
-                            .selectedCategoryOfBusiness.value?.id,
-                        ApiKeys.sub_category: viewBusinessDetailsController
-                            .selectedSubCategoryOfBusinessNew.value?.sId,
-                        ApiKeys.specification: specializationCtrl.text.trim(),
-                      };
-
-                      final success = await Get.find<ViewBusinessDetailsController>()
-                          .updateBusinessDetails(updatedParams);
-
-                      // if (success == true) {
-                      //   commonSnackBar(message: "Business details updated successfully");
-                      //   Get.back(); // ✅ only close if success
-                      // }
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      );
-    },
+Widget _buildDropdown({
+  required String hint,
+  required String value,
+  required List<String> items,
+  required Function(String?) onChanged,
+}) {
+  return Container(
+    padding: EdgeInsets.symmetric(
+        horizontal: SizeConfig.size16, vertical: SizeConfig.size10),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(8),
+      border: Border.all(color: AppColors.greyE5),
+      boxShadow: [AppShadows.textFieldShadow],
+    ),
+    child: DropdownButtonHideUnderline(
+      child: DropdownButton<String>(
+        isDense: true,
+        value: value.isEmpty ? null : value,
+        hint:
+            Text(hint, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
+        icon: Icon(Icons.keyboard_arrow_down, color: Colors.grey[600]),
+        style: TextStyle(color: Colors.black87, fontSize: 14),
+        items: items.map((String t) {
+          return DropdownMenuItem<String>(
+            value: t,
+            child: Text(t),
+          );
+        }).toList(),
+        onChanged: onChanged,
+      ),
+    ),
   );
 }
 
 class BlinkingVerifyButton extends StatefulWidget {
   final VoidCallback onTap;
+
   const BlinkingVerifyButton({super.key, required this.onTap});
 
   @override
@@ -1296,7 +1622,7 @@ Widget buildInfo(String title, String value) {
       SizedBox(width: SizeConfig.size6),
       Flexible(
         child: CustomText(
-          value ,
+          value,
           fontSize: SizeConfig.size12,
           fontWeight: FontWeight.w700,
           color: AppColors.secondaryTextColor,

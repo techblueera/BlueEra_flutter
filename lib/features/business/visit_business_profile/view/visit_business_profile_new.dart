@@ -153,6 +153,7 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
                             ratingForAccountName: AppConstants.business,
                             businessId: businessData?.id ?? "",
                           ),
+
                           // buildRatingSummary(
                           //     ratingsList: ratingDetailedCount,
                           //     allowRate: false,
@@ -160,6 +161,7 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
                           //         double.parse("${ratingData?.avgRating ?? 0}"),
                           //     totalReviews: "${ratingData?.totalRatings ?? 0}"),
                           // SizedBox(height: SizeConfig.size8),
+
                           Card(
                             margin: EdgeInsets.all(SizeConfig.size10),
                             shape: RoundedRectangleBorder(
