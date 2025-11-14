@@ -39,8 +39,8 @@ Future<void> projectKeys({required String environmentType}) async {
   if (environmentType == AppConstants.prod) {
     isProdEnvironment = true;
     baseUrl = "https://be.blueera.ai/api/";
-    razorpayKey = "rzp_test_ohzYMNmUvD1Vxg";
-    // razorpayKey = "rzp_live_RYv0tzupV710iQ";
+    // razorpayKey = "rzp_test_ohzYMNmUvD1Vxg";
+    razorpayKey = "rzp_live_RYv0tzupV710iQ";
     chatSocketUrl = 'wss://chat.blueera.ai';
   } else if (environmentType == AppConstants.dev) {
     isProdEnvironment = false;
