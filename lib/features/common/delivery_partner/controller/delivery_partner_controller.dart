@@ -305,7 +305,7 @@ class DeliveryPartnerController extends GetxController{
         List<String> userPictureUrls = [];
         String? aadharFrontImageUrl;
         String? aadharBackImageUrl;
-        String? panFrontImageUrl;
+        String? panCardImageUrl;
 
         // ---------- 3️⃣ UPLOAD LIVE PHOTOS ----------
         for (final photo in livePhoto) {
@@ -322,19 +322,19 @@ class DeliveryPartnerController extends GetxController{
         aadharBackImageUrl = await _uploadToS3(aadharBackImage.value!);
 
         // ---------- 6️⃣ UPLOAD PAN CARD ----------
-        panFrontImageUrl = await _uploadToS3(panCardImage.value!);
+        panCardImageUrl = await _uploadToS3(panCardImage.value!);
 
         // ---------- 7️⃣ PREPARE PAYLOAD ----------
         final params = {
-          ApiKeys.aadharNo: fullNameController.text,
-          ApiKeys.panNo: selectedGender.value?.name,
+          ApiKeys.aadharNo: aadharController.text,
+          ApiKeys.panNo: panNumberController.text,
           ApiKeys.userPicture: userPictureUrls,
           ApiKeys.aadharImages: {
             ApiKeys.front: aadharFrontImageUrl,
             ApiKeys.back: aadharBackImageUrl,
           },
           ApiKeys.panImages: {
-            ApiKeys.front: panFrontImageUrl,
+            ApiKeys.front: panCardImageUrl,
           },
         };
 

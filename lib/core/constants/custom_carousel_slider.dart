@@ -119,11 +119,13 @@ class _CustomImageSlideshowState extends State<CustomImageSlideshow> {
                   : CachedNetworkImage(
                       imageUrl: imagePath,
                       fit: BoxFit.cover,
-                      placeholder: (context, url) => Container(
-                        color: Colors.grey[200],
-                        child: const Center(
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
+                      memCacheWidth: 600,
+                      memCacheHeight: 600,
+                      fadeInDuration: const Duration(milliseconds: 100),
+                      fadeOutDuration: Duration.zero,
+                      placeholder: (context, url) => LocalAssets(
+                        imagePath: AppIconAssets.place_holder_image,
+                        boxFix: BoxFit.cover,
                       ),
                 errorWidget: (context, url, error) {
                   try {

@@ -7,7 +7,7 @@ class RentalServiceRepo extends BaseService{
   ///GET RENTAL SERVICE...
   Future<ResponseModel> addRentalServiceRepo({required Map<String, dynamic> params}) async {
     final response = await ApiBaseHelper().postHTTP(
-      addRentalService,
+      rentalService,
       isMultipart: true,
       params: params,
       showProgress: false,
@@ -30,5 +30,15 @@ class RentalServiceRepo extends BaseService{
     return response;
   }
 
+  Future<ResponseModel> getRentalService({required Map<String, dynamic> params}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      rentalService,
+      params: params,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 
 }

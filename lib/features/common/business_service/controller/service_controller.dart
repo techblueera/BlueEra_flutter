@@ -6,10 +6,12 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/common/business_service/model/get_service_model.dart';
 import 'package:BlueEra/features/common/business_service/model/service_ai_generate_model.dart';
 import 'package:BlueEra/features/common/business_service/repo/service_ai_repo.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/repo/earn_with_blueera_repo.dart';
+import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/repo/earn_service_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/add_services_screen.dart';
 import 'package:get/get.dart';
@@ -25,6 +27,8 @@ class ServiceController extends GetxController {
       ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> deleteServiceResponse
              = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> singleServiceDataResponse =
+      ApiResponse.initial('Initial').obs;
 
   // Form controllers
   final TextEditingController serviceNameController = TextEditingController();
@@ -122,7 +126,7 @@ class ServiceController extends GetxController {
       if(!isFromEarnWithBlueEra){
          response = await ServiceAiRepo().getServiceRepo(queryParams: queryParams);
       }else{
-        response = await EarnWithBlueEraRepo().getServiceRepo(queryParams: queryParams);
+        response = await EarnServiceRepo().getEarnServiceRepo(queryParams: queryParams);
       }
 
       if (response.isSuccess) {
@@ -170,7 +174,6 @@ class ServiceController extends GetxController {
   }
 
   RxBool isDeleteServiceLoading = false.obs;
-
   Future<void> deleteService({required String serviceId, required bool isFromEarnWithBlueEra}) async {
     isDeleteServiceLoading.value = true;
 
@@ -179,7 +182,7 @@ class ServiceController extends GetxController {
       if(!isFromEarnWithBlueEra){
         response = await ServiceAiRepo().deleteServiceRepo(serviceId: serviceId);
       }else{
-        response = await EarnWithBlueEraRepo().deleteServiceRepo(serviceId: serviceId);
+        response = await EarnServiceRepo().deleteServiceRepo(serviceId: serviceId);
       }
 
       if (response.isSuccess) {
@@ -187,6 +190,15 @@ class ServiceController extends GetxController {
         Get.back();
         serviceDataList.removeWhere((service) => service.id == serviceId);
         serviceDataList.refresh();
+
+        if(isFromEarnWithBlueEra){
+          final viewPersonalDetailsController = Get.isRegistered<ViewPersonalDetailsController>()
+              ? Get.find<ViewPersonalDetailsController>()
+              : Get.put(ViewPersonalDetailsController());
+        earnServiceCreatedStatusGlobal = 'false';
+        viewPersonalDetailsController.getEarnServiceStatus();
+        }
+
         print('Total: ${serviceDataList.length}');
       } else {
         deleteServiceResponse.value = ApiResponse.error('error');
@@ -199,11 +211,28 @@ class ServiceController extends GetxController {
     }
   }
 
+  RxBool isSingleServiceLoading = false.obs;
+  Rxn<GetServiceModel> singleServiceData = Rxn<GetServiceModel>();
 
-  // @override
-  // void onClose() {
-  //   serviceNameController.dispose();
-  //   serviceShortDescriptionController.dispose();
-  //   super.onClose();
-  // }
+  Future<void> fetchSingleServiceDataApi({required String serviceId}) async {
+    try {
+      isSingleServiceLoading.value = true;
+
+      final response = await ServiceAiRepo().fetchSingleServiceDataApi(serviceId: serviceId);
+      if (response.isSuccess) {
+        singleServiceDataResponse.value = ApiResponse.complete(response);
+        final singleServiceDetailsModel = GetServiceModel.fromJson(response.response!.data);
+        singleServiceData.value = singleServiceDetailsModel;
+      } else {
+        print("API failed with status: ${response.statusCode}");
+        singleServiceDataResponse.value = ApiResponse.error('error');
+      }
+    } catch (e, s) {
+      print("stack trace: $s");
+      singleServiceDataResponse.value = ApiResponse.error('error');
+    } finally {
+      isSingleServiceLoading.value = false;
+    }
+  }
+
 }

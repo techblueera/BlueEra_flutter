@@ -65,7 +65,11 @@ class DeliverPartnerOrdersController extends GetxController {
 
     // Filter by status
     newOrders.value = list.where((e) => e.status == 'pending').toList();
-    onGoingOrders.value = list.where((e) => e.status == 'in-progress' || e.status == 'picked-up' || e.status == 'accepted').toList();
+    onGoingOrders.value = list.where((e)
+               => e.status == 'in-progress'
+                   || e.status == 'picked-up'
+                     || e.status == 'accepted'
+                      || e.status == 'payment-pending').toList();
     // completedOrders.value = list.where((e) => e.status == 'completed').toList();
     // cancelledOrders.value = list.where((e) => e.status == 'cancelled').toList();
     // rejectedOrders.value = list.where((e) => e.status == 'rejected').toList();

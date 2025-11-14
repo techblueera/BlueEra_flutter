@@ -27,29 +27,29 @@ class _FoodServiceGuideBottomSheetState extends State<FoodServiceGuideBottomShee
 
   final List<ServiceItem> _services = [
     ServiceItem(
-      label: 'Tiffin',
-      name: AppConstants.TIFFIN,
+      name: 'Tiffin',
+      slugId: AppConstants.TIFFIN,
       icon: AppIconAssets.tiffinIcon,
       bgColor: const Color(0xFFFFF2DF),
       labelColor: const Color(0xFFAF6800),
     ),
     ServiceItem(
-      label: 'Bakery',
-      name: AppConstants.BAKERY,
+      name: 'Bakery',
+      slugId: AppConstants.BAKERY,
       icon: AppIconAssets.bakeryIcon,
       bgColor: const Color(0xFFFFF2C3),
       labelColor: const Color(0xFF5D4900),
     ),
     ServiceItem(
-      label: 'Sweets',
-      name: AppConstants.SWEETS,
+      name: 'Sweets',
+      slugId: AppConstants.SWEETS,
       icon: AppIconAssets.sweetIcon,
       bgColor: const Color(0xFFF0F4C2),
       labelColor: const Color(0xFF4E5500),
     ),
     ServiceItem(
-      label: 'Other',
-      name: 'OTHER',
+      name: 'Other',
+      slugId: 'OTHER',
       icon: AppIconAssets.staggeredIcon,
       bgColor: const Color(0xFFCFD8DD),
       labelColor: const Color(0xFF36444D),
@@ -151,6 +151,7 @@ class _FoodServiceGuideBottomSheetState extends State<FoodServiceGuideBottomShee
                   arguments: {
                     ApiKeys.providerType: ProductServiceProviderType.user,
                     ApiKeys.serviceSubType: EarnWithBlueEraServiceTypes.homeMadeFood,
+                    ApiKeys.category: selectedService?.slugId,
                   },
                 );
               },

@@ -52,6 +52,8 @@ import '../visit_business_profile/view/business_profile_header.dart';
 import '../visiting_card/view/business_details_edit_page_one.dart';
 import 'package:dio/dio.dart' as dio;
 
+import '../visiting_card/view/widget/business_verfication.dart';
+
 class BusinessProfileScreen extends StatefulWidget {
   final int? selectedIndex;
   final SortBy? sortBy;
@@ -324,7 +326,7 @@ class MyProductCardDetails extends StatelessWidget {
             : SizedBox(
                 height: 600,
                 child: ListView.builder(
-                  physics: const AlwaysScrollableScrollPhysics(),
+                  physics: const NeverScrollableScrollPhysics(),
                   shrinkWrap: true,
                   itemCount: productList.length,
                   itemBuilder: (context, index) {
@@ -551,7 +553,7 @@ class BusinessProfileHeader extends StatelessWidget {
                             : Flexible(
                                 child: BlinkingVerifyButton(
                                   onTap: () {
-                                    Get.to(() => GstNumberScreenForProfile());
+                                    Get.to(BusinessVerification());
 
                                     //commonSnackBar(message: "Coming soon....");
                                   },

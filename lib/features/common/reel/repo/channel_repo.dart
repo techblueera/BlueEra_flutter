@@ -382,7 +382,7 @@ print("url=== ${url}");
     required int limit,}) async {
     final response = await ApiBaseHelper().getHTTP(
       "${channelFollowingMe}?page=$page&limit=$limit",
-      showProgress: true,
+      showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );
@@ -394,7 +394,7 @@ print("url=== ${url}");
     required int limit,}) async {
     final response = await ApiBaseHelper().getHTTP(
       "${channelsRecommendations}?page=$page&limit=$limit",
-      showProgress: true,
+      showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );

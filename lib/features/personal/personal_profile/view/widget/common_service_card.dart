@@ -53,7 +53,7 @@ class CommonServiceCard extends StatelessWidget {
             ),
             SizedBox(height: spacing),
             CustomText(
-              service.label,
+              service.name,
               textAlign: TextAlign.center,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,

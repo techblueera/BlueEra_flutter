@@ -2,7 +2,6 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -18,8 +17,9 @@ import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 class FoodUploadScreen extends StatefulWidget {
   final ProductServiceProviderType providerType;
   final EarnWithBlueEraServiceTypes? serviceSubType;
+  final String? category;
 
-  FoodUploadScreen({Key? key, required this.providerType, this.serviceSubType}) : super(key: key);
+  FoodUploadScreen({Key? key, required this.providerType, this.serviceSubType, this.category}) : super(key: key);
 
   @override
   State<FoodUploadScreen> createState() => _FoodUploadScreenState();
@@ -27,6 +27,28 @@ class FoodUploadScreen extends StatefulWidget {
 
 class _FoodUploadScreenState extends State<FoodUploadScreen> {
   final FoodUploadController controller = Get.put(FoodUploadController());
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (widget.providerType == ProductServiceProviderType.user &&
+        widget.category != null) {
+      final category = widget.category!;
+      controller.selectedFoodType1.value = category;
+
+      // find index of category in list
+      final index = controller.foodType1Options.indexOf(category);
+      if (index != -1) {
+        controller.selectedFoodType1Index.value = index;
+      }
+
+      controller.isCategoryLocked = true;
+    } else {
+      controller.isCategoryLocked = false;
+    }
+  }
+
 
   @override
   void dispose() {
@@ -55,6 +77,7 @@ class _FoodUploadScreenState extends State<FoodUploadScreen> {
                     children: [
                       // Upload Images Section
                       _buildUploadImagesSection(context),
+
                       SizedBox(height: SizeConfig.size20),
 
                       // Food Name Field
@@ -67,13 +90,17 @@ class _FoodUploadScreenState extends State<FoodUploadScreen> {
                       SizedBox(height: SizeConfig.size20),
 
                       // Food Type 1 Selection
-                      _buildTabSection(
-                        title: 'Food Type 1',
-                        tabs: controller.foodType1Options,
-                        selectedIndex: controller.selectedFoodType1Index,
-                        onTabSelected: (index, value) {
-                          controller.selectedFoodType1.value = value;
-                        },
+                      AbsorbPointer(
+                        absorbing: controller.isCategoryLocked,
+                        child: _buildTabSection(
+                          title: 'Food Type 1',
+                          tabs: controller.foodType1Options,
+                          selectedIndex: controller.selectedFoodType1Index,
+                          onTabSelected: (index, value) {
+                              controller.selectedFoodType1.value = value;
+                              controller.selectedFoodType1Index.value = index;
+                          },
+                        ),
                       ),
                       SizedBox(height: SizeConfig.size20),
 
@@ -151,9 +178,6 @@ class _FoodUploadScreenState extends State<FoodUploadScreen> {
             );
             if ((selected?.isNotEmpty ?? false) && selected != null) {
               controller.selectedImage.value = File(selected);
-            } else {
-              commonSnackBar(
-                  message: "Something went wrong please try again");
             }
           },
           child: Container(

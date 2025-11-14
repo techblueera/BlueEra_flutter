@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:flutter/material.dart';
@@ -32,22 +33,20 @@ class _BusinessLocationWidgetState extends State<BusinessLocationWidget> {
 
   // Future<void> _onMapCreated(MapplsMapController controller) async {
   //   mapController = controller;
-  //   mapController.onStyleLoadedCallback = () async {
-  //     await mapController.addSymbol(
-  //       SymbolOptions(
-  //         geometry: LatLng(widget.latitude, widget.longitude),
-  //         iconSize: 1.2,
-  //         iconImage: "marker-icon", // default marker
-  //       ),
-  //     );
-  //    };
-  //   setState(() {});
+  //
+  //   await Future.delayed(const Duration(milliseconds: 300));
+  //   await mapController.addSymbol(
+  //     SymbolOptions(
+  //       geometry: LatLng(26.2389, 73.0243),
+  //       iconImage: "marker",
+  //     ),
+  //   );
+  //
   // }
 
   Future<void> _onMapCreated(MapplsMapController controller) async {
     mapController = controller;
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -89,7 +88,7 @@ class _BusinessLocationWidgetState extends State<BusinessLocationWidget> {
                   child: Stack(
                     children: [
                       MapplsMap(
-                        onMapCreated: (controller) => _onMapCreated(controller),
+                        onMapCreated: _onMapCreated,
                         initialCameraPosition: CameraPosition(
                           target: LatLng(widget.latitude, widget.longitude),
                           zoom: 14.0,
@@ -100,6 +99,28 @@ class _BusinessLocationWidgetState extends State<BusinessLocationWidget> {
                         tiltGesturesEnabled: true,
                         zoomGesturesEnabled: true,
                         scrollGesturesEnabled: true,
+                        onStyleLoadedCallback: () async {
+                            try {
+                              // // Move camera to the location
+                              // await mapController.animateCamera(
+                              //   CameraUpdate.newLatLngZoom(
+                              //     LatLng(widget.latitude, widget.longitude),
+                              //     14.0,
+                              //   ),
+                              // );
+
+                              // Add marker
+                              await mapController.addSymbol(
+                                SymbolOptions(
+                                  iconImage: AppImageAssets.markerBlue,
+                                  geometry: LatLng(widget.latitude, widget.longitude),
+                                  iconSize: 1.5
+                                ),
+                              );
+                            } catch (e) {
+                              print('Error adding marker: $e');
+                            }
+                        },
                       ),
                       Positioned(
                         right: SizeConfig.size10,

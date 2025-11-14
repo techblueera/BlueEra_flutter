@@ -499,7 +499,7 @@ abstract class BaseService {
   final String channelsRecommendations = "channel-service/channels/recommendations/trending";
   final String channelServiceFollower = "channel-service/follower/";
 
-  final String addRentalService = "booking-enquiry-service/rentals";
+  final String rentalService = "booking-enquiry-service/rentals";
   final String generateHomeRentalService = "ai-service/api/ai-property/generate-description";
 
 
@@ -510,7 +510,9 @@ abstract class BaseService {
   String deliverOtpVerify(String orderId) => "rider-service/riders/orders/$orderId/deliver";
   String updateOrderStatusFromAdmin(String orderId) => "rider-service/riders/orders/$orderId/admin/status";
 
-  final String productSearchFilter = 'inventory-service/api/product/sort/filter';
-
+  final String productSearchFilter = 'product-service/api/product/sort/filter';
+  final String checkAnyEarnServiceCreated = 'earn-service/services/any/check';
+  final String requestMobileUpdateOtp = 'user-service/user/request-mobile-update-otp';
+  final String verifyMobileUpdateOtp = 'user-service/user/verify-mobile-update-otp';
 
 }

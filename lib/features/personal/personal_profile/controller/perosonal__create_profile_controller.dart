@@ -105,7 +105,7 @@ class PersonalCreateProfileController extends GetxController {
 
       if (responseModel.isSuccess) {
         updateUserProfileResponse = ApiResponse.complete(responseModel);
-        await Get.find<ViewPersonalDetailsController>().viewPersonalProfile(isCheckServiceOpt: false);
+        await Get.find<ViewPersonalDetailsController>().viewPersonalProfile();
         if(!isFromProfileOnly)
           {
             Get.back();

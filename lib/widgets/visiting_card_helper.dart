@@ -112,7 +112,13 @@ class VisitingCardHelper {
 
   bool _isSharing = false;
 
-  Future<void> shareVisitingCard(GlobalKey cardKey, {bool shareProfile = true, String? productId, String? serviceId, String? foodServiceId}) async {
+  Future<void> shareVisitingCard(
+      GlobalKey cardKey,
+      {bool shareProfile = true,
+        String? productId,
+        String? serviceId,
+        String? foodServiceId
+      }) async {
     print('sharing');
     if (_isSharing) return;
 
@@ -136,7 +142,13 @@ class VisitingCardHelper {
       if(productId!=null){
         final link = productDeepLink(productId: productId);
         message = "Link to visit my store at BlueEra app:\n$link\n";
-      }else if(shareProfile){
+      } else if(serviceId!=null){
+        final link = serviceDeepLink(serviceId: serviceId);
+        message = "Link to visit my store at BlueEra app:\n$link\n";
+      } else if(foodServiceId!=null){
+        final link = foodServiceDeepLink(foodServiceId: foodServiceId);
+        message = "Link to visit my store at BlueEra app:\n$link\n";
+      } else if(shareProfile){
         final link = profileDeepLink(userId: userId);
         message = "See my profile on BlueEra:\n$link\n";
       }else{

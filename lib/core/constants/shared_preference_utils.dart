@@ -33,7 +33,7 @@ String userNameAtGlobal = '';
 String businessOwnerAddressGlobal = '';
 String businessSubCategoryGlobal = '';
 String serviceProviderStatusGlobal = '';
-String userServiceCreatedStatusGlobal = '';
+String earnServiceCreatedStatusGlobal = 'false';
 String businessTypeGlobal = '';
 
 class SharedPreferenceUtils {
@@ -74,7 +74,7 @@ class SharedPreferenceUtils {
   static const availabilityDetails = 'availabilityDetails';
   static const businessSubCategory = 'businessSubCategory';
   static const serviceProviderStatus = 'serviceProviderStatus';
-  static const userServiceCreatedStatusKey = 'userServiceCreatedStatusKey';
+  static const earnServiceCreatedStatusKey = 'earnServiceCreatedStatusKey';
   static const userServiceExistsKey = 'userServiceExistsKey';
   static const businessType = 'businessType';
   static const notificationDeviceToken = 'notificationDeviceToken';
@@ -210,7 +210,7 @@ class SharedPreferenceUtils {
       userWorkTypeGlobal = '';
       userNameAtGlobal = '';
       serviceProviderStatusGlobal = '';
-      userServiceCreatedStatusGlobal = '';
+      earnServiceCreatedStatusGlobal = '"false"';
       businessTypeGlobal = '';
       Get.find<AuthController>().imgPath.value = "";
       await SharedPreferenceUtils.setBaseUrlSecureValue(workManagerBaseUrl);
@@ -258,10 +258,10 @@ getServiceProviderStatusUtils() async {
       "";
 }
 
-getUserServiceCreatedStatusUtils() async {
-  userServiceCreatedStatusGlobal = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.userServiceCreatedStatusKey) ??
-      "";
+getEarnServiceCreatedStatusUtils() async {
+  earnServiceCreatedStatusGlobal = await SharedPreferenceUtils.getSecureValue(
+          SharedPreferenceUtils.earnServiceCreatedStatusKey) ??
+      "false";
 }
 
 Future<String> getUserServiceExistsKey() async {

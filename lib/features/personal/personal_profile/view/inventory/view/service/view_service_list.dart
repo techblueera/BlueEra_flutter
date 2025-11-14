@@ -4,8 +4,8 @@ import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_scr
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../../../../core/api/apiService/api_keys.dart';
-import '../../../../../../core/constants/app_colors.dart';
+import '../../../../../../../core/api/apiService/api_keys.dart';
+import '../../../../../../../core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/business_service/model/get_service_model.dart';
@@ -128,7 +128,8 @@ class _ViewServiceListState extends State<ViewServiceList> {
                             ),
                           ],
                         ),
-                        child: Row(crossAxisAlignment: CrossAxisAlignment.start,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             SizedBox(
                               width: 160,

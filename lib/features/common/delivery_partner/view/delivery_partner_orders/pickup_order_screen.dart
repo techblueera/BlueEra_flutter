@@ -114,6 +114,7 @@ class _PickupOrderScreenState extends State<PickupOrderScreen> {
     )
         : ListView.builder(
         itemCount: ordersList.length,
+        // reverse: true,
         padding: EdgeInsets.only(
             top: SizeConfig.size10,
             bottom: kBottomNavigationBarHeight + SizeConfig.size40,

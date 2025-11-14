@@ -21,36 +21,7 @@ class RentalServiceGuideBottomSheet extends StatefulWidget {
 class _RentalServiceGuideBottomSheetState extends State<RentalServiceGuideBottomSheet> {
   int? selectedIndex;
   ServiceItem? selectedService;
-  final List<ServiceItem> _services = [
-    ServiceItem(
-      label: 'Home Stay',
-      name: AppConstants.HOME_STAY,
-      icon: AppIconAssets.homeStayIcon,
-      bgColor: const Color(0xFFFFF2DF),
-      labelColor: const Color(0xFFAF6800),
-    ),
-    ServiceItem(
-      label: 'Flat/Room',
-      name: AppConstants.Flat_ROOM,
-      icon: AppIconAssets.roomIcon,
-      bgColor: const Color(0xFFF0F4C2),
-      labelColor: const Color(0xFF4E5500),
-    ),
-    ServiceItem(
-      label: 'Vehicle',
-      name: AppConstants.VEHICLE,
-      icon: AppIconAssets.vehicleIcon,
-      bgColor: const Color(0xFFD7EAC9),
-      labelColor: const Color(0xFF183A00),
-    ),
-    // ServiceItem(
-    //   label: 'Other',
-    //   name: AppConstants.OTHER,
-    //   icon: AppIconAssets.staggeredIcon,
-    //   bgColor: const Color(0xFFCFD8DD),
-    //   labelColor: const Color(0xFF36444D),
-    // ),
-  ];
+
 
   @override
   Widget build(BuildContext context) {
@@ -111,9 +82,9 @@ class _RentalServiceGuideBottomSheetState extends State<RentalServiceGuideBottom
                   crossAxisSpacing: 30,
                   mainAxisSpacing: 20,
                 ),
-                itemCount: _services.length,
+                itemCount: rentalServicesList.length,
                 itemBuilder: (_, i) => CommonServiceCard(
-                  service: _services[i],
+                  service: rentalServicesList[i],
                   isSelected: selectedIndex == i,
                   onTap: () {
                     setState(() {
@@ -122,7 +93,7 @@ class _RentalServiceGuideBottomSheetState extends State<RentalServiceGuideBottom
                         selectedService = null;
                       } else {
                         selectedIndex = i;
-                        selectedService = _services[i];
+                        selectedService = rentalServicesList[i];
                       }
                     });
                   },
