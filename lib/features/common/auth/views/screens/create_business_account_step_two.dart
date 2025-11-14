@@ -102,7 +102,6 @@ class _CreateBusinessAccountStepTwoState
 
   void _validateForm() {
     setState(() {
-      // Common validation
       bool commonValid = cityController.text.trim().isNotEmpty &&
           fullBusinessAddressTextController.text.trim().isNotEmpty &&
           nameTextController.text.trim().isNotEmpty &&
@@ -113,18 +112,22 @@ class _CreateBusinessAccountStepTwoState
           picCodeController.text.trim().isNotEmpty &&
           emailTextController.text.trim().isNotEmpty;
 
-      // Type-specific validation
       if (selectedType == ContactType.Mobile) {
-        isFormValid = commonValid && mobileController.text.trim().isNotEmpty;
-      } else if (selectedType == ContactType.Landline) {
         isFormValid = commonValid &&
-            landlineCodeController.text.trim().isNotEmpty &&
-            landlineNumberController.text.trim().isNotEmpty;
+            mobileController.text.trim().isNotEmpty &&
+            mobileController.text.length == 10;
+      } else if (selectedType == ContactType.Landline) {
+
+        isFormValid = commonValid &&
+            landlineNumberController.text.trim().isNotEmpty &&
+            landlineNumberController.text.length >= 6 &&
+            landlineNumberController.text.length <= 8;
       } else {
         isFormValid = false;
       }
     });
   }
+
 
   @override
   void dispose() {
@@ -147,6 +150,7 @@ class _CreateBusinessAccountStepTwoState
   Widget build(BuildContext context) {
     final appLocalizations = AppLocalizations.of(context);
     final theme = Theme.of(context);
+    print("jnvkldjfvfdklv ${isFormValid}");
     return Scaffold(
         appBar: CommonBackAppBar(
           isLeading: false,
@@ -452,13 +456,12 @@ class _CreateBusinessAccountStepTwoState
                                   }
 
                                   if (selectedType == ContactType.Landline) {
-                                    if (landlineNumberController.length <= 6 &&
-                                        landlineNumberController.length >= 8) {
-                                      commonSnackBar(
-                                          message:
-                                              "Please enter your valid landline number");
+                                    if (landlineNumberController.text.length < 6 ||
+                                        landlineNumberController.text.length > 8) {
+                                      commonSnackBar(message: "Please enter your valid landline number");
                                       return;
                                     }
+
                                   }
 
                                   // log('address lat--> ${viewBusinessDetailsController.addressLat?.value}');

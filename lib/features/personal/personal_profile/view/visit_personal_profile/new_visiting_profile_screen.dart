@@ -139,8 +139,8 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
         postTab = [
          // "Overview",
          // if (user?.profession == SELF_EMPLOYED) 'Portfolio',
-          'Testimonials',
           'Posts',
+          'Testimonials',
           'Channel',
           // 'Shorts',
           // 'Videos'

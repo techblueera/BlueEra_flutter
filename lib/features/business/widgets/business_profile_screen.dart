@@ -362,11 +362,35 @@ class BusinessProfileHeader extends StatelessWidget {
 
   const BusinessProfileHeader(
       {super.key, required this.details, required this.controller});
+  String cleanValue(String? value) {
+    if (value == null) return '';
+    if (value.trim().toLowerCase() == 'na') return '';
+    return value;
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     bool _isBottomSheetOpen = false;
+    String ownerName = cleanValue(details!.ownerDetails?.first.name);
+    String ownerRole = cleanValue(details?.ownerDetails?.first.role_in_business);
+    String finalText = ownerRole.isNotEmpty
+        ? "$ownerName ($ownerRole)"
+        : ownerName;
+    String _getCoverImage(controller) {
+      final cover = controller.coverImage?.value;
+      final profile = controller.imagePath?.value; // or controller.businessImage?.value
+
+      if (cover != null && cover.isNotEmpty) {
+        return cover;
+      }
+
+      if (profile != null && profile.isNotEmpty) {
+        return profile;
+      }
+
+      return ''; // shows empty widget in errorBuilder
+    }
 
     return Container(
       // margin: const EdgeInsets.all(8),
@@ -396,17 +420,11 @@ class BusinessProfileHeader extends StatelessWidget {
                     topLeft: Radius.circular(12),
                     topRight: Radius.circular(12),
                   ),
-                  child: Container(
+                  child: SizedBox(
                     height: 130,
                     width: double.infinity,
                     child: Image.network(
-                      (controller.coverImage?.value != null &&
-                              controller.coverImage!.value!.isNotEmpty)
-                          ? controller.coverImage!.value!
-                          : (controller.coverImage?.value ?? ''),
-                      width: double.infinity,
-                      height: 130,
-                      //height: 160,
+                      _getCoverImage(controller),
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
                         return const SizedBox();
@@ -646,18 +664,21 @@ class BusinessProfileHeader extends StatelessWidget {
                     ),
                     GestureDetector(
                       onTap: () {
-                        TextEditingController ownerNameCtrl =
-                            TextEditingController(
-                          text: details!.ownerDetails?.first.name ?? '',
+                        String cleanValue(String? value) {
+                          if (value == null) return '';
+                          if (value.trim().toLowerCase() == 'na') return '';
+                          return value;
+                        }
+                        TextEditingController ownerNameCtrl = TextEditingController(
+                          text: cleanValue(details!.ownerDetails?.first.name),
                         );
-                        TextEditingController ownerRoleCtrl =
-                            TextEditingController(
-                          text: details?.ownerDetails?.first.role_in_business ??
-                              '',
+
+                        TextEditingController ownerRoleCtrl = TextEditingController(
+                          text: cleanValue(details?.ownerDetails?.first.role_in_business),
                         );
-                        TextEditingController ownerEmailCtrl =
-                            TextEditingController(
-                          text: details?.ownerDetails?.first.email ?? '',
+
+                        TextEditingController ownerEmailCtrl = TextEditingController(
+                          text: cleanValue(details?.ownerDetails?.first.email),
                         );
 
                         openOwnerEditSheet(
@@ -701,8 +722,8 @@ class BusinessProfileHeader extends StatelessWidget {
                           children: [
                             Flexible(
                               child: CustomText(
-                                "${details!.ownerDetails?.first.name ?? ''} "
-                                "(${details?.ownerDetails?.first.role_in_business ?? ''})",
+                                finalText,
+
                                 color: AppColors.secondaryTextColor,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w400,
@@ -1076,7 +1097,13 @@ void openOwnerEditSheet({
 void openBusinessDetailsEditSheet(BuildContext context) {
   final viewBusinessDetailsController =
       Get.find<ViewBusinessDetailsController>();
+  final data = viewBusinessDetailsController.businessProfileDetails?.data;
 
+  viewBusinessDetailsController.shopOpenTime.value =
+      data?.openTime?.toString() ?? '';
+
+  viewBusinessDetailsController.shopCloseTime.value =
+      data?.closeTime?.toString() ?? '';
   // Controllers prSizeOfBusiness? selectedBusiness;e-filled with existing data
   TextEditingController specializationCtrl = TextEditingController(
     text: viewBusinessDetailsController

@@ -173,7 +173,7 @@ class _BusinessDetailsEditPageOneState
       child: Scaffold(
         appBar: CommonBackAppBar(
           isLeading: true,
-          title: "Business Details (Step 1 of 2)",
+          title: "Business Details Update",
           onBackTap: () {
             if (widget.isFromCreateUser) {
               Get.offNamedUntil(

@@ -456,6 +456,8 @@ class _BusinessAccountScreenState extends State<BusinessAccountScreen> {
                           return null;
                         },
                       ),
+                SizedBox(height: SizeConfig.size20),
+
                 if (selectedTypeOfBusiness?.type ==
                     BusinessType.Product.name) ...[
                   SizedBox(
