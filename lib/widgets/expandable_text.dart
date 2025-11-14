@@ -128,8 +128,7 @@ class _ExpandableTextState extends State<ExpandableText> {
       context: context,
 
       builder: (_) => Dialog(
-        insetPadding: EdgeInsets.zero, // ✅ Removes outside padding
-
+        insetPadding: EdgeInsets.zero,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Container(
           padding: EdgeInsets.all(SizeConfig.size20),

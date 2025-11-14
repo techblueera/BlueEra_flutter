@@ -7,6 +7,8 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/business/business_verification/view/business_verification_screen.dart';
+import 'package:BlueEra/features/business/visiting_card/view/widget/business_verfication.dart';
 import 'package:BlueEra/features/business/visiting_card/visiting_cardlist_screen.dart';
 import 'package:BlueEra/features/business/widgets/business_profile_widget.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
@@ -539,7 +541,8 @@ class BusinessProfileHeader extends StatelessWidget {
                             : Flexible(
                           child: BlinkingVerifyButton(
                             onTap: () {
-                              commonSnackBar(message: "Coming soon....");
+                              Get.to(BusinessVerification());
+                              // commonSnackBar(message: "Coming soon....");
                             },
                           ),
                         ),
