@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:math' hide log;
 
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -37,8 +38,11 @@ class DeliverPartnerOrdersController extends GetxController {
   StreamSubscription? subscription;
 
   Future<void> fetchStream() async {
+    ordersListResponse.value =
+        ApiResponse.complete('');
     stream = await getOrderFromUserStream();
     subscription = stream.listen((event) {
+      log("kjncskjcns $event");
       if (event is List) {
         List<RiderOrdersDetailsModel> riderOrdersList = event
             .map((item) => RiderOrdersDetailsModel.fromJson(
@@ -68,7 +72,7 @@ class DeliverPartnerOrdersController extends GetxController {
     onGoingOrders.value = list.where((e)
                => e.status == 'in-progress'
                    || e.status == 'picked-up'
-                     || e.status == 'accepted'
+                     || e.status == 'accepted'|| e.status == 'confirmed'
                       || e.status == 'payment-pending').toList();
     // completedOrders.value = list.where((e) => e.status == 'completed').toList();
     // cancelledOrders.value = list.where((e) => e.status == 'cancelled').toList();
@@ -78,18 +82,21 @@ class DeliverPartnerOrdersController extends GetxController {
 
   }
 
-  Future<void> updateOrderStatusFromPialot(Map<String,dynamic> params,String orderId) async {
+  Future<bool> updateOrderStatusFromPialot(Map<String,dynamic> params,String orderId) async {
     try {
       ResponseModel? response = await MakeOrderRepo().updateOrderStatusFromPt(params,orderId);
       if (response.isSuccess ) {
         commonSnackBar(
             message: response.message ?? "Order Status Updated Successfully");
+      return true;
       } else {
         commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);
+        return false;
       }
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
+      return false;
     }
   }
 
@@ -98,8 +105,6 @@ class DeliverPartnerOrdersController extends GetxController {
       ordersListResponse.value = ApiResponse.initial('initial');
       ResponseModel? response = await MakeOrderRepo().getRidersBookingOrders();
       if (response.isSuccess ) {
-
-
         if (response.response?.data is List) {
           final parsedList = (response.response?.data as List)
               .map((item) => RiderOrdersDetailsModel.fromJson(
@@ -110,14 +115,42 @@ class DeliverPartnerOrdersController extends GetxController {
           // List<RiderOrdersDetailsModel> riderOrdersDetailsModel = parsedList;
 
           completedOrders.value =
-              parsedList.where((e) => e.status?.toLowerCase() == 'confirmed').toList();
+              parsedList.where((e) => e.status?.toLowerCase() == 'completed').toList();
 
           cancelledOrders.value =
               parsedList.where((e) => e.status?.toLowerCase() == 'cancelled').toList();
 
-          rejectedOrders.value =
-              parsedList.where((e) => e.status?.toLowerCase() == 'pending').toList();
+          ordersListResponse.value = ApiResponse.complete(parsedList);
+        }else{
+          ordersListResponse.value=ApiResponse.error();
+        }
 
+      } else {
+        ordersListResponse.value = ApiResponse.error(response.message ?? AppStrings.somethingWentWrong);
+
+        commonSnackBar(
+          message: response.message ?? AppStrings.somethingWentWrong,
+        );
+      }
+
+    } catch (e) {
+      ordersListResponse.value = ApiResponse.error(AppStrings.somethingWentWrong);
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+  }
+  Future<void> getRiderRejectOrderList() async {
+    try {
+      ordersListResponse.value = ApiResponse.initial('initial');
+      ResponseModel? response = await MakeOrderRepo().getRiderRejectOrderList();
+      if (response.isSuccess ) {
+        log("skdclksmclsc ${response.response?.data}");
+        if (response.response?.data is List) {
+          final parsedList = (response.response?.data as List)
+              .map((item) => RiderOrdersDetailsModel.fromJson(
+            Map<String, dynamic>.from(item),
+          ))
+              .toList();
+          rejectedOrders.value =parsedList;
           ordersListResponse.value = ApiResponse.complete(parsedList);
         }else{
           ordersListResponse.value=ApiResponse.error();

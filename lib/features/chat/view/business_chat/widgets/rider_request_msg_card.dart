@@ -1,20 +1,15 @@
-import 'dart:developer';
-
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_callkit_incoming/entities/android_params.dart';
-import 'package:flutter_callkit_incoming/entities/call_kit_params.dart';
-import 'package:flutter_callkit_incoming/entities/ios_params.dart';
-import 'package:flutter_callkit_incoming/entities/notification_params.dart';
-import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
-
 import '../../../../../core/api/apiService/api_keys.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/size_config.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 import '../../../../common/delivery_partner/controller/delivery_partner_orders_controller.dart';
+import '../../../auth/controller/chat_view_controller.dart';
+import '../../../auth/controller/order_controllar.dart';
 import '../../../auth/model/GetListOfMessageData.dart';
 class RiderRequestMsgCard extends StatefulWidget {
   final  Messages message;
@@ -28,77 +23,86 @@ class _RiderRequestMsgCardState extends State<RiderRequestMsgCard> {
   final controller = Get.isRegistered<DeliverPartnerOrdersController>()
       ? Get.find<DeliverPartnerOrdersController>()
       : Get.put(DeliverPartnerOrdersController());
-  void _handleRejectOrder() {
-    controller.updateOrderStatusFromPialot(
+  final orderController = Get.put(OrderNowController());
+  final chatViewController = Get.find<ChatViewController>();
+  String? pickupLocation;
+  String? dropLocation;
+  void _handleRejectOrder(String messageId,) async{
+   bool value=await controller.updateOrderStatusFromPialot(
       {ApiKeys.action: "reject"},
       widget.message.id ?? "",
     );
+   if(value){
+     Map<String,dynamic>datadd={
+       ApiKeys.messageId: "${messageId}",
+       ApiKeys.order_status : false
+     };
+     orderController.updateMessageOrderStatus(datadd);
+     chatViewController.emitEvent(
+         "messageReceived",{
+       ApiKeys.conversation_id: widget.message.conversationId??widget.message.sender?.id,
+       ApiKeys.page: 1,
+       ApiKeys.is_online_user: widget.message.sender?.id,
+       ApiKeys.per_page_message: 30,
+       ApiKeys.orders_conversation:true
+     });
+   }
+
+  }
+  @override
+  void initState() {
+    // TODO: implement initState
+    getAddress();
+    super.initState();
+  }
+  void getAddress()async{
+
+    pickupLocation= await getAddressFromLatLngAsString(lat: widget.message.metadata?.order?.pickupLocation?.location?.coordinates?[1]??0,lng:  widget.message.metadata?.order?.pickupLocation?.location?.coordinates?[0]??0);
+    dropLocation= await getAddressFromLatLngAsString(lat: widget.message.metadata?.order?.dropLocation?.location?.coordinates?[1]??0,lng:  widget.message.metadata?.order?.dropLocation?.location?.coordinates?[0]??0);
   }
 
-  void _handleAcceptOrder() {
-    // callShow();
-    controller.updateOrderStatusFromPialot(
+  void _handleAcceptOrder(String messageId)async {
+    bool value=await controller.updateOrderStatusFromPialot(
       {ApiKeys.action: "accept"},
       widget.message.id ?? "",
     );
+    if(value) {
+      Map<String, dynamic>datadd = {
+        ApiKeys.messageId: "${messageId}",
+        ApiKeys.order_status: true
+      };
+      orderController.updateMessageOrderStatus(datadd);
+      chatViewController.emitEvent(
+          "messageReceived", {
+        ApiKeys.conversation_id: widget.message.conversationId ??
+            widget.message.sender?.id,
+        ApiKeys.page: 1,
+        ApiKeys.is_online_user: widget.message.sender?.id,
+        ApiKeys.per_page_message: 30,
+        ApiKeys.orders_conversation: true
+      });
+    }
   }
-  void callShow()async{
-    CallKitParams callKitParams = CallKitParams(
-      id: "_currentUuid",
-      nameCaller: 'New Delivery Order',
-      appName: 'Callkit',
-      avatar: 'https://i.pravatar.cc/100',
-      handle: "Akash Krish's order waiting for ride",
-      type: 0,
-      textAccept: 'Accept',
-      textDecline: 'Reject',
-      missedCallNotification: NotificationParams(
-        showNotification: true,
-        isShowCallback: true,
-        subtitle: 'You Missed an Order of Akash Krish',
-        callbackText: 'Chat Now',
-      ),
-      callingNotification: const NotificationParams(
-        showNotification: true,
-        isShowCallback: true,
-        subtitle: 'Akash Krish order waiting for your confirmation',
-        callbackText: 'Chat',
-      ),
-      duration: 30000,
-      extra: <String, dynamic>{'userId': '1a2b3c4d'},
-      headers: <String, dynamic>{'apiKey': 'Abc@123!', 'platform': 'flutter'},
-      android: const AndroidParams(
-          isImportant: true,
-          isCustomNotification: false,
-          isShowLogo: false,
-          logoUrl: 'https://i.pravatar.cc/100',
-          ringtonePath: 'system_ringtone_default',
-          backgroundColor: '#0955fa',
-          backgroundUrl: 'https://i.pravatar.cc/500',
-          actionColor: '#4CAF50',
-          textColor: '#ffffff',
-          incomingCallNotificationChannelName: "New Delivery Order",
-          missedCallNotificationChannelName: "You Missed an Order of Akash Krish",
-          isShowCallID: false
-      ),
-      ios: IOSParams(
-        iconName: 'CallKitLogo',
-        handleType: 'generic',
-        supportsVideo: true,
-        maximumCallGroups: 2,
-        maximumCallsPerCallGroup: 1,
-        audioSessionMode: 'default',
-        audioSessionActive: true,
-        audioSessionPreferredSampleRate: 44100.0,
-        audioSessionPreferredIOBufferDuration: 0.005,
-        supportsDTMF: true,
-        supportsHolding: true,
-        supportsGrouping: false,
-        supportsUngrouping: false,
-        ringtonePath: 'system_ringtone_default',
-      ),
-    );
-    await FlutterCallkitIncoming.showCallkitIncoming(callKitParams);
+  Future<String?> getAddressFromLatLngAsString({required double lat ,required double lng}) async {
+    try {
+      List<Placemark> placemarks = await placemarkFromCoordinates(
+        lat,
+        lng,
+      );
+
+      if (placemarks.isNotEmpty) {
+        final place = placemarks.first;
+        String locationString =
+        "${place.name ?? ''}, ${place.subLocality ?? ''}, ${place.subAdministrativeArea ?? ''}, ${place.locality ?? ''} - ${place.postalCode ?? ''}".trim();
+
+        return locationString;
+      } else {
+
+        return "View Order you get address";
+      }
+    } catch (e) {
+      return "View Order you get address";
+    }
   }
   @override
   Widget build(BuildContext context) {
@@ -106,8 +110,6 @@ class _RiderRequestMsgCardState extends State<RiderRequestMsgCard> {
     return Container(
       margin: EdgeInsets.only(bottom: 2),
       width: SizeConfig.screenWidth*0.7,
-      // height: 310,
-      // responsive width
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -162,21 +164,21 @@ class _RiderRequestMsgCardState extends State<RiderRequestMsgCard> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CustomText(
-                        "Pickup Location: 2.5 KM,\nLaxmi Nagar, Gupta General Store, 2.5K Orders, Lucknow Gomtinagar",
+                        "Pickup Location : ${pickupLocation??"Fetching Location"}",
                         fontSize: SizeConfig.size12,
                         fontWeight: FontWeight.w600,
                         overflow: TextOverflow.ellipsis,
                         color: AppColors.secondaryTextColor,
-                        maxLines: 3,
+                        maxLines: 2,
                       ),
-                      SizedBox(height: SizeConfig.size10,),
+                      SizedBox(height: SizeConfig.size4,),
                       CustomText(
-                        "Drop Location: 10KM.\nBishnupur, Lucknow Gomtinagar, Shiva Samaddar",
+                        "Drop Location : ${pickupLocation??"Fetching Location"}",
                         fontSize: SizeConfig.size12,
                         fontWeight: FontWeight.w600,
                         overflow: TextOverflow.ellipsis,
                         color: AppColors.secondaryTextColor,
-                        maxLines: 3,
+                        maxLines: 4,
                       ),
                     ],
                   ),
@@ -193,7 +195,7 @@ class _RiderRequestMsgCardState extends State<RiderRequestMsgCard> {
                       color: AppColors.secondaryTextColor,
                     ),
                     CustomText(
-                      "₹108",
+                      "₹${widget.message.metadata?.order?.fare}",
                       fontSize: SizeConfig.size16,
                       overflow: TextOverflow.ellipsis,
                       fontWeight: FontWeight.w700,
@@ -214,7 +216,7 @@ class _RiderRequestMsgCardState extends State<RiderRequestMsgCard> {
               children: [
                 Expanded(
                   child: InkWell(
-                    onTap: () => _handleRejectOrder(),
+                    onTap: () => _handleRejectOrder(widget.message.id??''),
                     child: Row(
                       children: [
                         SizedBox(width: SizeConfig.size4,),
@@ -232,7 +234,7 @@ class _RiderRequestMsgCardState extends State<RiderRequestMsgCard> {
                 VerticalDivider(width: 2,color: Colors.grey,),
                 Expanded(
                   child: InkWell(
-                    onTap: () => _handleAcceptOrder(),
+                    onTap: () => _handleAcceptOrder(widget.message.id??''),
                     child: Row(
                       children: [
                         SizedBox(width: SizeConfig.size4,),
@@ -252,7 +254,7 @@ class _RiderRequestMsgCardState extends State<RiderRequestMsgCard> {
               children: [
                 Expanded(
                   child: InkWell(
-                    onTap:()=> _handleAcceptOrder(),
+                    // onTap:()=> _handleAcceptOrder(),
                     borderRadius: BorderRadius.circular(8),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),

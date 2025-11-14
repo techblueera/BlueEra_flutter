@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -14,17 +16,17 @@ import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/common/store/view/newstore_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
-import 'package:BlueEra/main.dart';
 import 'package:BlueEra/widgets/service_provider_dialoge.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_callkit_incoming/entities/call_event.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
+import '../../../../core/api/apiService/api_keys.dart';
 import '../../../chat/auth/controller/chat_theme_controller.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../chat/view/chat_screen.dart';
+import '../../delivery_partner/controller/delivery_partner_orders_controller.dart';
 import '../../map/view/customize_map_screen.dart';
 import '../auth/controller/bottom_bar_controller.dart';
 
@@ -48,10 +50,22 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   final viewPersonalDetailsController =
       Get.put(ViewPersonalDetailsController());
   final inventoryController = Get.put(InventoryController());
+  final orderController = Get.isRegistered<DeliverPartnerOrdersController>()
+      ? Get.find<DeliverPartnerOrdersController>()
+      : Get.put(DeliverPartnerOrdersController());
+  void handleRejectOrder( String orderId) {
+    orderController.updateOrderStatusFromPialot(
+      {ApiKeys.action: "reject"},
+      orderId,
+    );
+  }
 
-  // final callController = Get.put(CallController());
-  // final groupChatViewController = Get.put(GroupChatViewController());
-
+  void handleAcceptOrder(String orderId) {
+    orderController.updateOrderStatusFromPialot(
+      {ApiKeys.action: "accept"},
+      orderId,
+    );
+  }
   @override
   void initState() {
     super.initState();
@@ -63,10 +77,11 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _handlePostFrameInitialization();
       FlutterCallkitIncoming.onEvent.listen((CallEvent? event) {
+        log("sdjksjkldcslkdj ${event?.event} ${event?.body['extra']['orderId']} __ ${event?.event == Event.actionCallAccept}");
         if(event?.event == Event.actionCallAccept){
-
+          handleAcceptOrder(event?.body['extra']['orderId']??''.toString());
         }else if(event?.event==Event.actionCallDecline){
-
+          handleRejectOrder(event?.body['extra']['orderId']??''.toString());
         }
       });
     });

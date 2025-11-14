@@ -418,7 +418,7 @@ class MessageMetadata {
       orderId: json['orderId']?.toString(),
       price: json['price']?.toString(),
       discount: json['discount']?.toString(),
-      orderStatus: json['order_status'] ?? false,
+      orderStatus: json['order_status'],
       is_cancelled: json['is_cancelled'] ?? false,
       missedCall: json['missed_call'] ?? false,
       callAccept: json['call_accept'] ?? false,

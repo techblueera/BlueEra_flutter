@@ -5,35 +5,108 @@ class PaymentResponseModel {
   EstimatedFareDetails? estimatedFareDetails;
   String? trackingUrl;
 
-  PaymentResponseModel(
-      {this.requestId,
-        this.orderId,
-        this.estimatedPickupTime,
-        this.estimatedFareDetails,
-        this.trackingUrl});
+  LocationModel? pickupLocation;
+  LocationModel? dropLocation;
+  String? fare;
+
+  PaymentResponseModel({
+    this.requestId,
+    this.orderId,
+    this.estimatedPickupTime,
+    this.estimatedFareDetails,
+    this.trackingUrl,
+    this.pickupLocation,
+    this.fare,
+    this.dropLocation,
+  });
 
   PaymentResponseModel.fromJson(Map<String, dynamic> json) {
     requestId = json['request_id'];
     orderId = json['order_id'];
+    fare = json['fare'].toString();
     estimatedPickupTime = json['estimated_pickup_time'];
     estimatedFareDetails = json['estimated_fare_details'] != null
-        ? new EstimatedFareDetails.fromJson(json['estimated_fare_details'])
+        ? EstimatedFareDetails.fromJson(json['estimated_fare_details'])
         : null;
     trackingUrl = json['tracking_url'];
+
+    pickupLocation = json['pickupLocation'] != null
+        ? LocationModel.fromJson(json['pickupLocation'])
+        : null;
+
+    dropLocation = json['dropLocation'] != null
+        ? LocationModel.fromJson(json['dropLocation'])
+        : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['request_id'] = this.requestId;
-    data['order_id'] = this.orderId;
-    data['estimated_pickup_time'] = this.estimatedPickupTime;
-    if (this.estimatedFareDetails != null) {
-      data['estimated_fare_details'] = this.estimatedFareDetails!.toJson();
+    final Map<String, dynamic> data = {};
+    data['request_id'] = requestId;
+    data['order_id'] = orderId;
+    data['fare'] = fare;
+    data['estimated_pickup_time'] = estimatedPickupTime;
+
+    if (estimatedFareDetails != null) {
+      data['estimated_fare_details'] = estimatedFareDetails!.toJson();
     }
-    data['tracking_url'] = this.trackingUrl;
+
+    data['tracking_url'] = trackingUrl;
+
+    if (pickupLocation != null) {
+      data['pickupLocation'] = pickupLocation!.toJson();
+    }
+
+    if (dropLocation != null) {
+      data['dropLocation'] = dropLocation!.toJson();
+    }
+
     return data;
   }
 }
+
+// ==========================
+//  LOCATION MODELS
+// ==========================
+
+class LocationModel {
+  LocationDataRider? location;
+
+  LocationModel({this.location});
+
+  LocationModel.fromJson(Map<String, dynamic> json) {
+    location = json['location'] != null
+        ? LocationDataRider.fromJson(json['location'])
+        : null;
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = {};
+    if (location != null) data['location'] = location!.toJson();
+    return data;
+  }
+}
+
+class LocationDataRider {
+  String? type;
+  List<double>? coordinates;
+
+  LocationDataRider({this.type, this.coordinates});
+
+  LocationDataRider.fromJson(Map<String, dynamic> json) {
+    type = json['type'];
+    coordinates = json['coordinates'] != null
+        ? List<double>.from(json['coordinates'].map((x) => double.parse(x.toString())))
+        : null;
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'type': type,
+      'coordinates': coordinates,
+    };
+  }
+}
+
 
 class EstimatedFareDetails {
   String? currency;

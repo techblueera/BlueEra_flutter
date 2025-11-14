@@ -193,7 +193,6 @@ class ChatViewController extends GetxController {
       getMediaMsgCommentsModel?.value = GetMediaMsgCommentsModel.fromJson(data);
     });
     chatSocket.listenEvent('messageReceived', (data) async {
-      log("ldksclskcmslkcm ${data}");
       final parsedData = GetListOfMessageData.fromJson(data);
 
 
@@ -551,7 +550,7 @@ class ChatViewController extends GetxController {
                 ApiKeys.is_online_user: userId,
                 ApiKeys.per_page_message: 30,
           if(name!=null&&name=="BlueEra Orders")
-              "orders_conversation":true
+            ApiKeys.orders_conversation:true
               }
             : {
                 ApiKeys.conversation_id: conversationId,
@@ -559,7 +558,7 @@ class ChatViewController extends GetxController {
                 ApiKeys.is_online_user: userId,
                 ApiKeys.per_page_message: 30,
           if(name!=null&&name=="BlueEra Orders")
-            "orders_conversation":true
+            ApiKeys.orders_conversation:true
               });
 
     // }

@@ -26,12 +26,14 @@ class RiderOrdersDetailsModel {
       this.receiverUser,
       this.pickupOTP,
       this.deliveryOTP,
+      this.orderNo,
   });
 
   RiderOrdersDetailsModel.fromJson(dynamic json) {
     orderId = json['orderId'];
     id = json['_id'];
     status = json['status'];
+    orderNo = json['orderNo'].toString();
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
     pickupLocation = json['pickupLocation'] != null ? PickupLocation.fromJson(json['pickupLocation']) : null;
@@ -58,6 +60,7 @@ class RiderOrdersDetailsModel {
   ReceiverUser? receiverUser;
   String? pickupOTP;
   String? deliveryOTP;
+  String? orderNo;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -65,6 +68,7 @@ class RiderOrdersDetailsModel {
     map['_id'] = id;
     map['status'] = status;
     map['createdAt'] = createdAt;
+    map['orderNo'] = orderNo;
     map['updatedAt'] = updatedAt;
     if (pickupLocation != null) {
       map['pickupLocation'] = pickupLocation?.toJson();

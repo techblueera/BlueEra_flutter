@@ -46,8 +46,15 @@ class _BusinessLocationWidgetState extends State<BusinessLocationWidget> {
 
   Future<void> _onMapCreated(MapplsMapController controller) async {
     mapController = controller;
+    await mapController.addSymbol(
+      SymbolOptions(
+        geometry: LatLng(26.7836, 80.9013),
+        iconSize: 1.2,
+        iconImage: "marker-icon",
+      ),
+    );
+    setState(() {});
   }
-
 
   @override
   Widget build(BuildContext context) {

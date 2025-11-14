@@ -205,7 +205,7 @@ class OrderCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         CustomText(
-          'Order No - ${order.orderId}',
+          'Order No - ${order.orderNo}',
           fontSize: SizeConfig.large,
           fontWeight: FontWeight.w600,
           color: AppColors.mainTextColor,
@@ -242,9 +242,22 @@ class OrderCard extends StatelessWidget {
         SizedBox(height: SizeConfig.size8),
         InkWell(
           onTap: () => _handleCancelOrder(controller),
-          child: _buildBadge(
-            text: 'Cancel',
-            borderColor: AppColors.red00,
+          child: Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: SizeConfig.size10,
+              vertical: SizeConfig.size4,
+            ),
+            decoration: BoxDecoration(
+              border: Border.all(color: AppColors.primaryColor),
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(100.0),
+            ),
+            child: CustomText(
+              order.status,
+              fontSize: SizeConfig.small11,
+              fontWeight: FontWeight.w600,
+              color: AppColors.mainTextColor,
+            ),
           ),
         ),
       ],

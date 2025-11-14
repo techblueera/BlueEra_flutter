@@ -15,13 +15,20 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_callkit_incoming/entities/android_params.dart';
+import 'package:flutter_callkit_incoming/entities/call_kit_params.dart';
+import 'package:flutter_callkit_incoming/entities/ios_params.dart';
+import 'package:flutter_callkit_incoming/entities/notification_params.dart';
+import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as httpPkg;
 import 'package:permission_handler/permission_handler.dart';
 
 import '../routes/route_helper.dart';
+import 'notifications/ride_notification_data_model.dart';
 
 String notificationSound = 'sound/iphone_tone.mp3';
 String hello_delivery = 'sound/hello_delivery.mp3';
@@ -156,13 +163,100 @@ class AppNotificationHandler {
   ///show notification msg
   void showMsg(RemoteMessage message) {
     // callUnreadCount();
-    log("sldclskdmclksdmclskdcmsldckmsdc ${message.toMap()}");
 
+
+      if(message.data["operation"]=='RIDE_ORDER_RECEIVED'){
+
+        NotificationData rideNotification=NotificationData.fromJson(message.data);
+
+        callShow(orderId: '${rideNotification.metadata?.orderId}',lng: double.parse(rideNotification.deliveryLong.toString()),lat: double.parse(rideNotification.deliveryLat.toString()) );
+      }
     ///FOR GROUND....
 
     showNotification(message);
   }
 
+  Future<String?> getAddressFromLatLngAsString({required double lat ,required double lng}) async {
+    try {
+      List<Placemark> placemarks = await placemarkFromCoordinates(
+        lat,
+        lng,
+      );
+
+      if (placemarks.isNotEmpty) {
+        final place = placemarks.first;
+        // Build clean string (area, city, pincode)
+
+        String locationString =
+        "${place.name ?? ''}, ${place.subLocality ?? ''}, ${place.subAdministrativeArea ?? ''}, ${place.locality ?? ''} - ${place.postalCode ?? ''}".trim();
+
+        return locationString;
+      } else {
+
+        return "View Order you get address";
+      }
+    } catch (e) {
+      return "View Order you get address";
+    }
+  }
+  void callShow({required String orderId,required double lat,required double lng })async{
+    CallKitParams callKitParams = CallKitParams(
+      id: "_currentUuid",
+      nameCaller: 'New Delivery Order',
+      appName: 'Callkit',
+      avatar: '',
+      handle: "Drop Location : ${await getAddressFromLatLngAsString(lat:lat,lng:lng)}",
+      type: 0,
+      textAccept: 'Accept',
+      textDecline: 'Reject',
+      missedCallNotification: NotificationParams(
+        showNotification: true,
+        isShowCallback: true,
+        subtitle: 'You Missed an Order ',
+        callbackText: 'Chat Now',
+      ),
+      callingNotification:  NotificationParams(
+        showNotification: true,
+        isShowCallback: true,
+        subtitle: 'order waiting for your confirmation',
+        callbackText: 'Chat',
+      ),
+      duration: 30000,
+      extra: <String, dynamic>{'orderId': '$orderId'},
+      headers: <String, dynamic>{'apiKey': 'Abc@123!', 'platform': 'flutter'},
+      android:  AndroidParams(
+          isImportant: true,
+          isCustomNotification: true,
+          isShowLogo: false,
+          logoUrl: '',
+          ringtonePath: 'system_ringtone_default',
+          backgroundColor: '#0955fa',
+          backgroundUrl: '',
+          actionColor: '#4CAF50',
+          textColor: '#ffffff',
+          incomingCallNotificationChannelName: "New Delivery Order",
+          missedCallNotificationChannelName: "You Missed an Order",
+          isShowCallID: true
+      ),
+      ios: IOSParams(
+        iconName: 'CallKitLogo',
+        handleType: 'generic',
+        supportsVideo: true,
+        maximumCallGroups: 2,
+        maximumCallsPerCallGroup: 1,
+        audioSessionMode: 'default',
+        audioSessionActive: true,
+        audioSessionPreferredSampleRate: 44100.0,
+        audioSessionPreferredIOBufferDuration: 0.005,
+        supportsDTMF: true,
+        supportsHolding: true,
+        supportsGrouping: false,
+        supportsUngrouping: false,
+        ringtonePath: 'system_ringtone_default',
+      ),
+    );
+    await FlutterCallkitIncoming.showCallkitIncoming(callKitParams);
+  }
   Future<String> _downloadAndSaveFile(String url, String fileName) async {
     final directory = await getApplicationDocumentsDirectory();
     final filePath = '${directory.path}/$fileName';
@@ -275,7 +369,7 @@ class AppNotificationHandler {
       AndroidNotification? android = message.notification?.android;
 
       ///FOR APP IS IN FOR GROUND....
-      logs("message===== ${(message.data)}");
+
 
       ///IOS LOCAL NOTIFICATION IS TRIGGER BY SELF & ANDROID NOT HANDLE
       if (notification != null && Platform.isAndroid) {
@@ -318,7 +412,6 @@ class AppNotificationHandler {
     }
     OneSignalNotificationDetailsModel data =
         OneSignalNotificationDetailsModel.fromJson(dataNotificationResponse);
-    log('sldjncksjncksdjcnskjc ${dataNotificationResponse} ___ ${data.operation}');
 
     if (data.operation == "sent_message") {
       final chatViewController = Get.put(ChatViewController());
@@ -332,7 +425,7 @@ class AppNotificationHandler {
         // contactNo: data.senderUser?.contact,
         isInitialMessage: false,
       );
-    }else if(data.operation=="RIDE_ORDER_CREATED"){
+    }else if(data.operation=="RIDE_ORDER_RECEIVED"){
       Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
     }
 
@@ -422,8 +515,7 @@ class AppNotificationHandler {
                 const SizedBox(height: 10),
                 InkWell(
                   onTap: (){
-                    Get.back(); // Close dialog if granted
-
+                    Get.back(); 
                   },
                   child: CustomText(
                     "Skip",

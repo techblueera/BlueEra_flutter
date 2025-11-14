@@ -504,6 +504,7 @@ abstract class BaseService {
 
 
   final String getRiderBookingList = "rider-service/riders/orders/requested";
+  final String getRiderRejectOrder = "rider-service/riders/orders/rejected";
   String updateOrderStatusFromPialot(String orderId) => 'rider-service/riders/orders/$orderId/status';
   String updatePaymentStaus(String orderId) => 'rider-service/riders/orders/$orderId/confirm-payment';
   String cancelOrderForceFully(String orderId) => 'rider-service/riders/orders/$orderId/admin/status';

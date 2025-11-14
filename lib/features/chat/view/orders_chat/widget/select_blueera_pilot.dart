@@ -1,10 +1,8 @@
 import 'dart:async';
-import 'dart:developer';
 import 'dart:typed_data';          // For Uint8List
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/chat/view/orders_chat/widget/waiting_for_payment_dialog.dart';
-import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:flutter/services.dart';  // For rootBundle and ByteData
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -12,7 +10,6 @@ import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:geocoding/geocoding.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:mappls_gl/mappls_gl.dart';
@@ -20,7 +17,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../../core/api/apiService/api_response.dart';
 import '../../../../../core/constants/common_methods.dart';
 import '../../../../../core/constants/snackbar_helper.dart';
-import '../../../../../core/services/razor_pay_services.dart';
 import '../../../auth/controller/order_controllar.dart';
 import '../../../auth/model/GetBlueeraPiolotModel.dart';
 import '../../../auth/stream/rider_response_stream.dart';
@@ -47,15 +43,9 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
   List<dynamic> orders = [];
   Future<void> _showMarkerAndZoom() async {
     if (mapController == null) return;
-
-    // 1️⃣ Load your marker image bytes from assets
     final ByteData bytes = await rootBundle.load('assets/svg/2_wheeler.svg');
     final Uint8List list = bytes.buffer.asUint8List();
-
-    // 2️⃣ Add the image to the map style with a custom name
     await mapController!.addImage('customMarker', list);
-
-    // 3️⃣ Add the marker symbol
     await mapController!.addSymbol(
       SymbolOptions(
         geometry: LatLng(widget. dropLat, widget. dropLong),
@@ -63,8 +53,6 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
         iconSize: 1.8,
       ),
     );
-
-    // 4️⃣ Move camera to marker position
     await mapController!.animateCamera(
       CameraUpdate.newLatLngZoom(LatLng(widget. dropLat, widget. dropLong), 14.0),
     );
@@ -104,7 +92,6 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
   _stream = await riderOrderStream(userId);
 
   _subscription = _stream.listen((event) {
-
     if (event is List) {
       if(event.isEmpty){
         if(paymentDialogShow==true){
@@ -115,7 +102,7 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
           final status = item['status'];
 
           if (status == 'payment-pending') {
-            // Show payment dialog (only once per new event)
+
             if(paymentDialogShow==false){
               _showPaymentDialog(Get.context!,item['_id'],
                   driverImageUrl: '${item['assignedRider']['profile_image']}',
@@ -125,14 +112,18 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
               );
               paymentDialogShow=true;
             }
-
             break; // stop after first match
+          }else if(status == 'cancelled'){
+            if(paymentDialogShow==true){
+              Get.back();
+            }
+            commonSnackBar(message: "Your order rejected by rider choose any other available riders please");
+
           }
         }
       }
 
     } else if (event is Map) {
-      // If server sends a single object
       final status = event['status'];
 
       if (status == 'payment-pending') {
@@ -161,29 +152,6 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
     super.dispose();
   }
 
-  Future<String?> getAddressFromLatLng({required double lat ,required double lng}) async {
-    try {
-      List<Placemark> placemarks = await placemarkFromCoordinates(
-        lat,
-        lng,
-      );
-
-      if (placemarks.isNotEmpty) {
-        final place = placemarks.first;
-        // Build clean string (area, city, pincode)
-
-        String locationString =
-        "${place.name ?? ''}, ${place.subLocality ?? ''}, ${place.subAdministrativeArea ?? ''}, ${place.locality ?? ''} - ${place.postalCode ?? ''}".trim();
-
-        return locationString;
-      } else {
-
-        return "";
-      }
-    } catch (e) {
-      return "Location not found";
-    }
-  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -407,8 +375,8 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
                       ),
                       onPressed: () async{
                         List<String?> userIdList=orderController.selectedIndexes.map((e)=>e?.userId).toList();
-                        String? pickupLocation= await getAddressFromLatLng(lat: widget.startLat,lng: widget.startLng);
-                        String? dropLocation= await getAddressFromLatLng(lat: widget.dropLat,lng: widget.dropLong);
+                        String? pickupLocation= await orderController.getAddressFromLatLngAsString(lat: widget.startLat,lng: widget.startLng);
+                        String? dropLocation= await orderController.getAddressFromLatLngAsString(lat: widget.dropLat,lng: widget.dropLong);
                         Map<String,dynamic> params={
                           ApiKeys.selectedRiders: userIdList,
                           ApiKeys.pickupLocation: {

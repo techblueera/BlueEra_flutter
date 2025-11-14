@@ -77,6 +77,13 @@ class MakeOrderRepo extends BaseService {
      onError: (error) {}, onSuccess: (data) {});
     return response;
   }
+  Future<ResponseModel> getRiderRejectOrderList() async {
+    final response = await ApiBaseHelper().getHTTP(
+        getRiderRejectOrder,
+        showProgress: false,
+     onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
   Future<ResponseModel> updatePaymentStausByUser(String orderId) async {
     final response = await ApiBaseHelper().patchHTTP(
         updatePaymentStaus(orderId),

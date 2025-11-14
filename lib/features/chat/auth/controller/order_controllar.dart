@@ -1,4 +1,4 @@
-import 'dart:developer';
+
 import 'dart:math' hide log;
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -65,6 +65,27 @@ class OrderNowController extends GetxController {
     commonSnackBar(message: "Copied Store Long");
   }
 
+  Future<String?> getAddressFromLatLngAsString({required double lat ,required double lng}) async {
+    try {
+      List<Placemark> placemarks = await placemarkFromCoordinates(
+        lat,
+        lng,
+      );
+
+      if (placemarks.isNotEmpty) {
+        final place = placemarks.first;
+        String locationString =
+        "${place.name ?? ''}, ${place.subLocality ?? ''}, ${place.subAdministrativeArea ?? ''}, ${place.locality ?? ''} - ${place.postalCode ?? ''}".trim();
+
+        return locationString;
+      } else {
+
+        return "";
+      }
+    } catch (e) {
+      return "Location not found";
+    }
+  }
 
   void calculateDistanceInKm(
       {required double startLat,required double startLng,required double endLat,required double endLng}) {
@@ -154,6 +175,20 @@ class OrderNowController extends GetxController {
       // }else{
       //
       // }
+    }catch(e){
+
+    }
+  }
+  Future<void> updateMessageOrderStatus(Map<String,dynamic> params) async {
+    try {
+      ResponseModel responseModel =
+      await BusinessProfileRepo().updateMsgOrderStatus(params);
+      if (responseModel.isSuccess) {
+        final data = responseModel.response?.data;
+
+      }else{
+
+      }
     }catch(e){
 
     }

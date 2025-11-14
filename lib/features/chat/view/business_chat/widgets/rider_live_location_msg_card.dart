@@ -1,3 +1,4 @@
+import 'package:BlueEra/features/chat/view/business_chat/widgets/track_rider_live_location_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
@@ -5,7 +6,6 @@ import 'package:get/get_core/src/get_main.dart';
 import 'package:mappls_gl/mappls_gl.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/app_icon_assets.dart';
-import '../../../../../core/constants/custom_carousel_slider.dart';
 import '../../../../../core/constants/size_config.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 import '../../../auth/controller/chat_view_controller.dart';
@@ -26,8 +26,19 @@ class RiderLiveLocationMsgCard extends StatefulWidget {
 
 class _RiderLiveLocationMsgCardState extends State<RiderLiveLocationMsgCard> {
   final chatViewController = Get.find<ChatViewController>();
+   MapplsMapController? mapController;
 
-
+  Future<void> _onMapCreated(MapplsMapController controller) async {
+    mapController = controller;
+    await mapController?.addSymbol(
+      SymbolOptions(
+        geometry: LatLng(26.7836, 80.9013),
+        iconSize: 1.2,
+        iconImage: "marker-icon",
+      ),
+    );
+    setState(() {});
+  }
   @override
   Widget build(BuildContext context) {
     Rider? rider=widget.message.metadata?.rider;
@@ -62,7 +73,7 @@ class _RiderLiveLocationMsgCardState extends State<RiderLiveLocationMsgCard> {
               ),
               height: 160,
               child: MapplsMap(
-                // onMapCreated: (controller) => _onMapCreated(controller),
+                onMapCreated: (controller) => _onMapCreated(controller),
                 initialCameraPosition: CameraPosition(
                   target: LatLng(26.7836, 80.9013),
                   zoom: 14.0,
@@ -149,7 +160,9 @@ class _RiderLiveLocationMsgCardState extends State<RiderLiveLocationMsgCard> {
                   Expanded(
                     child: TextButton.icon(
                       onPressed: () {
-
+                        //     endLat: 26.7836,
+                        //             endLng: 80.9013,
+                        Get.to(()=>TrackRiderLiveLocationPage(riderId: rider?.userId??'', dropLat:widget.message.metadata?.order?.dropLocation?.location?.coordinates?[1]??26.7836, dropLng: widget.message.metadata?.order?.dropLocation?.location?.coordinates?[0]??80.9013,));
                       },
                       icon: SvgPicture.asset(AppIconAssets.rider_call_icon),
                       label:   CustomText(
