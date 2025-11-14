@@ -489,7 +489,7 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
                         Obx(()=> !controller.isGenerateHomeRentalServiceLoading.value
                             ? InkWell(
                           onTap: (){
-                            controller.generateHomeRentalServiceApi();
+                            controller.generateHomeDescriptionApi();
                           },
                           child: CustomText(
                             'Create Via BE ai',

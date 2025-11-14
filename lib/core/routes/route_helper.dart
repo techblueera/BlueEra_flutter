@@ -83,8 +83,11 @@ import 'package:BlueEra/features/personal/personal_profile/view/my_documents_scr
 import 'package:BlueEra/features/personal/personal_profile/view/payment_setting_screen/add_account_screen/add_account_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/payment_setting_screen/add_account_upi/add_accountupi_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/product_listing_screen/product_listing_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/rental/model/rental_service_response.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/view/add_flat_room_rental_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/view/home_stay_rental_service.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/rental/view/rental_service_full_details_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/rental/view/rental_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/view/vehicle_rental_service.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/wallet/all_transactions/see_all_transactions.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/wallet/wallet_screen.dart';
@@ -379,6 +382,12 @@ class RouteHelper {
 
   static String getVehicleRentalServiceRoute() =>
       RouteConstant.vehicleRentalService;
+
+  static String getRentalServiceScreenRoute() =>
+      RouteConstant.rentalServiceScreen;
+
+  static String getRentalServiceFullDetailsScreenRoute() =>
+      RouteConstant.rentalServiceFullDetailsScreen;
 
   ///REDIRECT ROUTING SETUP.....
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -1108,6 +1117,18 @@ class RouteHelper {
         return MaterialPageRoute(
             builder: (_) => VehicleRentalService(),
             settings: RouteSettings(name: getVehicleRentalServiceRoute()));
+      case RouteConstant.rentalServiceScreen:
+        return MaterialPageRoute(
+            builder: (_) => RentalServiceScreen(),
+            settings: RouteSettings(name: getRentalServiceScreenRoute()));
+      case RouteConstant.rentalServiceFullDetailsScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        final RentalServiceData rentalServiceData = args[ApiKeys.argRentalData] as RentalServiceData;
+        return MaterialPageRoute(
+            builder: (_) => RentalServiceFullDetailsScreen(
+                rentalServiceData: rentalServiceData
+            ),
+            settings: RouteSettings(name: getRentalServiceFullDetailsScreenRoute()));
       default:
         return MaterialPageRoute(
           builder: (_) => const Scaffold(

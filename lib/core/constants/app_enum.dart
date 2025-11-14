@@ -1477,14 +1477,43 @@ extension InventoryMenuItemExt on InventoryMenuItem {
   }
 }
 
-enum RentalServiceTab {
+enum RentalServiceType {
   homeStay("Home Stay"),
   flatRoom("Flat/Room"),
   vehicle("Vehicle");
 
   final String label;
-  const RentalServiceTab(this.label);
+  const RentalServiceType(this.label);
 }
+
+extension RentalServiceTabApi on RentalServiceType {
+  String get apiValue {
+    switch (this) {
+      case RentalServiceType.homeStay:
+        return "Property";      // <--- API string
+      case RentalServiceType.flatRoom:
+        return "Flat";      // <--- API string
+      case RentalServiceType.vehicle:
+        return "Vehicle";        // <--- API string
+    }
+  }
+}
+
+extension RentalServiceTypeParser on String {
+  RentalServiceType toRentalServiceType() {
+    switch (this) {
+      case "Property":
+        return RentalServiceType.homeStay;
+      case "Flat":
+        return RentalServiceType.flatRoom;
+      case "Vehicle":
+        return RentalServiceType.vehicle;
+      default:
+        throw Exception("Unknown RentalServiceType: $this");
+    }
+  }
+}
+
 
 
 

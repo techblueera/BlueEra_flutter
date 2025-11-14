@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_orders_controller.dart';
@@ -60,9 +61,9 @@ class _PickupOrderScreenState extends State<PickupOrderScreen> {
                     child: CustomText(
                       tab.label,
                       decoration: TextDecoration.underline,
-                      color: isSelected ? Colors.blue : Colors.black54,
+                      color: isSelected ? AppColors.primaryColor : AppColors.secondaryTextColor,
                       decorationColor:
-                          isSelected ? Colors.blue : Colors.black54,
+                          isSelected ? AppColors.primaryColor : AppColors.secondaryTextColor,
                       fontWeight: FontWeight.w600,
                     ),
                   ),

@@ -9,6 +9,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/inventory/contro
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/foodandgrocery/food_and_grocery_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/service/view_service_list.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/own_product_card.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/rental/view/rental_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/earn_with_blue_era_bottom_sheet.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_switch_widget.dart';
@@ -19,13 +20,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 enum EarnWithBlueEraServiceTypes {
-  homeMadeFood('homeMadeFood'),
-  businessFood('businessFood'),
-  businessService('businessService'),
-  tuitionService('tuitionService'),
-  consultingService('consultingService'),
   selfWork('selfWork'),
-  homeService('homeService');
+  homeService('homeService'),
+  homeMadeFood('homeMadeFood');
 
   final String label;
   const EarnWithBlueEraServiceTypes(this.label);
@@ -183,9 +180,8 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> wit
     return Obx(()=> Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(height: SizeConfig.size15),
         Padding(
-          padding: const EdgeInsets.all(10.0),
+          padding: EdgeInsets.all(SizeConfig.size15),
           child: HorizontalTabSelector(
             tabs: earnWithBlueEraController.productsServicesTab,
             selectedIndex: earnWithBlueEraController.selectedProductsServicesTabIndex.value,
@@ -329,11 +325,7 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> wit
 
 
         case 5:
-          tabContent = Center(
-            child: CustomText(
-                'Coming Soon..'
-            ),
-          );
+          tabContent = RentalServiceScreen();
           break;
 
         // case 6:

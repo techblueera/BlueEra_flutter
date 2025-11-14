@@ -510,4 +510,5 @@ class ApiKeys {
   static const deliveryOTP = 'deliveryOTP';
   static const searchTerm = 'searchTerm';
   static const newContactNo = 'new_contact_no';
+  static const argRentalData = 'argRentalData';
 }

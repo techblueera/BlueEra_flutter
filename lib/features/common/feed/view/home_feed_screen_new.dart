@@ -618,7 +618,7 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
   Widget _buildEarnWithBlueEraWidget() {
     return Container(
       margin: EdgeInsets.only(
-          bottom: SizeConfig.paddingXSL,
+          bottom: SizeConfig.paddingXS,
           left: SizeConfig.paddingXS,
           right: SizeConfig.paddingXS),
       decoration: BoxDecoration(

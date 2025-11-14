@@ -239,7 +239,7 @@ class HomeStayRentalServiceController extends GetxController{
   var descriptionSuggestions = <String>[].obs;
   var selectedDescription = "".obs;
 
-  Future<void> generateHomeRentalServiceApi() async {
+  Future<void> generateHomeDescriptionApi() async {
     if(bedsCountCtrl.text.isEmpty || arrHighlights.isEmpty){
       commonSnackBar(message: "Please enter bed count and add house highlights to generate the description.");
       return;
@@ -257,7 +257,7 @@ class HomeStayRentalServiceController extends GetxController{
         ApiKeys.propertyHighlight: jsonEncode(arrHighlights)
       };
 
-      ResponseModel response = await RentalServiceRepo().generateHomeRentalServiceRepo(
+      ResponseModel response = await RentalServiceRepo().generateHomeDescriptionRepo(
         params: params,
       );
 

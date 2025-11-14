@@ -177,9 +177,9 @@ class InventoryController extends GetxController {
       }
     } catch (e, s) {
       print("stack trace: $s");
+      ownDraftAndPublicProductResponse.value = ApiResponse.error('error');
     } finally {
       isLoading.value = false;
-      ownDraftAndPublicProductResponse.value = ApiResponse.error('error');
     }
   }
 

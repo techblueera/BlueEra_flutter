@@ -3,6 +3,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -11,6 +12,7 @@ import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -406,10 +408,11 @@ class OrderCard extends StatelessWidget {
           shape: BoxShape.circle,
           border: Border.all(color: AppColors.secondaryTextColor),
         ),
-        child: Icon(
-          Icons.call,
-          size: SizeConfig.size14,
-          color: AppColors.secondaryTextColor,
+        child: LocalAssets(
+            imagePath: AppIconAssets.call,
+            imgColor: AppColors.secondaryTextColor,
+            height: SizeConfig.size14,
+            width: SizeConfig.size14
         ),
       ),
     );
