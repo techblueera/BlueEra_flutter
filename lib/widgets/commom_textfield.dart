@@ -192,7 +192,7 @@ class CommonTextField extends StatelessWidget {
                     return null;
                   }
                   if (value == null || value.isEmpty) {
-                    return validationMessage?.tr ?? AppStrings.required;
+                    return validationMessage?.tr ?? AppStrings.required.tr;
                   }
                   if (validationType == ValidationTypeEnum.email) {
                     return ValidationMethod.validateEmail(value);

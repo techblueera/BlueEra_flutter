@@ -60,6 +60,7 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer>
 
   Future<void> _initializeController(String path) async {
     _disposeController();
+    // if (!mounted) return; // ← ADD THIS
 
     final isCurrentRoute = ModalRoute.of(context)?.isCurrent ?? false;
     log('Current route active: $isCurrentRoute');

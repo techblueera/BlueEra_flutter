@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -84,15 +85,14 @@ class _CreateMessagePostScreenNewState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: 'Lekha Post',
+        title: AppStrings.lekhaPost,
         isLeading: true,
         onBackTap: () {
           msgController.clearData();
           Get.back();
         },
       ),
-      bottomNavigationBar: // Continue button
-          Obx(() {
+      bottomNavigationBar: Obx(() {
         return SafeArea(
           child: Padding(
             padding: EdgeInsets.only(
@@ -105,59 +105,54 @@ class _CreateMessagePostScreenNewState
                     msgController.messageTitle.value.isNotEmpty &&
                     (msgController.imagesList.length >= 1)),
                 onTap: (msgController.postText.value.isNotEmpty &&
-                        msgController.messageTitle.value.isNotEmpty &&
-                        (msgController.imagesList.length >= 1))
+                    msgController.messageTitle.value.isNotEmpty &&
+                    (msgController.imagesList.length >= 1))
                     ? () async {
-                        await Future.delayed(Duration(milliseconds: 200));
-                        final input = msgController.postText.value.trim();
-                        if (containsHttpButNotHttps(input)) {
-                          commonSnackBar(
-                              message: "Only HTTPS links are allowed");
-                          return;
-                        }
-                        if (msgController.postText.value.isEmpty ||
-                            msgController.postText.value.trim().length < 30) {
-                          return commonSnackBar(
-                              message:
-                                  "Lekha must be at least 30 characters long");
-                        }
-                        if (msgController.messageTitle.value.isEmpty) {
-                          commonSnackBar(message: "Title is required");
-                          return;
-                        }
-                        if (msgController.imagesList.length < 1) {
-                          // if (msgController.imagesList.length < 1) {
-                          commonSnackBar(
-                              message: "At least 1 photo is required");
-                          return;
-                        }
+                  await Future.delayed(Duration(milliseconds: 200));
+                  final input = msgController.postText.value.trim();
+                  if (containsHttpButNotHttps(input)) {
+                    commonSnackBar(
+                        message: AppStrings.onlyHttpsAllowed);
+                    return;
+                  }
+                  if (msgController.postText.value.isEmpty ||
+                      msgController.postText.value.trim().length < 30) {
+                    return commonSnackBar(
+                        message: AppStrings.lekhaMin30);
+                  }
+                  if (msgController.messageTitle.value.isEmpty) {
+                    commonSnackBar(message: AppStrings.titleRequired);
+                    return;
+                  }
+                  if (msgController.imagesList.length < 1) {
+                    commonSnackBar(
+                        message: AppStrings.atleastOnePhoto);
+                    return;
+                  }
 
-                        ///FOR ADD POST...
-                        if (!msgController.isMsgPostEdit) {
-                          Get.to(() => MessagePostPreviewScreenNew(
-                                postVia: widget.postVia,
-                                isEdit: msgController.isMsgPostEdit,
-                              ));
-                          return;
-                        }
+                  if (!msgController.isMsgPostEdit) {
+                    Get.to(() => MessagePostPreviewScreenNew(
+                      postVia: widget.postVia,
+                      isEdit: msgController.isMsgPostEdit,
+                    ));
+                    return;
+                  }
 
-                        ///FOR EDIT....
-                        if (msgController.isMsgPostEdit) {
-                          if (widget.post?.taggedUsers?.isNotEmpty ?? false) {
-                            final taggedIds = widget.post?.taggedUsers ?? [];
+                  if (msgController.isMsgPostEdit) {
+                    if (widget.post?.taggedUsers?.isNotEmpty ?? false) {
+                      final taggedIds = widget.post?.taggedUsers ?? [];
 
-                            tagUserController.selectedUsers.value =
-                                tagUserController.allUsers.where((user) {
-                              final isTagged = taggedIds.contains(user.id);
-                              user.isSelected.value =
-                                  isTagged; // set isSelected based on tagged
-                              return isTagged;
-                            }).toList();
-                          }
-                        }
-                      }
+                      tagUserController.selectedUsers.value =
+                          tagUserController.allUsers.where((user) {
+                            final isTagged = taggedIds.contains(user.id);
+                            user.isSelected.value = isTagged;
+                            return isTagged;
+                          }).toList();
+                    }
+                  }
+                }
                     : null,
-                title: "Continue"),
+                title: AppStrings.continueText),
           ),
         );
       }),
@@ -182,13 +177,11 @@ class _CreateMessagePostScreenNewState
                 children: [
                   PhotoUploadWidget(),
                   if (msgController.selectedType.value != null) ...[
-                    SizedBox(
-                      height: SizeConfig.size10,
-                    ),
+                    SizedBox(height: SizeConfig.size10),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        CustomText("Your Lekha 𓂃✍︎"),
+                        CustomText(AppStrings.yourLekha),
                         InkWell(
                           onTap: () {
                             Get.to(SocialPostDescriptionScreen());
@@ -202,15 +195,12 @@ class _CreateMessagePostScreenNewState
                         )
                       ],
                     ),
-                    SizedBox(
-                      height: SizeConfig.size10,
-                    ),
-                    // Lekha description input
+                    SizedBox(height: SizeConfig.size10),
+
                     CommonTextField(
                       textEditController:
-                          msgController.descriptionMessage.value,
-                      hintText:
-                          "Hello Everyone @India User Now I am Using It’s Amazing, I suggest to Join Me.",
+                      msgController.descriptionMessage.value,
+                      hintText: AppStrings.lekhaHint,
                       title: "",
                       maxLine: 5,
                       maxLength: 1800,
@@ -218,51 +208,46 @@ class _CreateMessagePostScreenNewState
                       keyBoardType: TextInputType.multiline,
                       textInputAction: TextInputAction.newline,
                       onChange: (val) {
-                        // Allow maximum 2 continuous newlines
                         String newVal =
-                            val.replaceAll(RegExp(r'\n{3,}'), '\n\n');
-
-                        // Block http/https
+                        val.replaceAll(RegExp(r'\n{3,}'), '\n\n');
                         newVal =
                             newVal.replaceAll(RegExp(r'https?:\/\/\S+'), '');
 
-                        // Update only if modified (keeps cursor position)
                         if (msgController.descriptionMessage.value.text !=
                             newVal) {
                           msgController.descriptionMessage.value.text = newVal;
                           msgController.descriptionMessage.value.selection =
                               TextSelection.fromPosition(
-                            TextPosition(offset: newVal.length),
-                          );
+                                TextPosition(offset: newVal.length),
+                              );
                         }
 
                         msgController.postText.value = newVal;
-
                       },
                       validator: (val) {
                         if (val == null || val.trim().length < 30) {
-                          return "Lekha must be at least 30 characters long";
+                          return AppStrings.lekha30Validator.tr;
                         }
                         if (RegExp(r'https?').hasMatch(val)) {
-                          return "Links are not allowed in the message";
+                          return AppStrings.linkNotAllowed;
                         }
                         return null;
                       },
                     ),
-                    SizedBox(
-                      height: SizeConfig.size5,
-                    ),
+
+                    SizedBox(height: SizeConfig.size5),
+
                     Align(
                       alignment: Alignment.centerRight,
                       child: Obx(() => CustomText(
-                            "${msgController.postText.value.length}/1800",
-                            color: Colors.grey,
-                            fontSize: 12,
-                          )),
+                        "${msgController.postText.value.length}/1800",
+                        color: Colors.grey,
+                        fontSize: 12,
+                      )),
                     ),
+
                     SizedBox(height: SizeConfig.size15),
 
-                    ///ADD TITLE....
                     Obx(() {
                       if (!msgController.isAddTitle.value) {
                         return InkWell(
@@ -270,37 +255,31 @@ class _CreateMessagePostScreenNewState
                             msgController.isAddTitle.value = true;
                           },
                           child: AddLinkRow(
-                            title: 'Add Your Lekha Title',
+                            title: AppStrings.addLekhaTitle,
                           ),
                         );
                       }
                       if (msgController.isAddTitle.value) {
                         return Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Expanded(
-                                    child: CustomText(
-                                  'Add Your Lekha Title',
-                                )),
+                                    child:
+                                    CustomText(AppStrings.addLekhaTitle)),
                               ],
                             ),
-                            SizedBox(
-                              height: SizeConfig.size10,
-                            ),
+                            SizedBox(height: SizeConfig.size10),
                             CommonTextField(
                               textEditController:
-                                  msgController.postTitleController.value,
-                              hintText: "Title of your post",
+                              msgController.postTitleController.value,
+                              hintText: AppStrings.titleOfPost,
                               title: "",
                               maxLength: 50,
                               isValidate: false,
                               keyBoardType: TextInputType.multiline,
                               maxLine: 1,
-                              // expands automatically
                               onChange: (val) {
                                 msgController.messageTitle.value = val;
                               },
@@ -310,29 +289,30 @@ class _CreateMessagePostScreenNewState
                       }
                       return SizedBox();
                     }),
-                      SizedBox(height: SizeConfig.size15),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: CustomText(
-                          "Nature Of Post",
-                          fontSize: SizeConfig.medium,
-                        ),
-                      ),
-                      SizedBox(height: SizeConfig.size10),
-                      CommonDropdownDialog<VideoCategoryData>(
-                        items: reelUploadDetailsController.videoCategory,
-                        selectedValue: _commonCategory,
-                        title: "Select Nature Of Post",
-                        hintText: "Eg. Entertainment, News...",
-                        displayValue: (value) => value.name ?? '',
-                        onChanged: (value) {
-                          setState(() {
-                            _commonCategory = value;
-                          });
-                          msgController.natureOfPostController.value.text =
-                              value?.name ?? "";
-                        },
-                      ),
+
+                    SizedBox(height: SizeConfig.size15),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: CustomText(AppStrings.natureOfPost),
+                    ),
+
+                    SizedBox(height: SizeConfig.size10),
+
+                    CommonDropdownDialog<VideoCategoryData>(
+                      items: reelUploadDetailsController.videoCategory,
+                      selectedValue: _commonCategory,
+                      title: AppStrings.selectNatureOfPost,
+                      hintText: AppStrings.exampleNature,
+                      displayValue: (value) => value.name ?? '',
+                      onChanged: (value) {
+                        setState(() {
+                          _commonCategory = value;
+                        });
+                        msgController.natureOfPostController.value.text =
+                            value?.name ?? "";
+                      },
+                    ),
+
                     SizedBox(height: SizeConfig.size15),
 
                     Obx(() {
@@ -342,70 +322,68 @@ class _CreateMessagePostScreenNewState
                             msgController.isAddLink.value = true;
                           },
                           child: AddLinkRow(
-                            title: 'Add Link (Reference / Website)',
+                            title: AppStrings.addLinkTitle,
                           ),
                         );
                       }
                       if (msgController.isAddLink.value) {
                         return Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                CustomText("Reference link"),
+                                CustomText(AppStrings.referenceLink),
                                 InkWell(
                                   onTap: () {
-                                    msgController.referenceLinkController.value
+                                    msgController.referenceLinkController
+                                        .value
                                         .clear();
                                     msgController.isAddLink.value = false;
                                   },
                                   child: CustomText(
-                                    "Remove",
+                                    AppStrings.remove,
                                     color: AppColors.red,
                                   ),
                                 ),
                               ],
                             ),
-                            SizedBox(
-                              height: SizeConfig.size10,
-                            ),
+                            SizedBox(height: SizeConfig.size10),
                             HttpsTextField(
-                                controller:
-                                    msgController.referenceLinkController.value,
-                                hintText: "Add website link"),
+                              controller:
+                              msgController.referenceLinkController.value,
+                              hintText: AppStrings.addWebsiteLink,
+                            ),
                           ],
                         );
                       }
                       return SizedBox();
                     }),
+
                     SizedBox(height: SizeConfig.size15),
-                    // Add Tag People / Organization button
+
                     GestureDetector(
                       onTap: () async {
                         await Get.to(() => TagUserScreen());
                       },
                       child: AddLinkRow(
-                        title: 'Add Tag People / Organization',
+                        title: AppStrings.addTagPeople,
                       ),
                     ),
 
-                    // Selected users chips
                     Obx(() => tagUserController.selectedUsers.isNotEmpty
                         ? Padding(
-                            padding: EdgeInsets.only(top: SizeConfig.size16),
-                            child: Wrap(
-                              children: tagUserController.selectedUsers
-                                  .map((user) => UserChip(
-                                        user: user,
-                                        onRemove: () => tagUserController
-                                            .removeSelectedUser(user),
-                                      ))
-                                  .toList(),
-                            ),
-                          )
-                        : const SizedBox.shrink()),
+                      padding: EdgeInsets.only(top: SizeConfig.size16),
+                      child: Wrap(
+                        children: tagUserController.selectedUsers
+                            .map((user) => UserChip(
+                          user: user,
+                          onRemove: () => tagUserController
+                              .removeSelectedUser(user),
+                        ))
+                            .toList(),
+                      ),
+                    )
+                        : SizedBox.shrink()),
                     SizedBox(height: SizeConfig.size15),
                   ]
                 ],
@@ -416,6 +394,7 @@ class _CreateMessagePostScreenNewState
       ),
     );
   }
+
 }
 
 class AddLinkRow extends StatelessWidget {
@@ -441,7 +420,7 @@ class AddLinkRow extends StatelessWidget {
               style: TextStyle(fontSize: SizeConfig.large, color: Colors.black),
               children: [
                 TextSpan(
-                  text: title,
+                  text: title.tr,
                   style: TextStyle(
                     color: AppColors.primaryColor,
                     fontSize: SizeConfig.large,
@@ -450,7 +429,7 @@ class AddLinkRow extends StatelessWidget {
                   ),
                 ),
                 TextSpan(
-                  text: " (Optional)",
+                  text: " (${AppStrings.optional.tr})",
                   style: TextStyle(
                     color: Colors.grey.shade600,
                     fontSize: SizeConfig.large,

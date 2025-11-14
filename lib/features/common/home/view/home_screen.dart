@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/chat/contacts/view/be_available_contacts_list.dart';
@@ -21,8 +22,6 @@ import 'package:share_handler/share_handler.dart';
 
 enum SavedFeedTab {
   posts;
-  // videos,
-  // shorts;
 
   /// Human-readable title (capitalised)
   String get title => name[0].toUpperCase() + name.substring(1);
@@ -46,12 +45,10 @@ class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey _headerKey = GlobalKey();
   double _headerHeight = 0;
   final List<String> postTab = [
-    "All Posts",
-    "Channel",
-    // "Videos",
-    // "Shorts",
-    "Saved",
-    if (isBusiness()) "My Cards"
+    AppStrings.allPosts,
+    AppStrings.channel,
+    AppStrings.tab_saved,
+    if (isBusiness()) AppStrings.myCards
   ];
   int selectedIndex = 0;
   final TextEditingController searchController = TextEditingController();
@@ -97,11 +94,9 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() => sharedMedia = media);
       if (media?.content?.isNotEmpty ?? false) {
         _openChatScreen(media!);
-        print("Received text: ${media.content}");
       }
       if (media?.attachments?.isNotEmpty ?? false) {
         _openChatScreen(media!);
-        print("Received attachments: ${media.attachments}");
       }
     });
 
@@ -109,7 +104,6 @@ class _HomeScreenState extends State<HomeScreen> {
     handler.sharedMediaStream.listen((SharedMedia media) {
       setState(() => sharedMedia = media);
       _openChatScreen(media);
-      print("New shared text: ${media.content}");
     });
   }
 
@@ -226,10 +220,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        // floatingActionButton: FloatingActionButton(onPressed: (){
-        //   Get.to(() => VideoFeedScreen1(initialIndex: 0, ));
-        //
-        // }),
         extendBodyBehindAppBar: true,
         body: Obx(() => Stack(
               children: [
@@ -265,15 +255,6 @@ class _HomeScreenState extends State<HomeScreen> {
                               isInParentScroll: false,
                             ),
                             ChannelFeedScreen(),
-                            /*  VideoFeedScreen(
-                          onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
-                          query: searchController.text,
-                          headerHeight: _headerHeight),
-                      ShortsFeedScreen(
-                          query: searchController.text,
-                          headerHeight: _headerHeight
-                          // You can add _toggleAppBarAndBottomNav later if needed
-                          ),*/
                             SavedFeedScreen(
                                 onHeaderVisibilityChanged:
                                     _toggleAppBarAndBottomNav,
@@ -342,10 +323,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           labelBuilder: (label) => label,
                         ),
                         SizedBox(height: SizeConfig.size10),
-                        if (postTab[selectedIndex] == "Saved") ...[
-                          _filterButtons(),
-                          SizedBox(height: SizeConfig.size10),
-                        ]
+                        // if (postTab[selectedIndex] == "Saved") ...[
+                        //   _filterButtons(),
+                        //   SizedBox(height: SizeConfig.size10),
+                        // ]
                       ],
                     ),
                   ),

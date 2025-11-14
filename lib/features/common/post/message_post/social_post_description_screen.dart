@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/post/controller/message_post_controller.dart';
 import 'package:BlueEra/features/common/reel/controller/reel_upload_details_controller.dart';
@@ -23,7 +24,7 @@ class SocialPostDescriptionScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.white,
       appBar: CommonBackAppBar(
-        title: "Ai Generative Description",
+        title: AppStrings.aiGenerativeDescription,
       ),
       body: SafeArea(
         child: Obx(() {
@@ -39,7 +40,7 @@ class SocialPostDescriptionScreen extends StatelessWidget {
                   ),
 
                   /// Language Dropdown
-                  CustomText("Language"),
+                  CustomText(AppStrings.language),
                   SizedBox(
                     height: SizeConfig.size10,
                   ),
@@ -49,8 +50,8 @@ class SocialPostDescriptionScreen extends StatelessWidget {
                         messageController.selectedLanguage.value.isEmpty
                             ? null
                             : messageController.selectedLanguage.value,
-                    title: "Select Language",
-                    hintText: "Eg. Gujarati, Hindi...",
+                    title: AppStrings.selectLanguage,
+                    hintText: AppStrings.languageHint,
                     displayValue: (value) => value,
                     onChanged: (value) {
                       messageController.selectedLanguage.value = value!;
@@ -62,7 +63,7 @@ class SocialPostDescriptionScreen extends StatelessWidget {
                   ),
 
                   /// Emotion Dropdown
-                  CustomText("Emotion"),
+                  CustomText(AppStrings.emotion),
                   SizedBox(
                     height: SizeConfig.size10,
                   ),
@@ -75,11 +76,11 @@ class SocialPostDescriptionScreen extends StatelessWidget {
                           (e) => e.name == messageController.selectedEmotion.value,
                       orElse: () => emotionList.first,
                     ),
-                    title: "Select Emotion",
-                    hintText: "Eg. Motivation, Anger...",
+                    title: AppStrings.selectEmotion,
+                    hintText: AppStrings.emotionHint,
                     displayValue: (value) => value.name,
                     onChanged: (value) {
-                      messageController.selectedEmotion.value = value?.name??"";
+                      messageController.selectedEmotion.value = value?.sludId??"";
                       messageController.onSelectionChanged();
                     },
                   ),
@@ -89,8 +90,8 @@ class SocialPostDescriptionScreen extends StatelessWidget {
 
                   /// Nature of Post Dropdown (Your Existing Data)
                   CommonTextField(
-                    title: "Topic describing what the images are about.",
-                    hintText: "Eg. Team celebrating project success",
+                    title: AppStrings.topicDescribingImages,
+                    hintText: AppStrings.topicDescribingImagesHint,
                     maxLength: 50,
                     isValidate: false,
                     textEditController:
@@ -107,7 +108,7 @@ class SocialPostDescriptionScreen extends StatelessWidget {
 
                   Obx(
                     () => CustomBtn(
-                      title: "Generate Post Description",
+                      title: AppStrings.generatePostDescription,
                       isValidate: messageController.isFormValid,
                       onTap: messageController.isFormValid
                           ? () async {
@@ -128,7 +129,7 @@ class SocialPostDescriptionScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         SizedBox(height: 16),
-                        CustomText("Suggestions:",
+                        CustomText(AppStrings.suggestions,
                             fontSize: 16, fontWeight: FontWeight.bold),
                         SizedBox(height: 10),
                         Column(
@@ -188,7 +189,7 @@ class SocialPostDescriptionScreen extends StatelessWidget {
                               Expanded(
                                   child: PositiveCustomBtn(
                                 onTap: () => Get.back(),
-                                title: "Cancel",
+                                title: AppStrings.cancel,
                                 borderColor: AppColors.primaryColor,
                                 bgColor: AppColors.white,
                                 textColor: AppColors.primaryColor,
@@ -196,7 +197,7 @@ class SocialPostDescriptionScreen extends StatelessWidget {
                               const SizedBox(width: 8),
                               Expanded(
                                 child: CustomBtn(
-                                  title: "Save",
+                                  title: AppStrings.save,
                                   isValidate: tempSelected.value.isNotEmpty,
                                   // Enable/Disable button
                                   onTap: tempSelected.value.isNotEmpty

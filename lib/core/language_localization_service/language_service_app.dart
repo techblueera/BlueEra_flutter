@@ -26,8 +26,6 @@ class LocalizationService extends Translations {
   /// Loads translations from Hive if present, otherwise fetches from API
   Future<Map<String, String>> loadTranslations(String languageCode) async {
     try {
-      logs("_translations === ${_translations}");
-      logs("(_translations.containsKey(languageCode)) === ${(_translations.containsKey(languageCode))}");
       // Step 1: load from memory first
       if (_translations.containsKey(languageCode)) {
         return _translations[languageCode]!;
@@ -134,11 +132,4 @@ class LocalizationService extends Translations {
   @override
   Map<String, Map<String, String>> get keys => _translations;
 
-
-  Future<void> refreshTranslations(String langCode) async {
-    final newData = await loadTranslations(langCode);
-    Get.clearTranslations();
-    Get.addTranslations({langCode: newData});
-    Get.updateLocale(Locale(langCode));
-  }
 }

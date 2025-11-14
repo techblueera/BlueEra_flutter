@@ -78,7 +78,7 @@ class PostAiCommentScreen extends StatelessWidget {
                     hintText: "Eg. Motivation, Anger...",
                     displayValue: (value) => value.name, // <-- use the emotion name
                     onChanged: (value) {
-                      commentController.selectedEmotion.value = value?.name??"";
+                      commentController.selectedEmotion.value = value?.sludId??"";
                       commentController.onSelectionChanged();
                     },
                   ),
@@ -103,7 +103,7 @@ class PostAiCommentScreen extends StatelessWidget {
                     displayValue: (value) => value.name,
                     onChanged: (value) {
                       if (value != null) {
-                        commentController.selectedCommentType.value = value.name;
+                        commentController.selectedCommentType.value = value.sludId;
                         commentController.onSelectionChanged();
                       }
                     },

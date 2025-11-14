@@ -3,6 +3,7 @@ import 'dart:developer';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/reel/controller/song_controller.dart';
@@ -28,7 +29,8 @@ class AllSongsScreen extends StatefulWidget {
   State<AllSongsScreen> createState() => _AllSongsScreenState();
 }
 
-class _AllSongsScreenState extends State<AllSongsScreen> with SingleTickerProviderStateMixin {
+class _AllSongsScreenState extends State<AllSongsScreen>
+    with SingleTickerProviderStateMixin {
   final TextEditingController searchController = TextEditingController();
   Timer? _debounce;
   late TabController _tabController;
@@ -37,7 +39,7 @@ class _AllSongsScreenState extends State<AllSongsScreen> with SingleTickerProvid
   @override
   void initState() {
     super.initState();
-    songController.isVideoService = widget.video!=null;
+    songController.isVideoService = widget.video != null;
     songController.getAllSongs();
     searchController.addListener(() {
       _onSearchChanged(searchController.text);
@@ -46,18 +48,16 @@ class _AllSongsScreenState extends State<AllSongsScreen> with SingleTickerProvid
 
     _tabController.addListener(() {
       if (_tabController.indexIsChanging) return; // wait for animation
-      print('Selected Tab Index: ${_tabController.index}');
 
       // You can also trigger Bloc events or setState here
       if (_tabController.index == 0) {
         /// get All song api calling
         songController.getAllSongs();
-
       } else {
         /// favourite song api calling
         songController.getAllFavouriteSongs();
       }
-       setState(() {});
+      setState(() {});
     });
   }
 
@@ -76,9 +76,9 @@ class _AllSongsScreenState extends State<AllSongsScreen> with SingleTickerProvid
     _debounce = Timer(const Duration(milliseconds: 400), () {
       if (query.trim().isNotEmpty) {
         /// do search functionality or call search api
-        if(_tabController.index == 0){
+        if (_tabController.index == 0) {
           songController.searchSongs(query: query);
-        }else{
+        } else {
           songController.searchFavouriteSongs(query: query);
         }
       }
@@ -91,11 +91,10 @@ class _AllSongsScreenState extends State<AllSongsScreen> with SingleTickerProvid
       length: 2,
       child: Scaffold(
         appBar: CommonBackAppBar(
-          title: 'Add Music',
+          title: AppStrings.addMusic,
         ),
         body: Column(
           children: [
-
             SizedBox(
               width: SizeConfig.screenWidth,
               child: Padding(
@@ -117,10 +116,9 @@ class _AllSongsScreenState extends State<AllSongsScreen> with SingleTickerProvid
                       songController.songs.clear();
                       songController.getAllFavouriteSongs();
                     }
-
                   },
                   backgroundColor: AppColors.greyD3,
-                  hintText: "Search music..",
+                  hintText: AppStrings.searchMusic.tr,
                   borderRadius: 100.0,
                 ),
               ),
@@ -133,9 +131,7 @@ class _AllSongsScreenState extends State<AllSongsScreen> with SingleTickerProvid
               indicatorColor: Colors.transparent,
               // 🎯 Customize selected tab text
               labelStyle: TextStyle(
-                  fontSize: SizeConfig.medium,
-                  color: AppColors.primaryColor
-              ),
+                  fontSize: SizeConfig.medium, color: AppColors.primaryColor),
 
               // 🎯 Customize unselected tab text
               unselectedLabelStyle: TextStyle(
@@ -145,22 +141,21 @@ class _AllSongsScreenState extends State<AllSongsScreen> with SingleTickerProvid
                 color: AppColors.primaryColor, // Blue for selected
                 thickness: 1.5,
               ),
-              tabs: const [
-                Tab(text: 'Discover'),
-                Tab(text: 'Favorites'),
+              tabs:  [
+                Tab(text: AppStrings.discover.tr),
+                Tab(text: AppStrings.favorites.tr),
               ],
             ),
 
             Expanded(
               child: Obx(() {
-                if(_tabController.index == 0)
+                if (_tabController.index == 0)
                   return _buildSongList(songs: songController.songs);
                 else
-                  return _buildFavouriteSongList(favouriteSongs: songController.favouriteSongs);
+                  return _buildFavouriteSongList(
+                      favouriteSongs: songController.favouriteSongs);
               }),
             ),
-
-
           ],
         ),
       ),
@@ -168,14 +163,14 @@ class _AllSongsScreenState extends State<AllSongsScreen> with SingleTickerProvid
   }
 
   Widget _buildSongList({required List<Song> songs}) {
-    if(songController.isSongLoading.isTrue){
+    if (songController.isSongLoading.isTrue) {
       return Center(
         child: CircularProgressIndicator(),
       );
     }
 
     if (songs.isEmpty) {
-      return EmptyStateWidget(message: 'No Songs found.');
+      return EmptyStateWidget(message: AppStrings.noSongsFound);
     }
 
     return ListView.builder(
@@ -214,7 +209,7 @@ class _AllSongsScreenState extends State<AllSongsScreen> with SingleTickerProvid
                     height: SizeConfig.size50,
                     width: SizeConfig.size50,
                     errorWidget: (context, url, error) =>
-                    const Icon(Icons.image),
+                        const Icon(Icons.image),
                   ),
                 ),
               ],
@@ -238,20 +233,16 @@ class _AllSongsScreenState extends State<AllSongsScreen> with SingleTickerProvid
           ),
           trailing: IconButton(
             icon: Icon(
-              song.isFavourite
-                  ? Icons.favorite
-                  : Icons.favorite_border,
-              color:  song.isFavourite
-                  ? AppColors.primaryColor
-                  : AppColors.black,
+              song.isFavourite ? Icons.favorite : Icons.favorite_border,
+              color:
+                  song.isFavourite ? AppColors.primaryColor : AppColors.black,
             ),
             onPressed: () {
               if (song.isFavourite) {
                 songController.removeSongFromFavourite(
                   songId: song.id,
                 );
-              }
-              else{
+              } else {
                 songController.addSongInFavourite(
                   songId: song.id,
                 );
@@ -263,15 +254,16 @@ class _AllSongsScreenState extends State<AllSongsScreen> with SingleTickerProvid
     );
   }
 
-  Widget _buildFavouriteSongList({required List<FavouriteSong> favouriteSongs}) {
-    if(songController.isFavouriteLoading.isTrue){
+  Widget _buildFavouriteSongList(
+      {required List<FavouriteSong> favouriteSongs}) {
+    if (songController.isFavouriteLoading.isTrue) {
       return Center(
         child: CircularProgressIndicator(),
       );
     }
 
     if (favouriteSongs.isEmpty) {
-      return  EmptyStateWidget(message: 'No favourite Songs.');
+      return EmptyStateWidget(message: AppStrings.noSongsFound);
     }
 
     return ListView.builder(
@@ -295,7 +287,6 @@ class _AllSongsScreenState extends State<AllSongsScreen> with SingleTickerProvid
                 artist: favouriteSong.song.artist,
                 coverUrl: favouriteSong.song.coverUrl,
               ),
-
             },
           ),
           minVerticalPadding: 12.0,
@@ -311,7 +302,7 @@ class _AllSongsScreenState extends State<AllSongsScreen> with SingleTickerProvid
                     height: SizeConfig.size50,
                     width: SizeConfig.size50,
                     errorWidget: (context, url, error) =>
-                    const Icon(Icons.image),
+                        const Icon(Icons.image),
                   ),
                 ),
               ],
@@ -348,6 +339,4 @@ class _AllSongsScreenState extends State<AllSongsScreen> with SingleTickerProvid
       },
     );
   }
-
-
 }

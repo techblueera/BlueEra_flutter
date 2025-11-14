@@ -582,10 +582,7 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                     ),
                                   ],
                                 ),
-                              ) /*ViewFeedActionWidget(
-                                  iconPath: AppIconAssets.like_new,
-                                  data: formatNumberLikePost(
-                                      _post.likesCount ?? 0))*/
+                              )
                               ,
                             ),
                             if (widget.post?.type?.toLowerCase() ==

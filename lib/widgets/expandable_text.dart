@@ -1,10 +1,12 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/highlight_text_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
+import 'package:get/get.dart';
 
 enum ExpandMode { expandable, dialog }
 
@@ -81,7 +83,7 @@ class _ExpandableTextState extends State<ExpandableText> {
                   : widget.text,
             ),
             TextSpan(
-              text: (widget.isReadMoreNewLine ?? false) ? "Read more\n" : 'Read more',
+              text: (widget.isReadMoreNewLine ?? false) ? "${AppStrings.read_more.tr}\n" : '${AppStrings.read_more.tr}',
               style: style.copyWith(
                 color: AppColors.primaryColor,
                 fontWeight: FontWeight.w600,
@@ -111,9 +113,8 @@ class _ExpandableTextState extends State<ExpandableText> {
         GestureDetector(
           onTap: () => setState(() => _readMore = true),
           child: CustomText(
-            'Show less',
+            AppStrings.show_less,
             color: AppColors.primaryColor,
-            // fontSize: SizeConfig.medium15,
             fontWeight: FontWeight.w600,
             fontSize: SizeConfig.size13,
 
@@ -141,7 +142,7 @@ class _ExpandableTextState extends State<ExpandableText> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CustomText(
-                widget.dialogTitle ?? 'Description',
+                widget.dialogTitle ?? AppStrings.description,
                   fontSize: SizeConfig.large18,
                   fontWeight: FontWeight.bold,
                   color: AppColors.mainTextColor,
@@ -165,7 +166,7 @@ class _ExpandableTextState extends State<ExpandableText> {
                 alignment: Alignment.centerRight,
                 child: TextButton(
                   onPressed: Navigator.of(context).pop,
-                  child: const CustomText('Close', fontWeight: FontWeight.w600),
+                  child: const CustomText(AppStrings.close, fontWeight: FontWeight.w600),
                 ),
               ),
             ],

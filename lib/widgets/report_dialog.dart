@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
@@ -7,6 +8,7 @@ import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ReportDialog extends StatefulWidget {
@@ -54,6 +56,19 @@ class _ReportDialogState extends State<ReportDialog> {
     isValidate.dispose();
     super.dispose();
   }
+  final Map<String, String> reportReasonsUI = {
+    "Sexual content": "sexual_content".tr,
+    "Violent or repulsive content": "violent_content".tr,
+    "Hateful or abusive content": "hateful_content".tr,
+    "Harassment or bullying": "bullying".tr,
+    "Harmful or dangerous act": "harmful_act".tr,
+    "Suicide, self harm or eating disorder": "suicide_selfharm".tr,
+    "Misinformation": "misinformation".tr,
+    "Child abuse": "child_abuse".tr,
+    "Promotes terrorism": "terrorism".tr,
+    "Spam or misleading": "spam".tr,
+    "Legal issue": "legal_issue".tr,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -74,7 +89,7 @@ class _ReportDialogState extends State<ReportDialog> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   CustomText(
-                    AppLocalizations.of(context)!.reportPost,
+                    AppStrings.reportPost,
                     fontSize: SizeConfig.screenWidth * .05,
                     fontWeight: FontWeight.bold,
                   ),
@@ -90,18 +105,40 @@ class _ReportDialogState extends State<ReportDialog> {
               SizedBox(height: SizeConfig.size10),
 
               /// Label
-              Text(
-                AppLocalizations.of(context)!.stateReason,
-                style: TextStyle(
+              CustomText(
+               AppStrings.pleaseSelectReason,
                   fontSize: SizeConfig.screenWidth * .036,
                   fontWeight: FontWeight.w500,
                   color: widget.textColor,
-                ),
               ),
               SizedBox(height: SizeConfig.size10),
 
               /// Reason List
-              ...currentReportReasons.keys.map((String key) {
+              ...currentReportReasons.keys.map((String englishKey) {
+                return Row(
+                  children: [
+                    Checkbox(
+                      value: currentReportReasons[englishKey],
+                      onChanged: (val) {
+                        setState(() {
+                          currentReportReasons[englishKey] = val ?? false;
+                        });
+                      },
+                      activeColor: AppColors.primaryColor,
+                      checkColor: AppColors.white,
+                    ),
+
+                    // 👇 Show only Localized text
+                    Expanded(
+                      child: Text(
+                        reportReasonsUI[englishKey]??"N/A", // Hindi/English based on language
+                      ),
+                    ),
+                  ],
+                );
+              }).toList(),
+
+              /*  ...currentReportReasons.keys.map((String key) {
                 return Padding(
                   padding: EdgeInsets.symmetric(
                     vertical: SizeConfig.screenHeight * .007,
@@ -121,7 +158,7 @@ class _ReportDialogState extends State<ReportDialog> {
                             if (value == true && selectedCount >= 3) {
                               commonSnackBar(
                                 message:
-                                'You can choose up to three reasons only',
+                                AppStrings.chooseUptoThreeReasons,
                               );
                               return;
                             }
@@ -145,19 +182,17 @@ class _ReportDialogState extends State<ReportDialog> {
                       ),
                       SizedBox(width: SizeConfig.size20),
                       Expanded(
-                        child: Text(
-                          key,
-                          style: TextStyle(
+                        child: CustomText(
+                          reportReasonsEnglish[key],
                             fontSize: SizeConfig.screenWidth * .036,
                             fontWeight: FontWeight.w500,
                             color: widget.textColor,
-                          ),
                         ),
                       ),
                     ],
                   ),
                 );
-              }).toList(),
+              }).toList(),*/
 
               SizedBox(height: SizeConfig.size10),
 
@@ -174,7 +209,7 @@ class _ReportDialogState extends State<ReportDialog> {
                       _updateValidation();
                     });
                   },
-                  hintText: AppLocalizations.of(context)!.provideDetails,
+                  hintText:AppStrings.provideAdditionalDetails,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return AppLocalizations.of(context)!
@@ -216,15 +251,13 @@ class _ReportDialogState extends State<ReportDialog> {
                   },
                   child: InkWell(
                     onTap: () => _launchURL('https://bluecs.in/privacypolicy'),
-                    child: Text(
-                      "Learn more",
-                      style: TextStyle(
+                    child: CustomText(
+                     AppStrings.learnMore,
                         color: AppColors.primaryColor,
                         fontSize: SizeConfig.small,
                         fontWeight: FontWeight.w600,
                         decoration: TextDecoration.underline,
                         decorationColor: AppColors.primaryColor,
-                      ),
                     ),
                   ),
                 ),
@@ -237,7 +270,7 @@ class _ReportDialogState extends State<ReportDialog> {
                 valueListenable: isValidate,
                 builder: (context, value, child) {
                   return CustomBtn(
-                    title: AppLocalizations.of(context)!.reportPost,
+                    title: AppStrings.reportPost,
                     width: SizeConfig.screenWidth,
                     isValidate: value,
                     onTap: () {
@@ -248,7 +281,7 @@ class _ReportDialogState extends State<ReportDialog> {
                             .toList();
 
                         if (selectedReasons.isEmpty) {
-                          commonSnackBar(message: "Please select a reason");
+                          commonSnackBar(message: AppStrings.pleaseSelectReason);
                           return;
                         }
 
@@ -286,4 +319,6 @@ class _ReportDialogState extends State<ReportDialog> {
       throw Exception('Could not launch $url');
     }
   }
+
+
 }

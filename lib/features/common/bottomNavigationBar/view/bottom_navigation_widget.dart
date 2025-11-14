@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -21,10 +22,11 @@ class BottomNavigationBarWidget extends StatelessWidget {
     required this.onTap,
     required this.chatNotificationCount,
   });
+
   DateTime? lastBackPressed;
 
   bool _handleBackPress(BuildContext context) {
-    if(!isBottomNavVisible){
+    if (!isBottomNavVisible) {
       onHeaderVisibilityChanged.call(true);
       return false;
     }
@@ -78,13 +80,13 @@ class BottomNavigationBarWidget extends StatelessWidget {
                 index: 0,
                 iconPath: AppIconAssets.home,
                 isSelected: currentIndex == 0,
-                label: 'Home',
+                label: AppStrings.home,
               ),
               _buildNavItem(
                 index: 1,
                 iconPath: AppIconAssets.shop,
                 isSelected: currentIndex == 1,
-                label: 'Store',
+                label: AppStrings.store,
               ),
               _buildNavItem(
                 index: 2,
@@ -96,13 +98,13 @@ class BottomNavigationBarWidget extends StatelessWidget {
                 index: 3,
                 iconPath: AppIconAssets.job,
                 isSelected: currentIndex == 3,
-                label: 'Jobs',
+                label: AppStrings.jobs,
               ),
               _buildNavItem(
                 index: 4,
                 iconPath: AppIconAssets.chat,
                 isSelected: currentIndex == 4,
-                label: 'Chat',
+                label: AppStrings.chat,
                 showBadge: chatNotificationCount > 0,
                 badgeText: "$chatNotificationCount",
               ),
@@ -173,5 +175,4 @@ class BottomNavigationBarWidget extends StatelessWidget {
       ),
     );
   }
-
 }

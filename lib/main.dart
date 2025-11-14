@@ -49,16 +49,6 @@ import 'features/personal/personal_profile/view/inventory/view/share_product_scr
 // Retrieved 2025-11-13, License - CC BY-SA 4.0
 
 import 'dart:io';
-// class MyHttpOverrides extends HttpOverrides{
-//   @override
-//   HttpClient createHttpClient(SecurityContext? context){
-//     return super.createHttpClient(context)
-//       ..badCertificateCallback = (X509Certificate cert, String host, int port)=> true;
-//   }
-// }
-
-
-
 
 final AudioPlayer audioPlayer = AudioPlayer();
 
@@ -100,7 +90,6 @@ Future<void> main() async {
   Get.put(GlobalMessageService());
   PackageInfo? packageInfo = await PackageInfo.fromPlatform();
   appVersion = packageInfo.version;
-  // FirebaseNotificationService().init();
 
   ///INIT FIREBASE NOTIFICATION...
   await AppNotificationHandler().firebaseNotificationSetup();
@@ -110,11 +99,6 @@ Future<void> main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-
-  // Initialize workmanager for background tasks
-  // await WorkmanagerUploadService.initialize();
-
-
 
   /// Initialize Home Feed Cache Service
   await HiveServices.init();

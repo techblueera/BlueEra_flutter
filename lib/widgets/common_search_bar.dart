@@ -1,8 +1,10 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class CommonSearchBar extends StatelessWidget {
   final TextEditingController controller;
@@ -47,7 +49,7 @@ class CommonSearchBar extends StatelessWidget {
         onTap: onSearchTap ?? () {},
         textAlignVertical: TextAlignVertical.center,
         decoration: InputDecoration(
-          hintText: hintText ?? "Search here..",
+          hintText: hintText ?? AppStrings.searchHere.tr,
           hintStyle: TextStyle(fontSize: SizeConfig.medium, color: AppColors.secondaryTextColor),
           border: InputBorder.none,
           enabledBorder: InputBorder.none,

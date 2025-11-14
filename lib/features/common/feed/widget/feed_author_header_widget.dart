@@ -41,7 +41,6 @@ class PostAuthorHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // print('user Id--> ${post?.user?}');
     String name =
         (post?.user?.accountType?.toUpperCase() == AppConstants.individual)
             ? post?.user?.name ?? 'User'
@@ -88,8 +87,6 @@ class PostAuthorHeader extends StatelessWidget {
                           authorId: authorId,
                           screenFromName: AppConstants.feedScreen,
                         ));
-                    // Get.to(() => VisitProfileScreen(authorId: authorId));
-                    // Get.to(() => PersonalChatProfile(userId: authorId));
                   }
                 }
                 if (post?.user?.accountType?.toUpperCase() ==
@@ -193,7 +190,7 @@ class PostAuthorHeader extends StatelessWidget {
       if (isGuestUser()) {
         createProfileScreen();
       } else {
-        postReportPopUp(postData:  post ?? Post(id: ''),postType:postType );
+        postReportPopUp(postData: post ?? Post(id: ''), postType: postType);
       }
     }
     // if (value == "REPOST") {
@@ -268,11 +265,11 @@ void postReportPopUp({required Post postData, required PostType postType}) {
               reportType: "POST",
               reportReasons: {
                 'Sexual content': false,
-                'Voilent or repulsive content': false,
+                'Violent or repulsive content': false,
                 'Hateful or abusive content': false,
-                'Harrasement or bullying': false,
+                'Harassment or bullying': false,
                 'Harmful or dangerous act': false,
-                'Suicide, self harm or eating disorder ': false,
+                'Suicide, self harm or eating disorder': false,
                 'Misinformation': false,
                 'Child abuse': false,
                 'Promotes terrorism': false,
@@ -280,7 +277,7 @@ void postReportPopUp({required Post postData, required PostType postType}) {
                 'Legal issue': false,
               },
               contentId: postData.id,
-              otherUserId: postData.user?.id??"",
+              otherUserId: postData.user?.id ?? "",
               reportCallback: (params) async {
                 if (isGuestUser()) {
                   createProfileScreen();

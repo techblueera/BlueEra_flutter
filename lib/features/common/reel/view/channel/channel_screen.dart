@@ -68,8 +68,6 @@ class _ChannelScreenState extends State<ChannelScreen>
     // Set tabs based on channel ownership
     if (!isOwnChannel) {
       _tabsList = [
-        // ChannelTab.shorts,
-        // ChannelTab.videos,
         ChannelTab.posts,
         ChannelTab.product,
       ];
@@ -269,7 +267,7 @@ class _ChannelScreenState extends State<ChannelScreen>
   Widget _buildHeaderSection() {
     ChannelData? channelData = channelController.channelData.value;
     String channelLogo = channelData?.logoUrl ?? "";
-
+    controller.isFollow.value=channelData?.isFollowing??false;
     return Padding(
       padding: EdgeInsets.symmetric(
           horizontal: SizeConfig.size15, vertical: SizeConfig.size15),
@@ -522,7 +520,7 @@ class _ChannelScreenState extends State<ChannelScreen>
                       ),
                     ),
                     TextSpan(
-                      text: '   Read More',
+                      text: '   ${AppStrings.read_more.tr}',
                       style: TextStyle(
                         fontSize: SizeConfig.size12,
                         color: AppColors.primaryColor,

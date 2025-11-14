@@ -1,9 +1,9 @@
-
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -94,7 +94,7 @@ class _MessagePostPreviewScreenNewState
     return WillPopScope(
       onWillPop: () async {
         if (msgPostController.isLoading.value) {
-          commonSnackBar(message: "Please wait Request is still processing...");
+          commonSnackBar(message: AppStrings.pleaseWaitProcessing);
           return false;
         }
         return true;
@@ -104,7 +104,7 @@ class _MessagePostPreviewScreenNewState
           preferredSize: Size.fromHeight(kToolbarHeight),
           child: Obx(() {
             return CommonBackAppBar(
-              title: "Lekha Preview",
+              title: AppStrings.lekhPreview,
               isLeading: msgPostController.isLoading.value ? false : true,
               onBackTap: () {
                 Get.back();
@@ -218,11 +218,12 @@ class _MessagePostPreviewScreenNewState
                                 ),
 
                               if (msgPostController.imagesList.isNotEmpty)
-
-                              InstaSlider(),
+                                InstaSlider(),
                               if (msgPostController.isMsgPostEdit &&
                                   msgPostController.uploadImageList.isNotEmpty)
-                                InstaSliderNetwork(post: widget.post,),
+                                InstaSliderNetwork(
+                                  post: widget.post,
+                                ),
                               // Selected users chips
                               Obx(
                                 () => tagUserController.selectedUsers.isNotEmpty
@@ -266,15 +267,12 @@ class _MessagePostPreviewScreenNewState
                                             await Get.to(() => TagUserScreen());
                                           },
                                           child: AddLinkRow(
-                                            title:
-                                                'Add Tag People / Organization',
+                                            title: AppStrings
+                                                .addTagPeopleOrganization,
                                           ),
                                         ),
                                       ),
                               ),
-
-
-
                             ],
                           ),
                         ),
@@ -296,7 +294,7 @@ class _MessagePostPreviewScreenNewState
                                     ? Column(
                                         children: [
                                           CustomText(
-                                            "Nature of Post",
+                                            AppStrings.natureOfPost,
                                             fontSize: SizeConfig.medium,
                                             fontWeight: FontWeight.w700,
                                             color: AppColors.black,
@@ -313,15 +311,16 @@ class _MessagePostPreviewScreenNewState
                                                   .natureOfPostController
                                                   .value
                                                   .text
-                                              : "Not available"),
+                                              : AppStrings.notAvailable.tr),
                                         ],
                                       )
                                     : CommonTextField(
-                                        title: "Nature of Post",
-                                        hintText: "Eg. Flower",
+                                        title: AppStrings.natureOfPost,
+                                        hintText: AppStrings.egFlower,
                                         maxLength: 50,
                                         isValidate: false,
-                                        readOnly: msgPostController.isMsgPostEdit,
+                                        readOnly:
+                                            msgPostController.isMsgPostEdit,
                                         textEditController: msgPostController
                                             .natureOfPostController.value,
                                       ),
@@ -336,7 +335,7 @@ class _MessagePostPreviewScreenNewState
                                       onTap: () {
                                         Get.back();
                                       },
-                                      title: "Back",
+                                      title: AppStrings.back,
                                       textColor: AppColors.primaryColor,
                                       bgColor: AppColors.white,
                                     ),
@@ -385,8 +384,8 @@ class _MessagePostPreviewScreenNewState
                                         }
                                       },
                                       title: msgPostController.isMsgPostEdit
-                                          ? "Post Update"
-                                          : "Post Now",
+                                          ? AppStrings.postUpdate
+                                          : AppStrings.postNow,
                                     ),
                                   ),
                                 ],

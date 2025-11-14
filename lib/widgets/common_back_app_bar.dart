@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/typedef_utils.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -28,77 +29,77 @@ import '../core/constants/shared_preference_utils.dart';
 import '../features/business/visiting_card/view/business_own_profile_screen.dart';
 
 class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const CommonBackAppBar(
-      {super.key,
-      this.title,
-      this.isLeading = true,
-      this.isFilter = false,
-      this.isNotification = false,
-      this.bellIconNotEmpty = false,
-      this.onNotificationTap,
-      this.onBackTap,
-      this.appBarColor,
-      this.isTextButton = false,
-      this.actionText,
-      this.actionTextColor,
-      this.isShareButton,
-      this.isLogout,
-      this.isDownloadButton,
-      this.isChangeToEditMode = false,
-      this.isQrCodeButton,
-      this.onQrCodeTap,
-      this.onShareTap,
-      this.isLocation,
-      this.isMore,
-      this.isSearch,
-      this.controller,
-      this.onSearchTap,
-      this.onClearCallback,
-      this.searchHintText,
-      this.onLocationTap,
-      this.onMoreTap,
-      this.isTrimmedButton,
-      this.onTrimmedTap,
-      this.isSaveButton,
-      this.onSavedTap,
-      this.iClearButton,
-      this.onClearNotificationsTap,
-      this.isSettingButton,
-      this.isAddPlace,
-      this.onAddPlaceTap,
-      this.isEndJourney,
-      this.onEndJourneyTap,
-      this.titleColor,
-      this.isCancelButton,
-      this.onCancelTap,
-      this.isJobPopUpMenuButton,
-      this.isProfile,
-      this.isResumeCardButton,
-      this.isReloadContactButton,
-      this.onRefreshContact,
-      this.onProfileTap,
-      this.isPDFExport,
-      this.onPDFExportTap,
-      this.jobID,
-      this.jobStatus,
-      this.showRightTextButton = false,
-      this.rightTextButtonText,
-      this.rightTextButtonColor,
-      this.onRightTextButtonTap,
-      this.isShowCursor,
-      this.currentCity,
-      this.isGuestLogout,
-      this.buildCustomWidget,
-      // this.isAddProduct = false,
-      // this.isAddProductCategory = false,
-      this.bottomWidget,
-      this.isGoLiveWidget,
-      this.isFollowRefreshWidget,
-      this.isFollowRefresh = false,
-      this.showGoLiveWidget,
-      this.isGoLive = false,
-      this.isInventoryPopUpMenu = false,
-      });
+  const CommonBackAppBar({
+    super.key,
+    this.title,
+    this.isLeading = true,
+    this.isFilter = false,
+    this.isNotification = false,
+    this.bellIconNotEmpty = false,
+    this.onNotificationTap,
+    this.onBackTap,
+    this.appBarColor,
+    this.isTextButton = false,
+    this.actionText,
+    this.actionTextColor,
+    this.isShareButton,
+    this.isLogout,
+    this.isDownloadButton,
+    this.isChangeToEditMode = false,
+    this.isQrCodeButton,
+    this.onQrCodeTap,
+    this.onShareTap,
+    this.isLocation,
+    this.isMore,
+    this.isSearch,
+    this.controller,
+    this.onSearchTap,
+    this.onClearCallback,
+    this.searchHintText,
+    this.onLocationTap,
+    this.onMoreTap,
+    this.isTrimmedButton,
+    this.onTrimmedTap,
+    this.isSaveButton,
+    this.onSavedTap,
+    this.iClearButton,
+    this.onClearNotificationsTap,
+    this.isSettingButton,
+    this.isAddPlace,
+    this.onAddPlaceTap,
+    this.isEndJourney,
+    this.onEndJourneyTap,
+    this.titleColor,
+    this.isCancelButton,
+    this.onCancelTap,
+    this.isJobPopUpMenuButton,
+    this.isProfile,
+    this.isResumeCardButton,
+    this.isReloadContactButton,
+    this.onRefreshContact,
+    this.onProfileTap,
+    this.isPDFExport,
+    this.onPDFExportTap,
+    this.jobID,
+    this.jobStatus,
+    this.showRightTextButton = false,
+    this.rightTextButtonText,
+    this.rightTextButtonColor,
+    this.onRightTextButtonTap,
+    this.isShowCursor,
+    this.currentCity,
+    this.isGuestLogout,
+    this.buildCustomWidget,
+    // this.isAddProduct = false,
+    // this.isAddProductCategory = false,
+    this.bottomWidget,
+    this.isGoLiveWidget,
+    this.isFollowRefreshWidget,
+    this.isFollowRefresh = false,
+    this.showGoLiveWidget,
+    this.isGoLive = false,
+    this.isInventoryPopUpMenu = false,
+  });
 
   // final AppBar? appBar;
   final String? title;
@@ -267,33 +268,11 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                             controller: controller!,
                             isShowCursor: isShowCursor,
                             onSearchTap: onSearchTap ?? () {},
-                            // onClearCallback: () {
-                            //   controller?.clear();
-                            // },
+
                             onClearCallback: onClearCallback,
                             hintText: searchHintText),
                       ),
                     ),
-
-            /* if (currentCity != null)
-              Builder(
-                builder: (context) => Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    LocalAssets(
-                        imagePath: AppIconAssets.currentLocationIcon,
-                        imgColor: AppColors.black30),
-                    SizedBox(width: SizeConfig.size5),
-                    CustomText(
-                      currentCity,
-                      color: AppColors.primaryColor,
-                      fontWeight: FontWeight.w400,
-                      fontSize: SizeConfig.medium,
-                    ),
-                    SizedBox(width: SizeConfig.size5),
-                  ],
-                ),
-              ),*/
 
             if (isGoLive ?? false)
               Builder(
@@ -376,57 +355,16 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                     createProfileScreen();
                   } else if (/*value == PostCreationMenu.videos ||*/
                       value == PostCreationMenu.photos ||
-                      value == PostCreationMenu.message ||
-                      value == PostCreationMenu.poll) {
+                          value == PostCreationMenu.message ||
+                          value == PostCreationMenu.poll) {
                     postVia(context, value);
-
-                 /*   if (value == PostCreationMenu.videos) {
-                      final videoStatusController =
-                          Get.put(VideoStatusController());
-
-                      await videoStatusController.getVideoStatus(
-                          context, value);
-                    } else {
-                      postVia(context, value);
-                    }*/
-                  } /*else if (value == PostCreationMenu.place) {
-                    Navigator.pushNamed(
-                      context,
-                      RouteHelper.getAddPlaceStepOneScreenRoute(),
-                    );
-                  }*/ else if (value == PostCreationMenu.jobPost) {
+                  } else if (value == PostCreationMenu.jobPost) {
                     Get.toNamed(RouteHelper.getCreateJobPostScreenRoute(),
                         arguments: {
                           'isEditMode': false,
                           'jobId': '',
                         });
                   }
-                  // else if (value == PostCreationMenu.message) {
-                  //   Get.toNamed(RouteHelper.getCreateMessagePostScreenRoute(),
-                  //       arguments: {ApiKeys.post: null, ApiKeys.isEdit: false});
-                  // } else if (value == PostCreationMenu.poll) {
-                  //   Get.toNamed(RouteHelper.getPollInputScreenRoute());
-                  // } else if (value == PostCreationMenu.photos) {
-                  //   Get.toNamed(RouteHelper.getPhotoPostScreenRoute());
-                  // }
-                  // else if (value == PostCreationMenu.travel) {
-                  //   JourneyStatusModel? journeyDetails =
-                  //       await getJourneyDetails();
-                  //   if (journeyDetails?.success ?? false) {
-                  //     if (journeyDetails?.isEnded ?? false) {
-                  //       Get.toNamed(
-                  //           RouteHelper.getJourneyPlanningScreenRoute());
-                  //     } else {
-                  //       if (journeyDetails?.journeyId != null)
-                  //         Get.toNamed(RouteHelper.getUpdateJourneyScreenRoute(),
-                  //             arguments: {
-                  //               ApiKeys.journey_id: journeyDetails?.journeyId
-                  //             });
-                  //     }
-                  //   } else {
-                  //     Get.toNamed(RouteHelper.getJourneyPlanningScreenRoute());
-                  //   }
-                  // }
                 },
                 icon: LocalAssets(imagePath: AppIconAssets.addOutlinedIcon),
                 itemBuilder: (context) => popupMenuItems(),
@@ -516,7 +454,6 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
           ),
-
         if (isShareButton ?? false)
           Builder(
             builder: (context) => Container(
@@ -534,7 +471,6 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
           ),
-
         if (isTrimmedButton ?? false)
           Builder(
             builder: (context) => Container(
@@ -553,7 +489,6 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
           ),
-
         if (isSaveButton ?? false)
           Builder(
             builder: (context) => Padding(
@@ -562,12 +497,11 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                 width: SizeConfig.size90,
                 height: SizeConfig.size30,
                 onTap: onSavedTap ?? () {},
-                title: 'Save',
+                title: AppStrings.save,
                 isValidate: true,
               ),
             ),
           ),
-
         if (isCancelButton ?? false)
           Builder(
             builder: (context) => InkWell(
@@ -582,7 +516,6 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
           ),
-
         if (isAddPlace ?? false)
           Builder(
             builder: (context) => Padding(
@@ -599,7 +532,6 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                   isPrefix: true),
             ),
           ),
-
         if (isEndJourney ?? false)
           Builder(
             builder: (context) => Padding(
@@ -611,7 +543,6 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                   title: "End journey"),
             ),
           ),
-
         if (isReloadContactButton ?? false)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 18.0),
@@ -628,7 +559,6 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
           ),
-
         if (isPDFExport ?? false)
           PopupMenuButton<String>(
             padding: EdgeInsets.zero,
@@ -682,7 +612,6 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
           ),
-
         if (showRightTextButton ?? false)
           Padding(
             padding: EdgeInsets.only(right: SizeConfig.size20),
@@ -698,17 +627,14 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
           ),
-
         if (buildCustomWidget != null)
           Builder(
             builder: (context) => buildCustomWidget!(),
           ),
-
-        if (showGoLiveWidget!=null)
+        if (showGoLiveWidget != null)
           Builder(
             builder: (context) => showGoLiveWidget!,
           ),
-
       ],
       bottom: bottomWidget,
     );

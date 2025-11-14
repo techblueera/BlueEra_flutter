@@ -2,6 +2,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 
 // class HideConformationDialog extends StatelessWidget {
@@ -152,23 +153,22 @@ class CustomSuccessSheet extends StatelessWidget {
             width: 80,
           ),
           SizedBox(height: SizeConfig.size15),
-          Text(
+          CustomText(
             title,
-            style: TextStyle(
                 color: AppColors.primaryColor,
                 fontWeight: FontWeight.w600,
-                fontSize: SizeConfig.screenWidth * .06),
+                fontSize: SizeConfig.screenWidth * .06,
             textAlign: TextAlign.center,
           ),
           if (subTitle.isNotEmpty) SizedBox(height: SizeConfig.size15),
           if (subTitle.isNotEmpty)
-            Text(
+            CustomText(
               subTitle,
               textAlign: TextAlign.center,
-              style: TextStyle(
+
                   color: AppColors.black28,
                   fontWeight: FontWeight.w600,
-                  fontSize: SizeConfig.screenWidth * .04),
+                  fontSize: SizeConfig.screenWidth * .04,
             ),
           SizedBox(height: SizeConfig.size30),
           CustomBtn(

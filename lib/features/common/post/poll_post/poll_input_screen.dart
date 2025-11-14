@@ -47,12 +47,6 @@ class _PollInputScreenState extends State<PollInputScreen> {
         pollController.optionControllers
             .add(TextEditingController(text: data.text));
       });
-
-      // if (widget.post?.referenceLink?.isNotEmpty ?? false) {
-      //   pollController.isAddLink.value = true;
-      //   pollController.referenceLinkController.text =
-      //       widget.post?.referenceLink ?? "";
-      // }
     } else {
       pollController.addOption();
       pollController.addOption();
@@ -72,7 +66,7 @@ class _PollInputScreenState extends State<PollInputScreen> {
     return Scaffold(
       appBar: CommonBackAppBar(
         onBackTap: () => Get.back(),
-        title: "Poll",
+        title: AppStrings.poll.tr,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -89,55 +83,57 @@ class _PollInputScreenState extends State<PollInputScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CommonTextField(
-                    title: "Your Question",
-                    hintText: "E.g., How do you commute to work?",
+                    title: AppStrings.yourQuestion.tr,
+                    hintText: AppStrings.exampleQuestion.tr,
                     textEditController: pollController.questionController,
                     inputLength: 100,
                     maxLength: 100,
-                    validationMessage: AppStrings.required,
+                    validationMessage: AppStrings.required.tr,
                     validationType: null,
                     isCounterVisible: true,
                     readOnly: (pollController.isPollPostEdit),
                   ),
                   const SizedBox(height: 16),
+
                   Obx(() => Column(
-                        children: List.generate(
-                          pollController.optionControllers.length,
+                    children: List.generate(
+                      pollController.optionControllers.length,
                           (index) => Padding(
-                            padding: const EdgeInsets.only(bottom: 12.0),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: CommonTextField(
-                                    title: "Option ${index + 1}",
-                                    hintText: index == 0
-                                        ? "E.g., Public transportation"
-                                        : index == 1
-                                            ? "E.g., Drive myself"
-                                            : "E.g., Your option here",
-                                    textEditController:
-                                        pollController.optionControllers[index],
-                                    inputLength: 36,
-                                    maxLength: 36,
-                                    validationMessage: AppStrings.required,
-                                    isCounterVisible: true,
-                                    readOnly: (pollController.isPollPostEdit),
-                                  ),
-                                ),
-                                if ((pollController.optionControllers.length >
-                                        2) &&
-                                    (!pollController.isPollPostEdit))
-                                  IconButton(
-                                    icon: const Icon(Icons.remove_circle,
-                                        color: Colors.red),
-                                    onPressed: () =>
-                                        pollController.removeOption(index),
-                                  ),
-                              ],
+                        padding: const EdgeInsets.only(bottom: 12.0),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: CommonTextField(
+                                title:
+                                "${AppStrings.option.tr} ${index + 1}",
+                                hintText: index == 0
+                                    ? AppStrings.exampleOption1.tr
+                                    : index == 1
+                                    ? AppStrings.exampleOption2.tr
+                                    : AppStrings.exampleOptionDefault.tr,
+                                textEditController: pollController
+                                    .optionControllers[index],
+                                inputLength: 36,
+                                maxLength: 36,
+                                validationMessage: AppStrings.required.tr,
+                                isCounterVisible: true,
+                                readOnly: (pollController.isPollPostEdit),
+                              ),
                             ),
-                          ),
+                            if ((pollController.optionControllers.length > 2) &&
+                                (!pollController.isPollPostEdit))
+                              IconButton(
+                                icon: const Icon(Icons.remove_circle,
+                                    color: Colors.red),
+                                onPressed: () =>
+                                    pollController.removeOption(index),
+                              ),
+                          ],
                         ),
-                      )),
+                      ),
+                    ),
+                  )),
+
                   if ((!pollController.isPollPostEdit))
                     Obx(() {
                       if (pollController.optionControllers.length < 4)
@@ -147,10 +143,11 @@ class _PollInputScreenState extends State<PollInputScreen> {
                               : null,
                           child: Row(
                             children: [
-                              LocalAssets(imagePath: AppIconAssets.addBlueIcon),
+                              LocalAssets(
+                                  imagePath: AppIconAssets.addBlueIcon),
                               SizedBox(width: SizeConfig.size10),
                               CustomText(
-                                "Add More Option",
+                                AppStrings.addMoreOption.tr,
                                 fontSize: SizeConfig.large,
                                 color: AppColors.primaryColor,
                               )
@@ -159,86 +156,34 @@ class _PollInputScreenState extends State<PollInputScreen> {
                         );
                       return SizedBox();
                     }),
-                  // Obx(() {
-                  //   if (!pollController.isAddLink.value) {
-                  //     return Padding(
-                  //       padding: EdgeInsets.only(top: SizeConfig.size15),
-                  //       child: InkWell(
-                  //         onTap: () {
-                  //           pollController.isAddLink.value = true;
-                  //         },
-                  //         child: Row(
-                  //           children: [
-                  //             LocalAssets(imagePath: AppIconAssets.addBlueIcon),
-                  //             SizedBox(width: SizeConfig.size10),
-                  //             CustomText(
-                  //               'Add Link (Reference / Website)',
-                  //               fontSize: SizeConfig.large,
-                  //               color: AppColors.primaryColor,
-                  //             )
-                  //           ],
-                  //         ),
-                  //       ),
-                  //     );
-                  //   }
-                  //   if (pollController.isAddLink.value) {
-                  //     return Padding(
-                  //       padding: EdgeInsets.only(top: SizeConfig.size15),
-                  //       child: Column(
-                  //         mainAxisAlignment: MainAxisAlignment.center,
-                  //         crossAxisAlignment: CrossAxisAlignment.center,
-                  //         children: [
-                  //           Row(
-                  //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  //             children: [
-                  //               CustomText("Reference link"),
-                  //               InkWell(
-                  //                 onTap: () {
-                  //                   pollController.referenceLinkController
-                  //                       .clear();
-                  //                   pollController.isAddLink.value = false;
-                  //                 },
-                  //                 child: CustomText(
-                  //                   "Remove",
-                  //                   color: AppColors.red,
-                  //                 ),
-                  //               ),
-                  //             ],
-                  //           ),
-                  //           SizedBox(
-                  //             height: SizeConfig.size10,
-                  //           ),
-                  //           HttpsTextField(
-                  //               controller:
-                  //                   pollController.referenceLinkController,
-                  //               hintText: "Add website link"),
-                  //         ],
-                  //       ),
-                  //     );
-                  //   }
-                  //   return SizedBox();
-                  // }),
+
                   SizedBox(height: SizeConfig.size25),
+
                   PositiveCustomBtn(
                       onTap: () {
                         pollController.syncOptionsFromControllers();
+
                         if (pollController.questionController.text
                             .trim()
                             .isEmpty) {
                           commonSnackBar(
-                            message: "Please fill question",
+                            message: AppStrings.fillQuestion.tr,
                           );
                           return;
                         } else if (pollController.options.length >= 2) {
-                          Get.toNamed(RouteHelper.getPollReviewScreenRoute(), arguments: {ApiKeys.argPostVia : widget.postVia});
+                          Get.toNamed(
+                              RouteHelper.getPollReviewScreenRoute(),
+                              arguments: {
+                                ApiKeys.argPostVia: widget.postVia
+                              });
                         } else {
                           commonSnackBar(
-                            message: "Please fill at least 2 options",
+                            message: AppStrings.fillTwoOptions.tr,
                           );
                           return;
                         }
                       },
-                      title: "Continue"),
+                      title: AppStrings.continueTxt.tr),
                 ],
               ),
             ),
@@ -247,4 +192,5 @@ class _PollInputScreenState extends State<PollInputScreen> {
       ),
     );
   }
+
 }

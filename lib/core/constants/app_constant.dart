@@ -1,17 +1,14 @@
 // ignore_for_file: constant_identifier_names
 
 import 'dart:core';
-import 'dart:developer';
-import 'dart:io';
 import 'dart:math' hide log;
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/model/create_account_model.dart';
 import 'package:BlueEra/core/api/model/onboarding_model.dart';
-import 'package:BlueEra/core/api/model/service_category_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -27,18 +24,14 @@ import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_p
 import 'package:BlueEra/l10n/app_localizations_en.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:image/image.dart' as img;
 import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../features/business/visit_business_profile/view/visit_business_profile_new.dart';
 import '../../features/personal/personal_profile/view/widget/service_item.dart';
-import '../../l10n/app_localizations.dart';
 
 class AppConstants {
   static const String appName = 'BlueEra';
@@ -173,8 +166,8 @@ class AppConstants {
   static const HOME_SERVICES_OPTION = "HOME_SERVICES_OPTION";
   static const RENTAL_SERVICES_OPTION = "RENTAL_SERVICES_OPTION";
   static const COUNSELLING_CONSULTING_OPTION = "COUNSELLING_CONSULTING_OPTION";
-  static const TUITION_CLASSES_ONLINE_OFFLINE_OPTION = "TUITION_CLASSES_ONLINE_OFFLINE_OPTION";
-
+  static const TUITION_CLASSES_ONLINE_OFFLINE_OPTION =
+      "TUITION_CLASSES_ONLINE_OFFLINE_OPTION";
 
   static const ELECTRICIAN = "Electrician";
   static const PLUMBER = "Plumber";
@@ -201,16 +194,6 @@ class AppConstants {
   static const HOME_STAY = "HOME STAY";
   static const Flat_ROOM = "Flat/Room";
   static const VEHICLE = "Vehicle";
-
-  static Future<bool> checkInternet() async {
-    final List<ConnectivityResult> connectivityResult =
-        await Connectivity().checkConnectivity();
-    return connectivityResult.contains(ConnectivityResult.wifi) ||
-            connectivityResult.contains(ConnectivityResult.mobile) ||
-            connectivityResult.contains(ConnectivityResult.ethernet)
-        ? true
-        : false;
-  }
 }
 
 ///IS GUEST USER...
@@ -274,18 +257,6 @@ String formatNumberLikePost(int number) {
   }
 }
 
-stringDateFormat({required int year, required int month, required int day}) {
-  DateTime date = DateTime(year, month, day);
-
-  return DateFormat("MMMM, d").format(date);
-}
-
-stringDateFormatDate({required String dateValue}) {
-  DateTime date = DateTime.parse(dateValue);
-
-  return DateFormat("MMMM, y").format(date);
-}
-
 String getTimeAgo(String isoTime) {
   DateTime dateTime = DateTime.parse(isoTime).toLocal();
   DateTime now = DateTime.now();
@@ -301,11 +272,6 @@ String getTimeAgo(String isoTime) {
   } else {
     return DateFormat("dd MMM yyyy 'at' hh:mm a").format(dateTime);
   }
-}
-
-class AccountType {
-  static const String personal = 'PERSONAL';
-  static const String company = 'COMPANY';
 }
 
 class MakeOrderType {
@@ -340,14 +306,6 @@ redirectToProfileScreen(
   }
 }
 
-List<String> generate24HoursAmPm() {
-  return List.generate(24, (hour) {
-    final int displayHour = hour % 12 == 0 ? 12 : hour % 12;
-    final String period = hour < 12 ? 'AM' : 'PM';
-    return '${displayHour.toString().padLeft(2, '0')}:00 $period';
-  });
-}
-
 String getInitials(String? name) {
   if (name == null || name.isEmpty) return 'U';
   return name
@@ -358,21 +316,6 @@ String getInitials(String? name) {
       .join()
       .toUpperCase();
 }
-
-List<String> daysOfWeek = [
-  'Sunday',
-  'Monday',
-  'Tuesday',
-  'Wednesday',
-  'Thursday',
-  'Friday',
-  'Saturday',
-];
-
-List<String> selectGenderList = [
-  "Male",
-  "Female",
-];
 
 void createProfileScreen() {
   Get.toNamed(
@@ -390,49 +333,6 @@ void navigatePushTo(BuildContext context, Widget destination) {
   );
 }
 
-///API CALLING VALUE...
-noticePeriodAPISending({String? keyName}) {
-  return keyName == "Immediately (7 Days)"
-      ? "IMMEDIATE"
-      : keyName == "15 Days"
-          ? "FIFTEEN_DAYS"
-          : keyName == "30 Days"
-              ? "ONE_MONTH"
-              : keyName == "45 Days"
-                  ? "FORTY_FIVE_DAYS"
-                  : keyName == "60 Days"
-                      ? "TWO_MONTHS"
-                      : keyName == "90 Days"
-                          ? "THREE_MONTHS"
-                          : "";
-}
-
-
-///DISPLAY DROP DOWN VALUE...
-setNoticePeriod({String? keyName}) {
-  return keyName == "IMMEDIATE"
-      ? "Immediately (7 Days)"
-      : keyName == "FIFTEEN_DAYS"
-          ? "15 Days"
-          : keyName == "ONE_MONTH"
-              ? "30 Days"
-              : keyName == "FORTY_FIVE_DAYS"
-                  ? "45 Days"
-                  : keyName == "TWO_MONTHS"
-                      ? "60 Days"
-                      : keyName == "THREE_MONTHS"
-                          ? "90 Days"
-                          : "";
-}
-
-final List<String> noticePeriods = [
-  'Immediately (7 Days)',
-  '15 Days',
-  '30 Days',
-  '45 Days',
-  '60 Days',
-  '90 Days',
-];
 final List<String> gradingOptions = [
   "PERCENTAGE",
   "CGPA",
@@ -456,23 +356,6 @@ List<String> months = [
 ];
 List<String> years = ['YYYY'] +
     List.generate(30, (index) => (DateTime.now().year + index).toString());
-
-List<Locale> getSupportedLocales() {
-  return [
-    Locale('en'), // English
-    Locale('hi'), // Hindi
-    Locale('or'), // Odia
-    Locale('bn'), // Bengali
-    Locale('as'), // Assamese
-    Locale('te'), // Telugu
-    Locale('ta'), // Tamil
-    Locale('ml'), // Malayalam
-    Locale('mr'), // Marathi
-    Locale('kn'), // Kannada
-    Locale('gu'), // Gujarati
-    Locale('pa'), // Punjabi
-  ];
-}
 
 AppLocalizationsEn loc = AppLocalizationsEn();
 
@@ -502,55 +385,19 @@ List<OnboardingData> getOnboardingPages() => [
 List<AccountOption> getCreateAccountType() => [
       AccountOption(
         id: AppConstants.individual,
-        title: 'Individual Account',
+        title: AppStrings.individualAccount,
         subtitle: loc.accountType1SubTitle,
         description: loc.accountType1Description,
         iconPath: AppIconAssets.personal_account,
       ),
       AccountOption(
         id: AppConstants.business,
-        title: "Business Listing",
-
-        //title: "Shop / Services / Business Listing",
+        title: AppStrings.businessListing,
         subtitle: loc.accountType2SubTitle,
         description: loc.accountType2Description,
         iconPath: AppIconAssets.business_account,
       ),
-      // AccountOption(
-      //   id: AppConstants.recruiter,
-      //   title: loc.recruiter,
-      //   subtitle: loc.forPostingJobOpeningsAndConnectingWithRightCandidates,
-      //   iconPath: AppIconAssets.recruiter_account,
-      // ),
     ];
-
-///get and display time
-employmentTypeTypeApiValue({String? keyName}) {
-  return keyName == "FULL_TIME"
-      ? "Full-time"
-      : keyName == "Internship".toUpperCase()
-          ? "Internship"
-          : "";
-}
-
-///pass into api
-employmentTypeTypePassApiValue({String? keyName}) {
-  return keyName!.toLowerCase() == "Full-Time".toLowerCase()
-      ? "FULL_TIME"
-      : keyName.toLowerCase() == "Internship".toLowerCase()
-          ? "Internship".toUpperCase()
-          : "";
-}
-
-// IMMEDIATE, FIFTEEN_DAYS, ONE_MONTH, FORTY_FIVE_DAYS, TWO_MONTHS, THREE_MONTHS
-final List<String> jobPostNoticePeriods = [
-  'Immediate',
-  '15 Days',
-  '1 Month',
-  '45 Days',
-  '2 Month',
-  '3 Month',
-];
 
 openBusinessProfile({required String? businessUserId}) {
   if (businessId == businessUserId) {
@@ -574,62 +421,6 @@ openPersonalProfile({required String? userID}) {
         ));
   }
 }
-// List<EmojiReaction> reactions = [
-//   EmojiReaction(
-//       emoji: LocalAssets(imagePath: AppIconAssets.emojiLikeIcon),
-//       label: loc.liked),
-//   EmojiReaction(
-//       emoji: LocalAssets(imagePath: AppIconAssets.emojiCelebrateIcon),
-//       label: loc.celebrate),
-//   EmojiReaction(
-//       emoji: LocalAssets(imagePath: AppIconAssets.emojiSupportIcon),
-//       label: loc.support),
-//   EmojiReaction(
-//       emoji: LocalAssets(imagePath: AppIconAssets.emojiHeartIcon),
-//       label: loc.heart),
-//   EmojiReaction(
-//       emoji: LocalAssets(imagePath: AppIconAssets.emojiInsightfulIcon),
-//       label: loc.insightful),
-// ];
-
-final List<Map<String, dynamic>> drawerItems = [
-  {
-    "title": "Earn with BlueEra",
-    "subtitle":
-        "Add Bank Account, Linked UPI IDs, Payment Methods, Personal Info, Transaction History.",
-    "icon": AppIconAssets.earnWithBEIcon,
-  },
-  {
-    "title": "Orders & Bookings",
-    "subtitle":
-        "Add Bank Account, Linked UPI IDs, Payment Methods, Personal Info, Transaction History.",
-    "icon": AppIconAssets.orderBookingIcon,
-  },
-  {
-    "title": "=Payment Settings",
-    "subtitle":
-        "Add Bank Account, Linked UPI IDs, Payment Methods, Personal Info, Transaction History.",
-    "icon": AppIconAssets.paymentIcon,
-  },
-  {
-    "title": "Channel Settings",
-    "subtitle":
-        "Add Bank Account, Linked UPI IDs, Payment Methods, Personal Info, Transaction History.",
-    "icon": AppIconAssets.channelIcon,
-  },
-  {
-    "title": "My Documents",
-    "subtitle":
-        "Add Bank Account, Linked UPI IDs, Payment Methods, Personal Info, Transaction History.",
-    "icon": AppIconAssets.documentIcon,
-  },
-  {
-    "title": "Profile Settings",
-    "subtitle":
-        "Add Bank Account, Linked UPI IDs, Payment Methods, Personal Info, Transaction History.",
-    "icon": AppIconAssets.personIcon,
-  },
-];
 
 List<PopupMenuEntry<PostCreationMenu>> popupMenuItems() {
   final bool isBusiness =
@@ -658,13 +449,11 @@ List<PopupMenuEntry<PostCreationMenu>> popupMenuItems() {
   };
 
   const titleMap = {
-    PostCreationMenu.message: 'Lekha',
-    PostCreationMenu.poll: 'Poll',
-    PostCreationMenu.photos: 'Symbol',
-    // PostCreationMenu.videos: 'Videos',
-    PostCreationMenu.jobPost: 'Job Post',
-    // PostCreationMenu.place: 'Place',
-    PostCreationMenu.travel: 'Travel',
+    PostCreationMenu.message: AppStrings.lekha,
+    PostCreationMenu.poll: AppStrings.poll,
+    PostCreationMenu.photos: AppStrings.symbol,
+    PostCreationMenu.jobPost: AppStrings.jobPost,
+    PostCreationMenu.travel: AppStrings.travel,
   };
 
   final List<PopupMenuEntry<PostCreationMenu>> entries = [];
@@ -712,7 +501,7 @@ List<PopupMenuEntry<PostCreationMenu>> popupMenuItems() {
 
 List<PopupMenuEntry<String>> inventoryPopupMenuItems() {
   final items = <Map<String, dynamic>>[
-    {"id": "BUSINESS CARD", 'title': 'My Business Card'}
+    {"id": "BUSINESS CARD", 'title': AppStrings.myBusinessCard}
   ];
 
   final List<PopupMenuEntry<String>> entries = [];
@@ -721,7 +510,7 @@ List<PopupMenuEntry<String>> inventoryPopupMenuItems() {
     entries.add(
       PopupMenuItem<String>(
         height: SizeConfig.size35,
-        value: items[i]['title'],
+        value: items[i]['id'],
         onTap: () {
           if (items[i]['id'] == "BUSINESS CARD") {
             Get.toNamed(RouteHelper.getInventoryBusinessCardsScreenRoute());
@@ -777,9 +566,9 @@ String formatMonthStringDate(String inputDate) {
 
 List<PopupMenuEntry<String>> popupMenuResumeCardItems() {
   final items = <Map<String, dynamic>>[
-    {"id": "EDIT", 'icon': AppIconAssets.tablerEditIcon, 'title': 'Edit'},
-    {"id": "SHARE", 'icon': AppIconAssets.uploadIcon, 'title': 'Share'},
-    {"id": "DOWNLOAD", 'icon': AppIconAssets.downloadIcon, 'title': 'Download'},
+    {"id": "EDIT", 'icon': AppIconAssets.tablerEditIcon, 'title': AppStrings.edit},
+    {"id": "SHARE", 'icon': AppIconAssets.uploadIcon, 'title': AppStrings.share},
+    {"id": "DOWNLOAD", 'icon': AppIconAssets.downloadIcon, 'title': AppStrings.download},
   ];
 
   final List<PopupMenuEntry<String>> entries = [];
@@ -788,7 +577,7 @@ List<PopupMenuEntry<String>> popupMenuResumeCardItems() {
     entries.add(
       PopupMenuItem<String>(
         height: SizeConfig.size35,
-        value: items[i]['title'],
+        value: items[i]['id'],
         onTap: () {
           if (items[i]['id'] == "EDIT") {
             Get.toNamed(RouteHelper.getCreateResumeScreenRoute());
@@ -839,11 +628,11 @@ List<PopupMenuEntry<String>> popupMenuResumeCardItems() {
 
 List<PopupMenuEntry<String>> popupMenuOrderTabItems() {
   final items = <Map<String, dynamic>>[
-    {"id": "PENDING", 'title': 'Pending'},
-    {"id": "COMPLETED", 'title': 'Completed'},
-    {"id": "CANCELED", 'title': 'Canceled'},
-    {"id": "LATEST", 'title': 'Latest'},
-    {"id": "OLDEST", 'title': 'Oldest'},
+    {"id": "PENDING", 'title': AppStrings.pending},
+    {"id": "COMPLETED", 'title': AppStrings.completed},
+    {"id": "CANCELED", 'title': AppStrings.canceled},
+    {"id": "LATEST", 'title': AppStrings.latest},
+    {"id": "OLDEST", 'title': AppStrings.oldest},
   ];
 
   final List<PopupMenuEntry<String>> entries = [];
@@ -852,7 +641,7 @@ List<PopupMenuEntry<String>> popupMenuOrderTabItems() {
     entries.add(
       PopupMenuItem<String>(
         height: SizeConfig.size35,
-        value: items[i]['title'],
+        value: items[i]['id'],
         onTap: () {
           if (items[i]['id'] == "EDIT") {
             Get.toNamed(RouteHelper.getCreateResumeScreenRoute());
@@ -898,10 +687,10 @@ List<PopupMenuEntry<String>> popupMenuOrderTabItems() {
 
 List<PopupMenuEntry<String>> popupMenuChatCardItems() {
   final items = <Map<String, dynamic>>[
-    {"id": "CREATE_GROUP", 'title': 'Create Group'},
-    {"id": "THEME", 'title': 'Theme'},
-    {"id": "WALLPAPER", 'title': 'Wallpaper'},
-    {"id": "LOCK_CHAT", 'title': 'Lock Chat'},
+    {"id": "CREATE_GROUP", 'title': AppStrings.createGroup},
+    {"id": "THEME", 'title': AppStrings.theme},
+    {"id": "WALLPAPER", 'title': AppStrings.wallpaper},
+    {"id": "LOCK_CHAT", 'title': AppStrings.lockChat},
   ];
 
   final List<PopupMenuEntry<String>> entries = [];
@@ -910,7 +699,7 @@ List<PopupMenuEntry<String>> popupMenuChatCardItems() {
     entries.add(
       PopupMenuItem<String>(
         height: SizeConfig.size35,
-        value: items[i]['title'],
+        value: items[i]['id'],
         onTap: () {
           if (items[i]['id'] == "CREATE_GROUP") {
             Get.to(ContactsPage(
@@ -927,11 +716,6 @@ List<PopupMenuEntry<String>> popupMenuChatCardItems() {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // LocalAssets(
-            //     imagePath: items[i]['icon'],
-            //     height: SizeConfig.size20,
-            //     width: SizeConfig.size20),
-            // SizedBox(width: SizeConfig.size5),
             CustomText(
               items[i]['title'],
               fontSize: SizeConfig.medium,
@@ -974,14 +758,13 @@ String? businessType() {
 }
 
 List<PopupMenuEntry<String>> popupMenuInventoryItems(String businessType) {
-  log('businessType-- $businessType');
   final items = <Map<String, dynamic>>[
     if (isShowProduct.contains(businessType))
-      {"id": "ADD PRODUCT", 'title': 'Add Product'},
+      {"id": "ADD PRODUCT", 'title': AppStrings.addProduct},
     if (isShowService.contains(businessType))
-      {"id": "ADD SERVICE", 'title': 'Add Service'},
+      {"id": "ADD SERVICE", 'title': AppStrings.addService},
     if (isShowFood.contains(businessType))
-      {"id": "ADD FOOD", 'title': 'Add Food'},
+      {"id": "ADD FOOD", 'title': AppStrings.addFood},
     // {"id": "DOWNLOAD", 'icon': AppIconAssets.downloadIcon, 'title': 'Download'},
   ];
 
@@ -991,7 +774,7 @@ List<PopupMenuEntry<String>> popupMenuInventoryItems(String businessType) {
       PopupMenuItem<String>(
         padding: EdgeInsets.all(10),
         height: SizeConfig.size35,
-        value: items[i]['title'],
+        value: items[i]['id'],
         // onTap: () {
         //
         //   if (items[i]['id'] == "SHARE") {}
@@ -1032,9 +815,12 @@ List<PopupMenuEntry<String>> popupMenuInventoryItems(String businessType) {
 
 List<PopupMenuEntry<String>> popupMenuVisitProfileItems() {
   final items = <Map<String, dynamic>>[
-    // {"id": "EDIT", 'icon': AppIconAssets.tablerEditIcon, 'title': 'Edit'},
-    {"id": "SHARE", 'icon': AppIconAssets.share_bold, 'title': 'Share'},
-    // {"id": "DOWNLOAD", 'icon': AppIconAssets.downloadIcon, 'title': 'Download'},
+    {
+      "id": "SHARE",
+      'icon': AppIconAssets.share_bold,
+      'slud_id': 'Share',
+      'title': AppStrings.share
+    },
   ];
 
   final List<PopupMenuEntry<String>> entries = [];
@@ -1043,7 +829,7 @@ List<PopupMenuEntry<String>> popupMenuVisitProfileItems() {
     entries.add(
       PopupMenuItem<String>(
         height: SizeConfig.size35,
-        value: items[i]['title'],
+        value: items[i]['slud_id'],
         // onTap: () {
         //
         //   if (items[i]['id'] == "SHARE") {}
@@ -1091,23 +877,24 @@ List<PopupMenuEntry<String>> popupMenuVisitProfileItems() {
 List<PopupMenuEntry<String>> popupMenuVisitProfileActionItems(
     {bool? isSavePost, bool? isShowSaveOption = true}) {
   final items = <Map<String, dynamic>>[
-    // {"id": "REPOST", 'icon': AppIconAssets.repost_new, 'title': 'Repost'},
     if (isShowSaveOption == true)
       {
         "id": "SAVE",
         'icon': AppIconAssets.save_new,
-        'title': (isSavePost ?? false) ? "Unsave" : "Save"
+        'title': (isSavePost ?? false) ? AppStrings.unsave : AppStrings.save,
+        'slud_id': (isSavePost ?? false) ? "Unsave" : "Save"
       },
-    // {"id": "FOLLOW", 'icon': AppIconAssets.follow_new, 'title': 'Follow'},
     {
       "id": "REPORT_POST",
       'icon': AppIconAssets.report_new,
-      'title': 'Report Post'
+      'slud_id': 'Report Post',
+      'title': AppStrings.reportPost,
     },
     {
       "id": "BLOCK_USER",
       'icon': AppIconAssets.block_user,
-      'title': 'Block User'
+      'slud_id': 'Block User',
+      'title': AppStrings.blockUser
     },
   ];
 
@@ -1117,7 +904,7 @@ List<PopupMenuEntry<String>> popupMenuVisitProfileActionItems(
     entries.add(
       PopupMenuItem<String>(
         height: SizeConfig.size35,
-        value: items[i]['title'],
+        value: items[i]['slud_id'],
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -1157,64 +944,11 @@ List<PopupMenuEntry<String>> popupMenuVisitProfileActionItems(
   return entries;
 }
 
-List<PopupMenuEntry<String>> popupJobCardItems() {
-  final items = <Map<String, dynamic>>[
-    {'icon': AppIconAssets.tablerEditIcon, 'title': 'Edit'},
-    {'icon': AppIconAssets.eyeIcon, 'title': 'Hide'},
-    {'icon': AppIconAssets.uploadIcon, 'title': 'Share'},
-    {'icon': AppIconAssets.uilSuitcaseOutlinedIcon, 'title': 'Close Vacancy'},
-  ];
-
-  final List<PopupMenuEntry<String>> entries = [];
-
-  for (int i = 0; i < items.length; i++) {
-    entries.add(
-      PopupMenuItem<String>(
-        height: SizeConfig.size35,
-        value: items[i]['title'],
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            LocalAssets(
-                imagePath: items[i]['icon'],
-                height: SizeConfig.size20,
-                width: SizeConfig.size20),
-            SizedBox(width: SizeConfig.size5),
-            CustomText(
-              items[i]['title'],
-              fontSize: SizeConfig.medium,
-              color: AppColors.black30,
-            ),
-          ],
-        ),
-      ),
-    );
-
-    if (i != items.length - 1) {
-      entries.add(
-        const PopupMenuItem<String>(
-          enabled: false,
-          padding: EdgeInsets.zero,
-          height: 1,
-          child: Divider(
-            indent: 10,
-            endIndent: 10,
-            height: 1,
-            thickness: 0.2,
-            color: AppColors.grey99,
-          ),
-        ),
-      );
-    }
-  }
-
-  return entries;
-}
-
 List<PopupMenuEntry<String>> popupPostMenuItems(bool? is_reposted) {
   final items = <Map<String, dynamic>>[
-    if ((is_reposted == null) || (is_reposted == false)) {'title': 'Edit Post'},
-    {'title': 'Delete Post'},
+    if ((is_reposted == null) || (is_reposted == false))
+      {'title': AppStrings.editPost, "slud_id": 'Edit Post'},
+    {'title': AppStrings.deletePost, "slud_id": "Delete Post"},
   ];
 
   final List<PopupMenuEntry<String>> entries = [];
@@ -1223,7 +957,7 @@ List<PopupMenuEntry<String>> popupPostMenuItems(bool? is_reposted) {
     entries.add(
       PopupMenuItem<String>(
         height: SizeConfig.size35,
-        value: items[i]['title'],
+        value: items[i]['slud_id'],
         child: CustomText(
           items[i]['title'],
           fontSize: SizeConfig.medium,
@@ -1255,8 +989,11 @@ List<PopupMenuEntry<String>> popupPostMenuItems(bool? is_reposted) {
 
 List<PopupMenuEntry<String>> popupVideoMenuItems() {
   final items = <Map<String, dynamic>>[
-    {'title': 'Edit Video'},
-    {'title': 'Delete Video'},
+    {
+      'slud_id': 'Edit Video',
+      'title': AppStrings.editVideo,
+    },
+    {'slud_id': 'Delete Video', 'title': AppStrings.deleteVideo},
   ];
 
   final List<PopupMenuEntry<String>> entries = [];
@@ -1265,7 +1002,7 @@ List<PopupMenuEntry<String>> popupVideoMenuItems() {
     entries.add(
       PopupMenuItem<String>(
         height: SizeConfig.size35,
-        value: items[i]['title'],
+        value: items[i]['slud_id'],
         child: CustomText(
           items[i]['title'],
           fontSize: SizeConfig.medium,
@@ -1340,8 +1077,8 @@ List<PopupMenuEntry<String>> popupShortsMenuItems() {
 
 List<PopupMenuEntry<String>> popupProductMenuItems() {
   final items = <Map<String, dynamic>>[
-    {'title': 'Edit Product'},
-    {'title': 'Delete Product'},
+    {'slud_id': 'Edit Product', 'title': AppStrings.editProduct},
+    {'slud_id': 'Delete Product', 'title': AppStrings.deleteProduct},
   ];
 
   final List<PopupMenuEntry<String>> entries = [];
@@ -1350,7 +1087,7 @@ List<PopupMenuEntry<String>> popupProductMenuItems() {
     entries.add(
       PopupMenuItem<String>(
         height: SizeConfig.size35,
-        value: items[i]['title'],
+        value: items[i]['slud_id'],
         child: CustomText(
           items[i]['title'],
           fontSize: SizeConfig.medium,
@@ -1380,139 +1117,14 @@ List<PopupMenuEntry<String>> popupProductMenuItems() {
   return entries;
 }
 
-List<PopupMenuEntry<String>> popupInventoryMenuItems() {
-  final items = <Map<String, dynamic>>[
-    {'icon': Icons.edit_outlined, 'title': 'Edit', 'isIcon': true},
-    {
-      'icon': 'assets/icons/unpublished_icon.png',
-      'title': 'Unpublish',
-      'isIcon': false
-    },
-    {'icon': Icons.copy_outlined, 'title': 'Copy Listing', 'isIcon': true},
-    {
-      'icon': 'assets/images/outOfStock.png',
-      'title': 'Out of Stock',
-      'isIcon': false
-    },
-    {'icon': Icons.delete_outline, 'title': 'Delete', 'isIcon': true},
-  ];
-
-  final List<PopupMenuEntry<String>> entries = [];
-
-  for (int i = 0; i < items.length; i++) {
-    entries.add(
-      PopupMenuItem<String>(
-        height: SizeConfig.size40,
-        value: items[i]['title'],
-        child: Row(
-          children: [
-            items[i]['isIcon']
-                ? Icon(
-                    items[i]['icon'],
-                    size: 20,
-                    color: AppColors.black30,
-                  )
-                : Image.asset(
-                    items[i]['icon'],
-                    width: 20,
-                    height: 20,
-                    color: AppColors.black30,
-                  ),
-            SizedBox(width: SizeConfig.size12),
-            CustomText(
-              items[i]['title'],
-              fontSize: SizeConfig.medium,
-              color: AppColors.black30,
-            ),
-          ],
-        ),
-      ),
-    );
-
-    if (i != items.length - 1) {
-      entries.add(
-        const PopupMenuItem<String>(
-          enabled: false,
-          padding: EdgeInsets.zero,
-          height: 1,
-          child: Divider(
-            indent: 10,
-            endIndent: 10,
-            height: 1,
-            thickness: 0.2,
-            color: AppColors.grey99,
-          ),
-        ),
-      );
-    }
-  }
-
-  return entries;
-}
-
-List<PopupMenuEntry<String>> popupInventoryCategoryItems() {
-  final items = <Map<String, dynamic>>[
-    {'icon': Icons.edit_outlined, 'title': 'Edit', 'isIcon': true},
-    {'icon': Icons.delete_outline, 'title': 'Delete', 'isIcon': true},
-  ];
-
-  final List<PopupMenuEntry<String>> entries = [];
-
-  for (int i = 0; i < items.length; i++) {
-    entries.add(
-      PopupMenuItem<String>(
-        height: SizeConfig.size40,
-        value: items[i]['title'],
-        child: Row(
-          children: [
-            items[i]['isIcon']
-                ? Icon(
-                    items[i]['icon'],
-                    size: 20,
-                    color: AppColors.black30,
-                  )
-                : Image.asset(
-                    items[i]['icon'],
-                    width: 20,
-                    height: 20,
-                    color: AppColors.black30,
-                  ),
-            SizedBox(width: SizeConfig.size12),
-            CustomText(
-              items[i]['title'],
-              fontSize: SizeConfig.medium,
-              color: AppColors.black30,
-            ),
-          ],
-        ),
-      ),
-    );
-
-    if (i != items.length - 1) {
-      entries.add(
-        const PopupMenuItem<String>(
-          enabled: false,
-          padding: EdgeInsets.zero,
-          height: 1,
-          child: Divider(
-            indent: 10,
-            endIndent: 10,
-            height: 1,
-            thickness: 0.2,
-            color: AppColors.grey99,
-          ),
-        ),
-      );
-    }
-  }
-
-  return entries;
-}
-
 List<PopupMenuEntry<String>> photoPostMenuItems() {
   final items = <Map<String, dynamic>>[
-    {'title': 'Square', 'icon': Icons.square_outlined},
-    {'title': 'Portrait', 'icon': Icons.crop_portrait_outlined},
+    {'id': "Square", 'title': AppStrings.square, 'icon': Icons.square_outlined},
+    {
+      'id': "Portrait",
+      'title': AppStrings.portrait,
+      'icon': Icons.crop_portrait_outlined
+    },
   ];
 
   final List<PopupMenuEntry<String>> entries = [];
@@ -1522,7 +1134,7 @@ List<PopupMenuEntry<String>> photoPostMenuItems() {
     entries.add(
       PopupMenuItem<String>(
         height: SizeConfig.size35,
-        value: items[i]['title'],
+        value: items[i]['id'],
         child: Row(
           children: [
             Icon(menu['icon'], color: AppColors.grey5B),
@@ -1560,240 +1172,11 @@ List<PopupMenuEntry<String>> photoPostMenuItems() {
 
 final List<SocialInputFieldsModel> selectedInputFieldsPersonalProfile = [
   SocialInputFieldsModel(
-    name: 'YouTube',
+    name: AppStrings.youtube,
     icon: 'assets/svg/youtube_grey.svg',
     linkController: TextEditingController(),
   ),
-  // SocialInputFieldsModel(
-  //   name: 'Twitter',
-  //   icon: 'assets/svg/website.svg',
-  //   linkController: TextEditingController(),
-  // ),
-  // SocialInputFieldsModel(
-  //   name: 'LinkedIn',
-  //   icon: 'assets/svg/website.svg',
-  //   linkController: TextEditingController(),
-  // ),
-  // SocialInputFieldsModel(
-  //   name: 'Instagram',
-  //   icon: 'assets/svg/website.svg',
-  //   linkController: TextEditingController(),
-  // ),
-  // SocialInputFieldsModel(
-  //   name: 'Website',
-  //   icon: 'assets/svg/website.svg',
-  //   linkController: TextEditingController(),
-  // ),
 ];
-
-List<String>? currentDesignationResume = [
-  ARTIST,
-  GOVERNMENT_JOB,
-  PRIVATE_JOB,
-  SKILLED_WORKER,
-  SELF_EMPLOYED,
-  STUDENT,
-  OTHERS,
-];
-
-bool isResumeShow({required String? designation}) {
-  return currentDesignationResume?.contains(designation) ?? false;
-}
-
-List<ServiceCategoryBusinessModel> serviceCategoryBusinessModel = [
-  ServiceCategoryBusinessModel(
-    name: "Personal & Home Services",
-    slug: "PERSONAL_AND_HOME_SERVICES",
-    subCategories: [
-      ServiceSubCategoryBusinessModel(
-          name: "Home cleaning", slug: "HOME_CLEANING"),
-      ServiceSubCategoryBusinessModel(
-          name: "Pest control", slug: "PEST_CONTROL"),
-      ServiceSubCategoryBusinessModel(name: "Plumbing", slug: "PLUMBING"),
-      ServiceSubCategoryBusinessModel(
-          name: "Electrical work", slug: "ELECTRICAL_WORK"),
-      ServiceSubCategoryBusinessModel(
-          name: "Appliance repair", slug: "APPLIANCE_REPAIR"),
-      ServiceSubCategoryBusinessModel(
-          name: "Gardening & landscaping", slug: "GARDENING_AND_LANDSCAPING"),
-      ServiceSubCategoryBusinessModel(
-          name: "Home renovation & interior design",
-          slug: "HOME_RENOVATION_AND_INTERIOR_DESIGN"),
-    ],
-  ),
-  ServiceCategoryBusinessModel(
-    name: "Health & Wellness Services",
-    slug: "HEALTH_AND_WELLNESS_SERVICES",
-    subCategories: [
-      ServiceSubCategoryBusinessModel(
-          name: "Doctor consultations", slug: "DOCTOR_CONSULTATIONS"),
-      ServiceSubCategoryBusinessModel(
-          name: "Nursing & elder care", slug: "NURSING_AND_ELDER_CARE"),
-      ServiceSubCategoryBusinessModel(
-          name: "Physiotherapy", slug: "PHYSIOTHERAPY"),
-      ServiceSubCategoryBusinessModel(
-          name: "Fitness training", slug: "FITNESS_TRAINING"),
-      ServiceSubCategoryBusinessModel(
-          name: "Spa & salon services", slug: "SPA_AND_SALON_SERVICES"),
-      ServiceSubCategoryBusinessModel(
-          name: "Mental health counseling", slug: "MENTAL_HEALTH_COUNSELING"),
-    ],
-  ),
-  ServiceCategoryBusinessModel(
-    name: "Automotive Services",
-    slug: "AUTOMOTIVE_SERVICES",
-    subCategories: [
-      ServiceSubCategoryBusinessModel(
-          name: "Vehicle repair & maintenance",
-          slug: "VEHICLE_REPAIR_AND_MAINTENANCE"),
-      ServiceSubCategoryBusinessModel(
-          name: "Car washing & detailing", slug: "CAR_WASHING_AND_DETAILING"),
-      ServiceSubCategoryBusinessModel(name: "Bike repair", slug: "BIKE_REPAIR"),
-      ServiceSubCategoryBusinessModel(
-          name: "Roadside assistance", slug: "ROADSIDE_ASSISTANCE"),
-    ],
-  ),
-  // ➕ Add other categories (Education, Food, Events, Delivery, Travel, etc.)
-];
-
-const String mapLightCode = '''[
-    {
-      "featureType": "all",
-      "elementType": "labels.text.fill",
-      "stylers": [{"color": "#333333"}]
-    },
-    {
-      "featureType": "all",
-      "elementType": "labels.text.stroke",
-      "stylers": [{"visibility": "off"}]
-    },
-    {
-      "featureType": "administrative",
-      "elementType": "geometry.fill",
-      "stylers": [{"visibility": "off"}]
-    },
-    {
-      "featureType": "administrative",
-      "elementType": "geometry.stroke",
-      "stylers": [{"visibility": "off"}]
-    },
-    {
-      "featureType": "landscape",
-      "elementType": "all",
-      "stylers": [{"color": "#f2f2f2"}]
-    },
-    {
-      "featureType": "landscape",
-      "elementType": "geometry.fill",
-      "stylers": [{"color": "#ffffff"}]
-    },
-    {
-      "featureType": "landscape.man_made",
-      "elementType": "geometry.fill",
-      "stylers": [{"color": "#ffffff"}]
-    },
-    {
-      "featureType": "poi",
-      "elementType": "all",
-      "stylers": [{"visibility": "simplified"}]
-    },
-    {
-      "featureType": "poi.business",
-      "elementType": "all",
-      "stylers": [{"visibility": "simplified"}]
-    },
-    {
-      "featureType": "poi.government",
-      "elementType": "geometry.fill",
-      "stylers": [{"color": "#ffffff"}]
-    },
-    {
-      "featureType": "poi.medical",
-      "elementType": "geometry.fill",
-      "stylers": [{"color": "#ffffff"}]
-    },
-    {
-      "featureType": "poi.park",
-      "elementType": "geometry.fill",
-      "stylers": [{"color": "#e8f5e8"}]
-    },
-    {
-      "featureType": "poi.place_of_worship",
-      "elementType": "geometry.fill",
-      "stylers": [{"color": "#ffffff"}]
-    },
-    {
-      "featureType": "poi.school",
-      "elementType": "geometry.fill",
-      "stylers": [{"color": "#ffffff"}]
-    },
-    {
-      "featureType": "poi.sports_complex",
-      "elementType": "geometry.fill",
-      "stylers": [{"color": "#ffffff"}]
-    },
-    {
-      "featureType": "road",
-      "elementType": "all",
-      "stylers": [{"saturation": -100}, {"lightness": 45}]
-    },
-    {
-      "featureType": "road",
-      "elementType": "geometry.fill",
-      "stylers": [{"color": "#ffffff"}]
-    },
-    {
-      "featureType": "road",
-      "elementType": "labels.text.fill",
-      "stylers": [{"color": "#666666"}]
-    },
-    {
-      "featureType": "road.highway",
-      "elementType": "all",
-      "stylers": [{"visibility": "simplified"}]
-    },
-    {
-      "featureType": "road.highway",
-      "elementType": "geometry.fill",
-      "stylers": [{"color": "#f7f7f7"}]
-    },
-    {
-      "featureType": "road.highway",
-      "elementType": "labels.text",
-      "stylers": [{"color": "#666666"}]
-    },
-    {
-      "featureType": "road.arterial",
-      "elementType": "labels.text.fill",
-      "stylers": [{"color": "#666666"}]
-    },
-    {
-      "featureType": "road.arterial",
-      "elementType": "geometry.fill",
-      "stylers": [{"color": "#ffffff"}]
-    },
-    {
-      "featureType": "road.local",
-      "elementType": "labels.text.fill",
-      "stylers": [{"color": "#666666"}]
-    },
-    {
-      "featureType": "transit",
-      "elementType": "all",
-      "stylers": [{"visibility": "off"}]
-    },
-    {
-      "featureType": "water",
-      "elementType": "all",
-      "stylers": [{"color": "#c2d4e6"}, {"visibility": "on"}]
-    },
-    {
-      "featureType": "water",
-      "elementType": "geometry.fill",
-      "stylers": [{"color": "#b8d4ea"}]
-    }
-  ]''';
-
 // Constants
 const String SELF_EMPLOYED = "SELF_EMPLOYED";
 const String PRIVATE_JOB = "PRIVATE_JOB";
@@ -1812,74 +1195,8 @@ const String FARMER = "FARMER";
 const String SENIOR_CITIZEN_RETIRED = "SENIOR_CITIZEN_RETIRED";
 const String STUDENT = "STUDENT";
 const String OTHERS = "OTHERS"; // keep Others last
-//
-// Future<File> resizeAndCrop(File file, int targetWidth, int targetHeight) async {
-//   // Read image bytes
-//   Uint8List bytes = await file.readAsBytes();
-//   img.Image? original = img.decodeImage(bytes);
-//
-//   if (original == null) return file;
-//
-//   // Resize & crop to exact aspect ratio
-//   img.Image resized = img.copyResizeCropSquare(original, size: targetWidth);
-//
-//   // Save to temp file
-//   final tempDir = await getTemporaryDirectory();
-//   String outPath = "${tempDir.path}/resized_image.jpg";
-//   File outFile = File(outPath)
-//     ..writeAsBytesSync(img.encodeJpg(resized, quality: 90));
-//   return outFile;
-// }
 
-Future<File> processImage(File file, String mode) async {
-  Uint8List bytes = await file.readAsBytes();
-  img.Image? original = img.decodeImage(bytes);
-  if (original == null) return file;
-
-  img.Image result;
-  logs("modemodemodemode=== $mode");
-  // if (mode == AppConstants.Landscape) {
-  // --- Target ratio 3:4 ---
-  double targetRatio = 16 / 9;
-  // double targetRatio = 3 / 4;
-
-  // Resize first so the shortest side fits
-  img.Image resized = img.copyResize(original,
-      width: 250, height: 250 // pick your desired width
-      // width: previewWidth.toInt(), // pick your desired width
-      );
-
-  // Now crop center to match 3:4
-  int cropHeight = (resized.width / targetRatio).toInt();
-  int offsetY =
-      ((resized.height - cropHeight) / 2).clamp(0, resized.height).toInt();
-
-  result = img.copyCrop(resized, x: 0, y: offsetY, width: 250, height: 250
-      // width: resized.width,
-      // height: cropHeight,
-      );
-  /*} else {
-    double previewWidth = Get.width * (1 / 1);
-    // Square 1:1
-    //   int size = 600;
-    result = img.copyResizeCropSquare(original, size: previewWidth.toInt());
-  }*/
-
-  // Save processed file
-  final tempDir = await getTemporaryDirectory();
-  String outPath =
-      "${tempDir.path}/image_${mode}${DateTime.now().microsecondsSinceEpoch}.jpg";
-  File outFile = File(outPath)
-    ..writeAsBytesSync(img.encodeJpg(result, quality: 90));
-
-  return outFile;
-}
-
-int kmRadius100 = 100;
-int kmRadius500 = 500;
 int kmRadius1000 = 1000;
-////businesss 4500--->1 product
-////user login 7222-->
 
 double calculateDistanceKm(double lat1, double lon1, double lat2, double lon2) {
   const R = 6371; // Radius of Earth in kilometers
@@ -1983,21 +1300,7 @@ final List<String> bgAssetsForServices = [
   'assets/services_cards/blueera_aatmnirbhar_service_card14.jpeg',
   'assets/services_cards/blueera_aatmnirbhar_service_card15.jpeg',
 ];
-// var SUPPORTED_EMOTIONS = [
-//   'Anger / Outrage',
-//   'Pride / Patriotism',
-//   'Happiness / Celebration',
-//   'Sadness / Sympathy',
-//   'Motivation / Hope',
-//   'Protest / Rebellion',
-//   'Empathy / Humanity',
-//   'Humor / Sarcasm',
-//   'Poetic/Storytelling',
-//   'Latest/Update',
-//   'Informative/Educational',
-//   'Treding/Current Events',
-//   'Political/Opinionated'
-// ];
+
 var SUPPORTED_LANGUAGES = [
   'Bengali',
   'Bhojpuri',
@@ -2024,46 +1327,65 @@ var SUPPORTED_LANGUAGES = [
   'Haryanvi'
 ];
 
-
 final List<CommentTypeModel> emotionList = [
-  CommentTypeModel("Anger / Outrage", AppIconAssets.emotionAnger),
-  CommentTypeModel("Pride / Patriotism", AppIconAssets.emotionPatriotism),
-  CommentTypeModel("Happiness / Celebration", AppIconAssets.emotionStorytelling),
-  CommentTypeModel("Sadness / Sympathy", AppIconAssets.emotionSympathy),
-  CommentTypeModel("Motivation / Hope", AppIconAssets.emotionHope),
-  CommentTypeModel("Protest / Rebellion", AppIconAssets.emotionRebellion),
-  CommentTypeModel("Empathy / Humanity", AppIconAssets.emotionHumanity),
-  CommentTypeModel("Humor / Sarcasm", AppIconAssets.emotionSarcasm),
-  CommentTypeModel("Poetic / Storytelling", AppIconAssets.emotionStorytelling),
-  CommentTypeModel("Latest / Update", AppIconAssets.emotionUpdate),
-  CommentTypeModel("Informative / Educational", AppIconAssets.emotionEducational),
-  CommentTypeModel("Trending / Current Events", AppIconAssets.emotionInformative),
-  CommentTypeModel("Political / Opinionated", AppIconAssets.emotionOpinionated),
+  CommentTypeModel(
+      "Anger / Outrage", AppStrings.angerOutrage, AppIconAssets.emotionAnger),
+  CommentTypeModel("Pride / Patriotism", AppStrings.pridePatriotism,
+      AppIconAssets.emotionPatriotism),
+  CommentTypeModel("Happiness / Celebration", AppStrings.happinessCelebration,
+      AppIconAssets.emotionStorytelling),
+  CommentTypeModel("Sadness / Sympathy", AppStrings.sadnessSympathy,
+      AppIconAssets.emotionSympathy),
+  CommentTypeModel("Motivation / Hope", AppStrings.motivationHope,
+      AppIconAssets.emotionHope),
+  CommentTypeModel("Protest / Rebellion", AppStrings.protestRebellion,
+      AppIconAssets.emotionRebellion),
+  CommentTypeModel("Empathy / Humanity", AppStrings.empathyHumanity,
+      AppIconAssets.emotionHumanity),
+  CommentTypeModel(
+      "Humor / Sarcasm", AppStrings.humorSarcasm, AppIconAssets.emotionSarcasm),
+  CommentTypeModel("Poetic / Storytelling", AppStrings.poeticStorytelling,
+      AppIconAssets.emotionStorytelling),
+  CommentTypeModel(
+      "Latest / Update", AppStrings.latestUpdate, AppIconAssets.emotionUpdate),
+  CommentTypeModel("Informative / Educational",
+      AppStrings.informativeEducational, AppIconAssets.emotionEducational),
+  CommentTypeModel("Trending / Current Events",
+      AppStrings.trendingCurrentEvents, AppIconAssets.emotionInformative),
+  CommentTypeModel("Political / Opinionated", AppStrings.politicalOpinionated,
+      AppIconAssets.emotionOpinionated),
 ];
 
 class CommentTypeModel {
+  final String sludId;
   final String name;
   final String icon;
 
-  const CommentTypeModel(this.name, this.icon);
+  const CommentTypeModel(this.sludId, this.name, this.icon);
 }
 
 final List<CommentTypeModel> commentTypes = [
-  CommentTypeModel("Agree", AppIconAssets.commentAgree),
-  CommentTypeModel("Disagree", AppIconAssets.commentDisagree),
-  CommentTypeModel("Appreciate", AppIconAssets.commentAppreciate),
-  CommentTypeModel("Criticise", AppIconAssets.commentCriticise),
-  CommentTypeModel("Question", AppIconAssets.commentQuestion),
-  CommentTypeModel("Support", AppIconAssets.commentSupport),
-  CommentTypeModel("Funny", AppIconAssets.commentFunny),
-  CommentTypeModel("Shock", AppIconAssets.commentCapa),
-  CommentTypeModel("Inspired", AppIconAssets.commentInspired),
-  CommentTypeModel("Angry", AppIconAssets.commentAngry),
-  CommentTypeModel("Curious", AppIconAssets.commentCurious),
-  CommentTypeModel("Suggest", AppIconAssets.commentSuggest),
-  CommentTypeModel("Empathy", AppIconAssets.commentEmpathy),
-  CommentTypeModel("Celebrate", AppIconAssets.commentCelebrate),
-  CommentTypeModel("Warn", AppIconAssets.commentWarn),
+  CommentTypeModel("Agree", AppStrings.agree, AppIconAssets.commentAgree),
+  CommentTypeModel(
+      "Disagree", AppStrings.disagree, AppIconAssets.commentDisagree),
+  CommentTypeModel(
+      "Appreciate", AppStrings.appreciate, AppIconAssets.commentAppreciate),
+  CommentTypeModel(
+      "Criticise", AppStrings.criticise, AppIconAssets.commentCriticise),
+  CommentTypeModel(
+      "Question", AppStrings.question, AppIconAssets.commentQuestion),
+  CommentTypeModel("Support", AppStrings.support, AppIconAssets.commentSupport),
+  CommentTypeModel("Funny", AppStrings.funny, AppIconAssets.commentFunny),
+  CommentTypeModel("Shock", AppStrings.shock, AppIconAssets.commentCapa),
+  CommentTypeModel(
+      "Inspired", AppStrings.inspired, AppIconAssets.commentInspired),
+  CommentTypeModel("Angry", AppStrings.angry, AppIconAssets.commentAngry),
+  CommentTypeModel("Curious", AppStrings.curious, AppIconAssets.commentCurious),
+  CommentTypeModel("Suggest", AppStrings.suggest, AppIconAssets.commentSuggest),
+  CommentTypeModel("Empathy", AppStrings.empathy, AppIconAssets.commentEmpathy),
+  CommentTypeModel(
+      "Celebrate", AppStrings.celebrate, AppIconAssets.commentCelebrate),
+  CommentTypeModel("Warn", AppStrings.warn, AppIconAssets.commentWarn),
 ];
 
 bool isImageUrl(String? url) {
@@ -2096,143 +1418,142 @@ bool isVideoUrl(String? url) {
 
 final List<ServiceItem> earnWithBlueEraServiceList = [
   ServiceItem(
-    label: 'Self Work',
+    label: AppStrings.selfWork,
     name: AppConstants.SELF_WORK_OPTION,
     icon: AppIconAssets.plumberIcon,
     bgColor: const Color(0xFFCBEAFC),
     labelColor: const Color(0xFF004E7C),
   ),
   ServiceItem(
-    label: 'Delivery\nPartner',
+    label: AppStrings.deliveryPartner,
     name: AppConstants.DELIVERY_PARTNER_OPTION,
     icon: AppIconAssets.deliveryPartnerIcon,
     bgColor: const Color(0xFFDAEDCF),
     labelColor: const Color(0xFF204A08),
   ),
   ServiceItem(
-    label: 'Home Made\nProducts',
-    name:  AppConstants.HOME_MADE_PRODUCTS_OPTION,
+    label: AppStrings.homeMadeProducts,
+    name: AppConstants.HOME_MADE_PRODUCTS_OPTION,
     icon: AppIconAssets.homeMadeProductIcon,
     bgColor: const Color(0xFFFDD5A4),
     labelColor: const Color(0xFF8C4D00),
   ),
   ServiceItem(
-    label: 'Home Made\nFood Items',
-    name:  AppConstants.HOME_MADE_FOOD_ITEMS_OPTION,
+    label: AppStrings.homeMadeFoodItems,
+    name: AppConstants.HOME_MADE_FOOD_ITEMS_OPTION,
     icon: AppIconAssets.homeMadeFoodIcon,
     bgColor: const Color(0xFFFEF2B6),
     labelColor: const Color(0xFF856F00),
   ),
   ServiceItem(
-    label: 'Home\nServices',
-    name:  AppConstants.HOME_SERVICES_OPTION,
+    label: AppStrings.homeServices,
+    name: AppConstants.HOME_SERVICES_OPTION,
     icon: AppIconAssets.homeServiceIcon,
     bgColor: const Color(0xFFDBD5F7),
     labelColor: const Color(0xFF140074),
   ),
   ServiceItem(
-    label: 'Rental\nServices',
-    name:  AppConstants.RENTAL_SERVICES_OPTION,
+    label: AppStrings.rentalServices,
+    name: AppConstants.RENTAL_SERVICES_OPTION,
     icon: AppIconAssets.rentalServiceIcon,
     bgColor: const Color(0xFFFAD7D3),
     labelColor: const Color(0xFF740C00),
   ),
   ServiceItem(
-    label: 'Counselling /\nConsulting',
-    name:  AppConstants.COUNSELLING_CONSULTING_OPTION,
+    label: AppStrings.counsellingConsulting,
+    name: AppConstants.COUNSELLING_CONSULTING_OPTION,
     icon: AppIconAssets.consultingIcon,
     bgColor: const Color(0xFFBCEEE2),
     labelColor: const Color(0xFF006950),
   ),
   ServiceItem(
-    label: 'Tuition Classes\nOnline/Offline',
-    name:  AppConstants.TUITION_CLASSES_ONLINE_OFFLINE_OPTION,
+    label: AppStrings.tuitionClassesOnlineOffline,
+    name: AppConstants.TUITION_CLASSES_ONLINE_OFFLINE_OPTION,
     icon: AppIconAssets.teachingIcon,
     bgColor: const Color(0xFFEEBCE7),
     labelColor: const Color(0xFF8B0077),
   ),
 ];
-
 final List<ServiceItem> selfWorkServiceList = [
   ServiceItem(
-    label: 'Electrician',
+    label: AppStrings.electrician,
     name: AppConstants.ELECTRICIAN,
     icon: AppIconAssets.electricianIcon,
     bgColor: const Color(0xFFFFF2DF),
     labelColor: const Color(0xFFAF6800),
   ),
   ServiceItem(
-    label: 'Plumber',
+    label: AppStrings.plumber,
     name: AppConstants.PLUMBER,
     icon: AppIconAssets.plumberIcon,
     bgColor: const Color(0xFFFFF2C3),
     labelColor: const Color(0xFF5D4900),
   ),
   ServiceItem(
-    label: 'Technician',
+    label: AppStrings.technician,
     name: AppConstants.TECHNICIAN,
     icon: AppIconAssets.technicianIcon,
     bgColor: const Color(0xFFF0F4C2),
     labelColor: const Color(0xFF4E5500),
   ),
   ServiceItem(
-    label: 'Maid - Cleaner',
+    label: AppStrings.maidCleaner,
     name: AppConstants.MAID_CLEANER,
     icon: AppIconAssets.mainCleanerIcon,
     bgColor: const Color(0xFFD7EAC9),
     labelColor: const Color(0xFF183A00),
   ),
   ServiceItem(
-    label: 'Carpenter',
+    label: AppStrings.carpenter,
     name: AppConstants.CARPENTER,
     icon: AppIconAssets.carpenterIcon,
     bgColor: const Color(0xFFE1FCB3),
     labelColor: const Color(0xFF375700),
   ),
   ServiceItem(
-    label: 'Taxi - Car Driver',
+    label: AppStrings.taxiCarDriver,
     name: AppConstants.CAR_DRIVER_TAXI,
     icon: AppIconAssets.taxiDriverIcon,
     bgColor: const Color(0xFFB2DFDC),
     labelColor: const Color(0xFF00625C),
   ),
   ServiceItem(
-    label: 'Mechanic',
+    label: AppStrings.mechanic,
     name: AppConstants.MECHANIC,
     icon: AppIconAssets.mechanicIcon,
     bgColor: const Color(0xFFB3E5FC),
     labelColor: const Color(0xFF003E5B),
   ),
   ServiceItem(
-    label: 'Home Renovator',
+    label: AppStrings.homeRenovator,
     name: AppConstants.HOME_RENOVATION,
     icon: AppIconAssets.mistryIcon,
     bgColor: const Color(0xFFD0C4E8),
     labelColor: const Color(0xFF24006D),
   ),
   ServiceItem(
-    label: 'Painter',
+    label: AppStrings.painter,
     name: AppConstants.PAINTER,
     icon: AppIconAssets.painterIcon,
     bgColor: const Color(0xFFF9BBD0),
     labelColor: const Color(0xFF84002D),
   ),
   ServiceItem(
-    label: 'Gardener',
+    label: AppStrings.gardener,
     name: AppConstants.GARDENER,
     icon: AppIconAssets.gardenerIcon,
     bgColor: const Color(0xFFA3E7A3),
     labelColor: const Color(0xFF006300),
   ),
   ServiceItem(
-    label: 'Security Person',
+    label: AppStrings.securityPerson,
     name: AppConstants.SECURITY,
     icon: AppIconAssets.securityPersonIcon,
     bgColor: const Color(0xFFD7CCC8),
     labelColor: const Color(0xFF5B3F38),
   ),
   ServiceItem(
-    label: 'Other',
+    label: AppStrings.other,
     name: AppConstants.OTHER,
     icon: AppIconAssets.staggeredIcon,
     bgColor: const Color(0xFFCFD8DD),

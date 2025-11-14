@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/post/controller/photo_post_controller.dart';
 import 'package:BlueEra/features/common/post/controller/tag_user_controller.dart';
@@ -24,7 +25,7 @@ class PhotoPostReviewScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: 'Symbol Post',
+        title: AppStrings.symbolPost,
       ),
       body: Obx(() => controller.isLoading.value
           ? const Center(child: CircularProgressIndicator())
@@ -72,7 +73,7 @@ class PhotoPostReviewScreen extends StatelessWidget {
       child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CustomText('Upload Photos',
+              CustomText(AppStrings.uploadPhotos,
                   fontSize: SizeConfig.medium, fontWeight: FontWeight.w500),
               SizedBox(height: SizeConfig.size8),
               GridView.builder(
@@ -120,7 +121,7 @@ class PhotoPostReviewScreen extends StatelessWidget {
       child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CustomText('Description of Message',
+              CustomText(AppStrings.descriptionOfMessage,
                   fontSize: SizeConfig.medium, fontWeight: FontWeight.w500),
               SizedBox(height: SizeConfig.size10),
               Container(
@@ -145,7 +146,7 @@ class PhotoPostReviewScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Add Tag People / Organization button
-          CustomText('Tag People / Organization',
+          CustomText(AppStrings.addTagPeopleOrganization,
               fontSize: SizeConfig.medium, fontWeight: FontWeight.w500),
           // Selected users chips
           Obx(() => tagUserController.selectedUsers.isNotEmpty
@@ -181,7 +182,7 @@ class PhotoPostReviewScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CustomText('Song',
+          CustomText(AppStrings.song,
               fontSize: SizeConfig.medium, fontWeight: FontWeight.w500),
 
           // Selected users chips
@@ -234,7 +235,7 @@ class PhotoPostReviewScreen extends StatelessWidget {
         Padding(
           padding: EdgeInsets.symmetric(horizontal: SizeConfig.size16),
           child: CustomText(
-            "How long should we show this symbol?",
+            AppStrings.howLongShowSymbol,
             fontSize: SizeConfig.medium,
             fontWeight: FontWeight.w500,
             color: AppColors.black,
@@ -252,7 +253,7 @@ class PhotoPostReviewScreen extends StatelessWidget {
                   activeColor: AppColors.primaryColor,
                 ),
                 CustomText(
-                  "24 Hours",
+                  AppStrings.hours24,
                   color: AppColors.black,
                   fontWeight: FontWeight.w400,
                   fontSize: SizeConfig.large,
@@ -269,7 +270,7 @@ class PhotoPostReviewScreen extends StatelessWidget {
                   activeColor: AppColors.primaryColor,
                 ),
                 CustomText(
-                  "7 Days",
+                  AppStrings.days7,
                   color: AppColors.black,
                   fontWeight: FontWeight.w400,
                   fontSize: SizeConfig.large,
@@ -288,7 +289,7 @@ class PhotoPostReviewScreen extends StatelessWidget {
       child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CustomText('Nature of Post',
+              CustomText(AppStrings.natureOfPost,
                   fontSize: SizeConfig.medium, fontWeight: FontWeight.w500),
               SizedBox(height: SizeConfig.size10),
               Container(
@@ -316,7 +317,7 @@ class PhotoPostReviewScreen extends StatelessWidget {
             onTap: () {
               Get.back();
             },
-            title: "Cancel",
+            title: AppStrings.cancel,
             bgColor: AppColors.white,
             textColor: AppColors.primaryColor,
           )),
@@ -326,7 +327,7 @@ class PhotoPostReviewScreen extends StatelessWidget {
                 onTap: () async {
                   await controller.submitPost(postVia);
                 },
-                title: 'Post Now'),
+                title: AppStrings.postNow),
           ),
         ],
       ),

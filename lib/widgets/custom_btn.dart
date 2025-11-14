@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import 'common_box_shadow.dart';
 
@@ -85,7 +86,7 @@ class CustomBtn extends StatelessWidget {
                 child: Align(
                   alignment: align ?? Alignment.center,
                   child: CustomText(
-                    (title ?? ""),
+                    (title?.tr ?? ""),
                     fontWeight: fontWeight ?? FontWeight.bold,
                     color: textColor ?? AppColors.white,
                     fontSize: fontSize ?? SizeConfig.medium,
