@@ -107,6 +107,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                                     fontWeight: FontWeight.w600,
                                     color: widget.isReceiveMsg ? Colors.black87 : Colors.white,
                                     fontSize: 15,
+                                    maxLines: 2,
                                   ),
                                   replyMessageTypeIconWithLabel(widget.messages),
 

@@ -53,6 +53,7 @@ class _PickupOrderScreenState extends State<PickupOrderScreen> {
                   child: GestureDetector(
                     onTap: () {
                       controller.selectedPickUp.value = tab;
+                      print("lsdkmclksdmc ${controller.selectedPickUp.value != PickUpTab.newOrder && controller.selectedPickUp.value != PickUpTab.onGoing}");
                       if(controller.selectedPickUp.value != PickUpTab.newOrder && controller.selectedPickUp.value != PickUpTab.onGoing){
                         controller.getRidersBookingOrders();
                       }

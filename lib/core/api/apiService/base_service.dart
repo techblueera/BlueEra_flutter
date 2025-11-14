@@ -509,6 +509,7 @@ abstract class BaseService {
   String cancelOrderForceFully(String orderId) => 'rider-service/riders/orders/$orderId/admin/status';
   String deliverOtpVerify(String orderId) => "rider-service/riders/orders/$orderId/deliver";
   String updateOrderStatusFromAdmin(String orderId) => "rider-service/riders/orders/$orderId/admin/status";
+  String updateThePickupOtpUrl(String orderId) => "rider-service/riders/orders/$orderId/pickup";
 
   final String productSearchFilter = 'inventory-service/api/product/sort/filter';
 

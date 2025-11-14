@@ -12,6 +12,16 @@ class MakeOrderRepo extends BaseService {
         params: params, onError: (error) {}, onSuccess: (data) {});
     return response;
   }
+  Future<ResponseModel> uploadThePickupOtp(Map<String,dynamic> params,String orderId) async {
+    final response = await ApiBaseHelper().postHTTP(
+      updateThePickupOtpUrl(orderId),
+      showProgress: false,
+      params: params,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
   Future<ResponseModel> verifyPayment(Map<String, dynamic> params) async {
     final response = await ApiBaseHelper().postHTTP(
         verifyPaymentApi,

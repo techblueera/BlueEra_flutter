@@ -1,6 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
-import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
@@ -11,11 +9,8 @@ import 'package:BlueEra/features/common/food/view/food_details_view_screen.dart'
 import 'package:BlueEra/features/common/food/view/widget/km_away_text_widget.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
-
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
 import 'package:BlueEra/features/chat/view/widget/video_and_image_card_widget.dart';
 import 'package:BlueEra/features/common/map/model/food_service_model_response.dart';
@@ -29,8 +24,6 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/constants/app_icon_assets.dart';
-import '../../../../core/constants/regular_expression.dart';
-import '../../../../widgets/commom_textfield.dart';
 import '../../../../widgets/common_box_shadow.dart';
 import '../../../common/business_service/model/get_service_model.dart';
 import '../../../common/business_service/view/service_details_view_screen.dart';
@@ -38,8 +31,10 @@ import '../../../common/food/model/get_food_details_model.dart';
 import '../../../personal/personal_profile/view/inventory/controller/product_controller.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/order_controllar.dart';
+import '../business_chat/widgets/rider_details_msg_card.dart';
+import '../business_chat/widgets/rider_live_location_msg_card.dart';
+import '../business_chat/widgets/rider_request_msg_card.dart';
 import '../orders_chat/widget/order_common_widgets.dart';
-import '../orders_chat/widget/select_address_screen.dart';
 import 'audio_type_message_ui.dart';
 import 'component_widgets.dart';
 import 'document_message_card.dart';
@@ -121,7 +116,6 @@ class _MessageCardState extends State<MessageCard>
 
     final time = formatChatTime(widget.message.createdAt ?? '');
     Widget messageWidget;
-
     switch (widget.message.messageType) {
       case "location":
         messageWidget = _buildMapMessage(
@@ -184,7 +178,7 @@ class _MessageCardState extends State<MessageCard>
       case "food":
       List<String> url=[];
       url = widget.message.url?.map((e) => e.url.toString()).toList()??[];
-        messageWidget = FoodCardMessageCardBusiness(
+        messageWidget = FoodCardMessageCardBusiness(time: time,
           isFromOrderTab: widget.isFromOrderTab??false,
           photos: url,
           conversationId: widget.conversationId??'',
@@ -254,6 +248,12 @@ class _MessageCardState extends State<MessageCard>
 
               width: SizeConfig.screenWidth*0.68
           );
+      case "order_request":
+        messageWidget = RiderRequestMsgCard(message: widget.message,);
+      case "rider":
+        messageWidget = RiderDetailsMsgCard(time: time,message: widget.message,);
+      case"rider_map":
+        messageWidget = RiderLiveLocationMsgCard(message: widget.message, time: time,);
 
       default:
         messageWidget = _buildReceivedMessage(
@@ -1345,6 +1345,7 @@ class FoodCardMessageCardBusiness extends StatefulWidget {
   final bool isShowChat;
   final Messages message;
   final String userId;
+  final String time;
   final  bool isFromOrderTab;
   final String conversationId;
   final List<String> photos;
@@ -1362,7 +1363,7 @@ class FoodCardMessageCardBusiness extends StatefulWidget {
     this.isShowKM = false,
     this.isFromChatCard= false,
     this.isShowBusinessInfo = false,
-    this.businessData, required this.message, required this.userId, required this.conversationId, required this.photos,
+    this.businessData, required this.message, required this.userId, required this.conversationId, required this.photos, required this.time,
   }) : super(key: key);
 
   @override
@@ -1508,28 +1509,43 @@ class _FoodCardMessageCardBusinessState extends State<FoodCardMessageCardBusines
               ),
             ),
 
-            (serviceData?.priceType == "single")
-                ? Padding(
-              padding:
-              EdgeInsets.symmetric(horizontal: SizeConfig.size10),
-              child: CustomText(
-                "Price : ₹ ${serviceData?.singlePrice ?? "0"}",
-                fontSize: SizeConfig.small,
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-                color: AppColors.primaryColor,
-              ),
-            )
-                : Padding(
-              padding:
-              EdgeInsets.symmetric(horizontal: SizeConfig.size10),
-              child: CustomText(
-                "Price : ₹ ${priceText}",
-                fontWeight: FontWeight.w600,
-                overflow: TextOverflow.ellipsis,
-                color: AppColors.primaryColor,
-                maxLines: 1,
-              ),
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                (serviceData?.priceType == "single")
+                    ? Padding(
+                  padding:
+                  EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+                  child: CustomText(
+                    "Price : ₹ ${serviceData?.singlePrice ?? "0"}",
+                    fontSize: SizeConfig.small,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                    color: AppColors.primaryColor,
+                  ),
+                )
+                    : Padding(
+                  padding:
+                  EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+                  child: CustomText(
+                    "Price : ₹ ${priceText}",
+                    fontWeight: FontWeight.w600,
+                    overflow: TextOverflow.ellipsis,
+                    color: AppColors.primaryColor,
+                    maxLines: 1,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                  child: CustomText(
+                    "${widget.time}",
+                    fontSize: SizeConfig.size10,
+                    fontWeight: FontWeight.w400,
+                    overflow: TextOverflow.ellipsis,
+                    color: AppColors.grayText,
+                    maxLines: 1,
+                  ),
+                )
+              ],
             ),
             SizedBox(height: SizeConfig.size5),
 
@@ -1570,6 +1586,7 @@ class _FoodCardMessageCardBusinessState extends State<FoodCardMessageCardBusines
                       Map<String,dynamic> data = {
                           ApiKeys.conversation_id: widget.conversationId,
                         ApiKeys.message: "Available",
+                        ApiKeys.reply_id: "${widget.message.id}",
                         ApiKeys.message_type: "text",
                       };
 
@@ -1734,7 +1751,7 @@ class _FoodCardMessageCardBusinessState extends State<FoodCardMessageCardBusines
                 Expanded(
                   child: TextButton.icon(
                     onPressed: () {
-                      // OrderNowDialog.showDialogBox(widget.userId??'',widget.message.id??'',widget.conversationId??"");
+                      // _openBusinessToRiderOTP(context);
                       orderNow(context,widget.message.seller?.id??"",widget.message);
                     },
                     icon: SvgPicture.asset(AppIconAssets.carbon_delivery),
@@ -1754,7 +1771,6 @@ class _FoodCardMessageCardBusinessState extends State<FoodCardMessageCardBusines
     );
   }
 }
-
 class ServiceMessageCardBusiness extends StatefulWidget {
   final GetServiceModel serviceData;
   final bool isGridView;

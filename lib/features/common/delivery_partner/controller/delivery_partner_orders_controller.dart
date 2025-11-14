@@ -95,6 +95,7 @@ class DeliverPartnerOrdersController extends GetxController {
       ResponseModel? response = await MakeOrderRepo().getRidersBookingOrders();
       if (response.isSuccess ) {
 
+
         if (response.response?.data is List) {
           final parsedList = (response.response?.data as List)
               .map((item) => RiderOrdersDetailsModel.fromJson(
@@ -105,13 +106,13 @@ class DeliverPartnerOrdersController extends GetxController {
           // List<RiderOrdersDetailsModel> riderOrdersDetailsModel = parsedList;
 
           completedOrders.value =
-              parsedList.where((e) => e.status?.toLowerCase() == 'completed').toList();
+              parsedList.where((e) => e.status?.toLowerCase() == 'confirmed').toList();
 
           cancelledOrders.value =
               parsedList.where((e) => e.status?.toLowerCase() == 'cancelled').toList();
 
           rejectedOrders.value =
-              parsedList.where((e) => e.status?.toLowerCase() == 'rejected').toList();
+              parsedList.where((e) => e.status?.toLowerCase() == 'pending').toList();
 
           ordersListResponse.value = ApiResponse.complete(parsedList);
         }else{

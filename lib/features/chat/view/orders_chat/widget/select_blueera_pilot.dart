@@ -12,6 +12,7 @@ import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:mappls_gl/mappls_gl.dart';
@@ -26,11 +27,11 @@ import '../../../auth/stream/rider_response_stream.dart';
 
 class DeliveryPilotScreen extends StatefulWidget {
   const DeliveryPilotScreen(
-      {super.key, required this.lat, required this.long, required this.shopName, required this.startLat, required this.startLng});
+      {super.key, required this.dropLat, required this.dropLong, required this.shopName, required this.startLat, required this.startLng});
 
-  final double lat;
+  final double dropLat;
   final double startLat;
-  final double long;
+  final double dropLong;
   final double startLng;
   final String shopName;
 
@@ -57,7 +58,7 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
     // 3️⃣ Add the marker symbol
     await mapController!.addSymbol(
       SymbolOptions(
-        geometry: LatLng(widget.lat, widget.long),
+        geometry: LatLng(widget. dropLat, widget. dropLong),
         iconImage: 'customMarker', // must match the name above
         iconSize: 1.8,
       ),
@@ -65,7 +66,7 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
 
     // 4️⃣ Move camera to marker position
     await mapController!.animateCamera(
-      CameraUpdate.newLatLngZoom(LatLng(widget.lat, widget.long), 14.0),
+      CameraUpdate.newLatLngZoom(LatLng(widget. dropLat, widget. dropLong), 14.0),
     );
   }
   bool paymentDialogShow=false;
@@ -160,18 +161,38 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
     super.dispose();
   }
 
+  Future<String?> getAddressFromLatLng({required double lat ,required double lng}) async {
+    try {
+      List<Placemark> placemarks = await placemarkFromCoordinates(
+        lat,
+        lng,
+      );
 
+      if (placemarks.isNotEmpty) {
+        final place = placemarks.first;
+        // Build clean string (area, city, pincode)
+
+        String locationString =
+        "${place.name ?? ''}, ${place.subLocality ?? ''}, ${place.subAdministrativeArea ?? ''}, ${place.locality ?? ''} - ${place.postalCode ?? ''}".trim();
+
+        return locationString;
+      } else {
+
+        return "";
+      }
+    } catch (e) {
+      return "Location not found";
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
       appBar: CommonBackAppBar(
         title: "Delivery Pilot Near to ${widget.shopName}",
       ),
       body: Obx(() {
         if(orderController.getRidersListResponse.value.status==Status.COMPLETE&&orderController.getFaireAmountResponse.value.status==Status.COMPLETE){
           GetBlueeraPiolotModel data=orderController.getBlueeraPiolotModel.value;
-
           return
             SafeArea(
             child: Column(
@@ -182,7 +203,7 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
                   color: AppColors.white,
                   child: MapplsMap(
                     initialCameraPosition: CameraPosition(
-                      target: LatLng(widget.lat, widget.long),
+                      target: LatLng(widget. dropLat, widget. dropLong),
                       zoom: 14.0,
                     ),
                     myLocationEnabled: true,
@@ -386,15 +407,19 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
                       ),
                       onPressed: () async{
                         List<String?> userIdList=orderController.selectedIndexes.map((e)=>e?.userId).toList();
+                        String? pickupLocation= await getAddressFromLatLng(lat: widget.startLat,lng: widget.startLng);
+                        String? dropLocation= await getAddressFromLatLng(lat: widget.dropLat,lng: widget.dropLong);
                         Map<String,dynamic> params={
                           ApiKeys.selectedRiders: userIdList,
                           ApiKeys.pickupLocation: {
+                            ApiKeys.address: pickupLocation,
                             ApiKeys.latitude: widget.startLat,
                             ApiKeys.longitude: widget.startLng
                           },
                           ApiKeys.dropLocation: {
-                            ApiKeys.latitude: widget.lat,
-                            ApiKeys.longitude: widget.long
+                            ApiKeys.address: dropLocation,
+                            ApiKeys.latitude: widget.dropLat,
+                            ApiKeys.longitude: widget.dropLong
                           },
                           ApiKeys.orderId: "${(orderController.openedMessage?.metadata?.foodId!=null&&orderController.openedMessage?.metadata?.foodId!='')?
                           orderController.openedMessage?.metadata?.foodId

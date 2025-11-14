@@ -310,7 +310,7 @@ class WaitingForPaymentDialog extends StatelessWidget {
 
 
                             timer?.cancel();
-                            Navigator.pop(context);
+                            // Navigator.pop(context);
                             final razorpayService = RazorpayService();
 
                             razorpayService.openCheckout(note:  { ApiKeys.ride_order_id: '$orderId' },

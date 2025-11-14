@@ -450,4 +450,6 @@ class AppIconAssets {
   static String commentSuggest = "${iconPath}comment_suggest.svg";
   static String commentSupport = "${iconPath}comment_support.svg";
   static String commentWarn = "${iconPath}comment_warn.svg";
+  static String rider_otp = "${iconPath}rider_otp.svg";
+  static String rider_call_icon = "${iconPath}rider_call_icon.svg";
 }

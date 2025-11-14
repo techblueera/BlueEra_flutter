@@ -20,32 +20,6 @@ class OrdersTabView extends StatefulWidget {
 }
 
 class _OrdersTabViewState extends State<OrdersTabView> {
-  final List<Map<String, dynamic>> orders = [
-    {
-      'title': "McDonald’s",
-      'subtitle': "Pizza, Burger, French Fries, 1 L bottle of Cold Drink...",
-      'time': "9:52 PM",
-      'status': "Active",
-      'statusColor': Colors.green,
-      'logo': 'assets/mcd.png',
-    },
-    {
-      'title': "Pizza Hut",
-      'subtitle': "Pizza, Burger, French Fries, 1 L bottle of Cold Drink...",
-      'time': "9:52 PM",
-      'status': "Cancelled",
-      'statusColor': Colors.red,
-      'logo': 'assets/pizza.png',
-    },
-    {
-      'title': "Dominos",
-      'subtitle': "Pizza, Burger, French Fries, 1 L bottle of Cold Drink...",
-      'time': "9:52 PM",
-      'status': "Completed",
-      'statusColor': Colors.grey,
-      'logo': 'assets/dominos.png',
-    },
-  ];
 
   final List<String> filters = ['filter', 'All', 'Product', 'Service', 'Food'];
 

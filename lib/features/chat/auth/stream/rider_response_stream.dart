@@ -8,6 +8,7 @@ import '../../../../core/constants/shared_preference_utils.dart';
 // Example: authTokenGlobal = await getUserAuthToken();
 
 Stream<dynamic> riderOrderStream(String userId,) async* {
+
   final url = Uri.parse(
     'https://rider.blueera.ai/riders/orders/stream/$userId',
   );
@@ -34,7 +35,6 @@ Stream<dynamic> riderOrderStream(String userId,) async* {
     );
   }
 
-  print("SSE connected ✅");
 
   // Listen to the stream
   await for (final chunk in response.stream.transform(utf8.decoder)) {
