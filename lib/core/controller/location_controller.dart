@@ -1,12 +1,10 @@
 import 'dart:developer';
-
 import 'package:BlueEra/core/api/model/geo_coding_response.dart';
 import 'package:BlueEra/core/api/model/location_data_model.dart';
 import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
-
 import '../services/location_permission_handler.dart';
 
 class LocationController extends GetxController {
