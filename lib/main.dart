@@ -40,15 +40,9 @@ import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:mappls_gl/mappls_gl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:path_provider/path_provider.dart';
 import 'core/services/home_cache_service.dart';
 import 'features/personal/personal_profile/controller/languge_list_controller.dart';
-import 'features/personal/personal_profile/view/inventory/view/share_product_screen.dart';
-// Source - https://stackoverflow.com/a
-// Posted by Ma'moon Al-Akash, modified by community. See post 'Timeline' for change history
-// Retrieved 2025-11-13, License - CC BY-SA 4.0
 
-import 'dart:io';
 
 final AudioPlayer audioPlayer = AudioPlayer();
 

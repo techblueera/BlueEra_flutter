@@ -947,3 +947,59 @@ enum ChannelTab {
     }
   }
 }
+
+enum InventoryMenuItem {
+  addProduct,
+  addService,
+  addFood,
+}
+
+extension InventoryMenuItemExt on InventoryMenuItem {
+  String get title {
+    switch (this) {
+      case InventoryMenuItem.addProduct:
+        return 'Add Product';
+      case InventoryMenuItem.addService:
+        return 'Add Service';
+      case InventoryMenuItem.addFood:
+        return 'Add Food';
+    }
+  }
+}
+
+enum RentalServiceType {
+  homeStay("Home Stay"),
+  flatRoom("Flat/Room"),
+  vehicle("Vehicle");
+
+  final String label;
+  const RentalServiceType(this.label);
+}
+
+extension RentalServiceTabApi on RentalServiceType {
+  String get apiValue {
+    switch (this) {
+      case RentalServiceType.homeStay:
+        return "Property";      // <--- API string
+      case RentalServiceType.flatRoom:
+        return "Flat";      // <--- API string
+      case RentalServiceType.vehicle:
+        return "Vehicle";        // <--- API string
+    }
+  }
+}
+
+extension RentalServiceTypeParser on String {
+  RentalServiceType toRentalServiceType() {
+    switch (this) {
+      case "Property":
+        return RentalServiceType.homeStay;
+      case "Flat":
+        return RentalServiceType.flatRoom;
+      case "Vehicle":
+        return RentalServiceType.vehicle;
+      default:
+        throw Exception("Unknown RentalServiceType: $this");
+    }
+  }
+}
