@@ -2,7 +2,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../widgets/custom_text_cm.dart';
-import '../../../../features/common/map/view/location_service.dart';
+import '../../../../core/services/location/location_service.dart';
 
 class StoreKmAwayTextWidget extends StatelessWidget {
   final double lat;

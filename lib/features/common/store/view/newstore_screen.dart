@@ -10,7 +10,7 @@ import 'package:BlueEra/features/business/auth/controller/view_business_details_
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/common/business_service/model/get_service_model.dart';
 import 'package:BlueEra/features/common/food/model/get_food_details_model.dart';
-import 'package:BlueEra/features/common/map/view/location_service.dart';
+import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/store/view/business_store_card.dart';
 import 'package:BlueEra/features/common/store/view/store_food_service_card.dart';
 import 'package:BlueEra/features/common/store/view/store_product_card.dart';
@@ -303,7 +303,10 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProv
 
     if (groupedStoreFeed.isEmpty) {
         return const SliverToBoxAdapter(
-          child: EmptyStateWidget(message: 'No store found'),
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: EmptyStateWidget(message: 'No store found'),
+          ),
         );
       }
 
@@ -356,7 +359,10 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProv
 
     if (productList.isEmpty) {
       return const SliverToBoxAdapter(
-        child: EmptyStateWidget(message: 'No products found'),
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 20),
+          child: EmptyStateWidget(message: 'No products found'),
+        ),
       );
     }
 
@@ -403,7 +409,10 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProv
 
     if (serviceList.isEmpty) {
       return const SliverToBoxAdapter(
-        child: EmptyStateWidget(message: 'No services found'),
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 20),
+          child: EmptyStateWidget(message: 'No services found'),
+        ),
       );
     }
 
@@ -448,7 +457,10 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProv
 
     if (foodList.isEmpty) {
       return const SliverToBoxAdapter(
-        child: EmptyStateWidget(message: 'No food items found'),
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 20),
+          child: EmptyStateWidget(message: 'No food items found'),
+        ),
       );
     }
 
@@ -497,7 +509,10 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProv
 
     if (storeList.isEmpty) {
       return const SliverToBoxAdapter(
-        child: EmptyStateWidget(message: 'No stores found'),
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 20),
+          child: EmptyStateWidget(message: 'No stores found'),
+        ),
       );
     }
 
@@ -537,35 +552,6 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProv
         ),
       ),
     );
-  }
-
-  List<List<AllStoresFeedData>> _groupStoreFeed(List<AllStoresFeedData> items) {
-    final List<List<AllStoresFeedData>> grouped = [];
-    final List<AllStoresFeedData> tempFood = [];
-
-    for (var item in items) {
-      final type = StoreTypeExtension.fromString(item.type);
-
-      if (type == StoreType.food) {
-        tempFood.add(item);
-        if (tempFood.length == 2) {
-          grouped.add(List.from(tempFood));
-          tempFood.clear();
-        }
-      } else {
-        if (tempFood.isNotEmpty) {
-          grouped.add(List.from(tempFood));
-          tempFood.clear();
-        }
-        grouped.add([item]);
-      }
-    }
-
-    if (tempFood.isNotEmpty) {
-      grouped.add(List.from(tempFood));
-    }
-
-    return grouped;
   }
 
   Widget _buildStoreBlock(

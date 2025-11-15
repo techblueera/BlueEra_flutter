@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/controller/rental_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/model/rental_service_response.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/view/rental_card.dart';
+import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -102,6 +103,12 @@ class _RentalServiceScreenState extends State<RentalServiceScreen> {
         break;
     }
 
+    if(controller.isLoading.value){
+      return Center(
+          child: CircularProgressIndicator()
+      );
+    }
+
     // EMPTY LIST VIEW
     if (list.isEmpty) {
       return Center(
@@ -134,7 +141,23 @@ class _RentalServiceScreenState extends State<RentalServiceScreen> {
               final service = list[index];
               return RentalCard(
                   rentalServiceData: service,
-                  width: itemWidth
+                  width: itemWidth,
+                  deleteServiceApi: () async {
+                    await showCommonDialog(
+                    context: context,
+                    text: "Are you sure you want to delete this service? Once deleted, it cannot be recovered.",
+                    confirmText: 'Delete',
+                    cancelText: 'Cancel',
+                    confirmCallback: () {
+                      controller.deleteService(
+                          serviceId: service.sId ?? '',
+                      );
+                    },
+                    cancelCallback: () {
+                      Get.back();
+                    },
+                    );
+                  },
               );
             },
           );

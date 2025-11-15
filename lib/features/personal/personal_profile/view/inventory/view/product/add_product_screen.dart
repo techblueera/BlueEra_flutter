@@ -207,7 +207,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                   controller.searchProductVariantsList.isEmpty
                                       ? SizedBox.shrink()
                                       : Padding(
-                                    padding: EdgeInsets.only(top: SizeConfig.size10),
+                                    padding: EdgeInsets.only(top: SizeConfig.size20),
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment
                                           .start,
@@ -221,8 +221,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                         ListView.separated(
                                           itemCount: controller
                                               .searchProductVariantsList.length,
-                                          padding: EdgeInsets.symmetric(
-                                              vertical: SizeConfig.size10),
+                                          padding: EdgeInsets.only(
+                                              bottom: SizeConfig.size10),
                                           physics: NeverScrollableScrollPhysics(),
                                           shrinkWrap: true,
                                           itemBuilder: (context, index) {
@@ -573,11 +573,11 @@ class _AddProductScreenState extends State<AddProductScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Checkbox
-                GestureDetector(
-                  onTap: () => controller.toggleVariant(
+                IconButton(
+                  onPressed: () => controller.toggleVariant(
                       productVariants.finalVariant.id
                     ),
-                  child: Container(
+                  icon: Container(
                     width: 20,
                     height: 20,
                     margin: EdgeInsets.only(top: 3.0),
@@ -596,7 +596,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   ),
                 ),
 
-                SizedBox(width: SizeConfig.size12),
+                SizedBox(width: SizeConfig.size2),
 
                 // Product Image
                 Container(
@@ -649,6 +649,16 @@ class _AddProductScreenState extends State<AddProductScreen> {
                         maxLines: 3,
                         overflow: TextOverflow.ellipsis,
                       ),
+                      SizedBox(height: SizeConfig.size6),
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: CustomText(
+                          '₹${productVariants.finalVariant.sellingPrice}',
+                          fontSize: SizeConfig.medium,
+                          color: AppColors.primaryColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
 
                     ],
                   ),
@@ -684,6 +694,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     ),
                   ),
                 ),
+
               ],
             ),
 

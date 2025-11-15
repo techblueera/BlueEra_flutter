@@ -42,4 +42,15 @@ class RentalServiceRepo extends BaseService{
     return response;
   }
 
+  /// DELETE RENTAL SERVICES
+  Future<ResponseModel> deleteRentalServiceRepo({required String rentalId}) async {
+    final response = await ApiBaseHelper().deleteHTTP(
+      deleteRentalService(rentalId),
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
 }

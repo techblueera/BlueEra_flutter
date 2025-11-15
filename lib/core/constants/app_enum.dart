@@ -959,11 +959,11 @@ extension InventoryMenuItemExt on InventoryMenuItem {
   String get title {
     switch (this) {
       case InventoryMenuItem.addProduct:
-        return 'Add Product';
+        return AppStrings.addProduct;
       case InventoryMenuItem.addService:
-        return 'Add Service';
+        return AppStrings.addService;
       case InventoryMenuItem.addFood:
-        return 'Add Food';
+        return AppStrings.addFood;
     }
   }
 }

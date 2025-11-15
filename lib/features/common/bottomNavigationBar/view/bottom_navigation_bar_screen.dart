@@ -10,6 +10,7 @@ import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_scree
 import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_widget.dart';
 import 'package:BlueEra/features/common/home/view/home_screen.dart';
 import 'package:BlueEra/features/common/jobs/view/jobs_screen.dart';
+import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/more/controller/more_cards_screen_controller.dart';
 import 'package:BlueEra/features/common/reel/models/channel_model.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
@@ -69,7 +70,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   @override
   void initState() {
     super.initState();
-
+     _checkAndFetchLocationData();
     _initializeControllers();
     _initializeUserData();
     _initializeSocketConnections();
@@ -86,6 +87,12 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       });
     });
   }
+
+  Future<void> _checkAndFetchLocationData() async {
+    await LocationService.fetchLocation();
+    log('initially lat--> ${LocationService.lat}, initially lng--> ${LocationService.lng}');
+  }
+
 
   void _initializeControllers() {
     if (!isGuestUser()) {
@@ -218,7 +225,17 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
                         isBottomNavVisible: isVisible,
                         currentIndex: bottomBarController.currentIndex.value,
                         onTap: (index) async {
-                          if (index == 4) {
+
+                          /// for store need location permission
+                          if(index == 1 || index == 2){
+                            if(LocationService.lat == 0.0 || LocationService.lng == 0.0){
+                               await LocationService.askLocationPermission();
+                            }else{
+                              bottomBarController.onChangeIndex(index);
+                            }
+                          }
+                          /// for chat need notification permission
+                          else if (index == 4) {
                             await AppNotificationHandler()
                                 .checkNotificationPermission();
                             if (await Permission.notification.isGranted) {

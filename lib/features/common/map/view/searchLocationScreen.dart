@@ -1,6 +1,7 @@
 import 'dart:async';
+import 'dart:developer';
 
-import 'package:BlueEra/features/common/map/view/location_service.dart';
+import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/map/widget/search_place_list.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
@@ -62,10 +63,11 @@ class _SearchLocationScreenState extends State<SearchLocationScreen> {
       openAppSettings();
     } */
     // else {
-      var locationData = await LocationService.fetchLocation(isPermissionRequired: false);
-      if (locationData != null) {
-        var position = locationData["position"];
-        final address = locationData["address"];
+
+      log('lat--> ${LocationService.lat}, lng--> ${LocationService.lng}, current address--> ${LocationService.userCurrentAddress}');
+      if (LocationService.lat!=0.0 && LocationService.lng!=0.0) {
+        var position = LatLng(LocationService.lat, LocationService.lng);
+        final address = LocationService.userCurrentAddress;
         _currentPosition = LatLng(position.latitude, position.longitude);
         _currentAddress = address.first;
         // _currentCity = address;

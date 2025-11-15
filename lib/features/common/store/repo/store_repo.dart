@@ -47,7 +47,7 @@ class StoreRepo extends BaseService {
     String? lat,
     String? long,
   }) async {
-    const int limit = 40;
+    const int limit = 20;
 
     // Build query parameters dynamically
     final Map<String, dynamic> queryParams = {
@@ -112,7 +112,7 @@ class StoreRepo extends BaseService {
     String? long,
     String? query,
   }) async {
-    const int limit = 40;
+    const int limit = 20;
 
     // Build query parameters dynamically
     final Map<String, dynamic> queryParams = {
