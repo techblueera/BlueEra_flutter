@@ -136,8 +136,8 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
         }
 
         postTab = [
-          TabItem(id: 'Testimonials', title: AppStrings.testimonials.tr),
           TabItem(id: 'Posts', title: AppStrings.posts.tr),
+          TabItem(id: 'Testimonials', title: AppStrings.testimonials.tr),
           TabItem(id: 'Channel', title: AppStrings.channel.tr),
         ];
 

@@ -500,6 +500,6 @@ class AppStrings {
   static const blockThisUser = "block_this_user";
   static const blockUserDescription = "block_user_description";
   static const unfollow = "unfollow";
-
+  static const food = "food";
 
 }
