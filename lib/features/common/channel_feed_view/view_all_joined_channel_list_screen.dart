@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/features/common/channel_feed_view/channel_card_widget.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_controllar.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_post_listing_screen.dart';
 import 'package:BlueEra/features/common/channel_feed_view/unjoin_channel_card_widget.dart';
@@ -6,34 +7,34 @@ import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class WhatsNewChannelListScreen extends StatefulWidget {
-  WhatsNewChannelListScreen({super.key});
+class ViewAllJoinedChannelListScreen extends StatefulWidget {
+  ViewAllJoinedChannelListScreen({super.key});
 
   @override
-  State<WhatsNewChannelListScreen> createState() =>
-      _WhatsNewChannelListScreenState();
+  State<ViewAllJoinedChannelListScreen> createState() =>
+      _ViewAllJoinedChannelListScreenState();
 }
 
-class _WhatsNewChannelListScreenState extends State<WhatsNewChannelListScreen> {
+class _ViewAllJoinedChannelListScreenState extends State<ViewAllJoinedChannelListScreen> {
   final channelFeedController = Get.find<ChannelFeedController>();
 
   final scrollController = ScrollController();
 
   @override
   void initState() {
-
+    channelFeedController.fetchChannelData(loadMore: false);
 
     // TODO: implement initState
     scrollController.addListener(() {
       if (scrollController.position.pixels ==
           scrollController.position.maxScrollExtent) {
         final bool hasMore =
-            (channelFeedController.unJoinChannelFeedModel.value.pagination?.page ??
+            (channelFeedController.channelFeedModel.value.pagination?.page ??
                     1) <
                 (channelFeedController
-                        .unJoinChannelFeedModel.value.pagination?.totalPages ??
+                        .channelFeedModel.value.pagination?.totalPages ??
                     1);
-        channelFeedController.fetchUnJoinChannelData(loadMore: hasMore);
+        channelFeedController.fetchChannelData(loadMore: hasMore);
       }
     });
     super.initState();
@@ -43,11 +44,11 @@ class _WhatsNewChannelListScreenState extends State<WhatsNewChannelListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: CommonBackAppBar(title: AppStrings.whatsNew,),
+      appBar: CommonBackAppBar(title: AppStrings.joined,),
       body: SafeArea(
         child: Obx(() {
-          if (channelFeedController.isUnJoinLoading.value &&
-              channelFeedController.unJoinChannelDataList.isEmpty) {
+          if (channelFeedController.isLoading.value &&
+              channelFeedController.channelDataList.isEmpty) {
             return const Center(child: CircularProgressIndicator());
           }
 
@@ -58,22 +59,21 @@ class _WhatsNewChannelListScreenState extends State<WhatsNewChannelListScreen> {
                 child: ListView.builder(
                   controller: scrollController,
                   padding: const EdgeInsets.all(10),
-                  itemCount: channelFeedController.unJoinChannelDataList.length,
+                  itemCount: channelFeedController.channelDataList.length,
                   shrinkWrap: true,
                   itemBuilder: (context, index) {
                     final channelData =
-                        channelFeedController.unJoinChannelDataList[index];
+                        channelFeedController.channelDataList[index];
 
                     return InkWell(
-                      onTap: () {
-
-                        Get.to(() => ChannelFeedPostListingScreen(
-                              channelData: channelData,
-                            ));
-                      },
-                      child: UnjoinChannelCardWidget(
-                        channelModel: channelData,
-                        index: index,
+                      onTap: () => Get.to(
+                            () => ChannelFeedPostListingScreen(
+                            channelData: channelData),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 0, vertical: 0),
+                        child: ChannelCardWidget(channelModel: channelData),
                       ),
                     );
                   },

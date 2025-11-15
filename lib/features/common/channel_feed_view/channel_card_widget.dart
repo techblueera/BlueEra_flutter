@@ -17,11 +17,9 @@ class ChannelCardWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 0),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
       elevation: 0,
       child: Padding(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(10),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -42,7 +40,6 @@ class ChannelCardWidget extends StatelessWidget {
                 child: CachedAvatarWidget(
                     imageUrl: channelModel.logoUrl,
                     size: 54,
-                    borderColor: Colors.white,
                     borderRadius: 25),
               ),
             const SizedBox(width: 12),

@@ -14,22 +14,30 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 
 class UnjoinChannelCardWidget extends StatelessWidget {
-  UnjoinChannelCardWidget({super.key, required this.channelModel});
+  UnjoinChannelCardWidget({super.key, required this.channelModel, required this.index});
 
   final ChannelFeedData channelModel;
+  final int index;
   final channelFeedController = Get.find<ChannelFeedController>();
+
+  String displayUsername(String username) {
+    return username.length > 5
+        ? '@${username.substring(0, 5)}...'
+        : '@$username';
+  }
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 5),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      elevation: 2,
+      elevation: 0,
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(0),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -47,8 +55,7 @@ class UnjoinChannelCardWidget extends StatelessWidget {
                   },
                   child: CachedAvatarWidget(
                       imageUrl: channelModel.logoUrl,
-                      size: 40,
-                      borderColor: Colors.white,
+                      size: 54,
                       borderRadius: 25),
                 ),
                 const SizedBox(width: 12),
@@ -67,25 +74,21 @@ class UnjoinChannelCardWidget extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 4),
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                            horizontal: SizeConfig.size10,
-                            vertical: SizeConfig.size4),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: AppColors.secondaryTextColor),
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        child: CustomText(
-                          "@${channelModel.username}",
-                          fontSize: SizeConfig.extraSmall,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                      const SizedBox(height: 4),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-                          statBlock(AppStrings.post, channelModel.posts.toString()),
+                          CustomText(
+                            displayUsername(channelModel.username ?? ""),
+                            color: AppColors.secondaryTextColor,
+                            fontWeight: FontWeight.w700,
+                            fontFamily: AppConstants.OpenSans,
+                            fontSize: SizeConfig.medium,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(width: 20),
+
+                          statBlock(
+                              AppStrings.post, channelModel.posts.toString()),
                           const SizedBox(width: 20),
 
                           //  _divider(),
@@ -105,53 +108,35 @@ class UnjoinChannelCardWidget extends StatelessWidget {
                 const SizedBox(width: 8),
 
                 // Trailing section (time, badge, link)
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    GestureDetector(
-                        onTap: () {
-                          channelFeedController.toggleFollow(
-                              channelId: channelModel.id ?? ""); // 👈 Local toggle
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 13, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: channelModel.isFollowing
-                                ? AppColors.colorTextDarkGrey
-                                : AppColors.primaryColor,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Row(
-                            children: [
-                              CustomText(
-                                channelModel.isFollowing ? AppStrings.unjoin : AppStrings.join,
-                                color: Colors.white,
-                                fontWeight: FontWeight.w700,
-                                fontSize: SizeConfig.size10,
-                              ),
-                              const SizedBox(width: 6),
-                              Icon(
-                                Icons.person_add_alt,
-                                color: Colors.white,
-                                size: 14,
-                              )
-                            ],
-                          ),
-                        )
-                        ),
-
-                  ],
-                ),
-              ],
+                Padding(
+                  padding:  EdgeInsets.only(right: 5),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      CustomText(
+                        formatTime(channelModel.ownership?.claimedAt ?? ""),
+                        fontSize: SizeConfig.small11,
+                        color: Colors.grey.shade600,
+                      ),
+                      const SizedBox(height: 6),
+                    ],
+                  ),
+                ),              ],
             ),
-            if(channelModel.latestPost!=null)...[
-
-              SizedBox(height: 10,),
-              FeedCard(post: channelModel.latestPost, index: 0, postFilteredType: PostType.otherChannelPosts,isFromDetailsScreen: true,)
-
+            if (channelModel.latestPost != null) ...[
+              SizedBox(
+                height: 10,
+              ),
+              Padding(
+                padding: EdgeInsets.only(left: 25.0),
+                child: FeedCard(
+                  post: channelModel.latestPost,
+                  index: index,
+                  postFilteredType: PostType.otherChannelPosts,
+                  isFromDetailsScreen: true,
+                ),
+              )
             ],
-
           ],
         ),
       ),

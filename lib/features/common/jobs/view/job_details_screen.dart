@@ -3,6 +3,7 @@ import 'dart:convert'; // Added for jsonDecode
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/auth/model/get_job_details_byId_model.dart';
@@ -144,7 +145,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
               navigatePushTo(
                 context,
                 ImageViewScreen(
-                  appBarTitle: AppLocalizations.of(context)!.imageViewer,
+                  appBarTitle: AppStrings.imageViewer,
                   // imageUrls: [post?.author.profileImage ?? ''],
                   imageUrls: [job.jobPostImage ?? ""],
                   initialIndex: 0,
@@ -216,11 +217,11 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          titleText("Department"),
+          titleText(AppStrings.department),
           SizedBox(height: SizeConfig.size8),
           subtitleText(job.department ?? ""),
           SizedBox(height: SizeConfig.size20),
-          titleText("Job description"),
+          titleText(AppStrings.jobDescription),
           SizedBox(height: SizeConfig.size8),
           ExpandableText(text: job.jobDescription ?? "", trimLines: 3),
           SizedBox(height: SizeConfig.size20),
@@ -233,7 +234,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                titleText("Job Highlights"),
+                titleText(AppStrings.jobHighlights),
                 SizedBox(height: SizeConfig.size8),
                 if (job.jobHighlights != null && job.jobHighlights!.isNotEmpty)
                   ...job.jobHighlights!
@@ -258,7 +259,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                           ))
                       .toList()
                 else
-                  subtitleText("No highlights available"),
+                  subtitleText(AppStrings.noHighlightsAvailable),
                 const SizedBox(height: 12),
               ],
             ),
@@ -317,7 +318,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                             'jobId': JOBID,
                           });
                     },
-                    title: 'Edit',
+                    title: AppStrings.edit,
                     bgColor: AppColors.white,
                     borderColor: AppColors.primaryColor,
                     textColor: AppColors.primaryColor,
@@ -332,7 +333,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                           double.tryParse(job.location?.longitude ?? '');
                       controller.openMap(lat ?? 0, lng ?? 0);
                     },
-                    title: 'Directions',
+                    title: AppStrings.directions,
                     bgColor: AppColors.white,
                     borderColor: AppColors.primaryColor,
                     textColor: AppColors.primaryColor,
@@ -346,7 +347,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                       await Get.find<CreateJobPostController>()
                           .publishJobApi(jobId: JOBID);
                     },
-                    title: 'Post Job',
+                    title: AppStrings.postJob,
                   ),
                 ),
               ],
@@ -357,7 +358,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                     onTap: () {
                       controller.getAllResumesApi(jobId: JOBID);
                     },
-                    title: 'Apply Now',
+                    title: AppStrings.applyNow,
                   ),
                 ),
               ]
@@ -402,13 +403,13 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          titleText("About Company"),
+          titleText(AppStrings.aboutCompany),
           SizedBox(height: SizeConfig.size20),
           JobHeaderRow(
             jobId: job.sId ?? "",
             logoUrl: job.businessDetails?.buisness_logo ?? "",
             companyName:
-                "Since ${job.businessDetails?.dateOfIncorporation?.year}",
+                "${AppStrings.since.tr} ${job.businessDetails?.dateOfIncorporation?.year}",
             title: job.businessDetails?.businessName ?? "",
             companyNameColor: AppColors.grey9A,
             businessUserId: job.businessDetails?.id ?? "",
@@ -425,61 +426,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
     );
   }
 
-  Widget jobRoleCard(Job job) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10.0),
-          color: AppColors.whiteCC,
-          border: Border.all(color: AppColors.white12, width: 0.5),
-          boxShadow: [BoxShadow(color: AppColors.black25, blurRadius: 6)]),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            "Job Role",
-            style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: AppColors.black28),
-          ),
-          const SizedBox(height: 16),
-          roleItem(
-            icon: LocalAssets(
-                imagePath: AppIconAssets.workAddressIcon,
-                imgColor: AppColors.black28),
-            label: "Work location",
-            value: job.location?.addressString ?? "Location not specified",
-          ),
-          const SizedBox(height: 16),
-          roleItem(
-            icon: LocalAssets(
-                imagePath: AppIconAssets.departmentIcon,
-                imgColor: AppColors.black28),
-            label: "Department",
-            value: job.department ?? "Department not specified",
-          ),
-          const SizedBox(height: 16),
-          roleItem(
-            icon: LocalAssets(
-                imagePath: AppIconAssets.workLocationIcon,
-                imgColor: AppColors.black28),
-            label: "Work location",
-            value: job.location?.addressString ?? "Location not specified",
-          ),
-          const SizedBox(height: 16),
-          roleItem(
-            icon: LocalAssets(
-                imagePath: AppIconAssets.jobTypeIcon,
-                imgColor: AppColors.black28),
-            label: "Job Type",
-            value: "${job.jobType ?? ""} - ${job.workMode ?? ""}",
-          ),
-        ],
-      ),
-    );
-  }
+
 
   Widget jobRequirementCard(Job job) {
     return Container(
@@ -491,21 +438,21 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          titleText("Job Requirements"),
+          titleText(AppStrings.jobRequirements),
           SizedBox(height: SizeConfig.size14),
           requirementItem(
             icon: LocalAssets(
                 imagePath: AppIconAssets.experienceJobIcon,
                 imgColor: AppColors.black28),
-            label: "Experience",
-            value: "Min. " + (job.experience?.toString() ?? "") + " years",
+            label: AppStrings.experience,
+            value: "${AppStrings.min}. " + (job.experience?.toString() ?? "") + "${AppStrings.years}",
           ),
           SizedBox(height: SizeConfig.size15),
           requirementItem(
             icon: LocalAssets(
                 imagePath: AppIconAssets.educationJobIcon,
                 imgColor: AppColors.black28),
-            label: "Education",
+            label: AppStrings.education,
             value: job.qualifications ?? "",
           ),
           SizedBox(height: SizeConfig.size20),
@@ -523,7 +470,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
               SizedBox(width: SizeConfig.size15),
               Expanded(
                 flex: 10,
-                child: titleText("Skill",
+                child: titleText(AppStrings.skill,
                     color: AppColors.grey9A,
                     fontWeight: FontWeight.w400,
                     fontSize: SizeConfig.small),
@@ -564,7 +511,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
               SizedBox(width: SizeConfig.size15),
               Expanded(
                 flex: 10,
-                child: titleText("Languages",
+                child: titleText(AppStrings.language,
                     color: AppColors.grey9A,
                     fontWeight: FontWeight.w400,
                     fontSize: SizeConfig.small),
@@ -610,15 +557,14 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label,
-                  style:
-                      const TextStyle(color: AppColors.black28, fontSize: 13)),
+              CustomText(label,
+                 color: AppColors.black28, fontSize: 13),
               const SizedBox(height: 4),
-              Text(value,
-                  style: const TextStyle(
+              CustomText(value,
+
                       color: AppColors.black28,
                       fontSize: 14,
-                      fontWeight: FontWeight.w500)),
+                      fontWeight: FontWeight.w500),
             ],
           ),
         )

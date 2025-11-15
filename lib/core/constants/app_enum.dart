@@ -369,14 +369,15 @@ enum JobFilteredCategory {
 }
 
 enum JobIndividualCategory {
-  all(label: 'All'),
-  applied(label: 'Applied'),
-  schedules(label: 'Schedules'),
-  saved(label: 'Saved');
+  all(label: AppStrings.all,labelId: AppConstants.All),
+  applied(label: AppStrings.applied,labelId:AppConstants.Applied ),
+  schedules(label: AppStrings.schedules,labelId:AppConstants.SCHEDULES,),
+  saved(label: AppStrings.saved,labelId:AppConstants.Saved);
 
   final String label;
+  final String labelId;
 
-  const JobIndividualCategory({required this.label});
+  const JobIndividualCategory({required this.label,required this.labelId});
 }
 
 enum JobAppliedCategoryTab {

@@ -92,6 +92,8 @@ class _MessagePostWidgetState extends State<ChannelFeedMessagePostWidget> {
 
   @override
   Widget build(BuildContext context) {
+    logs("ValueKey(widget.videoItem.videoId)1= ${widget.post?.id}");
+
     return IgnorePointer(
       ignoring: widget.isRepost == true ? true : false,
       child: FeedCardWidget(
@@ -106,14 +108,12 @@ class _MessagePostWidgetState extends State<ChannelFeedMessagePostWidget> {
                     if ((_post.media_types?.firstOrNull?.startsWith("video/") ??
                             false) ||
                         isVideoUrl(_post.media?.firstOrNull)) ...[
-                      // if ((videoData.video?.duration ?? 0) > 0)
                       Padding(
-                        padding: EdgeInsets.only(
-                            left: 0,
-                            right: 0,
-                            top:0),
+                        padding: EdgeInsets.only(left: 0, right: 0, top: 0),
                         child: PostFeedAutoPlayVideoCard(
                           videoItem: videoData!,
+                          key: ValueKey(videoData?.videoId ?? 0),
+
                           globalMuteNotifier: ValueNotifier(false),
                           videoType: VideoType.videoFeed,
                           onTapOption: () {
@@ -205,367 +205,359 @@ class _MessagePostWidgetState extends State<ChannelFeedMessagePostWidget> {
                       child: ClickableLinkText(url: _post.referenceLink!),
                     ),
 
-                    if (widget.isShowOnlyDetails == false)...[
+                  if (widget.isShowOnlyDetails == false) ...[
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                          horizontal: SizeConfig.size15,
+                          vertical: SizeConfig.size5),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          ViewFeedActionWidget(
+                              iconPath: AppIconAssets.clock_new,
+                              data: timeAgo(_post.createdAt != null
+                                  ? _post.createdAt ?? DateTime.now()
+                                  : DateTime.now())),
+                          ViewFeedActionWidget(
+                            iconPath: AppIconAssets.eye_new,
+                            data: formatNumberLikePost(_post.viewsCount ?? 0),
+                          ),
+                          InkWell(
+                            onTap: () {
+                              if (isGuestUser()) {
+                                createProfileScreen();
+                              } else {
+                                widget.commentView();
+                              }
+                            },
+                            child: ViewFeedActionWidget(
+                                iconPath: AppIconAssets.comment_new,
+                                data: formatNumberLikePost(
+                                    _post.commentsCount ?? 0)),
+                          ),
+                          InkWell(
+                            onTap: () {
+                              if (isGuestUser()) {
+                                createProfileScreen();
+                              } else {
+                                widget.likeFeed();
+                              }
+                              // if ((_post.likesCount ?? 0) < 1) {
+                              //   return;
+                              // }
 
-                      Padding(
-                        padding: EdgeInsets.symmetric(
-                            horizontal: SizeConfig.size15,
-                            vertical: SizeConfig.size5),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            ViewFeedActionWidget(
-                                iconPath: AppIconAssets.clock_new,
-                                data: timeAgo(_post.createdAt != null
-                                    ? _post.createdAt ?? DateTime.now()
-                                    : DateTime.now())),
-                            ViewFeedActionWidget(
-                              iconPath: AppIconAssets.eye_new,
-                              data: formatNumberLikePost(_post.viewsCount ?? 0),
-                            ),
-                            InkWell(
-                              onTap: () {
-                                if (isGuestUser()) {
-                                  createProfileScreen();
-                                } else {
-                                  widget.commentView();
-                                }
-                              },
-                              child: ViewFeedActionWidget(
-                                  iconPath: AppIconAssets.comment_new,
-                                  data: formatNumberLikePost(
-                                      _post.commentsCount ?? 0)),
-                            ),
-                            InkWell(
-                              onTap: () {
-                                if (isGuestUser()) {
-                                  createProfileScreen();
-                                } else {
-                                  widget.likeFeed();
-                                }
-                                // if ((_post.likesCount ?? 0) < 1) {
-                                //   return;
-                                // }
-
-                                // showDialog(
-                                //   context: context,
-                                //   builder: (context) => PostLikeUserListDialog(
-                                //     postId: widget.post?.id ?? '',
-                                //   ),
-                                // );
-                              },
-                              child: Padding(
-                                padding:
-                                EdgeInsets.only(right: SizeConfig.size10),
-                                child: Row(
-                                  children: [
-                                    LocalAssets(
-                                      imagePath: AppIconAssets.like_new,
-                                      width: SizeConfig.size18,
-                                      height: SizeConfig.size18,
-                                      imgColor: (widget.post?.isLiked ?? false)
-                                          ? AppColors.primaryColor
-                                          : AppColors.secondaryTextColor,
-                                    ),
-                                    SizedBox(
-                                      width: SizeConfig.size5,
-                                    ),
-                                    CustomText(
-                                      formatNumberLikePost(
-                                          _post.likesCount ?? 0),
-                                      color: AppColors.secondaryTextColor,
-                                      fontSize: SizeConfig.size10,
-                                    ),
-                                  ],
-                                ),
-                              ) /*ViewFeedActionWidget(
+                              // showDialog(
+                              //   context: context,
+                              //   builder: (context) => PostLikeUserListDialog(
+                              //     postId: widget.post?.id ?? '',
+                              //   ),
+                              // );
+                            },
+                            child: Padding(
+                              padding:
+                                  EdgeInsets.only(right: SizeConfig.size10),
+                              child: Row(
+                                children: [
+                                  LocalAssets(
+                                    imagePath: AppIconAssets.like_new,
+                                    width: SizeConfig.size18,
+                                    height: SizeConfig.size18,
+                                    imgColor: (widget.post?.isLiked ?? false)
+                                        ? AppColors.primaryColor
+                                        : AppColors.secondaryTextColor,
+                                  ),
+                                  SizedBox(
+                                    width: SizeConfig.size5,
+                                  ),
+                                  CustomText(
+                                    formatNumberLikePost(_post.likesCount ?? 0),
+                                    color: AppColors.secondaryTextColor,
+                                    fontSize: SizeConfig.size10,
+                                  ),
+                                ],
+                              ),
+                            ) /*ViewFeedActionWidget(
                                 iconPath: AppIconAssets.like_new,
                                 data: formatNumberLikePost(
                                     _post.likesCount ?? 0))*/
-                              ,
-                            ),
-                            if (widget.post?.type?.toLowerCase() ==
-                                "message_post")
-                              InkWell(
-                                onTap: () {
-                                  if (isGuestUser()) {
-                                    createProfileScreen();
+                            ,
+                          ),
+                          if (widget.post?.type?.toLowerCase() ==
+                              "message_post")
+                            InkWell(
+                              onTap: () {
+                                if (isGuestUser()) {
+                                  createProfileScreen();
 
-                                    return;
-                                  }
-                                  showDialog(
-                                    context: context,
-                                    barrierDismissible: true,
-                                    builder: (context) {
-                                      return Dialog(
-                                        insetPadding: EdgeInsets.symmetric(
-                                            horizontal: SizeConfig.size20),
-                                        backgroundColor: AppColors.white,
-                                        shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                            BorderRadius.circular(12)),
-                                        child: ClipRRect(
+                                  return;
+                                }
+                                showDialog(
+                                  context: context,
+                                  barrierDismissible: true,
+                                  builder: (context) {
+                                    return Dialog(
+                                      insetPadding: EdgeInsets.symmetric(
+                                          horizontal: SizeConfig.size20),
+                                      backgroundColor: AppColors.white,
+                                      shape: RoundedRectangleBorder(
                                           borderRadius:
-                                          BorderRadius.circular(12),
-                                          child: ConstrainedBox(
-                                            constraints:
-                                            BoxConstraints(maxWidth: 800),
-                                            child: Padding(
-                                              padding: EdgeInsets.symmetric(
-                                                  horizontal:
-                                                  SizeConfig.size15),
-                                              child: Column(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  SizedBox(
-                                                      height:
-                                                      SizeConfig.size20),
-                                                  InkWell(
-                                                    onTap: () async {
-                                                      Get.put(
-                                                          MessagePostController());
+                                              BorderRadius.circular(12)),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(12),
+                                        child: ConstrainedBox(
+                                          constraints:
+                                              BoxConstraints(maxWidth: 800),
+                                          child: Padding(
+                                            padding: EdgeInsets.symmetric(
+                                                horizontal: SizeConfig.size15),
+                                            child: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                SizedBox(
+                                                    height: SizeConfig.size20),
+                                                InkWell(
+                                                  onTap: () async {
+                                                    Get.put(
+                                                        MessagePostController());
 
-                                                      ///REPOST MESSAGE AND POLL POST...
-                                                      Get.back();
-                                                      ResponseModel
-                                                      responseModel =
-                                                      await PostRepo()
-                                                          .addRePostNewRepo(
-                                                        reqDataData: {
-                                                          ApiKeys.type:
-                                                          AppConstants
-                                                              .MESSAGE_POST,
-                                                          ApiKeys.repostId:
-                                                          widget.post?.id ??
-                                                              ""
-                                                        },
-                                                      );
-                                                      if (responseModel
-                                                          .isSuccess) {
-                                                        commonSnackBar(
-                                                            message:
-                                                            "Reposted successfully");
-                                                        Get.find<
-                                                            NavigationHelperController>()
-                                                            .shouldRefreshBottomBar
-                                                            .value = true;
-                                                        Get.until((route) =>
-                                                        route.settings
-                                                            .name ==
-                                                            RouteHelper
-                                                                .getBottomNavigationBarScreenRoute());
-                                                      } else {
-                                                        commonSnackBar(
-                                                            message:
-                                                            "You have already reposted this post");
-                                                      }
-                                                    },
-                                                    child: Row(
-                                                      crossAxisAlignment:
-                                                      CrossAxisAlignment
-                                                          .start,
-                                                      children: [
-                                                        Container(
+                                                    ///REPOST MESSAGE AND POLL POST...
+                                                    Get.back();
+                                                    ResponseModel
+                                                        responseModel =
+                                                        await PostRepo()
+                                                            .addRePostNewRepo(
+                                                      reqDataData: {
+                                                        ApiKeys.type:
+                                                            AppConstants
+                                                                .MESSAGE_POST,
+                                                        ApiKeys.repostId:
+                                                            widget.post?.id ??
+                                                                ""
+                                                      },
+                                                    );
+                                                    if (responseModel
+                                                        .isSuccess) {
+                                                      commonSnackBar(
+                                                          message:
+                                                              "Reposted successfully");
+                                                      Get.find<
+                                                              NavigationHelperController>()
+                                                          .shouldRefreshBottomBar
+                                                          .value = true;
+                                                      Get.until((route) =>
+                                                          route.settings.name ==
+                                                          RouteHelper
+                                                              .getBottomNavigationBarScreenRoute());
+                                                    } else {
+                                                      commonSnackBar(
+                                                          message:
+                                                              "You have already reposted this post");
+                                                    }
+                                                  },
+                                                  child: Row(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Container(
+                                                        width:
+                                                            SizeConfig.size30,
+                                                        height:
+                                                            SizeConfig.size30,
+                                                        child: LocalAssets(
+                                                          imagePath:
+                                                              AppIconAssets
+                                                                  .repost_new,
                                                           width:
-                                                          SizeConfig.size30,
+                                                              SizeConfig.size30,
                                                           height:
-                                                          SizeConfig.size30,
-                                                          child: LocalAssets(
-                                                            imagePath:
-                                                            AppIconAssets
-                                                                .repost_new,
-                                                            width: SizeConfig
-                                                                .size30,
-                                                            height: SizeConfig
-                                                                .size30,
-                                                          ),
+                                                              SizeConfig.size30,
                                                         ),
-                                                        Expanded(
-                                                          child: Column(
-                                                            crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
-                                                            children: [
-                                                              Padding(
-                                                                padding: EdgeInsets.symmetric(
-                                                                    horizontal:
+                                                      ),
+                                                      Expanded(
+                                                        child: Column(
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          children: [
+                                                            Padding(
+                                                              padding: EdgeInsets
+                                                                  .symmetric(
+                                                                      horizontal:
+                                                                          SizeConfig
+                                                                              .size10),
+                                                              child: CustomText(
+                                                                "Repost",
+                                                                textAlign:
+                                                                    TextAlign
+                                                                        .left,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                                fontSize:
                                                                     SizeConfig
-                                                                        .size10),
-                                                                child:
-                                                                CustomText(
-                                                                  "Repost",
-                                                                  textAlign:
-                                                                  TextAlign
-                                                                      .left,
-                                                                  fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
-                                                                  fontSize:
-                                                                  SizeConfig
-                                                                      .size16,
-                                                                ),
+                                                                        .size16,
                                                               ),
-                                                              Padding(
-                                                                padding: EdgeInsets.symmetric(
-                                                                    horizontal:
+                                                            ),
+                                                            Padding(
+                                                              padding: EdgeInsets
+                                                                  .symmetric(
+                                                                      horizontal:
+                                                                          SizeConfig
+                                                                              .size10),
+                                                              child: CustomText(
+                                                                "Share this post with your followers",
+                                                                textAlign:
+                                                                    TextAlign
+                                                                        .left,
+                                                                color: AppColors
+                                                                    .secondaryTextColor,
+                                                                fontSize:
                                                                     SizeConfig
-                                                                        .size10),
-                                                                child:
-                                                                CustomText(
-                                                                  "Share this post with your followers",
-                                                                  textAlign:
-                                                                  TextAlign
-                                                                      .left,
-                                                                  color: AppColors
-                                                                      .secondaryTextColor,
-                                                                  fontSize:
-                                                                  SizeConfig
-                                                                      .size13,
-                                                                ),
+                                                                        .size13,
                                                               ),
-                                                            ],
-                                                          ),
+                                                            ),
+                                                          ],
                                                         ),
-                                                      ],
-                                                    ),
+                                                      ),
+                                                    ],
                                                   ),
-                                                  Padding(
-                                                    padding: EdgeInsets.only(
-                                                        top: SizeConfig.size10,
-                                                        bottom:
-                                                        SizeConfig.size10),
-                                                    child: Divider(
-                                                      color: AppColors
-                                                          .secondaryTextColor,
-                                                    ),
+                                                ),
+                                                Padding(
+                                                  padding: EdgeInsets.only(
+                                                      top: SizeConfig.size10,
+                                                      bottom:
+                                                          SizeConfig.size10),
+                                                  child: Divider(
+                                                    color: AppColors
+                                                        .secondaryTextColor,
                                                   ),
-                                                  InkWell(
-                                                    onTap: () {
-                                                      Get.back();
-                                                      Get.to(
-                                                          CreateMessagePostScreenRepost(
-                                                            isEdit: false,
-                                                            post: widget.post,
-                                                          ));
-                                                    },
-                                                    child: Row(
-                                                      crossAxisAlignment:
-                                                      CrossAxisAlignment
-                                                          .start,
-                                                      children: [
-                                                        Container(
+                                                ),
+                                                InkWell(
+                                                  onTap: () {
+                                                    Get.back();
+                                                    Get.to(
+                                                        CreateMessagePostScreenRepost(
+                                                      isEdit: false,
+                                                      post: widget.post,
+                                                    ));
+                                                  },
+                                                  child: Row(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Container(
+                                                        width:
+                                                            SizeConfig.size30,
+                                                        height:
+                                                            SizeConfig.size30,
+                                                        child: LocalAssets(
+                                                          imagePath:
+                                                              AppIconAssets
+                                                                  .pencilIcon,
                                                           width:
-                                                          SizeConfig.size30,
+                                                              SizeConfig.size20,
                                                           height:
-                                                          SizeConfig.size30,
-                                                          child: LocalAssets(
-                                                            imagePath:
-                                                            AppIconAssets
-                                                                .pencilIcon,
-                                                            width: SizeConfig
-                                                                .size20,
-                                                            height: SizeConfig
-                                                                .size20,
-                                                            // imgColor: AppColors.secondaryTextColor,
-                                                          ),
+                                                              SizeConfig.size20,
+                                                          // imgColor: AppColors.secondaryTextColor,
                                                         ),
-                                                        Flexible(
-                                                          flex: 2,
-                                                          child: Column(
-                                                            crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
-                                                            children: [
-                                                              Padding(
-                                                                padding: EdgeInsets.symmetric(
-                                                                    horizontal:
+                                                      ),
+                                                      Flexible(
+                                                        flex: 2,
+                                                        child: Column(
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          children: [
+                                                            Padding(
+                                                              padding: EdgeInsets
+                                                                  .symmetric(
+                                                                      horizontal:
+                                                                          SizeConfig
+                                                                              .size10),
+                                                              child: CustomText(
+                                                                "Add your things",
+                                                                textAlign:
+                                                                    TextAlign
+                                                                        .left,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                                fontSize:
                                                                     SizeConfig
-                                                                        .size10),
-                                                                child:
-                                                                CustomText(
-                                                                  "Add your things",
-                                                                  textAlign:
-                                                                  TextAlign
-                                                                      .left,
-                                                                  fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
-                                                                  fontSize:
-                                                                  SizeConfig
-                                                                      .size16,
-                                                                ),
+                                                                        .size16,
                                                               ),
-                                                              Padding(
-                                                                padding: EdgeInsets.symmetric(
-                                                                    horizontal:
+                                                            ),
+                                                            Padding(
+                                                              padding: EdgeInsets
+                                                                  .symmetric(
+                                                                      horizontal:
+                                                                          SizeConfig
+                                                                              .size10),
+                                                              child: CustomText(
+                                                                "Add a comment ,photo before you share this post",
+                                                                textAlign:
+                                                                    TextAlign
+                                                                        .left,
+                                                                color: AppColors
+                                                                    .secondaryTextColor,
+                                                                fontSize:
                                                                     SizeConfig
-                                                                        .size10),
-                                                                child:
-                                                                CustomText(
-                                                                  "Add a comment ,photo before you share this post",
-                                                                  textAlign:
-                                                                  TextAlign
-                                                                      .left,
-                                                                  color: AppColors
-                                                                      .secondaryTextColor,
-                                                                  fontSize:
-                                                                  SizeConfig
-                                                                      .size13,
-                                                                ),
+                                                                        .size13,
                                                               ),
-                                                            ],
-                                                          ),
+                                                            ),
+                                                          ],
                                                         ),
-                                                      ],
-                                                    ),
+                                                      ),
+                                                    ],
                                                   ),
-                                                  SizedBox(
-                                                      height:
-                                                      SizeConfig.size20),
-                                                ],
-                                              ),
+                                                ),
+                                                SizedBox(
+                                                    height: SizeConfig.size20),
+                                              ],
                                             ),
                                           ),
                                         ),
-                                      );
-                                    },
-                                  );
-                                },
-                                child: ViewFeedActionWidget(
-                                    iconPath: AppIconAssets.repost_new,
-                                    data: formatNumberLikePost(
-                                        _post.repostCount ?? 0)),
-                              ),
-                            Padding(
-                              padding: EdgeInsets.only(left: SizeConfig.size5),
-                              child: InkWell(
-                                onTap: () => widget.onShareButtonPressed(),
-                                child: LocalAssets(
-                                  imagePath: AppIconAssets.share_bold,
-                                  imgColor: AppColors.secondaryTextColor,
-                                ),
+                                      ),
+                                    );
+                                  },
+                                );
+                              },
+                              child: ViewFeedActionWidget(
+                                  iconPath: AppIconAssets.repost_new,
+                                  data: formatNumberLikePost(
+                                      _post.repostCount ?? 0)),
+                            ),
+                          Padding(
+                            padding: EdgeInsets.only(left: SizeConfig.size5),
+                            child: InkWell(
+                              onTap: () => widget.onShareButtonPressed(),
+                              child: LocalAssets(
+                                imagePath: AppIconAssets.share_bold,
+                                imgColor: AppColors.secondaryTextColor,
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                      SizedBox(
-                        height: SizeConfig.size5,
-                      ),
-                    ]
+                    ),
+                    SizedBox(
+                      height: SizeConfig.size5,
+                    ),
+                  ]
 
-                    // widget.buildActions(),
-                    // SizedBox(
-                    //   height: SizeConfig.size10,
-                    // ),
+                  // widget.buildActions(),
+                  // SizedBox(
+                  //   height: SizeConfig.size10,
+                  // ),
                 ],
               ),
             ],
           )),
     );
   }
-
 }
 
 ViewFeedActionWidget({required String iconPath, required String data}) {

@@ -146,6 +146,7 @@ class AppConstants {
   static const Offered = "Offered";
   static const Rejected = "Rejected";
   static const SCHEDULES = "SCHEDULES";
+  static const Saved = "Saved";
   static const rescheduled = "rescheduled";
   static const String Interviewing = "Interviewing";
   static const String Withdrawn = "Withdrawn";

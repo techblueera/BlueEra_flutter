@@ -136,13 +136,7 @@ class JobCard extends StatelessWidget {
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
-                                  /*CustomText(
-                                    "Posted On ${formatMonthStringDate(job?.createdAt.toString() ?? "")}",
-                                    fontSize: SizeConfig.extraSmall8,
-                                    color: AppColors.secondaryTextColor,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),*/
+
                                 ],
                               ),
                             ),

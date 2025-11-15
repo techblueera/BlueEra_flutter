@@ -4,6 +4,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -111,24 +112,18 @@ class _AllJobPostScreenState extends State<AllJobPostScreen> {
 
         return RefreshIndicator(
           onRefresh: () async {
-            if(jobScreenController.headerOffset.value != 0.0)
-              return;
+            if (jobScreenController.headerOffset.value != 0.0) return;
 
             await apiCalling();
           },
           child: jobScreenController.jobsData?.isEmpty ?? true
               ? Center(
-              child: Padding(
-                padding: EdgeInsets.all(24.0),
-                child: CustomText(AppConstants.SCHEDULES == widget.tabName
-                    ? "No Job Schedule Yet"
-                    : 'No Jobs Available'),
-              ))/*ListView(
-                  physics: AlwaysScrollableScrollPhysics(),
-                  children: [
-
-                  ],
-                )*/
+                  child: Padding(
+                  padding: EdgeInsets.all(24.0),
+                  child: CustomText(AppConstants.SCHEDULES == widget.tabName
+                      ? AppStrings.noJobScheduleYet
+                      : AppStrings.noJobsAvailable),
+                ))
               : ListView.builder(
                   controller: _scrollController,
                   physics: const AlwaysScrollableScrollPhysics(),
@@ -141,8 +136,6 @@ class _AllJobPostScreenState extends State<AllJobPostScreen> {
                       child: InkWell(
                         onTap: () {
                           if (isIndividual()) {
-                            
-                            debugPrint("individual job card tapped");
                             Get.to(() => JobDetailScreen(
                                   jobId: job?.sId.toString() ?? "",
                                   isPostApply: AppConstants.APPLY_NOW,
@@ -152,7 +145,6 @@ class _AllJobPostScreenState extends State<AllJobPostScreen> {
                                 ));
                           }
                           if (isBusiness()) {
-                            debugPrint("business job card tapped");
                             Get.to(() => JobDetailScreen(
                                   jobId: job?.sId.toString() ?? "",
                                   isPostDirection: '',
@@ -165,7 +157,7 @@ class _AllJobPostScreenState extends State<AllJobPostScreen> {
                         child: Container(
                           height: isBusiness()
                               ? SizeConfig.size200 - 15
-                              : SizeConfig.size200 + 5,
+                              : SizeConfig.size200 + 6,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(10.0),
                             color: AppColors.white,
@@ -219,7 +211,6 @@ class _AllJobPostScreenState extends State<AllJobPostScreen> {
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
-
                                     children: [
                                       // SizedBox(height: SizeConfig.size5,),
                                       Row(
@@ -255,7 +246,7 @@ class _AllJobPostScreenState extends State<AllJobPostScreen> {
                                                         TextOverflow.ellipsis,
                                                   ),
                                                   CustomText(
-                                                    "Posted On ${formatMonthStringDate(job?.createdAt.toString() ?? "")}",
+                                                    "${AppStrings.postedOn.tr} ${formatMonthStringDate(job?.createdAt.toString() ?? "")}",
                                                     fontSize:
                                                         SizeConfig.extraSmall8,
                                                     color: AppColors
@@ -342,7 +333,7 @@ class _AllJobPostScreenState extends State<AllJobPostScreen> {
                                                         if (jobId.isEmpty) {
                                                           commonSnackBar(
                                                             message:
-                                                                'Job ID is missing. Cannot edit this job.',
+                                                            AppStrings.jobIdMissing,
                                                           );
 
                                                           return;
@@ -367,31 +358,51 @@ class _AllJobPostScreenState extends State<AllJobPostScreen> {
                                                         try {
                                                           _isSharing = true;
 
-                                                          final linkShare = jobDeepLink(jobId: job?.sId?.toString());
+                                                          final linkShare =
+                                                              jobDeepLink(
+                                                                  jobId: job
+                                                                      ?.sId
+                                                                      ?.toString());
 
                                                           XFile? xFile;
-                                                          final imageUrl = job?.jobPostImage;
-                                                          if (imageUrl != null && imageUrl.isNotEmpty) {
-                                                            xFile = await urlToCachedXFile(imageUrl);
+                                                          final imageUrl =
+                                                              job?.jobPostImage;
+                                                          if (imageUrl !=
+                                                                  null &&
+                                                              imageUrl
+                                                                  .isNotEmpty) {
+                                                            xFile =
+                                                                await urlToCachedXFile(
+                                                                    imageUrl);
                                                           }
 
-                                                          await SharePlus.instance.share(ShareParams(
+                                                          await SharePlus
+                                                              .instance
+                                                              .share(
+                                                                  ShareParams(
                                                             text: linkShare,
-                                                            subject: job?.jobTitle,
-                                                            previewThumbnail: xFile,
+                                                            subject:
+                                                                job?.jobTitle,
+                                                            previewThumbnail:
+                                                                xFile,
                                                           ));
 
                                                           if (xFile != null) {
-                                                            final file = File(xFile.path);
-                                                            if (await file.exists()) {
-                                                              await file.delete();
-                                                              print("🗑️ File deleted from cache.");
+                                                            final file = File(
+                                                                xFile.path);
+                                                            if (await file
+                                                                .exists()) {
+                                                              await file
+                                                                  .delete();
+
                                                             }
                                                           }
                                                         } catch (e) {
-                                                          print("job card share failed $e");
+                                                          print(
+                                                              "job card share failed $e");
                                                         } finally {
-                                                          _isSharing = false; // Reset flag
+                                                          _isSharing =
+                                                              false; // Reset flag
                                                         }
                                                         break;
                                                       case 'Hide':
@@ -426,7 +437,6 @@ class _AllJobPostScreenState extends State<AllJobPostScreen> {
                                                         break;
                                                     }
                                                   }
-                                                  print('Selected: $value');
                                                 },
                                                 icon: Icon(
                                                   Icons.more_vert,
@@ -448,22 +458,22 @@ class _AllJobPostScreenState extends State<AllJobPostScreen> {
                                       /// 🔵 Job Info (Flexible to fit available space)
                                       if (isIndividual())
                                         buildJobDescriptionContent(
-                                            title: 'Job title: ',
+                                            title: '${AppStrings.jobTitle.tr}: ',
                                             subtitle: job?.jobTitle ?? 'N/A'),
                                       buildJobDescriptionContent(
-                                          title: 'Job type: ',
+                                          title: '${AppStrings.jobType.tr}: ',
                                           subtitle:
                                               '${job?.jobType ?? "N/A"} - ${job?.workMode ?? "N/A"}'),
                                       buildJobDescriptionContent(
-                                          title: 'Min Experience: ',
+                                          title: '${AppStrings.minExperience.tr}: ',
                                           subtitle:
                                               '${job?.experience ?? 0} yrs'),
                                       buildJobDescriptionContent(
-                                          title: 'Monthly Pay: ',
+                                          title: '${AppStrings.monthlyPay.tr}: ',
                                           subtitle:
                                               '₹${formatIndianNumber(job?.compensation?.minSalary ?? 0)} to ₹ ${formatIndianNumber(job?.compensation?.maxSalary ?? 0)}'),
                                       buildJobDescriptionContent(
-                                          title: 'Job Location: ',
+                                          title: '${AppStrings.jobLocation.tr}: ',
                                           subtitle:
                                               job?.location?.addressString ??
                                                   'NA'),
@@ -496,14 +506,14 @@ class _AllJobPostScreenState extends State<AllJobPostScreen> {
                                                 } else {
                                                   commonSnackBar(
                                                       message:
-                                                          "No application found");
+                                                      AppStrings.noApplicationFound);
                                                 }
                                               },
                                               title: (job?.applications
                                                           ?.isNotEmpty ??
                                                       false)
-                                                  ? "Applications (${job?.applications?.length}) "
-                                                  : "Applications")
+                                                  ? "${AppStrings.applications.tr} (${job?.applications?.length}) "
+                                                  : "${AppStrings.applications.tr}")
                                           : Row(
                                               children: [
                                                 Expanded(
@@ -511,41 +521,32 @@ class _AllJobPostScreenState extends State<AllJobPostScreen> {
                                                     height: SizeConfig.size32,
                                                     onTap: () async {
                                                       if (job != null) {
-                                                        XFile xFile = await urlToCachedXFile( job.jobPostImage??"");
-                                                        // https://api.blueera.ai/api/post-service/app/post/
-                                                       logs("xFile==== ${xFile.path}");
-                                                        final linkShare="https://blueera.ai/app/job/${job.sId.toString()}";
-                                                        logs("linkShare====${linkShare}");
-                                                        // final shareUrl = postDeepLink(postId: job.sId.toString());
-                                                        // final combinedText = shareUrl;
-                                                        await SharePlus.instance.share(ShareParams(
-                                                            text: linkShare,
-                                                            subject: job.jobTitle,
-                                                            previewThumbnail: xFile));
-                                                        final file = File(xFile.path);
-                                                        if (await file.exists()) {
+                                                        XFile xFile =
+                                                            await urlToCachedXFile(
+                                                                job.jobPostImage ??
+                                                                    "");
+
+                                                        final linkShare =
+                                                            "https://blueera.ai/app/job/${job.sId.toString()}";
+
+                                                        await SharePlus.instance
+                                                            .share(ShareParams(
+                                                                text: linkShare,
+                                                                subject: job
+                                                                    .jobTitle,
+                                                                previewThumbnail:
+                                                                    xFile));
+                                                        final file =
+                                                            File(xFile.path);
+                                                        if (await file
+                                                            .exists()) {
                                                           await file.delete();
-                                                          print("🗑️ File deleted from cache.");
+
                                                         }
-                                                      // await  Share.share('https://blueera.ai/app/job/${(job.sId ?? "")}');
-                                                        // openGoogleMaps(
-                                                        //     locationModel: LocationModel(
-                                                        //         latitude: double
-                                                        //             .parse(job
-                                                        //                     .location
-                                                        //                     ?.latitude ??
-                                                        //                 "0.0"),
-                                                        //         longitude: double
-                                                        //             .parse(job
-                                                        //                     .location
-                                                        //                     ?.longitude ??
-                                                        //                 "0.0"),
-                                                        //         address: job
-                                                        //             .location
-                                                        //             ?.addressString));
+
                                                       }
                                                     },
-                                                    title: 'Share',
+                                                    title: AppStrings.share,
                                                     bgColor: AppColors.white,
                                                     borderColor:
                                                         AppColors.primaryColor,
@@ -580,7 +581,7 @@ class _AllJobPostScreenState extends State<AllJobPostScreen> {
                                                               isPostCreate: '',
                                                             ));
                                                       },
-                                                      title: 'Apply Now',
+                                                      title: AppStrings.applyNow,
                                                       fontSize:
                                                           SizeConfig.small,
                                                     ),
@@ -602,6 +603,7 @@ class _AllJobPostScreenState extends State<AllJobPostScreen> {
       }),
     );
   }
+
   Future<XFile> urlToCachedXFile(String fileUrl) async {
     // Get temp (cache) directory
     final tempDir = await getTemporaryDirectory();
@@ -650,16 +652,33 @@ List<PopupMenuEntry<String>> createPopupJobCardItems(
   final items =
       ((status == AppConstants.ON_HOLD) || (status == AppConstants.CLOSED))
           ? <Map<String, dynamic>>[
-              {'icon': AppIconAssets.eyeIcon, 'title': 'Un Hide'},
-              {'icon': AppIconAssets.openVacancy, 'title': 'Open Vacancy'}
+              {
+                'icon': AppIconAssets.eyeIcon,
+                'title': AppStrings.unhide,
+                'slug_id': 'Un Hide'
+              },
+              {
+                'icon': AppIconAssets.openVacancy,
+                'title': AppStrings.openVacancy,
+                'slug_id': 'Open Vacancy'
+              }
             ]
           : <Map<String, dynamic>>[
-              {'icon': AppIconAssets.tablerEditIcon, 'title': 'Edit'},
-              {'icon': AppIconAssets.hide, 'title': 'Hide'},
-              {'icon': AppIconAssets.uploadIcon, 'title': 'Share'},
+              {
+                'icon': AppIconAssets.tablerEditIcon,
+                'title':AppStrings.edit,
+                'slug_id': 'Edit'
+              },
+              {'icon': AppIconAssets.hide, 'title': AppStrings.hide, 'slug_id': 'Hide'},
+              {
+                'icon': AppIconAssets.uploadIcon,
+                'title': AppStrings.share,
+                'slug_id': 'Share'
+              },
               {
                 'icon': AppIconAssets.uilSuitcaseOutlinedIcon,
-                'title': 'Close Vacancy'
+                'title':AppStrings.closeVacancy,
+                'slug_id': 'Close Vacancy'
               },
             ];
 
@@ -669,7 +688,7 @@ List<PopupMenuEntry<String>> createPopupJobCardItems(
     entries.add(
       PopupMenuItem<String>(
         height: SizeConfig.size35,
-        value: items[i]['title'],
+        value: items[i]['slug_id'],
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [

@@ -30,7 +30,7 @@ class ChannelFeedController extends GetxController {
 
     if (!loadMore) _page = 1;
     final fetchedData = await ChannelRepo().getChannelFollowingMeRepo(
-        page: _page, limit: 10); // implement your API fetch
+        page: _page, limit: 20); // implement your API fetch
     final data = fetchedData.response?.data;
 
     late final Map<String, dynamic> json;
@@ -94,7 +94,7 @@ class ChannelFeedController extends GetxController {
 
     if (!loadMore) _unJoinPage = 1;
     final fetchedData = await ChannelRepo().getChannelRecommendationsMeRepo(
-        page: _unJoinPage, limit: 10); // implement your API fetch
+        page: _unJoinPage, limit: 20); // implement your API fetch
     final data = fetchedData.response?.data;
 
     late final Map<String, dynamic> json;

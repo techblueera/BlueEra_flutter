@@ -218,7 +218,6 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                     if (_post.media?.isNotEmpty ?? false) ...[
                       if ((_post.media_types?.firstOrNull?.startsWith("video/") ?? false) ||
                           isVideoUrl(_post.media?.firstOrNull)) ...[
-                        // if ((videoData.video?.duration ?? 0) > 0)
                         Padding(
                           padding: EdgeInsets.only(
                               left: SizeConfig.size5,

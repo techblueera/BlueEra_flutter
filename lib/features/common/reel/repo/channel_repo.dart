@@ -393,7 +393,7 @@ print("url=== ${url}");
   Future<ResponseModel> getChannelRecommendationsMeRepo({  required int page,
     required int limit,}) async {
     final response = await ApiBaseHelper().getHTTP(
-      "${channelsRecommendations}?page=$page&limit=$limit",
+      "${channelsRecommendations}?page=$page&limit=$limit&filter=latest",
       showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},

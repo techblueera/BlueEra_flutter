@@ -23,11 +23,10 @@ class JobsScreen extends StatefulWidget {
   final bool isHeaderVisible;
   final Function(bool isVisible) onHeaderVisibilityChanged;
 
-  JobsScreen({
-    super.key,
-    required this.isHeaderVisible,
-    required this.onHeaderVisibilityChanged
-  });
+  JobsScreen(
+      {super.key,
+      required this.isHeaderVisible,
+      required this.onHeaderVisibilityChanged});
 
   @override
   State<JobsScreen> createState() => _JobsScreenState();
@@ -51,7 +50,7 @@ class _JobsScreenState extends State<JobsScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _calculateHeaderHeight();
     });
-    
+
     // Add listener to search text
     _searchController.addListener(_onSearchChanged);
   }
@@ -64,30 +63,30 @@ class _JobsScreenState extends State<JobsScreen> {
     }
     super.didUpdateWidget(oldWidget);
   }
-  
+
   @override
   void dispose() {
     _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
     super.dispose();
   }
-  
+
   void _onSearchChanged() {
     // Trigger rebuild to update cursor visibility
     setState(() {});
     // Debounce search to avoid too many API calls
     _debounceSearch();
   }
-  
+
   // Debounce timer
   Timer? _debounce;
-  
+
   void _debounceSearch() {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
     _debounce = Timer(const Duration(milliseconds: 500), () {
       // Get status filter based on selected tab and account type
       String? status;
-      
+
       if (isIndividual()) {
         // For PERSONAL accounts
         switch (selectedIndex) {
@@ -137,113 +136,118 @@ class _JobsScreenState extends State<JobsScreen> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        body: Obx(()=> Stack(
-          children: [
-            /// Main Scrollable Area with Dynamic Padding
-            AnimatedPadding(
-              duration: const Duration(milliseconds: 400),
-              curve: Curves.easeInOut,
-              padding: EdgeInsets.only(
-                  top: (selectedIndex==3) ? _headerHeight * (1 - jobScreenController.headerOffset.value) + SizeConfig.size30 : _headerHeight * (1 - jobScreenController.headerOffset.value)),
-                 child: isIndividual()
-                  ? _buildSelectedIndividualJobTabContent()
-                  : isBusiness()
-                  ? _buildSelectedBusinessJobTabContent()
-                  : SizedBox(),
-            ),
-        
-            // Animated Sliding Header
-            AnimatedPositioned(
-              duration: const Duration(milliseconds: 400),
-              curve: Curves.easeInOut,
-              top: -jobScreenController.headerOffset.value * _headerHeight,
-              left: 0,
-              right: 0,
-              child: KeyedSubtree(
-                key: _headerKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CommonBackAppBar(
-                      isSearch: true,
-                      isLeading: false,
-                      controller: _searchController,
-                      isShowCursor: _searchController.text.isNotEmpty, // Show cursor only when searching
-                      onClearCallback: () {
-                        _searchController.clear();
-                        jobScreenController.clearSearch();
-                        // Force rebuild to show original content
-                        setState(() {});
-                      },
-                      isNotification: true,
-                      onNotificationTap: () => Navigator.pushNamed(
-                        context,
-                        RouteHelper.getNotificationScreenRoute(),
-                      ),
-                      isResumeCardButton: (accountTypeGlobal.toUpperCase() ==
-                          AppConstants.individual)
-                          ? true
-                          : false,
-                    ),
-                    SizedBox(height: SizeConfig.size10),
-                    (isIndividual())
-                        ? HorizontalTabSelector(
-                      tabs: jobIndividualCategory,
-                      selectedIndex: selectedIndex,
-                      onTabSelected: (index, value) {
-                        _searchController.clear();
-                        jobScreenController.clearSearch();
-        
-                        setState(() {
-                          selectedIndex = index;
-                        });
-        
-                        resetScrollingOnTabChanged();
-        
-                      },
-                      labelBuilder: (jobCategory) {
-                        return jobCategory.label;
-                      },
-                      isFilterIconShow: false,
-                      onFitterTab: () => showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return JobFilterDialog();
-                        },
-                      ),
-                    )
-                        : (isBusiness())
-                        ? HorizontalTabSelector(
-                      tabs: jobBusinessCategory,
-                      selectedIndex: selectedIndex,
-                      onTabSelected: (index, value) {
-                        _searchController.clear();
-                        jobScreenController.clearSearch();
-                        setState(() {
-                          selectedIndex = index;
-                        });
-        
-                        resetScrollingOnTabChanged();
-                      },
-                      labelBuilder: (jobCategory) {
-                        return jobCategory.label;
-                      },
-                      isFilterIconShow: false,
-                      onFitterTab: () => showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return JobFilterDialog();
-                        },
-                      ),
-                    )
-                        : SizedBox()
-                  ],
+        body: Obx(() => Stack(
+              children: [
+                /// Main Scrollable Area with Dynamic Padding
+                AnimatedPadding(
+                  duration: const Duration(milliseconds: 400),
+                  curve: Curves.easeInOut,
+                  padding: EdgeInsets.only(
+                      top: (selectedIndex == 3)
+                          ? _headerHeight *
+                                  (1 - jobScreenController.headerOffset.value) +
+                              SizeConfig.size30
+                          : _headerHeight *
+                              (1 - jobScreenController.headerOffset.value)),
+                  child: isIndividual()
+                      ? _buildSelectedIndividualJobTabContent()
+                      : isBusiness()
+                          ? _buildSelectedBusinessJobTabContent()
+                          : SizedBox(),
                 ),
-              ),
-            ),
-          ],
-         )
-        ),
+
+                // Animated Sliding Header
+                AnimatedPositioned(
+                  duration: const Duration(milliseconds: 400),
+                  curve: Curves.easeInOut,
+                  top: -jobScreenController.headerOffset.value * _headerHeight,
+                  left: 0,
+                  right: 0,
+                  child: KeyedSubtree(
+                    key: _headerKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CommonBackAppBar(
+                          isSearch: true,
+                          isLeading: false,
+                          controller: _searchController,
+                          isShowCursor: _searchController.text.isNotEmpty,
+                          // Show cursor only when searching
+                          onClearCallback: () {
+                            _searchController.clear();
+                            jobScreenController.clearSearch();
+                            // Force rebuild to show original content
+                            setState(() {});
+                          },
+                          isNotification: true,
+                          onNotificationTap: () => Navigator.pushNamed(
+                            context,
+                            RouteHelper.getNotificationScreenRoute(),
+                          ),
+                          isResumeCardButton:
+                              (accountTypeGlobal.toUpperCase() ==
+                                      AppConstants.individual)
+                                  ? true
+                                  : false,
+                        ),
+                        SizedBox(height: SizeConfig.size10),
+                        (isIndividual())
+                            ? HorizontalTabSelector(
+                                tabs: jobIndividualCategory,
+                                selectedIndex: selectedIndex,
+                                onTabSelected: (index, value) {
+                                  _searchController.clear();
+                                  jobScreenController.clearSearch();
+
+                                  setState(() {
+                                    selectedIndex = index;
+                                  });
+
+                                  resetScrollingOnTabChanged();
+                                },
+                                labelBuilder: (jobCategory) {
+                                  return jobCategory.label;
+                                },
+                                isFilterIconShow: false,
+                                onFitterTab: () => showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return JobFilterDialog();
+                                  },
+                                ),
+                              )
+                            : (isBusiness())
+                                ? HorizontalTabSelector(
+                                    tabs: jobBusinessCategory,
+                                    selectedIndex: selectedIndex,
+                                    onTabSelected: (index, value) {
+                                      _searchController.clear();
+                                      jobScreenController.clearSearch();
+                                      setState(() {
+                                        selectedIndex = index;
+                                      });
+
+                                      resetScrollingOnTabChanged();
+                                    },
+                                    labelBuilder: (jobCategory) {
+                                      return jobCategory.label;
+                                    },
+                                    isFilterIconShow: false,
+                                    onFitterTab: () => showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return JobFilterDialog();
+                                      },
+                                    ),
+                                  )
+                                : SizedBox()
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            )),
       ),
     );
   }
@@ -251,30 +255,30 @@ class _JobsScreenState extends State<JobsScreen> {
   // Update the tab content builders to handle search results
   Widget _buildSelectedBusinessJobTabContent() {
     // If searching, show search results filtered by tab
-    if (jobScreenController.isSearching.value || 
+    if (jobScreenController.isSearching.value ||
         _searchController.text.isNotEmpty) {
       return Obx(() {
         if (jobScreenController.isSearching.value) {
           return Center(child: CircularProgressIndicator());
         }
-        
-        final filteredResults = jobScreenController.getFilteredSearchResults(selectedIndex, false);
-        
+
+        final filteredResults =
+            jobScreenController.getFilteredSearchResults(selectedIndex, false);
+
         if (filteredResults.isEmpty && _searchController.text.isNotEmpty) {
           return Center(child: CustomText("No search results found"));
         } else if (_searchController.text.isEmpty) {
           // If search is cleared, show original content
           return _getBusinessTabContent();
         }
-        
+
         return ListView.builder(
           itemCount: filteredResults.length,
           padding: EdgeInsets.all(SizeConfig.size12),
-
           itemBuilder: (context, index) {
             return JobCard(
-                job: filteredResults[index],
-                headerHeight: _headerHeight,
+              job: filteredResults[index],
+              headerHeight: _headerHeight,
             );
           },
         );
@@ -284,26 +288,26 @@ class _JobsScreenState extends State<JobsScreen> {
     // Otherwise show regular tab content
     return _getBusinessTabContent();
   }
-  
+
   Widget _getBusinessTabContent() {
-    switch (selectedIndex) {
-      case 0:
+    switch (jobBusinessCategory[selectedIndex].label) {
+      case AppConstants.All:
         return AllJobPostScreen(
           key: ValueKey(AppConstants.All),
           onHeaderVisibilityChanged: _toggleAppBarBottomButtons,
           headerHeight: _headerHeight,
         );
-      case 1:
+      case AppConstants.SCHEDULES:
         return AllJobPostScreen(
           key: ValueKey(AppConstants.SCHEDULES),
           onHeaderVisibilityChanged: _toggleAppBarBottomButtons,
           tabName: AppConstants.SCHEDULES,
           headerHeight: _headerHeight,
         );
-      case 2:
+      case AppConstants.Saved:
         return AllSavedJobPostScreen(
-            onHeaderVisibilityChanged: _toggleAppBarBottomButtons,
-            headerHeight: _headerHeight,
+          onHeaderVisibilityChanged: _toggleAppBarBottomButtons,
+          headerHeight: _headerHeight,
         );
       default:
         return SizedBox();
@@ -312,39 +316,39 @@ class _JobsScreenState extends State<JobsScreen> {
 
   Widget _buildSelectedIndividualJobTabContent() {
     // If searching, show search results filtered by tab
-    if (jobScreenController.isSearching.value || 
+    if (jobScreenController.isSearching.value ||
         _searchController.text.isNotEmpty) {
       return Obx(() {
         if (jobScreenController.isSearching.value) {
           return Center(child: CircularProgressIndicator());
         }
-        
-        final filteredResults = jobScreenController.getFilteredSearchResults(selectedIndex, true);
+
+        final filteredResults =
+            jobScreenController.getFilteredSearchResults(selectedIndex, true);
         if (filteredResults.isEmpty && _searchController.text.isNotEmpty) {
           return Center(child: CustomText("No search results found"));
         } else if (_searchController.text.isEmpty) {
           // If search is cleared, show original content
           return _getIndividualTabContent();
         }
-        
+
         return ListView.builder(
           itemCount: filteredResults.length,
           padding: EdgeInsets.all(SizeConfig.size12),
-
           itemBuilder: (context, index) {
             return JobCard(
-                job: filteredResults[index],
+              job: filteredResults[index],
               headerHeight: _headerHeight,
             );
           },
         );
       });
     }
-    
+
     // Otherwise show regular tab content
     return _getIndividualTabContent();
   }
-  
+
   Widget _getIndividualTabContent() {
     switch (selectedIndex) {
       case 0:
@@ -355,22 +359,24 @@ class _JobsScreenState extends State<JobsScreen> {
         );
       case 1:
         return AppliedJobsScreen(
-            key: ValueKey(AppConstants.Applied),
-            onHeaderVisibilityChanged: _toggleAppBarBottomButtons,
-            headerHeight: _headerHeight,
+          key: ValueKey(AppConstants.Applied),
+          onHeaderVisibilityChanged: _toggleAppBarBottomButtons,
+          headerHeight: _headerHeight,
         );
       case 2:
         return AllJobPostScreen(
-          key: ValueKey(AppConstants.SCHEDULES,),
-           onHeaderVisibilityChanged: _toggleAppBarBottomButtons,
-           tabName: AppConstants.SCHEDULES,
-           headerHeight: _headerHeight,
+          key: ValueKey(
+            AppConstants.SCHEDULES,
+          ),
+          onHeaderVisibilityChanged: _toggleAppBarBottomButtons,
+          tabName: AppConstants.SCHEDULES,
+          headerHeight: _headerHeight,
         );
       case 3:
         return AllSavedJobPostScreen(
-            key: ValueKey("SAVED"),
-            onHeaderVisibilityChanged: _toggleAppBarBottomButtons,
-            headerHeight: _headerHeight,
+          key: ValueKey("SAVED"),
+          onHeaderVisibilityChanged: _toggleAppBarBottomButtons,
+          headerHeight: _headerHeight,
         );
       default:
         return SizedBox();
@@ -380,14 +386,15 @@ class _JobsScreenState extends State<JobsScreen> {
   void _toggleAppBarBottomButtons(bool visible) {
     if (widget.isHeaderVisible != visible && mounted) {
       jobScreenController.isHeaderVisible.value = visible;
-      widget.onHeaderVisibilityChanged.call(visible); // Notify parent to hide/show bottom nav
+      widget.onHeaderVisibilityChanged
+          .call(visible); // Notify parent to hide/show bottom nav
     }
   }
 
-  void resetScrollingOnTabChanged(){
+  void resetScrollingOnTabChanged() {
     jobScreenController.isHeaderVisible.value = true;
-    widget.onHeaderVisibilityChanged.call(jobScreenController.isHeaderVisible.value);
+    widget.onHeaderVisibilityChanged
+        .call(jobScreenController.isHeaderVisible.value);
     jobScreenController.headerOffset.value = 0.0;
   }
-
 }

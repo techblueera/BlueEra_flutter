@@ -6,6 +6,7 @@ import 'package:BlueEra/features/common/channel_feed_view/channel_card_widget.da
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_controllar.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_post_listing_screen.dart';
 import 'package:BlueEra/features/common/channel_feed_view/unjoin_channel_card_widget.dart';
+import 'package:BlueEra/features/common/channel_feed_view/view_all_joined_channel_list_screen.dart';
 import 'package:BlueEra/features/common/channel_feed_view/whats_new_channel_list_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -29,38 +30,8 @@ class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
     /// Initial data load
     channelFeedController.fetchChannelData(loadMore: false);
     channelFeedController.fetchUnJoinChannelData(loadMore: false);
-
-    /// Listen for scroll for pagination
-    scrollController.addListener(() {
-      // Trigger pagination when near bottom
-      if (scrollController.position.pixels >=
-          scrollController.position.maxScrollExtent - 200) {
-        // Joined channels pagination
-        final hasMoreJoined =
-            (channelFeedController.channelFeedModel.value.pagination?.page ??
-                    1) <
-                (channelFeedController
-                        .channelFeedModel.value.pagination?.totalPages ??
-                    1);
-
-        if (hasMoreJoined && !channelFeedController.isLoading.value) {
-          channelFeedController.fetchChannelData(loadMore: true);
-        }
-
-        // Suggested channels pagination
-        final hasMoreSuggested = (channelFeedController
-                    .unJoinChannelFeedModel.value.pagination?.page ??
-                1) <
-            (channelFeedController
-                    .unJoinChannelFeedModel.value.pagination?.totalPages ??
-                1);
-
-        if (hasMoreSuggested && !channelFeedController.isUnJoinLoading.value) {
-          channelFeedController.fetchUnJoinChannelData(loadMore: true);
-        }
-      }
-    });
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -70,11 +41,14 @@ class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
           channelFeedController.clearList();
           await Future.delayed(Duration(microseconds: 200));
 
-          await channelFeedController.fetchChannelData(loadMore: true);
+          await channelFeedController.fetchChannelData(loadMore: false);
 
-          await channelFeedController.fetchUnJoinChannelData(loadMore: true);
+          await channelFeedController.fetchUnJoinChannelData(loadMore: false);
         },
-        child: CustomScrollView(
+
+        child:
+
+         CustomScrollView(
           controller: scrollController, // 👈 attach this!
           slivers: [
             // Header
@@ -94,9 +68,9 @@ class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
                       );
                     }),
                     InkWell(
-                      onTap: () => Get.to(WhatsNewChannelListScreen()),
+                      onTap: () => Get.to(ViewAllJoinedChannelListScreen()),
                       child: CustomText(
-                        AppStrings.whatsNew,
+                        AppStrings.viewAll,
                         fontWeight: FontWeight.w500,
                         fontSize: SizeConfig.size16,
                         color: AppColors.primaryColor,
@@ -107,7 +81,7 @@ class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
               ),
             ),
 
-            // Joined Channels
+             // Joined Channels
             Obx(() => SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
@@ -134,17 +108,32 @@ class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
               child: Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                child: CustomText(
-                  AppStrings.suggested,
-                  fontWeight: FontWeight.w500,
-                  fontSize: SizeConfig.size16,
-                  color: AppColors.mainTextColor,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+                  children: [
+                    CustomText(
+                      AppStrings.suggested,
+                      fontWeight: FontWeight.w500,
+                      fontSize: SizeConfig.size16,
+                      color: AppColors.mainTextColor,
+                    ),
+                    InkWell(
+                      onTap: () => Get.to(WhatsNewChannelListScreen()),
+                      child: CustomText(
+                        AppStrings.viewAll,
+                        fontWeight: FontWeight.w500,
+                        fontSize: SizeConfig.size16,
+                        color: AppColors.primaryColor,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
 
             // Suggested Channels
-            Obx(() => SliverList(
+             Obx(() => SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
                       final newChannel =
@@ -159,7 +148,7 @@ class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 4),
                           child:
-                              UnjoinChannelCardWidget(channelModel: newChannel),
+                              UnjoinChannelCardWidget(channelModel: newChannel, index: index,),
                         ),
                       );
                     },
@@ -173,7 +162,7 @@ class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
               child: SizedBox(height: kBottomNavigationBarHeight + 20),
             ),
           ],
-        ),
+        )
       ),
     );
   }

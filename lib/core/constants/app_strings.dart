@@ -501,5 +501,42 @@ class AppStrings {
   static const blockUserDescription = "block_user_description";
   static const unfollow = "unfollow";
   static const food = "food";
+  ///B-DEv JOB...
+  static const viewAll = "viewAll";
+  static const noJobScheduleYet = "no_job_schedule_yet";
+  static const noJobsAvailable = "no_jobs_available";
+  static const postedOn = "posted_on";
+  static const all = "all";
+  static const applied = "applied";
+  static const schedules = "schedules";
+  static const saved = "saved";
+  static const unhide = "unhide";
+  static const openVacancy = "open_vacancy";
+  static const closeVacancy = "close_vacancy";
+  static const jobIdMissing = "job_id_missing";
+  static const jobTitle = "job_title";
+  static const jobType = "job_type";
+  static const minExperience = "min_experience";
+  static const monthlyPay = "monthly_pay";
+  static const jobLocation = "job_location";
+  static const noApplicationFound = "no_application_found";
+  static const applications = "applications";
+  static const applyNow = "apply_now";
+  static const directions = "directions";
+  static const postJob = "post_job";
+  static const department = "department";
+  static const jobDescription = "job_description";
+  static const jobHighlights = "job_highlights";
+  static const noHighlightsAvailable = "no_highlights_available";
+  static const jobRequirements = "job_requirements";
+  static const experience = "experience";
+  static const min = "min";
+  static const education = "education";
+  static const skill = "skill";
+  static const aboutCompany = "about_company";
+  static const since = "since";
+  static const imageViewer = "imageViewer";
+  static const years = "years";
+
 
 }

@@ -336,8 +336,11 @@ Widget statBlock(String label, String count) {
       ),
       CustomText(
         label,
-        fontSize: SizeConfig.size14,
         color: AppColors.secondaryTextColor,
+        fontWeight: FontWeight.w700,
+        fontFamily: AppConstants.OpenSans,
+        fontSize: SizeConfig.medium,
+        overflow: TextOverflow.ellipsis,
       ),
     ],
   );
