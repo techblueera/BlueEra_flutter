@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
@@ -56,6 +57,131 @@ class JobApplicationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size15, vertical: SizeConfig.size8),
+      padding: EdgeInsets.all(SizeConfig.size15),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10.0),
+        color: AppColors.white,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          InkWell(
+              onTap: () {
+                openBusinessProfile(businessUserId: companyBusinessId);
+              },
+              child: _buildHeader(context)),
+          const SizedBox(height: 16),
+          _buildJobDetails(context),
+          const SizedBox(height: 20),
+          Column(
+            children: [
+              // === Applied ===
+              if (jobStatus.toLowerCase() ==
+                  AppConstants.Applied.toLowerCase()) ...[
+                _buildStatusContainer(context),
+                SizedBox(height: 10),
+                _buildShortlistBanner(
+                  context,
+                  AppStrings.appliedSuccessMsg.tr,
+                ),
+              ],
+
+              // === Screening ===
+              if (jobStatus.toLowerCase() ==
+                  AppConstants.Screening.toLowerCase())
+                _buildShortlistBanner(
+                  context,
+                  AppStrings.screeningMsg.tr,
+                ),
+
+              // === Shortlisted ===
+              if (jobStatus.toLowerCase() ==
+                  AppConstants.Shortlisted.toLowerCase())
+                _buildShortlistBanner(
+                  context,
+                  AppStrings.shortlistedMsg.tr,
+                ),
+
+              // === Interview Scheduled ===
+              if (jobStatus.toLowerCase() ==
+                  AppConstants.InterviewScheduled.toLowerCase())
+                _buildShortlistBanner(
+                  context,
+                  AppStrings.interviewScheduledMsg.tr,
+                ),
+
+              // === Interviewing ===
+              if (jobStatus.toLowerCase() ==
+                  AppConstants.Interviewing.toLowerCase())
+                _buildShortlistBanner(
+                  context,
+                  AppStrings.interviewingMsg.tr,
+                ),
+
+              // === Offered ===
+              if (jobStatus.toLowerCase() == AppConstants.Offered.toLowerCase())
+                _buildShortlistBanner(
+                  context,
+                  AppStrings.offeredMsg.tr,
+                ),
+
+              // === Hired ===
+              if (jobStatus.toLowerCase() ==
+                  AppConstants.Hired.toLowerCase()) ...[
+                _buildShortlistBanner(
+                  context,
+                  AppStrings.hiredMsg.tr,
+                ),
+                if (!isFeedBackStatus) ...[
+                  SizedBox(height: SizeConfig.size15),
+                  PositiveCustomBtn(
+                    height: SizeConfig.size32,
+                    onTap: () {
+                      showExperienceDialog(
+                        context,
+                        applicationID: applicationID,
+                        jobID: jobID,
+                        title: AppStrings.experienceTitle.tr,
+                        subtitle: AppStrings.experienceSubtitle.tr,
+                        hint: AppStrings.experienceHint.tr,
+                        onSubmit: feedBackSubmit,
+                        isHiredCandidate: 'FOR_JOB',
+                        interviewID: '',
+                      );
+                    },
+                    title: AppStrings.experienceTitle.tr,
+                    bgColor: AppColors.white,
+                    textColor: AppColors.primaryColor,
+                  ),
+                ],
+              ],
+
+              // === Rejected ===
+              if (jobStatus.toLowerCase() ==
+                  AppConstants.Rejected.toLowerCase())
+                _buildShortlistBanner(
+                  context,
+                  AppStrings.rejectedMsg.tr,
+                  closed: true,
+                ),
+
+              // === Withdrawn ===
+              if (jobStatus.toLowerCase() ==
+                  AppConstants.Withdrawn.toLowerCase())
+                _buildShortlistBanner(
+                  context,
+                  AppStrings.withdrawnMsg.tr,
+                  closed: true,
+                ),
+            ],
+          )
+        ],
+      ),
+    );
+
     return Container(
       margin: EdgeInsets.symmetric(
           horizontal: SizeConfig.size15, vertical: SizeConfig.size8),
@@ -291,12 +417,9 @@ class JobApplicationCard extends StatelessWidget {
         LocalAssets(imagePath: icon, imgColor: AppColors.black),
         const SizedBox(width: 10),
         Expanded(
-          child: Text(
+          child: CustomText(
             text,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.black,
-                  fontSize: 14,
-                ),
+            color: AppColors.black,
           ),
         ),
       ],
@@ -330,14 +453,14 @@ class JobApplicationCard extends StatelessWidget {
               children: [
                 _statusText(
                   context,
-                  "Application sent to HR",
-                  "If your profile is Shortlisted. HR will call or Message you",
+                  AppStrings.applicationSent.tr,
+                  AppStrings.applicationReviewMsg.tr,
                   isChecked: true,
                 ),
                 SizedBox(height: SizeConfig.size45),
                 _statusText(
                   context,
-                  "Application shortlisted By HR",
+                  AppStrings.applicationShortlisted.tr,
                   null,
                   isChecked: isShortlisted,
                 ),

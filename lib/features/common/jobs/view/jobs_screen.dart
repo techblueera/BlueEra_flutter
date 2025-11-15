@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/jobs/controller/applied_job_controller.dart';
@@ -266,7 +267,7 @@ class _JobsScreenState extends State<JobsScreen> {
             jobScreenController.getFilteredSearchResults(selectedIndex, false);
 
         if (filteredResults.isEmpty && _searchController.text.isNotEmpty) {
-          return Center(child: CustomText("No search results found"));
+          return Center(child: CustomText(AppStrings.no_search_results_found));
         } else if (_searchController.text.isEmpty) {
           // If search is cleared, show original content
           return _getBusinessTabContent();
@@ -326,7 +327,7 @@ class _JobsScreenState extends State<JobsScreen> {
         final filteredResults =
             jobScreenController.getFilteredSearchResults(selectedIndex, true);
         if (filteredResults.isEmpty && _searchController.text.isNotEmpty) {
-          return Center(child: CustomText("No search results found"));
+          return Center(child: CustomText(AppStrings.no_search_results_found));
         } else if (_searchController.text.isEmpty) {
           // If search is cleared, show original content
           return _getIndividualTabContent();

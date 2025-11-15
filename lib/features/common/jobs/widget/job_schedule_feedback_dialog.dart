@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/common/jobs/controller/applied_job_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -92,7 +93,7 @@ void showExperienceDialog(BuildContext context,
 
                           }
                         : null,
-                    title: "Submit",
+                    title: AppStrings.submit,
 
                     isValidate: feedbackController.text.isNotEmpty,
                   )
