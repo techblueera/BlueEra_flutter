@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 import 'package:http/http.dart' as http;
 
 import '../../../../core/constants/shared_preference_utils.dart';
@@ -45,8 +46,8 @@ Stream<dynamic> riderOrderStream(String userId,) async* {
           try {
             final data = jsonDecode(jsonStr);
             yield data;
-          } catch (e) {
-            print('Invalid JSON in SSE: $jsonStr');
+          } catch (e, s) {
+            log('Invalid JSON in SSE: $jsonStr');
           }
         }
       }
@@ -86,6 +87,7 @@ Stream<dynamic> riderLiveLocationOrderStream(String riderId,) async* {
   // Listen to the stream
   await for (final chunk in response.stream.transform(utf8.decoder)) {
     for (final line in chunk.split('\n')) {
+      log('Invalid JSON in SSE: $line');
       if (line.startsWith('data:')) {
         final jsonStr = line.substring(5).trim();
         if (jsonStr.isNotEmpty) {
@@ -93,7 +95,7 @@ Stream<dynamic> riderLiveLocationOrderStream(String riderId,) async* {
             final data = jsonDecode(jsonStr);
             yield data;
           } catch (e) {
-            print('Invalid JSON in SSE: $jsonStr');
+            log('Invalid JSON in SSE: $jsonStr');
           }
         }
       }

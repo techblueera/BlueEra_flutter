@@ -217,9 +217,9 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
                   viewBusinessDetailsController
                       .selectedIndex.value = index);
                   if (index == 1) {
-                    final earnWithBlueEraController = Get.put(
-                        EarnWithBlueEraController());
-                    earnWithBlueEraController.fetchOwnProducts();
+                    final inventoryController = Get.put(
+                        InventoryController());
+                    inventoryController.fetchProducts();
                   }
                 },
                 labelBuilder: (label) => label,
@@ -316,9 +316,9 @@ class MyProductCardDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final earnWithBlueEraController = Get.put(EarnWithBlueEraController());
+    final inventoryController = Get.put(InventoryController());
 
-    final productList = earnWithBlueEraController.ownProductDataList;
+    final productList = inventoryController.allProducts;
     return Obx(() {
       return Column(
         children: [
@@ -353,11 +353,11 @@ class MyProductCardDetails extends StatelessWidget {
               },
             ),
           ),
-          if (earnWithBlueEraController.isOwnProductDataLoadingMore.value)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 20),
-              child: Center(child: CircularProgressIndicator()),
-            ),
+          // if (inventoryController.isOwnProductDataLoadingMore.value)
+          //   const Padding(
+          //     padding: EdgeInsets.symmetric(vertical: 20),
+          //     child: Center(child: CircularProgressIndicator()),
+          //   ),
         ],
       );
     });

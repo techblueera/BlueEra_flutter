@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 import 'dart:typed_data';          // For Uint8List
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -90,8 +91,8 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
 
 
   _stream = await riderOrderStream(userId);
-
   _subscription = _stream.listen((event) {
+    log('event is --> $event');
     if (event is List) {
       if(event.isEmpty){
         if(paymentDialogShow==true){
@@ -102,16 +103,18 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
           final status = item['status'];
 
           if (status == 'payment-pending') {
+            log('status--> $status');
+            log('paymentDialogShow--> $paymentDialogShow');
 
-            if(paymentDialogShow==false){
+            // if(paymentDialogShow==false){
               _showPaymentDialog(Get.context!,item['_id'],
                   driverImageUrl: '${item['assignedRider']['profile_image']}',
                   driverName: '${item['assignedRider']['name']}',
                   driverPhone: '${item['assignedRider']['contact_no']}',
                   driverDistanceKm: item['distanceToPickup']
               );
-              paymentDialogShow=true;
-            }
+              paymentDialogShow = true;
+            // }
             break; // stop after first match
           }else if(status == 'cancelled'){
             if(paymentDialogShow==true){
