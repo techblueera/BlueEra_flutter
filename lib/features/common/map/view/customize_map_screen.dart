@@ -9,7 +9,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/features/common/map/controller/map_service_controller.dart';
-import 'package:BlueEra/features/common/map/view/location_service.dart';
+import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/map/widget/food_service_bottom_sheet.dart';
 import 'package:BlueEra/features/common/map/widget/home_service_bottom_sheet.dart';
 import 'package:BlueEra/features/common/map/widget/rental_service_bottom_sheet.dart';
@@ -141,15 +141,14 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
     // final permission = await _handleLocationPermission();
     // if (!permission) return;
 
-    final locationData =
-        await LocationService.fetchLocation(isPermissionRequired: false);
-    if (locationData != null) {
-      final position = locationData["position"];
-      final address = locationData["address"];
+    log('lat--> ${LocationService.lat}, lng--> ${LocationService.lng}, current address--> ${LocationService.userCurrentAddress}');
+    if (LocationService.lat!=0.0 && LocationService.lng!=0.0) {
+      final position = LatLng(LocationService.lat, LocationService.lng);
+      final address = LocationService.userCurrentAddress;
 
       _currentPosition = LatLng(position.latitude, position.longitude);
       _currentAddress =
-          address.where((e) => e != null && e.isNotEmpty).join(', ');
+          address.where((e) => e.isNotEmpty).join(', ');
       searchController.text = _currentAddress ?? '';
       isCurrentLocationMarkerShown = true;
 

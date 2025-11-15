@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -208,6 +210,7 @@ class _InventoryScreenState extends State<InventoryScreen>
     controller.isMenuOpen.value = false;
 
     if (result != null) {
+      log('result--> $result');
       if (result == InventoryMenuItem.addProduct) {
         await Get.toNamed(
             RouteHelper.getAddProductScreenRoute(),

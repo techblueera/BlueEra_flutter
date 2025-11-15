@@ -10,7 +10,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile_new.dart';
 import 'package:BlueEra/features/business/widgets/business_ratings_bottom_sheet.dart';
 import 'package:BlueEra/features/business/widgets/rating_widget.dart';
-import 'package:BlueEra/features/common/map/view/location_service.dart';
+import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/common/store/view/store_screen_controller.dart';
 import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';

@@ -9,10 +9,9 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
-import 'package:BlueEra/features/common/bottomNavigationBar/auth/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/features/common/business_service/model/get_service_model.dart';
 import 'package:BlueEra/features/common/business_service/repo/service_ai_repo.dart';
-import 'package:BlueEra/features/common/map/view/location_service.dart';
+import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/store/repo/store_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/repo/user_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/all_stores_feed_response_model.dart';
@@ -114,15 +113,15 @@ class StoreScreenController extends GetxController {
         groupedStoreFeed.clear();
       }
 
-      final locationData = await LocationService.fetchLocation(
-        isPermissionRequired: false,
-      );
-
-      if (locationData == null) {
-        print("Location not granted or GPS not enabled");
-        Get.find<BottomBarController>().currentIndex.value = 0;
-        return;
-      }
+      // final locationData = await LocationService.fetchLocation(
+      //   isPermissionRequired: false,
+      // );
+      //
+      // if (locationData == null) {
+      //   print("Location not granted or GPS not enabled");
+      //   Get.find<BottomBarController>().currentIndex.value = 0;
+      //   return;
+      // }
 
        // Then fetch latest in background
        await getAllStoresFeedNearBy();
@@ -144,10 +143,11 @@ class StoreScreenController extends GetxController {
     }
 
     try {
+      log('lat--> ${LocationService.lat}, lng--> ${LocationService.lng}');
       final response = await StoreRepo().getAllStoresFeed(
         page: allStoreFeedPage,
-        lat: LocationService.lat != 0.0 ? "${LocationService.lat}" : "",
-        long: LocationService.lng != 0.0 ? "${LocationService.lng}" : "",
+        lat: LocationService.lat != 0.0 ? "${LocationService.lat}" : "0.0",
+        long: LocationService.lng != 0.0 ? "${LocationService.lng}" : "0.0",
       );
 
       if (!response.isSuccess) {
@@ -226,81 +226,6 @@ class StoreScreenController extends GetxController {
     }
 
     return grouped;
-  }
-
-  ///GET FOOD SERVICES ONLY....
-  Future<void> getAllFoodService({bool isLoadMore = false}) async {
-    if (isLoadMore) {
-      if (isFoodDataLoadingMore.value || !foodDataHasMore) return;
-      isFoodDataLoadingMore.value = true;
-    } else {
-      isFoodDataFirstLoading.value = true;
-      final cachedFood = await HiveServices().getAllStoreFoodServices(userId);
-      if (cachedFood != null && cachedFood.isNotEmpty) {
-        foodDataList.assignAll(cachedFood);
-        isFoodDataFirstLoading.value = false;
-      } else {
-        foodDataList.clear();
-      }
-      foodDataPage = 1;
-      foodDataHasMore = true;
-    }
-
-    try {
-    Map<String, dynamic> params = {
-      ApiKeys.page: foodDataPage,
-      ApiKeys.all: true,
-      "type": "food",
-      "radius": kmRadius1000,
-      'limit': 40
-    };
-    ResponseModel responseModel =
-        await FoodAiRepo().getFoodService(queryParam: params);
-    if (responseModel.isSuccess) {
-      getAllFoodServiceResponse.value = ApiResponse.complete(responseModel);
-
-      final data = responseModel.response?.data;
-      List<GetFoodDetailsModel> newItems = [];
-
-      if (data is List) {
-        // API returns raw array
-        newItems = data.map((e) => GetFoodDetailsModel.fromJson(e)).toList();
-      } else if (data is Map && data['data'] is List) {
-        // API returns { "data": [...] }
-        newItems = (data['data'] as List)
-            .map((e) => GetFoodDetailsModel.fromJson(e))
-            .toList();
-      } else {
-        print("Unexpected API response: $data");
-      }
-
-      if (newItems.isNotEmpty) {
-        if (isLoadMore) {
-          foodDataList.addAll(newItems);
-        } else {
-          foodDataList.assignAll(newItems);
-          await HiveServices().saveAllStoreFoodServices(newItems, userId);
-        }
-
-        foodDataPage++;
-      } else {
-        foodDataHasMore = false;
-      }
-
-      print("Loaded ${newItems.length} items | Total: ${foodDataList.length}");
-    } else {
-      getAllFoodServiceResponse.value = ApiResponse.error('error');
-     }
-    } catch (e) {
-      getAllFoodServiceResponse.value = ApiResponse.error('error');
-      log("ERROR===== $e");
-    } finally{
-      if (isLoadMore) {
-        isFoodDataLoadingMore.value = false;
-      } else {
-        isFoodDataFirstLoading.value = false;
-      }
-    }
   }
 
   ///GET STORES ONLY....
@@ -412,6 +337,7 @@ class StoreScreenController extends GetxController {
     }
 
     try {
+      log('lat--> ${LocationService.lat}, lng--> ${LocationService.lng}');
       final response;
       if(query != null){
          response = await StoreRepo().productSearchFilterRepo(
@@ -470,6 +396,80 @@ class StoreScreenController extends GetxController {
     }
   }
 
+  ///GET FOOD SERVICES ONLY....
+  Future<void> getAllFoodService({bool isLoadMore = false}) async {
+    if (isLoadMore) {
+      if (isFoodDataLoadingMore.value || !foodDataHasMore) return;
+      isFoodDataLoadingMore.value = true;
+    } else {
+      isFoodDataFirstLoading.value = true;
+      final cachedFood = await HiveServices().getAllStoreFoodServices(userId);
+      if (cachedFood != null && cachedFood.isNotEmpty) {
+        foodDataList.assignAll(cachedFood);
+        isFoodDataFirstLoading.value = false;
+      } else {
+        foodDataList.clear();
+      }
+      foodDataPage = 1;
+      foodDataHasMore = true;
+    }
+
+    try {
+      Map<String, dynamic> params = {
+        ApiKeys.page: foodDataPage,
+        ApiKeys.all: true,
+        "type": "food",
+        "radius": kmRadius1000,
+        'limit': 20
+      };
+      ResponseModel responseModel =
+      await FoodAiRepo().getFoodService(queryParam: params);
+      if (responseModel.isSuccess) {
+        getAllFoodServiceResponse.value = ApiResponse.complete(responseModel);
+
+        final data = responseModel.response?.data;
+        List<GetFoodDetailsModel> newItems = [];
+
+        if (data is List) {
+          // API returns raw array
+          newItems = data.map((e) => GetFoodDetailsModel.fromJson(e)).toList();
+        } else if (data is Map && data['data'] is List) {
+          newItems = (data['data'] as List)
+              .map((e) => GetFoodDetailsModel.fromJson(e))
+              .toList();
+        } else {
+          print("Unexpected API response: $data");
+        }
+
+        if (newItems.isNotEmpty) {
+          if (isLoadMore) {
+            foodDataList.addAll(newItems);
+          } else {
+            foodDataList.assignAll(newItems);
+            await HiveServices().saveAllStoreFoodServices(newItems, userId);
+          }
+
+          foodDataPage++;
+        } else {
+          foodDataHasMore = false;
+        }
+
+        print("Loaded ${newItems.length} items | Total: ${foodDataList.length}");
+      } else {
+        getAllFoodServiceResponse.value = ApiResponse.error('error');
+      }
+    } catch (e) {
+      getAllFoodServiceResponse.value = ApiResponse.error('error');
+      log("ERROR===== $e");
+    } finally{
+      if (isLoadMore) {
+        isFoodDataLoadingMore.value = false;
+      } else {
+        isFoodDataFirstLoading.value = false;
+      }
+    }
+  }
+
   ///GET ALL SERVICE....
   Future<void> getAllServiceNearBy({bool isLoadMore = false}) async {
     if (isLoadMore) {
@@ -494,7 +494,7 @@ class StoreScreenController extends GetxController {
         queryParams: {
           ApiKeys.page: serviceDataPage,
           ApiKeys.all: true,
-          "limit": 40,
+          "limit": 20,
           "radius": kmRadius1000,
           "type": "service",
         },
@@ -716,33 +716,33 @@ class StoreScreenController extends GetxController {
 
     switch (index) {
       case 0: // All
-        if (allNearByStoresFeed.isEmpty) {
+        // if (allNearByStoresFeed.isEmpty) {
           await getAllStoresFeedNearBy();
-        }
+        // }
         break;
 
       case 1: // Product
-        if (storeProductDataList.isEmpty) {
+        // if (storeProductDataList.isEmpty) {
           await getAllStoreProductNearBy();
-        }
+        // }
         break;
 
       case 2: // Service
-        if (serviceDataList.isEmpty) {
+        // if (serviceDataList.isEmpty) {
           await getAllServiceNearBy();
-        }
+        // }
         break;
 
       case 3: // Food
-        if (foodDataList.isEmpty) {
+        // if (foodDataList.isEmpty) {
           await getAllFoodService();
-        }
+        // }
         break;
 
       case 4: // Store
-        if (allStore.isEmpty) {
+        // if (allStore.isEmpty) {
           await getAllStoreNearBy();
-        }
+        // }
         break;
     }
   }

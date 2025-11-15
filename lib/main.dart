@@ -9,6 +9,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
 import 'package:BlueEra/core/language_localization_service/language_service_app.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/core/services/app_lifecycle_handler.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/core/services/app_version_checker_service.dart';
 import 'package:BlueEra/core/services/deeplink_network_resources.dart';
@@ -122,6 +123,9 @@ Future<void> main() async {
 
   // Set saved locale before app starts
   final locale = Locale(savedLangCode);
+
+  final handler = AppLifecycleHandler();
+  WidgetsBinding.instance.addObserver(handler);
 
   // 🔄 Check if app version changed
   await checkAppVersionAndResetIfNeeded();

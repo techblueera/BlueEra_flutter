@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
@@ -74,7 +73,7 @@ class InventoryController extends GetxController {
     final isSelected = variantSelection[id] ?? false;
 
     if (!isSelected && currentlySelected >= maxSelectionLimit) {
-      log("⚠️ Cannot select more than 10 variants");
+      log("Cannot select more than 10 variants");
       showErrorBanner.value = true;
       return;
     }
@@ -237,14 +236,36 @@ class InventoryController extends GetxController {
           responseModel.response?.data,
         );
 
-        final newVariants = inventoryBasedSearchProductResponse.data;
-        final newProducts = inventoryBasedSearchProductResponse.unUsedProduct;
+        final List<VariantData> newVariants =
+        List<VariantData>.from(inventoryBasedSearchProductResponse.data);
+
+        final List<UnUsedProduct> newProducts =
+        List<UnUsedProduct>.from(inventoryBasedSearchProductResponse.unUsedProduct);
+
+       // Maintain a map for uniqueness
+        final Map<String, VariantData> uniqueById = {
+          for (var item in searchProductVariantsList)
+            item.finalVariant.id: item, // keep old data
+        };
 
         if (!isLoadMore) {
-          searchProductVariantsList.assignAll(newVariants);
+          // For first load → clear existing
+          uniqueById.clear();
+        }
+
+        for (final item in newVariants) {
+          final id = item.finalVariant.id;
+
+          if (!uniqueById.containsKey(id)) {
+            uniqueById[id] = item; // first occurrence only
+          }
+        }
+
+        searchProductVariantsList.assignAll(uniqueById.values.toList());
+
+        if (!isLoadMore) {
           searchProductsList.assignAll(newProducts);
-        }else {
-          searchProductVariantsList.addAll(newVariants);
+        } else {
           searchProductsList.addAll(newProducts);
         }
 

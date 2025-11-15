@@ -14,7 +14,6 @@ import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
-import 'package:BlueEra/widgets/service_provider_dialoge.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_upgrade_version/flutter_upgrade_version.dart';

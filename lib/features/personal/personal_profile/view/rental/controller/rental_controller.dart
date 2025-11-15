@@ -9,7 +9,10 @@ import 'package:BlueEra/features/personal/personal_profile/view/rental/repo/rent
 import 'package:get/get.dart';
 
 class RentalController extends GetxController{
-  Rx<ApiResponse> rentalServicesResponse = ApiResponse.initial('Initial').obs; // Declare your RxLists
+  Rx<ApiResponse> rentalServicesResponse
+                        = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> deleteServiceResponse
+                         = ApiResponse.initial('Initial').obs;
 
   final List<RentalServiceType> rentalTabs = RentalServiceType.values;
   Rx<RentalServiceType> selectedRentalTabs = RentalServiceType.homeStay.obs;
@@ -88,5 +91,41 @@ class RentalController extends GetxController{
       isLoading.value = false;
     }
   }
+
+  RxBool isDeleteServiceLoading = false.obs;
+  Future<void> deleteService({required String serviceId}) async {
+    isDeleteServiceLoading.value = true;
+
+    try {
+      ResponseModel response = await RentalServiceRepo().deleteRentalServiceRepo(rentalId: serviceId);
+
+      if (response.isSuccess) {
+        deleteServiceResponse.value = ApiResponse.complete(response);
+        Get.back();
+        switch (selectedRentalTabs.value) {
+          case RentalServiceType.homeStay:
+            homeStayServices.removeWhere((s) => s.sId == serviceId);
+            homeStayServices.refresh();
+            break;
+          case RentalServiceType.flatRoom:
+            flatRoomServices.removeWhere((s) => s.sId == serviceId);
+            flatRoomServices.refresh();
+            break;
+          case RentalServiceType.vehicle:
+            vehicleServices.removeWhere((s) => s.sId == serviceId);
+            vehicleServices.refresh();
+            break;
+        }
+        commonSnackBar(message: response.message);
+      } else {
+        deleteServiceResponse.value = ApiResponse.error('error');
+      }
+    } catch (e, s) {
+      deleteServiceResponse.value = ApiResponse.error('error');
+    }finally{
+      isDeleteServiceLoading.value = false;
+    }
+  }
+
 
 }

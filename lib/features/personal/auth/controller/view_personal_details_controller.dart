@@ -18,7 +18,7 @@ import 'package:BlueEra/features/common/business_service/view/service_upload_scr
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/repo/feed_repo.dart';
 import 'package:BlueEra/features/common/map/repo/map_service_repo.dart';
-import 'package:BlueEra/features/common/map/view/location_service.dart';
+import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/email_verification_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/introduction_video_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
