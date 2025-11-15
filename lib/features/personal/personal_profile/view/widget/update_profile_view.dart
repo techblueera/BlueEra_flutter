@@ -4,6 +4,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -41,8 +42,6 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
   final designationController = TextEditingController();
   final specializationController = TextEditingController();
   final professionOthersController = TextEditingController();
-
-  // final organizationController = TextEditingController();
   final addBio = TextEditingController();
   final sectorTextController = TextEditingController();
   final _skillWorkerSpecificationTextController = TextEditingController();
@@ -54,13 +53,10 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
   final _ngoNameTextController = TextEditingController();
   final _artTypeController = TextEditingController();
   final emailVerificationController = Get.put(EmailVerificationController());
-  // final skillsController = TextEditingController();
   final politicalPartyController = TextEditingController();
-
-  // final userNameController = TextEditingController();
   final departmentNameController = TextEditingController();
   final subDivision = TextEditingController();
-bool updateBtnLoading=false;
+  bool updateBtnLoading = false;
   final personalCreateProfileController =
       Get.find<PersonalCreateProfileController>();
   final viewProfileController = Get.find<ViewPersonalDetailsController>();
@@ -116,18 +112,16 @@ bool updateBtnLoading=false;
       educationController.text = viewProfileController
               .personalProfileDetails.value.user?.highestEducation ??
           "";
-      // organizationController.text = viewProfileController
-      //         .personalProfileDetails.value.user?.currentOrganisation ??
-      //     "";
       locationController.text =
           viewProfileController.personalProfileDetails.value.user?.location ??
               "";
       personalCreateProfileController.imagePath?.value = viewProfileController
               .personalProfileDetails.value.user?.profileImage ??
           "";
-      personalCreateProfileController.coverImagePath?.value = viewProfileController
-              .personalProfileDetails.value.user?.coverPicture ??
-          "";
+      personalCreateProfileController.coverImagePath?.value =
+          viewProfileController
+                  .personalProfileDetails.value.user?.coverPicture ??
+              "";
       personalCreateProfileController.selectedGender
           .value = GenderTypeExtension.fromString((viewProfileController
                   .personalProfileDetails.value.user?.gender?.isNotEmpty ??
@@ -252,20 +246,18 @@ bool updateBtnLoading=false;
               name: selectedProfession?.toLowerCase());
     });
     tempImgPath = personalCreateProfileController.imagePath?.value;
-    Future.delayed(Duration(seconds: 1),(){
-      setState(() {
-
-      });
+    Future.delayed(Duration(seconds: 1), () {
+      setState(() {});
     });
     super.initState();
   }
- bool onChangedEmail=false;
+
+  bool onChangedEmail = false;
   String? selectedProfession;
   String? tempImgPath;
 
   @override
   Widget build(BuildContext context) {
-
     return WillPopScope(
       onWillPop: () async {
         Get.back();
@@ -275,7 +267,7 @@ bool updateBtnLoading=false;
       child: Scaffold(
         appBar: CommonBackAppBar(
           isLeading: true,
-          title: "Edit Profile",
+          title: AppStrings.editProfile,
           onBackTap: () {
             Get.back();
             personalCreateProfileController.imagePath?.value =
@@ -316,37 +308,35 @@ bool updateBtnLoading=false;
                                         .isImageUpdated.value = true;
                                     filedValidation();
                                   },
-                                  dialogTitle: 'Upload Profile Picture',
+                                  dialogTitle: AppStrings.uploadProfilePicture,
                                 ),
                               ),
                               SizedBox(height: SizeConfig.size14),
                               CustomText(
-                                "Profile Picture",
+                                AppStrings.profilePicture,
                                 fontWeight: FontWeight.bold,
                                 fontSize: SizeConfig.large,
                               ),
                               SizedBox(height: SizeConfig.size8),
-                              CustomText("You can update your photo anytime.",
+                              CustomText(AppStrings.updatePhotoMessage,
                                   color: AppColors.grey80,
                                   fontSize: SizeConfig.medium),
                               SizedBox(height: SizeConfig.size24),
 
                               CommonTextField(
-                                title: "Full Name",
-                                hintText: "Enter your full name",
+                                title: AppStrings.fullName,
+                                hintText: AppStrings.enterFullName,
                                 inputLength: 30,
                                 textEditController: nameController,
                                 validationType: ValidationTypeEnum.name,
                                 autovalidateMode: _autoValidate,
-
-
-                                validator: (value) {
+                                validator: (String? value) {
                                   if (value == null || value.isEmpty) {
-                                    return 'Please enter your name';
+                                    return AppStrings.pleaseEnterName.tr;
                                   } else if (value.trim().length < 6) {
-                                    return 'Name must be at least 6 characters';
+                                    return AppStrings.nameMinLength.tr;
                                   } else if (value.trim().length > 30) {
-                                    return 'Name must not exceed 30 characters';
+                                    return AppStrings.nameMaxLength.tr;
                                   }
                                   return null;
                                 },
@@ -356,7 +346,7 @@ bool updateBtnLoading=false;
                               Align(
                                 alignment: Alignment.centerLeft,
                                 child: CustomText(
-                                  "Gender",
+                                  AppStrings.gender,
                                   fontSize: SizeConfig.medium,
                                   fontWeight: FontWeight.w500,
                                   color: AppColors.black,
@@ -367,7 +357,7 @@ bool updateBtnLoading=false;
                                 items: GenderType.values,
                                 selectedValue: personalCreateProfileController
                                     .selectedGender.value,
-                                hintText: "Select Gender",
+                                hintText: AppStrings.selectGender,
                                 displayValue: (value) => value.displayName,
                                 onChanged: (value) {
                                   personalCreateProfileController
@@ -381,7 +371,7 @@ bool updateBtnLoading=false;
                               Row(
                                 children: [
                                   CustomText(
-                                    "Date of Birth",
+                                    AppStrings.dateOfBirth,
                                     fontWeight: FontWeight.w500,
                                     color: AppColors.black,
                                   ),
@@ -413,7 +403,6 @@ bool updateBtnLoading=false;
 
                               InkWell(
                                 onTap: () {
-                                  logs("logMsg");
                                   Navigator.pushNamed(
                                     context,
                                     RouteHelper.getSearchLocationScreenRoute(),
@@ -425,7 +414,8 @@ bool updateBtnLoading=false;
                                         if (address != null) {
                                           locationController.text = address;
                                           personalCreateProfileController
-                                              .setStartLocation(lat, lng, address);
+                                              .setStartLocation(
+                                                  lat, lng, address);
                                         }
                                       },
                                       ApiKeys.fromScreen: ""
@@ -436,11 +426,12 @@ bool updateBtnLoading=false;
                                   textEditController: locationController,
                                   hintText: "e.g.Rajiv Chowk, Delhi",
                                   isValidate: false,
-                                  title: "Location",
+                                  title: AppStrings.location,
                                   onTap: () {
                                     Navigator.pushNamed(
                                       context,
-                                      RouteHelper.getSearchLocationScreenRoute(),
+                                      RouteHelper
+                                          .getSearchLocationScreenRoute(),
                                       arguments: {
                                         'onPlaceSelected': (
                                           double? lat,
@@ -466,46 +457,54 @@ bool updateBtnLoading=false;
                               SizedBox(height: SizeConfig.size18),
 
                               CommonTextField(
-                                    title: "Email",
-                                    hintText: "Enter your email address",
-                                    textEditController: emailController,
-                                    validationType: ValidationTypeEnum.email,
-                                    onChange: (val) {
-                                      filedValidation();
-                                    },
-                                    sIcon: (viewProfileController
-                                        .personalProfileDetails.value.user?.emailVerified == true)
-                                        ? Icon(
-                                      Icons.verified_user_outlined,
-                                      color: AppColors.green39,
-                                    )
-                                        : null,
-                                  ),
+                                title: AppStrings.email,
+                                hintText: AppStrings.enterEmailAddress,
+                                textEditController: emailController,
+                                validationType: ValidationTypeEnum.email,
+                                onChange: (val) {
+                                  filedValidation();
+                                },
+                                sIcon: (viewProfileController
+                                            .personalProfileDetails
+                                            .value
+                                            .user
+                                            ?.emailVerified ==
+                                        true)
+                                    ? Icon(
+                                        Icons.verified_user_outlined,
+                                        color: AppColors.green39,
+                                      )
+                                    : null,
+                              ),
 
                               Padding(
                                 padding: EdgeInsets.only(
-                                    right: SizeConfig.size10, top: SizeConfig.size10),
+                                    right: SizeConfig.size10,
+                                    top: SizeConfig.size10),
                                 child: Align(
                                   alignment: Alignment.centerRight,
                                   child: GestureDetector(
                                     onTap: () {
-
-                                        // Validate just the email field
-                                        if (emailController.text.isNotEmpty &&
-                                            validateEmail(emailController.text)) {
-                                          emailVerificationController
-                                              .verifyEmail(emailController.text);
-                                        } else {
-                                          commonSnackBar(
-                                              message:
-                                              'Please enter a valid email address');
-                                        }
-
+                                      // Validate just the email field
+                                      if (emailController.text.isNotEmpty &&
+                                          validateEmail(emailController.text)) {
+                                        emailVerificationController
+                                            .verifyEmail(emailController.text);
+                                      } else {
+                                        commonSnackBar(
+                                            message:
+                                            AppStrings.invalidEmail);
+                                      }
                                     },
                                     child: CustomText(
-                                      viewProfileController.personalProfileDetails
-                                          .value.user?.emailVerified ==
-                                          true ? '' : 'Get Verify',
+                                      viewProfileController
+                                                  .personalProfileDetails
+                                                  .value
+                                                  .user
+                                                  ?.emailVerified ==
+                                              true
+                                          ? ''
+                                          : AppStrings.getVerify,
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.primaryColor,
                                     ),
@@ -516,7 +515,7 @@ bool updateBtnLoading=false;
                               // CustomText("title")
                               SizedBox(height: SizeConfig.size18),
                               CommonTextField(
-                                title: "Highest Education",
+                                title: AppStrings.highestEducation,
                                 hintText: "eg. 12th, B.A, M.A, PhD",
                                 textEditController: educationController,
                                 maxLength: 16,
@@ -524,10 +523,10 @@ bool updateBtnLoading=false;
                                   filedValidation();
                                 },
                                 validator: (value) {
-                                    if (value!.trim().length < 2) {
-                                    return 'Education must be at least 2 characters';
+                                  if (value!.trim().length < 2) {
+                                    return AppStrings.educationMinLength.tr;
                                   } else if (value.trim().length > 16) {
-                                    return 'Education must not exceed 16 characters';
+                                    return AppStrings.educationMaxLength.tr;
                                   }
                                   return null;
                                 },
@@ -536,7 +535,7 @@ bool updateBtnLoading=false;
                               Row(
                                 children: [
                                   CustomText(
-                                    "Select your Profession",
+                                    AppStrings.selectYourProfession,
                                     fontSize: SizeConfig.medium,
                                     fontWeight: FontWeight.w500,
                                     color: AppColors.black,
@@ -544,7 +543,8 @@ bool updateBtnLoading=false;
                                 ],
                               ),
                               SizedBox(height: SizeConfig.paddingXSL),
-                              GetBuilder<AuthController>(builder: (authController) {
+                              GetBuilder<AuthController>(
+                                  builder: (authController) {
                                 final dataList = authController
                                     .professionTypeDataList
                                     .where((e) =>
@@ -555,43 +555,37 @@ bool updateBtnLoading=false;
                                 if (dataList.isNotEmpty) {
                                   authController.clearSubCategoryData();
 
-                                  authController.subcategoriesFiledNameList.addAll(
-                                      dataList.first.subcategoriesFiledName ?? []);
+                                  authController.subcategoriesFiledNameList
+                                      .addAll(dataList
+                                              .first.subcategoriesFiledName ??
+                                          []);
                                 }
                                 return CommonDropdownDialog<ProfessionTypeData>(
                                   items: authController.professionTypeDataList,
                                   selectedValue: personalCreateProfileController
                                       .selectedProfessionObj.value,
                                   hintText: AppConstants.selectProfession,
-                                  title: "Select your Profession",
+                                  title: AppStrings.selectYourProfession,
                                   displayValue: (profession) =>
                                       profession.name ?? "",
                                   onChanged: (value) {
                                     personalCreateProfileController
                                         .selectedSubProfessionObj.value = null;
-                                    // authController.subcategoriesFiledNameList
-                                    //     .clear();
+
                                     authController.clearSubCategoryData();
 
                                     personalCreateProfileController
-                                        .selectedProfession.value = value?.tagId;
+                                        .selectedProfession
+                                        .value = value?.tagId;
                                     personalCreateProfileController
                                         .selectedProfessionObj.value = value;
-                                    logs(
-                                        " profession.name==== ${personalCreateProfileController.selectedProfessionObj.value?.name}");
-                                    selectedProfession=value?.name;
+                                    selectedProfession = value?.name;
                                     authController.subcategoriesFiledNameList
-                                        .addAll(
-                                            value?.subcategoriesFiledName ?? []);
+                                        .addAll(value?.subcategoriesFiledName ??
+                                            []);
                                     clearTextFiled();
                                     setState(() {});
                                   },
-                                  // validator: (value) {
-                                  //   if (value == null) {
-                                  //     return 'Please select your profession';
-                                  //   }
-                                  //   return null;
-                                  // },
                                 );
                               }),
 
@@ -601,10 +595,11 @@ bool updateBtnLoading=false;
                                       .selectedProfession.value ==
                                   AppConstants.Others) ...[
                                 CommonTextField(
-                                  hintText: "Enter Your Profession (If Others)",
-                                  title: "Specify Profession",
+                                  hintText: AppStrings.enterProfessionIfOthers,
+                                  title: AppStrings.specifyProfession,
                                   isValidate: false,
-                                  textEditController: professionOthersController,
+                                  textEditController:
+                                      professionOthersController,
                                 ),
                                 SizedBox(height: SizeConfig.size18),
                               ],
@@ -619,7 +614,7 @@ bool updateBtnLoading=false;
                                 Align(
                                   alignment: Alignment.centerLeft,
                                   child: CustomText(
-                                    "Select Work Type",
+                                    AppStrings.selectWorkType,
                                     fontSize: SizeConfig.medium,
                                   ),
                                 ),
@@ -629,22 +624,23 @@ bool updateBtnLoading=false;
                                 Obx(() {
                                   return CommonDropdownDialog<
                                       SubcategoriesFiledName>(
-                                    items:
-                                        authController.subcategoriesFiledNameList,
-                                    title: "Select Work Type",
-                                    selectedValue: personalCreateProfileController
-                                        .selectedSubProfessionObj.value,
-                                    hintText:'eg. Plumber',
+                                    items: authController
+                                        .subcategoriesFiledNameList,
+                                    title: AppStrings.selectWorkType,
+                                    selectedValue:
+                                        personalCreateProfileController
+                                            .selectedSubProfessionObj.value,
+                                    hintText: AppStrings.professionExample,
                                     displayValue: (selfEmployment) =>
                                         selfEmployment.name ?? "",
                                     onChanged: (value) {
                                       personalCreateProfileController
-                                          .selectedSubProfessionObj.value = value;
+                                          .selectedSubProfessionObj
+                                          .value = value;
                                       personalCreateProfileController
                                           .selectedSubProfession
                                           .value = value?.tagId;
                                       filedValidation();
-
                                     },
                                   );
                                 }),
@@ -657,10 +653,10 @@ bool updateBtnLoading=false;
                                   // maxLength: 24,
                                   isValidate: false,
                                   keyBoardType: TextInputType.text,
-                                  regularExpression:
-                                      RegularExpressionUtils.alphabetSpacePattern,
+                                  regularExpression: RegularExpressionUtils
+                                      .alphabetSpacePattern,
                                   titleColor: Colors.black,
-                                  hintText: "Please specify work type",
+                                  hintText: AppStrings.pleaseSpecifyWorkType,
                                 ),
                                 SizedBox(
                                   height: SizeConfig.size15,
@@ -671,11 +667,11 @@ bool updateBtnLoading=false;
                                   textEditController:
                                       _skillWorkerSpecificationTextController,
                                   inputLength: 24,
-                                  title: "Type Your Work Specification",
+                                  title: AppStrings.typeWorkSpecification,
                                   keyBoardType: TextInputType.text,
-                                  regularExpression:
-                                      RegularExpressionUtils.alphabetSpacePattern,
-                                  hintText: "eg. Helper",
+                                  regularExpression: RegularExpressionUtils
+                                      .alphabetSpacePattern,
+                                  hintText:AppStrings.workExample,
                                   isValidate: false,
                                 ),
                                 SizedBox(
@@ -686,14 +682,15 @@ bool updateBtnLoading=false;
                                 CommonTextField(
                                   isValidate: false,
 
-                                  textEditController: _contentCraterTextController,
+                                  textEditController:
+                                      _contentCraterTextController,
                                   // inputLength: 13,
                                   inputLength: 24,
-                                  title: "Type Your Specification",
+                                  title: AppStrings.typeYourSpecification,
                                   keyBoardType: TextInputType.text,
-                                  regularExpression:
-                                      RegularExpressionUtils.alphabetSpacePattern,
-                                  hintText: "eg. Education,Poetry",
+                                  regularExpression: RegularExpressionUtils
+                                      .alphabetSpacePattern,
+                                  hintText: AppStrings.specificationExample,
                                 ),
                                 SizedBox(
                                   height: SizeConfig.size20,
@@ -705,11 +702,11 @@ bool updateBtnLoading=false;
                                   isValidate: false,
                                   textEditController: _ngoNameTextController,
                                   inputLength: 40,
-                                  title: "Type Your NGO / Society Name",
+                                  title: AppStrings.typeNGOName,
                                   keyBoardType: TextInputType.text,
-                                  regularExpression:
-                                      RegularExpressionUtils.alphabetSpacePattern,
-                                  hintText: "eg. Auto Union",
+                                  regularExpression: RegularExpressionUtils
+                                      .alphabetSpacePattern,
+                                  hintText:AppStrings.ngoExample,
                                 ),
                                 SizedBox(
                                   height: SizeConfig.size20,
@@ -722,14 +719,15 @@ bool updateBtnLoading=false;
                                 CommonTextField(
                                   isValidate: false,
 
-                                  textEditController: _companyNameTextController,
+                                  textEditController:
+                                      _companyNameTextController,
                                   // inputLength: 13,
                                   inputLength: 24,
-                                  title: "Type Your Company Name",
+                                  title: AppStrings.typeCompanyName,
                                   keyBoardType: TextInputType.text,
-                                  regularExpression:
-                                      RegularExpressionUtils.alphabetSpacePattern,
-                                  hintText: "eg. TCS LTD",
+                                  regularExpression: RegularExpressionUtils
+                                      .alphabetSpacePattern,
+                                  hintText: AppStrings.companyExample,
                                 ),
                               ],
 
@@ -740,11 +738,11 @@ bool updateBtnLoading=false;
                                   textEditController: _ExpertiseTextController,
                                   // inputLength: 13,
                                   inputLength: 24,
-                                  title: "Type Your Expertise",
+                                  title: AppStrings.typeExpertise,
                                   keyBoardType: TextInputType.text,
-                                  regularExpression:
-                                      RegularExpressionUtils.alphabetSpacePattern,
-                                  hintText: "eg. Cooking,Dancing",
+                                  regularExpression: RegularExpressionUtils
+                                      .alphabetSpacePattern,
+                                  hintText:AppStrings.expertiseExample1,
                                 ),
                                 SizedBox(
                                   height: SizeConfig.size20,
@@ -759,11 +757,11 @@ bool updateBtnLoading=false;
                                   isValidate: false,
                                   textEditController: _SeniorTextController,
                                   inputLength: 24,
-                                  title: "Type Your Expertise",
+                                  title: AppStrings.typeExpertise,
                                   keyBoardType: TextInputType.text,
-                                  regularExpression:
-                                      RegularExpressionUtils.alphabetSpacePattern,
-                                  hintText: "eg. Banking,Teaching",
+                                  regularExpression: RegularExpressionUtils
+                                      .alphabetSpacePattern,
+                                  hintText:AppStrings.expertiseExample2,
                                 ),
                               ],
                               if ((selectedProfession == STUDENT)) ...[
@@ -771,11 +769,11 @@ bool updateBtnLoading=false;
                                   isValidate: false,
                                   textEditController: _CourseTextController,
                                   inputLength: 24,
-                                  title: "Which class you study?",
+                                  title: AppStrings.whichClassStudy,
                                   keyBoardType: TextInputType.text,
-                                  regularExpression:
-                                      RegularExpressionUtils.alphabetSpacePattern,
-                                  hintText: "eg.10th,Diploma,BE,PHD",
+                                  regularExpression: RegularExpressionUtils
+                                      .alphabetSpacePattern,
+                                  hintText: AppStrings.studyExample,
                                 ),
                                 SizedBox(
                                   height: SizeConfig.size20,
@@ -787,7 +785,7 @@ bool updateBtnLoading=false;
                                 Align(
                                   alignment: Alignment.centerLeft,
                                   child: CustomText(
-                                    "Select Your Art / Skill",
+                                    AppStrings.selectArtSkill,
                                     fontSize: SizeConfig.medium,
                                   ),
                                 ),
@@ -795,18 +793,20 @@ bool updateBtnLoading=false;
                                   height: SizeConfig.size10,
                                 ),
                                 CommonDropdownDialog<SubcategoriesFiledName>(
-                                  items: authController.subcategoriesFiledNameList,
-                                  title: "Select Your Art / Skill",
+                                  items:
+                                      authController.subcategoriesFiledNameList,
+                                  title: AppStrings.selectArtSkill,
                                   selectedValue: personalCreateProfileController
                                       .selectedSubProfessionObj.value,
-                                  hintText: 'eg. Paintert',
+                                  hintText: AppStrings.artExample,
                                   displayValue: (selfEmployment) =>
                                       selfEmployment.name ?? "",
                                   onChanged: (value) {
                                     personalCreateProfileController
                                         .selectedSubProfessionObj.value = value;
                                     personalCreateProfileController
-                                        .selectedSubProfession.value = value?.tagId;
+                                        .selectedSubProfession
+                                        .value = value?.tagId;
                                   },
                                 ),
                                 SizedBox(
@@ -823,10 +823,10 @@ bool updateBtnLoading=false;
                                     // inputLength: 13,
                                     inputLength: 24,
                                     keyBoardType: TextInputType.text,
-                                    regularExpression:
-                                        RegularExpressionUtils.alphabetSpacePattern,
+                                    regularExpression: RegularExpressionUtils
+                                        .alphabetSpacePattern,
                                     titleColor: Colors.black,
-                                    hintText: "Please Specify Art Type",
+                                    hintText: AppStrings.pleaseSpecifyArtType,
                                   ),
                                   SizedBox(
                                     height: SizeConfig.size20,
@@ -839,16 +839,17 @@ bool updateBtnLoading=false;
                                   textEditController: sectorTextController,
                                   inputLength: 24,
                                   keyBoardType: TextInputType.text,
-                                 // isValidate: false,
-                                  regularExpression:
-                                      RegularExpressionUtils.alphabetSpacePattern,
-                                  title: "Sector",
-                                  hintText: "eg. IT Sector",
+                                  // isValidate: false,
+                                  regularExpression: RegularExpressionUtils
+                                      .alphabetSpacePattern,
+                                  title: AppStrings.sector,
+                                  hintText: AppStrings.sectorExample,
                                   validator: (value) {
                                     if (value == null || value.isEmpty) {
-                                      return 'Please enter your Sector';
-                                    } if (value.trim().length > 24) {
-                                      return 'Sector must not exceed 24 characters';
+                                      return AppStrings.enterSector.tr;
+                                    }
+                                    if (value.trim().length > 24) {
+                                      return AppStrings.sectorMaxLength.tr;
                                     }
                                     return null;
                                   },
@@ -858,10 +859,10 @@ bool updateBtnLoading=false;
 
                               if ((selectedProfession == POLITICIAN)) ...[
                                 CommonTextField(
-                                  title: "Political Party",
+                                  title: AppStrings.politicalParty,
                                   inputLength: 24,
                                   hintText:
-                                      "Enter political party or organization name",
+                                  AppStrings.enterPoliticalParty,
                                   textEditController: politicalPartyController,
                                   isValidate: false,
                                 ),
@@ -869,29 +870,29 @@ bool updateBtnLoading=false;
                               ],
                               if (selectedProfession == GOVTPSU) ...[
                                 CommonTextField(
-                                  title: "Name of Department/PSU",
+                                  title: AppStrings.departmentName,
                                   textEditController: departmentNameController,
                                   inputLength: 24,
                                   keyBoardType: TextInputType.text,
-                                  regularExpression:
-                                      RegularExpressionUtils.alphabetSpacePattern_,
+                                  regularExpression: RegularExpressionUtils
+                                      .alphabetSpacePattern_,
                                   titleColor: Colors.black,
-                                  hintText: "eg., Ministry of Education",
+                                  hintText: AppStrings.departmentExample,
                                   isValidate: false,
                                 ),
                                 SizedBox(height: SizeConfig.size18),
                               ],
                               if ((selectedProfession == GOVTPSU)) ...[
                                 CommonTextField(
-                                  title: "SUB Division / Branch",
+                                  title: AppStrings.subDivision,
                                   textEditController: subDivision,
                                   inputLength: 24,
                                   isValidate: false,
                                   keyBoardType: TextInputType.text,
-                                  regularExpression:
-                                      RegularExpressionUtils.alphabetSpacePattern_,
+                                  regularExpression: RegularExpressionUtils
+                                      .alphabetSpacePattern_,
                                   titleColor: Colors.black,
-                                  hintText: "eg., Civil Engineering Division",
+                                  hintText: AppStrings.subDivisionExample,
                                 ),
                                 SizedBox(height: SizeConfig.size18),
                               ],
@@ -900,15 +901,16 @@ bool updateBtnLoading=false;
                                   (selectedProfession != ARTIST) &&
                                   (selectedProfession != CONTENT_CREATOR) &&
                                   (selectedProfession != HOMEMAKER) &&
-                                  (selectedProfession != SENIOR_CITIZEN_RETIRED) &&
+                                  (selectedProfession !=
+                                      SENIOR_CITIZEN_RETIRED) &&
                                   (selectedProfession != FARMER) &&
                                   (selectedProfession != STUDENT) &&
                                   (selectedProfession != OTHERS)) ...[
                                 CommonTextField(
-                                  title: "Designation",
+                                  title: AppStrings.designation,
                                   inputLength: 24,
                                   isValidate: false,
-                                  hintText: "Enter your designation",
+                                  hintText:AppStrings.enterDesignation,
                                   textEditController: designationController,
                                   onChange: (val) {
                                     // filedValidation();
@@ -917,23 +919,27 @@ bool updateBtnLoading=false;
                                 SizedBox(height: SizeConfig.size18),
                               ],
                               AiSuggestionField(
-
-                                title: "About Me / Bio",
-                                apiType: "bio",
+                                title: AppStrings.aboutMe,
+                                apiType: AppStrings.bio,
                                 textController: addBio,
                                 bodyRequest: {
                                   ApiKeys.profession: selectedProfession,
-                                  ApiKeys.designation: designationController.text,
+                                  ApiKeys.designation:
+                                      designationController.text,
                                   ApiKeys.date_of_birth_Obj: {
-                                    ApiKeys.year: personalCreateProfileController
-                                        .selectedYear?.value,
-                                    ApiKeys.month: personalCreateProfileController
-                                        .selectedMonth?.value,
-                                    ApiKeys.date: personalCreateProfileController
-                                        .selectedDay?.value
+                                    ApiKeys.year:
+                                        personalCreateProfileController
+                                            .selectedYear?.value,
+                                    ApiKeys.month:
+                                        personalCreateProfileController
+                                            .selectedMonth?.value,
+                                    ApiKeys.date:
+                                        personalCreateProfileController
+                                            .selectedDay?.value
                                   },
-                                  ApiKeys.gender: personalCreateProfileController
-                                      .selectedGender.value?.name
+                                  ApiKeys.gender:
+                                      personalCreateProfileController
+                                          .selectedGender.value?.name
                                 },
                                 onSaved: filedValidation,
 
@@ -941,21 +947,11 @@ bool updateBtnLoading=false;
                                 onChange:
                                     filedValidation, // when user edits manually
                               ),
-                              // CommonTextField(
-                              //   title: "About Me /Bio",
-                              //   hintText: AppConstants.myBio,
-                              //   textEditController: addBio,
-                              //   maxLine: 3,
-                              //   maxLength: 250,
-                              //   onChange: (val) {
-                              //     filedValidation();
-                              //   },
-                              // ),
+
                               SizedBox(height: SizeConfig.size24),
                             ],
                           );
                         }),
-
                         Row(
                           children: [
                             Expanded(
@@ -965,7 +961,7 @@ bool updateBtnLoading=false;
                                   Get.back();
                                 },
                                 bgColor: AppColors.white,
-                                title: "Cancel",
+                                title: AppStrings.cancel,
                                 textColor: AppColors.primaryColor,
                               ),
                             ),
@@ -977,239 +973,287 @@ bool updateBtnLoading=false;
                                     isValidate: filedValidation(),
                                     onTap: filedValidation()
                                         ? () async {
+                                            if (viewProfileController
+                                                    .personalProfileDetails
+                                                    .value
+                                                    .user
+                                                    ?.emailVerified ==
+                                                true) {
+                                              setState(() {
+                                                updateBtnLoading =
+                                                    !updateBtnLoading;
+                                              });
+                                              if (selectedProfession ==
+                                                  ARTIST) {
+                                                if (personalCreateProfileController
+                                                        .selectedSubProfessionObj
+                                                        .value
+                                                        ?.name
+                                                        ?.isEmpty ??
+                                                    true) {
+                                                  commonSnackBar(
+                                                      message:
+                                                      AppStrings.selectArtSkillLower);
 
-                                      if(viewProfileController.personalProfileDetails
-                                          .value.user?.emailVerified==true){
-                                      setState(() {
-                                        updateBtnLoading=!updateBtnLoading;
-                                      });
-                                        if (selectedProfession == ARTIST) {
-                                          if (personalCreateProfileController
-                                              .selectedSubProfessionObj
-                                              .value
-                                              ?.name
-                                              ?.isEmpty ??
-                                              true) {
-                                            commonSnackBar(
-                                                message:
-                                                'Select your art / skill');
+                                                  return;
+                                                }
+                                              }
+                                              if (selectedProfession ==
+                                                  REG_UNION) {
+                                                if (_ngoNameTextController
+                                                    .text.isEmpty) {
+                                                  commonSnackBar(
+                                                      message:
+                                                      AppStrings.enterNGOName);
 
-                                            return;
-                                          }
-                                        }
-                                        if (selectedProfession == REG_UNION) {
-                                          if (_ngoNameTextController
-                                              .text.isEmpty) {
-                                            commonSnackBar(
-                                                message:
-                                                'Enter your NGO / Society Name');
+                                                  return;
+                                                }
+                                              }
 
-                                            return;
-                                          }
-                                        }
+                                              if (selectedProfession ==
+                                                  OTHERS) {
+                                                if (professionOthersController
+                                                    .text.isEmpty) {
+                                                  commonSnackBar(
+                                                      message:
+                                                      AppStrings.enterSkillExpertise);
+                                                  return;
+                                                }
+                                              }
 
-                                        if (selectedProfession == OTHERS) {
-                                          if (professionOthersController
-                                              .text.isEmpty) {
-                                            commonSnackBar(
-                                                message:
-                                                'Please enter your Skill and Expertise');
-                                            return;
-                                          }
-                                        }
+                                              String? designation;
+                                              if (personalCreateProfileController
+                                                      .selectedProfession
+                                                      .value ==
+                                                  SELF_EMPLOYED) {
+                                                designation =
+                                                    personalCreateProfileController
+                                                            .selectedSubProfessionObj
+                                                            .value
+                                                            ?.name ??
+                                                        "";
+                                              } else {
+                                                designation =
+                                                    designationController.text;
+                                              }
 
-                                        String? designation;
-                                        if (personalCreateProfileController
-                                            .selectedProfession.value ==
-                                            SELF_EMPLOYED) {
-                                          designation =
-                                              personalCreateProfileController
-                                                  .selectedSubProfessionObj
-                                                  .value
-                                                  ?.name ??
-                                                  "";
-                                        } else {
-                                          designation =
-                                              designationController.text;
-                                        }
+                                              Map<String, dynamic> params = {
+                                                if ((personalCreateProfileController
+                                                            .imagePath
+                                                            ?.value
+                                                            .isNotEmpty ??
+                                                        false) &&
+                                                    personalCreateProfileController
+                                                        .isImageUpdated.value)
+                                                  ApiKeys.profile_image:
+                                                      await multiPartImage(
+                                                    imagePath:
+                                                        personalCreateProfileController
+                                                                .imagePath
+                                                                ?.value ??
+                                                            "",
+                                                  ),
+                                                if (nameController
+                                                    .text.isNotEmpty)
+                                                  ApiKeys.name: nameController
+                                                      .text
+                                                      .trim(),
+                                                ApiKeys.location:
+                                                    locationController.text
+                                                        .trim(),
+                                                ApiKeys.user_cordinates:
+                                                    jsonEncode({
+                                                  ApiKeys.lat:
+                                                      personalCreateProfileController
+                                                          .locationLat?.value,
+                                                  ApiKeys.lon:
+                                                      personalCreateProfileController
+                                                          .locationLng?.value,
+                                                }),
+                                                ApiKeys.email:
+                                                    emailController.text.trim(),
+                                                ApiKeys.highest_education:
+                                                    educationController.text
+                                                        .trim(),
+                                                // if (shouldShowField('designation'))
+                                                ApiKeys.profession:
+                                                    personalCreateProfileController
+                                                            .selectedProfession
+                                                            .value ??
+                                                        '',
+                                                ApiKeys.designation:
+                                                    designation,
 
-                                        Map<String, dynamic> params = {
-                                          if ((personalCreateProfileController
-                                              .imagePath
-                                              ?.value
-                                              .isNotEmpty ??
-                                              false) &&
-                                              personalCreateProfileController
-                                                  .isImageUpdated.value)
-                                            ApiKeys.profile_image:
-                                            await multiPartImage(
-                                              imagePath:
-                                              personalCreateProfileController
-                                                  .imagePath?.value ??
-                                                  "",
-                                            ),
-                                          if (nameController.text.isNotEmpty)
-                                            ApiKeys.name:
-                                            nameController.text.trim(),
-                                          ApiKeys.location:
-                                          locationController.text.trim(),
-                                          ApiKeys.user_cordinates: jsonEncode({
-                                            ApiKeys.lat:
-                                            personalCreateProfileController
-                                                .locationLat?.value,
-                                            ApiKeys.lon:
-                                            personalCreateProfileController
-                                                .locationLng?.value,
-                                          }),
-                                          ApiKeys.email:
-                                          emailController.text.trim(),
-                                          ApiKeys.highest_education:
-                                          educationController.text.trim(),
-                                          // if (shouldShowField('designation'))
-                                          ApiKeys.profession:
-                                          personalCreateProfileController
-                                              .selectedProfession.value ??
-                                              '',
-                                          ApiKeys.designation: designation,
+                                                if (personalCreateProfileController
+                                                        .selectedProfession
+                                                        .value ==
+                                                    SELF_EMPLOYED)
+                                                  ApiKeys.specilization:
+                                                      specializationController
+                                                          .text,
+                                                if (personalCreateProfileController
+                                                        .selectedProfession
+                                                        .value ==
+                                                    OTHERS)
+                                                  ApiKeys.specilization:
+                                                      professionOthersController
+                                                          .text,
 
-                                          if (personalCreateProfileController
-                                              .selectedProfession.value ==
-                                              SELF_EMPLOYED)
-                                            ApiKeys.specilization:
-                                            specializationController.text,
-                                          if (personalCreateProfileController
-                                              .selectedProfession.value ==
-                                              OTHERS)
-                                            ApiKeys.specilization:
-                                            professionOthersController.text,
+                                                if ((selectedProfession ==
+                                                    POLITICIAN))
+                                                  'political_party':
+                                                      politicalPartyController
+                                                          .text
+                                                          .trim(),
+                                                if (personalCreateProfileController
+                                                        .selectedProfession
+                                                        .value ==
+                                                    PRIVATE_JOB)
+                                                  ApiKeys.sector:
+                                                      sectorTextController.text,
 
-                                          if ((selectedProfession == POLITICIAN))
-                                            'political_party':
-                                            politicalPartyController.text
-                                                .trim(),
-                                          if (personalCreateProfileController
-                                              .selectedProfession.value ==
-                                              PRIVATE_JOB)
-                                            ApiKeys.sector:
-                                            sectorTextController.text,
+                                                ApiKeys.gender:
+                                                    personalCreateProfileController
+                                                        .selectedGender
+                                                        .value
+                                                        ?.name,
+                                                if (addBio.text.isNotEmpty)
+                                                  ApiKeys.bio: addBio.text,
 
-                                          ApiKeys.gender:
-                                          personalCreateProfileController
-                                              .selectedGender.value?.name,
-                                          if (addBio.text.isNotEmpty)
-                                            ApiKeys.bio: addBio.text,
+                                                ApiKeys.dob_date:
+                                                    personalCreateProfileController
+                                                        .selectedDay,
+                                                ApiKeys.dob_month:
+                                                    personalCreateProfileController
+                                                        .selectedMonth,
+                                                ApiKeys.dob_year:
+                                                    personalCreateProfileController
+                                                        .selectedYear,
 
-                                          ApiKeys.dob_date:
-                                          personalCreateProfileController
-                                              .selectedDay,
-                                          ApiKeys.dob_month:
-                                          personalCreateProfileController
-                                              .selectedMonth,
-                                          ApiKeys.dob_year:
-                                          personalCreateProfileController
-                                              .selectedYear,
+                                                ///SKILL WORKER..
+                                                if (selectedProfession ==
+                                                    SKILLED_WORKER)
+                                                  ApiKeys.specilization:
+                                                      _skillWorkerSpecificationTextController
+                                                          .text,
 
+                                                ///CONTENT_CREATOR
+                                                if (selectedProfession ==
+                                                    CONTENT_CREATOR)
+                                                  ApiKeys.specilization:
+                                                      _contentCraterTextController
+                                                          .text,
 
-                                          ///SKILL WORKER..
-                                          if (selectedProfession ==
-                                              SKILLED_WORKER)
-                                            ApiKeys.specilization:
-                                            _skillWorkerSpecificationTextController
-                                                .text,
+                                                ///GOVT PSU
+                                                if (selectedProfession ==
+                                                    GOVTPSU)
+                                                  ApiKeys.department:
+                                                      departmentNameController
+                                                          .text,
+                                                if (selectedProfession ==
+                                                    GOVTPSU)
+                                                  ApiKeys.subDivision:
+                                                      subDivision.text,
 
-                                          ///CONTENT_CREATOR
-                                          if (selectedProfession ==
-                                              CONTENT_CREATOR)
-                                            ApiKeys.specilization:
-                                            _contentCraterTextController.text,
+                                                ///NGO
+                                                if (selectedProfession ==
+                                                    REG_UNION)
+                                                  ApiKeys.department:
+                                                      _ngoNameTextController
+                                                          .text,
 
-                                          ///GOVT PSU
-                                          if (selectedProfession == GOVTPSU)
-                                            ApiKeys.department:
-                                            departmentNameController.text,
-                                          if (selectedProfession == GOVTPSU)
-                                            ApiKeys.subDivision: subDivision.text,
+                                                ///Artist...
+                                                if (selectedProfession ==
+                                                    ARTIST)
+                                                  ApiKeys.art: jsonEncode({
+                                                    ApiKeys.artName:
+                                                        personalCreateProfileController
+                                                            .selectedSubProfessionObj
+                                                            .value
+                                                            ?.name,
+                                                    ApiKeys.artType:
+                                                        _artTypeController.text
+                                                  }),
+                                              };
+                                              await personalCreateProfileController
+                                                  .updateUserProfileDetails(
+                                                params: params,
+                                              );
+                                              setState(() {
+                                                updateBtnLoading =
+                                                    !updateBtnLoading;
+                                              });
+                                            } else {
+                                              showDialog(
+                                                context: context,
+                                                builder:
+                                                    (BuildContext context) {
+                                                  return AlertDialog(
+                                                    contentPadding:
+                                                        EdgeInsets.zero,
+                                                    // constraints: BoxConstraints(
+                                                    //   maxHeight: 200
+                                                    // ),
+                                                    scrollable: false,
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              10),
+                                                    ),
 
-                                          ///NGO
-                                          if (selectedProfession == REG_UNION)
-                                            ApiKeys.department:
-                                            _ngoNameTextController.text,
-
-                                          ///Artist...
-                                          if (selectedProfession == ARTIST)
-                                            ApiKeys.art: jsonEncode({
-                                              ApiKeys.artName:
-                                              personalCreateProfileController
-                                                  .selectedSubProfessionObj
-                                                  .value
-                                                  ?.name,
-                                              ApiKeys.artType:
-                                              _artTypeController.text
-                                            }),
-                                        };
-                                        print("Update Params: $params");
-                                        await personalCreateProfileController
-                                            .updateUserProfileDetails(
-                                          params: params,
-                                        );
-                                      setState(() {
-                                        updateBtnLoading=!updateBtnLoading;
-                                      });
-                                      }else{
-                                        showDialog(
-                                          context: context,
-                                          builder: (BuildContext context) {
-                                            return AlertDialog(contentPadding: EdgeInsets.zero,
-                                              // constraints: BoxConstraints(
-                                              //   maxHeight: 200
-                                              // ),
-                                              scrollable: false,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(10),
-                                              ),
-
-                                              content: Padding(
-                                                padding: const EdgeInsets.all(16.0),
-                                                child: Column(mainAxisSize: MainAxisSize.min,
-                                                  children: [
-                                                    Center(
-                                                      child: CustomText(
-                                                        textAlign: TextAlign.center,
-                                                        "Email Verification Required",
-
-                                                        fontWeight: FontWeight.w600,
-                                                        fontSize: 18,
-
+                                                    content: Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              16.0),
+                                                      child: Column(
+                                                        mainAxisSize:
+                                                            MainAxisSize.min,
+                                                        children: [
+                                                          Center(
+                                                            child: CustomText(
+                                                              textAlign:
+                                                                  TextAlign
+                                                                      .center,
+                                                              AppStrings.emailVerificationRequired,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600,
+                                                              fontSize: 18,
+                                                            ),
+                                                          ),
+                                                          SizedBox(
+                                                            height: SizeConfig
+                                                                .size8,
+                                                          ),
+                                                          Center(
+                                                            child: CustomText(
+                                                              textAlign:
+                                                                  TextAlign
+                                                                      .center,
+                                                              AppStrings.emailVerificationMessage,
+                                                              fontSize: 14,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w400,
+                                                              color: AppColors
+                                                                  .grayText,
+                                                            ),
+                                                          ),
+                                                          SizedBox(
+                                                            height: SizeConfig
+                                                                .size4,
+                                                          ),
+                                                        ],
                                                       ),
                                                     ),
-                                                    SizedBox(
-                                                      height: SizeConfig.size8,
-                                                    ),
-                                                    Center(
-                                                      child: CustomText(textAlign: TextAlign.center,
-                                                        "We have sent a verification email to bluecslimited001@gmail.com Please check your inbox (or spam/junk folder) and follow the instructions to verify your email.",
-                                                        fontSize: 14,
-                                                        fontWeight: FontWeight.w400,
-                                                        color: AppColors.grayText,
-
-                                                      ),
-                                                    ),
-                                                    SizedBox(
-                                                      height: SizeConfig.size4,
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-
-                                            );
-                                          },
-                                        );
-
-                                      }
-
-                                    }
+                                                  );
+                                                },
+                                              );
+                                            }
+                                          }
                                         : null,
-                                    title: "Update"))
+                                    title: AppStrings.update))
                           ],
                         ),
                         SizedBox(
@@ -1218,10 +1262,6 @@ bool updateBtnLoading=false;
                       ],
                     ),
                   ),
-                  // SizedBox(
-                  //   height: SizeConfig.size20,
-                  // ),
-
                   SizedBox(
                     height: kToolbarHeight,
                   ),
@@ -1241,16 +1281,6 @@ bool updateBtnLoading=false;
     if (locationController.text.isEmpty) isValid = false;
     if (emailController.text.isEmpty) isValid = false;
     if (educationController.text.isEmpty) isValid = false;
-    // if (organizationController.text.isEmpty) isValid = false;
-    // if (addBio.text.isEmpty) isValid = false;
-    // if (currentFields.contains('skills') && skillsController.text.isEmpty)
-    //   isValid = false;
-    // if (currentFields.contains('politicalParty') &&
-    //     politicalPartyController.text.isEmpty) isValid = false;
-
-    // if (currentFields.contains('designation') &&
-    //     designationController.text.isEmpty) isValid = false;
-
     if (personalCreateProfileController.selectedProfession.value ==
             AppConstants.Others &&
         professionOthersController.text.isEmpty) isValid = false;

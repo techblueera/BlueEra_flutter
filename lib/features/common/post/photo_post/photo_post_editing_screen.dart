@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
@@ -73,7 +74,7 @@ class _PhotoPostEditingScreenState extends State<PhotoPostEditingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-          title: 'Edit Photo',
+          title: AppStrings.editPhoto,
           isLeading: true,
           onBackTap: () {
             HapticFeedback.lightImpact();
@@ -152,12 +153,6 @@ class _PhotoPostEditingScreenState extends State<PhotoPostEditingScreen> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(12.0),
                     child:
-                    // (_selectedFilterIndex == 0) ?
-                    // Image.file(
-                    //   File(photoPostController.originalPhotos[index]),
-                    //   fit: BoxFit.cover,
-                    //   width: double.infinity,
-                    // ) :
                     RepaintBoundary(
                       key: _imageKeys[index],
                       child: ColorFiltered(
@@ -235,15 +230,13 @@ class _PhotoPostEditingScreenState extends State<PhotoPostEditingScreen> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.add, color: Colors.blue[600], size: 18),
+                Icon(Icons.add, color: AppColors.primaryColor, size: 18),
                 const SizedBox(width: 6),
-                Text(
-                  'Add More',
-                  style: TextStyle(
-                    color: Colors.blue[600],
+                CustomText(
+                  AppStrings.addMore,
+                    color: AppColors.primaryColor,
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
-                  ),
                 ),
               ],
             ),
@@ -335,7 +328,7 @@ class _PhotoPostEditingScreenState extends State<PhotoPostEditingScreen> {
           final filteredFiles = await exportAllFilteredPhotos();
           Navigator.pop(context, filteredFiles.map((f) => f.path).toList());
         },
-        title: "Continue",
+        title: AppStrings.continueTxt,
       ),
     );
   }
@@ -414,7 +407,6 @@ class _PhotoPostEditingScreenState extends State<PhotoPostEditingScreen> {
 
   Future<List<File>> exportAllFilteredPhotos() async {
     List<File> exported = [];
-    log('image lengt--- ${_imageKeys.length}');
 
     for (int i = 0; i < _imageKeys.length; i++) {
       // Animate carousel to ensure RepaintBoundary is mounted
@@ -426,14 +418,12 @@ class _PhotoPostEditingScreenState extends State<PhotoPostEditingScreen> {
       if (file != null) exported.add(file);
     }
 
-    log('exported--- ${exported.length}');
     return exported;
   }
 
   Future<File?> _exportFilteredPhoto(GlobalKey key, int index) async {
     try {
       final boundary = key.currentContext?.findRenderObject() as RenderRepaintBoundary?;
-      print('boundary--$boundary');
       if (boundary == null) return null;
 
       final ui.Image image = await boundary.toImage(pixelRatio: 3.0);

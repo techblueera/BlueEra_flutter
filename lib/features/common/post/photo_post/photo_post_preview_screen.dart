@@ -4,6 +4,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/post/controller/photo_post_controller.dart';
@@ -29,7 +30,7 @@ class PhotoPostPreviewScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: 'Symbol Post',
+        title: AppStrings.symbolPost,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -81,7 +82,7 @@ class PhotoPostPreviewScreen extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  CustomText('Upload Photos',
+                  CustomText(AppStrings.uploadPhotos,
                       fontSize: SizeConfig.medium, fontWeight: FontWeight.w500),
                   InkWell(
                       onTap: () => Get.back(),
@@ -133,7 +134,7 @@ class PhotoPostPreviewScreen extends StatelessWidget {
       child: Obx(() => Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CustomText('Description of Message',
+              CustomText(AppStrings.descriptionOfMessage,
                   fontSize: SizeConfig.medium, fontWeight: FontWeight.w500),
               SizedBox(height: SizeConfig.size10),
               Container(
@@ -157,7 +158,7 @@ class PhotoPostPreviewScreen extends StatelessWidget {
       child: Obx(() => Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CustomText('Nature of Post',
+              CustomText(AppStrings.natureOfPost,
                   fontSize: SizeConfig.medium, fontWeight: FontWeight.w500),
               SizedBox(height: SizeConfig.size10),
               Container(
@@ -182,7 +183,7 @@ class PhotoPostPreviewScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Add Tag People / Organization button
-          CustomText('Tag People / Organization',
+          CustomText(AppStrings.addTagPeopleOrganization,
               fontSize: SizeConfig.medium, fontWeight: FontWeight.w500),
 
           // Selected users chips
@@ -221,7 +222,7 @@ class PhotoPostPreviewScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CustomText(
-              'Song',
+              AppStrings.song,
               fontSize: SizeConfig.medium,
               fontWeight: FontWeight.w500
           ),
@@ -277,7 +278,7 @@ class PhotoPostPreviewScreen extends StatelessWidget {
         Padding(
           padding: EdgeInsets.symmetric(horizontal: SizeConfig.size16),
           child: CustomText(
-            "How long should we show this symbol?",
+            AppStrings.howLongShowSymbol,
             fontSize: SizeConfig.medium,
             fontWeight: FontWeight.w500,
             color: AppColors.black,
@@ -295,7 +296,7 @@ class PhotoPostPreviewScreen extends StatelessWidget {
                   activeColor: AppColors.primaryColor,
                 ),
                 CustomText(
-                  "24 Hours",
+                  AppStrings.hours24,
                   color: AppColors.black,
                   fontWeight: FontWeight.w400,
                   fontSize: SizeConfig.large,
@@ -312,7 +313,7 @@ class PhotoPostPreviewScreen extends StatelessWidget {
                   activeColor: AppColors.primaryColor,
                 ),
                 CustomText(
-                  "7 Days",
+                  AppStrings.days7,
                   color: AppColors.black,
                   fontWeight: FontWeight.w400,
                   fontSize: SizeConfig.large,
@@ -335,7 +336,7 @@ class PhotoPostPreviewScreen extends StatelessWidget {
                 arguments: {ApiKeys.argPostVia: postVia}
             );
           },
-          title: "Continue"),
+          title: AppStrings.continueTxt),
     );
   }
 }

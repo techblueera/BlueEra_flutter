@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/introduction_video_controller.dart';
@@ -70,7 +71,7 @@ class _IntroductionVideoWidgetState extends State<IntroductionVideoWidget> {
 
 
                 CustomText(
-                  'Upload Introduction Video',
+                  AppStrings.uploadIntroductionVideo,
                   fontSize: SizeConfig.medium,
                   fontWeight: FontWeight.w600,
                   color: AppColors.secondaryTextColor,
@@ -98,7 +99,7 @@ class _IntroductionVideoWidgetState extends State<IntroductionVideoWidget> {
                             // Allow user to select a new video
                             await _pickVideo();
                           },
-                          title: "Change",
+                          title: AppStrings.change,
                           bgColor: AppColors.white,
                           borderColor: AppColors.primaryColor,
                           textColor: AppColors.primaryColor,
@@ -124,7 +125,7 @@ class _IntroductionVideoWidgetState extends State<IntroductionVideoWidget> {
                         // commonSnackBar(message: "Please select a video first");
                       // }
                     },
-                    title: introVideoController.isUploading.value ? "Uploading..." : "Upload Video",
+                    title: introVideoController.isUploading.value ? "${AppStrings.uploading}..." : AppStrings.uploadVideo,
                   )
           ],
         ),
@@ -149,43 +150,6 @@ class _IntroductionVideoWidgetState extends State<IntroductionVideoWidget> {
     );
   }
 
-  Widget _buildUploadArea() {
-    return GestureDetector(
-      onTap: _pickVideo,
-      child: DottedBorder(
-        color: const Color(0xffD2D2D2),
-        strokeWidth: 1.5,
-        borderType: BorderType.RRect,
-        radius: const Radius.circular(8),
-        dashPattern: const [6, 4],
-        child: Container(
-          width: double.infinity,
-          height: SizeConfig.size140,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.video_library_outlined,
-                  size: 40,
-                  color: AppColors.primaryColor,
-                ),
-                const SizedBox(height: 8),
-                CustomText(
-                  introVideoController.selectedVideo.value != null
-                      ? introVideoController.selectedVideo.value!.path.split('/').last
-                      : 'Upload your Introduction Video',
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 
   Widget _buildVideoPreview() {
     return GestureDetector(
@@ -251,7 +215,8 @@ class _IntroductionVideoWidgetState extends State<IntroductionVideoWidget> {
       File pickedFile = File(result.files.single.path!);
       introVideoController.setSelectedVideo(pickedFile);
     } else {
-      commonSnackBar(message: "No video selected");
+
+      commonSnackBar(message:AppStrings.noVideoSelected);
     }
   }
 }

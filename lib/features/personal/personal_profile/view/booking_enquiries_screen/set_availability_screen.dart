@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/controller/location_controller.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
@@ -198,7 +199,7 @@ class _SetAvailabilityScreenState extends State<SetAvailabilityScreen> {
     return Scaffold(
       backgroundColor: AppColors.whiteF3,
       appBar: CommonBackAppBar(
-        title: 'Set your Availability',
+        title: AppStrings.setYourAvailability,
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(SizeConfig.size15),
@@ -213,7 +214,7 @@ class _SetAvailabilityScreenState extends State<SetAvailabilityScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomText(
-                  'Booking Type',
+                  AppStrings.bookingType,
                   fontSize: SizeConfig.small,
                   fontWeight: FontWeight.w400,
                   color: AppColors.mainTextColor,
@@ -221,11 +222,11 @@ class _SetAvailabilityScreenState extends State<SetAvailabilityScreen> {
                 SizedBox(height: SizeConfig.size12),
                 Row(
                   children: [
-                    buildBookingOption(BookingType.online.title, BookingType.online),
+                    buildBookingOption(  AppStrings.online, BookingType.online),
                     SizedBox(width: SizeConfig.size16),
-                    buildBookingOption(BookingType.offline.title, BookingType.offline),
+                    buildBookingOption(AppStrings.offline, BookingType.offline),
                     SizedBox(width: SizeConfig.size16),
-                    buildBookingOption(BookingType.both.title, BookingType.both),
+                    buildBookingOption(AppStrings.both, BookingType.both),
                   ],
                 ),
                 SizedBox(height: SizeConfig.size20),
@@ -238,7 +239,7 @@ class _SetAvailabilityScreenState extends State<SetAvailabilityScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         CustomText(
-                          'Location',
+                          AppStrings.location,
                           fontSize: SizeConfig.small,
                           fontWeight: FontWeight.w400,
                           color: AppColors.mainTextColor,
@@ -268,7 +269,7 @@ class _SetAvailabilityScreenState extends State<SetAvailabilityScreen> {
                                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                     ),
                                     CustomText(
-                                      "Current Location",
+                                      AppStrings.currentLocation,
                                       fontSize: SizeConfig.small,
                                       fontWeight: FontWeight.w400,
                                       color: AppColors.secondaryTextColor,
@@ -295,7 +296,7 @@ class _SetAvailabilityScreenState extends State<SetAvailabilityScreen> {
                                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                     ),
                                     CustomText(
-                                      "Search Location",
+                                      AppStrings.searchLocation,
                                       fontSize: SizeConfig.small,
                                       fontWeight: FontWeight.w400,
                                       color: AppColors.secondaryTextColor,
@@ -326,7 +327,7 @@ class _SetAvailabilityScreenState extends State<SetAvailabilityScreen> {
                               child: CustomText(
                                 controller.currentAddress.value.isNotEmpty
                                     ? controller.currentAddress.value
-                                    : "Please fetch current location...",
+                                    : AppStrings.fetchCurrentLocation,
                                 fontSize: SizeConfig.large,
                                 color: controller.currentAddress.value.isNotEmpty ? AppColors.mainTextColor : AppColors.grey9A,
                               ),
@@ -335,7 +336,7 @@ class _SetAvailabilityScreenState extends State<SetAvailabilityScreen> {
                             InkWell(
                               onTap: () =>  updateAddressFromLocation(),
                               child: CustomText(
-                                'Tap to fetch current business location',
+                                AppStrings.tapToFetchBusinessLocation,
                                 fontSize: SizeConfig.small,
                                 fontWeight: FontWeight.w400,
                                 color: AppColors.primaryColor,
@@ -352,7 +353,7 @@ class _SetAvailabilityScreenState extends State<SetAvailabilityScreen> {
                                 key: _textFieldKey,
                                 autoFocus: true,
                                 pIcon: Icon(Icons.search),
-                                hintText: 'Search Location..',
+                                hintText: AppStrings.searchLocation,
                                 textEditController: controller.locationController,
                                 onChange: _onSearchChanged,
                                 sIcon: controller.currentAddress.isNotEmpty
@@ -373,65 +374,10 @@ class _SetAvailabilityScreenState extends State<SetAvailabilityScreen> {
                   ],
                 )
                     : const SizedBox.shrink()),
-          
-                // CustomText(
-                //   'Add Location',
-                //   fontSize: SizeConfig.medium,
-                //   fontWeight: FontWeight.w400,
-                //   color: AppColors.mainTextColor,
-                // ),
-                // SizedBox(
-                //   height: SizeConfig.size8,
-                // ),
-                // Container(
-                //   padding: EdgeInsets.all(SizeConfig.size12),
-                //   decoration: BoxDecoration(
-                //     color: AppColors.white,
-                //     borderRadius: BorderRadius.circular(10),
-                //     border: Border.all(color: AppColors.greyE5, width: 1.2),
-                //     boxShadow: [AppShadows.textFieldShadow],
-                //   ),
-                //   child: Row(
-                //     crossAxisAlignment: CrossAxisAlignment.center,
-                //     children: [
-                //       Icon(
-                //           Icons.my_location,
-                //           size: 20,
-                //           color: AppColors.primaryColor
-                //       ),
-                //       const SizedBox(width: 8),
-                //       Expanded(
-                //         child: CustomText(
-                //           controller.currentAddress.value.isNotEmpty
-                //               ? controller.currentAddress.value
-                //               : "Fetching current location...",
-                //           fontSize: SizeConfig.small,
-                //           fontWeight: FontWeight.w700,
-                //           color: AppColors.mainTextColor,
-                //         ),
-                //       ),
-                //     ],
-                //   ),
-                // ),
-                // TextButton(
-                //   onPressed: () =>  updateAddressFromLocation(),
-                //   child: CustomText(
-                //     'Tap to fetch current business location',
-                //     fontSize: SizeConfig.small,
-                //     fontWeight: FontWeight.w600,
-                //     color: AppColors.primaryColor,
-                //     decoration: TextDecoration.underline,
-                //     decorationColor: AppColors.primaryColor,
-                //   ),
-                // ),
-                // SizedBox(
-                //   height: SizeConfig.size8,
-                // ),
-
                 SizedBox(height: SizeConfig.size20),
                 CommonTextField(
                   textEditController: controller.landmarkController,
-                  title: 'Land Mark',
+                  title: AppStrings.landMark,
                   fontSize: SizeConfig.small,
                   fontWeight: FontWeight.w400,
                   titleColor: AppColors.mainTextColor,
@@ -442,7 +388,7 @@ class _SetAvailabilityScreenState extends State<SetAvailabilityScreen> {
           
                 CommonTextField(
                   textEditController: controller.feeController,
-                  title: 'Duration & Fee per Appointment (₹)',
+                  title: AppStrings.durationAndFeePerAppointment,
                   fontSize: SizeConfig.small,
                   fontWeight: FontWeight.w400,
                   titleColor: AppColors.mainTextColor,
@@ -471,7 +417,7 @@ class _SetAvailabilityScreenState extends State<SetAvailabilityScreen> {
                           bgColor: AppColors.white,
                           borderColor: AppColors.skyBlueDF,
                           onTap: controller.clearValues,
-                          title: "Clear",
+                          title: AppStrings.clear,
                           textColor: AppColors.skyBlueDF,
                         ),
                       ),
@@ -482,7 +428,7 @@ class _SetAvailabilityScreenState extends State<SetAvailabilityScreen> {
                           radius: SizeConfig.size10,
                           bgColor: Colors.blue,
                           onTap: () => controller.addBookingAvailability(id: widget.id ?? ''),
-                          title: "Save",
+                          title: AppStrings.save,
                           textColor: AppColors.white,
                         ),
                       ),
@@ -524,14 +470,14 @@ class _SetAvailabilityScreenState extends State<SetAvailabilityScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             CustomText(
-              'Set your Availability',
+              AppStrings.setYourAvailability,
               fontSize: SizeConfig.small,
               fontWeight: FontWeight.w600,
               color: AppColors.mainTextColor,
             ),
             SizedBox(height: SizeConfig.size8),
             CustomText(
-              'Choose your slot duration',
+              AppStrings.choose_your_slot_duration,
               fontSize: SizeConfig.small,
               fontWeight: FontWeight.w400,
               color: AppColors.mainTextColor,
@@ -572,8 +518,8 @@ class _SetAvailabilityScreenState extends State<SetAvailabilityScreen> {
   Widget _buildInstructionSection() {
     return CommonTextField(
         autoFocus: true,
-        title: 'Add Instructions',
-        hintText: 'Provide your availability so clients can schedule bookings easily.',
+        title: AppStrings.addInstructions,
+        hintText: AppStrings.provideAvailabilityHint,
         fontSize: SizeConfig.small,
         fontWeight: FontWeight.w400,
         titleColor: AppColors.mainTextColor,

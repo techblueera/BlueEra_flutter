@@ -887,11 +887,11 @@ class FeedController extends GetxController {
                   child: Material(
                     color: Colors.transparent,
                     child: CustomSuccessSheet(
-                      buttonText: AppLocalizations.of(context)!.gotIt,
+                      buttonText: AppStrings.gotIt,
                       title:
-                          AppLocalizations.of(context)!.youHaveReportedThisPost,
+                      AppStrings.youHaveReportedThisPost,
                       subTitle:
-                          AppLocalizations.of(context)!.reportSuccessMessage,
+                      AppStrings.thankYouForFeedback,
                       onPress: () {
                         Navigator.pop(context);
                       },
@@ -1135,10 +1135,7 @@ class FeedController extends GetxController {
   }
 
   void handleScrollToBottomNew() {
-    logs("SCROLL == 1");
     if (!isLoadingHome.value && hasMoreData.value) {
-      logs("SCROLL == 2");
-
       getFeed();
     }
   }

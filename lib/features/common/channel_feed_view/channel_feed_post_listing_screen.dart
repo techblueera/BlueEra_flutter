@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -52,7 +53,6 @@ class _ChannelFeedPostListingScreenState
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: Row(
                 children: [
-                  // LocalAssets(imagePath: AppIconAssets.back_arrow),
                   InkWell(
                       onTap: () {
                         Get.back();
@@ -134,7 +134,7 @@ class _ChannelFeedPostListingScreenState
                                   ),
                                   SizedBox(height: SizeConfig.size2),
                                   CustomText(
-                                    "${formatNumberLikePost(widget.channelData?.followers ?? 0)} Members",
+                                    "${formatNumberLikePost(widget.channelData?.followers ?? 0)} ${AppStrings.members.tr}",
                                     fontWeight: FontWeight.w600,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
@@ -177,8 +177,8 @@ class _ChannelFeedPostListingScreenState
                                     children: [
                                       CustomText(
                                         controller.isChannelJoin.value
-                                            ? "Unjoin"
-                                            : "Join",
+                                            ? AppStrings.unjoin
+                                            : AppStrings.join,
                                         color: Colors.white,
                                         fontWeight: FontWeight.w700,
                                         fontSize: SizeConfig.size10,

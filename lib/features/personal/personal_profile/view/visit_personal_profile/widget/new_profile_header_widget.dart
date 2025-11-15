@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
@@ -146,18 +147,13 @@ class NewProfileHeaderWidget extends StatelessWidget {
                               children: [
                                 CustomText(
                                   controller.isFollow.value
-                                      ? "Unfollow"
-                                      : "Follow",
+                                      ? AppStrings.unfollow
+                                      : AppStrings.follow,
                                   color: controller.isFollow.value?AppColors.secondaryTextColor:Colors.white,
                                   fontWeight: FontWeight.w700,
                                   fontSize: SizeConfig.size10,
                                 ),
-                                // const SizedBox(width: 6),
-                                // Icon(
-                                //   Icons.person_add_alt,
-                                //   color: Colors.white,
-                                //   size: 14,
-                                // )
+
                               ],
                             ),
                           ),
@@ -245,42 +241,7 @@ class NewProfileHeaderWidget extends StatelessWidget {
                               ),
                             ),
                           //const SizedBox(height: 4),
-                          Obx(() {
-                            return (controller
-                                        .channelUserName?.value.isNotEmpty ??
-                                    false)
-                                ? Row(
-                                    children: [
-                                      // CustomText(
-                                      //   "Visit my channel: ",
-                                      //   fontSize: SizeConfig.size12,
-                                      // ),
-                                      // InkWell(
-                                      //   onTap: () {
-                                      //     Navigator.pushNamed(
-                                      //       context,
-                                      //       RouteHelper.getChannelScreenRoute(),
-                                      //       arguments: {
-                                      //         ApiKeys.argAccountType: user?.accountType,
-                                      //         ApiKeys.channelId:
-                                      //         controller.channelUserId?.value,
-                                      //         ApiKeys.authorId: user?.id,
-                                      //       },
-                                      //     );
-                                      //   },
-                                      //   child: CustomText(
-                                      //     "@${controller.channelName?.value}",
-                                      //     color: AppColors.primaryColor,
-                                      //     fontWeight: FontWeight.w600,
-                                      //     decoration: TextDecoration.underline,
-                                      //     decorationColor: AppColors.primaryColor,
-                                      //     fontSize: SizeConfig.size12,
-                                      //   ),
-                                      // ),
-                                    ],
-                                  )
-                                : const SizedBox();
-                          }),
+
                         ],
                       ),
                     ),
@@ -302,7 +263,7 @@ class NewProfileHeaderWidget extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                statBlock("Post",
+                statBlock(AppStrings.post,
                     controller.userData.value?.totalPosts?.toString() ?? "0"),
                 const SizedBox(width: 20),
 
@@ -313,7 +274,7 @@ class NewProfileHeaderWidget extends StatelessWidget {
                         tabIndex: 0, userID: user?.id ?? ""));
                   },
                   child: statBlock(
-                      "Following",
+                      AppStrings.following,
                       controller.userData.value?.followingCount?.toString() ??
                           "0"),
                 ),
@@ -326,7 +287,7 @@ class NewProfileHeaderWidget extends StatelessWidget {
                         tabIndex: 1, userID: user?.id ?? ""));
                   },
                   child: statBlock(
-                      "Followers", controller.followerCount.value.toString()),
+                      AppStrings.followers, controller.followerCount.value.toString()),
                 ),
               ],
             ),
@@ -351,61 +312,9 @@ class NewProfileHeaderWidget extends StatelessWidget {
                     1.5, // 👈 increases vertical gap between lines (default is ~1.0)
               ),
               expandMode: ExpandMode.dialog,
-              dialogTitle: 'Bio',
+              dialogTitle: AppStrings.bio.tr,
             ),
           ),
-          //ExpandableText(
-          //                 text: viewProfileController
-          //                         .personalProfileDetails.value.user?.bio ??
-          //                     "",
-          //                 trimLines: 3,
-          //                 style: TextStyle(
-          //                   color: AppColors.mainTextColor,
-          //                   fontSize: 14,
-          //                   wordSpacing: 0.4,
-          //                   letterSpacing: 0.2,
-          //                   fontWeight: FontWeight.w400,
-          //                   height: 1.5, // 👈 increases vertical gap between lines (default is ~1.0)
-          //                 ),
-          //                 expandMode: ExpandMode.dialog,
-          //                 dialogTitle: 'Bio',
-          //               )
-
-          // const SizedBox(height: 8),
-
-          //  const SizedBox(height: 16),
-
-          /// ==== Location + Join Date ====
-          // Padding(
-          //   padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
-          //   child: Row(
-          //     children: [
-          //       if (user?.location?.isNotEmpty ?? false) ...[
-          //         LocalAssets(imagePath: AppIconAssets.location_new),
-          //         const SizedBox(width: 5),
-          //         Flexible(
-          //           child: CustomText(
-          //             user?.location ?? '',
-          //             fontSize: SizeConfig.size12,
-          //             color: AppColors.mainTextColor,
-          //             overflow: TextOverflow.ellipsis,
-          //           ),
-          //         ),
-          //       ],
-          //       const SizedBox(width: 10),
-          //       if (user?.createdAt?.isNotEmpty ?? false) ...[
-          //         LocalAssets(imagePath: AppIconAssets.calender_new),
-          //         const SizedBox(width: 5),
-          //         CustomText(
-          //           stringDateFormatDate(dateValue: user?.createdAt ?? ""),
-          //           fontSize: SizeConfig.size12,
-          //           color: AppColors.mainTextColor,
-          //         ),
-          //       ],
-          //     ],
-          //   ),
-          // ),
-
           const SizedBox(height: 10),
         ],
       ),

@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
@@ -496,40 +497,6 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
                 ),
               );
             }
-          /*  if (item.type == "long_video") {
-              ShortFeedItem videoData = getVideoData(item);
-              if ((videoData.video?.duration ?? 0) > 0)
-                return Padding(
-                  padding: EdgeInsets.only(
-                      left: SizeConfig.size5,
-                      right: SizeConfig.size5,
-                      top: SizeConfig.size10),
-                  child: AutoPlayVideoCard(
-                    videoItem: videoData,
-                    globalMuteNotifier: ValueNotifier(false),
-                    videoType: VideoType.videoFeed,
-                    onTapOption: () {
-                      openBlockSelectionDialog(
-                          context: context,
-                          reportType: 'VIDEO_POST',
-                          userId: videoData.video?.userId ?? '',
-                          contentId: videoData.video?.id ?? '',
-                          userBlockVoidCallback: () async {
-                            await Get.find<VideoController>().userBlocked(
-                              videoType: VideoType.videoFeed,
-                              otherUserId: videoData.video?.userId ?? '',
-                            );
-                          },
-                          reportCallback: (params) {
-                            Get.find<VideoController>().videoPostReport(
-                                videoId: videoData.video?.id ?? '',
-                                videoType: VideoType.videoFeed,
-                                params: params);
-                          });
-                    },
-                  ),
-                );
-            }*/
             return const SizedBox.shrink(); // skip if no card
           },
         );
@@ -636,7 +603,7 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
             children: [
               _buildCircleIcon(AppIconAssets.earnWithBlueEra),
               SizedBox(width: SizeConfig.size6),
-              _buildTitleWidget('Earn with BlueEra'),
+              _buildTitleWidget(AppStrings.earnWithBlueEra),
             ],
           ),
           SizedBox(height: SizeConfig.size16),
@@ -648,7 +615,7 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
             alignment: Alignment.bottomRight,
             child: CustomBtn(
               width: SizeConfig.size160,
-              title: 'Let\'s Start Earning Now',
+              title: AppStrings.letsStartEarningNow,
               onTap: () {
                 // Get.to(() => ShareServiceScreen(serviceId: '68f319ca6e8f907aadee126d'));
                 final ViewPersonalDetailsController
@@ -737,7 +704,7 @@ ShortFeedItem getVideoData(Post video) {
           // videoUrl: video.videoUrl,
           // coverUrl: video.thumbnail,
           createdAt: video.createdAt.toString(),
-          media_height:video.media_height ,
+          media_height: video.media_height,
           media_width: video.media_width,
           duration: video.duration,
           stats: Stats(
@@ -756,73 +723,3 @@ class FeedBlock {
 
   FeedBlock({required this.isGrid, required this.items});
 }
-
-/*class PostData {
-  final int id;
-  final String? title;
-  final String? message;
-  final FeedType? type;
-  final int? authorId;
-  final List<Media>? media;
-  final DateTime? createdAt;
-  final DateTime? updatedAt;
-  final int totalLikes;
-  final int totalComments;
-  final int totalReposts;
-  final bool isLike;
-  final String totalViews;
-
-  PostData({
-    required this.id,
-    this.title,
-    this.message,
-    this.type,
-    this.authorId,
-    this.media,
-    this.createdAt,
-    this.updatedAt,
-    this.totalLikes = 0,
-    this.totalComments = 0,
-    this.totalReposts = 0,
-    this.totalViews = "0",
-    this.isLike = false,
-  });
-
-  factory PostData.fromJson(Map<String, dynamic> json) => PostData(
-        id: json['id'] ?? 0,
-        title: json['title'],
-        message: json['message'],
-        type: json['type'],
-        authorId: json['author_id'],
-        media: (json['media'] as List<dynamic>?)
-            ?.map((e) => Media.fromJson(e))
-            .toList(),
-        createdAt: json['created_at'] != null
-            ? DateTime.tryParse(json['created_at'])
-            : null,
-        updatedAt: json['updated_at'] != null
-            ? DateTime.tryParse(json['updated_at'])
-            : null,
-        totalLikes: json['total_likes'] ?? 0,
-        totalComments: json['total_comments'] ?? 0,
-        totalReposts: json['total_reposts'] ?? 0,
-        totalViews: json['total_views'] ?? "0",
-        isLike: json['is_like'] ?? false,
-      );
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'title': title,
-        'message': message,
-        'type': type,
-        'author_id': authorId,
-        'media': media?.map((e) => e.toJson()).toList(),
-        'created_at': createdAt?.toIso8601String(),
-        'updated_at': updatedAt?.toIso8601String(),
-        'total_likes': totalLikes,
-        'total_comments': totalComments,
-        'total_reposts': totalReposts,
-        'total_views': totalViews,
-        'is_like': isLike,
-      };
-}*/

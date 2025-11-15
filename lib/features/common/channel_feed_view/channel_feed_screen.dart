@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_card_widget.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_controllar.dart';
@@ -60,30 +61,6 @@ class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
       }
     });
   }
-
-  /*  final channelFeedController = Get.put(ChannelFeedController());
-
-  final scrollController = ScrollController();
-
-  @override
-  void initState() {
-    channelFeedController.fetchChannelData(loadMore: false);
-
-    // TODO: implement initState
-    scrollController.addListener(() {
-      if (scrollController.position.pixels ==
-          scrollController.position.maxScrollExtent) {
-        final bool hasMore =
-            (channelFeedController.channelFeedModel.value.pagination?.page ??
-                1) <
-                (channelFeedController
-                    .channelFeedModel.value.pagination?.totalPages ??
-                    1);
-        channelFeedController.fetchChannelData(loadMore: hasMore);
-      }
-    });
-    super.initState();
-  }*/
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -110,7 +87,7 @@ class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
                   children: [
                     Obx(() {
                       return CustomText(
-                        "Joined ${formatNumberLikePost(channelFeedController.channelFeedModel.value.pagination?.total ?? 0)} Channels",
+                        "${AppStrings.joined.tr} ${formatNumberLikePost(channelFeedController.channelFeedModel.value.pagination?.total ?? 0)} ${AppStrings.channels.tr}",
                         fontWeight: FontWeight.w500,
                         fontSize: SizeConfig.size16,
                         color: AppColors.mainTextColor,
@@ -119,7 +96,7 @@ class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
                     InkWell(
                       onTap: () => Get.to(WhatsNewChannelListScreen()),
                       child: CustomText(
-                        "What’s New!",
+                        AppStrings.whatsNew,
                         fontWeight: FontWeight.w500,
                         fontSize: SizeConfig.size16,
                         color: AppColors.primaryColor,
@@ -158,7 +135,7 @@ class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 child: CustomText(
-                  "Suggested",
+                  AppStrings.suggested,
                   fontWeight: FontWeight.w500,
                   fontSize: SizeConfig.size16,
                   color: AppColors.mainTextColor,

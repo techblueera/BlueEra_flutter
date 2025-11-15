@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_controllar.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_model.dart';
@@ -84,7 +85,7 @@ class UnjoinChannelCardWidget extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-                          statBlock("Post", channelModel.posts.toString()),
+                          statBlock(AppStrings.post, channelModel.posts.toString()),
                           const SizedBox(width: 20),
 
                           //  _divider(),
@@ -93,7 +94,7 @@ class UnjoinChannelCardWidget extends StatelessWidget {
                               Get.to(() => ChannelJoinedUserScreen(
                                   userID: channelModel.id ?? ""));
                             },
-                            child: statBlock("Members",
+                            child: statBlock(AppStrings.members,
                                 channelModel.followers.toString()),
                           ),
                         ],
@@ -124,7 +125,7 @@ class UnjoinChannelCardWidget extends StatelessWidget {
                           child: Row(
                             children: [
                               CustomText(
-                                channelModel.isFollowing ? "Unjoin" : "Join",
+                                channelModel.isFollowing ? AppStrings.unjoin : AppStrings.join,
                                 color: Colors.white,
                                 fontWeight: FontWeight.w700,
                                 fontSize: SizeConfig.size10,

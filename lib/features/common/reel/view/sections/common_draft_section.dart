@@ -9,14 +9,18 @@ class CommonDraftSection extends StatefulWidget {
   final bool isOwnProfile;
   final String channelId;
   final String authorId;
-  const CommonDraftSection({super.key, this.isOwnProfile = false, required this.channelId, required this.authorId});
+
+  const CommonDraftSection(
+      {super.key,
+      this.isOwnProfile = false,
+      required this.channelId,
+      required this.authorId});
 
   @override
   State<CommonDraftSection> createState() => _CommonDraftSectionState();
 }
 
 class _CommonDraftSectionState extends State<CommonDraftSection> {
-
   @override
   void initState() {
     super.initState();
@@ -43,35 +47,36 @@ class _CommonDraftSectionState extends State<CommonDraftSection> {
             fontWeight: FontWeight.w700,
           ),
         ),
-                 ShortsChannelSection(
-           isOwnShorts: widget.isOwnProfile,
-           channelId: widget.channelId,
-           authorId: widget.authorId,
-           showShortsInGrid: false,
-           postVia: PostVia.channel,
-         ),
+        ShortsChannelSection(
+          isOwnShorts: widget.isOwnProfile,
+          channelId: widget.channelId,
+          authorId: widget.authorId,
+          showShortsInGrid: false,
+          postVia: PostVia.channel,
+        ),
       ],
     );
   }
 
-  Widget _buildVideos(){
+  Widget _buildVideos() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.only(left: SizeConfig.size15, top: SizeConfig.size10),
+          padding:
+              EdgeInsets.only(left: SizeConfig.size15, top: SizeConfig.size10),
           child: CustomText(
             "Videos",
             fontSize: SizeConfig.small,
             fontWeight: FontWeight.w700,
           ),
         ),
-                 VideoChannelSection(
-             isOwnVideos: widget.isOwnProfile,
-             channelId: widget.channelId,
-             authorId: widget.authorId,
-             postVia: PostVia.channel,
-         )
+        VideoChannelSection(
+          isOwnVideos: widget.isOwnProfile,
+          channelId: widget.channelId,
+          authorId: widget.authorId,
+          postVia: PostVia.channel,
+        )
       ],
     );
   }

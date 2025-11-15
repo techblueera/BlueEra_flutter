@@ -10,6 +10,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 
 typedef OnChangeString = void Function(String value);
 
@@ -191,7 +192,7 @@ class CommonTextField extends StatelessWidget {
                     return null;
                   }
                   if (value == null || value.isEmpty) {
-                    return validationMessage ?? AppStrings.required;
+                    return validationMessage?.tr ?? AppStrings.required.tr;
                   }
                   if (validationType == ValidationTypeEnum.email) {
                     return ValidationMethod.validateEmail(value);
@@ -207,12 +208,6 @@ class CommonTextField extends StatelessWidget {
                   }
                   return null;
                 },
-            // textInputAction: textInputAction ??
-            //     (maxLine != null && (maxLine??1) > 1
-            //         ? TextInputAction.newline // 👈 allows Enter to go to next line
-            //         : TextInputAction.done),
-            // textInputAction:textInputAction??TextInputAction.done,
-                // maxLine == 4 ? TextInputAction.done : TextInputAction.none,
             focusNode: focusNode,
             decoration: InputDecoration(
               prefixText: prefixText??"",
@@ -220,7 +215,7 @@ class CommonTextField extends StatelessWidget {
                   EdgeInsets.symmetric(
                       horizontal: SizeConfig.paddingM,
                       vertical: SizeConfig.paddingXSL),
-              hintText: hintText,
+              hintText: hintText?.tr,
               prefixIcon: pIcon != null ? Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: pIcon,
@@ -260,18 +255,6 @@ class CommonTextField extends StatelessWidget {
             },
           ),
         ),
-        // if (isCounterVisible)
-        //   Align(
-        //     alignment: Alignment.centerRight,
-        //     child: Padding(
-        //       padding:  EdgeInsets.only(top: SizeConfig.size10),
-        //       child: CustomText(
-        //         '${textEditController?.text.length} / $maxLength',
-        //         color: AppColors.greyBf,
-        //         fontSize: 12,
-        //       ),
-        //     ),
-        //   )
       ],
     );
   }

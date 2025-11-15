@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_controllar.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_post_listing_screen.dart';
 import 'package:BlueEra/features/common/channel_feed_view/unjoin_channel_card_widget.dart';
@@ -41,7 +42,7 @@ class _WhatsNewChannelListScreenState extends State<WhatsNewChannelListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title: "What's New",),
+      appBar: CommonBackAppBar(title: AppStrings.whatsNew,),
       body: SafeArea(
         child: Obx(() {
           if (channelFeedController.isUnJoinLoading.value &&
@@ -65,8 +66,6 @@ class _WhatsNewChannelListScreenState extends State<WhatsNewChannelListScreen> {
                     return InkWell(
                       onTap: () {
 
-                        // final channelData =
-                        //     channelFeedController.unJoinChannelDataList[index];
                         Get.to(() => ChannelFeedPostListingScreen(
                               channelData: channelData,
                             ));

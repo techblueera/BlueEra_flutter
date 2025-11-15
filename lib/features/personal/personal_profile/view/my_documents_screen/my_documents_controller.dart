@@ -1,3 +1,6 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -51,38 +54,31 @@ class MyDocumentsController extends GetxController {
 
   void editDocument(Document document) {
     // TODO: Implement edit functionality
-    Get.snackbar(
-      'Edit Document',
-      'Edit functionality for ${document.name} will be implemented here',
-      snackPosition: SnackPosition.BOTTOM,
-    );
+    commonSnackBar(message: '${AppStrings.editFunctionalityMessage.tr} ${document.name} ' );
+
   }
 
   void deleteDocument(Document document) {
     Get.dialog(
       AlertDialog(
-        title: Text('Delete Document'),
-        content: Text('Are you sure you want to delete "${document.name}"?'),
+        title: CustomText(AppStrings.deleteDocument),
+        content: CustomText('${AppStrings.deleteConfirmation} "${document.name}"?'),
         actions: [
           TextButton(
             onPressed: () => Get.back(),
-            child: Text('Cancel'),
+            child: CustomText(AppStrings.cancel),
           ),
           TextButton(
             onPressed: () {
               documents.removeWhere((doc) => doc.id == document.id);
               Get.back();
-              Get.snackbar(
-                'Success',
-                'Document deleted successfully',
-                snackPosition: SnackPosition.BOTTOM,
-              );
+              commonSnackBar(message: AppStrings.documentDeletedSuccessfully);
+
             },
-            child: Text(
-              'Delete',
-              style: TextStyle(color: Colors.red),
+            child: CustomText(
+                AppStrings.delete,
+             color: Colors.red),
             ),
-          ),
         ],
       ),
     );

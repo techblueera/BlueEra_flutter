@@ -58,7 +58,6 @@ class AuthRepo extends BaseService {
   ///User register  REPO...
   Future<ResponseModel> updateBusinessAccountUserRepo(
       {Map<String, dynamic>? bodyRequest}) async {
-    log('userId--> $userId');
     final response = await ApiBaseHelper().putHTTP(
         "${updateBusinessAccount}$userId",
         params: bodyRequest,
@@ -106,13 +105,6 @@ class AuthRepo extends BaseService {
     return response;
   }
 
-  /// Delete User account REPO...
-  // Future<ResponseModel> deleteUserAccountRepo(
-  //     {required String? userName}) async {
-  // final response = await ApiBaseHelper()
-  //     .postHTTP("${checkUsername}", onError: (error) {}, onSuccess: (data) {});
-  // return response;
-  // }
 
   Future<ResponseModel> callForceUpdateApi(
       {required Map<String, dynamic> params}) async {

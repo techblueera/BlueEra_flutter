@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -52,11 +53,10 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
 
       if (widget.post?.song != null) {
         controller.songData.value = SongModel(
-            id: widget.post?.song?.id??'',
-            name: widget.post?.song?.name??'',
-            artist: widget.post?.song?.artist??'',
-            coverUrl: widget.post?.song?.coverUrl??''
-        );
+            id: widget.post?.song?.id ?? '',
+            name: widget.post?.song?.name ?? '',
+            artist: widget.post?.song?.artist ?? '',
+            coverUrl: widget.post?.song?.coverUrl ?? '');
       }
       controller.selectedSymbol.value = widget.post?.visibilityDuration == 1
           ? SymbolDuration.hours24
@@ -76,7 +76,7 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: 'Symbol Post',
+        title: AppStrings.symbolPost,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -97,23 +97,24 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: SizeConfig.size16),
+                    padding:
+                        EdgeInsets.symmetric(horizontal: SizeConfig.size16),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        CustomText('Upload Photos',
+                        CustomText(AppStrings.uploadPhotos,
                             fontSize: SizeConfig.medium,
                             fontWeight: FontWeight.w500),
-                        if(!controller.isPhotoPostEdit)
-                          Obx(() =>
-                          controller.selectedPhotos.isNotEmpty
+                        if (!controller.isPhotoPostEdit)
+                          Obx(() => controller.selectedPhotos.isNotEmpty
                               ? InkWell(
-                            onTap: () => controller.updatePhotoAfterEditing(),
-                            child: CustomText('Edit',
-                                color: AppColors.primaryColor,
-                                fontSize: SizeConfig.medium,
-                                fontWeight: FontWeight.w600),
-                          )
+                                  onTap: () =>
+                                      controller.updatePhotoAfterEditing(),
+                                  child: CustomText(AppStrings.edit,
+                                      color: AppColors.primaryColor,
+                                      fontSize: SizeConfig.medium,
+                                      fontWeight: FontWeight.w600),
+                                )
                               : SizedBox())
                       ],
                     ),
@@ -123,8 +124,8 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
                   (!controller.isPhotoPostEdit)
                       ? _buildAddMoreButton()
                       : SizedBox(
-                    height: SizeConfig.size15,
-                  ),
+                          height: SizeConfig.size15,
+                        ),
                   SizedBox(height: SizeConfig.size15),
                   _buildDescriptionSection(),
                   SizedBox(height: SizeConfig.size24),
@@ -170,7 +171,7 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
                     LocalAssets(imagePath: AppIconAssets.black_gallery),
                     SizedBox(width: SizeConfig.size8),
                     CustomText(
-                      'Select Photos',
+                      AppStrings.selectPhotos,
                       color: AppColors.secondaryTextColor,
                       fontSize: SizeConfig.large,
                     ),
@@ -254,7 +255,7 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
               imgColor: AppColors.primaryColor,
             ),
             label: CustomText(
-              'Add More',
+              AppStrings.addMore,
               color: AppColors.primaryColor,
               fontSize: SizeConfig.large,
             ),
@@ -274,11 +275,11 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
         children: [
           CommonTextField(
             textEditController: controller.descriptionTextEdit,
-            title: 'Description of Message',
+            title: AppStrings.descriptionOfMessage,
             onChange: controller.updateDescription,
             maxLine: 5,
             maxLength: controller.maxCharCount,
-            hintText: 'Briefly describe your message...',
+            hintText: AppStrings.brieflyDescribeMessage,
             isValidate: false,
             inputLength: controller.maxCharCount,
           ),
@@ -287,8 +288,7 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
           ),
           Align(
             alignment: Alignment.centerRight,
-            child: Obx(() =>
-                CustomText(
+            child: Obx(() => CustomText(
                   '${controller.charCount}/${controller.maxCharCount}',
                   color: AppColors.secondaryTextColor,
                 )),
@@ -318,7 +318,7 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
                 ),
                 SizedBox(width: SizeConfig.size4),
                 CustomText(
-                  'Add Tag People / Organization',
+                  AppStrings.addTagPeopleOrganization,
                   color: AppColors.primaryColor,
                   fontSize: SizeConfig.large,
                 ),
@@ -327,21 +327,19 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
           ),
 
           // Selected users chips
-          Obx(() =>
-          tagUserController.selectedUsers.isNotEmpty
+          Obx(() => tagUserController.selectedUsers.isNotEmpty
               ? Padding(
-            padding: EdgeInsets.only(top: SizeConfig.size16),
-            child: Wrap(
-              children: tagUserController.selectedUsers
-                  .map((user) =>
-                  UserChip(
-                    user: user,
-                    onRemove: () =>
-                        tagUserController.removeSelectedUser(user),
-                  ))
-                  .toList(),
-            ),
-          )
+                  padding: EdgeInsets.only(top: SizeConfig.size16),
+                  child: Wrap(
+                    children: tagUserController.selectedUsers
+                        .map((user) => UserChip(
+                              user: user,
+                              onRemove: () =>
+                                  tagUserController.removeSelectedUser(user),
+                            ))
+                        .toList(),
+                  ),
+                )
               : const SizedBox.shrink()),
 
           SizedBox(height: SizeConfig.size15),
@@ -358,81 +356,80 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
         children: [
           (!controller.isPhotoPostEdit)
               ? GestureDetector(
-            onTap: () async {
-              if (controller.selectedPhotos.isNotEmpty) {
-                if (controller.songData.value?.name == null) {
-                  final result = await Navigator.pushNamed(
-                    context,
-                    RouteHelper.getAllSongsScreenRoute(),
-                    arguments: {
-                      ApiKeys.filePath: controller.selectedPhotos,
-                    },
-                  ) as SongModel?;
+                  onTap: () async {
+                    if (controller.selectedPhotos.isNotEmpty) {
+                      if (controller.songData.value?.name == null) {
+                        final result = await Navigator.pushNamed(
+                          context,
+                          RouteHelper.getAllSongsScreenRoute(),
+                          arguments: {
+                            ApiKeys.filePath: controller.selectedPhotos,
+                          },
+                        ) as SongModel?;
 
-                  if (result != null) {
-                    controller.updateSong(result);
-                  }
-                } else {
-                  commonSnackBar(
-                      message: 'You can\'t add more than one song');
-                }
-              } else {
-                commonSnackBar(
-                    message: 'Please upload at least one photo to add song');
-              }
-            },
-            child: Row(
-              children: [
-                LocalAssets(
-                  imagePath: AppIconAssets.addBlueIcon,
-                  imgColor: AppColors.primaryColor,
-                ),
-                SizedBox(width: SizeConfig.size4),
-                CustomText(
-                  'Add Song',
-                  color: AppColors.primaryColor,
-                  fontSize: SizeConfig.large,
-                ),
-              ],
-            ),
-          )
+                        if (result != null) {
+                          controller.updateSong(result);
+                        }
+                      } else {
+                        commonSnackBar(
+                            message: AppStrings.cantAddMoreThanOneSong);
+                      }
+                    } else {
+                      commonSnackBar(
+                          message:
+                          AppStrings.cantAddMoreThanOneSong);
+                    }
+                  },
+                  child: Row(
+                    children: [
+                      LocalAssets(
+                        imagePath: AppIconAssets.addBlueIcon,
+                        imgColor: AppColors.primaryColor,
+                      ),
+                      SizedBox(width: SizeConfig.size4),
+                      CustomText(
+                        AppStrings.addSong,
+                        color: AppColors.primaryColor,
+                        fontSize: SizeConfig.large,
+                      ),
+                    ],
+                  ),
+                )
               : (controller.songData.value?.name != null)
-              ? CustomText('Song',
-              fontSize: SizeConfig.medium,
-              fontWeight: FontWeight.w500
-          ) : const SizedBox.shrink(),
+                  ? CustomText(AppStrings.song,
+                      fontSize: SizeConfig.medium, fontWeight: FontWeight.w500)
+                  : const SizedBox.shrink(),
 
           // Selected users chips
-          Obx(() =>
-          (controller.songData.value?.name != null)
+          Obx(() => (controller.songData.value?.name != null)
               ? Padding(
-              padding: EdgeInsets.only(top: SizeConfig.size15),
-              child: Wrap(
-                spacing: 8,
-                runSpacing: 2,
-                children: [controller.songData.value?.name].map((item) {
-                  return Chip(
-                    label: Text(item ?? ''),
-                    backgroundColor: AppColors.lightBlue,
-                    labelStyle: TextStyle(
-                        fontSize: SizeConfig.size14,
-                        color: Colors.black87
-                    ),
-                    deleteIcon: const Icon(Icons.close,
-                        size: 20, color: AppColors.mainTextColor),
-                    shape: RoundedRectangleBorder(
-                        side: BorderSide(color: Colors.transparent),
-                        borderRadius: BorderRadius.circular(8.0)),
-                    onDeleted: (!controller.isPhotoPostEdit) ? () {
-                      controller.removeSong();
-                    } : () {},
-                    labelPadding: const EdgeInsets.only(left: 12),
-                    padding: EdgeInsets.zero,
-                    visualDensity: VisualDensity.compact,
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  );
-                }).toList(),
-              ))
+                  padding: EdgeInsets.only(top: SizeConfig.size15),
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 2,
+                    children: [controller.songData.value?.name].map((item) {
+                      return Chip(
+                        label: Text(item ?? ''),
+                        backgroundColor: AppColors.lightBlue,
+                        labelStyle: TextStyle(
+                            fontSize: SizeConfig.size14, color: Colors.black87),
+                        deleteIcon: const Icon(Icons.close,
+                            size: 20, color: AppColors.mainTextColor),
+                        shape: RoundedRectangleBorder(
+                            side: BorderSide(color: Colors.transparent),
+                            borderRadius: BorderRadius.circular(8.0)),
+                        onDeleted: (!controller.isPhotoPostEdit)
+                            ? () {
+                                controller.removeSong();
+                              }
+                            : () {},
+                        labelPadding: const EdgeInsets.only(left: 12),
+                        padding: EdgeInsets.zero,
+                        visualDensity: VisualDensity.compact,
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      );
+                    }).toList(),
+                  ))
               : const SizedBox.shrink()),
 
           SizedBox(height: SizeConfig.size15),
@@ -451,13 +448,12 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
             Padding(
               padding: EdgeInsets.symmetric(horizontal: SizeConfig.size16),
               child: CustomText(
-                "How long should we show this symbol?",
+                AppStrings.howLongShowSymbol,
                 fontSize: SizeConfig.medium,
                 fontWeight: FontWeight.w500,
                 color: AppColors.black,
               ),
             ),
-
             Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
@@ -473,7 +469,7 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
                       // materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
                     CustomText(
-                      "24 Hours",
+                      AppStrings.hours24,
                       color: AppColors.black,
                       fontWeight: FontWeight.w400,
                       fontSize: SizeConfig.large,
@@ -493,7 +489,7 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
                       // materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
                     CustomText(
-                      "7 Days",
+                      AppStrings.days7,
                       color: AppColors.black,
                       fontWeight: FontWeight.w400,
                       fontSize: SizeConfig.large,
@@ -502,7 +498,6 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
                 ),
               ],
             )
-
           ],
         );
       });
@@ -518,7 +513,7 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CustomText(
-                "How long should we show this symbol?",
+                AppStrings.howLongShowSymbol,
                 fontSize: SizeConfig.medium,
                 fontWeight: FontWeight.w500,
                 color: AppColors.black,
@@ -545,7 +540,6 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
           );
         },
       );
-
   }
 
   Widget _buildNatureOfPostSection() {
@@ -553,7 +547,7 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
       padding: EdgeInsets.symmetric(horizontal: SizeConfig.size16),
       child: CommonTextField(
         textEditController: controller.natureOfPostTextEdit,
-        title: 'Nature of Post (Optional)',
+        title: '${AppStrings.natureOfPost.tr} (${AppStrings.optional.tr})',
         onChange: controller.updateNatureOfPost,
         hintText: AppConstants.education,
         isValidate: false,
@@ -568,17 +562,18 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
           onTap: () {
             if (controller.selectedPhotos.isNotEmpty) {
               if (widget.isEdit) {
-                controller.updateDescription(controller.descriptionTextEdit.text);
+                controller
+                    .updateDescription(controller.descriptionTextEdit.text);
                 controller
                     .updateNatureOfPost(controller.natureOfPostTextEdit.text);
               }
               Get.toNamed(RouteHelper.getPhotoPostPreviewScreenRoute(),
                   arguments: {ApiKeys.argPostVia: widget.postVia});
             } else {
-              commonSnackBar(message: 'Please upload at least one photo');
+              commonSnackBar(message: AppStrings.uploadOnePhoto);
             }
           },
-          title: "Continue"),
+          title: AppStrings.continueTxt),
     );
   }
 }

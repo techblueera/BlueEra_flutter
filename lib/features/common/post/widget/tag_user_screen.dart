@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/post/controller/tag_user_controller.dart';
 import 'package:BlueEra/features/common/post/widget/user_chip.dart';
@@ -50,7 +51,7 @@ class _TagUserScreenState extends State<TagUserScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: 'Add Tag',
+        title: AppStrings.addTag,
       ),
       body: SafeArea(
         child: Padding(
@@ -67,7 +68,7 @@ class _TagUserScreenState extends State<TagUserScreen> {
                   children: [
                     // Tag People header
                     CustomText(
-                      'Tag People',
+                      AppStrings.tagPeople,
                       fontSize: SizeConfig.size16,
                       fontWeight: FontWeight.w500,
                     ),
@@ -85,7 +86,7 @@ class _TagUserScreenState extends State<TagUserScreen> {
                       child: Padding(
                         padding: const EdgeInsets.only(top: 8.0),
                         child: Obx(() => CustomText(
-                              'Only ${controller.maxTagLimit - controller.selectedUsers.length} persons You Can Tag Here',
+                              '${AppStrings.only.tr} ${controller.maxTagLimit - controller.selectedUsers.length} ${AppStrings.personsYouCanTagHere.tr}',
                               fontSize: SizeConfig.size12,
                               color: Colors.grey.shade600,
                             )),
@@ -120,7 +121,7 @@ class _TagUserScreenState extends State<TagUserScreen> {
                         if (controller.filteredUsers.isEmpty) {
                           return Center(
                             child: CustomText(
-                              'No users found',
+                             AppStrings.noUsersFound,
                               fontSize: SizeConfig.size16,
                               color: Colors.grey.shade600,
                             ),
@@ -178,7 +179,7 @@ class _TagUserScreenState extends State<TagUserScreen> {
                   onTap: () {
                     Get.back(result: controller.selectedUsers);
                   },
-                  title: "Save"),
+                  title:AppStrings.save),
               SizedBox(
                 height: SizeConfig.size20,
               ),

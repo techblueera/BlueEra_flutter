@@ -81,19 +81,6 @@ class _PostFeedAutoPlayVideoCardState extends State<PostFeedAutoPlayVideoCard>
   }) {
     // final double screenWidth = Get.width;
     const double borderRadiusValue = 12.0;
-    // const double portraitHeight = 300.0;
-    //
-    // final double mediaWidth = media_width;
-    // final double mediaHeight = media_height;
-    //
-    // final bool hasValidSize = mediaWidth > 0 && mediaHeight > 0;
-    // final bool isLandscape = hasValidSize && mediaWidth > mediaHeight;
-    //
-    // // Choose height and aspect ratio based on orientation
-    // final double imageHeight =
-    //     isLandscape ? screenWidth * (mediaHeight / mediaWidth) : portraitHeight;
-    //
-    // final double aspectRatio = hasValidSize ? (mediaWidth / mediaHeight) : 1.0;
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(borderRadiusValue),
@@ -138,12 +125,7 @@ class _PostFeedAutoPlayVideoCardState extends State<PostFeedAutoPlayVideoCard>
             controller.value.size.width > 0 &&
             controller.value.size.height > 0;
 
-        // log('showVideo breakdown → '
-        //     'isCurrent:$isCurrent | '
-        //     'controller:${controller != null} | '
-        //     'initialized:${controller?.value.isInitialized} | '
-        //     'width:${controller?.value.size.width} | '
-        //     'height:${controller?.value.size.height}');
+
         return LayoutBuilder(builder: (context, constraints) {
           final screenWidth = constraints.maxWidth;
           final videoWidth =
@@ -214,9 +196,7 @@ class _PostFeedAutoPlayVideoCardState extends State<PostFeedAutoPlayVideoCard>
                   ),
 
                 // --- 🔇 Mute Button
-                if (isCurrent &&
-                    controller != null &&
-                    videoManager.isMuted.hasListeners)
+              
                   if (isCurrent && controller != null)
                     Positioned(
                       top: SizeConfig.size12,

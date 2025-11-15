@@ -16,7 +16,7 @@ class LanguageRepo extends BaseService {
     final downloadUrl = '$languagesDownload/$languageCode';
     return await ApiBaseHelper().getHTTP(
       downloadUrl,
-      showProgress: true,
+      showProgress: false,
     );
   }
 }

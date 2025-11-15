@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/auth/controller/ai_suggestion_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -84,7 +85,7 @@ class _AiSuggestionFieldState extends State<AiSuggestionField> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                  CustomText(
-                  "Create... Via Blueera AI",
+                   AppStrings.createViaBlueeraAI,
                   color: AppColors.primaryColor,
                   fontWeight: FontWeight.w500,
                 ),
@@ -104,15 +105,15 @@ class _AiSuggestionFieldState extends State<AiSuggestionField> {
           maxLength: 900,
           validator: (value) {
             if (value == null || value.isEmpty) {
-              return 'Please enter your Bio';
+              return AppStrings.pleaseEnterBio.tr;
             } else if (value.trim().length < 50) {
-              return 'Bio must be at least 50 characters';
+              return AppStrings.bioMinLength.tr;
             } else if (value.trim().length > 900) {
-              return 'Bio must not exceed 900 characters';
+              return AppStrings.bioMaxLength.tr;
             }
             return null;
           },
-          hintText: "Write your ${widget.title}...",
+          hintText: "${AppStrings.writeYour.tr} ...",
           textEditController: widget.textController,
           maxLine: 3,
           onChange: (val) => widget.onChange?.call(),

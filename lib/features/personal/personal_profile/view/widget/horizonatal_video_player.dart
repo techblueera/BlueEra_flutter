@@ -55,6 +55,7 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer>
 
   Future<void> _initializeController(String path) async {
     _disposeController();
+    // if (!mounted) return; // ← ADD THIS
 
     _controller = VideoPlayerController.asset(path);
 

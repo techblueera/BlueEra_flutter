@@ -1,19 +1,18 @@
 // ignore_for_file: non_constant_identifier_names, constant_identifier_names
 
 class AppStrings {
-  static const  appName = "BlueEra";
+  static const appName = "BlueEra";
   static const mobileIsRequired = "Please enter 10 digits mobile number";
-  static const required = '*Required';
+  static const required = 'requiredStar';
   static const emailIsRequired = "Email is required";
   static const pleaseEnterValidEmail = "Please enter a valid email";
-  static const  somethingWentWrong =
-      "Something went wrong try after sometimes";
-  static const  success = "success";
-  static const  tokenIsNull = "Token is null";
-  static const  storagePermissionDenied = "Storage permission is denied";
+  static const somethingWentWrong = "Something went wrong try after sometimes";
+  static const success = "success";
+  static const tokenIsNull = "Token is null";
+  static const storagePermissionDenied = "Storage permission is denied";
 
   ///SCREEN NAME====..
-  static const  changeAppLanguage = "changeAppLanguage";
+  static const changeLanguage = "changeLanguage";
 
   ///SETTINGS SCREEN====..
   static const settings = "settings";
@@ -25,5 +24,482 @@ class AppStrings {
   static const termsConditions = "termsConditions";
   static const privacyPolicy = "privacyPolicy";
   static const makeInIndia = "makeInIndia";
-  static const version = "version";
+  static const confirm = "confirm";
+  static const logoutConfirmationMessage = "logoutConfirmationMessage";
+  static const yes = "yes";
+  static const no = "no";
+  static const deleteAccountConfirmationMessage =
+      "deleteAccountConfirmationMessage";
+
+  ///ACCOUNT SETTING SCREEN
+  static const editProfile = "editProfile";
+  static const changePhoneNumber = "changePhoneNumber";
+  static const allNotification = "allNotification";
+  static const language = "language";
+  static const verificationStatus = "verificationStatus";
+  static const ownerVerified = "ownerVerified";
+  static const manageSubscription = "manageSubscription";
+  static const freePlan = "freePlan";
+
+  ///EDIT PROFILE FORM SCREEN...
+  static const profilePicture = "profilePicture";
+  static const updatePhotoMessage = "updatePhotoMessage";
+  static const fullName = "fullName";
+  static const gender = "gender";
+  static const male = "male";
+  static const female = "female";
+  static const dateOfBirth = "dateOfBirth";
+  static const location = "location";
+  static const email = "email";
+  static const getVerify = "getVerify";
+  static const highestEducation = "highestEducation";
+  static const selectYourProfession = "selectYourProfession";
+  static const selectWorkType = "selectWorkType";
+  static const saveChanges = "saveChanges";
+  static const uploadProfilePicture = "uploadProfilePicture";
+  static const enterFullName = "enterFullName";
+  static const pleaseEnterName = "pleaseEnterName";
+  static const nameMinLength = "nameMinLength";
+  static const nameMaxLength = "nameMaxLength";
+  static const selectGender = "selectGender";
+  static const enterEmailAddress = "enterEmailAddress";
+  static const invalidEmail = "invalidEmail";
+  static const educationMinLength = "educationMinLength";
+  static const educationMaxLength = "educationMaxLength";
+  static const enterProfessionIfOthers = "enterProfessionIfOthers";
+  static const specifyProfession = "specifyProfession";
+  static const professionExample = "professionExample";
+  static const pleaseSpecifyWorkType = "pleaseSpecifyWorkType";
+  static const typeWorkSpecification = "typeWorkSpecification";
+  static const workExample = "workExample";
+  static const typeYourSpecification = "typeYourSpecification";
+  static const specificationExample = "specificationExample";
+  static const typeNGOName = "typeNGOName";
+  static const ngoExample = "ngoExample";
+  static const typeCompanyName = "typeCompanyName";
+  static const companyExample = "companyExample";
+  static const typeExpertise = "typeExpertise";
+  static const expertiseExample1 = "expertiseExample1";
+  static const expertiseExample2 = "expertiseExample2";
+  static const whichClassStudy = "whichClassStudy";
+  static const studyExample = "studyExample";
+  static const selectArtSkill = "selectArtSkill";
+  static const artExample = "artExample";
+  static const pleaseSpecifyArtType = "pleaseSpecifyArtType";
+  static const sector = "sector";
+  static const sectorExample = "sectorExample";
+  static const enterSector = "enterSector";
+  static const sectorMaxLength = "sectorMaxLength";
+  static const politicalParty = "politicalParty";
+  static const enterPoliticalParty = "enterPoliticalParty";
+  static const departmentName = "departmentName";
+  static const departmentExample = "departmentExample";
+  static const subDivision = "subDivision";
+  static const subDivisionExample = "subDivisionExample";
+  static const designation = "designation";
+  static const enterDesignation = "enterDesignation";
+  static const aboutMe = "aboutMe";
+  static const bio = "bio";
+  static const cancel = "cancel";
+  static const selectArtSkillLower = "selectArtSkillLower";
+  static const enterNGOName = "enterNGOName";
+  static const enterSkillExpertise = "enterSkillExpertise";
+  static const emailVerificationRequired = "emailVerificationRequired";
+  static const emailVerificationMessage = "emailVerificationMessage";
+  static const update = "update";
+  static const pleaseEnterBio = "pleaseEnterBio";
+  static const bioMinLength = "bioMinLength";
+  static const bioMaxLength = "bioMaxLength";
+  static const writeYour = "writeYour";
+  static const createViaBlueeraAI = "createViaBlueeraAI";
+  static const selectSuggestion = "selectSuggestion";
+  static const noSuggestionsFound = "noSuggestionsFound";
+
+  ///HELP & Support...
+  static const helpAndSupport = "helpAndSupport";
+  static const customerSupport = "customerSupport";
+  static const mailUs = "mailUs";
+  static const queries = "queries";
+  static const faq = "faq";
+  static const helpSupportQuestion = "helpSupportQuestion";
+  static const enterYourEmail = "enterYourEmail";
+  static const message = "message";
+  static const enterYourMessage = "enterYourMessage";
+  static const submit = "submit";
+  static const pleaseEnterEmail = "pleaseEnterEmail";
+  static const pleaseEnterMessage = "pleaseEnterMessage";
+  static const emailSentSuccess = "emailSentSuccess";
+  static const emailSentFail = "emailSentFail";
+  static const contactUs = "contactUs";
+  static const contactDescription = "contactDescription";
+
+  ///PROFILE SCREEN
+
+  static const takeFromCamera = "takeFromCamera";
+  static const selectFromGallery = "selectFromGallery";
+  static const myResume = "myResume";
+  static const myProfile = "myProfile";
+  static const posts = "posts";
+  static const testimonials = "testimonials";
+  static const myStore = "myStore";
+  static const myChannel = "myChannel";
+  static const view = "view";
+  static const earnWithBlueEra = "earnWithBlueEra";
+  static const letsStartEarningNow = "letsStartEarningNow";
+  static const paymentAccount = "paymentAccount";
+  static const myWallet = "myWallet";
+  static const totalEarning = "totalEarning";
+  static const bankAccount = "bankAccount";
+  static const myDocuments = "myDocuments";
+  static const addDocument = "addDocument";
+  static const myAvailabilityAndBookings = "myAvailabilityAndBookings";
+  static const bookings = "bookings";
+  static const uploadIntroductionVideo = "uploadIntroductionVideo";
+  static const uploadVideo = "uploadVideo";
+  static const links = "links";
+  static const addLinkPlaceholder = "addLinkPlaceholder";
+  static const save = "save";
+  static const create = "create";
+  static const change = "change";
+  static const uploading = "uploading";
+  static const addDocuments = "addDocuments";
+  static const documentName = "documentName";
+  static const documentNameHint = "documentNameHint";
+  static const shareDocument = "shareDocument";
+  static const shareMediaFile = "shareMediaFile";
+  static const add = "add";
+  static const setYourAvailability = "setYourAvailability";
+  static const bookingType = "bookingType";
+  static const online = "online";
+  static const offline = "offline";
+  static const both = "both";
+  static const currentLocation = "currentLocation";
+  static const searchLocation = "searchLocation";
+  static const fetchCurrentLocation = "fetchCurrentLocation";
+  static const tapToFetchBusinessLocation = "tapToFetchBusinessLocation";
+  static const landMark = "landMark";
+  static const durationAndFeePerAppointment = "durationAndFeePerAppointment";
+  static const addInstructions = "addInstructions";
+  static const provideAvailabilityHint = "provideAvailabilityHint";
+  static const set_your_availability = "set_your_availability";
+  static const choose_your_slot_duration = "choose_your_slot_duration";
+  static const clear = "clear";
+  static const editCoverPicture = "editCoverPicture";
+  static const post = "post";
+  static const following = "following";
+  static const followers = "followers";
+  static const noDocumentsFound = "noDocumentsFound";
+  static const addYourFirstDocument = "addYourFirstDocument";
+  static const noVisitingDaysSelected = "noVisitingDaysSelected";
+  static const yourProfileCompletionScore = "yourProfileCompletionScore";
+  static const videoUploadedSuccessfully = "videoUploadedSuccessfully";
+  static const chat = "chat";
+  static const noVideoSelected = "noVideoSelected";
+  static const follow = "follow";
+  static const noFollow = "noFollow";
+
+  static const deleteDocument = "deleteDocument";
+  static const profileVideo = "profileVideo";
+  static const phoneNumber = "phoneNumber";
+  static const organization = "organization";
+  static const emailVerified = "emailVerified";
+  static const emailUnverified = "emailUnverified";
+  static const verifyYourEmail = "verifyYourEmail";
+  static const emailAlreadyVerified = "emailAlreadyVerified";
+  static const deleteConfirmation = "deleteConfirmation";
+  static const documentDeletedSuccessfully = "documentDeletedSuccessfully";
+  static const delete = "delete";
+  static const editFunctionalityMessage = "editFunctionalityMessage";
+
+  ///CHANNEL EDIT
+  static const updateChannel = "updateChannel";
+  static const channelLogo = "channelLogo";
+  static const addChannelLogo = "addChannelLogo";
+  static const channelName = "channelName";
+  static const channelNameError = "channelNameError";
+  static const createUsername = "createUsername";
+  static const usernameError = "usernameError";
+  static const channelBio = "channelBio";
+  static const channelBioError = "channelBioError";
+  static const websiteOptional = "websiteOptional";
+  static const otherSocialLinks = "otherSocialLinks";
+  static const youtubeHint = "youtubeHint";
+  static const uploadChannelLogo = "uploadChannelLogo";
+  static const addBrandLogoDescription = "addBrandLogoDescription";
+  static const close = "close";
+  static const unjoin = "unjoin";
+  static const join = "join";
+  static const members = "members";
+  static const channelEdit = "channelEdit";
+  static const channelSettings = "channelSettings";
+  static const addVideo = "addVideo";
+  static const addProduct = "add_product";
+  static const addService = "addService";
+  static const noBioAvailable = "noBioAvailable";
+  static const tab_drafts = "tab_drafts";
+  static const tab_saved = "tab_saved";
+  static const tab_statistics = "tab_statistics";
+  static const tab_product = "tab_product";
+  static const tab_service = "tab_service";
+
+  ///ADD CHANNEL PRODUCT....
+  static const updateProduct = "update_product";
+  static const productImage = "product_image";
+  static const title = "title";
+  static const enterProductTitle = "enter_product_title";
+  static const pleaseEnterProductTitle = "please_enter_product_title";
+  static const productDescription = "product_description";
+  static const enterProductDescription = "enter_product_description";
+  static const pleaseEnterProductDescription =
+      "please_enter_product_description";
+  static const productDescriptionTooShort = "product_description_too_short";
+  static const productPrice = "product_price";
+  static const enterProductPrice = "enter_product_price";
+  static const pleaseEnterProductPrice = "please_enter_product_price";
+  static const addLink = "add_link";
+  static const enterUrlExample = "enter_url_example";
+  static const updatePost = "update_post";
+  static const postNow = "post_now";
+  static const uploadProductImage = "upload_product_image";
+  static const enter_product_price = "enter_product_price";
+  static const addProductImage = "addProductImage";
+  static const latest = "latest";
+  static const popular = "popular";
+  static const oldest = "oldest";
+  static const underProgress = "underProgress";
+  static const reportChannel = "reportChannel";
+  static const muteAccount = "muteAccount";
+  static const ownership = "ownership";
+  static const reportContent = "reportContent";
+  static const writeYourReason = "writeYourReason";
+  static const reasonRequired = "reasonRequired";
+  static const reasonTooShort = "reasonTooShort";
+  static const confirmMuteChannel = "confirmMuteChannel";
+  static const confirmUnmuteChannel = "confirmUnmuteChannel";
+
+  static const unsave = "unsave";
+  static const reportPost = "reportPost";
+  static const blockUser = "blockUser";
+  static const edit = "edit";
+  static const hide = "hide";
+  static const share = "share";
+  static const editPost = "editPost";
+  static const deletePost = "deletePost";
+  static const editVideo = "editVideo";
+  static const deleteVideo = "deleteVideo";
+  static const editProduct = "editProduct";
+  static const deleteProduct = "deleteProduct";
+
+  static const square = "square";
+  static const portrait = "portrait";
+  static const youtube = "youtube";
+
+  static const addFood = "addFood";
+  static const createGroup = "createGroup";
+  static const theme = "theme";
+  static const wallpaper = "wallpaper";
+  static const lockChat = "lockChat";
+
+  static const pending = "pending";
+  static const completed = "completed";
+  static const canceled = "canceled";
+  static const download = "download";
+
+  static const myBusinessCard = "myBusinessCard";
+  static const lekha = "lekha";
+  static const poll = "poll";
+  static const symbol = "symbol";
+  static const jobPost = "jobPost";
+  static const travel = "travel";
+  static const individualAccount = "individualAccount";
+  static const businessListing = "businessListing";
+
+  // Emotion Types
+  static const angerOutrage = "angerOutrage";
+  static const pridePatriotism = "pridePatriotism";
+  static const happinessCelebration = "happinessCelebration";
+  static const sadnessSympathy = "sadnessSympathy";
+  static const motivationHope = "motivationHope";
+  static const protestRebellion = "protestRebellion";
+  static const empathyHumanity = "empathyHumanity";
+  static const humorSarcasm = "humorSarcasm";
+  static const poeticStorytelling = "poeticStorytelling";
+  static const latestUpdate = "latestUpdate";
+  static const informativeEducational = "informativeEducational";
+  static const trendingCurrentEvents = "trendingCurrentEvents";
+  static const politicalOpinionated = "politicalOpinionated";
+
+  // Comment Types
+  static const agree = "agree";
+  static const disagree = "disagree";
+  static const appreciate = "appreciate";
+  static const criticise = "criticise";
+  static const question = "question";
+  static const support = "support";
+  static const funny = "funny";
+  static const shock = "shock";
+  static const inspired = "inspired";
+  static const angry = "angry";
+  static const curious = "curious";
+  static const suggest = "suggest";
+  static const empathy = "empathy";
+  static const celebrate = "celebrate";
+  static const warn = "warn";
+
+  // Earn With BlueEra Service List
+  static const selfWork = "selfWork";
+  static const deliveryPartner = "deliveryPartner";
+  static const homeMadeProducts = "homeMadeProducts";
+  static const homeMadeFoodItems = "homeMadeFoodItems";
+  static const homeServices = "homeServices";
+  static const rentalServices = "rentalServices";
+  static const counsellingConsulting = "counsellingConsulting";
+  static const tuitionClassesOnlineOffline = "tuitionClassesOnlineOffline";
+
+  // Self Work Services
+  static const electrician = "electrician";
+  static const plumber = "plumber";
+  static const technician = "technician";
+  static const maidCleaner = "maidCleaner";
+  static const carpenter = "carpenter";
+  static const taxiCarDriver = "taxiCarDriver";
+  static const mechanic = "mechanic";
+  static const homeRenovator = "homeRenovator";
+  static const painter = "painter";
+  static const gardener = "gardener";
+  static const securityPerson = "securityPerson";
+  static const other = "other";
+
+  ///BOTTOM NAVIGATION BAR
+  static const home = "home";
+  static const store = "store";
+  static const jobs = "jobs";
+
+  ///POST VIA...
+  static const postVia = "postVia";
+  static const chooseWhereToPost = "chooseWhereToPost";
+  static const profile = "profile";
+  static const channel = "channel";
+
+  ///CREATE LEKHA POST...
+  static const lekhaPost = "lekhaPost";
+  static const onlyHttpsAllowed = "onlyHttpsAllowed";
+  static const lekhaMin30 = "lekhaMin30";
+  static const titleRequired = "titleRequired";
+  static const atleastOnePhoto = "atleastOnePhoto";
+  static const continueText = "continueText";
+  static const yourLekha = "yourLekha";
+  static const lekhaHint = "lekhaHint";
+  static const lekha30Validator = "lekha30Validator";
+  static const linkNotAllowed = "linkNotAllowed";
+  static const addLekhaTitle = "addLekhaTitle";
+  static const titleOfPost = "titleOfPost";
+  static const natureOfPost = "natureOfPost";
+  static const selectNatureOfPost = "selectNatureOfPost";
+  static const exampleNature = "exampleNature";
+  static const addLinkTitle = "addLinkTitle";
+  static const referenceLink = "referenceLink";
+  static const remove = "remove";
+  static const addWebsiteLink = "addWebsiteLink";
+  static const addTagPeople = "addTagPeople";
+  static const uploadPhotoOrVideo = "upload_photo_or_video";
+  static const uploadPhotoOrVideoRequired = "upload_photo_or_video_required";
+  static const addPhoto = "add_photo";
+  static const optional = "optional";
+  static const addTag = "add_tag";
+  static const tagPeople = "tag_people";
+  static const noUsersFound = "no_users_found";
+  static const only = "only";
+  static const personsYouCanTagHere = "persons_you_can_tag_here";
+  static const aiGenerativeDescription = "aiGenerativeDescription";
+  static const selectLanguage = "selectLanguage";
+  static const languageHint = "languageHint";
+  static const emotion = "emotion";
+  static const selectEmotion = "selectEmotion";
+  static const emotionHint = "emotionHint";
+  static const topicDescribingImages = "topicDescribingImages";
+  static const topicDescribingImagesHint = "topicDescribingImagesHint";
+  static const generatePostDescription = "generatePostDescription";
+  static const suggestions = "suggestions";
+  static const uploadPhotoVideo = "uploadPhotoVideo";
+  static const uploadPhotoVideoRequired = "uploadPhotoVideoRequired";
+  static const validationFieldRequired = "validationFieldRequired";
+  static const validationTopicMinChars = "validationTopicMinChars";
+  static const pleaseWaitProcessing = "pleaseWaitProcessing";
+  static const lekhPreview = "lekhPreview";
+  static const addTagPeopleOrganization = "addTagPeopleOrganization";
+  static const notAvailable = "notAvailable";
+  static const egFlower = "egFlower";
+  static const back = "back";
+  static const postUpdate = "postUpdate";
+  static const confirmDeletePost = "confirmDeletePost";
+
+  ///POLL FEED
+  static const yourQuestion = "yourQuestion";
+  static const exampleQuestion = "exampleQuestion";
+  static const option = "option";
+  static const exampleOption1 = "exampleOption1";
+  static const exampleOption2 = "exampleOption2";
+  static const exampleOptionDefault = "exampleOptionDefault";
+  static const addMoreOption = "addMoreOption";
+  static const continueTxt = "continueTxt";
+  static const fillQuestion = "fillQuestion";
+  static const fillTwoOptions = "fillTwoOptions";
+  static const chooseCorrectAnswer = "chooseCorrectAnswer";
+  static const noQuestionEntered = "noQuestionEntered";
+  static const addCommentOrDescription = "addCommentOrDescription";
+  static const addCommentHint = "addCommentHint";
+  static const pleaseChooseCorrectAnswer = "pleaseChooseCorrectAnswer";
+  static const ok = "ok";
+  static const description = "description";
+  static const read_more = "read_more";
+  static const show_less = "show_less";
+
+  ///SYMBOL POST FEED...
+  static const symbolPost = "symbol_post";
+  static const uploadPhotos = "upload_photos";
+  static const selectPhotos = "select_photos";
+  static const addMore = "add_more";
+  static const descriptionOfMessage = "description_of_message";
+  static const brieflyDescribeMessage = "briefly_describe_message";
+  static const addTagPeopleOrg = "add_tag_people_org";
+  static const cantAddMoreThanOneSong = "cant_add_more_than_one_song";
+  static const uploadOnePhotoForSong = "upload_one_photo_for_song";
+  static const addSong = "add_song";
+  static const song = "song";
+  static const howLongShowSymbol = "how_long_show_symbol";
+  static const hours24 = "hours_24";
+  static const days7 = "days_7";
+  static const uploadOnePhoto = "upload_one_photo";
+  static const editPhoto = "edit_photo";
+  static const addMusic = "add_music";
+  static const searchMusic = "search_music";
+  static const discover = "discover";
+  static const favorites = "favorites";
+  static const noSongsFound = "no_songs_found";
+  static const allPosts = "all_posts";
+  static const myCards = "my_cards";
+  static const searchHere = "search_here";
+  static const joined = "joined";
+  static const channels = "channels";
+  static const whatsNew = "whats_new";
+  static const suggested = "suggested";
+
+  static const pleaseStateReason = "please_state_reason";
+  static const chooseUptoThreeReasons = "choose_three_reasons";
+  static const explainWhyReportsMatter = "explain_reports_matter";
+  static const explainReportsHandled = "explain_reports_handled";
+  static const learnMore = "learn_more";
+  static const pleaseSelectReason = "please_select_reason";
+  static const provideAdditionalDetails = "provide_additional_details";
+  static const youHaveReportedThisPost = "you_have_reported_this_post";
+  static const gotIt = "got_it";
+  static const thankYouForFeedback = "thank_you_for_feedback";
+  static const block = "block";
+  static const thisUser = "this_user";
+  static const blockThisUser = "block_this_user";
+  static const blockUserDescription = "block_user_description";
+  static const unfollow = "unfollow";
+
+
 }

@@ -1,9 +1,11 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class BlockUserDialog extends StatelessWidget {
@@ -46,8 +48,8 @@ class BlockUserDialog extends StatelessWidget {
             const SizedBox(height: 16),
             CustomText(
               userName != null && (userName?.isNotEmpty ?? false)
-                  ? "Block ${userName ?? "this user"} ?"
-                  : "Block this user ?",
+                  ? "${AppStrings.block.tr} ${userName ?? "${AppStrings.thisUser.tr}"} ?"
+                  : "${AppStrings.blockThisUser.tr} ?",
               fontSize: 18,
               fontWeight: FontWeight.bold,
               textAlign: TextAlign.center,
@@ -61,12 +63,12 @@ class BlockUserDialog extends StatelessWidget {
                   color: Colors.black54,
                 ),
                 children: [
-                  const TextSpan(
+                   TextSpan(
                     text:
-                        "If you block this user, you won’t see their posts anymore and they won’t be able to interact with you. ",
+                        AppStrings.blockUserDescription.tr,
                   ),
                   TextSpan(
-                    text: "Learn more...",
+                    text: "${AppStrings.learnMore.tr}...",
                     style: TextStyle(
                       color: AppColors.primaryColor,
                       fontSize: SizeConfig.small,
@@ -88,14 +90,14 @@ class BlockUserDialog extends StatelessWidget {
                 Expanded(
                   child: TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const CustomText("Cancel",
+                    child: const CustomText(AppStrings.cancel,
                         color: AppColors.primaryColor,
                         fontWeight: FontWeight.w600),
                   ),
                 ),
                 Expanded(
                   child: CustomBtn(
-                    title: "Block",
+                    title: AppStrings.block,
                     onTap: () {
                       Navigator.pop(context);
                       onConfirm();

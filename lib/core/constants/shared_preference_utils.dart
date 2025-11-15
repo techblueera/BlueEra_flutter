@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/language_localization_service/language_service_app.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
@@ -5,6 +6,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart';
+import 'package:hive/hive.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 String? appVersion = '';
@@ -215,11 +217,31 @@ class SharedPreferenceUtils {
       Get.find<AuthController>().imgPath.value = "";
       await SharedPreferenceUtils.setBaseUrlSecureValue(workManagerBaseUrl);
       AppNotificationHandler.getFcmToken();
-
+      await resetLanguageLocalization();
     } on Exception {
       await SharedPreferenceUtils.setBaseUrlSecureValue(baseUrl);
     }
   }
+}
+
+resetLanguageLocalization() async {
+  // 1️⃣ Ensure box is opened properly
+  final box = await Hive.openBox('translations');
+
+  // 2️⃣ Delete all data
+  await box.clear();
+
+  // 3️⃣ Also clear in-memory translations (important!)
+  final localizationService = LocalizationService();
+  localizationService.clearInMemoryTranslations();
+
+  // 4️⃣ Reset GetX localization system
+  Get.clearTranslations();
+
+  // 5️⃣ Optionally set app back to English
+  await localizationService.updateLanguage("en");
+
+  print("✅ Language localization fully reset.");
 }
 
 ///LOGIN USER STATUS...
@@ -266,7 +288,7 @@ getEarnServiceCreatedStatusUtils() async {
 
 Future<String> getUserServiceExistsKey() async {
   return await SharedPreferenceUtils.getSecureValue(
-      SharedPreferenceUtils.userServiceExistsKey) ??
+          SharedPreferenceUtils.userServiceExistsKey) ??
       'false';
 }
 
@@ -275,7 +297,6 @@ Future<String> getUserServiceExistsKey() async {
 //       SharedPreferenceUtils.businessType) ??
 //       BusinessType.Product.name;
 // }
-
 
 ///GET USER DATA....
 getUserLoginData() async {
@@ -336,7 +357,7 @@ getUserLoginData() async {
       "";
 
   businessTypeGlobal = await SharedPreferenceUtils.getSecureValue(
-      SharedPreferenceUtils.businessType) ??
+          SharedPreferenceUtils.businessType) ??
       "OTHER";
 }
 
@@ -387,6 +408,5 @@ Future<void> clearSecureStorageIfFreshInstall() async {
 
     // await _storage.deleteAll(); // Clears Keychain entries
     await prefs.setBool('hasInstalledBefore', true);
-    print('🧹 Cleared secure storage for fresh install');
   }
 }

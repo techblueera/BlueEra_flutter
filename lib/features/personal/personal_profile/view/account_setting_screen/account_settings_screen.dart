@@ -1,8 +1,10 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/language_service_app.dart';
+import 'package:BlueEra/core/language_localization_service/language_controller_new.dart';
+import 'package:BlueEra/core/language_localization_service/language_service_app.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/languge_list_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/account_setting_screen/account_settings_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/update_profile_view.dart';
@@ -36,135 +38,135 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(
-      () => Scaffold(
-        backgroundColor: AppColors.whiteF3,
-        appBar: CommonBackAppBar(
-          onBackTap: () {
-            if (accountController.index == '0') {
-              Navigator.pop(context);
-            } else {
-              accountController.setIndex("0");
-              accountController.setTitle("Account & Settings");
-            }
-          },
-          title: accountController.title.value,
-          isLeading: true,
-        ),
-        body: Padding(
-          padding: EdgeInsets.all(SizeConfig.size16),
-          child: Obx(() {
-            // ✅ Safe Navigation
-            if (accountController.index == '1') {
-              Future.microtask(() {
-                accountController.setIndex('0');
-                navigatePushTo(context, UpdateProfileScreen());
-              });
-              return SizedBox();
-            } else if (accountController.index == '2') {
-              return Column(
-                children: [
-                  SizedBox(height: SizeConfig.size20),
-                  // _buildHelpFormSection(accountController),
-                ],
-              );
-            } else if (accountController.index == '3') {
-              return Text("Data");
-              // QueriesCard();
-            } else if (accountController.index == '4') {
-              Future.microtask(() {
-                accountController.setIndex('0');
-                navigatePushTo(context, ChangeLanguageScreen());
-              });
-              return SizedBox();
-            }
-
+    return Scaffold(
+      backgroundColor: AppColors.whiteF3,
+      appBar: CommonBackAppBar(
+        onBackTap: () {
+          if (accountController.index == '0') {
+            Navigator.pop(context);
+          } else {
+            accountController.setIndex("0");
+            accountController.setTitle("Account & Settings");
+          }
+        },
+        title: AppStrings.appSettings,
+        isLeading: true,
+      ),
+      body: Padding(
+        padding: EdgeInsets.all(SizeConfig.size16),
+        child: Obx(() {
+          // ✅ Safe Navigation
+          if (accountController.index == '1') {
+            Future.microtask(() {
+              accountController.setIndex('0');
+              navigatePushTo(context, UpdateProfileScreen());
+            });
+            return SizedBox();
+          } else if (accountController.index == '2') {
             return Column(
               children: [
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Column(
-                    children: [
-                      SizedBox(height: SizeConfig.size20),
-                      _helpServiceCard(
-                        AppIconAssets.personIcon,
-                        'Edit Profile',
-                        () {
-                          accountController.setIndex("1");
-                          accountController.setTitle("Edit Profile");
-                        },
-                      ),
-                      SizedBox(height: SizeConfig.size20),
-                      _helpServiceCard(
-                        AppIconAssets.call,
-                        'Change Phone number',
-                        () {
-                          accountController.setIndex("2");
-                          accountController.setTitle("Change Phone number");
-                        },
-                      ),
-                      SizedBox(height: SizeConfig.size20),
-                      Padding(
-                          padding: EdgeInsets.only(
-                            left: SizeConfig.size16,
-                            right: SizeConfig.size16,
-                            bottom: SizeConfig.size10,
+                SizedBox(height: SizeConfig.size20),
+                // _buildHelpFormSection(accountController),
+              ],
+            );
+          } else if (accountController.index == '3') {
+            return Text("Data");
+            // QueriesCard();
+          } else if (accountController.index == '4') {
+            Future.microtask(() {
+              accountController.setIndex('0');
+              navigatePushTo(context, ChangeLanguageScreen());
+            });
+            return SizedBox();
+          }
+
+          return Column(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Column(
+                  children: [
+                    SizedBox(height: SizeConfig.size20),
+                    _helpServiceCard(
+                      AppIconAssets.personIcon,
+                      AppStrings.editProfile,
+                          () {
+                        accountController.setIndex("1");
+                        accountController.setTitle("Edit Profile");
+                      },
+                    ),
+                    SizedBox(height: SizeConfig.size20),
+                    _helpServiceCard(
+                      AppIconAssets.call,
+                      AppStrings.changePhoneNumber,
+                          () {
+                        accountController.setIndex("2");
+                        accountController.setTitle("Change Phone number");
+                      },
+                    ),
+                    SizedBox(height: SizeConfig.size20),
+                    Padding(
+                        padding: EdgeInsets.only(
+                          left: SizeConfig.size16,
+                          right: SizeConfig.size16,
+                          bottom: SizeConfig.size10,
+                        ),
+                        child: buildSettingItem(
+                          imagePath: AppIconAssets.notificationOutlineIcon,
+                          title:AppStrings.allNotification,
+                          control: buildToggleSwitch(
+                            value: accountController.allnotify,
+                            onChanged:
+                            accountController.toggleAllNotification,
                           ),
-                          child: buildSettingItem(
-                            imagePath: AppIconAssets.notificationOutlineIcon,
-                            title: 'All Notification',
-                            control: buildToggleSwitch(
-                              value: accountController.allnotify,
-                              onChanged:
-                                  accountController.toggleAllNotification,
-                            ),
-                          ))
-                    ],
-                  ),
+                        ))
+                  ],
                 ),
-                SizedBox(height: SizeConfig.size20),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Column(
-                    children: [
-                      SizedBox(height: SizeConfig.size20),
-                      _helpServiceCard(
-                        AppIconAssets.languageIcon,
-                        'Language',
-                        () {
-                          accountController.setIndex("4");
-                          accountController.setTitle("Language");
-                        },
-                      ),
-                      SizedBox(height: SizeConfig.size20),
-                      _helpServiceCard(
-                        AppIconAssets.verifiedTickIcon,
-                        'Verification Status',
-                        () {
-                          accountController.setIndex("5");
-                          accountController.setTitle("Verification Status");
-                        },
-                      ),
-                      SizedBox(height: SizeConfig.size20),
-                      _helpServiceCard(
-                        AppIconAssets.walletIcon,
-                        'Manage Subscription',
-                        () {
-                          accountController.setIndex("6");
-                          accountController.setTitle("Manage Subscription");
-                        },
-                      ),
-                    ],
-                  ),
+              ),
+              SizedBox(height: SizeConfig.size20),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                SizedBox(height: SizeConfig.size20),
-                Container(
+                child: Column(
+                  children: [
+                    SizedBox(height: SizeConfig.size20),
+                    _helpServiceCard(
+                      AppIconAssets.languageIcon,
+                      AppStrings.language,slugId: "Language",
+                          () {
+                        accountController.setIndex("4");
+                        accountController.setTitle("Language");
+                      },
+                    ),
+                    SizedBox(height: SizeConfig.size20),
+                    _helpServiceCard(
+                      AppIconAssets.verifiedTickIcon,
+                      AppStrings.verificationStatus,slugId:  "Verification Status",
+                          () {
+                        accountController.setIndex("5");
+                        accountController.setTitle("Verification Status");
+                      },
+                    ),
+                    SizedBox(height: SizeConfig.size20),
+                    _helpServiceCard(
+                      AppIconAssets.walletIcon,
+                      AppStrings.manageSubscription,
+                      slugId: "Manage Subscription",
+                          () {
+                        accountController.setIndex("6");
+                        accountController.setTitle("Manage Subscription");
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: SizeConfig.size20),
+              /*   Container(
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(10),
@@ -191,11 +193,10 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
                       ),
                     ],
                   ),
-                ),
-              ],
-            );
-          }),
-        ),
+                ),*/
+            ],
+          );
+        }),
       ),
     );
   }
@@ -203,7 +204,7 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
 
 // Reusable Card Widget
 Widget _helpServiceCard(
-    String iconPath, String title, GestureTapCallback? onTap) {
+    String iconPath, String title, GestureTapCallback? onTap,{String? slugId}) {
   Get.put(AccountSettingsController());
   final lang = Get.put(LanguageControllerNew());
 
@@ -244,12 +245,12 @@ Widget _helpServiceCard(
                   color: Colors.black87,
                 ),
               ),
-              if (title == "Language")
+              if (slugId == "Language")
                 Padding(
                   padding:  EdgeInsets.only(right: 8.0),
                   child: CustomText(lang.selectedLang.toUpperCase()),
                 ),
-              if (title == "Verification Status")
+              if (slugId == "Verification Status")
                 Container(
                   margin: EdgeInsets.all(SizeConfig.size5),
                   padding: EdgeInsets.all(SizeConfig.size5),
@@ -263,12 +264,12 @@ Widget _helpServiceCard(
                     color: Colors.black87,
                   ),
                 ),
-              if (title == "Manage Subscription")
+              if (slugId == "Manage Subscription")
                 CustomText(
-                  "Free Plan",
+                  AppStrings.freePlan,
                   fontSize: SizeConfig.medium,
                   fontWeight: FontWeight.w400,
-                  color: Colors.blue,
+                  color: AppColors.primaryColor,
                 ),
             ],
           ),

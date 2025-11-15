@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/reel/models/song_model.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -152,7 +153,7 @@ class _AddSongScreenState extends State<AddSongScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: 'Add Song',
+        title: AppStrings.addMusic,
         isSaveButton: true,
         onSavedTap: _addSongToVideo,
       ),
