@@ -4,6 +4,7 @@ import 'package:BlueEra/core/api/model/user_application_listing_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/jobs/controller/applied_job_controller.dart';
@@ -20,8 +21,7 @@ class AppliedAllScreen extends StatefulWidget {
       {super.key,
       required this.onHeaderVisibilityChanged,
       required this.status,
-        required this.headerHeight
-      });
+      required this.headerHeight});
 
   final Function(bool isVisible) onHeaderVisibilityChanged;
   final String? status;
@@ -80,7 +80,7 @@ class _AppliedAllScreenState extends State<AppliedAllScreen> {
           if (appliedController.appliedJobListing.isNotEmpty) {
             return RefreshIndicator(
               onRefresh: () async {
-                if(Get.find<JobScreenController>().headerOffset.value != 0.0)
+                if (Get.find<JobScreenController>().headerOffset.value != 0.0)
                   return;
 
                 await apiCalling();
@@ -95,13 +95,12 @@ class _AppliedAllScreenState extends State<AppliedAllScreen> {
                         onTap: () async {
                           await commonConformationDialog(
                               context: context,
-                              text: "Are you sure to clear your all job?",
+                              text: AppStrings.clearAllJobConfirmation,
                               confirmCallback: () async {
                                 final applicationIDS = appliedController
                                     .appliedJobListing
                                     .map((data) => data?.id)
                                     .toList();
-                                logs("applicationIDS==== ${applicationIDS}");
                                 await appliedController
                                     .clearUserAppliedJobPostController(
                                         bodyReq: {
@@ -118,7 +117,7 @@ class _AppliedAllScreenState extends State<AppliedAllScreen> {
                           padding: EdgeInsets.only(
                               right: SizeConfig.size15, top: SizeConfig.size10),
                           child: CustomText(
-                            "Clear All (${appliedController.appliedJobListing.length})",
+                            "${AppStrings.clearAll.tr} (${appliedController.appliedJobListing.length})",
                             color: AppColors.primaryColor,
                           ),
                         ),
@@ -139,7 +138,7 @@ class _AppliedAllScreenState extends State<AppliedAllScreen> {
                             location:
                                 "${userData?.jobId?.location?.addressString}",
                             salary:
-                                "₹ ${formatIndianNumber(userData?.jobId?.compensation?.minSalary ?? 0)} - ₹ ${formatIndianNumber(userData?.jobId?.compensation?.maxSalary ?? 0)} monthly",
+                                "₹ ${formatIndianNumber(userData?.jobId?.compensation?.minSalary ?? 0)} - ₹ ${formatIndianNumber(userData?.jobId?.compensation?.maxSalary ?? 0)} ${AppStrings.monthly.tr}",
                             jobType:
                                 "${userData?.jobId?.jobType}, ${userData?.jobId?.workMode}",
                             verticalLineAsset: AppIconAssets.verticalLineIcon,
@@ -161,7 +160,7 @@ class _AppliedAllScreenState extends State<AppliedAllScreen> {
                             removeJobCallBack: () async {
                               await commonConformationDialog(
                                   context: context,
-                                  text: "Are you sure to clear your job?",
+                                  text: AppStrings.clearAllJobConfirmation,
                                   confirmCallback: () async {
                                     await appliedController
                                         .clearUserAppliedJobPostController(
@@ -186,13 +185,13 @@ class _AppliedAllScreenState extends State<AppliedAllScreen> {
               width: Get.width,
               height: Get.height,
               alignment: Alignment.center,
-              child: CustomText("No Job Listing Found"));
+              child: CustomText(AppStrings.noJobListingFound));
         }
         return Container(
             width: Get.width,
             height: Get.height,
             alignment: Alignment.center,
-            child: CustomText("No Job Listing Found"));
+            child: CustomText(AppStrings.noJobListingFound));
       }),
     );
   }

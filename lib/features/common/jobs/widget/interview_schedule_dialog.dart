@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/jobs/controller/interview_schedule_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -43,8 +44,8 @@ void showInterviewScheduleDialog(BuildContext context,
                           children: [
                             CustomText(
                               (isReschedule ?? false)
-                                  ? "Reschedule Interview"
-                                  : "Schedule Interview",
+                                  ? AppStrings.rescheduleInterview
+                                  : AppStrings.scheduleInterview,
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
@@ -59,14 +60,14 @@ void showInterviewScheduleDialog(BuildContext context,
 
                         // Mode selection
                         const CustomText(
-                          "Mode",
+                          AppStrings.mode,
                           fontWeight: FontWeight.w500,
                         ),
                         const SizedBox(height: 8),
                         CommonDropdown<CommunicationMode?>(
                           items: CommunicationMode.values,
                           selectedValue: controller.communicationMode.value,
-                          hintText: "Select Mode",
+                          hintText: AppStrings.selectMode,
                           displayValue: (profession) =>
                               profession?.displayName ?? "",
                           onChanged: (value) {
@@ -75,7 +76,7 @@ void showInterviewScheduleDialog(BuildContext context,
                           },
                           validator: (value) {
                             if (value == null) {
-                              return 'Please select your Mode';
+                              return AppStrings.selectYourMode.tr;
                             }
                             return null;
                           },
@@ -86,16 +87,16 @@ void showInterviewScheduleDialog(BuildContext context,
                         if (controller.communicationMode.value?.displayName !=
                             'Online') ...[
                           CommonTextField(
-                            title: "Other",
-                            hintText: "Enter details (if other)",
+                            title: AppStrings.other,
+                            hintText: AppStrings.enterDetailsIfOther,
                             isValidate: false,
                             onChange: (value) => controller.venue.value = value,
                           ),
                         ] else ...[
                           CommonTextField(
-                            title: "Online Meeting Link",
+                            title: AppStrings.onlineMeetingLink,
                             hintText:
-                                "Enter meeting link (e.g., Zoom, Google Meet)",
+                            AppStrings.enterMeetingLink,
                             isValidate: false,
                             onChange: (value) =>
                                 controller.onlineMeetingLink.value = value,
@@ -105,7 +106,7 @@ void showInterviewScheduleDialog(BuildContext context,
 
                         // Date selection
                         const CustomText(
-                          "Date",
+                          AppStrings.date,
                           fontWeight: FontWeight.w500,
                         ),
                         const SizedBox(height: 8),
@@ -125,7 +126,7 @@ void showInterviewScheduleDialog(BuildContext context,
 
                         // Start Time selection with dropdowns
                         const CustomText(
-                          "Start Time",
+                          AppStrings.startTime,
                           fontWeight: FontWeight.w500,
                         ),
                         const SizedBox(height: 8),
@@ -150,7 +151,7 @@ void showInterviewScheduleDialog(BuildContext context,
 
                         // End Time selection with dropdowns
                         const CustomText(
-                          "End Time",
+                          AppStrings.endTime,
                           fontWeight: FontWeight.w500,
                         ),
                         const SizedBox(height: 8),
@@ -176,12 +177,12 @@ void showInterviewScheduleDialog(BuildContext context,
 
                           // Text field
                           CommonTextField(
-                            title: "Reason(Optional)",
+                            title: AppStrings.reasonOptional,
                             textEditController:
                                 controller.feedbackController.value,
                             maxLine: 4,
                             maxLength: 200,
-                            hintText: "Brief reason (if any)",
+                            hintText:AppStrings.briefReason,
                             isValidate: false,
                             onChange: (value) {
                               controller.feedbackController.value.text = value;
@@ -204,7 +205,7 @@ void showInterviewScheduleDialog(BuildContext context,
                         // Schedule button
                         CustomBtn(
                           isValidate: controller.isFormValid,
-                          title: "Schedule",
+                          title: AppStrings.schedules,
                           // isLoading: controller.isLoading.value,
                           onTap: controller.isFormValid
                               ? () async {

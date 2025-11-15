@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/jobs/controller/applied_job_controller.dart';
 import 'package:BlueEra/features/common/jobs/widget/interview_schedule_dialog.dart';
@@ -145,12 +146,7 @@ class _ApplicationCardState extends State<ApplicationCard> {
                   ),
                 ),
               ),
-              // SvgPicture.asset(
-              //   AppIconAssets.chat,
-              //   width: SizeConfig.size35,
-              //   height: SizeConfig.size35,
-              //   color: AppColors.black30,
-              // ),
+
             ],
           ),
 
@@ -173,17 +169,17 @@ class _ApplicationCardState extends State<ApplicationCard> {
                         widget.data.resumeData?.currentJob
                                     ?.currentCompanyName !=
                                 null
-                            ? "${widget.data.resumeData?.currentJob?.currentCompanyName ?? "N/A"} (Current)"
+                            ? "${widget.data.resumeData?.currentJob?.currentCompanyName ?? "N/A"} (${AppStrings.current.tr})"
                             : "N/A"),
                     _buildDetailRow(
                         AppIconAssets.experienceJobIcon,
                         widget.data.totalExperience != null
-                            ? "${widget.data.totalExperience} Experience"
+                            ? "${widget.data.totalExperience} ${AppStrings.experience.tr}"
                             : "N/A"),
                     _buildDetailRow(
                         AppIconAssets.job, "${widget.jobDetails?.jobTitle}"),
                     _buildDetailRow(AppIconAssets.moneyOutlinedIcon,
-                        "₹${formatNumber(widget.data.resumeData?.salaryDetails?.monthlyTotalEarning ?? 0)} monthly"),
+                        "₹${formatNumber(widget.data.resumeData?.salaryDetails?.monthlyTotalEarning ?? 0)} ${AppStrings.monthly.tr}"),
                     _buildDetailRow(AppIconAssets.location_outline,
                         widget.data.address?.city ?? "N/A"),
                   ],

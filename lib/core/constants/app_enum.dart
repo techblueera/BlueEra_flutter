@@ -372,7 +372,7 @@ enum JobIndividualCategory {
   all(label: AppStrings.all,labelId: AppConstants.All),
   applied(label: AppStrings.applied,labelId:AppConstants.Applied ),
   schedules(label: AppStrings.schedules,labelId:AppConstants.SCHEDULES,),
-  saved(label: AppStrings.saved,labelId:AppConstants.Saved);
+  saved(label: AppStrings.tab_saved,labelId:AppConstants.Saved);
 
   final String label;
   final String labelId;
@@ -381,10 +381,10 @@ enum JobIndividualCategory {
 }
 
 enum JobAppliedCategoryTab {
-  all(label: 'All', labelId: AppConstants.All),
-  applied(label: 'In Progress', labelId: AppConstants.IN_PROGRESS),
-  schedules(label: 'Interview', labelId: AppConstants.INTERVIEW),
-  saved(label: 'Closed', labelId: AppConstants.CLOSED);
+  all(label: AppStrings.all, labelId: AppConstants.All),
+  applied(label: AppStrings.jobStatusInProgress, labelId: AppConstants.IN_PROGRESS),
+  schedules(label: AppStrings.jobStatusInterview, labelId: AppConstants.INTERVIEW),
+  saved(label: AppStrings.jobStatusClosed, labelId: AppConstants.CLOSED);
 
   final String label;
   final String labelId;
@@ -393,13 +393,14 @@ enum JobAppliedCategoryTab {
 }
 
 enum JobBusinessCategory {
-  myPosts(label: 'My Posts'),
-  schedules(label: 'Schedules'),
-  saved(label: 'Saved');
+  myPosts(label: AppStrings.myPosts,labelId:'My Posts' ),
+  schedules(label: AppStrings.schedules,labelId:"Schedules"),
+  saved(label: AppStrings.tab_saved,labelId:"Saved");
 
   final String label;
+  final String labelId;
 
-  const JobBusinessCategory({required this.label});
+  const JobBusinessCategory({required this.label,required this.labelId});
 }
 
 /// Job Status

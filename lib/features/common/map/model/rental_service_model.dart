@@ -52,8 +52,7 @@ class RentalDataList {
       this.address, 
       this.city, 
       this.pincode, 
-      this.price,
-      this.priceUnit, 
+      this.priceUnit,
       this.isActive, 
       this.isNegotiable, 
       this.rating, 
@@ -81,7 +80,6 @@ class RentalDataList {
     address = json['address'];
     city = json['city'];
     pincode = json['pincode'];
-    price = json['price'];
     priceUnit = json['priceUnit'];
     isActive = json['is_active'];
     isNegotiable = json['is_negotiable'];
@@ -109,7 +107,6 @@ class RentalDataList {
   String? address;
   String? city;
   String? pincode;
-  int? price;
   String? priceUnit;
   bool? isActive;
   bool? isNegotiable;
@@ -140,7 +137,6 @@ class RentalDataList {
     map['city'] = city;
     map['pincode'] = pincode;
 
-    map['price'] = price;
     map['priceUnit'] = priceUnit;
     map['is_active'] = isActive;
     map['is_negotiable'] = isNegotiable;

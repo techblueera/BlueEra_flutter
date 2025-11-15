@@ -537,6 +537,50 @@ class AppStrings {
   static const since = "since";
   static const imageViewer = "imageViewer";
   static const years = "years";
+  static const noSavedJobsYet = "noSavedJobsYet";
+  static const no_search_results_found = "no_search_results_found";
+  static const jobStatusInProgress = "jobStatusInProgress";
+  static const jobStatusInterview = "jobStatusInterview";
+  static const jobStatusClosed = "jobStatusClosed";
+  static const myPosts = "myPosts";
+  static const clearAllJobConfirmation = "clearAllJobConfirmation";
+  static const clearAll = "clearAll";
+  static const noJobListingFound = "noJobListingFound";
+  static const monthly = "monthly";
+  static const appliedSuccessMsg = "appliedSuccessMsg";
+  static const screeningMsg = "screeningMsg";
+  static const shortlistedMsg = "shortlistedMsg";
+  static const interviewScheduledMsg = "interviewScheduledMsg";
+  static const interviewingMsg = "interviewingMsg";
+  static const offeredMsg = "offeredMsg";
+  static const hiredMsg = "hiredMsg";
+
+  static const experienceTitle = "experienceTitle";
+  static const experienceSubtitle = "experienceSubtitle";
+  static const experienceHint = "experienceHint";
+
+  static const rejectedMsg = "rejectedMsg";
+  static const withdrawnMsg = "withdrawnMsg";
+  static const applicationSent = "applicationSent";
+  static const applicationReviewMsg = "applicationReviewMsg";
+  static const applicationShortlisted = "applicationShortlisted";
+  static const selectAll = "selectAll";
+  static const rescheduleInterview = "rescheduleInterview";
+  static const scheduleInterview = "scheduleInterview";
+  static const notInterested = "notInterested";
+  static const mode = "mode";
+  static const selectMode = "selectMode";
+  static const selectYourMode = "selectYourMode";
+  static const enterDetailsIfOther = "enterDetailsIfOther";
+  static const onlineMeetingLink = "onlineMeetingLink";
+  static const enterMeetingLink = "enterMeetingLink";
+  static const date = "date";
+  static const startTime = "startTime";
+  static const endTime = "endTime";
+  static const reasonOptional = "reasonOptional";
+  static const briefReason = "briefReason";
+  static const current = "current";
+
 
 
 }

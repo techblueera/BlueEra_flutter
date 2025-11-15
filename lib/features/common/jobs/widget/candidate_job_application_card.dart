@@ -2,6 +2,7 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/model/application_candidate_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/jobs/controller/applied_job_controller.dart';
 import 'package:BlueEra/features/common/jobs/controller/job_screen_controller.dart';
@@ -52,12 +53,7 @@ class _CandidateJobApplicationCardState
     return setupScrollVisibilityNotification(
       controller: _scrollController,
       headerHeight: widget.headerHeight,
-      // onVisibilityChanged: (visible) {
-      //   if (_isVisible != visible && mounted) {
-      //     setState(() => _isVisible = visible);
-      //     widget.onHeaderVisibilityChanged.call(visible);
-      //   }
-      // },
+
       onVisibilityChanged: (visible, offset) {
         final controller = Get.find<JobScreenController>();
         final currentOffset = controller.headerOffset.value;
@@ -122,10 +118,11 @@ class _CandidateJobApplicationCardState
                                     )),
                                 SizedBox(width: SizeConfig.size8),
                                 Obx(() => CustomText(
-                                      "Select All (${appliedController.selectedCount})",
-                                      fontSize: SizeConfig.small,
-                                      color: AppColors.secondaryTextColor,
-                                    )),
+                                  "${AppStrings.selectAll.tr} (${appliedController.selectedCount})",
+                                  fontSize: SizeConfig.small,
+                                  color: AppColors.secondaryTextColor,
+                                ))
+
                               ],
                             ),
                             Spacer(),
@@ -163,8 +160,8 @@ class _CandidateJobApplicationCardState
                                         (widget.status?.toLowerCase() ==
                                             AppConstants.Connect
                                                 .toLowerCase()))
-                                        ? "Reschedule Interview"
-                                        : "Schedule Interview",
+                                        ? AppStrings.rescheduleInterview
+                                        : AppStrings.scheduleInterview,
                                     onTap: () =>appliedController.bulkScheduleInterviews(
                                         context,
                                         (widget.status?.toLowerCase() ==
@@ -177,24 +174,9 @@ class _CandidateJobApplicationCardState
                                   ),
                                 SizedBox(width: SizeConfig.size8),
 
-                                // _ActionBtn(
-                                //   title: "Send Message",
-                                //   onTap: () =>
-                                //       appliedController.bulkSendMessage(),
-                                //   borderColor: AppColors.primaryColor,
-                                //   textColor: AppColors.primaryColor,
-                                // ),
-                                // SizedBox(width: SizeConfig.size8),
-                                // _ActionBtn(
-                                //   title: "Send assignment",
-                                //   onTap: () =>
-                                //       appliedController.bulkSendAssignment(),
-                                //   borderColor: AppColors.primaryColor,
-                                //   textColor: AppColors.primaryColor,
-                                // ),
-                                // SizedBox(width: SizeConfig.size8),
+
                                 _ActionBtn(
-                                  title: "Not Interested",
+                                  title: AppStrings.notInterested,
                                   onTap: () => appliedController
                                       .bulkMarkNotInterested(context),
                                   borderColor: AppColors.red00,
@@ -239,13 +221,13 @@ class _CandidateJobApplicationCardState
                 width: Get.width,
                 height: Get.height,
                 alignment: Alignment.center,
-                child: CustomText("No Job Listing Found"));
+                child: CustomText(AppStrings.noJobListingFound));
           }
           return Container(
               width: Get.width,
               height: Get.height,
               alignment: Alignment.center,
-              child: CustomText("No Job Listing Found"));
+              child: CustomText(AppStrings.noJobListingFound));
         }),
       ),
     );

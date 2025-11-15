@@ -3,6 +3,7 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -131,7 +132,7 @@ class _AllSavedJobPostScreenState extends State<AllSavedJobPostScreen> {
                           child: Container(
                             height: isBusiness()
                                 ? SizeConfig.size200 - 15
-                                : SizeConfig.size200 + 5,
+                                : SizeConfig.size200 + 6,
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(10.0),
                               color: AppColors.white,
@@ -223,7 +224,7 @@ class _AllSavedJobPostScreenState extends State<AllSavedJobPostScreen> {
                                                           TextOverflow.ellipsis,
                                                     ),
                                                     CustomText(
-                                                      "Posted On ${formatMonthStringDate(job?.createdAt.toString() ?? "")}",
+                                                      "${AppStrings.postedOn.tr} ${formatMonthStringDate(job?.createdAt.toString() ?? "")}",
                                                       fontSize: SizeConfig
                                                           .extraSmall8,
                                                       color: AppColors
@@ -305,7 +306,7 @@ class _AllSavedJobPostScreenState extends State<AllSavedJobPostScreen> {
                                                           if (jobID.isEmpty) {
                                                             commonSnackBar(
                                                               message:
-                                                                  'Job ID is missing. Cannot edit this job.',
+                                                                  AppStrings.jobIdMissing,
                                                             );
 
                                                             return;
@@ -384,26 +385,26 @@ class _AllSavedJobPostScreenState extends State<AllSavedJobPostScreen> {
                                         /// 🔵 Job Info (Flexible to fit available space)
                                         if (isIndividual())
                                           buildJobDescriptionContent(
-                                              title: 'Job title: ',
+                                              title: '${AppStrings.jobTitle.tr}: ',
                                               subtitle:
-                                                  job?.jobTitle ?? 'Job Title'),
+                                                  job?.jobTitle ?? AppStrings.jobTitle),
                                         buildJobDescriptionContent(
-                                            title: 'Job type: ',
+                                            title: '${AppStrings.jobType.tr}: ',
                                             subtitle:
-                                                '${job?.jobType ?? "Job Type"} - ${job?.workMode ?? "Work Mode"}'),
+                                                '${job?.jobType ?? ""} - ${job?.workMode ?? ""}'),
                                         buildJobDescriptionContent(
-                                            title: 'Min Experience: ',
+                                            title: '${AppStrings.minExperience.tr}: ',
                                             subtitle:
                                                 '${job?.experience ?? 0} yrs'),
                                         buildJobDescriptionContent(
-                                            title: 'Monthly Pay: ',
+                                            title: '${AppStrings.monthlyPay.tr}: ',
                                             subtitle:
                                                 '₹${formatIndianNumber(job?.compensation?.minSalary ?? 0)} to ₹${formatIndianNumber(job?.compensation?.maxSalary ?? 0)}'),
                                         buildJobDescriptionContent(
-                                            title: 'Job Location: ',
+                                            title: '${AppStrings.jobLocation.tr}: ',
                                             subtitle:
                                                 job?.location?.addressString ??
-                                                    'Location'),
+                                                    'N/A'),
                                         SizedBox(
                                           height: SizeConfig.size10,
                                         ),
@@ -434,14 +435,14 @@ class _AllSavedJobPostScreenState extends State<AllSavedJobPostScreen> {
                                                   } else {
                                                     commonSnackBar(
                                                         message:
-                                                            "No application found");
+                                                        AppStrings.noApplicationFound);
                                                   }
                                                 },
                                                 title: (job?.applications
                                                             ?.isNotEmpty ??
                                                         false)
-                                                    ? "Applications (${job?.applications?.length}) "
-                                                    : "Applications")
+                                                    ? "${AppStrings.applications.tr} (${job?.applications?.length}) "
+                                                    : "${AppStrings.applications.tr}")
                                             : Row(
                                                 children: [
                                                     Expanded(
@@ -465,7 +466,7 @@ class _AllSavedJobPostScreenState extends State<AllSavedJobPostScreen> {
                                                                         ?.addressString));
                                                           }
                                                         },
-                                                        title: 'Directions',
+                                                        title:  AppStrings.directions,
                                                         bgColor:
                                                             AppColors.white,
                                                         borderColor: AppColors
@@ -497,7 +498,7 @@ class _AllSavedJobPostScreenState extends State<AllSavedJobPostScreen> {
                                                               isPostCreate: '',
                                                             ));
                                                       },
-                                                      title: 'Apply Now',
+                                                      title:  AppStrings.applyNow,
                                                       fontSize:
                                                           SizeConfig.small,
                                                     ),
@@ -514,6 +515,7 @@ class _AllSavedJobPostScreenState extends State<AllSavedJobPostScreen> {
                         ),
                       );
                     }
+                    return CustomText(AppStrings.noSavedJobsYet);
                     return CustomText("No Saved Job Found Yet");
                   },
                 )
@@ -521,7 +523,7 @@ class _AllSavedJobPostScreenState extends State<AllSavedJobPostScreen> {
                   width: Get.width,
                   height: Get.height,
                   alignment: Alignment.center,
-                  child: CustomText("No Job Saved Yet")),
+                  child: CustomText(AppStrings.noSavedJobsYet)),
         );
       }),
     );
