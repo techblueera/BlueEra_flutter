@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import '../../../../../core/constants/regular_expression.dart';
 import '../../../../../widgets/commom_textfield.dart';
 import '../../../auth/controller/order_controllar.dart';

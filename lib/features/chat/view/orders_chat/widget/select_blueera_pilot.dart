@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:developer';
-import 'dart:typed_data';          // For Uint8List
+// For Uint8List
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/chat/view/orders_chat/widget/waiting_for_payment_dialog.dart';
@@ -12,7 +12,6 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:mappls_gl/mappls_gl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../../core/api/apiService/api_response.dart';
