@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/jobs/view/job_details_overview_screen.dart';
@@ -66,10 +67,10 @@ class _JobQNAScreenState extends State<JobQNAScreen> {
                     SizedBox(height: SizeConfig.size24),
 
                     PollCard(
-                        "Confirm your availability?",
+                       AppStrings.confirmAvailability.tr,
                         [
-                        "Yes, I am willing to join immediately",
-                        "No (Please specify your availability)",
+                          AppStrings.willingToJoinImmediately.tr,
+                          AppStrings.notAvailableSpecify.tr,
                         ],
                         selectedAvailability,
                             (value) {
@@ -84,7 +85,7 @@ class _JobQNAScreenState extends State<JobQNAScreen> {
                       SizedBox(height: SizeConfig.size16),
                       CommonTextField(
                         textEditController: availabilityController,
-                        hintText: "Write your availability",
+                        hintText: AppStrings.writeYourAvailability,
                         isValidate: true,
                         regularExpression: RegularExpressionUtils.alphabetSpacePattern,
                         onChange: (value) {
@@ -96,9 +97,10 @@ class _JobQNAScreenState extends State<JobQNAScreen> {
                     SizedBox(height: SizeConfig.size24),
 
                     PollCard(
-                      "Are you willing to relocate yourself?",
-                      ["Yes",
-                      "No"
+                      AppStrings.willingToRelocate.tr,
+                      [
+                        AppStrings.yes.tr,
+                        AppStrings.no.tr,
                     ],
                       selectedRelocation,
                           (value) {
@@ -112,11 +114,11 @@ class _JobQNAScreenState extends State<JobQNAScreen> {
                     SizedBox(height: SizeConfig.size24),
 
                     PollCard(
-                      "What is your notice period?",
+                      AppStrings.noticePeriod.tr,
                       [
-                        "Less than 7 days",
-                        "Less than 15 days",
-                        "Less than 1 month"
+                        AppStrings.lessThan7Days.tr,
+                        AppStrings.lessThan15Days.tr,
+                        AppStrings.lessThan1Month.tr
                       ],
                       selectedNoticePeriod,
                           (value) {
@@ -135,7 +137,7 @@ class _JobQNAScreenState extends State<JobQNAScreen> {
 
               //Continue button
               CustomBtn(
-                title: 'Continue',
+                title: AppStrings.continueTxt,
                 onTap: (validate) ? () {
                   // Collect all answers
                   List<Map<String, dynamic>> selectedAnswers = [];
@@ -227,19 +229,19 @@ class _JobQNAScreenState extends State<JobQNAScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CustomText(
-            "Information",
+            AppStrings.information,
             fontWeight: FontWeight.w700,
           ),
           SizedBox(height: 5),
           CustomText(
-            "Explain why you are the right person for this job",
+            AppStrings.explainWhyRightPerson,
             color: AppColors.blackA3,
           ),
           SizedBox(height: 10),
 
           CommonTextField(
             textEditController: whyRightPersonController,
-            hintText: "Answer",
+            hintText: AppStrings.answer,
             maxLength: 1000,
             minLines: 5,
             maxLine: 10,

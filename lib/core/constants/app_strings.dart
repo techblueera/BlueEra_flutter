@@ -580,7 +580,135 @@ class AppStrings {
   static const reasonOptional = "reasonOptional";
   static const briefReason = "briefReason";
   static const current = "current";
+  static const areYouSureNotInterested = "areYouSureNotInterested";
+  static const shortlistResume = "shortlistResume";
+  static const hireCandidate = "hireCandidate";
+  static const nextStep = "nextStep";
+  static const tellUsWhyHired = "tellUsWhyHired";
+  static const shortDescriptionOptional = "shortDescriptionOptional";
+  static const keyReasonSelecting = "keyReasonSelecting";
+  static const rejectedUser = "rejectedUser";
+  static const age = "age";
+  static const contactInformation = "contactInformation";
+  static const locationHint = "locationHint";
+  static const enterMobileNumber = "enterMobileNumber";
+  static const mobileDigitsValidation = "mobileDigitsValidation";
+  static const resume = "resume";
+  static const employerQuestions = "employerQuestions";
+  static const enterYourAnswer = "enterYourAnswer";
+  static const submitYourApplication = "submitYourApplication";
+  static const successful = "successful";
+  static const connect = "connect";
+  static const longPressToRemoveDocument = "longPressToRemoveDocument";
+  static const applicationSentMsg = "applicationSentMsg";
+  static const confirmAvailability = "confirmAvailability";
+  static const willingToJoinImmediately = "willingToJoinImmediately";
+  static const notAvailableSpecify = "notAvailableSpecify";
+  static const writeYourAvailability = "writeYourAvailability";
+  static const willingToRelocate = "willingToRelocate";
+  static const noticePeriod = "noticePeriod";
+  static const lessThan7Days = "lessThan7Days";
+  static const lessThan15Days = "lessThan15Days";
+  static const lessThan1Month = "lessThan1Month";
+  static const information = "information";
+  static const explainWhyRightPerson = "explainWhyRightPerson";
+  static const answer = "answer";
+  static const yourResumeNotCreated = "yourResumeNotCreated";
+  static const createFirstResume = "createFirstResume";
+  static const createResume = "createResume";
 
+  static const selectAResume = "selectAResume";
+  static const chooseResumeForJob = "chooseResumeForJob";
+  static const submitResume = "submitResume";
+
+  static const resumeLabel = "resumeLabel";
+  static const untitledResume = "untitledResume";
+  static const createdDate = "createdDate";
+  static const createJobPostStep = "createJobPostStep";
+  static const jobDetails = "jobDetails";
+  static const jobBannerImage = "jobBannerImage";
+  static const selectBannerTemplate = "selectBannerTemplate";
+  static const bannerSelected = "bannerSelected";
+
+  static const companyName = "companyName";
+  static const companyNameHint = "companyNameHint";
+
+  static const companyAddress = "companyAddress";
+  static const companyAddressHint = "companyAddressHint";
+
+  static const jobTitleDesignation = "jobTitleDesignation";
+  static const jobTitleHint = "jobTitleHint";
+
+  static const departmentHint = "departmentHint";
+
+  static const jobTypeHint = "jobTypeHint";
+
+  static const workMode = "workMode";
+  static const workModeHint = "workModeHint";
+
+  static const compensation = "compensation";
+  static const whatIsPayType = "whatIsPayType";
+  static const payTypeHint = "payTypeHint";
+
+  static const selectSalary = "selectSalary";
+  static const minSalary = "minSalary";
+  static const maxSalary = "maxSalary";
+  static const salaryTo = "salaryTo";
+
+  static const additionalPerks = "additionalPerks";
+
+  static const jobHighlightsHint = "jobHighlightsHint";
+
+  static const typeYourJobDescription = "typeYourJobDescription";
+  static const jobDescriptionHint = "jobDescriptionHint";
+
+  static const pleaseSelectBanner = "pleaseSelectBanner";
+
+  static const updateJob = "updateJob";
+  static const continueBtn = "continueBtn";
+  static const createJobPostStep2 = "createJobPostStep2";
+
+  static const candidateBasicRequirements = "candidateBasicRequirements";
+
+  static const qualifications = "qualifications";
+  static const qualificationsHint = "qualificationsHint";
+
+  static const totalExperienceRequired = "totalExperienceRequired";
+  static const totalExperienceHint = "totalExperienceHint";
+
+  static const skillHint = "skillHint";
+
+  static const selectGenderOptional = "selectGenderOptional";
+  static const selectGenderHint = "selectGenderHint";
+  static const more = "more";
+
+  static const createJobPostStep3 = "createJobPostStep3";
+  static const interviewMethodAndAddress = "interviewMethodAndAddress";
+  static const isWalkInInterview = "isWalkInInterview";
+
+  static const walkInInterviewAddress = "walkInInterviewAddress";
+  static const addressHint = "addressHint";
+
+  static const walkInStartDate = "walkInStartDate";
+  static const walkInEndDate = "walkInEndDate";
+
+  static const walkInTimings = "walkInTimings";
+  static const startTimeHint = "startTimeHint";
+  static const endTimeHint = "endTimeHint";
+
+  static const otherInstructions = "otherInstructions";
+  static const instructionsHint = "instructionsHint";
+
+  static const communicationPreferences = "communicationPreferences";
+  static const call = "call";
+  static const weContactCandidate = "weContactCandidate";
+
+  static const pleaseSelectCommunicationPref = "pleaseSelectCommunicationPref";
+  static const contactViaChatAfterApply = "contactViaChatAfterApply";
+  static const createJobPostStep4 = "createJobPostStep4";
+  static const askQuestionsToCandidates = "askQuestionsToCandidates";
+  static const availableToJoinImmediately = "availableToJoinImmediately";
+  static const addMoreQuestions = "addMoreQuestions";
 
 
 }

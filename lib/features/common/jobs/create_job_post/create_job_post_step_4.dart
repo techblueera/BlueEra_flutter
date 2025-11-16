@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/jobs/controller/create_job_post_controller.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -74,7 +75,7 @@ class _CreateJobPostStep4State extends State<CreateJobPostStep4> {
     final mainController = Get.find<CreateJobPostController>();
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Create Job Post (Step 4 of 4)",
+        title: AppStrings.createJobPostStep4,
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -85,7 +86,7 @@ class _CreateJobPostStep4State extends State<CreateJobPostStep4> {
             children: [
               Padding(
                 padding: EdgeInsets.only(left: SizeConfig.size5),
-                child: CustomText("Ask the Questions to the Candidates",
+                child: CustomText(AppStrings.askQuestionsToCandidates,
                     fontWeight: FontWeight.w700, fontSize: SizeConfig.large),
               ),
               const SizedBox(height: 20),
@@ -103,53 +104,53 @@ class _CreateJobPostStep4State extends State<CreateJobPostStep4> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       buildToggleQuestion(
-                        title: "Confirm your availability",
+                        title:AppStrings.confirmAvailability,
                         toggleValue: controller.confirmAvailability,
                         options: [
                           buildRadioOption(
-                            label: "Yes, I am available to join immediately",
+                            label: AppStrings.availableToJoinImmediately,
                             value: "yes",
                             groupValue: controller.availabilityOption,
                           ),
                           buildRadioOption(
-                            label: "No (Please specify your availability)",
+                            label: AppStrings.notAvailableSpecify,
                             value: "no",
                             groupValue: controller.availabilityOption,
                           ),
                         ],
                       ),
                       buildToggleQuestion(
-                        title: "Are you willing to relocate yourself?",
+                        title:AppStrings.willingToRelocate,
                         toggleValue: controller.willingToRelocate,
                         options: [
                           buildRadioOption(
-                            label: "Yes",
+                            label: AppStrings.yes,
                             value: "yes",
                             groupValue: controller.relocationOption,
                           ),
                           buildRadioOption(
-                            label: "No",
+                            label: AppStrings.no,
                             value: "no",
                             groupValue: controller.relocationOption,
                           ),
                         ],
                       ),
                       buildToggleQuestion(
-                        title: "What is your notice period?",
+                        title: AppStrings.noticePeriod,
                         toggleValue: controller.noticePeriod,
                         options: [
                           buildRadioOption(
-                            label: "Less than 7 days",
+                            label: AppStrings.lessThan7Days,
                             value: "7",
                             groupValue: controller.noticePeriodOption,
                           ),
                           buildRadioOption(
-                            label: "Less than 15 days",
+                            label: AppStrings.lessThan15Days,
                             value: "15",
                             groupValue: controller.noticePeriodOption,
                           ),
                           buildRadioOption(
-                            label: "Less than 1 month",
+                            label:AppStrings.lessThan1Month,
                             value: "30",
                             groupValue: controller.noticePeriodOption,
                           ),
@@ -159,12 +160,10 @@ class _CreateJobPostStep4State extends State<CreateJobPostStep4> {
                         onPressed: () {},
                         icon: Icon(
                           Icons.add,
-                          color: Color(0xFF2399F5),
+                          color: AppColors.primaryColor,
                         ),
-                        label: CustomText("Add more questions",
-                            color: Color(
-                              0xFF2399F5,
-                            ),
+                        label: CustomText(AppStrings.addMoreQuestions,
+                            color: AppColors.primaryColor,
                             fontSize: SizeConfig.large),
                       ),
                     ],
@@ -218,7 +217,7 @@ class _CreateJobPostStep4State extends State<CreateJobPostStep4> {
                         customQuestions: customQuestions,
                       );
                     },
-                    title: "Continue"),
+                    title: AppStrings.continueTxt),
               )
             ],
           ),
@@ -238,16 +237,14 @@ class _CreateJobPostStep4State extends State<CreateJobPostStep4> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(title,
-                    style:
-                        TextStyle(fontWeight: FontWeight.w400, fontSize: 14)),
+                CustomText(title,),
                 Transform.scale(
                   scale: 0.70,
                   child: Switch(
                     value: toggleValue.value,
                     onChanged: (val) => toggleValue.value = val,
                     activeThumbColor: Colors.white,
-                    activeTrackColor: Color(0xFF2399F5),
+                    activeTrackColor: AppColors.primaryColor,
                     inactiveThumbColor: Colors.white,
                     inactiveTrackColor: Colors.grey,
                   ),
@@ -282,7 +279,7 @@ class _CreateJobPostStep4State extends State<CreateJobPostStep4> {
             ),
             value: value,
             groupValue: groupValue.value,
-            activeColor: Color(0xFF2399F5),
+            activeColor: AppColors.primaryColor,
             onChanged: (val) => groupValue.value = val!,
           ),
         ));

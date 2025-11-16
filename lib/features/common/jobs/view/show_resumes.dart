@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -43,21 +44,11 @@ class _ShowResumesState extends State<ShowResumes> {
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Obx(() {
-            // if (jobDetailsScreenController.isLoading.value) {
-            //   return Center(
-            //     child: CircularProgressIndicator(
-            //       color: AppColors.primaryColor,
-            //     ),
-            //   );
-            // }
-            logs("jobDetailsScreenController.getSelfResumeSelectionResponse.value.status==== ${jobDetailsScreenController
-                .getSelfResumeSelectionResponse.value.status}");
             if (jobDetailsScreenController
                     .getSelfResumeSelectionResponse.value.status ==
                 Status.COMPLETE) {
               final resumes =
                   jobDetailsScreenController.getResumes.value?.resumes;
-              logs("resumes====${resumes}");
 
               if (resumes != null && (resumes.isNotEmpty)) {
                 return _buildResumesGridView(resumes);
@@ -85,7 +76,7 @@ class _ShowResumesState extends State<ShowResumes> {
           ),
           SizedBox(height: SizeConfig.size20),
           CustomText(
-            "Your resume is not created",
+            AppStrings.yourResumeNotCreated,
             fontSize: SizeConfig.large,
             fontWeight: FontWeight.w600,
             color: AppColors.black28,
@@ -93,7 +84,7 @@ class _ShowResumesState extends State<ShowResumes> {
           ),
           SizedBox(height: SizeConfig.size15),
           CustomText(
-            "Create your first resume to apply for jobs",
+            AppStrings.createFirstResume,
             fontSize: SizeConfig.medium,
             color: AppColors.grey9A,
             textAlign: TextAlign.center,
@@ -103,7 +94,7 @@ class _ShowResumesState extends State<ShowResumes> {
             onTap: () {
               Get.toNamed(RouteHelper.getCreateResumeScreenRoute());
             },
-            title: "Create Resume",
+            title: AppStrings.createResume,
             bgColor: AppColors.primaryColor,
             borderColor: Colors.transparent,
             fontWeight: FontWeight.w600,
@@ -120,14 +111,14 @@ class _ShowResumesState extends State<ShowResumes> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         CustomText(
-          "Select a Resume",
+          AppStrings.selectAResume,
           fontSize: SizeConfig.large,
           fontWeight: FontWeight.w600,
           color: AppColors.black28,
         ),
         SizedBox(height: SizeConfig.size15),
         CustomText(
-          "Choose the resume you want to submit for this job",
+          AppStrings.chooseResumeForJob,
           fontSize: SizeConfig.medium,
           color: AppColors.grey9A,
         ),
@@ -159,7 +150,7 @@ class _ShowResumesState extends State<ShowResumes> {
               }
               ;
             },
-            title: "Submit Resume",
+            title:AppStrings.submitResume,
             bgColor: AppColors.primaryColor,
             borderColor: Colors.transparent,
             fontWeight: FontWeight.w600,
@@ -219,7 +210,7 @@ class _ShowResumesState extends State<ShowResumes> {
                     ),
                     SizedBox(height: SizeConfig.size10),
                     CustomText(
-                      "Resume",
+                      AppStrings.resumeLabel,
                       fontSize: SizeConfig.small,
                       color: isSelected
                           ? AppColors.primaryColor
@@ -236,7 +227,7 @@ class _ShowResumesState extends State<ShowResumes> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CustomText(
-                    resume.fileName ?? "Untitled Resume",
+                    resume.fileName ?? AppStrings.untitledResume.tr,
                     fontSize: SizeConfig.small,
                     fontWeight: FontWeight.w600,
                     color: AppColors.black28,
@@ -245,7 +236,7 @@ class _ShowResumesState extends State<ShowResumes> {
                   ),
                   SizedBox(height: SizeConfig.size5),
                   CustomText(
-                    "Created: ${_formatDate(resume.createdAt)}",
+                    "${AppStrings.createdDate.tr}: ${_formatDate(resume.createdAt)}",
                     fontSize: SizeConfig.small - 2,
                     color: AppColors.grey9A,
                   ),

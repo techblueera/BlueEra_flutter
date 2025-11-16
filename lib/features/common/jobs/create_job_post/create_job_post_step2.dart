@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/jobs/controller/create_job_post_controller.dart';
@@ -39,7 +40,6 @@ class _CreateJobPostStep2State extends State<CreateJobPostStep2> {
       // Listen for changes in job details (in case API data loads after widget is built)
       ever(controller.jobDetails, (jobDetails) {
         if (jobDetails != null) {
-          print('Job details updated, re-initializing data');
           _initializeDataFromAPI();
         }
       });
@@ -52,39 +52,31 @@ class _CreateJobPostStep2State extends State<CreateJobPostStep2> {
       
       // Only initialize if we're in edit mode and have job details
       if (controller.isEditMode.value && jobDetails != null) {
-        print('Initializing data from API for edit mode');
-        
+
         // Assign qualification (String)
         controller.selectQualification.value = jobDetails.qualifications ?? "";
-        print('Set qualification: ${jobDetails.qualifications}');
 
         // Assign experience as String
         controller.selectTotalExperience.value = jobDetails.experience?.toString() ?? "";
-        print('Set experience: ${jobDetails.experience}');
 
         // Assign skills safely as List<String>
         if (jobDetails.skills != null && jobDetails.skills!.isNotEmpty) {
           controller.selectedSkills.value = List<String>.from(jobDetails.skills!);
           // Set the skills text field to show the skills
           skillsController.text = jobDetails.skills!.join(', ');
-          print('Set skills: ${jobDetails.skills}');
         } else {
           // Clear skills if none exist
           controller.selectedSkills.clear();
           skillsController.clear();
-          print('No skills found, cleared skills');
         }
 
         // Assign gender (custom enum)
         if (jobDetails.gender != null && jobDetails.gender!.isNotEmpty) {
           controller.selectedGender.value = jobDetails.gender!;
           _selectedGender = genderFromString(jobDetails.gender);
-          print('Set gender: ${jobDetails.gender}');
-          print('Selected gender enum: $_selectedGender');
         } else {
           controller.selectedGender.value = "";
           _selectedGender = null;
-          print('No gender found or empty, cleared gender selection');
         }
         
         // Force UI update to reflect the gender selection
@@ -95,15 +87,12 @@ class _CreateJobPostStep2State extends State<CreateJobPostStep2> {
         if (jobDetails.languages != null && jobDetails.languages!.isNotEmpty) {
           controller.selectedLanguages.clear();
           controller.selectedLanguages.addAll(jobDetails.languages!);
-          print('Set languages: ${jobDetails.languages}');
         } else {
           // Set default language if none exist
           controller.selectedLanguages.clear();
           controller.selectedLanguages.add('English');
-          print('No languages found, set default to English');
         }
       } else {
-        print('Not in edit mode or no job details found, using default values');
         // Set default values for new job creation
         controller.selectedLanguages.clear();
         controller.selectedLanguages.add('English'); // Default language
@@ -132,21 +121,16 @@ class _CreateJobPostStep2State extends State<CreateJobPostStep2> {
 
   GenderType? genderFromString(String? gender) {
     if (gender == null || gender.isEmpty) {
-      print('Gender is null or empty');
       return null;
     }
     
-    print('Converting gender string: "$gender"');
-    
+
     switch (gender.toLowerCase().trim()) {
       case 'male':
-        print('Converted to GenderType.Male');
         return GenderType.Male;
       case 'female':
-        print('Converted to GenderType.Female');
         return GenderType.Female;
       default:
-        print('Unknown gender value: "$gender", returning null');
         return null;
     }
   }
@@ -169,7 +153,7 @@ class _CreateJobPostStep2State extends State<CreateJobPostStep2> {
 
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Create Job Post (Step 2 of 4)",
+        title: AppStrings.createJobPostStep2,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -192,14 +176,14 @@ class _CreateJobPostStep2State extends State<CreateJobPostStep2> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Job Details Section
-                      CustomText("Candidate Basic Requirements",
+                      CustomText(AppStrings.candidateBasicRequirements,
                           color: Colors.black,
                           fontWeight: FontWeight.bold,
                           fontSize: SizeConfig.large),
                       SizedBox(height: SizeConfig.size15),
 
                       CustomText(
-                        "Qualifications",
+                        AppStrings.qualifications,
                         color: AppColors.black,
                       ),
                       SizedBox(height: SizeConfig.size10),
@@ -209,7 +193,7 @@ class _CreateJobPostStep2State extends State<CreateJobPostStep2> {
                             controller.selectQualification.value.isEmpty
                                 ? null
                                 : controller.selectQualification.value,
-                        hintText: "Eg. 10th ",
+                        hintText: AppStrings.qualificationsHint,
                         onChanged: (val) =>
                             controller.selectQualification.value = val ?? "",
                         displayValue: (item) => item,
@@ -219,7 +203,7 @@ class _CreateJobPostStep2State extends State<CreateJobPostStep2> {
                       SizedBox(height: SizeConfig.size20),
 
                       CustomText(
-                        "Total Experience Required",
+                        AppStrings.totalExperienceRequired,
                         color: AppColors.black,
                       ),
                       SizedBox(height: SizeConfig.size10),
@@ -229,7 +213,7 @@ class _CreateJobPostStep2State extends State<CreateJobPostStep2> {
                             controller.selectTotalExperience.value.isEmpty
                                 ? null
                                 : controller.selectTotalExperience.value,
-                        hintText: "Eg. 1 Years ",
+                        hintText:AppStrings.totalExperienceHint,
                         onChanged: (val) =>
                             controller.selectTotalExperience.value = val ?? "",
                         displayValue: (item) => item,
@@ -238,9 +222,9 @@ class _CreateJobPostStep2State extends State<CreateJobPostStep2> {
                         height: SizeConfig.size20,
                       ),
                       CommonTextField(
-                        title: "Skill",
+                        title: AppStrings.skill,
                         titleColor: AppColors.black,
-                        hintText: "Eg. UI/UX Design",
+                        hintText: AppStrings.skillHint,
                         isValidate: false,
                         hintTextColor: AppColors.grey9B,
                         fontSize: SizeConfig.medium,
@@ -256,7 +240,7 @@ class _CreateJobPostStep2State extends State<CreateJobPostStep2> {
 
                       // Gender
                       CustomText(
-                        "${appLocalizations?.selectGender} (Optional)",
+                        "${appLocalizations?.selectGender} (${AppStrings.optional.tr})",
                         fontSize: SizeConfig.medium,
                       ),
                       SizedBox(
@@ -275,7 +259,7 @@ class _CreateJobPostStep2State extends State<CreateJobPostStep2> {
                         },
                         validator: (value) {
                           if (value == null) {
-                            return 'Please select your gender';
+                            return AppStrings.selectGenderOptional.tr;
                           }
                           return null;
                         },
@@ -303,7 +287,7 @@ class _CreateJobPostStep2State extends State<CreateJobPostStep2> {
                       onTap: () {
                         Get.back();
                       },
-                      title: "Back",
+                      title: AppStrings.back,
                       bgColor: AppColors.white,
                       borderColor: AppColors.primaryColor,
                       textColor: AppColors.primaryColor,
@@ -318,10 +302,10 @@ class _CreateJobPostStep2State extends State<CreateJobPostStep2> {
                         if (jobId.isNotEmpty) {
                           await controller.postJobStep2Api(jobId: jobId);
                         } else {
-                          commonSnackBar(message: 'Job ID is missing. Please try again.');
+                          commonSnackBar(message: AppStrings.jobIdMissing);
                         }
                       },
-                      title: "Continue",
+                      title: AppStrings.continueTxt,
                     ))
                   ],
                 ),
@@ -339,7 +323,7 @@ class _CreateJobPostStep2State extends State<CreateJobPostStep2> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const CustomText(
-          'Select Languages',
+       AppStrings.selectLanguage,
             fontWeight: FontWeight.w500,
         ),
         const SizedBox(height: 8),
@@ -416,13 +400,11 @@ class _CreateJobPostStep2State extends State<CreateJobPostStep2> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      'More',
-                      style: TextStyle(
+                    CustomText(
+                      AppStrings.more,
                         color: AppColors.primaryColor,
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                      ),
                     ),
                     const SizedBox(width: 4),
                     LocalAssets(imagePath:

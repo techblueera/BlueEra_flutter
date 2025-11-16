@@ -137,7 +137,7 @@ class _ApplicationCardState extends State<ApplicationCard> {
                                 )
                               : ((widget.data.userAge ?? 0) > 0)
                                   ? CustomText(
-                                      '${widget.jobDetails?.jobTitle} • Age - ${widget.data.userAge} yrs',
+                                      '${widget.jobDetails?.jobTitle} • ${AppStrings.age.tr} - ${widget.data.userAge} ${AppStrings.years.tr}',
                                       fontSize: SizeConfig.size12,
                                       color: AppColors.black30,
                                     )
@@ -219,7 +219,7 @@ class _ApplicationCardState extends State<ApplicationCard> {
                     onTap: () async {
                       await commonConformationDialog(
                           context: context,
-                          text: "Are you sure you are not interested?",
+                          text: AppStrings.areYouSureNotInterested,
                           confirmCallback: () async {
                             await appliedController
                                 .updateCandidateJobStatusController(
@@ -231,7 +231,7 @@ class _ApplicationCardState extends State<ApplicationCard> {
                             Get.back();
                           });
                     },
-                    title: "Not Interested",
+                    title: AppStrings.notInterested,
                     bgColor: AppColors.white,
                     textColor: AppColors.red00,
                     borderColor: AppColors.red00,
@@ -278,7 +278,7 @@ class _ApplicationCardState extends State<ApplicationCard> {
                         PopupMenuItem(
                           value: 'Shortlist Resume',
                           child: CustomText(
-                            'Shortlist Resume',
+                           AppStrings.shortlistResume,
                           ),
                         ),
                       if (currentStatus == AppConstants.Applied.toLowerCase() ||
@@ -287,7 +287,7 @@ class _ApplicationCardState extends State<ApplicationCard> {
                         PopupMenuItem(
                           value: 'Schedule Interview',
                           child: CustomText(
-                            'Schedule Interview',
+                            AppStrings.scheduleInterview,
                           ),
                         ),
                       if (currentStatus ==
@@ -295,7 +295,7 @@ class _ApplicationCardState extends State<ApplicationCard> {
                         PopupMenuItem(
                           value: 'Reschedule Interview',
                           child: CustomText(
-                            'Reschedule Interview',
+                            AppStrings.rescheduleInterview,
                           ),
                         ),
                       if (currentStatus ==
@@ -307,11 +307,11 @@ class _ApplicationCardState extends State<ApplicationCard> {
                         PopupMenuItem(
                           value: 'Hire candidate',
                           child: CustomText(
-                            'Hire candidate',
+                          AppStrings.hireCandidate,
                           ),
                         ),
                     ],
-                    child: PositiveCustomBtn(onTap: null, title: "Next Step"),
+                    child: PositiveCustomBtn(onTap: null, title: AppStrings.nextStep),
                   ),
                 ),
               ],
@@ -329,14 +329,14 @@ class _ApplicationCardState extends State<ApplicationCard> {
                   applicationID: widget.data.id,
                   interviewID: widget.data.interviewId,
                   jobID: widget.data.jobId,
-                  title: "Tell us why you hired this candidate?",
-                  subtitle: "Short Description (optional)",
-                  hint: "Key reason for selecting this candidate...",
+                  title: AppStrings.tellUsWhyHired,
+                  subtitle:  AppStrings.shortDescriptionOptional,
+                  hint:  AppStrings.keyReasonSelecting,
                   onSubmit: () {},
                   isHiredCandidate: 'FOR_CANDIDATE',
                 );
               },
-              title: "Tell us why you hired this candidate?",
+              title:  AppStrings.tellUsWhyHired,
               bgColor: AppColors.white,
               textColor: AppColors.primaryColor,
             ),
@@ -345,7 +345,7 @@ class _ApplicationCardState extends State<ApplicationCard> {
           if (currentStatus == AppConstants.Rejected.toLowerCase()) ...[
             Center(
               child: CustomText(
-                "Rejected user",
+                AppStrings.rejectedUser,
                 color: AppColors.red00,
                 fontWeight: FontWeight.bold,
               ),

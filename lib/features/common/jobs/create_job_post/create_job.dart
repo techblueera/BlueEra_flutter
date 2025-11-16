@@ -6,6 +6,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart'; // Fixed import path
 import 'package:BlueEra/core/common_singleton_class/user_session.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -250,7 +251,7 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
 
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Create Job Post (Step 1 of 4)",
+        title: AppStrings.createJobPostStep,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -275,25 +276,18 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
                         // Job Details Section
                         GestureDetector(
                           onTap: () {
-                            // Remove this test call as it's causing issues
-                            // createJobPostController.jobdetailcontroller.fetchJobDetails("68872727690a13aa6c4a61bb");
                           },
-                          child: CustomText("Job Details",
+                          child: CustomText(AppStrings.jobDetails,
                               color: Colors.black,
                               fontWeight: FontWeight.bold,
                               fontSize: SizeConfig.large),
                         ),
                         SizedBox(height: SizeConfig.size15),
-                        // CustomText("Job Post Image",
-                        //     color: Colors.black,
-                        //     fontWeight: FontWeight.w400,
-                        //     fontSize: SizeConfig.medium),
-                        // SizedBox(height: SizeConfig.size8),
-                        // Job Post Image Selector
+
                         Row(
                           children: [
                             CustomText(
-                              "Job Banner Image",
+                              AppStrings.jobBannerImage,
                               color: AppColors.black,
                               fontWeight: FontWeight.w600,
                               fontSize: SizeConfig.medium,
@@ -339,7 +333,7 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
                                   SizedBox(width: SizeConfig.size10),
                                   (_imagePath == null || _imagePath!.isEmpty)
                                       ? CustomText(
-                                          'Select Banner Template (Required)',
+                                    AppStrings.selectBannerTemplate,
                                           color: AppColors.grey99,
                                           fontWeight: FontWeight.w500,
                                           fontSize: SizeConfig.large,
@@ -351,7 +345,7 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
                                                 size: 20),
                                             SizedBox(width: SizeConfig.size5),
                                             CustomText(
-                                              'Banner Selected',
+                                              AppStrings.bannerSelected,
                                               color: AppColors.primaryColor,
                                               fontWeight: FontWeight.w500,
                                               fontSize: SizeConfig.large,
@@ -367,9 +361,9 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
                         CommonTextField(
                           textEditController:
                               createJobPostController.companyNameController,
-                          title: "Company Name",
+                          title: AppStrings.companyName,
                           titleColor: AppColors.black,
-                          hintText: "Eg. BlueCS Limited",
+                          hintText: AppStrings.companyNameHint,
                           isValidate: false,
                           hintTextColor: AppColors.grey9B,
                           fontSize: SizeConfig.medium,
@@ -405,9 +399,9 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
                             child: CommonTextField(
                               textEditController:
                                   createJobPostController.addressEditController,
-                              hintText: "E.g., Rajiv Chowk, Delhi",
+                              hintText: AppStrings.locationHint,
                               isValidate: false,
-                              title: "Company Address",
+                              title: AppStrings.companyAddress,
 
                               readOnly: true,
                               // Make it read-only since we'll use the search screen
@@ -421,9 +415,9 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
                         CommonTextField(
                           textEditController:
                               createJobPostController.jobTitleController,
-                          title: "Job Title / Designation",
+                          title: AppStrings.jobTitleDesignation,
                           titleColor: AppColors.black,
-                          hintText: "Eg. UI/UX Designer",
+                          hintText:AppStrings.jobTitleHint,
                           isValidate: false,
                           hintTextColor: AppColors.grey9B,
                           fontSize: SizeConfig.medium,
@@ -435,9 +429,9 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
                         CommonTextField(
                           textEditController:
                               createJobPostController.departmentController,
-                          title: "Department",
+                          title: AppStrings.department,
                           titleColor: AppColors.black,
-                          hintText: "Eg. department",
+                          hintText: AppStrings.departmentHint,
                           isValidate: false,
                           hintTextColor: AppColors.grey9B,
                           fontSize: SizeConfig.medium,
@@ -448,7 +442,7 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
 
                         SizedBox(height: SizeConfig.size20),
                         CustomText(
-                          "Job Type",
+                          AppStrings.jobType,
                           color: AppColors.black,
                         ),
                         SizedBox(height: SizeConfig.paddingXSL),
@@ -458,7 +452,7 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
                               createJobPostController.jobType.value.isEmpty
                                   ? null
                                   : createJobPostController.jobType.value,
-                          hintText: "Eg. Full Time",
+                          hintText: AppStrings.jobTypeHint,
                           onChanged: (val) {
                             createJobPostController.jobType.value = val ?? "";
                             setState(() {});
@@ -467,7 +461,7 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
                         ),
                         SizedBox(height: SizeConfig.size20),
                         CustomText(
-                          "Work Mode",
+                          AppStrings.workMode,
                           color: AppColors.black,
                         ),
                         SizedBox(height: SizeConfig.paddingXSL),
@@ -477,7 +471,7 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
                               createJobPostController.workMode.value.isEmpty
                                   ? null
                                   : createJobPostController.workMode.value,
-                          hintText: "Eg. Work From Home",
+                          hintText: AppStrings.workModeHint,
                           onChanged: (val) {
                             createJobPostController.workMode.value = val ?? "";
                             setState(() {});
@@ -506,14 +500,14 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // Compensation Section
-                        CustomText("Compensation",
+                        CustomText(AppStrings.compensation,
                             color: Colors.black,
                             fontWeight: FontWeight.bold,
                             fontSize: SizeConfig.large),
                         SizedBox(height: SizeConfig.size15),
 
                         CustomText(
-                          "What is the pay type?",
+                          AppStrings.whatIsPayType,
                           color: AppColors.black,
                         ),
                         SizedBox(height: SizeConfig.paddingXSL),
@@ -523,7 +517,7 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
                               createJobPostController.payType.value.isEmpty
                                   ? null
                                   : createJobPostController.payType.value,
-                          hintText: "Eg. Fixed Only",
+                          hintText: AppStrings.payTypeHint,
                           onChanged: (val) {
                             createJobPostController.payType.value = val ?? "";
                             setState(() {});
@@ -532,7 +526,7 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
                         ),
                         SizedBox(height: SizeConfig.size20),
                         CustomText(
-                          "Select Salary",
+                          AppStrings.selectSalary,
                           color: AppColors.black,
                         ),
                         SizedBox(height: SizeConfig.paddingXSL),
@@ -543,7 +537,7 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
                                 textEditController:
                                     createJobPostController.minSalaryController,
                                 titleColor: AppColors.black,
-                                hintText: "Min. salary",
+                                hintText: AppStrings.minSalary,
                                 isValidate: false,
                                 hintTextColor: AppColors.grey9B,
                                 fontSize: SizeConfig.medium,
@@ -557,7 +551,7 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
                             ),
                             SizedBox(width: SizeConfig.size12),
                             CustomText(
-                              "To",
+                              AppStrings.salaryTo,
                               color: AppColors.black,
                             ),
                             SizedBox(width: SizeConfig.size12),
@@ -565,7 +559,7 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
                               child: CommonTextField(
                                 textEditController:
                                     createJobPostController.maxSalaryController,
-                                hintText: "Max. salary",
+                                hintText: AppStrings.maxSalary,
                                 isValidate: false,
                                 hintTextColor: AppColors.grey9B,
                                 fontSize: SizeConfig.medium,
@@ -582,7 +576,7 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
 
                         SizedBox(height: SizeConfig.size20),
 
-                        CustomText("Do you offer any additional perks?",
+                        CustomText(AppStrings.additionalPerks,
                             color: Colors.black,
                             fontWeight: FontWeight.w600,
                             fontSize: SizeConfig.medium),
@@ -634,14 +628,14 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // Job Description Section
-                        CustomText("Job Description",
+                        CustomText(AppStrings.jobDescription,
                             color: Colors.black,
                             fontWeight: FontWeight.bold,
                             fontSize: SizeConfig.large),
 
                         SizedBox(height: SizeConfig.size15),
                         // Job Highlights (chips)
-                        CustomText("Job Highlights",
+                        CustomText(AppStrings.jobHighlights,
                             color: Colors.black,
                             fontWeight: FontWeight.w600,
                             fontSize: SizeConfig.medium),
@@ -649,7 +643,7 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
                         CommonTextField(
                           textEditController:
                               createJobPostController.jobHighlightsController,
-                          hintText: "Write Highlights of Jobs",
+                          hintText: AppStrings.jobHighlightsHint,
                           isValidate: false,
                           hintTextColor: AppColors.grey9B,
                           fontSize: SizeConfig.medium,
@@ -689,9 +683,9 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
                         CommonTextField(
                           textEditController:
                               createJobPostController.jobDescriptionController,
-                          title: "Type Your Job Description",
+                          title: AppStrings.typeYourJobDescription,
                           hintText:
-                              "Enter the job description, including the main responsibility and tasks...",
+                          AppStrings.jobDescriptionHint,
                           isValidate: false,
                           hintTextColor: AppColors.grey9B,
                           fontSize: SizeConfig.medium,
@@ -716,18 +710,12 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
                       Expanded(
                           child: CustomBtn(
                         onTap: () {
-                          // Debug logging for button tap
-                          print('=== BUTTON TAP DEBUG ===');
-                          print(
-                              'isEditMode: ${createJobPostController.isEditMode.value}');
-                          print(
-                              'jobID: ${createJobPostController.jobID.value}');
 
                           // Validate required fields including image
                           if (!createJobPostController.isEditMode.value &&
                               (_imagePath == null || _imagePath!.isEmpty)) {
                             commonSnackBar(
-                                message: "Please select a job banner image");
+                                message:AppStrings.pleaseSelectBanner);
                             return;
                           }
 
@@ -772,13 +760,6 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
                                   .addressEditController.text,
                             };
 
-                            print('=== UPDATE JOB DEBUG ===');
-                            print(
-                                'Job ID: ${createJobPostController.jobID.value}');
-                            print(
-                                'Job ID type: ${createJobPostController.jobID.value.runtimeType}');
-                            print('Params: $params');
-
                             createJobPostController.updateJobPostDetailsApi(
                               jobId: createJobPostController.jobID.value,
                               params: params,
@@ -789,8 +770,8 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
                           }
                         },
                         title: createJobPostController.isEditMode.value
-                            ? "Update Job"
-                            : "Continue",
+                            ?AppStrings.updateJob
+                            : AppStrings.continueTxt,
                         bgColor: AppColors.primaryColor,
                         textColor: Colors.white,
                         fontWeight: FontWeight.w600,
@@ -890,71 +871,9 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
                   ),
                 );
               }).toList(),
-
-          /*    // Show more/less toggle
-              if (perks.length > 5)
-                GestureDetector(
-                  onTap: () {
-                    showAll = !showAll;
-                    setState(() {});
-                  },
-                  child: Container(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: SizeConfig.size16),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        CustomText(
-                          showAll
-                              ? "Show Less"
-                              : "Show ${perks.length - 5} More",
-                          color: AppColors.primaryColor,
-                          fontSize: SizeConfig.small,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        SizedBox(width: 6),
-                        Icon(
-                          showAll
-                              ? Icons.keyboard_arrow_up
-                              : Icons.keyboard_arrow_down,
-                          color: AppColors.primaryColor,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),*/
             ],
           );
         }),
-        // if (otherPerks)
-        //   GestureDetector(
-        //     onTap: () {
-        //       // Handle add new perk logic here
-        //     },
-        //     child: Container(
-        //       // color: Colors.grey,
-        //       margin: EdgeInsets.only(top: SizeConfig.size8),
-        //       padding: EdgeInsets.symmetric(horizontal: SizeConfig.size16),
-        //       child: Row(
-        //         mainAxisSize: MainAxisSize.min,
-        //         children: [
-        //           LocalAssets(
-        //             imagePath: AppIconAssets.add,
-        //             imgColor: AppColors.green39,
-        //             height: 18,
-        //             width: 18,
-        //           ),
-        //           SizedBox(width: 6),
-        //           // CustomText(
-        //           //   "Add other perks",
-        //           //   color: AppColors.green39,
-        //           //   fontSize: SizeConfig.small,
-        //           //   fontWeight: FontWeight.w600,
-        //           // ),
-        //         ],
-        //       ),
-        //     ),
-        //   ),
       ],
     );
   }

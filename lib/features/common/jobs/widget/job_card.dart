@@ -2,6 +2,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -26,11 +27,7 @@ class JobCard extends StatelessWidget {
   final Jobs? job;
   final double headerHeight;
 
-  JobCard({
-    super.key,
-    this.job,
-    required this.headerHeight
-  });
+  JobCard({super.key, this.job, required this.headerHeight});
 
   final jobScreenController = JobScreenController();
 
@@ -136,7 +133,6 @@ class JobCard extends StatelessWidget {
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
-
                                 ],
                               ),
                             ),
@@ -197,8 +193,7 @@ class JobCard extends StatelessWidget {
                                         // Additional validation
                                         if (jobId.isEmpty) {
                                           commonSnackBar(
-                                            message:
-                                                'Job ID is missing. Cannot edit this job.',
+                                            message: AppStrings.jobIdMissing,
                                           );
 
                                           return;
@@ -235,7 +230,6 @@ class JobCard extends StatelessWidget {
 
                                       case 'Close Vacancy':
                                         // Handle close vacancy action
-                                        print('Close vacancy: ${job?.sId}');
                                         final Map<String, dynamic> params = {
                                           ApiKeys.status: "Closed",
                                         };
@@ -248,7 +242,6 @@ class JobCard extends StatelessWidget {
                                         break;
                                     }
                                   }
-                                  print('Selected: $value');
                                 },
                                 icon: Icon(
                                   Icons.more_vert,
@@ -269,22 +262,22 @@ class JobCard extends StatelessWidget {
                       /// 🔵 Job Info (Flexible to fit available space)
                       if (isIndividual())
                         _buildJobDescriptionContent(
-                            title: 'Job title: ',
-                            subtitle: job?.jobTitle ?? 'Job Title'),
+                            title: '${AppStrings.jobTitle.tr}: ',
+                            subtitle: job?.jobTitle ?? ''),
                       _buildJobDescriptionContent(
-                          title: 'Job type: ',
+                          title: '${AppStrings.jobType.tr}: ',
                           subtitle:
-                              '${job?.jobType ?? "Job Type"} - ${job?.workMode ?? "Work Mode"}'),
+                              '${job?.jobType ?? "N/A"} - ${job?.workMode ?? "N/A"}'),
                       _buildJobDescriptionContent(
-                          title: 'Min Experience: ',
-                          subtitle: '${job?.experience ?? 0} yrs'),
+                          title: '${AppStrings.minExperience.tr}: ',
+                          subtitle: '${job?.experience ?? 0} ${AppStrings.years}'),
                       _buildJobDescriptionContent(
-                          title: 'Monthly Pay: ',
+                          title: '${AppStrings.monthlyPay.tr}: ',
                           subtitle:
                               '₹${formatIndianNumber(job?.compensation?.minSalary ?? 0)} to ₹${formatIndianNumber(job?.compensation?.maxSalary ?? 0)}'),
                       _buildJobDescriptionContent(
-                          title: 'Job Location: ',
-                          subtitle: job?.location?.addressString ?? 'Location'),
+                          title: '${AppStrings.jobLocation.tr}: ',
+                          subtitle: job?.location?.addressString ?? ''),
                       SizedBox(
                         height: SizeConfig.size10,
                       ),
@@ -304,8 +297,8 @@ class JobCard extends StatelessWidget {
                                 ));
                               },
                               title: (job?.applications?.isNotEmpty ?? false)
-                                  ? "Applications (${job?.applications?.length}) "
-                                  : "Applications")
+                                  ? "${AppStrings.applications.tr} (${job?.applications?.length}) "
+                                  : "${AppStrings.applications.tr}")
                           : Row(
                               children: [
                                 Expanded(
@@ -315,13 +308,21 @@ class JobCard extends StatelessWidget {
                                       if (job != null) {
                                         openGoogleMaps(
                                             locationModel: LocationModel(
-                                                latitude: double.tryParse(job?.location?.latitude ?? "0.0") ?? 0.0,
-                                                longitude: double.tryParse(job?.location?.longitude ?? "0.0") ?? 0.0,
+                                                latitude: double.tryParse(job
+                                                            ?.location
+                                                            ?.latitude ??
+                                                        "0.0") ??
+                                                    0.0,
+                                                longitude: double.tryParse(job
+                                                            ?.location
+                                                            ?.longitude ??
+                                                        "0.0") ??
+                                                    0.0,
                                                 address: job
                                                     ?.location?.addressString));
                                       }
                                     },
-                                    title: 'Directions',
+                                    title: AppStrings.directions,
                                     bgColor: AppColors.white,
                                     borderColor: AppColors.primaryColor,
                                     textColor: AppColors.primaryColor,
@@ -342,7 +343,7 @@ class JobCard extends StatelessWidget {
                                             isPostCreate: '',
                                           ));
                                     },
-                                    title: 'Apply Now',
+                                    title: AppStrings.applyNow,
                                     fontSize: SizeConfig.small,
                                   ),
                                 ),
@@ -392,16 +393,33 @@ class JobCard extends StatelessWidget {
     final items = ((job?.status == AppConstants.ON_HOLD) ||
             (job?.status == AppConstants.CLOSED))
         ? <Map<String, dynamic>>[
-            {'icon': AppIconAssets.eyeIcon, 'title': 'Un Hide'},
-            {'icon': AppIconAssets.openVacancy, 'title': 'Open Vacancy'}
+            {
+              'icon': AppIconAssets.eyeIcon,
+              'title': AppStrings.unhide,
+              'slug_id': 'Un Hide'
+            },
+            {
+              'icon': AppIconAssets.openVacancy,
+              'title': AppStrings.openVacancy,
+              'slug_id': 'Open Vacancy'
+            }
           ]
         : <Map<String, dynamic>>[
-            {'icon': AppIconAssets.tablerEditIcon, 'title': 'Edit'},
-            {'icon': AppIconAssets.hide, 'title': 'Hide'},
-            {'icon': AppIconAssets.uploadIcon, 'title': 'Share'},
+            {
+              'icon': AppIconAssets.tablerEditIcon,
+              'title': AppStrings.edit,
+              'slug_id': 'Edit'
+            },
+            {'icon': AppIconAssets.hide, 'title': AppStrings.hide, 'slug_id': 'Hide'},
+            {
+              'icon': AppIconAssets.uploadIcon,
+              'title': AppStrings.share,
+              'slug_id': 'Share'
+            },
             {
               'icon': AppIconAssets.uilSuitcaseOutlinedIcon,
-              'title': 'Close Vacancy'
+              'title': AppStrings.closeVacancy,
+              'slug_id': 'Close Vacancy'
             },
           ];
 
@@ -411,7 +429,7 @@ class JobCard extends StatelessWidget {
       entries.add(
         PopupMenuItem<String>(
           height: SizeConfig.size35,
-          value: items[i]['title'],
+          value: items[i]['slug_id'],
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [

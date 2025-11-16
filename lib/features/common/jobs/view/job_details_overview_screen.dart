@@ -2,6 +2,7 @@ import "package:BlueEra/core/api/apiService/api_keys.dart";
 import "package:BlueEra/core/constants/app_colors.dart";
 import "package:BlueEra/core/constants/app_enum.dart";
 import "package:BlueEra/core/constants/app_icon_assets.dart";
+import "package:BlueEra/core/constants/app_strings.dart";
 import "package:BlueEra/core/constants/regular_expression.dart";
 import "package:BlueEra/core/constants/shared_preference_utils.dart";
 import "package:BlueEra/core/constants/size_config.dart";
@@ -113,11 +114,11 @@ class _JobDetailsOverviewScreenState extends State<JobDetailsOverviewScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        headingWidget(text: "Contact information"),
+                        headingWidget(text: AppStrings.contactInformation),
                         SizedBox(height: SizeConfig.size20),
                         CommonTextField(
-                          title: "Full Name",
-                          hintText: "Enter your full name",
+                          title:AppStrings.fullName,
+                          hintText: AppStrings.enterFullName,
                           textEditController: nameController,
                           validationType: ValidationTypeEnum.name,
                           readOnly: true,
@@ -127,20 +128,14 @@ class _JobDetailsOverviewScreenState extends State<JobDetailsOverviewScreen> {
 
 
                         CommonTextField(
-                          title: "Email",
-                          hintText: "Enter your email address",
+                          title: AppStrings.email,
+                          hintText: AppStrings.enterEmailAddress,
                           textEditController: emailController,
                           validationType: ValidationTypeEnum.email,
                           onChange: (val) {},
                         ),
                         SizedBox(height: SizeConfig.size18),
 
-                      /*  CommonTextField(
-                          hintText: "Enter Location",
-                          title: "Location",
-                          textEditController: locationController,
-                          onChange: (val) {},
-                        ),*/
                         InkWell(
                           onTap: () {
                             Navigator.pushNamed(
@@ -162,9 +157,9 @@ class _JobDetailsOverviewScreenState extends State<JobDetailsOverviewScreen> {
                           },
                           child: CommonTextField(
                             textEditController: locationController,
-                            hintText: "E.g., Rajiv Chowk, Delhi",
+                            hintText:AppStrings.locationHint,
                             isValidate: false,
-                            title: "Location",
+                            title: AppStrings.location,
 
                             // onChange: (value) => controller.validateForm(),
                             readOnly: true,
@@ -174,7 +169,7 @@ class _JobDetailsOverviewScreenState extends State<JobDetailsOverviewScreen> {
                         SizedBox(height: SizeConfig.size18),
 
                         CommonTextField(
-                          title: "Phone number",
+                          title:AppStrings.phoneNumber,
                           textEditController: mobileNumberEditController,
                           inputLength: 10,
                           maxLength: 10,
@@ -182,12 +177,12 @@ class _JobDetailsOverviewScreenState extends State<JobDetailsOverviewScreen> {
                           regularExpression:
                               RegularExpressionUtils.digitsPattern,
                           validationType: ValidationTypeEnum.pNumber,
-                          hintText: "Enter mobile number",
+                          hintText: AppStrings.enterMobileNumber,
                           onTapOutsideTrue: false,
                           autovalidateMode: _autoValidate,
                           validator: (value) {
                             if (value?.length != 10) {
-                              return 'Mobile number must be 10 digits';
+                              return AppStrings.mobileDigitsValidation.tr;
                             }
                             return null;
                           },
@@ -241,16 +236,7 @@ class _JobDetailsOverviewScreenState extends State<JobDetailsOverviewScreen> {
                           'isInput': answer['isInput'] ?? false,
                         });
                       }
-                      // // Convert answers to the format expected by API
-                      // List<Map<String, String>> answersToCustomQuestions = [];
-                      // if (answers != null) {
-                      //   for (var answer in answers) {
-                      //     answersToCustomQuestions.add({
-                      //       "question": answer['question'] ?? "",
-                      //       "answer": answer['answer'] ?? "",
-                      //     });
-                      //   }
-                      // }
+
                       final Map<String, dynamic> params = {
                         ApiKeys.jobId: jobId,
                         ApiKeys.candidateName: nameController.text,
@@ -264,7 +250,7 @@ class _JobDetailsOverviewScreenState extends State<JobDetailsOverviewScreen> {
                       };
                       controller.submitNewJobApplicationApi(parameter: params);
                     },
-                    title: "Submit Your Application",
+                    title: AppStrings.submitYourApplication,
                     isValidate: true,
                   ),
 
@@ -319,7 +305,7 @@ class _JobDetailsOverviewScreenState extends State<JobDetailsOverviewScreen> {
             children: [
               Expanded(
                 child: titleWidget(
-                  text: "Resume",
+                  text: AppStrings.resume,
                 ),
               ),
               SizedBox(width: SizeConfig.size10),
@@ -329,7 +315,7 @@ class _JobDetailsOverviewScreenState extends State<JobDetailsOverviewScreen> {
           Obx(
             () => Tooltip(
               message: controller.documentPath?.value.isNotEmpty == true
-                  ? 'Long press to remove document'
+                  ? AppStrings.longPressToRemoveDocument.tr
                   : '',
               child: Container(
                   padding: EdgeInsets.all(SizeConfig.size15),
@@ -402,7 +388,7 @@ class _JobDetailsOverviewScreenState extends State<JobDetailsOverviewScreen> {
           children: [
             Expanded(
               child: headingWidget(
-                text: "Employer questions",
+                text: AppStrings.employerQuestions,
               ),
             ),
             SizedBox(width: SizeConfig.size10),
@@ -451,7 +437,7 @@ class _JobDetailsOverviewScreenState extends State<JobDetailsOverviewScreen> {
                       isEditing && controller != null
                           ? CommonTextField(
                               textEditController: controller,
-                              hintText: "Enter your answer",
+                              hintText: AppStrings.enterYourAnswer,
                               isValidate: false,
                               maxLength: 1000,
                               minLines: qa['isInput'] == true ? 5 : 1,
@@ -504,7 +490,7 @@ class _JobDetailsOverviewScreenState extends State<JobDetailsOverviewScreen> {
 
                 // Title
                 CustomText(
-                  "Successful!",
+                  AppStrings.successful,
                   textAlign: TextAlign.center,
                   color: AppColors.black28,
                   fontSize: SizeConfig.extraLarge,
@@ -512,7 +498,7 @@ class _JobDetailsOverviewScreenState extends State<JobDetailsOverviewScreen> {
                 ),
                 SizedBox(height: SizeConfig.size10),
                 CustomText(
-                  "Congratulations, your application has been sent",
+                  AppStrings.applicationSentMsg,
                   textAlign: TextAlign.center,
                   color: AppColors.black28,
                   fontSize: SizeConfig.medium,
@@ -526,7 +512,7 @@ class _JobDetailsOverviewScreenState extends State<JobDetailsOverviewScreen> {
                     Expanded(
                       child: CustomBtn(
                           height: SizeConfig.size40,
-                          title: 'Home',
+                          title: AppStrings.home,
                           onTap: () {
                             Navigator.pushNamedAndRemoveUntil(
                               context,
@@ -543,14 +529,9 @@ class _JobDetailsOverviewScreenState extends State<JobDetailsOverviewScreen> {
                     Expanded(
                       child: CustomBtn(
                           height: SizeConfig.size40,
-                          title: 'Connect',
+                          title: AppStrings.connect,
                           onTap: () {
-                            // Navigator.pushNamedAndRemoveUntil(
-                            //   context,
-                            //   RouteHelper.getBottomNavigationBarScreenRoute(),
-                            //   arguments: {ApiKeys.initialIndex: 1},
-                            //       (route) => false,
-                            // );
+
                           },
                           borderColor: AppColors.primaryColor,
                           bgColor: AppColors.primaryColor,

@@ -29,10 +29,8 @@ import 'package:BlueEra/features/common/jobs/create_job_post/create_job_post_ste
 import 'package:BlueEra/features/common/jobs/create_job_post/create_job_post_step3.dart';
 import 'package:BlueEra/features/common/jobs/create_job_post/create_job_post_step_4.dart';
 import 'package:BlueEra/features/common/jobs/view/applied_screen/applied_jobs_screen.dart';
-import 'package:BlueEra/features/common/jobs/view/interview_invites_screen.dart';
 import 'package:BlueEra/features/common/jobs/view/job_details_overview_screen.dart';
 import 'package:BlueEra/features/common/jobs/view/job_qna_screen.dart';
-import 'package:BlueEra/features/common/jobs/view/job_resume_screen.dart';
 import 'package:BlueEra/features/common/map/view/add_place_step_one.dart';
 import 'package:BlueEra/features/common/map/view/add_place_step_two.dart';
 import 'package:BlueEra/features/common/map/view/category_selection_screen.dart';
@@ -181,7 +179,6 @@ class RouteHelper {
   static String getCategorySelectionScreenRoute() =>
       RouteConstant.categorySelectionScreen;
 
-  static String getJobResumeScreenRoute() => RouteConstant.JobResumeScreen;
 
   static String getJobQnaScreenRoute() => RouteConstant.JobQnaScreen;
 
@@ -190,8 +187,7 @@ class RouteHelper {
 
   static String getAppliedJobsScreenRoute() => RouteConstant.AppliedJobsScreen;
 
-  static String getInterviewInvitesScreenRoute() =>
-      RouteConstant.InterviewInvitesScreen;
+
 
   static String getAddUpdateProductScreenRoute() =>
       RouteConstant.addUpdateProductScreen;
@@ -550,8 +546,6 @@ class RouteHelper {
           settings: RouteSettings(
               name: RouteHelper.getCategorySelectionScreenRoute()),
         );
-      case RouteConstant.JobResumeScreen:
-        return MaterialPageRoute(builder: (_) => JobResumeScreen());
       case RouteConstant.JobQnaScreen:
         return MaterialPageRoute(builder: (_) => JobQNAScreen());
       case RouteConstant.JobDetailsOverviewScreen:
@@ -564,13 +558,6 @@ class RouteHelper {
                   onHeaderVisibilityChanged: (bool isVisible) {},
                   headerHeight: headerHeight,
                 ));
-      case RouteConstant.InterviewInvitesScreen:
-        return MaterialPageRoute(builder: (_) => InterviewInvitesScreen());
-
-      // case RouteConstant.FollowerFollowingScreen:
-      //   return MaterialPageRoute(
-      //     builder: (_) => FollowersFollowingPage(),
-      //   );
       case RouteConstant.ChatContactsScreen:
         return MaterialPageRoute(
           builder: (_) => ContactsPage(),
