@@ -2,7 +2,6 @@
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/post/controller/message_post_controller.dart';
 import 'package:BlueEra/features/common/post/message_post/feed_network_video_preview_widget.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -19,7 +18,6 @@ class InstaSliderNetwork extends StatefulWidget {
 }
 
 class _InstaSliderNetworkState extends State<InstaSliderNetwork> {
-  int _currentPage = 0;
   final msgPostController = Get.find<MessagePostController>();
 
   @override

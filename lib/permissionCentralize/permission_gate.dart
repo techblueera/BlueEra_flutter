@@ -1,7 +1,6 @@
 import 'package:BlueEra/permissionCentralize/location_permission_service.dart';
 import 'package:flutter/material.dart';
 import 'package:BlueEra/features/common/onboarding/view/splash_screen.dart';
-import 'package:BlueEra/permissionCentralize/permission_required_screen.dart';
 
 class PermissionGate extends StatefulWidget {
   const PermissionGate({super.key});
@@ -36,11 +35,6 @@ class _PermissionGateState extends State<PermissionGate> {
       );
     }
     return const SplashScreen();
-    return hasPermission!
-        ? const SplashScreen()
-        : PermissionRequiredScreen(
-            missingPermissions: missingPermissions,
-            onRetry: _checkAllPermissions,
-          );
+
   }
 }

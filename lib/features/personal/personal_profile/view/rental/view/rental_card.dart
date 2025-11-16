@@ -26,6 +26,7 @@ class RentalCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
+    // ignore: unused_local_variable
     int servicePhotoIndex = 0;
 
     return GestureDetector(

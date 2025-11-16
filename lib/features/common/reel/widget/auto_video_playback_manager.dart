@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
 import 'package:BlueEra/core/services/screen_service.dart';
 import 'package:BlueEra/features/common/feed/controller/video_controller.dart';
 import 'package:flutter/foundation.dart';

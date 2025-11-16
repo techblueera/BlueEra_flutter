@@ -23,7 +23,6 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/visiting_card_helper.dart';
-import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -1741,7 +1740,7 @@ class _DescriptionPreviewState extends State<DescriptionPreview> {
                   padding: EdgeInsets.only(bottom: 4), // 🔹 small bottom padding
                   child: TextButton(
                     style: ButtonStyle(
-                      padding: MaterialStateProperty.all(EdgeInsets.zero),
+                      padding: WidgetStateProperty.all(EdgeInsets.zero),
                     ),
                     onPressed: () => Navigator.pop(context),
                     child: CustomText(

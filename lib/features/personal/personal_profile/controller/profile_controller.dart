@@ -1,7 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
-import 'package:BlueEra/core/api/model/get_all_store_res_model.dart';
 import 'package:BlueEra/core/api/model/user_profile_res.dart';
 import 'package:BlueEra/core/api/model/user_testimonial_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -14,7 +13,6 @@ import 'package:get/get.dart';
 
 import '../../../common/store/view/store_screen_controller.dart';
 import '../repo/user_repo.dart';
-import '../view/inventory/model/all_stores_feed_response_model.dart';
 
 class VisitProfileController extends GetxController {
   var userProfileResponse = ApiResponse.initial('Initial').obs;

@@ -2,7 +2,6 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
-import 'package:BlueEra/features/common/delivery_partner/view/vehicle_information_riding_screen.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_multiple_image_upload_section.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';

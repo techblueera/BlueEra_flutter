@@ -5,7 +5,6 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:mappls_gl/mappls_gl.dart';
 
 import '../../../auth/controller/live_trach_rider_controller.dart';
@@ -46,8 +45,8 @@ class _TrackRiderLiveLocationPageState
           );
         }else{
           return SimpleMapplsTracking(
-            startLng: orderController.liveLng.value ?? 0,
-            startLat: orderController.liveLat.value ?? 0,
+            startLng: orderController.liveLng.value,
+            startLat: orderController.liveLat.value,
             endLat: widget.dropLat,
             endLng: widget.dropLng,
           );

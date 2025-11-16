@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:dio/dio.dart';
 import 'package:http_parser/http_parser.dart';
 

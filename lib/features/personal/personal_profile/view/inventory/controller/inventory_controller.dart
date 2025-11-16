@@ -645,10 +645,6 @@ class InventoryController extends GetxController {
     try {
       isDeleteProductVariantLoading.value = true;
 
-      Map<String, dynamic> queryParams = {
-        'ownerId': businessId,
-        'ownerType': ProductServiceProviderType.business.title,
-      };
 
       // final response = await InventoryRepo().fetchOwnDraftedAndPublicProductsApi(queryParams: queryParams);
       // if (response.isSuccess) {

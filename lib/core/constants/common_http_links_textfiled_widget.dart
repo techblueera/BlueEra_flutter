@@ -1,9 +1,7 @@
 import 'package:BlueEra/core/constants/app_enum.dart';
-import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 class HttpsTextField extends StatefulWidget {
   final TextEditingController controller;

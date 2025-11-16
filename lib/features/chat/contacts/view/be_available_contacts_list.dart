@@ -215,8 +215,6 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
           onRefreshContact: () {
             if (isGroupMode) {
               chatViewController.loadGroupConnections();
-            } else {
-              _refreshContacts();
             }
           },
         ),
@@ -322,8 +320,7 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
             ),
           ],
         ),
-        bottomNavigationBar: isGroupMode
-            ? SafeArea(
+        bottomNavigationBar:  SafeArea(
           child: Container(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
             child: CustomBtn(
@@ -420,7 +417,7 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
             ),
           ),
         )
-            : null,
+           ,
       ),
     );
   }

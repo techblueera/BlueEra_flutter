@@ -41,13 +41,10 @@ import '../../../widgets/local_assets.dart';
 import '../../../widgets/update_live_photo_dialog.dart';
 import '../../common/auth/model/get_categories_model.dart';
 import '../../common/auth/views/dialogs/select_profile_picture_dialog.dart';
-import '../../common/auth/views/screens/gst_verification_screen.dart';
 import '../../common/reel/view/channel/follower_following_screen.dart';
-import '../../personal/personal_profile/view/earn_blueear_screen/controller/earn_with_blueera_controller.dart';
 import '../../personal/personal_profile/view/inventory/widget/own_product_card.dart';
 import '../auth/controller/view_business_details_controller.dart';
 import '../auth/model/viewBusinessProfileModel.dart';
-import '../visit_business_profile/view/business_profile_header.dart';
 
 import '../visiting_card/view/business_details_edit_page_one.dart';
 import 'package:dio/dio.dart' as dio;
@@ -1614,8 +1611,7 @@ void openBusinessDetailsEditSheet(BuildContext context) {
                                       ?.id,
                                   ApiKeys.Nature_of_Business:
                                   selectedBusiness ==
-                                      selectedBusiness?.displayName ??
-                                      '',
+                                      selectedBusiness?.displayName,
                                 };
                                 log("sdlksmdclksdmcdlskc ${updatedParams}");
                                 await Get.find<ViewBusinessDetailsController>()

@@ -164,16 +164,12 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
                               final placeDetails = PlaceDetailsResponse.fromJson(detailsData);
                               final components = placeDetails.result?.addressComponents ?? [];
 
-                              String city = '';
-                              String state = '';
                               String postalCode = '';
 
                               for (var comp in components) {
                                 final types = comp.types ?? [];
                                 if (types.contains('locality')) {
-                                  city = comp.longName ?? '';
                                 } else if (types.contains('administrative_area_level_1')) {
-                                  state = comp.longName ?? '';
                                 } else if (types.contains('postal_code')) {
                                   postalCode = comp.longName ?? '';
                                 }

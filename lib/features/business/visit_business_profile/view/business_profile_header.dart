@@ -9,7 +9,6 @@ import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart'
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/profile_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -397,7 +396,7 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
                                     FollowersFollowingPage(
                                       tabIndex: 1,
                                       userID: widget.businessProfileDetails
-                                          ?.userId ?? "",
+                                          .userId ?? "",
                                     ));
                               },
                               child: buildInfo("Followers",
@@ -435,7 +434,7 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
                     SizedBox(height: SizeConfig.size2),
                     CustomText(
                       formattedCreatedAt(
-                          widget.businessProfileDetails?.createdAt),
+                          widget.businessProfileDetails.createdAt),
                       fontSize: SizeConfig.size12,
                       maxLines: 1,
                       fontWeight: FontWeight.w400,
@@ -737,7 +736,7 @@ class _DescriptionPreviewState extends State<DescriptionPreview> {
                       // 🔹 small bottom padding
                       child: TextButton(
                         style: ButtonStyle(
-                          padding: MaterialStateProperty.all(EdgeInsets.zero),
+                          padding: WidgetStateProperty.all(EdgeInsets.zero),
                         ),
                         onPressed: () => Navigator.pop(context),
                         child: CustomText(

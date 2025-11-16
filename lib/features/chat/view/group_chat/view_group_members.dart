@@ -276,82 +276,80 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                                     (m) => m.id == userId,
                               );
 
-                              if (me != null) {
-                                final String displayName =
-                                (me.name?.trim().isNotEmpty == true) ? me.name!.trim() : "-";
-                                final String initial =
-                                displayName.isNotEmpty ? displayName[0] : '?';
-                                return ListTile(
-                                  contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                                  leading: CircleAvatar(
-                                    backgroundColor: theme.colorScheme.primary,
-                                    radius: 22,
-                                    child: (me.profileImage != null)
-                                        ? ClipOval(
-                                      child: CachedNetworkImage(
-                                        imageUrl: me.profileImage!,
-                                        fit: BoxFit.cover,
-                                        width: 44,
-                                        height: 44,
-                                        placeholder: (context, url) => Container(
-                                          color: Colors.grey.shade300,
-                                          child: const Center(
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                              color: Colors.grey,
-                                            ),
-                                          ),
-                                        ),
-                                        errorWidget: (context, url, error) => Center(
-                                          child: CustomText(
-                                            initial,
-                                            // style: const TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.w800,
-                                              fontSize: 18,
-                                            // ),
+                              final String displayName =
+                              (me.name?.trim().isNotEmpty == true) ? me.name!.trim() : "-";
+                              final String initial =
+                              displayName.isNotEmpty ? displayName[0] : '?';
+                              return ListTile(
+                                contentPadding:
+                                const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                                leading: CircleAvatar(
+                                  backgroundColor: theme.colorScheme.primary,
+                                  radius: 22,
+                                  child: (me.profileImage != null)
+                                      ? ClipOval(
+                                    child: CachedNetworkImage(
+                                      imageUrl: me.profileImage!,
+                                      fit: BoxFit.cover,
+                                      width: 44,
+                                      height: 44,
+                                      placeholder: (context, url) => Container(
+                                        color: Colors.grey.shade300,
+                                        child: const Center(
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Colors.grey,
                                           ),
                                         ),
                                       ),
-                                    )
-                                        : Center(
-                                      child: CustomText(
-                                        initial,
-                                        // style: const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w800,
-                                          fontSize: 18,
-                                        // ),
+                                      errorWidget: (context, url, error) => Center(
+                                        child: CustomText(
+                                          initial,
+                                          // style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w800,
+                                            fontSize: 18,
+                                          // ),
+                                        ),
                                       ),
-                                    ),
-                                  ),
-                                  title: const CustomText(
-                                    "You",
-                                    // style: TextStyle(
-                                        fontSize: 16, fontWeight: FontWeight.bold
-                                    // ),
-                                  ),
-                                  trailing: (me.isAdmin ?? false)
-                                      ? Container(
-                                    padding:
-                                    const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey.shade200,
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(color: Colors.grey.shade400),
-                                    ),
-                                    child: const CustomText(
-                                      'Admin',
-                                      // style: TextStyle(
-                                          fontSize: 14
-                                      // ),
                                     ),
                                   )
-                                      : null,
-                                );
-                              }
-                            }
+                                      : Center(
+                                    child: CustomText(
+                                      initial,
+                                      // style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 18,
+                                      // ),
+                                    ),
+                                  ),
+                                ),
+                                title: const CustomText(
+                                  "You",
+                                  // style: TextStyle(
+                                      fontSize: 16, fontWeight: FontWeight.bold
+                                  // ),
+                                ),
+                                trailing: (me.isAdmin ?? false)
+                                    ? Container(
+                                  padding:
+                                  const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.shade200,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: Colors.grey.shade400),
+                                  ),
+                                  child: const CustomText(
+                                    'Admin',
+                                    // style: TextStyle(
+                                        fontSize: 14
+                                    // ),
+                                  ),
+                                )
+                                    : null,
+                              );
+                                                        }
 
                             // Last item — View All button if more than 6 members
                             if (members.length > 6 && index == 7) {

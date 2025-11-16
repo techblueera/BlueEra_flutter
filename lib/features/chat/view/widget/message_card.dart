@@ -659,7 +659,7 @@ class _MessageCardState extends State<MessageCard>
                                             bgColor: AppColors.primaryColor,
                                             onTap: ()async{
                                               final controller = Get.put(OrderNowController());
-                                              bool? res=await controller.cancelOrderApi(widget.message.metadata?.order?.orderId??'',widget.message.conversationId??"");
+                                              await controller.cancelOrderApi(widget.message.metadata?.order?.orderId??'',widget.message.conversationId??"");
                                               Get.back();
                                             }, title: "Yes"),
                                       ),
@@ -1655,7 +1655,7 @@ class _FoodCardMessageCardBusinessState extends State<FoodCardMessageCardBusines
                                             bgColor: AppColors.primaryColor,
                                             onTap: ()async{
                                               final controller = Get.put(OrderNowController());
-                                              bool? res=await controller.cancelOrderApi(widget.message.metadata?.order?.orderId??'',widget.message.conversationId??"");
+                                              await controller.cancelOrderApi(widget.message.metadata?.order?.orderId??'',widget.message.conversationId??"");
                                               Get.back();
                                             }, title: "Yes"),
                                       ),

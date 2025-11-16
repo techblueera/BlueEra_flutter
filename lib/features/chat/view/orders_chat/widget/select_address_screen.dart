@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/features/chat/view/orders_chat/widget/porter_vehicle_option_page.dart';

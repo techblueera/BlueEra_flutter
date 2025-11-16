@@ -24,7 +24,6 @@ import '../../auth/controller/view_business_details_controller.dart';
 import '../../widgets/live_photos_of_business_widget.dart';
 import 'package:BlueEra/features/common/product_listing/view/standalone_product_screen.dart';
 
-import '../../widgets/rating_widget.dart';
 
 class VisitBusinessProfileNew extends StatefulWidget {
   final String businessId;
@@ -360,7 +359,6 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
     );
   }
 
-  bool _isExpanded = false;
 
   // Widget buildRatingSummary({
   //   required double rating,

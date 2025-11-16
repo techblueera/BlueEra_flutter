@@ -10,7 +10,6 @@ import 'package:BlueEra/features/common/auth/model/get_job_details_byId_model.da
 import 'package:BlueEra/features/common/jobs/controller/create_job_post_controller.dart';
 import 'package:BlueEra/features/common/jobs/controller/job_details_screen_controller.dart';
 import 'package:BlueEra/features/common/jobs/widget/job_header_row.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_draggable_bottom_sheet.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';

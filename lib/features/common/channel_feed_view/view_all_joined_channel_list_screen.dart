@@ -2,7 +2,6 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_card_widget.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_controllar.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_post_listing_screen.dart';
-import 'package:BlueEra/features/common/channel_feed_view/unjoin_channel_card_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';

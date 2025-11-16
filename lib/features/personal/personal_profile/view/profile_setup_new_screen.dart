@@ -1,4 +1,3 @@
-import 'dart:developer';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
@@ -28,9 +27,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_p
 import 'package:BlueEra/features/personal/personal_profile/view/widget/circular_progress_painter.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/count_clock_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/horizonatal_video_player.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/widget/info_card_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/introduction_video_widget.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/widget/link_tile_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/portfolio_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/update_profile_view.dart';
 import 'package:BlueEra/features/subscription/view/subscription_screen.dart';

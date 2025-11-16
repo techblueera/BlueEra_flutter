@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
-import 'package:BlueEra/core/api/model/type_of_business_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -15,19 +14,15 @@ import 'package:BlueEra/features/business/visiting_card/view/widget/contact_numb
 import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/common_drop_down-dialoge.dart';
-import 'package:BlueEra/widgets/common_drop_down_icon_dialoge.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/constants/snackbar_helper.dart';
-import '../../../../widgets/common_box_shadow.dart';
 import '../../../../widgets/new_common_date_selection_dropdown.dart';
 import '../../auth/controller/view_business_details_controller.dart';
 import '../../auth/model/viewBusinessProfileModel.dart';
-import 'business_details_edit_page_two.dart';
 
 class BusinessDetailsEditPageOne extends StatefulWidget {
   const BusinessDetailsEditPageOne({

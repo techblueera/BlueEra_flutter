@@ -1,7 +1,6 @@
 import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';

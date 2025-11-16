@@ -1,18 +1,15 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 
 import '../../../../../core/api/apiService/api_response.dart';
 import '../../../../../core/constants/snackbar_helper.dart';
 import '../../../../../core/services/razor_pay_services.dart';
 import '../../../auth/controller/order_controllar.dart';
-import '../../../auth/controller/razorpay_controller.dart';
 import '../../../auth/model/get_porter_vechile_option_model.dart';
 
 class PorterVehicleListScreen extends StatefulWidget {

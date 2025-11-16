@@ -13,7 +13,6 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import '../../../../../../core/constants/snackbar_helper.dart';
 import '../../../../../../widgets/common_card_widget.dart';
 import '../../../../../common/auth/views/dialogs/select_profile_picture_dialog.dart';

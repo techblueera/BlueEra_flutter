@@ -2,7 +2,6 @@ import 'package:BlueEra/features/chat/view/business_chat/widgets/track_rider_liv
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:mappls_gl/mappls_gl.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/app_icon_assets.dart';

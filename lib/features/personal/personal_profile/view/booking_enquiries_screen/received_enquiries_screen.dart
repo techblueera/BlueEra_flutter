@@ -19,18 +19,6 @@ final  String channelId;
   Widget build(BuildContext context) {
      final controller = Get.put(BookingTabController());
     controller.getReceivedEnquiryList(channelId:channelId,);
-    final bookings = List.generate(
-      5,
-          (index) => {
-        "title": "Videography Tutorial",
-        "postedOn": "07-Feb-2025",
-        "date": "27 Feb, 2025",
-        "time": "10:00 AM",
-        "fees": "1500 INR",
-        "location":
-        index % 2 == 0 ? "Google Meet (Online)" : "Zoom Call (Online)"
-      },
-    );
 
     return Scaffold(
       appBar: CommonBackAppBar(

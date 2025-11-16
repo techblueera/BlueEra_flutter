@@ -4,7 +4,7 @@ import 'package:hive/hive.dart';
 
 Future<void> checkAppVersionAndResetIfNeeded() async {
   final box = await Hive.openBox('app_info');
-  final localizationBox = await Hive.openBox('translations');
+  await Hive.openBox('translations');
 
   final packageInfo = await PackageInfo.fromPlatform();
   final currentVersion = packageInfo.version;

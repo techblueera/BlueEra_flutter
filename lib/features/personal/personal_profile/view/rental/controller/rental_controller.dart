@@ -120,7 +120,7 @@ class RentalController extends GetxController{
       } else {
         deleteServiceResponse.value = ApiResponse.error('error');
       }
-    } catch (e, s) {
+    } catch (e) {
       deleteServiceResponse.value = ApiResponse.error('error');
     }finally{
       isDeleteServiceLoading.value = false;

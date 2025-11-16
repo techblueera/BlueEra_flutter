@@ -1,20 +1,16 @@
 import 'dart:async';
-import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../../core/constants/app_colors.dart';
-import '../../../../../core/constants/app_constant.dart';
 import '../../../../../core/constants/snackbar_helper.dart';
 import '../../../../../core/routes/route_helper.dart';
 import '../../../../../core/services/razor_pay_services.dart';
-import '../../../../../widgets/custom_btn.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 import '../../../../common/bottomNavigationBar/auth/controller/bottom_bar_controller.dart';
 import '../../../auth/controller/chat_view_controller.dart';
 import '../../../auth/controller/order_controllar.dart';
-import '../../../auth/model/GetListOfMessageData.dart';
 
 class WaitingForPaymentDialog extends StatelessWidget {
   const WaitingForPaymentDialog({
@@ -363,7 +359,7 @@ class WaitingForPaymentDialog extends StatelessWidget {
 }
 
 Future<void> showOrderPlacedDialog(BuildContext context) async {
-  final orderController = Get.find<OrderNowController>();
+  Get.find<OrderNowController>();
 
   await showDialog(
     context: context,

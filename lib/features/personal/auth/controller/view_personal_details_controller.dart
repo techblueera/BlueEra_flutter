@@ -14,7 +14,6 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
-import 'package:BlueEra/features/common/business_service/view/service_upload_screen.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/repo/feed_repo.dart';
 import 'package:BlueEra/features/common/map/repo/map_service_repo.dart';
@@ -25,7 +24,6 @@ import 'package:BlueEra/features/personal/personal_profile/controller/perosonal_
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/create_profile_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/repo/earn_service_repo.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -489,7 +487,7 @@ class ViewPersonalDetailsController extends GetxController {
        ? Get.find<ViewPersonalDetailsController>()
        : Get.put(ViewPersonalDetailsController());
 
-    final bool isSelfService = selfWorkServiceList.any(
+    selfWorkServiceList.any(
           (service) => service.slugId == userProfessionGlobal,
     );
 

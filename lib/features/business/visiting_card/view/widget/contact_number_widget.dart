@@ -176,7 +176,6 @@ class _LandlineField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final appLocalizations = AppLocalizations.of(context)!;
 
     return Container(
       // padding: EdgeInsets.only(top: 5.h),

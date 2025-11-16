@@ -4,20 +4,15 @@ import 'package:BlueEra/features/personal/personal_profile/view/help_and_support
 import 'package:BlueEra/features/personal/personal_profile/view/help_and_support_screen/faq_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/help_and_support_screen/help_and_support__form_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/help_and_support_screen/queries_card_screen.dart';
-import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../../core/api/model/support_model.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/app_icon_assets.dart';
-import '../../../../../widgets/common_search_bar.dart';
-import '../../../../../widgets/horizontal_tab_selector.dart';
 import 'help_and_support_controller.dart';
 
 class HelpAndSupportScreen extends StatefulWidget {

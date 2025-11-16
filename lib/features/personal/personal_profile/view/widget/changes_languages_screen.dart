@@ -2,7 +2,6 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/language_localization_service/language_controller_new.dart';
 import 'package:BlueEra/core/language_localization_service/language_model_new.dart';
-import 'package:BlueEra/core/language_localization_service/language_service_app.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';

@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -406,7 +405,7 @@ Widget ChatListTile({
                 CustomText(
                   "${(senderName == null || senderName == "null")
                       ? senderContactNo
-                      : senderName ?? senderContactNo}",
+                      : senderName}",
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   fontSize: SizeConfig.size16,

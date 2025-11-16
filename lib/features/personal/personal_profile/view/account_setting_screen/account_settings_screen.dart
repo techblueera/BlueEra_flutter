@@ -4,8 +4,6 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/language_localization_service/language_controller_new.dart';
-import 'package:BlueEra/core/language_localization_service/language_service_app.dart';
-import 'package:BlueEra/features/personal/personal_profile/controller/languge_list_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/account_setting_screen/account_settings_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/update_profile_view.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';

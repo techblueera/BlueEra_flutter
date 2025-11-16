@@ -131,15 +131,11 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
           quality: 75,
         );
 
-        if (thumbnailPath != null) {
-          setState(() {
-            _commonCoverImage = thumbnailPath.path;
-          });
-          print("Thumbnail generated at: $_commonCoverImage");
-        } else {
-          print("Failed to generate thumbnail");
-        }
-      } catch (e) {
+        setState(() {
+          _commonCoverImage = thumbnailPath.path;
+        });
+        print("Thumbnail generated at: $_commonCoverImage");
+            } catch (e) {
         print("Thumbnail generation error: $e");
         _commonCoverImage =
             reelUploadDetailsController.videoData.value.video?.coverUrl ?? '';

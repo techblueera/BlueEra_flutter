@@ -516,7 +516,6 @@ class _AllSavedJobPostScreenState extends State<AllSavedJobPostScreen> {
                       );
                     }
                     return CustomText(AppStrings.noSavedJobsYet);
-                    return CustomText("No Saved Job Found Yet");
                   },
                 )
               : Container(

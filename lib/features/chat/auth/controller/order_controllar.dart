@@ -184,7 +184,6 @@ class OrderNowController extends GetxController {
       ResponseModel responseModel =
       await BusinessProfileRepo().updateMsgOrderStatus(params);
       if (responseModel.isSuccess) {
-        final data = responseModel.response?.data;
 
       }else{
 
@@ -199,7 +198,6 @@ class OrderNowController extends GetxController {
       ResponseModel responseModel =
       await MakeOrderRepo().uploadThePickupOtp(params,orderId);
       if (responseModel.isSuccess) {
-        final data = responseModel.response?.data;
         commonSnackBar(message: "Pickup Order Verified Successfully");
       }else{
         commonSnackBar(message: responseModel.message);
@@ -216,7 +214,7 @@ class OrderNowController extends GetxController {
     // try {
       ResponseModel? response = await MakeOrderRepo().messageToOrder(params);
 
-      if (response.isSuccess ?? false) {
+      if (response.isSuccess) {
      return true;
       } else {
         commonSnackBar(
@@ -232,7 +230,7 @@ class OrderNowController extends GetxController {
       {required Map<String,dynamic> params}) async {
     try {
       ResponseModel? response = await MakeOrderRepo().verifyPayment(params);
-      if (response.isSuccess ?? false) {
+      if (response.isSuccess) {
       } else {
         commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);
@@ -246,7 +244,7 @@ class OrderNowController extends GetxController {
     getAddressResponse.value= ApiResponse.initial("Initial");
       ResponseModel? response = await MakeOrderRepo().getAddress();
 
-      if (response.isSuccess ?? false) {
+      if (response.isSuccess) {
         getAddressDetails.value=GetAdressDetailsModel.fromJson(response.response?.data);
         getAddressResponse.value= ApiResponse.complete(getAddressDetails.value);
       } else {
@@ -262,7 +260,7 @@ class OrderNowController extends GetxController {
     try {
       ResponseModel? response = await MakeOrderRepo().sendOrderRequestToRider(params);
 
-      if (response.isSuccess ?? false) {
+      if (response.isSuccess) {
         commonSnackBar(
             message:
             "Wait Our Rider Will Accept Your Order Soon ");
@@ -278,7 +276,7 @@ class OrderNowController extends GetxController {
     try {
       ResponseModel? response = await MakeOrderRepo().updatePaymentStausByUser(params);
 
-      if (response.isSuccess ?? false) {
+      if (response.isSuccess) {
 
       } else {
         commonSnackBar(
@@ -292,7 +290,7 @@ class OrderNowController extends GetxController {
     try {
       ResponseModel? response = await MakeOrderRepo().cancelOrderForce(orderId,params);
 
-      if (response.isSuccess ?? false) {
+      if (response.isSuccess) {
         commonSnackBar(
             message: response.message );
       } else {
@@ -306,7 +304,7 @@ class OrderNowController extends GetxController {
     try {
       ResponseModel? response = await MakeOrderRepo().getOrderFareFrom(params);
 
-      if (response.isSuccess ?? false) {
+      if (response.isSuccess) {
         Map<String,dynamic> data=response.response?.data;
         fare.value=data['fare'].toString();
         distanceKm.value=data['distance'].toString();
@@ -579,7 +577,7 @@ class OrderNowController extends GetxController {
         "lng": long,
       };
       ResponseModel? response = await MakeOrderRepo().addAddress(addressData);
-      if (response.isSuccess ?? false) {
+      if (response.isSuccess) {
         nameController.value.clear();
         phoneController.value.clear();
         fullAddress.value.clear();

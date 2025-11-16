@@ -9,7 +9,6 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/business_service/controller/service_controller.dart';
 import 'package:BlueEra/features/common/food/controller/food_upload_controller.dart';
-import 'package:BlueEra/features/common/food/view/food_upload_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/product_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/service/view_service_list.dart';

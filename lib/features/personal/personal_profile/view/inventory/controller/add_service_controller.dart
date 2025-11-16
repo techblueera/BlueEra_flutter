@@ -17,7 +17,6 @@ import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_scr
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/add_service_response_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/detail_item.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/repo/inventory_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/add_services_screen.dart';
 import 'package:BlueEra/widgets/select_product_image_dialog.dart';
 import 'package:BlueEra/widgets/uploading_progressing_dialog.dart';

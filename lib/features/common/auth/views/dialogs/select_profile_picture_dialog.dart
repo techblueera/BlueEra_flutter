@@ -73,7 +73,7 @@ class SelectProfilePictureDialog {
         bool? isGallery = true,
         CropAspectRatio? cropAspectRatio,
       }) async {
-   final langController = Get.find<LanguageListController>();
+   Get.find<LanguageListController>();
 
     return showDialog(
       context: context,

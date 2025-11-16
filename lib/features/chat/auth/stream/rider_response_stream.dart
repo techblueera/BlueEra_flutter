@@ -46,7 +46,7 @@ Stream<dynamic> riderOrderStream(String userId,) async* {
           try {
             final data = jsonDecode(jsonStr);
             yield data;
-          } catch (e, s) {
+          } catch (e) {
             log('Invalid JSON in SSE: $jsonStr');
           }
         }

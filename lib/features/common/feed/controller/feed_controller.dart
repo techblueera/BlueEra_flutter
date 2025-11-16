@@ -20,7 +20,6 @@ import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
 import 'package:BlueEra/features/common/home/model/home_feed_model.dart';
 import 'package:BlueEra/features/common/home/repo/home_feed_repo.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/custom_success_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';

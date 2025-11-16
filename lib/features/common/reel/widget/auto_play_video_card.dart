@@ -1,17 +1,13 @@
-import 'dart:developer';
-import 'dart:io';
 
 import 'package:BlueEra/core/api/model/video_post_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/home/view/video_feed_listing/video_feed_screen.dart';
 import 'package:BlueEra/features/common/reel/widget/auto_video_playback_manager.dart';
 import 'package:BlueEra/features/common/reel/widget/common_video_card.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -225,147 +221,6 @@ logs("ValueKey(widget.videoItem.videoId),= ${widget.videoItem.videoId}");
           );
         });
 
-        return Stack(
-          children: [
-            // --- 🖼️ Show Cover Image Only if Video Not Ready ---
-            if (!showVideo)
-              if (!showVideo)
-                LayoutBuilder(builder: (context, constraints) {
-                  final screenWidth = constraints.maxWidth;
-                  final videoWidth =
-                      widget.videoItem.video?.media_width?.toDouble() ?? 0.0;
-                  final videoHeight =
-                      widget.videoItem.video?.media_height?.toDouble() ?? 0.0;
-                  final bool isLandscape = videoWidth > videoHeight;
-                  final bool isPortrait = videoHeight > videoWidth;
-
-                  double displayHeight;
-                  if (isLandscape) {
-                    final aspectRatio = videoWidth / videoHeight;
-                    displayHeight = screenWidth / aspectRatio;
-                    if (displayHeight > screenWidth * 0.75) {
-                      displayHeight = screenWidth * 0.75;
-                    }
-                  } else if (isPortrait) {
-                    displayHeight = 300;
-                  } else {
-                    displayHeight = screenWidth;
-                  }
-
-                  return Container(
-                    width: screenWidth,
-                    height: displayHeight,
-                    decoration: BoxDecoration(
-                      borderRadius:
-                          const BorderRadius.vertical(top: Radius.circular(8)),
-                      color: Colors.black12,
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    child: singleNetworkImage(
-                      urlLink: widget.videoItem.video?.coverUrl ?? "",
-                      media_height: displayHeight,
-                      media_width: screenWidth,
-                    ),
-                  );
-                }),
-
-            // --- 🎬 Video Player ---
-            if (showVideo)
-              Builder(
-                builder: (_) {
-                  final videoWidth =
-                      widget.videoItem.video?.media_width?.toDouble() ?? 0.0;
-                  final videoHeight =
-                      widget.videoItem.video?.media_height?.toDouble() ?? 0.0;
-
-                  final bool isLandscape = videoWidth > videoHeight;
-                  final bool isPortrait = videoHeight > videoWidth;
-                  final aspectRatio = videoWidth > 0 && videoHeight > 0
-                      ? videoWidth / videoHeight
-                      : controller.value.aspectRatio;
-
-                  // Responsive sizing similar to Twitter
-                  final screenWidth = MediaQuery.of(context).size.width;
-                  double displayWidth = screenWidth;
-                  double displayHeight;
-
-                  if (isLandscape) {
-                    // Landscape → width full, height based on ratio (cap max height)
-                    displayHeight = displayWidth / aspectRatio;
-                    if (displayHeight > displayWidth * 0.75) {
-                      displayHeight = displayWidth * 0.75;
-                    }
-                  } else if (isPortrait) {
-                    // Portrait → Twitter uses ~4:5 ratio
-                    displayHeight = 300;
-                  } else {
-                    // Square → simple 1:1
-                    displayHeight = displayWidth;
-                  }
-
-                  return Center(
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 250),
-                      curve: Curves.easeInOut,
-                      width: displayWidth,
-                      height: displayHeight,
-                      decoration: BoxDecoration(
-                        borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(8)),
-                        color: Colors.black,
-                        image: DecorationImage(
-                          image: NetworkImage(
-                              widget.videoItem.video?.coverUrl ?? ''),
-                          fit: BoxFit.cover, // or BoxFit.contain for landscape
-                        ),
-                      ),
-                      clipBehavior: Clip.antiAlias,
-                      child: FittedBox(
-                        fit: BoxFit.cover,
-                        child: SizedBox(
-                          width: videoWidth,
-                          height: videoHeight,
-                          child: VideoPlayer(controller),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-
-            // --- 🔄 Loading Overlay ---
-            if (isScrolling && isCurrent)
-              Container(
-                color: Colors.black38,
-                child: const Center(child: CircularProgressIndicator()),
-              ),
-
-            // --- 🔇 Mute Button ---
-            if (isCurrent && controller != null)
-              Positioned(
-                top: SizeConfig.size12,
-                right: SizeConfig.size10,
-                child: GestureDetector(
-                  onTap: videoManager.toggleMute,
-                  child: Container(
-                    padding: EdgeInsets.all(SizeConfig.size6),
-                    decoration: BoxDecoration(
-                      color: AppColors.blackCC,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: ValueListenableBuilder<bool>(
-                      valueListenable: videoManager.isMuted,
-                      builder: (_, isMuted, __) => Icon(
-                        isMuted ? Icons.volume_off : Icons.volume_up,
-                        color: AppColors.white,
-                        size: SizeConfig.size20,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        );
       }),
     );
 

@@ -723,7 +723,7 @@ class ViewBusinessDetailsController extends GetxController {
       print("Business ID: $visitBusinessId");
       print("Query Params: $queryParam");
 
-      final responsedd = await BusinessProfileRepo().getServices(
+      await BusinessProfileRepo().getServices(
         businessId: visitBusinessId,
         queryParam: queryParam,
       );
