@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/controller/home_stay_rental_service_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -22,7 +23,7 @@ showHomeDescriptionSuggestionsDialog() {
           return const Padding(
             padding: EdgeInsets.all(24),
             child: CustomText(
-              "No descriptions yet. Generate to see suggestions.",
+              AppStrings.noDescriptionsYet,
               textAlign: TextAlign.center,
             ),
           );
@@ -34,7 +35,7 @@ showHomeDescriptionSuggestionsDialog() {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const CustomText("Select a Description",
+              const CustomText(AppStrings.selectDescription,
                   fontSize: 18, fontWeight: FontWeight.w600),
               const SizedBox(height: 12),
 
@@ -101,7 +102,7 @@ showHomeDescriptionSuggestionsDialog() {
                 children: [
                   TextButton(
                     onPressed: () => Get.back(),
-                    child: const CustomText("Cancel"),
+                    child: const CustomText(AppStrings.cancel),
                   ),
                   const SizedBox(width: 8),
                   ElevatedButton(
@@ -122,7 +123,7 @@ showHomeDescriptionSuggestionsDialog() {
                           borderRadius: BorderRadius.circular(10)),
                     ),
                     child: const CustomText(
-                      "Submit",
+                      AppStrings.submit,
                       color: AppColors.white,
                     ),
                   ),

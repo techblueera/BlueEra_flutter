@@ -1,6 +1,8 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -77,13 +79,13 @@ class _PersonalInformationRidingScreenState extends State<PersonalInformationRid
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Personal Information",
+        title: AppStrings.personalInformation,
         // onBackTap: onBackPressed,
         buildCustomWidget: ()=> Padding(
               padding: const EdgeInsets.only(right: 16),
               child: Center(
                 child: Text(
-                  "Step-1/6",
+                  "${AppStrings.stepLabel}1/6",
                   style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
               ),
@@ -100,24 +102,25 @@ class _PersonalInformationRidingScreenState extends State<PersonalInformationRid
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     CommonTextField(
-                      title: "Full Name",
-                      hintText: "Enter your full name",
+                      title: AppStrings.fullName,
+                      hintText: AppStrings.enterYourFullName,
                       textEditController: controller.fullNameController,
                       validationType: ValidationTypeEnum.name,
+                      inputLength: AppConstants.inputCharterLimit30,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter your name';
+                          return AppStrings.pleaseEnterYourName;
                         } else if (value.trim().length < 6) {
-                          return 'Name must be at least 6 characters';
+                          return AppStrings.nameMustBeAtLeast6Chars;
                         } else if (value.trim().length > 30) {
-                          return 'Name must not exceed 30 characters';
+                          return AppStrings.nameMustNotExceed30Chars;
                         }
                         return null;
                       },
                     ),
                     SizedBox(height: SizeConfig.paddingM),
                     CustomText(
-                      "Gender",
+                      AppStrings.gender,
                       fontSize: SizeConfig.small,
                       fontWeight: FontWeight.w400,
                       color: AppColors.mainTextColor,
@@ -126,7 +129,7 @@ class _PersonalInformationRidingScreenState extends State<PersonalInformationRid
                     CommonDropdown<GenderType>(
                       items: GenderType.values,
                       selectedValue: controller.selectedGender.value,
-                      hintText: "Select Gender",
+                      hintText: AppStrings.selectGender,
                       displayValue: (value) => value.displayName,
                       onChanged: (value) {
                         controller.selectedGender.value = value;
@@ -163,7 +166,7 @@ class _PersonalInformationRidingScreenState extends State<PersonalInformationRid
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         CustomText(
-                          "Contact Number",
+                          AppStrings.contactNumber,
                           fontSize: SizeConfig.small,
                           fontWeight: FontWeight.w400,
                           color: AppColors.mainTextColor,
@@ -182,7 +185,7 @@ class _PersonalInformationRidingScreenState extends State<PersonalInformationRid
 
                           },
                           child: CustomText(
-                            "Edit",
+                            AppStrings.edit,
                             fontSize: SizeConfig.small,
                             fontWeight: FontWeight.w600,
                             color: AppColors.primaryColor,
@@ -214,19 +217,19 @@ class _PersonalInformationRidingScreenState extends State<PersonalInformationRid
                         Expanded(
                           child: CommonTextField(
                             textEditController: controller.mobileNumberController,
-                            inputLength: 10,
-                            maxLength: 10,
+                            inputLength: AppConstants.inputCharterLimit10,
                             keyBoardType: TextInputType.number,
                             regularExpression:
                             RegularExpressionUtils.digitsPattern,
                             validationType: ValidationTypeEnum.pNumber,
-                            hintText: langController.tr('Enter your mobile number'),
+                            hintText: AppStrings.enterMobileNumberHint,
                             hintStyle: TextStyle(
                               fontSize: langController.selectedCode.value == 'ta' ? 12 : 14,
-                            ),                          onTapOutsideTrue: false,
+                            ),
+                            onTapOutsideTrue: false,
                             validator: (value) {
                               if (value?.length != 10) {
-                                return langController.tr('Please enter valid mobile number');
+                                return AppStrings.pleaseEnterValidMobileNo;
                               }
                               return null;
                             },
@@ -237,8 +240,8 @@ class _PersonalInformationRidingScreenState extends State<PersonalInformationRid
                     SizedBox(height: SizeConfig.paddingM),
 
                     CommonTextField(
-                      title: "Email",
-                      hintText: "Enter your email address",
+                      title: AppStrings.email,
+                      hintText: AppStrings.enterYourEmail,
                       textEditController: controller.emailController,
                       validationType: ValidationTypeEnum.email,
                       onChange: (val) {
@@ -270,12 +273,12 @@ class _PersonalInformationRidingScreenState extends State<PersonalInformationRid
                               } else {
                                 commonSnackBar(
                                     message:
-                                    'Please enter a valid email address');
+                                    AppStrings.pleaseEnterValidEmail);
                               }
 
                             },
                             child: CustomText(
-                              'Get Verify',
+                              AppStrings.getVerify,
                               fontWeight: FontWeight.bold,
                               color: AppColors.primaryColor,
                             ),
@@ -288,7 +291,7 @@ class _PersonalInformationRidingScreenState extends State<PersonalInformationRid
                     CustomBtn(
                       title: controller.isPersonalInformationLoading.value
                           ? null
-                          : 'Next',
+                          : AppStrings.nextButton,
                       onTap: ()=> controller.ridersOnboardingPersonalInformationApi(),
                       radius: 10.0,
                       bgColor: AppColors.primaryColor,

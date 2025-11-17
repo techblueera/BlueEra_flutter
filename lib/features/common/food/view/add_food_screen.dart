@@ -13,12 +13,12 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:get/get.dart';
-import '../../../../../../core/constants/snackbar_helper.dart';
-import '../../../../../../widgets/common_card_widget.dart';
-import '../../../../../common/auth/views/dialogs/select_profile_picture_dialog.dart';
-import '../../../../../common/food/controller/food_upload_controller.dart';
-import '../../../../../common/food/model/food_ai_res_model.dart';
-import '../widget/add_services_screen.dart';
+import '../../../../core/constants/snackbar_helper.dart';
+import '../../../../widgets/common_card_widget.dart';
+import '../../auth/views/dialogs/select_profile_picture_dialog.dart';
+import '../controller/food_upload_controller.dart';
+import '../model/food_ai_res_model.dart';
+import '../../../personal/personal_profile/view/inventory/widget/add_services_screen.dart';
 
 
 class SubmitFoodProductPage extends StatefulWidget {

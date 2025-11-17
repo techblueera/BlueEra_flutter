@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
@@ -102,8 +103,8 @@ class RentalServiceFullDetailsScreen extends StatelessWidget {
                   children: [
                     CustomText(
                       type == RentalServiceType.vehicle
-                          ? 'Vehicle Details'
-                          : 'Home Details',
+                          ? AppStrings.vehicleDetails
+                          : AppStrings.homeDetails,
                       fontSize: SizeConfig.medium,
                       fontWeight: FontWeight.w600,
                       color: AppColors.mainTextColor,
@@ -172,7 +173,7 @@ class RentalServiceFullDetailsScreen extends StatelessWidget {
                           children: [
                             _buildAmentityWidget(
                                 iconImage: AppIconAssets.seatIcon,
-                                text: '${rentalServiceData.propertyDetails?.beds??0} Seats'
+                                text: '${rentalServiceData.propertyDetails?.beds??0} ${AppStrings.seats}'
                             ),
                             CommonVerticalDivider(
                               width: 0.5,
@@ -181,7 +182,7 @@ class RentalServiceFullDetailsScreen extends StatelessWidget {
                             _buildAmentityWidget(
                                 iconImage: AppIconAssets.fuelIcon,
                                 text:
-                                '${rentalServiceData.propertyDetails?.maxPeople?.adults??0} Beds, ${rentalServiceData.propertyDetails?.maxPeople?.children??0} Child'
+                                '${rentalServiceData.propertyDetails?.maxPeople?.adults??0} ${AppStrings.beds}, ${rentalServiceData.propertyDetails?.maxPeople?.children??0} ${AppStrings.child}'
                             ),
                             CommonVerticalDivider(
                               width: 0.5,
@@ -189,7 +190,7 @@ class RentalServiceFullDetailsScreen extends StatelessWidget {
                             ),
                             _buildAmentityWidget(
                                 iconImage: AppIconAssets.call,
-                                text: rentalServiceData.contactNumber ?? 'N/A'
+                                text: rentalServiceData.contactNumber ?? AppStrings.na
                             ),
                           ],
                         )
@@ -254,7 +255,7 @@ class RentalServiceFullDetailsScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     CustomText(
-                      'Highlights',
+                      AppStrings.highlights,
                       fontSize: SizeConfig.medium,
                       fontWeight: FontWeight.w600,
                       color: AppColors.mainTextColor,
@@ -312,7 +313,7 @@ class RentalServiceFullDetailsScreen extends StatelessWidget {
             //         crossAxisAlignment: CrossAxisAlignment.start,
             //         children: [
             //           CustomText(
-            //             'Restrictions',
+            //             AppStrings.restrictions',
             //             fontSize: SizeConfig.medium,
             //             fontWeight: FontWeight.w600,
             //             color: AppColors.mainTextColor,

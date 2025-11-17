@@ -11,7 +11,7 @@ import 'package:BlueEra/features/common/food/controller/food_upload_controller.d
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/business_product_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/business_service_card.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/business_food_service_card.dart';
+import 'package:BlueEra/features/common/food/view/business_food_service_card.dart';
 
 class InventoryBusinessCardsScreen extends StatefulWidget {
   final bool showBackAppBar;

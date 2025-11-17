@@ -10,10 +10,10 @@ import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../../../../../core/api/apiService/api_keys.dart';
-import '../../../../../../../widgets/custom_text_cm.dart';
-import '../../../../../../common/food/controller/food_upload_controller.dart';
-import '../../../../../../common/food/model/get_food_details_model.dart';
+import '../../../../core/api/apiService/api_keys.dart';
+import '../../../../widgets/custom_text_cm.dart';
+import '../controller/food_upload_controller.dart';
+import '../model/get_food_details_model.dart';
 
 class FoodAndGroceryScreen extends StatefulWidget {
   final ProductServiceProviderType providerType;

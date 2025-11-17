@@ -84,17 +84,17 @@ class VehicleRentalServiceController extends GetxController{
   void validateStepTwo(){
     if(formKeyStep2.currentState!.validate()){
       if (selectedVehicleRegistrationType.value == null) {
-        commonSnackBar(message: 'Please select Vehicle Registration Type.');
+        commonSnackBar(message: AppStrings.pleaseSelectVehicleRegType);
         return;
       }
 
       if (selectedVehicleType.value == null) {
-        commonSnackBar(message: 'Please select Vehicle Type.');
+        commonSnackBar(message: AppStrings.pleaseSelectVehicleType);
         return;
       }
 
       if (selectedFuelType.value == null) {
-        commonSnackBar(message: 'Please select Fuel Type.');
+        commonSnackBar(message: AppStrings.pleaseSelectFuelType);
         return;
       }
 
@@ -106,23 +106,23 @@ class VehicleRentalServiceController extends GetxController{
   void validateStepThree(){
     if(formKeyStep1.currentState!.validate()){
       if (rcFrontImage.value == null) {
-        commonSnackBar(message: 'Please select RC Front Image.');
+        commonSnackBar(message: AppStrings.pleaseSelectRcFrontImage);
         return;
       }
       if (rcBackImage.value == null) {
-        commonSnackBar(message: 'Please select RC Back Image.');
+        commonSnackBar(message: AppStrings.pleaseSelectRcBackImage);
         return;
       }
       if (insuranceImage.value == null) {
-        commonSnackBar(message: 'Please select Insurance Image.');
+        commonSnackBar(message: AppStrings.pleaseSelectInsuranceImage);
         return;
       }
       if (pucImage.value == null) {
-        commonSnackBar(message: 'Please select Pollution certificate Image.');
+        commonSnackBar(message: AppStrings.pleaseSelectPucImage);
         return;
       }
       if (vehicleFitnessCertificateImage.value == null) {
-        commonSnackBar(message: 'Please select Vehicle Fitness Certificate Image.');
+        commonSnackBar(message: AppStrings.pleaseSelectFitnessCertImage);
         return;
       }
 
@@ -134,7 +134,7 @@ class VehicleRentalServiceController extends GetxController{
   void validateStepFour(){
     if(formKeyStep1.currentState!.validate()){
       if (selectedChargesTypes.value == null) {
-        commonSnackBar(message: 'Please choose charges type.');
+        commonSnackBar(message: AppStrings.pleaseChooseChargesType);
         return;
       }
 
@@ -142,36 +142,35 @@ class VehicleRentalServiceController extends GetxController{
     }
   }
 
-  void validateStepFive(){
-
+  void validateStepFive() {
     if (vehicleNumberPlateImages.isEmpty) {
-      commonSnackBar(message: 'Please select Vehicle Number Plate Image.');
+      commonSnackBar(message: AppStrings.pleaseSelectNumberPlateImage);
       return;
     }
 
     if (vehicleRightSideImages.isEmpty) {
-      commonSnackBar(message: 'Please select Vehicle Right Side Images (at least two).');
+      commonSnackBar(message: AppStrings.pleaseSelectRightSideImages);
       return;
     } else if (vehicleRightSideImages.length < 2) {
-      commonSnackBar(message: 'Please select at least two Vehicle Right Side Images.');
+      commonSnackBar(message: AppStrings.pleaseSelectAtLeastTwoRight);
       return;
     }
 
     if (vehicleLeftSideImages.isEmpty) {
-      commonSnackBar(message: 'Please select Vehicle Left Side Images (at least two).');
+      commonSnackBar(message: AppStrings.pleaseSelectLeftSideImages);
       return;
     } else if (vehicleLeftSideImages.length < 2) {
-      commonSnackBar(message: 'Please select at least two Vehicle Left Side Images.');
+      commonSnackBar(message: AppStrings.pleaseSelectAtLeastTwoLeft);
       return;
     }
 
     if (vehicleFrontImages.isEmpty) {
-      commonSnackBar(message: 'Please select Vehicle Front Image.');
+      commonSnackBar(message: AppStrings.pleaseSelectFrontImage);
       return;
     }
 
     if (vehicleBackImages.isEmpty) {
-      commonSnackBar(message: 'Please select Vehicle Back Image.');
+      commonSnackBar(message: AppStrings.pleaseSelectBackImage);
       return;
     }
 
@@ -180,7 +179,7 @@ class VehicleRentalServiceController extends GetxController{
 
   void nextStep() {
     if(arrHighlights.isEmpty){
-      commonSnackBar(message: 'Highlights is required.');
+      commonSnackBar(message: AppStrings.highlightsIsRequired);
       return;
     }
 

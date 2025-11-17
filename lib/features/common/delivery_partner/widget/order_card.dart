@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -175,7 +176,7 @@ class OrderCard extends StatelessWidget {
         _buildTimeText(),
         SizedBox(height: SizeConfig.size8),
         _buildBadge(
-          text: 'Review',
+          text: AppStrings.review,
           borderColor: AppColors.primaryColor,
         ),
       ],
@@ -207,7 +208,7 @@ class OrderCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         CustomText(
-          'Order No - ${order.orderNo}',
+          '${AppStrings.orderNo} - ${order.orderNo}',
           fontSize: SizeConfig.large,
           fontWeight: FontWeight.w600,
           color: AppColors.mainTextColor,
@@ -218,7 +219,7 @@ class OrderCard extends StatelessWidget {
         Row(
           children: [
             CustomText(
-              'Pick-Up OTP : ',
+              AppStrings.pickUp,
               fontSize: SizeConfig.small11,
               fontWeight: FontWeight.w400,
               color: AppColors.secondaryTextColor,
@@ -370,7 +371,7 @@ class OrderCard extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
           CustomText(
-            'Drop Location: ',
+            AppStrings.dropLocation,
             fontSize: SizeConfig.small11,
             fontWeight: FontWeight.w400,
             color: AppColors.secondaryTextColor,
@@ -456,7 +457,7 @@ class OrderCard extends StatelessWidget {
         SizedBox(width: SizeConfig.size6),
         _buildActionButton(
           onTap: () => _handleRejectOrder(controller),
-          text: 'Reject',
+          text: AppStrings.reject,
           bgColor: AppColors.redLite.withValues(alpha: 0.1),
           borderColor: AppColors.redLite,
           textColor: AppColors.redLite,
@@ -464,7 +465,7 @@ class OrderCard extends StatelessWidget {
         SizedBox(width: SizeConfig.size6),
         _buildActionButton(
           onTap: () => _handleAcceptOrder(controller),
-          text: 'Accept',
+          text: AppStrings.accept,
           bgColor: AppColors.green0B.withValues(alpha: 0.1),
           borderColor: AppColors.green0B,
           textColor: AppColors.green0B,
@@ -478,7 +479,7 @@ class OrderCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         CustomText(
-          'Delivery OTP: ',
+          AppStrings.deliveryOTP,
           fontSize: SizeConfig.small,
           fontWeight: FontWeight.w400,
           color: AppColors.secondaryTextColor,
@@ -609,7 +610,7 @@ class OrderCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(10.0),
       ),
       child: CustomText(
-        'Fare: ₹ ${order.fare}',
+        '${AppStrings.fare} ₹ ${order.fare}',
         fontSize: SizeConfig.small,
         fontWeight: FontWeight.w600,
         color: AppColors.secondaryTextColor,
@@ -720,7 +721,7 @@ class OrderCard extends StatelessWidget {
     if (contactNo?.isNotEmpty ?? false) {
       openDialer(contactNo ?? '');
     } else {
-      commonSnackBar(message: 'Contact Number not found.');
+      commonSnackBar(message: AppStrings.contactNumberNotFound);
     }
   }
 
@@ -748,7 +749,7 @@ class OrderCard extends StatelessWidget {
       if (pin == order.deliveryOTP) {
         controller.verifyDeliveredOtp(orderId, pin);
       } else {
-        commonSnackBar(message: 'Otp is not correct');
+        commonSnackBar(message: AppStrings.otpIsNotCorrect);
       }
     }
   }

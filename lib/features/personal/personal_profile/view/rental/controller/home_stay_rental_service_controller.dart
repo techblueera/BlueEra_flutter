@@ -82,22 +82,22 @@ class HomeStayRentalServiceController extends GetxController{
       if(arrHighlights.isNotEmpty){
         nextStep();
       }else{
-        commonSnackBar(message: 'Highlights is required.');
+        commonSnackBar(message: AppStrings.highlightsIsRequired);
       }
     }
   }
 
   void validateStepThree(){
       if (roomImages.length < 4) {
-        commonSnackBar(message: 'Please upload at least 4 room images');
+        commonSnackBar(message: AppStrings.uploadAtLeast4Room);
         return;
       }
       if (kitchenImages.length < 2) {
-        commonSnackBar(message: 'Please upload at least 2 kitchen images');
+        commonSnackBar(message: AppStrings.uploadAtLeast2Kitchen);
         return;
       }
       if (bathroomImages.length < 2) {
-        commonSnackBar(message: 'Please upload at least 2 bathroom images');
+        commonSnackBar(message: AppStrings.uploadAtLeast2Bathroom);
         return;
       }
 
@@ -107,7 +107,7 @@ class HomeStayRentalServiceController extends GetxController{
 
   void validateStepFour(){
     if (roadSideImages.length < 2) {
-      commonSnackBar(message: 'Please upload at least 2 road side images');
+      commonSnackBar(message: AppStrings.uploadAtLeast2RoadSide);
        return;
     }
 
@@ -241,7 +241,7 @@ class HomeStayRentalServiceController extends GetxController{
 
   Future<void> generateHomeDescriptionApi() async {
     if(bedsCountCtrl.text.isEmpty || arrHighlights.isEmpty){
-      commonSnackBar(message: "Please enter bed count and add house highlights to generate the description.");
+      commonSnackBar(message: AppStrings.enterBedCountAndHighlights);
       return;
     }
 
@@ -272,7 +272,7 @@ class HomeStayRentalServiceController extends GetxController{
 
           await showHomeDescriptionSuggestionsDialog();
         } else {
-          commonSnackBar(message: 'No home description suggestions found.');
+          commonSnackBar(message: AppStrings.homeDescriptionSuggestionsNotFound);
         }
       }
     } catch (e) {
@@ -282,9 +282,6 @@ class HomeStayRentalServiceController extends GetxController{
       isGenerateHomeRentalServiceLoading.value = false;
     }
   }
-
-
-
 
 
 }

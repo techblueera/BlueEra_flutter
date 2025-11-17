@@ -6,7 +6,7 @@ import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.da
 import 'package:BlueEra/features/business/visit_business_profile/view/business_profile_header.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
-import 'package:BlueEra/features/common/product_listing/view/standalone_food_screen.dart';
+import 'package:BlueEra/features/common/food/view/standalone_food_screen.dart';
 import 'package:BlueEra/features/common/product_listing/view/standalone_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/widget/rating_widget.dart';

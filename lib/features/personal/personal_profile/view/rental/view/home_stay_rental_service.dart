@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
@@ -66,15 +67,15 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
       child: Scaffold(
         appBar: CommonBackAppBar(
           title: controller.currentStep.value == 0
-                       ? "Home Location" :
-          controller.currentStep.value == 1 ? "Details" : "Home Images",
+                       ? AppStrings.homeLocation :
+          controller.currentStep.value == 1 ? AppStrings.details : AppStrings.homeImages,
           onBackTap: controller.previousStep,
           buildCustomWidget: ()=>
               Obx(() => Padding(
                 padding: const EdgeInsets.only(right: 16),
                 child: Center(
                   child: Text(
-                    "Step-${controller.currentStep.value + 1}/${controller.totalSteps}",
+                    "${AppStrings.stepLabel}${controller.currentStep.value + 1}/${controller.totalSteps}",
                     style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
                 ),
@@ -118,8 +119,8 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
                 textEditController: controller.propertyNameCtrl,
                 inputLength: AppConstants.inputCharterLimit50,
                 keyBoardType: TextInputType.text,
-                title: "Property Name With House No.",
-                hintText: "E.g. Taj Hotel...",
+                title: AppStrings.propertyNameWithHouseNo,
+                hintText: AppStrings.egTajHotel,
                 isValidate: true
               ),
               SizedBox(height: SizeConfig.paddingM),
@@ -127,7 +128,7 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   CustomText(
-                    "Contact Number",
+                    AppStrings.contactNumber,
                     fontSize: SizeConfig.small,
                     fontWeight: FontWeight.w400,
                     color: AppColors.mainTextColor,
@@ -146,7 +147,7 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
 
                     },
                     child: CustomText(
-                      "Edit",
+                      AppStrings.edit,
                       fontSize: SizeConfig.small,
                       fontWeight: FontWeight.w600,
                       color: AppColors.primaryColor,
@@ -178,17 +179,22 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
                   Expanded(
                     child: CommonTextField(
                       textEditController: controller.mobileNumberCtrl,
-                      inputLength: 10,
-                      maxLength: 10,
+                      inputLength: AppConstants.inputCharterLimit10,
                       keyBoardType: TextInputType.number,
                       regularExpression:
                       RegularExpressionUtils.digitsPattern,
                       validationType: ValidationTypeEnum.pNumber,
-                      hintText: langController.tr('Enter your mobile number'),
+                      hintText: AppStrings.enterMobileNumberHint,
                       hintStyle: TextStyle(
                         fontSize: langController.selectedCode.value == 'ta' ? 12 : 14,
                       ),
                       onTapOutsideTrue: false,
+                      validator: (value) {
+                        if (value?.length != 10) {
+                          return AppStrings.pleaseEnterValidMobileNo;
+                        }
+                        return null;
+                      },
                     ),
                   ),
                 ],
@@ -200,8 +206,8 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
                   Expanded(
                     child: CommonLocationSearchField(
                       controller: controller.locationCtrl,
-                      title: "Home Location",
-                      hintText: "E.g. Lucknow, Gomti Nagar...",
+                      title: AppStrings.homeLocation,
+                      hintText: AppStrings.propertyLocationHint,
                       onSelected: (placeId, lat, lng, address) async {
                         print("PlaceId: $placeId Selected: $address → ($lat, $lng)");
                         controller.locationCtrl.text = address;
@@ -256,11 +262,11 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
               SizedBox(height: SizeConfig.paddingM),
               CommonTextField(
                 textEditController: controller.pinCodeCtrl,
-                title: 'Pincode',
+                title: AppStrings.pincodeTitle,
                 fontSize: SizeConfig.small,
                 fontWeight: FontWeight.w400,
                 titleColor: AppColors.mainTextColor,
-                hintText: "E.g. 700045....",
+                hintText: AppStrings.pincodeHint,
                 keyBoardType: TextInputType.number,
                 inputLength: AppConstants.inputCharterLimit6,
                 validator: ValidationMethod().validatePin,
@@ -268,62 +274,62 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
               SizedBox(height: SizeConfig.paddingM),
               CommonTextField(
                 textEditController: controller.landmarkCtrl,
-                title: 'Land Mark',
+                title: AppStrings.landmarkTitle,
                 inputLength: AppConstants.inputCharterLimit30,
                 fontSize: SizeConfig.small,
                 fontWeight: FontWeight.w400,
                 titleColor: AppColors.mainTextColor,
-                hintText: "E.g. Flat 21B, Lake View Apartment....",
+                hintText: AppStrings.landmarkHint,
                 keyBoardType: TextInputType.text,
                 isValidate: true,
               ),
               SizedBox(height: SizeConfig.paddingM),
               CommonTextField(
                 textEditController: controller.nearByRailwayCtrl,
-                title: 'Near By Railway Station',
+                title: AppStrings.nearByRailwayStation,
                 fontSize: SizeConfig.small,
                 fontWeight: FontWeight.w400,
                 titleColor: AppColors.mainTextColor,
-                hintText: "E.g. Gomtinagar Rail Station ....",
+                hintText: AppStrings.egGomtinagarRailStation,
                 keyBoardType: TextInputType.text,
                 isValidate: false,
               ),
               SizedBox(height: SizeConfig.paddingM),
               CommonTextField(
                 textEditController: controller.nearByAirportCtrl,
-                title: 'Near By Airport',
+                title: AppStrings.nearByAirport,
                 fontSize: SizeConfig.small,
                 fontWeight: FontWeight.w400,
                 titleColor: AppColors.mainTextColor,
-                hintText: "E.g. Subhas Chandra Airport ....",
+                hintText: AppStrings.egSubhasChandraAirport,
                 keyBoardType: TextInputType.text,
                 isValidate: false,
               ),
               SizedBox(height: SizeConfig.paddingM),
               CommonTextField(
                 textEditController: controller.nearByBusStandCtrl,
-                title: 'Near By Bus Stand',
+                title: AppStrings.nearByBusStand,
                 fontSize: SizeConfig.small,
                 fontWeight: FontWeight.w400,
                 titleColor: AppColors.mainTextColor,
-                hintText: "E.g. Gomtinagar Bus Stand....",
+                hintText: AppStrings.egGomtinagarBusStand,
                 keyBoardType: TextInputType.text,
                 isValidate: false,
               ),
               SizedBox(height: SizeConfig.paddingM),
               CommonTextField(
                 textEditController: controller.nearByFamousPlaceCtrl,
-                title: 'Near By Famous Place',
+                title: AppStrings.nearByFamousPlace,
                 fontSize: SizeConfig.small,
                 fontWeight: FontWeight.w400,
                 titleColor: AppColors.mainTextColor,
-                hintText: "E.g. Durga mandir ....",
+                hintText: AppStrings.egDurgaMandir,
                 keyBoardType: TextInputType.text,
                 isValidate: false,
               ),
               SizedBox(height: SizeConfig.paddingL),
               CustomBtn(
-                title: 'Next',
+                title: AppStrings.nextButton,
                 onTap: controller.validateStepOne,
                 radius: 10.0,
                 bgColor: AppColors.primaryColor,
@@ -355,7 +361,7 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
                   children: [
 
                     CustomText(
-                      'How many maximum people can stay here?',
+                      AppStrings.howManyMaxPeople,
                       fontSize: SizeConfig.medium,
                       color: AppColors.mainTextColor,
                       fontWeight: FontWeight.w400,
@@ -370,7 +376,7 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
                             selectedValue: controller.selectedAdults.value.isEmpty
                                 ? null
                                 : controller.selectedAdults.value,
-                            hintText: "Adults",
+                            hintText: AppStrings.adults,
                             displayValue: (item) => item,
                             onChanged: (val) {
                               if (val != null) controller.selectedAdults.value = val;
@@ -393,7 +399,7 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
                             selectedValue: controller.selectedChildren.value.isEmpty
                                 ? null
                                 : controller.selectedChildren.value,
-                            hintText: "Children",
+                            hintText: AppStrings.children,
                             displayValue: (item) => item,
                             onChanged: (val) {
                               if (val != null) controller.selectedChildren.value = val;
@@ -414,14 +420,14 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
                       textEditController: controller.bedsCountCtrl,
                       inputLength: AppConstants.inputCharterLimit6,
                       keyBoardType: TextInputType.number,
-                      title: "How many beds will be there?",
-                      hintText: "E.g. 2 Beds",
+                      title: AppStrings.howManyBeds,
+                      hintText: AppStrings.eg2Beds,
                       isValidate: true,
                     ),
                     SizedBox(height: SizeConfig.paddingM),
 
                     CustomText(
-                      'Charges Type',
+                      AppStrings.chargesTypeTitle,
                       fontSize: SizeConfig.medium,
                       color: AppColors.mainTextColor,
                       fontWeight: FontWeight.w400,
@@ -435,7 +441,7 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
                                   .where((e) => e != ChargesTypes.KM)
                                   .toList(),
                             selectedValue: controller.selectedChargesTypes.value,
-                            hintText: "E.g. Hourly..",
+                            hintText: AppStrings.chargesTypeHint,
                             displayValue: (item) => item.label,
                             onChanged: (val) {
                               if (val != null) {
@@ -444,7 +450,7 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
                             },
                             validator: (value){
                                 if(value==null){
-                                  return 'Please select charges type.';
+                                  return AppStrings.selectChargesTypeError;
                                 }
                                 return null;
                               }
@@ -458,7 +464,7 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
                             fontSize: SizeConfig.small,
                             fontWeight: FontWeight.w400,
                             titleColor: AppColors.mainTextColor,
-                            hintText: "E.g. ₹2000",
+                            hintText: AppStrings.egRs2000,
                             keyBoardType: TextInputType.number,
                             isValidate: true,
                             inputLength: AppConstants.inputCharterLimit10,
@@ -477,7 +483,7 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         CustomText(
-                          'Home Stay Description',
+                          AppStrings.homeStayDescription,
                           fontSize: SizeConfig.medium,
                           color: AppColors.mainTextColor,
                           fontWeight: FontWeight.w400,
@@ -488,7 +494,7 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
                             controller.generateHomeDescriptionApi();
                           },
                           child: CustomText(
-                            'Create Via BE ai',
+                            AppStrings.createViaBEai,
                             fontSize: SizeConfig.medium,
                             color: AppColors.primaryColor,
                             fontWeight: FontWeight.w600,
@@ -513,7 +519,7 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
                       inputLength: AppConstants.inputCharterLimit200,
                       keyBoardType: TextInputType.text,
                       regularExpression: RegularExpressionUtils.alphabetSpacePattern,
-                      hintText: "E.g. 2BHK with swimming pool...",
+                      hintText: AppStrings.eg2BhkSwimming,
                       validator: ValidationMethod().validateHomeStayDescription,
                     ),
 
@@ -534,7 +540,7 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
                           imagePath: AppIconAssets.addBlueIcon,
                         ),
                         CustomText(
-                          'Add Restrictions',
+                          AppStrings.addRestrictions,
                           fontSize: SizeConfig.large,
                           fontWeight: FontWeight.w400,
                           color: AppColors.primaryColor,
@@ -557,7 +563,7 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           CustomText(
-                            'Do You Allow Un-Married Couples?',
+                            AppStrings.doYouAllowUnmarriedCouples,
                             fontSize: SizeConfig.medium,
                             color: AppColors.secondaryTextColor,
                             fontWeight: FontWeight.w400,
@@ -578,7 +584,7 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
                     SizedBox(height: SizeConfig.paddingL),
 
                     CustomBtn(
-                      title: 'Next',
+                      title: AppStrings.nextButton,
                       onTap: controller.validateStepTwo,
                       radius: 10.0,
                       bgColor: AppColors.primaryColor,
@@ -606,13 +612,13 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
             GetBuilder<CommonMultipleImageSectionController>(
               id: CommonMultipleImageSectionController.roomImageId,
               builder: (ctrl) => CommonMultipleImageUploadSection(
-                title: 'Upload Rooms Images',
+                title: AppStrings.uploadRoomImages,
                 minImages: controller.maxHomeImageUpload,
                 maxImages: controller.maxHomeImageUpload,
                 images: controller.roomImages,
                 onAddImage: () async {
                   multipleImageSectionController.addImages(
-                    label: 'Rooms Images',
+                    label: AppStrings.roomsImagesLabel,
                     imageList: controller.roomImages,
                     updateId: CommonMultipleImageSectionController.roomImageId,
                     maxUploadImages: controller.maxHomeImageUpload,
@@ -633,13 +639,13 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
             GetBuilder<CommonMultipleImageSectionController>(
               id: CommonMultipleImageSectionController.kitchenImageId,
               builder: (ctrl) => CommonMultipleImageUploadSection(
-                title: 'Upload Kitchen Images',
+                title: AppStrings.uploadKitchenImages,
                 minImages: 2,
                 maxImages: controller.maxHomeImageUpload,
                 images: controller.kitchenImages,
                 onAddImage: () async {
                   multipleImageSectionController.addImages(
-                      label: 'Kitchen Images',
+                      label: AppStrings.kitchenImagesLabel,
                       imageList: controller.kitchenImages,
                       updateId: CommonMultipleImageSectionController.kitchenImageId,
                       maxUploadImages: controller.maxHomeImageUpload
@@ -660,13 +666,13 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
             GetBuilder<CommonMultipleImageSectionController>(
               id: CommonMultipleImageSectionController.bathroomImageId,
               builder: (ctrl) => CommonMultipleImageUploadSection(
-                title: 'Upload Bathroom Images',
+                title: AppStrings.uploadBathroomImages,
                 minImages: 2,
                 maxImages: controller.maxHomeImageUpload,
                 images: controller.bathroomImages,
                 onAddImage: () async {
                   multipleImageSectionController.addImages(
-                      label: 'Bathroom Images',
+                      label: AppStrings.bathroomImagesLabel,
                       imageList: controller.bathroomImages,
                       updateId: CommonMultipleImageSectionController.bathroomImageId,
                       maxUploadImages: controller.maxHomeImageUpload
@@ -688,7 +694,7 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
               // title: controller.isRiderVehicleImagesLoading.value
               //     ? null
               //     : 'Next',
-              title: 'Next',
+              title: AppStrings.nextButton,
               onTap: controller.validateStepThree,
               radius: 10.0,
               bgColor: AppColors.primaryColor,
@@ -710,13 +716,13 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
           GetBuilder<CommonMultipleImageSectionController>(
             id: CommonMultipleImageSectionController.roadSideImageId,
             builder: (ctrl) => CommonMultipleImageUploadSection(
-              title: 'Upload Road Side Images',
+              title: AppStrings.uploadRoadSideImages,
               minImages: 2,
               maxImages: controller.maxHomeImageUpload,
               images: controller.roadSideImages,
               onAddImage: () async {
                 multipleImageSectionController.addImages(
-                  label: 'Road Side Images',
+                  label: AppStrings.roadSideImagesLabel,
                   imageList: controller.roadSideImages,
                   updateId: CommonMultipleImageSectionController.roadSideImageId,
                   maxUploadImages: controller.maxHomeImageUpload,
@@ -737,12 +743,12 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
           GetBuilder<CommonMultipleImageSectionController>(
             id: CommonMultipleImageSectionController.otherImageId,
             builder: (ctrl) => CommonMultipleImageUploadSection(
-              title: 'Upload Other Images (Optional)',
+              title: AppStrings.uploadOtherImages,
               maxImages: controller.maxHomeImageUpload,
               images: controller.otherImages,
               onAddImage: () async {
                 multipleImageSectionController.addImages(
-                    label: 'Kitchen Images',
+                    label: AppStrings.otherImagesLabel,
                     imageList: controller.otherImages,
                     updateId: CommonMultipleImageSectionController.otherImageId,
                     maxUploadImages: controller.maxHomeImageUpload
@@ -763,7 +769,7 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
           CustomBtn(
             title: controller.isHomeStayRentalServiceLoading.value
                 ? null
-                : 'Post Now',
+                : AppStrings.postNowButton,
             onTap: controller.validateStepFour,
             radius: 10.0,
             bgColor: AppColors.primaryColor,
@@ -780,7 +786,7 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
         Row(
           children: [
             CustomText(
-              'Home Highlights',
+              AppStrings.homeHighlightsTitle,
               fontSize: SizeConfig.small,
               fontWeight: FontWeight.w400,
               color: AppColors.mainTextColor,
@@ -802,7 +808,7 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
                         imagePath: AppIconAssets.addBlueIcon,
                       ),
                       CustomText(
-                        'Add More',
+                        AppStrings.addMoreTitle,
                         fontSize: SizeConfig.large,
                         fontWeight: FontWeight.w400,
                         color: AppColors.primaryColor,
@@ -892,7 +898,7 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
                 FittedBox(
                   fit: BoxFit.scaleDown,
                   child: CustomText(
-                    'Add Highlights',
+                    AppStrings.addHighlightsTitle,
                     fontSize: SizeConfig.large,
                     fontWeight: FontWeight.w400,
                     color: AppColors.mainTextColor,

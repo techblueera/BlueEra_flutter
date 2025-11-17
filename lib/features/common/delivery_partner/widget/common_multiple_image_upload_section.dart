@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -48,7 +49,7 @@ class CommonMultipleImageUploadSection extends StatelessWidget {
                 Padding(
                   padding: EdgeInsets.only(left: SizeConfig.size8),
                   child: CustomText(
-                      "Min-$minImages Images",
+                      "${AppStrings.min} $minImages ${AppStrings.images}",
                       // "Min-$minImages Images/Max-${maxImages}Images",
                       fontSize: SizeConfig.medium,
                       color: AppColors.mainTextColor,
@@ -172,7 +173,7 @@ class CommonMultipleImageSectionController extends GetxController{
     final newFiles = selectedImages.map((e) => File(e)).toList();
     final remaining = maxUploadImages - imageList.length;
     if (remaining <= 0) {
-      commonSnackBar(message: 'You can only upload $maxUploadImages images');
+      commonSnackBar(message: '${AppStrings.youCanOnlyUpload} $maxUploadImages ${AppStrings.images}');
       return;
     }
 

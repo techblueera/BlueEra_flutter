@@ -70,11 +70,11 @@ class AddFlatRentalServiceController extends GetxController {
     if (formKeyStep1.currentState?.validate() ?? false) {
       // Validate charges type
       if (selectedChargesTypes.value == null) {
-        commonSnackBar(message: 'Please choose charges type.');
+        commonSnackBar(message: AppStrings.pleaseChooseChargesType);
         return;
       }
       if(arrHighlights.isEmpty){
-        commonSnackBar(message: 'Highlights is required.');
+        commonSnackBar(message: AppStrings.highlightsIsRequired);
         return;
       }
 
@@ -83,7 +83,7 @@ class AddFlatRentalServiceController extends GetxController {
         currentStep.value++;
       }
     } else {
-      commonSnackBar(message: 'Please fill all required fields correctly.');
+      commonSnackBar(message: AppStrings.pleaseFillAllFieldsCorrectly);
     }
   }
 
@@ -117,16 +117,16 @@ class AddFlatRentalServiceController extends GetxController {
     final errors = <String>[];
 
     if (roadSideImage.length < 2) {
-      errors.add('Please upload at least 2 road side images');
+      errors.add(AppStrings.uploadAtLeast2RoadSide);
     }
     if (roomImages.length < 4) {
-      errors.add('Please upload at least 4 room images');
+      errors.add(AppStrings.uploadAtLeast4Room);
     }
     if (kitchenImage.length < 2) {
-      errors.add('Please upload at least 2 kitchen images');
+      errors.add(AppStrings.uploadAtLeast2Kitchen);
     }
     if (bathroomImage.length < 2) {
-      errors.add('Please upload at least 2 bathroom images');
+      errors.add(AppStrings.uploadAtLeast2Bathroom);
     }
 
     if (errors.isNotEmpty) {

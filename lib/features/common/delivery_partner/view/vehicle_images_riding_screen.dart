@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
@@ -23,13 +24,13 @@ class _VehicleImagesRidingScreenState extends State<VehicleImagesRidingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Vehicle Images",
+        title: AppStrings.vehicleImages,
         // onBackTap: onBackPressed,
         buildCustomWidget: ()=> Padding(
           padding: const EdgeInsets.only(right: 16),
           child: Center(
             child: Text(
-              "Step-5/6",
+              "${AppStrings.stepLabel}5/6",
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
@@ -45,12 +46,12 @@ class _VehicleImagesRidingScreenState extends State<VehicleImagesRidingScreen> {
               GetBuilder<CommonMultipleImageSectionController>(
                 id: CommonMultipleImageSectionController.vehicleNumberPlateImageId,
                 builder: (ctrl) => CommonMultipleImageUploadSection(
-                  title: 'Upload Vehicle Number Plate Image',
+                  title: AppStrings.uploadVehicleNumberPlateImage,
                   maxImages: 1,
                   images: controller.vehicleNumberPlateImages,
                   onAddImage: () async {
                     multipleImageSectionController.addImages(
-                        label: 'Vehicle Number Plate Images',
+                        label: AppStrings.vehicleNumberPlateImages,
                         imageList: controller.vehicleNumberPlateImages,
                         updateId: CommonMultipleImageSectionController.vehicleNumberPlateImageId,
                         maxUploadImages: 1
@@ -71,13 +72,13 @@ class _VehicleImagesRidingScreenState extends State<VehicleImagesRidingScreen> {
               GetBuilder<CommonMultipleImageSectionController>(
                 id: CommonMultipleImageSectionController.vehicleRightSideImageId,
                 builder: (ctrl) => CommonMultipleImageUploadSection(
-                  title: 'Upload Vehicle Right Side Images',
+                  title: AppStrings.uploadVehicleRightSideImages,
                   minImages: 2,
                   maxImages: controller.maxVehicleImageUpload,
                   images: controller.vehicleRightSideImages,
                   onAddImage: () async {
                     multipleImageSectionController.addImages(
-                        label: 'Vehicle Right Side Images',
+                        label: AppStrings.vehicleRightSideImages,
                         imageList: controller.vehicleRightSideImages,
                         updateId: CommonMultipleImageSectionController.vehicleRightSideImageId,
                         maxUploadImages: controller.maxVehicleImageUpload
@@ -98,13 +99,13 @@ class _VehicleImagesRidingScreenState extends State<VehicleImagesRidingScreen> {
               GetBuilder<CommonMultipleImageSectionController>(
                 id: CommonMultipleImageSectionController.vehicleLeftSideImageId,
                 builder: (ctrl) => CommonMultipleImageUploadSection(
-                  title: 'Upload Vehicle Left Side Images',
+                  title: AppStrings.uploadVehicleLeftSideImages,
                   minImages: 2,
                   maxImages: controller.maxVehicleImageUpload,
                   images: controller.vehicleLeftSideImages,
                   onAddImage: () async {
                     multipleImageSectionController.addImages(
-                        label: 'Upload Vehicle Left Side Images',
+                        label: AppStrings.vehicleLeftSideImages,
                         imageList: controller.vehicleLeftSideImages,
                         updateId: CommonMultipleImageSectionController.vehicleLeftSideImageId,
                         maxUploadImages: controller.maxVehicleImageUpload
@@ -125,12 +126,12 @@ class _VehicleImagesRidingScreenState extends State<VehicleImagesRidingScreen> {
               GetBuilder<CommonMultipleImageSectionController>(
                 id: CommonMultipleImageSectionController.vehicleFrontImageId,
                 builder: (ctrl) => CommonMultipleImageUploadSection(
-                  title: 'Upload Vehicle Front and Back Images',
+                  title: AppStrings.uploadVehicleFrontImages,
                   maxImages: 1,
                   images: controller.vehicleFrontImages,
                   onAddImage: () async {
                     multipleImageSectionController.addImages(
-                        label: 'Vehicle Front and Back Images',
+                        label: AppStrings.vehicleFrontImages,
                         imageList: controller.vehicleFrontImages,
                         updateId: CommonMultipleImageSectionController.vehicleFrontImageId,
                         maxUploadImages: 1
@@ -151,12 +152,12 @@ class _VehicleImagesRidingScreenState extends State<VehicleImagesRidingScreen> {
               GetBuilder<CommonMultipleImageSectionController>(
                 id: CommonMultipleImageSectionController.vehicleBackImageId,
                 builder: (ctrl) => CommonMultipleImageUploadSection(
-                  title: 'Upload Vehicle Front and Back Images',
+                  title: AppStrings.uploadVehicleBackImages,
                   maxImages: 1,
                   images: controller.vehicleBackImages,
                   onAddImage: () async {
                     multipleImageSectionController.addImages(
-                        label: 'Vehicle Front and Back Images',
+                        label: AppStrings.vehicleBackImages,
                         imageList: controller.vehicleBackImages,
                         updateId: CommonMultipleImageSectionController.vehicleBackImageId,
                         maxUploadImages: 1
@@ -176,7 +177,7 @@ class _VehicleImagesRidingScreenState extends State<VehicleImagesRidingScreen> {
               CustomBtn(
                 title: controller.isRiderVehicleImagesLoading.value
                     ? null
-                    : 'Next',
+                    : AppStrings.nextButton,
                 onTap: ()=> controller.ridersOnboardingVehicleImagesApi(),
                 radius: 10.0,
                 bgColor: AppColors.primaryColor,

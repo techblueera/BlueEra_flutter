@@ -711,4 +711,256 @@ class AppStrings {
   static const addMoreQuestions = "addMoreQuestions";
 
 
+  static const gallery = "gallery";
+  static const galleryVariations = "galleryVariations";
+  static const uploadPayslip = "uploadPayslip";
+  static const enterBankDetails = "enterBankDetails";
+  static const enterAadhaarDetails = "enterAadhaarDetails";
+  static const visitBranch = "visitBranch";
+  static const similarProperties = "similarProperties";
+  static const happyCustomers = "happyCustomers";
+  static const services = "services";
+  static const partnerships = "partnerships";
+  static const ratings = "ratings";
+  static const customerReviews = "customerReviews";
+  static const highlight = "highlight";
+  static const addHighlight = "addHighlight";
+  static const companyDetails = "companyDetails";
+  static const companyUrl = "companyUrl";
+  static const noExpiringOffers = "noExpiringOffers";
+  static const website = "website";
+  static const addHighlights = "addHighlights";
+
+  /// Himanshu dev start localization
+  static const flatRoomTitle = "flatRoomTitle";
+  static const stepLabel = "stepLabel";
+  static const propertyNameTitle = "propertyNameTitle";
+  static const propertyNameHint = "propertyNameHint";
+  static const landmarkTitle = "landmarkTitle";
+  static const landmarkHint = "landmarkHint";
+  static const propertyLocationTitle = "propertyLocationTitle";
+  static const propertyLocationHint = "propertyLocationHint";
+  static const pincodeTitle = "pincodeTitle";
+  static const pincodeHint = "pincodeHint";
+  static const descriptionTitle = "descriptionTitle";
+  static const descriptionHint = "descriptionHint";
+  static const contactNumberTitle = "contactNumberTitle";
+  static const editLabel = "editLabel";
+  static const chargesTypeTitle = "chargesTypeTitle";
+  static const chargesTypeHint = "chargesTypeHint";
+  static const chargesAmountHint = "chargesAmountHint";
+  static const detailsTitle = "detailsTitle";
+  static const addMoreDetailsLabel = "addMoreDetailsLabel";
+  static const maxDetailsReached = "maxDetailsReached";
+  static const nextButton = "nextButton";
+  static const uploadRoadSideImages = "uploadRoadSideImages";
+  static const uploadRoomImages = "uploadRoomImages";
+  static const uploadKitchenImages = "uploadKitchenImages";
+  static const uploadBathroomImages = "uploadBathroomImages";
+  static const uploadOtherImages = "uploadOtherImages";
+  static const roadSideImagesLabel = "roadSideImagesLabel";
+  static const roomsImagesLabel = "roomsImagesLabel";
+  static const kitchenImagesLabel = "kitchenImagesLabel";
+  static const bathroomImagesLabel = "bathroomImagesLabel";
+  static const otherImagesLabel = "otherImagesLabel";
+  static const postNowButton = "postNowButton";
+  static const homeHighlightsTitle = "homeHighlightsTitle";
+  static const enterMobileNumberHint = "enterMobileNumberHint";
+  static const selectChargesTypeError = "selectChargesTypeError";
+  static const addMoreTitle = "addMoreTitle";
+  static const addHighlightsTitle = "addHighlightsTitle";
+  static const limitExceeded = "limitExceeded";
+  static const highlightLimitMessage = "highlightLimitMessage";
+  static const hintHighlightsExample = "hintHighlightsExample";
+
+  static const String homeLocation = 'homeLocation';
+  static const String details = 'details';
+  static const String homeImages = 'homeImages';
+  static const String propertyNameWithHouseNo = 'propertyNameWithHouseNo';
+  static const String egTajHotel = 'egTajHotel';
+  static const String contactNumber = 'contactNumber';
+  static const String nearByRailwayStation = 'nearByRailwayStation';
+  static const String egGomtinagarRailStation = 'egGomtinagarRailStation';
+  static const String nearByAirport = 'nearByAirport';
+  static const String egSubhasChandraAirport = 'egSubhasChandraAirport';
+  static const String nearByBusStand = 'nearByBusStand';
+  static const String egGomtinagarBusStand = 'egGomtinagarBusStand';
+  static const String nearByFamousPlace = 'nearByFamousPlace';
+  static const String egDurgaMandir = 'egDurgaMandir';
+  static const String howManyMaxPeople = 'howManyMaxPeople';
+  static const String adults = 'adults';
+  static const String children = 'children';
+  static const String howManyBeds = 'howManyBeds';
+  static const String eg2Beds = 'eg2Beds';
+  static const String egRs2000 = 'egRs2000';
+  static const String homeStayDescription = 'homeStayDescription';
+  static const String createViaBEai = 'createViaBEai';
+  static const String eg2BhkSwimming = 'eg2BhkSwimming';
+  static const String addRestrictions = 'addRestrictions';
+  static const String doYouAllowUnmarriedCouples = 'doYouAllowUnmarriedCouples';
+
+  static const String vehicleDetails = 'vehicleDetails';
+  static const String homeDetails = 'homeDetails';
+  static const String seats = 'seats';
+  static const String beds = 'beds';
+  static const String child = 'child';
+  static const String highlights = 'highlights';
+  static const String restrictions = 'restrictions';
+  static const String na = 'na';
+
+  static const String servicesAreEmpty = 'servicesAreEmpty';
+  static const String createYourService = 'createYourService';
+  static const String areYouSureDelete = 'areYouSureDelete';
+
+
+  static const String ownerDetails                 = 'ownerDetails';
+  static const String documentsCondition           = 'documentsCondition';
+  static const String rentalInformation            = 'rentalInformation';
+  static const String vehicleImages                = 'vehicleImages';
+  static const String ownerName                    = 'ownerName';
+  static const String egRahulSharma                = 'egRahulSharma';
+  static const String enterYourEmailAddress        = 'enterYourEmailAddress';
+  static const String egLucknowGomtiNagar          = 'egLucknowGomtiNagar';
+  static const String houseNoAndLandMark           = 'houseNoAndLandMark';
+  static const String egFlat21B                    = 'egFlat21B';
+  static const String registrationType             = 'registrationType';
+  static const String egPersonalCommercial         = 'egPersonalCommercial';
+  static const String vehicleType                  = 'vehicleType';
+  static const String egTwoThreeWheeler            = 'egTwoThreeWheeler';
+  static const String vehicleName                  = 'vehicleName';
+  static const String egSP125                      = 'egSP125';
+  static const String fuelType                     = 'fuelType';
+  static const String egPetrolDiesel               = 'egPetrolDiesel';
+  static const String vehicleNumber                = 'vehicleNumber';
+  static const String egWB5454                     = 'egWB5454';
+  static const String vehicleModelYearManufacturing= 'vehicleModelYearManufacturing';
+  static const String eg2020                       = 'eg2020';
+  static const String seatingCapacity              = 'seatingCapacity';
+  static const String eg10People                   = 'eg10People';
+  static const String loadCapacity                 = 'loadCapacity';
+  static const String kg                           = 'kg';
+  static const String ton                          = 'ton';
+  static const String eg100KG                      = 'eg100KG';
+  static const String rcNumber                     = 'rcNumber';
+  static const String egUP32AB12                   = 'egUP32AB12';
+  static const String uploadRcBothSide             = 'uploadRcBothSide';
+  static const String rcFront                      = 'rcFront';
+  static const String rcBack                       = 'rcBack';
+  static const String insuranceDocumentUpload      = 'insuranceDocumentUpload';
+  static const String pollutionCertificateUpload   = 'pollutionCertificateUpload';
+  static const String fitnessCertificateCommercial = 'fitnessCertificateCommercial';
+  static const String vehicleConditionDescription  = 'vehicleConditionDescription';
+  static const String egGoodCondition              = 'egGoodCondition';
+  static const String pickupLocation               = 'pickupLocation';
+  static const String egSubhasPalliGomtiNagar      = 'egSubhasPalliGomtiNagar';
+  static const String uploadVehicleNumberPlateImage= 'uploadVehicleNumberPlateImage';
+  static const String uploadVehicleRightSideImages = 'uploadVehicleRightSideImages';
+  static const String uploadVehicleLeftSideImages  = 'uploadVehicleLeftSideImages';
+  static const String uploadVehicleFrontImages = 'uploadVehicleFrontImages';
+  static const String uploadVehicleBackImages = 'uploadVehicleBackImages';
+
+  static const String noDescriptionsYet = 'noDescriptionsYet';
+  static const String selectDescription          = 'selectDescription';
+
+  static const String pleaseChooseChargesType   = 'pleaseChooseChargesType';
+  static const String highlightsIsRequired      = 'highlightsIsRequired';
+  static const String pleaseFillAllFieldsCorrectly = 'pleaseFillAllFieldsCorrectly';
+  static const String uploadAtLeast2RoadSide    = 'uploadAtLeast2RoadSide';
+  static const String uploadAtLeast4Room        = 'uploadAtLeast4Room';
+  static const String uploadAtLeast2Kitchen     = 'uploadAtLeast2Kitchen';
+  static const String uploadAtLeast2Bathroom    = 'uploadAtLeast2Bathroom';
+  static const String enterBedCountAndHighlights        = 'enterBedCountAndHighlights';
+  static const String homeDescriptionSuggestionsNotFound = 'homeDescriptionSuggestionsNotFound';
+
+  static const String pleaseSelectVehicleRegType   = 'pleaseSelectVehicleRegType';
+  static const String pleaseSelectVehicleType      = 'pleaseSelectVehicleType';
+  static const String pleaseSelectFuelType         = 'pleaseSelectFuelType';
+  static const String pleaseSelectRcFrontImage     = 'pleaseSelectRcFrontImage';
+  static const String pleaseSelectRcBackImage      = 'pleaseSelectRcBackImage';
+  static const String pleaseSelectInsuranceImage   = 'pleaseSelectInsuranceImage';
+  static const String pleaseSelectPucImage         = 'pleaseSelectPucImage';
+  static const String pleaseSelectFitnessCertImage = 'pleaseSelectFitnessCertImage';
+  static const String pleaseSelectNumberPlateImage = 'pleaseSelectNumberPlateImage';
+  static const String pleaseSelectRightSideImages  = 'pleaseSelectRightSideImages';
+  static const String pleaseSelectAtLeastTwoRight = 'pleaseSelectAtLeastTwoRight';
+  static const String pleaseSelectLeftSideImages   = 'pleaseSelectLeftSideImages';
+  static const String pleaseSelectAtLeastTwoLeft  = 'pleaseSelectAtLeastTwoLeft';
+  static const String pleaseSelectFrontImage       = 'pleaseSelectFrontImage';
+  static const String pleaseSelectBackImage        = 'pleaseSelectBackImage';
+
+  static const String addressAndLocation       = 'addressAndLocation';
+  static const String city                     = 'city';
+  static const String egKolkata                = 'egKolkata';
+  static const String state                    = 'state';
+  static const String egWestBengal             = 'egWestBengal';
+  static const String enableLiveLocation       = 'enableLiveLocation';
+  static const String allowLocationAccess      = 'allowLocationAccess';
+
+  static const String drivingVerification         = 'drivingVerification';
+  static const String drivingLicenceNumber        = 'drivingLicenceNumber';
+  static const String egDL0420110                 = 'egDL0420110';
+  static const String uploadDrivingLicenceBothSide= 'uploadDrivingLicenceBothSide';
+  static const String licenseFront                = 'licenseFront';
+  static const String licenseBack                 = 'licenseBack';
+
+  static const String personalIdentification    = 'personalIdentification';
+  static const String uploadYourLivePhoto       = 'uploadYourLivePhoto';
+  static const String minLabel                  = 'min-';
+  static const String images                    = 'images';
+  static const String aadharNumber              = 'aadharNumber';
+  static const String eg23333                   = 'eg23333';
+  static const String uploadAadharBothSide      = 'uploadAadharBothSide';
+  static const String aadharFront               = 'aadharFront';
+  static const String aadharBack                = 'aadharBack';
+  static const String panNumber                 = 'panNumber';
+  static const String egABCDE12                 = 'egABCDE12';
+  static const String uploadPan                 = 'uploadPan';
+
+  static const String personalInformation       = 'personalInformation';
+  static const String enterYourFullName         = 'enterYourFullName';
+  static const String pleaseEnterYourName       = 'pleaseEnterYourName';
+  static const String nameMustBeAtLeast6Chars   = 'nameMustBeAtLeast6Chars';
+  static const String nameMustNotExceed30Chars  = 'nameMustNotExceed30Chars';
+  static const String pleaseEnterValidMobileNo  = 'pleaseEnterValidMobileNo';
+
+  static const String vehicleNumberPlateImages        = 'vehicleNumberPlateImages';
+  static const String vehicleRightSideImages          = 'vehicleRightSideImages';
+  static const String vehicleLeftSideImages           = 'vehicleLeftSideImages';
+  static const String vehicleFrontImages          = 'vehicleFrontImages';
+  static const String vehicleBackImages          = 'vehicleBackImages';
+
+  static const String vehicleInformation           = 'vehicleInformation';
+  static const String acceptAll                    = 'acceptAll';
+  static const String and                          = 'and';
+
+  static const String pleaseSelectYourPhoto                = 'pleaseSelectYourPhoto';
+  static const String pleaseSelectAadharFrontImage         = 'pleaseSelectAadharFrontImage';
+  static const String pleaseSelectAadharBackImage          = 'pleaseSelectAadharBackImage';
+  static const String pleaseSelectPanCardImage             = 'pleaseSelectPanCardImage';
+  static const String pleaseSelectDlFrontImage             = 'pleaseSelectDlFrontImage';
+  static const String pleaseSelectDlBackImage              = 'pleaseSelectDlBackImage';
+  static const String pleaseAcceptTermsAndConditions       = 'pleaseAcceptTermsAndConditions';
+
+  static const String orderStatusUpdatedSuccessfully = 'orderStatusUpdatedSuccessfully';
+  static const String otpSuccessfullyVerified         = 'otpSuccessfullyVerified';
+  static const String comingSoon = 'comingSoon';
+  static const String noOrdersFound = 'noOrdersFound';
+
+  static const String orderNo                          = 'orderNo';
+  static const String pickUp                           = 'pickUp';
+  static const String dropLocation                     = 'dropLocation';
+  static const String fare                             = 'fare';
+  static const String review                           = 'review';
+  static const String reject                           = 'reject';
+  static const String accept                           = 'accept';
+  static const String deliveryOTP                      = 'deliveryOTP';
+  static const String otpIsNotCorrect                  = 'otpIsNotCorrect';
+  static const String contactNumberNotFound            = 'contactNumberNotFound';
+
+  static const String selectPhoto               = 'selectPhoto';
+  static const String errorSelectingImage       = 'errorSelectingImage';
+  static const String youCanOnlyUpload = 'youCanOnlyUpload';
+
 }
+
+

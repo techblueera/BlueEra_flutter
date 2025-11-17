@@ -85,7 +85,7 @@ class DeliverPartnerOrdersController extends GetxController {
       ResponseModel? response = await MakeOrderRepo().updateOrderStatusFromPt(params,orderId);
       if (response.isSuccess ) {
         commonSnackBar(
-            message: response.message ?? "Order Status Updated Successfully");
+            message: response.message ?? AppStrings.orderStatusUpdatedSuccessfully);
       return true;
       } else {
         commonSnackBar(
@@ -188,7 +188,7 @@ class DeliverPartnerOrdersController extends GetxController {
       if (response.isSuccess) {
         // OTP verified successfully
         otpVerifiedMap[orderId] = true;
-        commonSnackBar(message: response.message ?? 'OTP successfully verified.');
+        commonSnackBar(message: response.message ?? AppStrings.otpSuccessfullyVerified);
       } else {
         // OTP verification failed
         otpVerifiedMap[orderId] = false;
@@ -213,7 +213,7 @@ class DeliverPartnerOrdersController extends GetxController {
       ResponseModel? response = await MakeOrderRepo().updateOrderStatusFromAdminRepo(params, orderId);
       if (response.isSuccess ) {
         commonSnackBar(
-            message: response.message ?? "Order Status Updated Successfully");
+            message: response.message ??  AppStrings.orderStatusUpdatedSuccessfully);
       } else {
         commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);

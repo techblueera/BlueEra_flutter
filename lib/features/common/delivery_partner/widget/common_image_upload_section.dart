@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
@@ -37,8 +38,7 @@ class CommonImageUploadTile extends StatelessWidget {
           }else{
             Get.to(()=>
               ImageViewScreen(
-                subTitle: title,
-                appBarTitle: "Image Viewer",
+                appBarTitle: title,
                 imageUrls: [file.path],
                 initialIndex: 0,
               ),
@@ -106,7 +106,7 @@ class CommonImageUploadTile extends StatelessWidget {
 
   static Future<String?> pickImage({
     required BuildContext context,
-    String title = "Select Photo",
+    String title = AppStrings.selectPhoto,
   }) async {
     try {
       final String? selected = await SelectProfilePictureDialog.showLogoDialog(
@@ -120,7 +120,7 @@ class CommonImageUploadTile extends StatelessWidget {
         return null;
       }
     } catch (e) {
-        commonSnackBar(message: "Error selecting image: $e");
+        commonSnackBar(message: "${AppStrings.errorSelectingImage} $e");
       return null;
     }
   }

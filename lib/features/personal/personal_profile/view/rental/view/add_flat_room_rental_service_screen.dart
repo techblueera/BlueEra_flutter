@@ -1,9 +1,12 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/api/model/place_details.dart';
 import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -51,7 +54,7 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
 
   Future<void> showAddMoreDetailsDialog(BuildContext context) async {
     if(controller.arrMoreDetails.length==5){
-      commonSnackBar(message: 'You can\'t add more than five detail');
+      commonSnackBar(message: AppStrings.maxDetailsReached);
       return;
     }
 
@@ -78,14 +81,14 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
       },
       child: Scaffold(
         appBar: CommonBackAppBar(
-          title: "Flat/Room",
+          title: AppStrings.flatRoomTitle,
           onBackTap: controller.onBackPressed,
           buildCustomWidget: ()=>
             Obx(() => Padding(
               padding: const EdgeInsets.only(right: 16),
               child: Center(
                 child: Text(
-                  "Step-${controller.currentStep.value + 1}/2",
+                  "${AppStrings.stepLabel}${controller.currentStep.value + 1}/2",
                   style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
               ),
@@ -123,18 +126,18 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
                     textEditController: controller.propertyName,
                     inputLength: AppConstants.inputCharterLimit50,
                     keyBoardType: TextInputType.text,
-                    title: "Property Name With House No.",
-                    hintText: "E.g. Taj Hotel...",
+                    title: AppStrings.propertyNameTitle,
+                    hintText: AppStrings.propertyNameHint,
                     isValidate: true,
                   ),
                   SizedBox(height: SizeConfig.paddingM),
                   CommonTextField(
                     textEditController: controller.landmark,
-                    title: 'Land Mark',
+                    title: AppStrings.landmarkTitle,
                     fontSize: SizeConfig.small,
                     fontWeight: FontWeight.w400,
                     titleColor: AppColors.mainTextColor,
-                    hintText: "E.g: Gomti Nagar, Durgabari...",
+                    hintText: AppStrings.landmarkHint,
                     keyBoardType: TextInputType.text,
                     isValidate: true,
                     inputLength: AppConstants.inputCharterLimit30,
@@ -145,8 +148,8 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
                       Expanded(
                         child: CommonLocationSearchField(
                           controller: controller.location,
-                          title: "Property Location",
-                          hintText: "E.g. Lucknow, Gomti Nagar...",
+                          title: AppStrings.propertyLocationTitle,
+                          hintText: AppStrings.propertyLocationHint,
                           onSelected: (placeId, lat, lng, address) async {
                             print("PlaceId: $placeId Selected: $address → ($lat, $lng)");
                             controller.location.text = address;
@@ -201,24 +204,24 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
                   SizedBox(height: SizeConfig.paddingM),
                   CommonTextField(
                     textEditController: controller.pinCode,
-                    title: 'Pincode',
+                    title: AppStrings.pincodeTitle,
                     fontSize: SizeConfig.small,
                     fontWeight: FontWeight.w400,
                     titleColor: AppColors.mainTextColor,
-                    hintText: "E.g. 700045....",
+                    hintText: AppStrings.pincodeHint,
                     keyBoardType: TextInputType.number,
                     validator: ValidationMethod().validatePin,
                   ),
                   SizedBox(height: SizeConfig.paddingM),
                   CommonTextField(
                     textEditController: controller.description,
-                    title: 'Property Description',
+                    title: AppStrings.descriptionTitle,
                     fontSize: SizeConfig.small,
                     fontWeight: FontWeight.w400,
                     titleColor: AppColors.mainTextColor,
                     maxLine: 4,
                     inputLength: AppConstants.inputCharterLimit200,
-                    hintText: "E.g. 2BHK with swimming pool...",
+                    hintText: AppStrings.descriptionHint ,
                     keyBoardType: TextInputType.text,
                     validator: ValidationMethod().validatePropertyDescription,
                   ),
@@ -227,7 +230,7 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       CustomText(
-                        "Contact Number",
+                        AppStrings.contactNumberTitle,
                         fontSize: SizeConfig.small,
                         fontWeight: FontWeight.w400,
                         color: AppColors.mainTextColor,
@@ -238,15 +241,15 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
 
                           if (result == true) {
                             //  OTP successfully verified
-                            print("OTP verification successful");
+                            log("OTP verification successful");
                           } else {
                             // Either cancelled or verification failed
-                            print("OTP verification failed or cancelled");
+                            log("OTP verification failed or cancelled");
                           }
 
                         },
                         child: CustomText(
-                          "Edit",
+                          AppStrings.editLabel,
                           fontSize: SizeConfig.small,
                           fontWeight: FontWeight.w600,
                           color: AppColors.primaryColor,
@@ -278,17 +281,22 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
                       Expanded(
                         child: CommonTextField(
                           textEditController: controller.mobile,
-                          inputLength: 10,
-                          maxLength: 10,
+                          inputLength: AppConstants.inputCharterLimit10,
                           keyBoardType: TextInputType.number,
                           regularExpression:
                           RegularExpressionUtils.digitsPattern,
                           validationType: ValidationTypeEnum.pNumber,
-                          hintText: langController.tr('Enter your mobile number'),
+                          hintText: AppStrings.enterMobileNumberHint,
                           hintStyle: TextStyle(
                             fontSize: langController.selectedCode.value == 'ta' ? 12 : 14,
                           ),
                           onTapOutsideTrue: false,
+                          validator: (value) {
+                            if (value?.length != 10) {
+                              return AppStrings.pleaseEnterValidMobileNo;
+                            }
+                            return null;
+                          },
                         ),
                       ),
                     ],
@@ -296,7 +304,7 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
                   SizedBox(height: SizeConfig.paddingM),
 
                   CustomText(
-                    'Charges Type',
+                    AppStrings.chargesTypeTitle,
                     fontSize: SizeConfig.medium,
                     color: AppColors.mainTextColor,
                     fontWeight: FontWeight.w400,
@@ -310,7 +318,7 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
                               .where((e) => e != ChargesTypes.KM)
                               .toList(),
                           selectedValue: controller.selectedChargesTypes.value,
-                          hintText: "E.g. Hourly..",
+                          hintText: AppStrings.chargesTypeHint,
                           displayValue: (item) => item.label,
                           onChanged: (val) {
                             if (val != null) {
@@ -319,7 +327,7 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
                           },
                             validator: (value){
                               if(value==null){
-                                return 'Please select charges type.';
+                                return AppStrings.selectChargesTypeError;
                               }
                               return null;
                             }
@@ -333,7 +341,7 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
                           fontSize: SizeConfig.small,
                           fontWeight: FontWeight.w400,
                           titleColor: AppColors.mainTextColor,
-                          hintText: "E.g. ₹2000",
+                          hintText: AppStrings.chargesAmountHint,
                           keyBoardType: TextInputType.number,
                           isValidate: true,
                           inputLength: AppConstants.inputCharterLimit10,
@@ -358,7 +366,7 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
                     _buildAddMoreDetails(),
                     SizedBox(height: SizeConfig.paddingL),
                     CustomBtn(
-                      title: 'Next',
+                      title: AppStrings.nextButton,
                       onTap: controller.nextStep,
                       radius: 10.0,
                       bgColor: AppColors.primaryColor,
@@ -388,7 +396,7 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
 
                     if(index==0)...[
                       CustomText(
-                        'Details',
+                        AppStrings.detailsTitle,
                         fontSize: SizeConfig.medium,
                         fontWeight: FontWeight.w500,
                         color: AppColors.mainTextColor,
@@ -478,7 +486,7 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               CustomText(
-                'Add More Details',
+                AppStrings.addMoreDetailsLabel,
                 fontSize: SizeConfig.medium,
                 fontWeight: FontWeight.bold,
                 color: AppColors.mainTextColor,
@@ -519,13 +527,13 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
           GetBuilder<CommonMultipleImageSectionController>(
             id: CommonMultipleImageSectionController.roadSideImageId,
             builder: (ctrl) => CommonMultipleImageUploadSection(
-              title: "Upload Road Side Images",
+              title: AppStrings.uploadRoadSideImages,
               minImages: 2,
               maxImages: controller.maxUploadImages,
               images: controller.roadSideImage,
               onAddImage: () {
                 multipleImageSectionController.addImages(
-                  label: 'Road Side Images',
+                  label: AppStrings.roadSideImagesLabel,
                   imageList: controller.roadSideImage,
                   updateId: CommonMultipleImageSectionController.roadSideImageId,
                   maxUploadImages: controller.maxUploadImages,
@@ -546,13 +554,13 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
           GetBuilder<CommonMultipleImageSectionController>(
             id: CommonMultipleImageSectionController.roomImageId,
             builder: (ctrl) => CommonMultipleImageUploadSection(
-              title: "Upload Rooms Images",
+              title: AppStrings.uploadRoomImages,
               minImages: 4,
               maxImages: controller.maxUploadImages,
               images: controller.roomImages,
               onAddImage: () async {
                 multipleImageSectionController.addImages(
-                  label: 'Rooms Images',
+                  label: AppStrings.roomsImagesLabel,
                   imageList: controller.roomImages,
                   updateId: CommonMultipleImageSectionController.roomImageId,
                   maxUploadImages: controller.maxUploadImages,
@@ -573,13 +581,13 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
           GetBuilder<CommonMultipleImageSectionController>(
             id: CommonMultipleImageSectionController.kitchenImageId,
             builder: (ctrl) => CommonMultipleImageUploadSection(
-              title: "Upload Kitchen Images",
+              title: AppStrings.uploadKitchenImages,
               minImages: 2,
               maxImages: controller.maxUploadImages,
               images: controller.kitchenImage,
               onAddImage: () async {
                 multipleImageSectionController.addImages(
-                  label: 'Kitchen Images',
+                  label: AppStrings.kitchenImagesLabel,
                   imageList: controller.kitchenImage,
                   updateId: CommonMultipleImageSectionController.kitchenImageId,
                   maxUploadImages: controller.maxUploadImages,
@@ -600,13 +608,13 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
           GetBuilder<CommonMultipleImageSectionController>(
             id: CommonMultipleImageSectionController.bathroomImageId,
             builder: (ctrl) => CommonMultipleImageUploadSection(
-              title: "Upload Bathroom Images",
+              title: AppStrings.uploadBathroomImages,
               minImages: 2,
               maxImages: controller.maxUploadImages,
               images: controller.bathroomImage,
               onAddImage: () async {
                 multipleImageSectionController.addImages(
-                  label: 'Bathroom Images',
+                  label: AppStrings.bathroomImagesLabel,
                   imageList: controller.bathroomImage,
                   updateId: CommonMultipleImageSectionController.bathroomImageId,
                   maxUploadImages: controller.maxUploadImages
@@ -627,12 +635,12 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
           GetBuilder<CommonMultipleImageSectionController>(
             id: CommonMultipleImageSectionController.otherImageId,
             builder: (ctrl) => CommonMultipleImageUploadSection(
-              title: "Upload Other Images(Optional)",
+              title: AppStrings.uploadOtherImages,
               maxImages: controller.maxUploadImages,
               images: controller.otherImage,
               onAddImage: () async {
                 multipleImageSectionController.addImages(
-                  label: 'Other Images',
+                  label: AppStrings.otherImagesLabel,
                   imageList: controller.otherImage,
                   updateId: CommonMultipleImageSectionController.otherImageId,
                   maxUploadImages: controller.maxUploadImages,
@@ -652,7 +660,7 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
           CustomBtn(
             title: controller.isAddFlatRentalServiceLoading.value
                 ? null
-                : 'Post Now',
+                : AppStrings.postNowButton,
             onTap: controller.addFlatRentalServiceApi,
             radius: 10.0,
             bgColor: AppColors.primaryColor,
@@ -669,7 +677,7 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
         Row(
           children: [
             CustomText(
-              'Home Highlights',
+              AppStrings.homeHighlightsTitle,
               fontSize: SizeConfig.small,
               fontWeight: FontWeight.w400,
               color: AppColors.mainTextColor,
@@ -691,7 +699,7 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
                         imagePath: AppIconAssets.addBlueIcon,
                       ),
                       CustomText(
-                        'Add More',
+                        AppStrings.addMoreTitle,
                         fontSize: SizeConfig.large,
                         fontWeight: FontWeight.w400,
                         color: AppColors.primaryColor,
@@ -781,7 +789,7 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
                 FittedBox(
                   fit: BoxFit.scaleDown,
                   child: CustomText(
-                    'Add Highlights',
+                    AppStrings.addHighlightsTitle,
                     fontSize: SizeConfig.large,
                     fontWeight: FontWeight.w400,
                     color: AppColors.mainTextColor,
