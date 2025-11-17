@@ -136,7 +136,7 @@ class _ChannelScreenState extends State<ChannelScreen>
       // Trigger pagination based on current tab
       switch (_tabController.index) {
         case 0:
-          // Trigger pagination for FeedScreen
+        // Trigger pagination for FeedScreen
           final feedController = Get.find<FeedController>();
           final postType = _getPostType();
           if (feedController.isTargetHasMoreData.isTrue &&
@@ -199,9 +199,12 @@ class _ChannelScreenState extends State<ChannelScreen>
           length: _tabsList.length,
           child: NestedScrollView(
             controller: _scrollController,
-            headerSliverBuilder: (context, innerBoxIsScrolled) => [
+            headerSliverBuilder: (context, innerBoxIsScrolled) =>
+            [
               SliverToBoxAdapter(
-                child: _buildHeaderSection(),
+                child: Obx(() {
+                  return _buildHeaderSection();
+                }),
               ),
               SliverPersistentHeader(
                 pinned: true,
@@ -224,50 +227,60 @@ class _ChannelScreenState extends State<ChannelScreen>
   void _showFullTextDialog(BuildContext context, String text) {
     showDialog(
       context: context,
-      builder: (_) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: Container(
-          padding: EdgeInsets.all(SizeConfig.size20),
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.7,
-            maxWidth: MediaQuery.of(context).size.width * 0.9,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Flexible(
-                child: SingleChildScrollView(
-                  child: HighlightText(
-                      text: text,
-                      style: TextStyle(
-                        color: AppColors.mainTextColor,
-                        fontSize: SizeConfig.large,
-                        fontWeight: FontWeight.w400,
-                        fontFamily: AppConstants.OpenSans,
-                      )),
-                ),
+      builder: (_) =>
+          Dialog(
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12)),
+            child: Container(
+              padding: EdgeInsets.all(SizeConfig.size20),
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery
+                    .of(context)
+                    .size
+                    .height * 0.7,
+                maxWidth: MediaQuery
+                    .of(context)
+                    .size
+                    .width * 0.9,
               ),
-              SizedBox(height: SizeConfig.size8),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: Navigator.of(context).pop,
-                  child: const CustomText(AppStrings.close,
-                      fontWeight: FontWeight.w600),
-                ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Flexible(
+                    child: SingleChildScrollView(
+                      child: HighlightText(
+                          text: text,
+                          style: TextStyle(
+                            color: AppColors.mainTextColor,
+                            fontSize: SizeConfig.large,
+                            fontWeight: FontWeight.w400,
+                            fontFamily: AppConstants.OpenSans,
+                          )),
+                    ),
+                  ),
+                  SizedBox(height: SizeConfig.size8),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: Navigator
+                          .of(context)
+                          .pop,
+                      child: const CustomText(AppStrings.close,
+                          fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
     );
   }
 
   Widget _buildHeaderSection() {
     ChannelData? channelData = channelController.channelData.value;
     String channelLogo = channelData?.logoUrl ?? "";
-    controller.isFollow.value=channelData?.isFollowing??false;
+    controller.isFollow.value = channelData?.isFollowing ?? false;
     return Padding(
       padding: EdgeInsets.symmetric(
           horizontal: SizeConfig.size15, vertical: SizeConfig.size15),
@@ -277,6 +290,7 @@ class _ChannelScreenState extends State<ChannelScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
+
             /// ==== Banner ====
             Container(
               height: 180,
@@ -294,9 +308,9 @@ class _ChannelScreenState extends State<ChannelScreen>
                       ),
                       image: ((channelLogo.isNotEmpty))
                           ? DecorationImage(
-                              image: NetworkImage(channelLogo),
-                              fit: BoxFit.cover,
-                            )
+                        image: NetworkImage(channelLogo),
+                        fit: BoxFit.cover,
+                      )
                           : null,
                     ),
                   ),
@@ -316,11 +330,11 @@ class _ChannelScreenState extends State<ChannelScreen>
                         backgroundColor: AppColors.primaryColor,
                         child: (channelLogo.isEmpty)
                             ? CustomText(
-                                getInitials(channelData?.name),
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: SizeConfig.size20,
-                              )
+                          getInitials(channelData?.name),
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: SizeConfig.size20,
+                        )
                             : null,
                       ),
                     ),
@@ -342,11 +356,11 @@ class _ChannelScreenState extends State<ChannelScreen>
                                   if (controller.isFollow.value) {
                                     await controller
                                         .unChannelFollowUserController(
-                                            candidateResumeId: channelData?.id);
+                                        candidateResumeId: channelData?.id);
                                   } else {
                                     await controller
                                         .followChannelUserController(
-                                            candidateResumeId: channelData?.id);
+                                        candidateResumeId: channelData?.id);
                                   }
                                 }
                               },
@@ -382,50 +396,50 @@ class _ChannelScreenState extends State<ChannelScreen>
                           }),
                         (!isOwnChannel)
                             ? _buildVisitingChannelPopUpMenu(onReport: () {
-                                showReportDialog(
-                                    context: context,
-                                    onConfirm: (value) {
-                                      channelController.reportChannel(
-                                          channelId: channelId, reason: value);
-                                    });
-                              }, onMute: () {
-                                showMuteUnMuteDialog();
-                              }, onOwnership: () {
-                                navigateToProfileSection();
-                              })
+                          showReportDialog(
+                              context: context,
+                              onConfirm: (value) {
+                                channelController.reportChannel(
+                                    channelId: channelId, reason: value);
+                              });
+                        }, onMute: () {
+                          showMuteUnMuteDialog();
+                        }, onOwnership: () {
+                          navigateToProfileSection();
+                        })
                             : _buildOwnChannelPopUpMenu(
-                                onChannelEdit: () async {
-                                  final result = await Navigator.pushNamed(
-                                    context,
-                                    RouteHelper.getManageChannelScreenRoute(),
-                                    arguments: {
-                                      ApiKeys.channelData:
-                                          channelController.channelData.value,
-                                    },
-                                  );
-                                  if (result == true) {
-                                    channelController.getChannelDetails(
-                                        channelOrUserId: isOwnChannel
-                                            ? widget.authorId
-                                            : widget.channelId);
-                                  }
-                                },
-                                // onchannelSetting: () {
-                                //   Get.to(() => ChannelSettingScreen());
-                                // },
-                                onAddVideo: () {
-                                  showVideosPickerDialog(context,
-                                      type: PostVia.channel);
-                                },
-                                onAddProduct: () {
-                                  Get.toNamed(
-                                      RouteHelper
-                                          .getAddUpdateProductScreenRoute(),
-                                      arguments: {
-                                        ApiKeys.channelId: widget.channelId,
-                                      });
-                                },
-                              ),
+                          onChannelEdit: () async {
+                            final result = await Navigator.pushNamed(
+                              context,
+                              RouteHelper.getManageChannelScreenRoute(),
+                              arguments: {
+                                ApiKeys.channelData:
+                                channelController.channelData.value,
+                              },
+                            );
+                            if (result == true) {
+                              channelController.getChannelDetails(
+                                  channelOrUserId: isOwnChannel
+                                      ? widget.authorId
+                                      : widget.channelId);
+                            }
+                          },
+                          // onchannelSetting: () {
+                          //   Get.to(() => ChannelSettingScreen());
+                          // },
+                          onAddVideo: () {
+                            showVideosPickerDialog(context,
+                                type: PostVia.channel);
+                          },
+                          onAddProduct: () {
+                            Get.toNamed(
+                                RouteHelper
+                                    .getAddUpdateProductScreenRoute(),
+                                arguments: {
+                                  ApiKeys.channelId: widget.channelId,
+                                });
+                          },
+                        ),
                       ],
                     ),
                   ),
@@ -457,7 +471,7 @@ class _ChannelScreenState extends State<ChannelScreen>
                               vertical: SizeConfig.size4),
                           decoration: BoxDecoration(
                             border:
-                                Border.all(color: AppColors.secondaryTextColor),
+                            Border.all(color: AppColors.secondaryTextColor),
                             borderRadius: BorderRadius.circular(15),
                           ),
                           child: CustomText(
@@ -489,13 +503,14 @@ class _ChannelScreenState extends State<ChannelScreen>
                   //  _divider(),
                   InkWell(
                     onTap: () {
-                      Get.to(() => ChannelJoinedUserScreen(
-                          userID: channelData?.id ?? ""));
+                      Get.to(() =>
+                          ChannelJoinedUserScreen(
+                              userID: channelData?.id ?? ""));
                     },
                     child: statBlock(
                         AppStrings.members,
                         channelController.channelStats.value?.followers
-                                .toString() ??
+                            .toString() ??
                             "0"),
                   ),
                 ],
@@ -504,14 +519,16 @@ class _ChannelScreenState extends State<ChannelScreen>
             const SizedBox(height: 10),
 
             /// ==== Bio ====
-            if ((channelData?.bio ?? '').trim().isNotEmpty)
+            if ((channelData?.bio ?? '')
+                .trim()
+                .isNotEmpty)
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
                 child: RichText(
                   text: TextSpan(children: [
                     TextSpan(
                       text: channelData?.bio != null &&
-                              (channelData?.bio.isNotEmpty ?? false)
+                          (channelData?.bio.isNotEmpty ?? false)
                           ? (channelData?.bio ?? "")
                           : AppStrings.noBioAvailable.tr,
                       style: TextStyle(
@@ -565,18 +582,20 @@ class _ChannelScreenState extends State<ChannelScreen>
                     elevation: 0,
                     foregroundColor: isSelected ? Colors.white : Colors.black54,
                     backgroundColor:
-                        isSelected ? AppColors.primaryColor : Colors.white,
+                    isSelected ? AppColors.primaryColor : Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(SizeConfig.size10),
                       side: BorderSide(
                           color:
-                              isSelected ? Colors.blue.shade100 : Colors.grey),
+                          isSelected ? Colors.blue.shade100 : Colors.grey),
                     ),
                     padding: EdgeInsets.symmetric(horizontal: SizeConfig.size2),
                     minimumSize: Size(SizeConfig.size80, SizeConfig.size34),
                     maximumSize: Size(SizeConfig.size90, SizeConfig.size34),
                   ),
-                  child: Text('${_tabsList[index].getTitle(context).tr}'),
+                  child: Text('${_tabsList[index]
+                      .getTitle(context)
+                      .tr}'),
                 ),
               );
             },
@@ -613,7 +632,7 @@ class _ChannelScreenState extends State<ChannelScreen>
                   decoration: TextDecoration.underline,
                   color: isSelected ? AppColors.primaryColor : Colors.black54,
                   decorationColor:
-                      isSelected ? AppColors.primaryColor : Colors.black54,
+                  isSelected ? AppColors.primaryColor : Colors.black54,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -650,7 +669,7 @@ class _ChannelScreenState extends State<ChannelScreen>
           channelId: channelId,
           providerType: ProductServiceProviderType.channel,
         );
-      // return ProductScreen();
+    // return ProductScreen();
     }
   }
 
@@ -672,10 +691,9 @@ class _ChannelScreenState extends State<ChannelScreen>
     );
   }
 
-  Widget _buildVisitingChannelPopUpMenu(
-      {VoidCallback? onReport,
-      VoidCallback? onMute,
-      VoidCallback? onOwnership}) {
+  Widget _buildVisitingChannelPopUpMenu({VoidCallback? onReport,
+    VoidCallback? onMute,
+    VoidCallback? onOwnership}) {
     return PopupMenuButton<VisitingChannelMenuAction>(
       padding: EdgeInsets.zero,
       color: AppColors.white,
@@ -698,16 +716,17 @@ class _ChannelScreenState extends State<ChannelScreen>
             break;
         }
       },
-      itemBuilder: (context) => [
+      itemBuilder: (context) =>
+      [
         PopupMenuItem(
           value: VisitingChannelMenuAction.reportChannel,
           child:
-              CustomText(AppStrings.reportChannel, fontWeight: FontWeight.w600),
+          CustomText(AppStrings.reportChannel, fontWeight: FontWeight.w600),
         ),
         PopupMenuItem(
           value: VisitingChannelMenuAction.muteAccount,
           child:
-              CustomText(AppStrings.muteAccount, fontWeight: FontWeight.w600),
+          CustomText(AppStrings.muteAccount, fontWeight: FontWeight.w600),
         ),
         PopupMenuItem(
           value: VisitingChannelMenuAction.ownership,
@@ -753,7 +772,8 @@ class _ChannelScreenState extends State<ChannelScreen>
             break;
         }
       },
-      itemBuilder: (context) => [
+      itemBuilder: (context) =>
+      [
         PopupMenuItem(
           value: OwnChannelMenuAction.channelEdit,
           child: CustomText(AppStrings.channelEdit),
@@ -795,7 +815,7 @@ class _ChannelScreenState extends State<ChannelScreen>
         return Dialog(
           backgroundColor: AppColors.white,
           shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: ConstrainedBox(
@@ -811,7 +831,7 @@ class _ChannelScreenState extends State<ChannelScreen>
                         width: double.infinity,
                         alignment: Alignment.center,
                         padding:
-                            EdgeInsets.symmetric(vertical: SizeConfig.size10),
+                        EdgeInsets.symmetric(vertical: SizeConfig.size10),
                         child: CustomText(
                           AppStrings.reportChannel,
                           fontSize: SizeConfig.large,
@@ -883,7 +903,8 @@ class _ChannelScreenState extends State<ChannelScreen>
       if (authorId == userId) {
         Get.to(() => PersonalProfileSetupNewScreen());
       } else {
-        Get.to(() => NewVisitProfileScreen(
+        Get.to(() =>
+            NewVisitProfileScreen(
               authorId: authorId,
               screenFromName: AppConstants.feedScreen,
             ));
@@ -892,7 +913,8 @@ class _ChannelScreenState extends State<ChannelScreen>
       if (authorId == userId) {
         Get.to(() => BusinessOwnProfileScreen());
       } else {
-        Get.to(() => VisitBusinessProfileNew(
+        Get.to(() =>
+            VisitBusinessProfileNew(
               businessId: authorId,
               screenName: AppConstants.feedScreen,
             ));
@@ -914,8 +936,8 @@ class _CustomTabBarDelegate extends SliverPersistentHeaderDelegate {
   double get maxExtent => hasFilters ? 90.0 : 50.0;
 
   @override
-  Widget build(
-      BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(BuildContext context, double shrinkOffset,
+      bool overlapsContent) {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 12),
       padding: EdgeInsets.only(top: 8),

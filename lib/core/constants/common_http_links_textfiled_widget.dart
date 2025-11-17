@@ -111,6 +111,7 @@ class _HttpsTextFieldState extends State<HttpsTextField> {
     );
   }
   bool isValidYouTubeUrl(String url) {
+
     final RegExp youTubeRegex = RegExp(
       r'^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)[\w\-]{11}(&\S*)?$',
       caseSensitive: false,

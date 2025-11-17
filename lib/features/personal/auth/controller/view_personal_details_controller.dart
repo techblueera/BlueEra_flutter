@@ -148,6 +148,7 @@ class ViewPersonalDetailsController extends GetxController {
   RxBool isSocialEdit = false.obs, isSelfVideo = false.obs;
   RxString isYoutubeEdit = "".obs;
   RxString youtube = ''.obs;
+  RxString verifiedEmail = ''.obs;
   RxString twitter = ''.obs;
   RxString linkedin = ''.obs;
   RxString instagram = ''.obs;
@@ -239,6 +240,12 @@ class ViewPersonalDetailsController extends GetxController {
               totalFields > 0 ? completedFields / totalFields : 0.0;
 
           myProfileCompletionPercent.value = percent;
+        }
+        if(personalProfileDetails
+            .value
+            .user
+            ?.emailVerified??false){
+          verifiedEmail.value=personalProfileDetails.value.user?.email ?? "";
         }
 
         ///SET SOCIAL DATA LINK...

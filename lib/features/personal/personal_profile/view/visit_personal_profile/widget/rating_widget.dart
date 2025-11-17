@@ -146,19 +146,24 @@ class _RatingSummaryWidgetState extends State<RatingSummaryWidget> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => RateAndReviewBottomSheet(
-        businessId: widget.businessId,
-        reviewFor: AppConstants.business,
-      ),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: RateAndReviewBottomSheet(
+            businessId: widget.businessId,
+            reviewFor: AppConstants.business,
+          ),
+        );
+      },
     );
-
-    if (result == true) {
-
-    }
-  }}
+  }
 
 
-  class RateAndReviewBottomSheet extends StatefulWidget {
+}
+
+class RateAndReviewBottomSheet extends StatefulWidget {
   final String businessId;
   final String reviewFor; // 'business' or 'individual'
 
@@ -183,159 +188,151 @@ class _RateAndReviewBottomSheetState extends State<RateAndReviewBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return CommonDraggableBottomSheet(
-      initialChildSize: 0.46,
-      minChildSize: 0.3,
-      maxChildSize: 0.9,
-
-      builder: (scrollController) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
+    return Container(
+      color: AppColors.white,
+      child: SafeArea(
+        child: SingleChildScrollView(
+          // controller: scrollController,
+          padding: EdgeInsets.symmetric(
+            horizontal: SizeConfig.size20,
+            vertical: SizeConfig.size18,
           ),
-          child: SingleChildScrollView(
-            controller: scrollController,
-            padding: EdgeInsets.symmetric(
-              horizontal: SizeConfig.size20,
-              vertical: SizeConfig.size6,
-            ),
-            child: Form(
-              key: _formKey,
-              autovalidateMode: _autoValidate,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: CustomText(
-                      "Rate and Review",
-                      fontWeight: FontWeight.w700,
-                      fontSize: SizeConfig.size18,
-                    ),
+          child: Form(
+            key: _formKey,
+            autovalidateMode: _autoValidate,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: CustomText(
+                    "Rate and Review",
+                    fontWeight: FontWeight.w700,
+                    fontSize: SizeConfig.size18,
                   ),
-                  SizedBox(height: SizeConfig.size20),
+                ),
+                SizedBox(height: SizeConfig.size20),
 
-                  // ⭐ Star rating
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: List.generate(5, (index) {
-                        return GestureDetector(
-                          onTap: () {
+                // ⭐ Star rating
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: List.generate(5, (index) {
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            selectedRating = index + 1;
+                          });
+                        },
+                        child: LocalAssets(
+                          imagePath: index < selectedRating
+                              ? AppIconAssets.fill_star
+                              : AppIconAssets.empty_star,
+                        ),
+                      );
+                    }),
+                  ),
+                ),
+                SizedBox(height: SizeConfig.size20),
+
+                // 💬 Review input
+                CommonTextField(
+                  textEditController: _reviewController,
+                  inputLength: 250,
+                  keyBoardType: TextInputType.multiline,
+                  title: "Write Your Review (Optional)",
+                  titleColor: AppColors.grayText,
+                  maxLine: 5,
+                  hintText:
+                  'E.g. "Great service, quick response, highly recommended!"',
+                  autovalidateMode: _autoValidate,
+                  validator: (value) {
+                    if (selectedRating == 0) {
+                      return 'Please select a rating';
+                    }
+                    return null;
+                  },
+                ),
+
+                // SizedBox(height: SizeConfig.size20),
+                //
+                // // 📎 Upload section (optional)
+                // CustomText(
+                //   "Share Image or Video (Optional)",
+                //   fontSize: SizeConfig.size13,
+                //   color: AppColors.grayText,
+                // ),
+                // SizedBox(height: SizeConfig.size10),
+                // GestureDetector(
+                //   onTap: () {
+                //     // TODO: Handle upload
+                //   },
+                //   child: Container(
+                //     padding: EdgeInsets.all(SizeConfig.size14),
+                //     decoration: BoxDecoration(
+                //       border: Border.all(color: AppColors.greyE5),
+                //       borderRadius: BorderRadius.circular(SizeConfig.size10),
+                //     ),
+                //     child: Row(
+                //       mainAxisAlignment: MainAxisAlignment.center,
+                //       children: [
+                //         Image.asset(
+                //           'assets/diwali_card/upload.png',
+                //           color: AppColors.secondaryTextColor,
+                //         ),
+                //         SizedBox(width: SizeConfig.size10),
+                //         CustomText(
+                //           "Upload Image or Video",
+                //           color: AppColors.grayText,
+                //           fontSize: SizeConfig.size14,
+                //         ),
+                //       ],
+                //     ),
+                //   ),
+                // ),
+
+                SizedBox(height: SizeConfig.size40),
+
+                // 🔘 Buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: CustomBtn(
+                        title: "Cancel",
+                        onTap: () => Navigator.pop(context),
+                        bgColor: AppColors.white,
+                        textColor: AppColors.primaryColor,
+                        borderColor: AppColors.primaryColor,
+                      ),
+                    ),
+                    SizedBox(width: SizeConfig.size12),
+                    Expanded(
+                      child: CustomBtn(
+                        title: "Submit",
+                        isLoading: _isSubmitting,
+                        bgColor: AppColors.primaryColor,
+                        onTap: _isSubmitting
+                            ? null
+                            : () {
+                          if (_formKey.currentState!.validate()) {
+                            _submitFeedback(widget.reviewFor);
+                          } else {
                             setState(() {
-                              selectedRating = index + 1;
+                              _autoValidate = AutovalidateMode.always;
                             });
-                          },
-                          child: LocalAssets(
-                            imagePath: index < selectedRating
-                                ? AppIconAssets.fill_star
-                                : AppIconAssets.empty_star,
-                          ),
-                        );
-                      }),
+                          }
+                        },
+                      ),
                     ),
-                  ),
-                  SizedBox(height: SizeConfig.size20),
-
-                  // 💬 Review input
-                  CommonTextField(
-                    textEditController: _reviewController,
-                    inputLength: 250,
-                    keyBoardType: TextInputType.multiline,
-                    title: "Write Your Review (Optional)",
-                    titleColor: AppColors.grayText,
-                    maxLine: 5,
-                    hintText:
-                    'E.g. "Great service, quick response, highly recommended!"',
-                    autovalidateMode: _autoValidate,
-                    validator: (value) {
-                      if (selectedRating == 0) {
-                        return 'Please select a rating';
-                      }
-                      return null;
-                    },
-                  ),
-
-                  // SizedBox(height: SizeConfig.size20),
-                  //
-                  // // 📎 Upload section (optional)
-                  // CustomText(
-                  //   "Share Image or Video (Optional)",
-                  //   fontSize: SizeConfig.size13,
-                  //   color: AppColors.grayText,
-                  // ),
-                  // SizedBox(height: SizeConfig.size10),
-                  // GestureDetector(
-                  //   onTap: () {
-                  //     // TODO: Handle upload
-                  //   },
-                  //   child: Container(
-                  //     padding: EdgeInsets.all(SizeConfig.size14),
-                  //     decoration: BoxDecoration(
-                  //       border: Border.all(color: AppColors.greyE5),
-                  //       borderRadius: BorderRadius.circular(SizeConfig.size10),
-                  //     ),
-                  //     child: Row(
-                  //       mainAxisAlignment: MainAxisAlignment.center,
-                  //       children: [
-                  //         Image.asset(
-                  //           'assets/diwali_card/upload.png',
-                  //           color: AppColors.secondaryTextColor,
-                  //         ),
-                  //         SizedBox(width: SizeConfig.size10),
-                  //         CustomText(
-                  //           "Upload Image or Video",
-                  //           color: AppColors.grayText,
-                  //           fontSize: SizeConfig.size14,
-                  //         ),
-                  //       ],
-                  //     ),
-                  //   ),
-                  // ),
-
-                  SizedBox(height: SizeConfig.size40),
-
-                  // 🔘 Buttons
-                  Row(
-                    children: [
-                      Expanded(
-                        child: CustomBtn(
-                          title: "Cancel",
-                          onTap: () => Navigator.pop(context),
-                          bgColor: AppColors.white,
-                          textColor: AppColors.primaryColor,
-                          borderColor: AppColors.primaryColor,
-                        ),
-                      ),
-                      SizedBox(width: SizeConfig.size12),
-                      Expanded(
-                        child: CustomBtn(
-                          title: "Submit",
-                          isLoading: _isSubmitting,
-                          bgColor: AppColors.primaryColor,
-                          onTap: _isSubmitting
-                              ? null
-                              : () {
-                            if (_formKey.currentState!.validate()) {
-                              _submitFeedback(widget.reviewFor);
-                            } else {
-                              setState(() {
-                                _autoValidate = AutovalidateMode.always;
-                              });
-                            }
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: SizeConfig.size10),
-                ],
-              ),
+                  ],
+                ),
+                SizedBox(height: SizeConfig.size10),
+              ],
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
@@ -345,7 +342,6 @@ class _RateAndReviewBottomSheetState extends State<RateAndReviewBottomSheet> {
       commonSnackBar(message: "Please select a rating");
       return;
     }
-
     setState(() {
       _isSubmitting = true;
     });

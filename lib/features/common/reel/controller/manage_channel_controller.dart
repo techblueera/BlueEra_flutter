@@ -8,6 +8,8 @@ import 'package:BlueEra/features/common/reel/models/create_channel_model.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:get/get.dart';
 
+import '../../../personal/auth/controller/view_personal_details_controller.dart';
+
 
 class ManageChannelController extends GetxController {
   ApiResponse createChannelResponse = ApiResponse.initial('Initial');
@@ -34,6 +36,8 @@ class ManageChannelController extends GetxController {
         );
 
        await socialLinks(id: createChannelModel.data.id, reqData: socialLinkReqData);
+        final viewProfileController = Get.find<ViewPersonalDetailsController>();
+        viewProfileController.viewPersonalProfile();
       } else {
         createChannelResponse = ApiResponse.error('error');
         commonSnackBar(
@@ -60,6 +64,8 @@ class ManageChannelController extends GetxController {
 
       if (response.isSuccess) {
         socialLinksResponse = ApiResponse.complete(response);
+        final viewProfileController = Get.find<ViewPersonalDetailsController>();
+        viewProfileController.viewPersonalProfile();
         Get.back();
       } else {
         socialLinksResponse = ApiResponse.error('error');
@@ -100,36 +106,5 @@ class ManageChannelController extends GetxController {
   }
 
   ///UPDATE CHANNEL...
-  Future<void> updateChannel({
-    required Map<String, dynamic> reqData,
-    List<Map<String, String>>? socialLinkReqData,
-  }) async {
-    try {
-      if (channelId.isEmpty) {
-        commonSnackBar(message: "Channel ID not found");
-        return;
-      }
 
-      ResponseModel response = await ChannelRepo().updateChannel(
-        channelId: channelId,
-        bodyRequest: reqData,
-      );
-
-      if (response.isSuccess) {
-        updateChannelResponse = ApiResponse.complete(response);
-        commonSnackBar(
-            message: response.message ?? "Channel updated successfully");
-
-        await socialLinksUpdate(id: channelId, reqData: socialLinkReqData);
-
-      } else {
-        updateChannelResponse = ApiResponse.error('error');
-        commonSnackBar(
-            message: response.message ?? AppStrings.somethingWentWrong);
-      }
-    } catch (e) {
-      updateChannelResponse = ApiResponse.error('error');
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-    }
-  }
 }

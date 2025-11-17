@@ -23,6 +23,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 
+import '../../controller/channel_controller.dart';
+
 class ManageChannelScreen extends StatefulWidget {
   const ManageChannelScreen({super.key});
 
@@ -556,7 +558,9 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
       // return;
       try {
         if (_channelData != null) {
-          await manageChannelController.updateChannel(
+
+          ChannelController channelController = Get.put(ChannelController());
+          await channelController.updateChannel(
               reqData: requestData, socialLinkReqData: socialLinkRequestData);
 
         } else {

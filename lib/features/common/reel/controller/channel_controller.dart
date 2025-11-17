@@ -13,6 +13,8 @@ import 'package:BlueEra/features/personal/personal_profile/view/inventory/repo/i
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../personal/auth/controller/view_personal_details_controller.dart';
+
 class ChannelController extends GetxController{
   ApiResponse followUnFollowChannelResponse = ApiResponse.initial('Initial');
   ApiResponse viewChannelResponse = ApiResponse.initial('Initial');
@@ -24,7 +26,8 @@ class ChannelController extends GetxController{
   ApiResponse muteUnMuteChannelResponse = ApiResponse.initial('Initial');
   Rx<ApiResponse> ownChannelProductsResponse =
       ApiResponse.initial('Initial').obs;
-
+  ApiResponse socialLinksResponse = ApiResponse.initial('Initial');
+  ApiResponse updateChannelResponse = ApiResponse.initial('Initial');
   Rx<ChannelData?> channelData =  Rx<ChannelData?>(null);
   Rx<ChannelStats?> channelStats =  Rx<ChannelStats?>(null);
   RxBool isLoading = true.obs;
@@ -89,7 +92,66 @@ class ChannelController extends GetxController{
       await launchUrl(uri, mode: LaunchMode.inAppWebView);
     }
   }
+  Future<void> updateChannel({
+    required Map<String, dynamic> reqData,
+    List<Map<String, String>>? socialLinkReqData,
+  }) async {
+    try {
+      if (channelId.isEmpty) {
+        commonSnackBar(message: "Channel ID not found");
+        return;
+      }
 
+      ResponseModel response = await ChannelRepo().updateChannel(
+        channelId: channelId,
+        bodyRequest: reqData,
+      );
+
+      if (response.isSuccess) {
+        updateChannelResponse = ApiResponse.complete(response);
+        commonSnackBar(
+            message: response.message ?? "Channel updated successfully");
+
+        await socialLinksUpdate(id: channelId, reqData: socialLinkReqData);
+        final viewProfileController = Get.find<ViewPersonalDetailsController>();
+        viewProfileController.viewPersonalProfile();
+
+
+      } else {
+        updateChannelResponse = ApiResponse.error('error');
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      updateChannelResponse = ApiResponse.error('error');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+  }
+  Future<void> socialLinksUpdate(
+      {required String id, required List<Map<String, String>>? reqData}) async {
+    if (reqData == null || reqData.isEmpty) {
+      Get.back(result: true);
+      return;
+    }
+
+    try {
+      channelId = id;
+      ResponseModel response =
+      await ChannelRepo().updateSocialLinks(bodyRequest: reqData);
+
+      if (response.isSuccess) {
+        socialLinksResponse = ApiResponse.complete(response);
+        Get.back();
+      } else {
+        socialLinksResponse = ApiResponse.error('error');
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      socialLinksResponse = ApiResponse.error('error');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+  }
   ///GET CHANNEL DETAILS...
   Future<void> getChannelDetails({required String channelOrUserId}) async {
     try {

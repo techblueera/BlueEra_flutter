@@ -28,6 +28,7 @@ class NewProfileHeaderWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     return Container(
       margin: EdgeInsets.all(SizeConfig.size8),
       decoration: BoxDecoration(

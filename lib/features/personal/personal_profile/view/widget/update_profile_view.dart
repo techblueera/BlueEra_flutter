@@ -330,6 +330,9 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                 textEditController: nameController,
                                 validationType: ValidationTypeEnum.name,
                                 autovalidateMode: _autoValidate,
+                                onChange: (val) {
+                                  filedValidation();
+                                },
                                 validator: (String? value) {
                                   if (value == null || value.isEmpty) {
                                     return AppStrings.pleaseEnterName.tr;
@@ -462,6 +465,20 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                 textEditController: emailController,
                                 validationType: ValidationTypeEnum.email,
                                 onChange: (val) {
+                                  if(viewProfileController.verifiedEmail.value==val){
+                                    viewProfileController
+                                        .personalProfileDetails
+                                        .value
+                                        .user
+                                        ?.emailVerified=true;
+                                  }else{
+                                    viewProfileController
+                                        .personalProfileDetails
+                                        .value
+                                        .user
+                                        ?.emailVerified=false;
+                                  }
+
                                   filedValidation();
                                 },
                                 sIcon: (viewProfileController
@@ -1276,17 +1293,22 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
 
   filedValidation() {
     bool isValid = true;
+    if (nameController.text.isEmpty||nameController.text.trim().length < 6||nameController.text.trim().length > 30) isValid = false;
+
 
     if (personalCreateProfileController.isImageUpdated.value) isValid = true;
     if (locationController.text.isEmpty) isValid = false;
+    if (ValidationMethod.validateEmail(emailController.text)!=null) isValid = false;
     if (emailController.text.isEmpty) isValid = false;
-    if (educationController.text.isEmpty) isValid = false;
+    if (educationController.text.isEmpty||educationController.text.trim().length < 2||educationController.text.trim().length > 16) isValid = false;
+
     if (personalCreateProfileController.selectedProfession.value ==
             AppConstants.Others &&
         professionOthersController.text.isEmpty) isValid = false;
     if ((personalCreateProfileController.selectedProfession.value ==
             PRIVATE_JOB) &&
         sectorTextController.text.isEmpty) isValid = false;
+    if (addBio.text.isEmpty||addBio.text.length<50) isValid = false;
 
     setState(() {});
     return isValid;

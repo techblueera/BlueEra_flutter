@@ -760,6 +760,7 @@ class _PersonalProfileSetupNewScreenState
                     top: 140,
                     child: Row(
                       children: [
+
                         GestureDetector(
                           onTap: () {
                             if (viewProfileController.personalProfileDetails
@@ -938,7 +939,9 @@ class _PersonalProfileSetupNewScreenState
                 child: Row(
                   // mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    StatBlock(
+                    StatBlock(callback: (){
+                      _tabController?.animateTo(1);
+                    },
                       count: viewProfileController.postsCount.value.toString(),
                       label: AppStrings.post,
                     ),
