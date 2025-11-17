@@ -53,13 +53,13 @@ Future<void> addBio(Map<String, dynamic> params) async {
       addBioToEducationList(params[ApiKeys.bio]);
       Get.back();
       Future.delayed(const Duration(milliseconds: 100), () {
-        commonSnackBar(message: "Bio added");
+        commonSnackBar(message: AppStrings.bioAdded);
       });
     } else {
       commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
     }
   } catch (e) {
-    commonSnackBar(message: "Failed to add bio");
+    commonSnackBar(message:AppStrings.bioAddFailed);
   }
 }
 
@@ -70,29 +70,15 @@ Future<void> updateBio(Map<String, dynamic> params) async {
       addBioToEducationList(params[ApiKeys.bio]);
       Get.back();
       Future.delayed(const Duration(milliseconds: 100), () {
-        commonSnackBar(message: "Bio updated");
+        commonSnackBar(message: AppStrings.bioUpdated);
       });
     } else {
-      commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
+      commonSnackBar(message: res.message ?? AppStrings.bioUpdateFailed);
     }
   } catch (e) {
-    commonSnackBar(message: "Failed to update bio");
+    commonSnackBar(message:AppStrings.bioUpdateFailed);
   }
 }
-
-
-  
-
-  // Future<void> fetchUserBio() async {
-  //   final res = await ResumeRepo().fetchUserBio(params: {});
-  //   final data = res.response?.data;
-  //   print("data🔥🔥: $data");
-  //   String? fetched = data != null ? (data['bio'] as String?) : null;
-  //   educationList.clear();
-  //   if (fetched != null && fetched.trim().isNotEmpty) {
-  //     educationList.add({'title': fetched.trim()});
-  //   }
-  // }
 
   Future<void> deleteBio() async {
     try {
@@ -100,12 +86,12 @@ Future<void> updateBio(Map<String, dynamic> params) async {
       if (res.isSuccess) {
         educationList.clear();
          clearBioFields();
-        commonSnackBar(message: "Bio deleted");
+        commonSnackBar(message: AppStrings.bioDeleted);
       } else {
-        commonSnackBar(message: res.message ?? "Failed to delete bio");
+        commonSnackBar(message: res.message ??AppStrings.bioDeleteFailed);
       }
     } catch (e) {
-      commonSnackBar(message: "Error deleting bio");
+      commonSnackBar(message:AppStrings.bioDeleteError);
     }
   }
 }

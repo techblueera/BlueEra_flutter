@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/resume/controller/bio_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -36,7 +37,7 @@ class _AddBioScreenState extends State<AddBioScreen> {
   Widget build(BuildContext context) {
     final isEdit = widget.initialBio != null;
     return Scaffold(
-      appBar: CommonBackAppBar(title: isEdit ? "Edit Bio" : "Add Bio"),
+      appBar: CommonBackAppBar(title: isEdit ?AppStrings.editBio : AppStrings.addBio),
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.all(SizeConfig.paddingM),
@@ -54,14 +55,14 @@ class _AddBioScreenState extends State<AddBioScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     CustomText(
-                      "Bio",
+                      AppStrings.bio,
                       color: AppColors.black,
                       fontWeight: FontWeight.w600,
                       fontSize: SizeConfig.small,
                     ),
                     SizedBox(height: SizeConfig.size10),
                     CommonTextField(
-                      hintText: "Dedicated and motivated professional with strong problem-solving skills and a passion for continuous learning.",
+                      hintText: AppStrings.defaultBioDescription,
                       fontSize: SizeConfig.large,
                       textEditController: controller.bioController,
                       maxLine: 5,
@@ -96,7 +97,7 @@ class _AddBioScreenState extends State<AddBioScreen> {
                             }
                           }
                         : null,
-                    title: isEdit ? "Update" : "Save",
+                    title: isEdit ? AppStrings.update : AppStrings.save,
                     isValidate: controller.bio.value.isNotEmpty &&
                         controller.bio.value.length <= controller.maxLength,
                   )),

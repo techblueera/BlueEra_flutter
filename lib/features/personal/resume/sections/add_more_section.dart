@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/resume/controller/add_more_controller.dart';
 import 'package:BlueEra/features/personal/resume/controller/additional_info_controller.dart';
@@ -43,7 +44,7 @@ class _AddMoreSectionState extends State<AddMoreSection> {
         Obx(() {
           final items = additionalInfoController.additionalInfoList;
           return ResumeProfileSectionCard(
-            title: "Additional Information",
+            title: AppStrings.addAdditionalInformation,
             items: items.toList(),
             onAddPressed: items.isEmpty
                 ? () {
@@ -81,7 +82,7 @@ class _AddMoreSectionState extends State<AddMoreSection> {
         Obx(() {
           final items = ngoController.entityList;
           return ResumeProfileSectionCard(
-            title: "NGO / Student Organisations",
+            title: AppStrings.ngoStudentOrganisations,
             items: items.toList(),
             onAddPressed: () {
               Navigator.push(
@@ -93,7 +94,6 @@ class _AddMoreSectionState extends State<AddMoreSection> {
               final data = items[index];
               final id = data['_id'] as String?;
               if (id == null) {
-                print("Error: NGO ID not found for editing");
                 return;
               }
               Navigator.push(
@@ -107,7 +107,6 @@ class _AddMoreSectionState extends State<AddMoreSection> {
               final data = items[index];
               final id = data['_id'] as String?;
               if (id == null) {
-                print("Error: NGO ID not found for deletion");
                 return;
               }
               showConfirmDeleteDialog(context, () async {
@@ -122,7 +121,7 @@ class _AddMoreSectionState extends State<AddMoreSection> {
         Obx(() {
           final items = patentController.entityList;
           return ResumeProfileSectionCard(
-            title: "Patents",
+            title: AppStrings.patents,
             items: items.toList(),
             onAddPressed: () {
               Navigator.push(
@@ -136,7 +135,6 @@ class _AddMoreSectionState extends State<AddMoreSection> {
               final data = items[index];
               final id = data['_id'] as String?;
               if (id == null) {
-                print("Error: Patent ID not found for editing");
                 return;
               }
               Navigator.push(
@@ -151,7 +149,6 @@ class _AddMoreSectionState extends State<AddMoreSection> {
               final data = items[index];
               final id = data['_id'] as String?;
               if (id == null) {
-                print("Error: Patent ID not found for deletion");
                 return;
               }
               showConfirmDeleteDialog(context, () async {

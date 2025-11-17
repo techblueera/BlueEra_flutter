@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -25,7 +26,7 @@ class _SkillsResumeScreenState extends State<SkillsResumeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Add Skills",
+        title: AppStrings.addSkills,
       ),
       body: SafeArea(
         child: Padding(
@@ -36,7 +37,7 @@ class _SkillsResumeScreenState extends State<SkillsResumeScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CustomText(
-                    "Skills",
+                    AppStrings.skills,
                     color: AppColors.black1A,
                     fontSize: SizeConfig.small,
                     fontWeight: FontWeight.w400,
@@ -48,7 +49,7 @@ class _SkillsResumeScreenState extends State<SkillsResumeScreen> {
                     children: [
                       Expanded(
                         child: CommonTextField(
-                          hintText: "Enter skill name",
+                          hintText: AppStrings.enterSkillName,
                           textEditController: controller.skillController,
                           isValidate: false,
                         ),
@@ -59,7 +60,7 @@ class _SkillsResumeScreenState extends State<SkillsResumeScreen> {
                           controller
                               .addSkill(controller.skillController.text.trim());
                         },
-                        title: "Add",
+                        title: AppStrings.add,
                         isValidate: true,
                         width: 80,
                       ),
@@ -91,7 +92,7 @@ class _SkillsResumeScreenState extends State<SkillsResumeScreen> {
                                 await controller.saveSkills();
                               }
                             : null,
-                        title: "Save",
+                        title: AppStrings.save,
                         isValidate: controller.isValidate.value,
                       )),
                 ],

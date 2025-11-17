@@ -33,11 +33,6 @@ class HobbiesController extends GetxController {
     super.onClose();
   }
 
-  // void validateForm() {
-  //   isAddHobbyValidate.value = hobbyController.text.isNotEmpty &&
-  //       descriptionController.text.isNotEmpty;
-  //   isValidate.value = hobbies.isNotEmpty;
-  // }
   void validateForm() {
     isAddHobbyValidate.value = hobbyController.text.isNotEmpty &&
         descriptionController.text.isNotEmpty;
@@ -63,47 +58,17 @@ class HobbiesController extends GetxController {
         isAddHobbyValidate.value = false;
         validateForm();
       } else {
-        commonSnackBar(message: "This hobby already exists");
+        commonSnackBar(message: AppStrings.hobbyAlreadyExists);
       }
     }
   }
 
-  // void removeHobby(int index) {
-  //   if (index >= 0 && index < hobbies.length) {
-  //     hobbies.removeAt(index);
-  //     validateForm();
-  //   }
-  // }
   void removeHobbyByName(String name) {
     hobbies.removeWhere(
         (hobby) => hobby["name"]?.toLowerCase() == name.toLowerCase());
     validateForm();
   }
 
-  // Future<void> saveHobbies() async {
-  //   try {
-  //     final params = {
-  //       "hobbies": hobbies.map((hobby) => {
-  //         "name": hobby["name"],
-  //         "description": hobby["description"]
-  //       }).toList()
-  //     };
-  //
-  //     final res = await ResumeRepo().postHobbies(params: params);
-  //     if (res.isSuccess) {
-  //       addHobbiesResponse = ApiResponse.complete(res);
-  //       await fetchHobbies(); // Update the hobbies list
-  //       Get.back();
-  //       commonSnackBar(message: "Hobbies added successfully");
-  //     } else {
-  //       addHobbiesResponse = ApiResponse.error(res.message ?? 'Failed to add hobbies');
-  //       commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
-  //     }
-  //   } catch (e) {
-  //     addHobbiesResponse = ApiResponse.error('Addition failed');
-  //     commonSnackBar(message: AppStrings.somethingWentWrong);
-  //   }
-  // }
   Future<void> saveHobbies() async {
     try {
       final params = {
@@ -115,11 +80,6 @@ class HobbiesController extends GetxController {
                 })
             .toList()
       };
-
-      // Debug log to check the data being sent
-      print("Sending hobbies data: $params");
-      print('Sending hobbies to backend: ${params.toString()}');
-
       final res = await ResumeRepo().postHobbies(params: params);
       if (res.isSuccess) {
         addHobbiesResponse = ApiResponse.complete(res);
@@ -139,48 +99,18 @@ class HobbiesController extends GetxController {
 
         await getResumeController.getMyResume();
         Get.back();
-        commonSnackBar(message: "Hobbies added successfully");
+        commonSnackBar(message: AppStrings.hobbiesAddedSuccess);
       } else {
         addHobbiesResponse =
-            ApiResponse.error(res.message ?? 'Failed to add hobbies');
+            ApiResponse.error(res.message ?? AppStrings.hobbiesAddFailed);
         commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
       print("Error in saveHobbies: $e"); // Debug log
-      addHobbiesResponse = ApiResponse.error('Addition failed');
+      addHobbiesResponse = ApiResponse.error(AppStrings.hobbiesAddFailed.tr);
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
   }
-
-  // Future<void> fetchHobbies() async {
-  //   try {
-  //     final res = await ResumeRepo().getHobbies();
-  //     if (res.isSuccess) {
-  //       fetchHobbiesResponse = ApiResponse.complete(res);
-  //       final data = res.response?.data;
-  //       hobbies.clear();
-
-  //       if (data != null && data['hobbies'] != null) {
-  //         final hobbiesList = data['hobbies'] as List;
-  //         for (var hobby in hobbiesList) {
-  //           hobbies.add({
-  //             "_id": hobby["_id"] ?? "",
-  //             "name": hobby["name"] ?? "",
-  //             "description": hobby["description"] ?? ""
-  //           });
-  //         }
-  //       }
-
-  //       validateForm();
-  //     } else {
-  //       fetchHobbiesResponse = ApiResponse.error(res.message ?? 'Failed to fetch hobbies');
-  //       commonSnackBar(message: res.message ?? "Failed to load hobbies");
-  //     }
-  //   } catch (e) {
-  //     fetchHobbiesResponse = ApiResponse.error('Failed to fetch hobbies');
-  //     commonSnackBar(message: "Failed to load hobbies");
-  //   }
-  // }
 
   Future<void> deleteHobby(String hobbyId) async {
     try {
@@ -202,15 +132,15 @@ class HobbiesController extends GetxController {
         }
 
         validateForm();
-        commonSnackBar(message: "Hobby deleted successfully");
+        commonSnackBar(message:AppStrings.hobbyDeletedSuccess);
       } else {
         deleteHobbyResponse =
-            ApiResponse.error(res.message ?? 'Failed to delete hobby');
-        commonSnackBar(message: res.message ?? "Failed to delete hobby");
+            ApiResponse.error(res.message ?? AppStrings.hobbyDeleteFailed.tr);
+        commonSnackBar(message: res.message ?? AppStrings.hobbyDeleteFailed);
       }
     } catch (e) {
-      deleteHobbyResponse = ApiResponse.error('Deletion failed');
-      commonSnackBar(message: "Failed to delete hobby");
+      deleteHobbyResponse = ApiResponse.error(AppStrings.deletionFailed.tr);
+      commonSnackBar(message: AppStrings.hobbyDeleteFailed);
     }
   }
 }

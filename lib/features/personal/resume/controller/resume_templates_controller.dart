@@ -36,20 +36,11 @@ class ResumeTemplateController extends GetxController {
       commonSnackBar(message: "Failed to fetch templates");
     }
   }
-///DOWNLOAD TEMPLATE.
-  // Future<void> downloadTemplate(String name) async {
-  //   try {
-  //     await _resumeRepo.downloadResumeTemplate(name);
-  //   } catch (e) {
-  //     logs("GETTING ERRO ${e.toString()}");
-  //     commonSnackBar(message: AppStrings.somethingWentWrong);
-  //   }
-  // }
+
   Future<void> downloadTemplate(ResumeTemplateModel template) async {
   try {
     await _resumeRepo.downloadResumeTemplate( template.name);
   } catch (e) {
-    logs("GETTING ERROR ${e.toString()}");
     commonSnackBar(message: AppStrings.somethingWentWrong);
   }
 }

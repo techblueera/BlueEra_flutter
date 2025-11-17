@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/personal/resume/controller/additional_info_controller.dart';
@@ -75,8 +76,8 @@ class _AdditionalInfoScreenState extends State<AdditionalInfoScreen> {
     return Scaffold(
         appBar: CommonBackAppBar(
             title: widget.isEdit
-                ? "Edit Additional Info"
-                : "Add Additional Information"),
+                ? AppStrings.editAdditionalInfo
+                : AppStrings.addAdditionalInformation),
         body: Padding(
           padding: EdgeInsets.all(SizeConfig.paddingS),
           child: CommonCardWidget(
@@ -89,17 +90,17 @@ class _AdditionalInfoScreenState extends State<AdditionalInfoScreen> {
                     children: [
                       // Title Field
                       CommonTextField(
-                        title: "Title",
+                        title: AppStrings.title,
                         textEditController: controller.titleController,
-                        hintText: "E.g. Languages Known",
+                        hintText: AppStrings.langExample,
                       ),
                       SizedBox(height: SizeConfig.size18),
 
                       // Additional Description (maps to 'info')
-                      CustomText("Additional Description"),
+                      CustomText(AppStrings.additionalDescription),
                       SizedBox(height: SizeConfig.size10),
                       CommonTextField(
-                        hintText: "Describe this info",
+                        hintText:AppStrings.describeThisInfo,
                         textEditController: controller.infoController,
                         maxLine: 5,
                         maxLength: 200,
@@ -115,13 +116,11 @@ class _AdditionalInfoScreenState extends State<AdditionalInfoScreen> {
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     CustomText(
-                                      "Date",
+                                      AppStrings.date,
                                       fontSize: SizeConfig.medium,
                                       fontWeight: FontWeight.bold,
                                     ),
                                     InkWell(
-                                      // onTap: () =>
-                                      //     controller.isAddDate.value = false,
                                       onTap: () {
                                         controller.isAddDate.value = false;
                                         controller.selectedDay = null;
@@ -131,7 +130,7 @@ class _AdditionalInfoScreenState extends State<AdditionalInfoScreen> {
                                       },
 
                                       child: CustomText(
-                                        "Remove",
+                                        AppStrings.remove,
                                         color: AppColors.red,
                                       ),
                                     ),
@@ -160,7 +159,7 @@ class _AdditionalInfoScreenState extends State<AdditionalInfoScreen> {
                                       imagePath: AppIconAssets.addBlueIcon),
                                   SizedBox(width: SizeConfig.size4),
                                   CustomText(
-                                    "Add Date",
+                                    AppStrings.addDate,
                                     color: AppColors.primaryColor,
                                     fontSize: SizeConfig.large,
                                   ),
@@ -179,7 +178,7 @@ class _AdditionalInfoScreenState extends State<AdditionalInfoScreen> {
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     CustomText(
-                                      "Photo",
+                                      AppStrings.photo,
                                       fontSize: SizeConfig.medium,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -191,7 +190,7 @@ class _AdditionalInfoScreenState extends State<AdditionalInfoScreen> {
                                             () {}); // update UI for picker hide
                                       },
                                       child: CustomText(
-                                        "Remove",
+                                        AppStrings.remove,
                                         color: AppColors.red,
                                       ),
                                     ),
@@ -226,7 +225,7 @@ class _AdditionalInfoScreenState extends State<AdditionalInfoScreen> {
                                       imagePath: AppIconAssets.addBlueIcon),
                                   SizedBox(width: SizeConfig.size4),
                                   CustomText(
-                                    "Add Photo",
+                                    AppStrings.addPhoto,
                                     color: AppColors.primaryColor,
                                     fontSize: SizeConfig.large,
                                   ),
@@ -244,7 +243,7 @@ class _AdditionalInfoScreenState extends State<AdditionalInfoScreen> {
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     CustomText(
-                                      "More Details",
+                                      AppStrings.moreDetails,
                                       fontSize: SizeConfig.medium,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -256,7 +255,7 @@ class _AdditionalInfoScreenState extends State<AdditionalInfoScreen> {
                                         setState(() {});
                                       },
                                       child: CustomText(
-                                        "Remove",
+                                        AppStrings.remove,
                                         color: AppColors.red,
                                       ),
                                     ),
@@ -264,7 +263,7 @@ class _AdditionalInfoScreenState extends State<AdditionalInfoScreen> {
                                 ),
                                 SizedBox(height: SizeConfig.size10),
                                 CommonTextField(
-                                  hintText: "Type additional detail...",
+                                  hintText: AppStrings.moreDetails,
                                   textEditController:
                                       controller.moreTextController,
                                   maxLine: 3,
@@ -281,7 +280,7 @@ class _AdditionalInfoScreenState extends State<AdditionalInfoScreen> {
                                       imagePath: AppIconAssets.addBlueIcon),
                                   SizedBox(width: SizeConfig.size4),
                                   CustomText(
-                                    "Add More Text Box",
+                                    AppStrings.addMoreTextBox,
                                     color: AppColors.primaryColor,
                                     fontSize: SizeConfig.large,
                                   ),
@@ -292,7 +291,7 @@ class _AdditionalInfoScreenState extends State<AdditionalInfoScreen> {
 
                       // Save / Update Button
                       CustomBtn(
-                        title: widget.isEdit ? "Update" : "Save",
+                        title: widget.isEdit ? AppStrings.update : AppStrings.save,
                         isValidate: isValid,
                         onTap: isValid
                             ? () async {
@@ -310,22 +309,6 @@ class _AdditionalInfoScreenState extends State<AdditionalInfoScreen> {
                                   date = null;
                                 }
 
-                                // final additionalDesc = controller
-                                //         .isAddMoreTextBox.value
-                                //     ? controller.moreTextController.text.trim()
-                                //     : null;
-
-                                // final imagePath = controller.isAddPhoto.value
-                                //     ? controller.selectedImagePath
-                                //     : null;
-
-                                // final inputParams = {
-                                //   'title':
-                                //       controller.titleController.text.trim(),
-                                //   'info': controller.infoController.text.trim(),
-                                //   'photoURL': imagePath,
-                                //   'additionalDesc': additionalDesc,
-                                // };
                                 final additionalDesc = controller
                                         .isAddMoreTextBox.value
                                     ? controller.moreTextController.text.trim()

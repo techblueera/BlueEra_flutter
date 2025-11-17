@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/personal/resume/controller/current_job_controller.dart';
@@ -47,12 +48,6 @@ class _AddCurrentJobScreenState extends State<AddCurrentJobScreen> {
   @override
   void initState() {
     super.initState();
-
-    //   if (!widget.isEdit) {
-    //     controller.clearAllFields();
-    //   }else {
-    //   // no clear to preserve fields set before navigating
-    // }
     if (widget.isEdit && widget.jobData != null) {
       controller.setFieldsFromBackend(widget.jobData!);
     } else {
@@ -62,11 +57,10 @@ class _AddCurrentJobScreenState extends State<AddCurrentJobScreen> {
 
   @override
   Widget build(BuildContext context) {
-    SizeConfig.init(context);
 
     return Scaffold(
       appBar: CommonBackAppBar(
-          title: widget.isEdit ? "Edit Current Job" : "Add Current Job"),
+          title: widget.isEdit ? AppStrings.editCurrentJob : AppStrings.addCurrentJob),
       body: Padding(
         padding: EdgeInsets.all(SizeConfig.paddingM),
         child: SingleChildScrollView(
@@ -85,14 +79,14 @@ class _AddCurrentJobScreenState extends State<AddCurrentJobScreen> {
                   children: [
                     SizedBox(height: SizeConfig.size30),
                     CustomText(
-                      "Your Experience",
+                      AppStrings.yourExperience,
                       fontSize: SizeConfig.small,
                     ),
                     SizedBox(height: SizeConfig.size10),
                     Obx(() => CommonDropdown<String>(
                           items: controller.experienceOptions,
                           selectedValue: controller.selectedExperience.value,
-                          hintText: 'E.g. experienced',
+                          hintText: AppStrings.experienceHint,
                           onChanged: (val) {
                             controller.selectedExperience.value = val;
                             setState(() {});
@@ -102,14 +96,14 @@ class _AddCurrentJobScreenState extends State<AddCurrentJobScreen> {
                     SizedBox(height: SizeConfig.size24),
                     if (controller.selectedExperience.value != "Fresher") ...[
                       CustomText(
-                        "Job Mode",
+                        AppStrings.jobMode,
                         fontSize: SizeConfig.small,
                       ),
                       SizedBox(height: SizeConfig.size10),
                       Obx(() => CommonDropdown<String>(
                             items: controller.jobModeOptions,
                             selectedValue: controller.selectedJobMode.value,
-                            hintText: 'E.g. Full-Time',
+                            hintText: AppStrings.jobModeHint,
                             onChanged: (val) =>
                                 controller.selectedJobMode.value = val,
                             displayValue: (item) => item,
@@ -117,20 +111,20 @@ class _AddCurrentJobScreenState extends State<AddCurrentJobScreen> {
                       SizedBox(height: SizeConfig.size24),
                       CommonTextField(
                         fontSize: SizeConfig.small,
-                        title: "Current Company Name",
-                        hintText: 'E.g. BlueCS Limited',
+                        title: AppStrings.currentCompanyName,
+                        hintText: AppStrings.currentCompanyHint,
                         textEditController: controller.currentCompanyController,
                       ),
                       SizedBox(height: SizeConfig.size24),
                       CustomText(
-                        "Current You Are Working Here",
+                        AppStrings.currentlyWorking,
                         fontSize: SizeConfig.small,
                       ),
                       SizedBox(height: SizeConfig.size10),
                       Obx(() => CommonDropdown<String>(
                             items: controller.yesNoOptions,
                             selectedValue: controller.selectedCurrent.value,
-                            hintText: 'E.g. Yes',
+                            hintText:AppStrings.yesNoHint,
                             onChanged: (val) =>
                                 controller.selectedCurrent.value = val,
                             displayValue: (item) => item,
@@ -138,20 +132,20 @@ class _AddCurrentJobScreenState extends State<AddCurrentJobScreen> {
                       SizedBox(height: SizeConfig.size24),
                       CommonTextField(
                         fontSize: SizeConfig.small,
-                        title: "Designation",
-                        hintText: 'E.g., Software Engineer',
+                        title: AppStrings.designation,
+                        hintText: AppStrings.designationHint,
                         textEditController: controller.designationController,
                       ),
                       SizedBox(height: SizeConfig.size24),
                       CustomText(
-                        "Work Type",
+                        AppStrings.workType,
                         fontSize: SizeConfig.small,
                       ),
                       SizedBox(height: SizeConfig.size10),
                       Obx(() => CommonDropdown<String>(
                             items: controller.workTypeOptions,
                             selectedValue: controller.selectedWorkType.value,
-                            hintText: 'E.g., Remote',
+                            hintText: AppStrings.workTypeHint,
                             onChanged: (val) =>
                                 controller.selectedWorkType.value = val,
                             displayValue: (item) => item,
@@ -179,9 +173,9 @@ class _AddCurrentJobScreenState extends State<AddCurrentJobScreen> {
                         },
                         child: CommonTextField(
                           textEditController: controller.locationController,
-                          hintText: "E.g., Rajiv Chowk, Delhi",
+                          hintText: AppStrings.locationHint,
                           isValidate: false,
-                          title: "Location",
+                          title: AppStrings.location,
 
                           // onChange: (value) => controller.validateForm(),
                           readOnly: true,
@@ -190,7 +184,7 @@ class _AddCurrentJobScreenState extends State<AddCurrentJobScreen> {
                       ),
                       SizedBox(height: SizeConfig.size24),
                       CustomText(
-                        "Start Date",
+                        AppStrings.startDate,
                         fontSize: SizeConfig.small,
                       ),
                       SizedBox(height: SizeConfig.size10),
@@ -215,9 +209,9 @@ class _AddCurrentJobScreenState extends State<AddCurrentJobScreen> {
                     ],
                     CommonTextField(
                       fontSize: SizeConfig.small,
-                      title: "Description",
+                      title: AppStrings.description,
                       hintText:
-                          'Strong communication, teamwork, and analytical skills, with the ability to grasp new concepts quickly.',
+                      AppStrings.descriptionHint,
                       textEditController: controller.descriptionController,
                       maxLine: 4,
                     ),
@@ -276,7 +270,7 @@ class _AddCurrentJobScreenState extends State<AddCurrentJobScreen> {
                                   await controller
                                       .saveCurrentJob(params);
                                 },
-                                title: widget.isEdit ? "Update" : "Save",
+                                title: widget.isEdit ? AppStrings.update : AppStrings.save,
                                 isValidate:
                                     (controller.selectedExperience.value !=
                                             "Fresher")

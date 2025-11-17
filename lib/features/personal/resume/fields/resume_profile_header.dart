@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/personal/resume/controller/profile_pic_controller.dart';
@@ -21,16 +22,6 @@ class ResumeProfileHeader extends StatefulWidget {
 
 class _ResumeProfileHeaderState extends State<ResumeProfileHeader> {
   final controller = Get.find<ProfilePicController>();
-  @override
-  void initState() {
-    // apiCall();
-    super.initState();
-  }
-  //
-  // apiCall() async {
-  //   await controller.getMyResume();
-  // }
-
   @override
   Widget build(BuildContext context) {
     return Obx(() => CommonCardWidget(
@@ -54,7 +45,7 @@ class _ResumeProfileHeaderState extends State<ResumeProfileHeader> {
                         final newPath =
                             await SelectProfilePictureDialog.showLogoDialog(
                           context,
-                          "Edit Profile Picture",
+                              AppStrings.editProfilePicture,
                           isOnlyCamera: true,
                           isGallery: true,
                         );
@@ -86,14 +77,14 @@ class _ResumeProfileHeaderState extends State<ResumeProfileHeader> {
               ),
               SizedBox(height: SizeConfig.size12),
               CustomText(
-                "Profile Picture",
+                AppStrings.profilePicture,
                 fontSize: SizeConfig.medium,
                 fontWeight: FontWeight.w700,
                 color: AppColors.mainTextColor,
               ),
               SizedBox(height: SizeConfig.size4),
               CustomText(
-                "Upload your image for resume",
+                AppStrings.uploadImageForResume,
                 color: AppColors.grey9A,
                 fontWeight: FontWeight.w400,
                 fontSize: SizeConfig.small,

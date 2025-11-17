@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/model/get_resume_data_model.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/personal/resume/repo/resume_repo.dart';
 import 'package:flutter/material.dart';
@@ -75,37 +76,11 @@ class EducationController extends GetxController {
     validate();
   }
 
-  // Future<void> fetchEducationDetails() async {
-  //   final res = await ResumeRepo().fetchEducationDetails(params: {});
-  //   final data = res.response?.data;
-  //   educationList.clear();
-
-  //   if (data != null && data is List) {
-  //     for (final entry in data) {
-  //       if ((entry['highestQualification'] ?? '').toString().trim().isEmpty)
-  //         continue;
-
-  //       educationList.add({
-  //         'trailing':entry['schoolOrCollegeName'] ?? "",
-  //         'title':  entry['passingYear'] != null
-  //             ? "Passed Out: ${entry['passingYear']}"
-  //             : "",
-  //         'subtitle1': entry['highestQualification'] ?? "",
-  //         'subtitle2': entry['boardName'] ?? "",
-  //         'subtitle3': entry['percentage'] != null
-  //             ? "Percentage: ${entry['percentage']}"
-  //             : "",
-  //         '_id': entry['_id'] ?? "",
-  //       });
-  //     }
-  //   }
-  // }
 
   void setEducationListFromModel(List<Education>? education) {
     educationList.clear();
 
     if (education == null || education.isEmpty) {
-      print("No education entries found.");
       return;
     }
 
@@ -116,11 +91,9 @@ class EducationController extends GetxController {
               edu.schoolOrCollegeName!.trim().isNotEmpty);
 
       if (!hasData) {
-        print("Skipping incomplete education entry with id: ${edu.id}");
         continue;
       }
 
-      print("Adding education entry: ${edu.toJson()}");
 
       educationList.add({
         'title': edu.passingYear != null && edu.passingYear!.isNotEmpty
@@ -137,7 +110,6 @@ class EducationController extends GetxController {
     }
   }
   void setEditFieldsFromCard(Map<String, dynamic> item) {
-  print("Editing item: $item");
   editingId.value = item['_id'] ?? '';
 
   qualification.value = item['subtitle1'] ?? '';
@@ -169,39 +141,6 @@ class EducationController extends GetxController {
 }
 
 
-  // void setEditFieldsFromCard(Map<String, dynamic> item) {
-  //   print("Editing item: $item");
-  //   editingId.value = item['_id'] ?? '';
-  //   qualification.value = item['title'] ?? '';
-
-  //   schoolController.text = item['subtitle1'] ?? '';
-  //   boardController.text = item['subtitle2'] ?? '';
-
-  //   // Passing Year is in 'trailing' as "Passed Out: 2022"
-  //   if (item['trailing'] != null &&
-  //       item['trailing'].toString().contains("Passed Out:")) {
-  //     final rawYear =
-  //         item['trailing'].toString().replaceAll("Passed Out:", "").trim();
-  //     yearController.text = rawYear;
-  //     year.value = rawYear;
-  //     print("Parsed Year: ${yearController.text}");
-  //   } else {
-  //     yearController.text = '';
-  //     year.value = '';
-  //   }
-  //   if (item['subtitle3'] != null &&
-  //       item['subtitle3'].toString().contains("Percentage:")) {
-  //     final rawScore =
-  //         item['subtitle3'].toString().replaceAll("Percentage:", "").trim();
-  //     scoreController.text = rawScore;
-  //     score.value = rawScore;
-  //     print("Parsed Score: ${scoreController.text}");
-  //   } else {
-  //     scoreController.text = '';
-  //     score.value = '';
-  //   }
-  // }
-
   Future<void> deleteEducation(String id) async {
     final res = await ResumeRepo().deleteEducation(id: id);
     if (res.isSuccess) {
@@ -210,9 +149,9 @@ class EducationController extends GetxController {
         clearAll();
       }
       editingId.value = null;
-      commonSnackBar(message: "Education deleted");
+      commonSnackBar(message: AppStrings.educationDeleted);
     } else {
-      commonSnackBar(message: res.message ?? "Failed to delete education");
+      commonSnackBar(message: res.message ?? AppStrings.educationDeleteFailed);
     }
   }
 
@@ -226,9 +165,9 @@ class EducationController extends GetxController {
         // await fetchEducationDetails();
         clearAll();
         Get.back();
-        commonSnackBar(message: "Education added");
+        commonSnackBar(message:AppStrings.educationAdded);
       } else {
-        commonSnackBar(message: res.message ?? "Error adding education");
+        commonSnackBar(message: res.message ?? AppStrings.educationAddError);
       }
     } else {
       // Update education
@@ -239,9 +178,9 @@ class EducationController extends GetxController {
         clearAll();
         editingId.value = null;
         Get.back();
-        commonSnackBar(message: "Education updated");
+        commonSnackBar(message:AppStrings.educationUpdated);
       } else {
-        commonSnackBar(message: res.message ?? "Error updating education");
+        commonSnackBar(message: res.message ?? AppStrings.educationUpdateError);
       }
     }
   }

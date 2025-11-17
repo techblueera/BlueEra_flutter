@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/resume/controller/current_job_controller.dart';
 import 'package:BlueEra/features/personal/resume/controller/experience_controller.dart';
@@ -17,7 +18,6 @@ class ExperienceSection extends StatefulWidget {
 }
 
 class _ExperienceSectionState extends State<ExperienceSection> {
-  // final ResumeController resumeController = Get.put(ResumeController());
   final ExperienceController fullTimeExperienceController =
       Get.put(ExperienceController(isFullTime: true), tag: 'fullTime');
 
@@ -37,46 +37,10 @@ class _ExperienceSectionState extends State<ExperienceSection> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Obx(() {
-        //   final items = currentJobController.workExperienceList;
-        //   return ResumeJobSectionCard(
-        //     title: "Current Job",
-        //     items: items.toList(),
-        //     onAddPressed: items.isEmpty
-        //         ? () {
-        //             currentJobController.clearAllFields();
-        //             Navigator.push(
-        //               context,
-        //               MaterialPageRoute(
-        //                 builder: (_) => AddCurrentJobScreen(isEdit: false),
-        //               ),
-        //             ).then((_) => getResumeController.getMyResume());
-        //           }
-        //         : null,
-        //     itemsEditCallback: (index) async {
-        //       await getResumeController.getMyResume();
-        //       if (currentJobController.rawCurrentJobData != null) {
-        //         currentJobController.setFieldsFromBackend(
-        //             currentJobController.rawCurrentJobData!);
-        //       }
-        //       Navigator.push(
-        //         context,
-        //         MaterialPageRoute(
-        //             builder: (_) => AddCurrentJobScreen(isEdit: true)),
-        //       ).then((_) => getResumeController.getMyResume());
-        //     },
-        //     itemsDeleteCallback: (index) {
-        //       showConfirmDeleteDialog(context, () async {
-        //         Navigator.of(context).pop();
-        //         await currentJobController.deleteCurrentJob();
-        //       });
-        //     },
-        //   );
-        // }),
         Obx(() {
           final items = currentJobController.workExperienceList;
           return ResumeJobSectionCard(
-            title: "Current Job",
+            title:AppStrings.currentJob,
             items: items.toList(),
             onAddPressed: items.isEmpty
                 ? () {
@@ -90,16 +54,9 @@ class _ExperienceSectionState extends State<ExperienceSection> {
                   }
                 : null,
             itemsEditCallback: (index) async {
-              // await getResumeController.getMyResume();
               final rawJobData = currentJobController.rawCurrentJobData;
-              // if (currentJobController.rawCurrentJobData != null) {
-              //   currentJobController.setFieldsFromBackend(
-              //       currentJobController.rawCurrentJobData!);
-              // }
               if (rawJobData != null) {
                 currentJobController.setFieldsFromBackend(rawJobData);
-              } else {
-                // Handle null, possibly show error or fallback
               }
               Navigator.push(
                 context,
@@ -153,7 +110,7 @@ class _ExperienceSectionState extends State<ExperienceSection> {
           }).toList();
 
           return ResumeJobSectionCard(
-            title: "Full-Time Experience",
+            title: AppStrings.fullTimeExperience,
             items: items,
             onAddPressed: () {
               fullTimeExperienceController.clearAllFields();
@@ -168,7 +125,6 @@ class _ExperienceSectionState extends State<ExperienceSection> {
               final data = experiences[index];
               final id = data['_id'] as String?;
               if (id == null) {
-                print("Error: Experience ID not found for editing");
                 return;
               }
               fullTimeExperienceController.setFieldsFromData(data);
@@ -184,7 +140,6 @@ class _ExperienceSectionState extends State<ExperienceSection> {
               final data = experiences[index];
               final id = data['_id'] as String?;
               if (id == null) {
-                print("Error: Experience ID not found for deletion");
                 return;
               }
               showConfirmDeleteDialog(context, () async {
@@ -193,10 +148,6 @@ class _ExperienceSectionState extends State<ExperienceSection> {
                     await fullTimeExperienceController.deleteExperience(id: id);
                 if (res.isSuccess) {
                   await getResumeController.getMyResume();
-                  print("Success: Experience deleted");
-                } else {
-                  print(
-                      "Error: ${res.message ?? "Failed to delete experience"}");
                 }
               });
             },
@@ -235,7 +186,7 @@ class _ExperienceSectionState extends State<ExperienceSection> {
           }).toList();
 
           return ResumeJobSectionCard(
-            title: "Part-Time Experience",
+            title: AppStrings.partTimeExperience,
             items: items,
             onAddPressed: () {
               partTimeExperienceController.clearAllFields();
@@ -250,7 +201,6 @@ class _ExperienceSectionState extends State<ExperienceSection> {
               final data = experiences[index];
               final id = data['_id'] as String?;
               if (id == null) {
-                print("Error: Experience ID not found for editing");
                 return;
               }
               partTimeExperienceController.setFieldsFromData(data);
@@ -266,7 +216,6 @@ class _ExperienceSectionState extends State<ExperienceSection> {
               final data = experiences[index];
               final id = data['_id'] as String?;
               if (id == null) {
-                print("Error: Experience ID not found for deletion");
                 return;
               }
               showConfirmDeleteDialog(context, () async {
@@ -275,10 +224,6 @@ class _ExperienceSectionState extends State<ExperienceSection> {
                     await partTimeExperienceController.deleteExperience(id: id);
                 if (res.isSuccess) {
                   await getResumeController.getMyResume();
-                  print("Success: Experience deleted");
-                } else {
-                  print(
-                      "Error: ${res.message ?? "Failed to delete experience"}");
                 }
               });
             },

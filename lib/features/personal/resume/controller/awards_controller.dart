@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/personal/resume/repo/resume_repo.dart';
 import 'package:flutter/material.dart';
@@ -13,16 +14,12 @@ class AwardsController extends GetxController {
   final issuedByController = TextEditingController();
   final descriptionController = TextEditingController();
 
-  // Use unified Rx<DateTime?> for date handling
   final Rx<DateTime?> selectedDate = Rx<DateTime?>(null);
 
   final awards = <Map<String, dynamic>>[].obs;
   final isLoading = false.obs;
   final selectedAward = Rxn<Map<String, dynamic>>();
-  // final selectedAttachment = Rxn<File>();
   RxnString selectedAwardId = RxnString();
-  // String? selectedAttachmentUrl; // For prefilled attachment URL
-    // Replace Rxn<File> with simple File? variable
   File? selectedFile;
   String? selectedImageUrl;
 
@@ -99,29 +96,6 @@ class AwardsController extends GetxController {
     selectedFile = null;
     selectedImageUrl = award['attachment'] as String?;
   }
-
-  /// GET ALL AWARDS
-  // Future<void> getAllAwardsApi() async {
-  //   try {
-  //     isLoading.value = true;
-  //     final response = await _repo.getAllAwards(params: {});
-  //     if (response.isSuccess) {
-  //       final data = response.response?.data;
-  //       if (data != null && data['data'] is List) {
-  //         awards.value = List<Map<String, dynamic>>.from(data['data']);
-  //       }
-  //     } else {
-  //       awards.clear();
-  //       commonSnackBar(message: response.response?.data['message'] ?? "Failed to fetch awards");
-  //     }
-  //   } catch (e) {
-  //     awards.clear();
-  //     commonSnackBar(message: "Failed to fetch awards");
-  //   } finally {
-  //     isLoading.value = false;
-  //   }
-  // }
-
   /// ADD AWARD
   Future<void> addAwardApi() async {
     if (!_validateForm()) return;
@@ -129,7 +103,7 @@ class AwardsController extends GetxController {
       isLoading.value = true;
       final date = selectedDate.value;
       if (date == null) {
-        commonSnackBar(message: "Please select a valid date");
+        commonSnackBar(message:AppStrings.selectValidDate);
         return;
       }
       final response = await _repo.addAward(
@@ -142,11 +116,11 @@ class AwardsController extends GetxController {
         attachment: selectedFile,
       );
       if (response.isSuccess) {
-        commonSnackBar(message: response.response?.data['message'] ?? 'Award added successfully!');
+        commonSnackBar(message: response.response?.data['message'] ??AppStrings.awardAdded.tr);
         clearForm();
         // await getAllAwardsApi();
       } else {
-        commonSnackBar(message: response.response?.data['message'] ?? "Failed to add award");
+        commonSnackBar(message: response.response?.data['message'] ??AppStrings.awardAddFailed);
       }
     } finally {
       isLoading.value = false;
@@ -159,7 +133,7 @@ class AwardsController extends GetxController {
 
     final id = selectedAwardId.value;
     if (id == null || id.isEmpty) {
-      commonSnackBar(message: "Award ID missing for update.");
+      commonSnackBar(message: AppStrings.awardIdMissing);
       return;
     }
 
@@ -167,7 +141,7 @@ class AwardsController extends GetxController {
       isLoading.value = true;
       final date = selectedDate.value;
       if (date == null) {
-        commonSnackBar(message: "Please select a valid date");
+        commonSnackBar(message:AppStrings.selectValidDate);
         return;
       }
 
@@ -183,12 +157,12 @@ class AwardsController extends GetxController {
         removeAttachment: selectedFile == null && (selectedImageUrl?.isNotEmpty ?? false),
       );
       if (response.isSuccess) {
-        commonSnackBar(message: response.response?.data['message'] ?? 'Award updated successfully!');
+        commonSnackBar(message: response.response?.data['message'] ?? AppStrings.awardUpdated);
         clearForm();
         selectedAwardId.value = null;
         // await getAllAwardsApi();
       } else {
-        commonSnackBar(message: response.response?.data['message'] ?? "Failed to update award");
+        commonSnackBar(message: response.response?.data['message'] ?? AppStrings.awardUpdateFailed);
       }
     } finally {
       isLoading.value = false;
@@ -201,10 +175,10 @@ class AwardsController extends GetxController {
       isLoading.value = true;
       final response = await _repo.deleteAward(id: id);
       if (response.isSuccess) {
-        commonSnackBar(message: response.response?.data['message'] ?? "Award deleted");
+        commonSnackBar(message: response.response?.data['message'] ?? AppStrings.awardDeleted);
         // await getAllAwardsApi();
       } else {
-        commonSnackBar(message: response.response?.data['message'] ?? "Failed to delete award");
+        commonSnackBar(message: response.response?.data['message'] ??AppStrings.awardDeleteFailed);
       }
     } finally {
       isLoading.value = false;
@@ -214,26 +188,26 @@ class AwardsController extends GetxController {
   /// VALIDATE FORM
   bool _validateForm() {
     if (titleController.text.trim().isEmpty) {
-      commonSnackBar(message: 'Please enter award title');
+      commonSnackBar(message: AppStrings.awardEnterTitle);
       return false;
     }
     if (issuedByController.text.trim().isEmpty) {
-      commonSnackBar(message: 'Please enter issued by');
+      commonSnackBar(message:AppStrings.awardEnterIssuedBy);
       return false;
     }
     if (selectedDate.value == null) {
-      commonSnackBar(message: 'Please select complete date');
+      commonSnackBar(message:AppStrings.awardSelectCompleteDate);
       return false;
     }
 
     final now = DateTime.now();
     if (selectedDate.value!.isAfter(now)) {
-      commonSnackBar(message: 'Award date cannot be in the future');
+      commonSnackBar(message: AppStrings.awardDateFuture);
       return false;
     }
 
     if (descriptionController.text.trim().isEmpty) {
-      commonSnackBar(message: 'Please enter description');
+      commonSnackBar(message: AppStrings.awardEnterDescription);
       return false;
     }
 

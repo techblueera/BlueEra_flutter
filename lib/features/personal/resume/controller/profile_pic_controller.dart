@@ -37,9 +37,7 @@ class ProfilePicController extends GetxController {
     try {
       getSelfResumeResponse.value = ApiResponse.initial('Initial');
 
-      print("Fetching resume data...");
       ResponseModel response = await ResumeRepo().getResumeData();
-      print("Raw response data: ${response.response?.data}");
 
       if (response.isSuccess) {
         final model = GetResumeDataModel.fromJson(response.response?.data);
@@ -68,13 +66,11 @@ class ProfilePicController extends GetxController {
         _updateNgoOrgsController(model);
         _updatePatentsController(model);
       } else {
-        print("API call failed with status: ${response.statusCode}");
         commonSnackBar(message: AppStrings.somethingWentWrong);
         getSelfResumeResponse.value = ApiResponse.error('error');
       }
     } catch (e, st) {
       print("Error fetching resume: $e");
-      print(st);
       getSelfResumeResponse.value = ApiResponse.error('error');
     }
   }
@@ -91,13 +87,13 @@ class ProfilePicController extends GetxController {
 
         commonSnackBar(
             message:
-                res.response?.data['message'] ?? "Profile picture updated");
+                res.response?.data['message'] ?? AppStrings.profilePicUpdated);
       } else {
         commonSnackBar(
-            message: res.message ?? "Failed to update profile picture");
+            message: res.message ?? AppStrings.profilePicUpdateFailed);
       }
     } catch (e) {
-      commonSnackBar(message: "Error uploading profile picture");
+      commonSnackBar(message: AppStrings.profilePicUploadError);
     }
   }
 
@@ -121,9 +117,9 @@ class ProfilePicController extends GetxController {
     if (response.isSuccess) {
       await getMyResume(); 
       Get.back();
-      commonSnackBar(message: "Personal details updated");
+      commonSnackBar(message:AppStrings.personalDetailsUpdated);
     } else {
-      commonSnackBar(message: response.message ?? "Failed to update details");
+      commonSnackBar(message: response.message ??AppStrings.personalDetailsUpdateFailed);
     }
   }
 
@@ -152,7 +148,6 @@ class ProfilePicController extends GetxController {
       qualificationController.educationList.clear();
 
       if (data.education != null && data.education!.isNotEmpty) {
-        print("Number of education entries: ${data.education!.length}");
 
         for (final edu in data.education!) {
           final hasData = (edu.highestQualification != null &&
@@ -161,11 +156,9 @@ class ProfilePicController extends GetxController {
                   edu.schoolOrCollegeName!.trim().isNotEmpty);
 
           if (!hasData) {
-            print("Skipping incomplete education entry with id: ${edu.id}");
             continue; // Skip incomplete entries with no visible data
           }
 
-          print("Adding education entry: ${edu.toJson()}");
 
           qualificationController.educationList.add({
             'title': edu.highestQualification ?? '',
@@ -176,8 +169,6 @@ class ProfilePicController extends GetxController {
             '_id': edu.id ?? '',
           });
         }
-      } else {
-        print("No education entries found.");
       }
     } catch (e) {
       print('Error updating QualificationController: $e');

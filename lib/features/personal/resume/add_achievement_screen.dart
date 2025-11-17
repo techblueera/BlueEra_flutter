@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
@@ -62,8 +63,6 @@ class _AddAchievementScreenState extends State<AddAchievementScreen> {
 
     if (widget.isEdit && widget.achievementId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
-        // await _controller.getAchievementById(widget.achievementId!);
-
         achievementCtrl.text = _controller.titleController.text;
         achievementDetailsCtrl.text = _controller.descriptionController.text;
         courseCtrl.text = _controller.courseController.text;
@@ -97,7 +96,7 @@ class _AddAchievementScreenState extends State<AddAchievementScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: widget.isEdit ? "Edit Achievement" : "Add Achievement",
+        title: widget.isEdit ? AppStrings.editAchievement : AppStrings.addAchievement,
       ),
       body: SingleChildScrollView(
         child: SafeArea(
@@ -115,17 +114,17 @@ class _AddAchievementScreenState extends State<AddAchievementScreen> {
                         keyBoardType: TextInputType.text,
                         regularExpression:
                             RegularExpressionUtils.alphabetSpacePattern,
-                        title: "Title",
+                        title: AppStrings.title,
                         titleColor: AppColors.black1A,
                         fontSize: SizeConfig.small,
                         fontWeight: FontWeight.w400,
-                        hintText: "Eg., Employee of the month",
+                        hintText: AppStrings.achievementHint,
                         isValidate: true,
                         onChange: (value) => validateForm(),
                       ),
                       SizedBox(height: SizeConfig.size15),
                       CustomText(
-                        "Date Awarded",
+                        AppStrings.dateAwarded,
                         color: AppColors.black1A,
                         fontSize: SizeConfig.small,
                         fontWeight: FontWeight.w400,
@@ -156,7 +155,7 @@ class _AddAchievementScreenState extends State<AddAchievementScreen> {
                       ),
                       SizedBox(height: SizeConfig.size15),
                       CustomText(
-                        "Upload Attachment (Optional)",
+                        AppStrings.uploadAttachment,
                         color: AppColors.black1A,
                         fontSize: SizeConfig.small,
                         fontWeight: FontWeight.w400,
@@ -180,11 +179,11 @@ class _AddAchievementScreenState extends State<AddAchievementScreen> {
                         keyBoardType: TextInputType.text,
                         regularExpression:
                             RegularExpressionUtils.alphabetSpacePattern,
-                        title: "Description",
+                        title: AppStrings.description,
                         titleColor: AppColors.black1A,
                         fontSize: SizeConfig.small,
                         fontWeight: FontWeight.w400,
-                        hintText: "Share experience...",
+                        hintText:AppStrings.achievementDescription,
                         isValidate: true,
                         maxLine: 4,
                         onChange: (value) => validateForm(),
@@ -192,8 +191,8 @@ class _AddAchievementScreenState extends State<AddAchievementScreen> {
                       SizedBox(height: SizeConfig.size20),
                       CustomBtn(
                         title: isLoading
-                            ? (widget.isEdit ? "Updating..." : "Saving...")
-                            : (widget.isEdit ? "Update" : "Save"),
+                            ? (widget.isEdit ? AppStrings.updating : AppStrings.saving)
+                            : (widget.isEdit ? AppStrings.update : AppStrings.save),
                         isValidate: validate && !isLoading,
                         onTap: validate && !isLoading
                             ? () async {
@@ -243,18 +242,18 @@ class _AddAchievementScreenState extends State<AddAchievementScreen> {
                                         widget.achievementId!);
                                     commonSnackBar(
                                         message:
-                                            "Achievement updated successfully!");
+                                        AppStrings.achievementUpdateSuccess);
                                   } else {
                                     final res =
                                         await _controller.addAchievement();
                                     if (res.isSuccess) {
                                       commonSnackBar(
                                           message:
-                                              "Achievement added successfully!");
+                                          AppStrings.achievementAddedSuccess);
                                     } else {
                                       commonSnackBar(
                                           message: res.message ??
-                                              "Failed to add achievement");
+                                              AppStrings.achievementAddFailed);
                                       return;
                                     }
                                   }
@@ -263,7 +262,7 @@ class _AddAchievementScreenState extends State<AddAchievementScreen> {
                                 } catch (e) {
                                   commonSnackBar(
                                       message:
-                                          "An error occurred. Please try again.");
+                                      AppStrings.somethingWentWrong);
                                 } finally {
                                   if (mounted) {
                                     setState(() {

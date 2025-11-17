@@ -26,8 +26,6 @@ class QualificationContoller extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    // fetchQualficationDetails();
-    // getResumeController.getMyResume();
      schoolController.addListener(() {
     school.value = schoolController.text;
     validateEducationForm();
@@ -92,7 +90,7 @@ class QualificationContoller extends GetxController {
         await getResumeController.getMyResume();
         Get.back();
         Future.delayed(const Duration(milliseconds: 100), () {
-          commonSnackBar(message: "Education added");
+          commonSnackBar(message: AppStrings.educationAdded);
         });
       } else {
         commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
@@ -138,7 +136,7 @@ void setEditFieldsFromCard(Map<String, dynamic> item) {
       editReset();
       Get.back();
       Future.delayed(const Duration(milliseconds: 100), () {
-        commonSnackBar(message: "Education updated");
+        commonSnackBar(message:  AppStrings.educationUpdated);
       });
     } else {
       commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
@@ -156,9 +154,9 @@ void setEditFieldsFromCard(Map<String, dynamic> item) {
       if (res.isSuccess) {
         await getResumeController.getMyResume();
         clearEducationFields();
-        commonSnackBar(message: "Education deleted");
+        commonSnackBar(message: AppStrings.educationDeleted);
       } else {
-        commonSnackBar(message: "Failed to delete education");
+        commonSnackBar(message:AppStrings.educationDeleteFailed);
       }
     }
   }

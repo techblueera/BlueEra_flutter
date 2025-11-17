@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/business/widgets/business_profile_screen.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -37,7 +38,7 @@ class _BusinessOwnProfileScreenState extends State<BusinessOwnProfileScreen> {
       appBar: CommonBackAppBar(
         isLeading: true,
         isLogout: true,
-        title: "Your Business Profile",
+        title: AppStrings.yourBusinessProfile,
       ),
       body: SingleChildScrollView(
         child: BusinessProfileScreen(

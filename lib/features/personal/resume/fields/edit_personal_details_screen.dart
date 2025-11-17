@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/personal/resume/controller/profile_pic_controller.dart';
@@ -30,11 +31,6 @@ class _EditPersonalDetailsScreenState extends State<EditPersonalDetailsScreen> {
   @override
   void initState() {
     super.initState();
-
-    // nameController.text = controller.name.value;
-    // emailController.text = controller.email.value;
-    // phoneController.text = controller.phone.value;
-    // locationController.text = controller.location.value;
     final data = controller.getResumeData.value;
     nameController.text = data.name ?? '(No Name)';
     emailController.text = data.email ?? '(No Email)';
@@ -75,7 +71,7 @@ class _EditPersonalDetailsScreenState extends State<EditPersonalDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title: "Edit Personal details"),
+      appBar: CommonBackAppBar(title: AppStrings.editPersonalDetails),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.all(SizeConfig.paddingS),
@@ -94,14 +90,14 @@ class _EditPersonalDetailsScreenState extends State<EditPersonalDetailsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CommonTextField(
-                        title: "Full Name",
+                        title: AppStrings.fullName,
                         hintText: "E.g. Sujoy Ghosh",
                         fontSize: SizeConfig.small,
                         textEditController: nameController,
                       ),
                       SizedBox(height: SizeConfig.paddingL),
                       CommonTextField(
-                        title: "Email",
+                        title: AppStrings.email,
                         hintText: "E.g. bluecs.info@gmail.com",
                         fontSize: SizeConfig.small,
                         textEditController: emailController,
@@ -109,7 +105,7 @@ class _EditPersonalDetailsScreenState extends State<EditPersonalDetailsScreen> {
                       ),
                       SizedBox(height: SizeConfig.paddingL),
                       CommonTextField(
-                        title: "Phone Number",
+                        title: AppStrings.phoneNumber,
                         hintText: "E.g. +91 1234567890",
                         textEditController: phoneController,
                         inputFormatters: [
@@ -141,9 +137,9 @@ class _EditPersonalDetailsScreenState extends State<EditPersonalDetailsScreen> {
                         },
                         child: CommonTextField(
                           textEditController: locationController,
-                          hintText: "E.g., Rajiv Chowk, Delhi",
+                          hintText: AppStrings.locationHint,
                           isValidate: false,
-                          title: "Location",
+                          title:AppStrings.location,
 
                           // onChange: (value) => controller.validateForm(),
                           readOnly: true,
@@ -152,14 +148,8 @@ class _EditPersonalDetailsScreenState extends State<EditPersonalDetailsScreen> {
                       ),
                       SizedBox(height: SizeConfig.paddingXXL),
                       CustomBtn(
-                        title: "Update",
+                        title: AppStrings.update,
                         isValidate: isValid,
-                        // onTap: isValid
-                        //     ? () async {
-                        //         // await controller.updateProfile(params);
-                        //         Navigator.of(context).pop();
-                        //       }
-                        //     : null,
                         onTap: isValid
                             ? () async {
                                 await controller.updateProfileDetails(
@@ -168,7 +158,6 @@ class _EditPersonalDetailsScreenState extends State<EditPersonalDetailsScreen> {
                                   phone: phoneController.text.trim(),
                                   location: locationController.text.trim(),
                                 );
-                                // No need to call Navigator.pop() if you already do so in the update method
                               }
                             : null,
                       ),

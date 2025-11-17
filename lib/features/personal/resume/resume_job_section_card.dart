@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/resume/controller/profile_pic_controller.dart';
@@ -10,31 +11,6 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
-String formatMonthYear(dynamic month, dynamic year) {
-  if (month == null || year == null) return '';
-  const months = [
-    '',
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec'
-  ];
-  int m = 0;
-  try {
-    m = int.parse(month.toString());
-  } catch (_) {}
-  String labelMonth = m > 0 && m < months.length ? months[m] : '';
-  return (labelMonth != '' && year != null) ? '$labelMonth, $year' : '';
-}
 
 class ResumeJobSectionCard extends StatelessWidget {
   final String title;
@@ -66,7 +42,6 @@ class ResumeJobSectionCard extends StatelessWidget {
           ),
           SizedBox(height: SizeConfig.size15),
           ...items.asMap().entries.map((entry) {
-            logs("entry $entry");
             final index = entry.key;
             final item = entry.value;
 
@@ -231,13 +206,11 @@ class ResumeJobSectionCard extends StatelessWidget {
                                           item['description']
                                               .toString()
                                               .isNotEmpty)
-                                        Text(
+                                        CustomText(
                                           item['description'] ?? "",
-                                          style: TextStyle(
                                             color: AppColors.grey72,
                                             fontSize: SizeConfig.large,
                                             fontWeight: FontWeight.w400,
-                                          ),
                                           maxLines: 4, // or your desired limit
                                           overflow: TextOverflow.ellipsis,
                                         ),
@@ -261,7 +234,7 @@ class ResumeJobSectionCard extends StatelessWidget {
                   Icon(Icons.add, color: AppColors.primaryColor),
                   SizedBox(width: SizeConfig.size4),
                   CustomText(
-                    "Add $title",
+                    "${AppStrings.add.tr} $title",
                     color: AppColors.primaryColor,
                     fontSize: SizeConfig.large,
                   ),

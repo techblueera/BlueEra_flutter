@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
@@ -77,8 +78,8 @@ class _AddNgoScreenState extends State<AddNgoScreen> {
     return Scaffold(
         appBar: CommonBackAppBar(
             title: widget.isEdit
-                ? "Edit NGO / Student Org"
-                : "Add NGO / Student Org"),
+                ? AppStrings.editNgo
+                : AppStrings.addNgo),
         body: SingleChildScrollView(
             child: SafeArea(
                 child: Padding(
@@ -94,16 +95,16 @@ class _AddNgoScreenState extends State<AddNgoScreen> {
                               keyBoardType: TextInputType.text,
                               regularExpression:
                                   RegularExpressionUtils.alphabetSpacePattern,
-                              title: "Title",
+                              title: AppStrings.title,
                               titleColor: AppColors.black1A,
                               fontSize: SizeConfig.small,
                               fontWeight: FontWeight.w400,
-                              hintText: "E.g. Lorem Ipsum Dolor",
+                              hintText: AppStrings.ngoExample,
                               isValidate: true,
                               onChange: (value) => validateForm(),
                             ),
                             SizedBox(height: SizeConfig.size15),
-                            CustomText("Certified Date",
+                            CustomText(AppStrings.certifiedDate,
                                 color: AppColors.black1A,
                                 fontSize: SizeConfig.small,
                                 fontWeight: FontWeight.w400),
@@ -131,7 +132,7 @@ class _AddNgoScreenState extends State<AddNgoScreen> {
                                   validateForm();
                                 }),
                             SizedBox(height: SizeConfig.size15),
-                            CustomText("Upload Document",
+                            CustomText(AppStrings.uploadDocument,
                                 color: AppColors.black1A,
                                 fontSize: SizeConfig.small,
                                 fontWeight: FontWeight.w400),
@@ -154,11 +155,11 @@ class _AddNgoScreenState extends State<AddNgoScreen> {
                               keyBoardType: TextInputType.text,
                               regularExpression:
                                   RegularExpressionUtils.alphabetSpacePattern,
-                              title: "Description",
+                              title: AppStrings.description,
                               titleColor: AppColors.black1A,
                               fontSize: SizeConfig.small,
                               fontWeight: FontWeight.w400,
-                              hintText: "Describe Your NGO / Student Org....",
+                              hintText: AppStrings.ngoDescriptionHint,
                               isValidate: true,
                               maxLine: 4,
                               onChange: (value) => validateForm(),
@@ -188,7 +189,7 @@ class _AddNgoScreenState extends State<AddNgoScreen> {
                                       Navigator.pop(context);
                                     }
                                   : null,
-                              title: widget.isEdit ? "Update" : "Save",
+                              title: widget.isEdit ? AppStrings.update : AppStrings.save,
                               isValidate: validate,
                             )
                           ]))

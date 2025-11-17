@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/resume/controller/education_controller.dart';
 import 'package:BlueEra/features/personal/resume/controller/profile_pic_controller.dart';
@@ -33,7 +34,7 @@ class _EducationSectionState extends State<EducationSection> {
         Obx(() {
           final items = controller.educationList;
           return ResumeProfileSectionCard(
-            title: "Education",
+            title: AppStrings.education,
             items: items.toList(),
             onAddPressed: () {
               controller.clearAll();

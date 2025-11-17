@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -69,7 +70,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       CustomText(
-                        "Go Premium",
+                        AppStrings.goPremium,
                         fontSize: SizeConfig.extraLarge22,
                         fontWeight: FontWeight.bold,
                         color: AppColors.yellow00,
@@ -83,7 +84,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                   ),
                   SizedBox(height: SizeConfig.size5),
                   CustomText(
-                    "No commitment. cancel anytime",
+                    AppStrings.noCommitment,
                     fontSize: SizeConfig.medium,
                     fontWeight: FontWeight.w200,
                     color: AppColors.black1A,
@@ -100,7 +101,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                       children: [
                         Row(
                           children: [
-                            CustomText("Redeem Coin",
+                            CustomText(AppStrings.redeemCoin,
                                 fontSize: 16, fontWeight: FontWeight.w500),
                             SizedBox(width: 4),
                             Icon(
@@ -135,7 +136,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             CustomText(
-                              "Available coin & value",
+                              AppStrings.availableCoinAndValue,
                               fontSize: SizeConfig.small,
                               fontWeight: FontWeight.w200,
                               color: AppColors.black,
@@ -153,7 +154,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                           thickness: 0.2,
                         ),
                         CustomText(
-                          "Choose the payment type to redeem coin",
+                          AppStrings.choosePaymentType,
                           fontSize: SizeConfig.small,
                           fontWeight: FontWeight.w200,
                           color: AppColors.black,
@@ -205,7 +206,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                                         activeColor: AppColors.primaryColor,
                                       ),
                                       CustomText(
-                                        "CARD",
+                                        AppStrings.card,
                                         fontWeight: FontWeight.w500,
                                         color: Colors.black,
                                       ),
@@ -215,7 +216,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                           ],
                         ),
                         CustomText(
-                          "Select Coin to Redeem",
+                          AppStrings.selectCoinToRedeem,
                           fontSize: SizeConfig.small,
                           fontWeight: FontWeight.w200,
                           color: AppColors.black,
@@ -231,7 +232,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                                   [],
                               selectedValue:
                                   subscriptionController.selectedOffer.value,
-                              hintText: "Select Offer",
+                              hintText: AppStrings.selectOffer,
                               displayValue: (offer) => ((offer.name ?? "")),
                               onChanged: (offer) {
                                 subscriptionController.selectOffer(offer);
@@ -259,7 +260,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                                     MainAxisAlignment.spaceBetween,
                                 children: [
                                   CustomText(
-                                    "Final amount to pay",
+                                    AppStrings.finalAmountToPay,
                                     fontSize: SizeConfig.medium15,
                                     fontWeight: FontWeight.w400,
                                   ),
@@ -277,7 +278,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                         }),
                         SizedBox(height: SizeConfig.size10),
                         CustomText(
-                          "Please pay through UPI to redeem coins",
+                          AppStrings.payThroughUPI,
                           fontSize: SizeConfig.small,
                           fontWeight: FontWeight.w200,
                           color: AppColors.red,
@@ -290,7 +291,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                             children: [
                               Row(
                                 children: [
-                                  CustomText("Enable Auto pay",
+                                  CustomText(AppStrings.enableAutoPay,
                                       fontSize: 16,
                                       fontWeight: FontWeight.w500),
                                   SizedBox(width: 4),
@@ -318,7 +319,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                                   horizontal: SizeConfig.size10),
                               child: CustomBtn(
                                 // bgColor: AppColors.primaryColor,
-                                title: 'Pay',
+                                title: AppStrings.pay,
                                 isValidate: subscriptionController
                                         .selectedIndex.value !=
                                     null,
@@ -393,8 +394,6 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                                                     });
                                               },
                                               onPaymentError: (response) {
-                                                debugPrint(
-                                                    "Payment Failed: ${response.message}");
                                                 commonSnackBar(
                                                     message:
                                                         "Payment Failed ${response.message}");
@@ -418,154 +417,6 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     );
   }
 
-  /*  showDialog(
-                                  context: context,
-                                  builder: (context) {
-                                    return Dialog(
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10)),
-                                      elevation: 5,
-                                      child: Container(
-                                        child: ListView(
-                                          shrinkWrap: true,
-                                          children: <Widget>[
-                                            _dialogCard(),
-                                          ],
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                );*/
-/*
-  Widget _dialogCard() {
-    return Padding(
-      padding: EdgeInsets.symmetric(
-          vertical: SizeConfig.size15, horizontal: SizeConfig.size10),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _premiumCard2("POPULAR", ),
-          CustomText(
-            "₹ 949",
-            fontSize: SizeConfig.heading,
-            fontWeight: FontWeight.w800,
-          ),
-          SizedBox(height: SizeConfig.size10),
-          CustomText(
-            "3+1 Month Plan",
-            fontSize: SizeConfig.small,
-            fontWeight: FontWeight.w300,
-            color: Colors.grey,
-          ),
-          SizedBox(height: SizeConfig.size10),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _premiumCard3("Add unlimited products and services to your store",
-                  Colors.blue, Colors.black),
-              _premiumCard3("Add unlimited products and services to your store",
-                  Colors.blue, Colors.black),
-              _premiumCard3("Add unlimited products and services to your store",
-                  Colors.blue, Colors.black),
-              _premiumCard3("Add unlimited products and services to your store",
-                  Colors.blue, Colors.black),
-              _premiumCard3("Add unlimited products and services to your store",
-                  Colors.blue, Colors.black),
-              _premiumCard3("Add unlimited products and services to your store",
-                  Colors.blue, Colors.black),
-              SizedBox(height: SizeConfig.size10),
-              CustomBtn(
-                radius: 10,
-                bgColor: Colors.blue,
-                textColor: Colors.white,
-                title: 'Pay Now',
-                onTap: () {},
-              ),
-            ],
-          )
-        ],
-      ),
-    );
-  }
-
-  Widget _dialogCard2() {
-    return Padding(
-      padding: EdgeInsets.symmetric(
-          vertical: SizeConfig.size15, horizontal: SizeConfig.size10),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Align(
-            alignment: Alignment.topRight,
-            child: IconButton(
-                onPressed: () => Navigator.pop(context),
-                icon: Icon(Icons.close)),
-          ),
-          CustomText(
-            textAlign: TextAlign.center,
-            "Cancel Subscription",
-            fontSize: SizeConfig.medium,
-            fontWeight: FontWeight.w600,
-            color: Colors.black,
-          ),
-          CustomText(
-            textAlign: TextAlign.center,
-            "Your subscription will automatically end when your plan expires.",
-            fontSize: SizeConfig.medium,
-            fontWeight: FontWeight.w300,
-            color: Colors.black45,
-          ),
-          SizedBox(height: SizeConfig.size10),
-          _cancelCard(
-              'Cancel Now', '(End your access immediately)', Colors.redAccent),
-          SizedBox(height: SizeConfig.size10),
-          _cancelCard('Cancel on Expiry', '(Keep access until the plan ends)',
-              AppColors.yellow00),
-          SizedBox(height: SizeConfig.size10),
-          _cancelCard('Keep Subscription', '(No changes)', Colors.green),
-        ],
-      ),
-    );
-  }
-*/
-
-/*
-  Widget _cancelCard(String value, value2, Color color) {
-    return Container(
-        width: double.infinity,
-        padding: EdgeInsets.symmetric(
-            vertical: SizeConfig.size5, horizontal: SizeConfig.size10),
-        decoration: BoxDecoration(
-          border: Border.all(
-            width: 0.3,
-            color: Colors.grey,
-            //                   <--- border width here
-          ),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Column(
-          children: [
-            CustomText(
-              value,
-              color: AppColors.black,
-              fontSize: SizeConfig.medium,
-              fontWeight: FontWeight.bold,
-            ),
-            CustomText(
-              value2,
-              color: color,
-              fontSize: SizeConfig.small,
-              fontWeight: FontWeight.w300,
-            )
-          ],
-        ));
-  }
-*/
-
   Widget _premiumCard() {
     return Container(
         decoration: BoxDecoration(
@@ -575,7 +426,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
           List<GetSubscriptionData>? dataList =
               subscriptionController.subscriptionDetailModel.value.data ?? [];
           if (dataList.isEmpty) {
-            return CustomText("No Data found");
+            return CustomText(AppStrings.noDataFound);
           }
           return ListView.builder(
               scrollDirection: Axis.vertical,
@@ -646,17 +497,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                                   Expanded(
                                     child: _premiumCard3(
                                       "${subscriptionData.description}",
-                                      /* subscriptionController
-                                                  .selectedIndex?.value ==
-                                              index
-                                          ? AppColors.white
-                                          :*/
                                       AppColors.primaryColor,
-                                      /*  subscriptionController
-                                                  .selectedIndex?.value ==
-                                              index
-                                          ? AppColors.white
-                                          :*/
                                       AppColors.black,
                                     ),
                                   ),
@@ -665,7 +506,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                                     bgColor: Colors.white,
                                     borderColor: AppColors.primaryColor,
                                     textColor: AppColors.primaryColor,
-                                    title: 'View Details',
+                                    title: AppStrings.viewDetails,
                                     onTap: () {},
                                   ),
                                 ],

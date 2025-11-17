@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/resume/controller/experience_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -38,7 +39,7 @@ class _AddPartTimeExperienceScreenState extends State<AddPartTimeExperienceScree
   Widget build(BuildContext context) {
     SizeConfig.init(context);
     return Scaffold(
-      appBar: CommonBackAppBar(title: widget.isEdit ? "Edit Part-Time Experience" : "Add Part-Time Experience"),
+      appBar: CommonBackAppBar(title: widget.isEdit ? AppStrings.editPartTimeExp : AppStrings.addPartTimeExp),
       body: Padding(
         padding: EdgeInsets.all(SizeConfig.paddingM),
         child: SingleChildScrollView(
@@ -59,8 +60,8 @@ class _AddPartTimeExperienceScreenState extends State<AddPartTimeExperienceScree
 
                     CommonTextField(
                       fontSize: SizeConfig.small,
-                      title: "Previous Company Name",
-                      hintText: "e.g., BlueCS Limited",
+                      title: AppStrings.previousCompanyName,
+                      hintText: AppStrings.previousCompanyHint,
                       textEditController: controller.previousCompanyController,
                     ),
 
@@ -68,31 +69,31 @@ class _AddPartTimeExperienceScreenState extends State<AddPartTimeExperienceScree
 
                     CommonTextField(
                       fontSize: SizeConfig.small,
-                      title: "Designation",
-                      hintText: "e.g., Software Engineer",
+                      title: AppStrings.designation,
+                      hintText: AppStrings.designationHint,
                       textEditController: controller.designationController,
                     ),
 
                     SizedBox(height: SizeConfig.size24),
 
-                    CustomText("Job Type", fontSize: SizeConfig.small),
+                    CustomText(AppStrings.jobType, fontSize: SizeConfig.small),
                     SizedBox(height: SizeConfig.size10),
                     Obx(() => CommonDropdown<String>(
                           items: controller.jobTypeOptions,
                           selectedValue: controller.selectedJobType.value,
-                          hintText: "e.g., Freelance",
+                          hintText: AppStrings.jobTypeHint,
                           onChanged: (val) => controller.selectedJobType.value = val,
                           displayValue: (item) => item,
                         )),
 
                     SizedBox(height: SizeConfig.size24),
 
-                    CustomText("Work Mode", fontSize: SizeConfig.small),
+                    CustomText(AppStrings.workMode, fontSize: SizeConfig.small),
                     SizedBox(height: SizeConfig.size10),
                     Obx(() => CommonDropdown<String>(
                           items: controller.workTypeOptions,
                           selectedValue: controller.selectedWorkType.value,
-                          hintText: "e.g., Remote",
+                          hintText: AppStrings.workModeHint,
                           onChanged: (val) => controller.selectedWorkType.value = val,
                           displayValue: (item) => item,
                         )),
@@ -101,14 +102,14 @@ class _AddPartTimeExperienceScreenState extends State<AddPartTimeExperienceScree
 
                     CommonTextField(
                       fontSize: SizeConfig.small,
-                      title: "Location",
-                      hintText: "e.g., West Bengal",
+                      title: AppStrings.location,
+                      hintText: AppStrings.locationHint,
                       textEditController: controller.locationController,
                     ),
 
                     SizedBox(height: SizeConfig.size24),
 
-                    CustomText("Start Date", fontSize: SizeConfig.small),
+                    CustomText(AppStrings.startDate, fontSize: SizeConfig.small),
                     SizedBox(height: SizeConfig.size10),
                     Obx(() => NewDatePicker(
                           selectedDay: controller.selectedStartDay.value,
@@ -121,7 +122,7 @@ class _AddPartTimeExperienceScreenState extends State<AddPartTimeExperienceScree
 
                     SizedBox(height: SizeConfig.size24),
 
-                    CustomText("End Date", fontSize: SizeConfig.small),
+                    CustomText(AppStrings.endDate, fontSize: SizeConfig.small),
                     SizedBox(height: SizeConfig.size10),
                     Obx(() => NewDatePicker(
                           selectedDay: controller.selectedEndDay.value,
@@ -136,8 +137,8 @@ class _AddPartTimeExperienceScreenState extends State<AddPartTimeExperienceScree
 
                     CommonTextField(
                       fontSize: SizeConfig.small,
-                      title: "Description Of Your Job Role In This Company",
-                      hintText: "Yorem ipsum dolor sit ame…",
+                      title: AppStrings.partTimeDescriptionTitle,
+                      hintText: AppStrings.partTimeDescriptionHint,
                       maxLine: 4,
                       textEditController: controller.descriptionController,
                     ),
@@ -149,7 +150,7 @@ class _AddPartTimeExperienceScreenState extends State<AddPartTimeExperienceScree
                       children: [
                         Expanded(
                           child: Obx(() => CustomBtn(
-                                title: widget.isEdit ? "Update" : "Save",
+                                title: widget.isEdit ? AppStrings.update : AppStrings.save,
                                 isValidate: controller.isFormValid.value,
                                 onTap: controller.isFormValid.value
                                     ? () async {

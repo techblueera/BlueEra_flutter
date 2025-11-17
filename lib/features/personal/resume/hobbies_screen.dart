@@ -1,11 +1,11 @@
-import 'dart:async'; // Add this import
+import 'dart:async';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/personal/resume/controller/hobbies_controller.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
@@ -85,10 +85,8 @@ class _HobbiesScreenState extends State<HobbiesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    AppLocalizations.of(context);
-
     return Scaffold(
-      appBar: const CommonBackAppBar(title: "Hobbies"),
+      appBar: CommonBackAppBar(title: AppStrings.hobbies),
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.all(SizeConfig.size20),
@@ -98,7 +96,7 @@ class _HobbiesScreenState extends State<HobbiesScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CustomText(
-                    "Add Hobbies",
+                    AppStrings.addHobbies,
                     color: AppColors.black1A,
                     fontSize: SizeConfig.large,
                     fontWeight: FontWeight.w400,
@@ -116,26 +114,8 @@ class _HobbiesScreenState extends State<HobbiesScreen> {
                                 type.label.toLowerCase()))
                         .toList(),
                     selectedValue: _selectedHobby,
-                    hintText: "Select a hobby",
+                    hintText: AppStrings.selectAHobby,
                     displayValue: (hobby) => hobby.label,
-                    // onChanged: (value) {
-                    //   if (!mounted) return;
-
-                    //   setState(() {
-                    //     _selectedHobby = value;
-                    //     if (value != null && !selectedHobbies.contains(value)) {
-                    //       selectedHobbies.add(value);
-
-                    //       // ✅ Assign the selected label to controller and call addHobby
-                    //       controller.hobbyController.text = value.label;
-                    //       controller.addHobby();
-
-                    //       _selectedHobby = null;
-                    //     }
-
-                    //     validateForm();
-                    //   });
-                    // },
                     onChanged: (value) {
                       if (!mounted) return;
 
@@ -186,34 +166,15 @@ class _HobbiesScreenState extends State<HobbiesScreen> {
                   SizedBox(height: SizeConfig.size24),
 
                   CommonTextField(
-                    title: "Description",
-                    hintText: "Tell us about how you enjoy your hobbies...",
+                    title: AppStrings.description,
+                    hintText: AppStrings.tellUsAboutHobbies,
                     textEditController: controller.descriptionController,
                     maxLine: 4,
-                    onChange: (value) {
-                      // Update description for all selected hobbies
-                      // controller.updateHobbiesDescription(value.trim());
-                    },
+                    onChange: (value) {},
                   ),
                   SizedBox(height: SizeConfig.size20),
 
                   CustomBtn(
-                    // onTap: validate
-                    //     ? () async {
-                    //         try {
-                    //           await controller.saveHobbies();
-
-                    //           if (mounted) Navigator.pop(context, true);
-                    //         } catch (e) {
-                    //           if (mounted) {
-                    //             ScaffoldMessenger.of(context).showSnackBar(
-                    //               SnackBar(
-                    //                   content: Text("Failed to save hobbies")),
-                    //             );
-                    //           }
-                    //         }
-                    //       }
-                    //     : null,
                     onTap: validate
                         ? () async {
                             if (controller.hobbyController.text.isNotEmpty &&
@@ -224,7 +185,7 @@ class _HobbiesScreenState extends State<HobbiesScreen> {
 
                             if (controller.hobbies.isEmpty) {
                               commonSnackBar(
-                                  message: "Please add at least one hobby.");
+                                  message: AppStrings.pleaseAddAtLeastOneHobby);
                               return;
                             }
 
@@ -233,16 +194,13 @@ class _HobbiesScreenState extends State<HobbiesScreen> {
                               if (mounted) Navigator.pop(context, true);
                             } catch (e) {
                               if (mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                      content: Text("Failed to save hobbies")),
-                                );
+                                commonSnackBar(
+                                    message: AppStrings.failedToSaveHobbies);
                               }
                             }
                           }
                         : null,
-
-                    title: "Save",
+                    title: AppStrings.save,
                     isValidate: validate,
                   ),
                 ],

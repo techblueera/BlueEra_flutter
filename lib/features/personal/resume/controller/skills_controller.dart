@@ -46,28 +46,8 @@ class SkillsController extends GetxController {
     if (skills != null && skills.isNotEmpty) {
       skillsList.addAll(skills.whereType<String>());
     }
-    print("List of skills is⭐⭐⭐⭐⭐ ${skillsList}");
     validateForm();
   }
-  // Future<void> getSkillsApi() async {
-  //   try {
-  //     final response = await _repo.getSkills();
-  //     if (response.isSuccess) {
-  //       final getSkillsData = response.response!.data;
-  //       skillsList.clear();
-
-  //       if (getSkillsData is Map && getSkillsData[ApiKeys.skills] != null) {
-  //         final skills = getSkillsData[ApiKeys.skills];
-  //         if (skills is List) {
-  //           skillsList.addAll(skills.cast<String>());
-  //         }
-  //       }
-  //       validateForm();
-  //     }
-  //   } catch (e) {
-  //     print("ERROR: $e");
-  //   }
-  // }
 
   Future<void> addSkillsApi() async {
     final params = {ApiKeys.skills: skillsList.toList()};

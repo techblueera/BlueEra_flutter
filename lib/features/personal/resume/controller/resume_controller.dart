@@ -9,12 +9,10 @@ class ResumeController extends GetxController {
   final bio = ''.obs;
   final careerObjective = ''.obs;
 
-  
   final salaryDetails = ''.obs;
-  
-  
+
   final additionalInfo = ''.obs;
-  
+
   final workExperienceList = <Map<String, String>>[].obs;
   final skillsList = <String>[].obs;
   final portfolioLinks = <Map<String, String>>[].obs;
@@ -45,21 +43,11 @@ class ResumeController extends GetxController {
   final additionalInfoDescriptionController = TextEditingController();
   final isCurrentJobFormValid = false.obs;
 
-
- 
-
-
   @override
   void onInit() {
-
     additionalInfoDescriptionController.addListener(() {
       additionalInfo.value = additionalInfoDescriptionController.text;
     });
-
-    // careerObjectiveController.addListener(() {
-    //   careerObjective.value = careerObjectiveController.text;
-    // });
-    // getCareerObjectiveApi();
     super.onInit();
   }
 
@@ -71,7 +59,6 @@ class ResumeController extends GetxController {
     additionalInfoDescriptionController.dispose();
     super.onClose();
   }
-
 
   void addCareerObjectiveToList(String text) {
     portfolioLinks.removeWhere((item) => item['title'] == 'Career Objective');
@@ -87,21 +74,4 @@ class ResumeController extends GetxController {
       'subtitle1': description,
     });
   }
-
-  // Future<void> getCareerObjectiveApi() async {
-  //   try {
-  //     final response = await _repo.getCareerObjective();
-  //     if (response.statusCode == 200 && response.response?.data != null) {
-  //       final raw = response.response!.data;
-  //       if (raw is Map && raw['careerObjective'] != null) {
-  //         careerObjective.value = raw['careerObjective'];
-  //       } else if (raw is String) {
-  //         careerObjective.value = raw;
-  //       }
-  //     }
-  //   } catch (e) {
-  //     print("ERROR: $e");
-  //   }
-  // }
-
 }
