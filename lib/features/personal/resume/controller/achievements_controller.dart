@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/personal/resume/repo/resume_repo.dart';
 import 'package:flutter/material.dart';
@@ -22,110 +23,18 @@ class AchievementsController extends GetxController {
   final isLoading = false.obs;
 
   @override
-  void onInit() {
-    super.onInit();
-    // fetchAchievements();
-  }
-
-  @override
   void onClose() {
     titleController.dispose();
     descriptionController.dispose();
     courseController.dispose();
     super.onClose();
   }
-
-  // Future<void> fetchAchievements() async {
-  //   isLoading.value = true;
-  //   try {
-  //     final res = await _repo.getAllAchievements(params: {});
-  //     if (res.isSuccess && res.response?.data != null) {
-  //       final rawList = res.response!.data as List<dynamic>;
-  //       achievementsList.assignAll(
-  //         rawList.map((e) {
-  //           final item = e as Map<String, dynamic>;
-  //           final dateMap = item['achieveDate'] as Map<String, dynamic>?;
-  //           String formattedDate = "";
-  //           if (dateMap != null) {
-  //             final months = [
-  //               '',
-  //               'January',
-  //               'February',
-  //               'March',
-  //               'April',
-  //               'May',
-  //               'June',
-  //               'July',
-  //               'August',
-  //               'September',
-  //               'October',
-  //               'November',
-  //               'December'
-  //             ];
-  //             final int? month = dateMap['month'] is int
-  //                 ? dateMap['month']
-  //                 : int.tryParse(dateMap['month']?.toString() ?? "");
-  //             final int? year = dateMap['year'] is int
-  //                 ? dateMap['year']
-  //                 : int.tryParse(dateMap['year']?.toString() ?? "");
-  //             if (month != null && year != null) {
-  //               formattedDate = months[month] + " " + year.toString();
-  //             }
-  //           }
-  //           return {
-  //             '_id': item['_id'],
-  //             'title': item['title'] ?? '',
-  //             'subtitle1': formattedDate,
-  //             'subtitle2': item['description'] ?? '',
-  //             'document':
-  //                 item['attachment'] != null ? [item['attachment']] : [],
-  //             'achieveDate': item['achieveDate'],
-  //           };
-  //         }).toList(),
-  //       );
-  //     } else {
-  //       achievementsList.clear();
-  //     }
-  //   } catch (e) {
-  //     achievementsList.clear();
-  //   } finally {
-  //     isLoading.value = false;
-  //   }
-  // }
-
-// Future<void> getAchievementById(String id) async {
-//   isLoading.value = true;
-//   try {
-//     final res = await _repo.getAchievementById(id: id, params: {});
-//     if (res.isSuccess && res.response?.data != null) {
-//       final data = res.response!.data as Map<String, dynamic>;
-
-//       titleController.text = data['title'] ?? '';
-//       descriptionController.text = data['description'] ?? '';
-
-//       final dateMap = data['achieveDate'] as Map<String, dynamic>?;
-//       if (dateMap != null) {
-//         final year = dateMap['year'] is int ? dateMap['year'] : int.tryParse(dateMap['year']?.toString() ?? "");
-//         final month = dateMap['month'] is int ? dateMap['month'] : int.tryParse(dateMap['month']?.toString() ?? "");
-//         final day = dateMap['date'] is int ? dateMap['date'] : int.tryParse(dateMap['date']?.toString() ?? "");
-//         if (year != null && month != null && day != null) {
-//           selectedDate.value = DateTime(year, month, day);
-//         }
-//       }
-
-//       selectedImageUrl = data['attachment'] as String?;
-//       selectedFile = null; // no local file picked yet
-//     }
-//   } finally {
-//     isLoading.value = false;
-//   }
-// }
   Future<ResponseModel> addAchievement() async {
     isLoading.value = true;
     try {
       final date = selectedDate.value;
       if (date == null) {
-        commonSnackBar(message: "Please select date");
+        commonSnackBar(message:AppStrings.pleaseSelectDate);
         return ResponseModel();
       }
 
@@ -140,15 +49,15 @@ class AchievementsController extends GetxController {
       if (res.isSuccess) {
         commonSnackBar(
             message: res.response?.data['message'] ??
-                "Achievement added successfully");
+                AppStrings.achievementAddedSuccess.tr);
         // await fetchAchievements();
         clearForm();
       } else {
-        commonSnackBar(message: res.message ?? "Failed to add achievement");
+        commonSnackBar(message: res.message ?? AppStrings.achievementAddFailed.tr);
       }
       return res;
     } catch (e) {
-      commonSnackBar(message: "An error occurred");
+      commonSnackBar(message: AppStrings.genericError);
       return ResponseModel();
     } finally {
       isLoading.value = false;
@@ -158,15 +67,11 @@ class AchievementsController extends GetxController {
   Future<void> updateAchievement(String id) async {
     isLoading.value = true;
     try {
-      print("Updating achievement with:");
-      print("Title: ${titleController.text}");
-      print("Description: ${descriptionController.text}");
-      print("Date: ${selectedDate.value}");
-      print("Has file: ${selectedFile != null}");
+
 
       final date = selectedDate.value;
       if (date == null) {
-        commonSnackBar(message: "Please select date");
+        commonSnackBar(message: AppStrings.pleaseSelectDate);
         return;
       }
 
@@ -181,14 +86,14 @@ class AchievementsController extends GetxController {
       );
 
       if (res.isSuccess) {
-        commonSnackBar(message: "Achievement updated successfully");
+        commonSnackBar(message: AppStrings.achievementUpdateSuccess);
         // await fetchAchievements();
         clearForm();
       } else {
-        commonSnackBar(message: res.message ?? "Failed to update achievement");
+        commonSnackBar(message: res.message ?? AppStrings.achievementUpdateFailed.tr);
       }
     } catch (e) {
-      commonSnackBar(message: "An error occurred");
+      commonSnackBar(message: AppStrings.genericError);
     } finally {
       isLoading.value = false;
     }
@@ -200,13 +105,13 @@ class AchievementsController extends GetxController {
       final res = await _repo.deleteAchievement(id: id);
       if (res.isSuccess) {
         commonSnackBar(
-            message: res.response?.data['message'] ?? "Achievement deleted");
+            message: res.response?.data['message'] ?? AppStrings.achievementDeleteSuccess.tr);
         // await fetchAchievements();
       } else {
-        commonSnackBar(message: res.message ?? "Failed to delete achievement");
+        commonSnackBar(message: res.message ?? AppStrings.achievementDeleteFailed.tr);
       }
     } catch (e) {
-      commonSnackBar(message: "An error occurred");
+      commonSnackBar(message: AppStrings.genericError);
     } finally {
       isLoading.value = false;
     }

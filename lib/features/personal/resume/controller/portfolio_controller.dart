@@ -32,14 +32,7 @@ class PortfolioController extends GetxController {
     isValidate.value = portfolioLinks.isNotEmpty;
   }
   
-  // void addPortfolioLink(String link) {
-  //   if (link.isNotEmpty && !portfolioLinks.contains(link)) {
-  //     portfolioLinks.add(link);
-  //     portfolioController.clear();
-  //     isAddPortfolioValidate.value = false;
-  //     validateForm();
-  //   }
-  // }
+
   void addPortfolioLink(String link) {
   final normalizedLink = link.trim().toLowerCase();
   final existingLinks = portfolioLinks.map((e) => e.trim().toLowerCase()).toList();
@@ -50,7 +43,7 @@ class PortfolioController extends GetxController {
     isAddPortfolioValidate.value = false;
     validateForm();
   } else {
-    commonSnackBar(message: "This link is already added");
+    commonSnackBar(message: AppStrings.portfolioLinkExists);
   }
 }
 
@@ -60,12 +53,12 @@ class PortfolioController extends GetxController {
     if (res.isSuccess) {
       portfolioLinks.remove(link);
       validateForm();
-      commonSnackBar(message: res.response?.data['message'] ?? "Portfolio deleted successfully");
+      commonSnackBar(message: res.response?.data['message'] ?? AppStrings.portfolioDeletedSuccess);
     } else {
-      commonSnackBar(message: res.message ?? "Failed to delete portfolio link");
+      commonSnackBar(message: res.message ?? AppStrings.portfolioDeleteFailed);
     }
   } catch (e) {
-    commonSnackBar(message: "Error occurred while deleting portfolio");
+    commonSnackBar(message:AppStrings.portfolioDeleteError);
   }
 }
 
@@ -87,7 +80,7 @@ class PortfolioController extends GetxController {
         addPortfolioResponse = ApiResponse.complete(res);
         // await fetchPortfolios(); // Update the portfolio list
         Get.back();
-        commonSnackBar(message: res.response?.data['message'] ?? "Portfolio added successfully");
+        commonSnackBar(message: res.response?.data['message'] ?? AppStrings.portfolioAddedSuccess);
       } else {
         commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
       }
@@ -96,53 +89,4 @@ class PortfolioController extends GetxController {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
   }
-  
-  // Future<void> fetchPortfolios() async {
-  //   try {
-  //     final res = await ResumeRepo().fetchPortfolios(params: {});
-  //     if (res.isSuccess) {
-  //       fetchPortfoliosResponse = ApiResponse.complete(res);
-  //       final data = res.response?.data;
-  //       portfolioLinks.clear();
-        
-  //       if (data != null && data['portfolio'] != null) {
-  //         portfolioLinks.add(data['portfolio']);
-  //       }
-        
-  //       validateForm();
-  //     } else {
-  //       fetchPortfoliosResponse = ApiResponse.error(res.message ?? 'Failed to fetch portfolios');
-  //     }
-  //   } catch (e) {
-  //     fetchPortfoliosResponse = ApiResponse.error('Failed to fetch portfolios');
-  //   }
-  // }
-//   Future<void> fetchPortfolios() async {
-//   try {
-//     final res = await ResumeRepo().fetchPortfolios(params: {});
-//     if (res.isSuccess) {
-//       fetchPortfoliosResponse = ApiResponse.complete(res);
-//       final data = res.response?.data;
-//       portfolioLinks.clear();
-
-//       if (data != null && data['portfolios'] != null) {
-//         if (data['portfolios'] is List) {
-//           for (final link in data['portfolios']) {
-//             if (link is String && link.isNotEmpty) {
-//               portfolioLinks.add(link);
-//             }
-//           }
-//         } else if (data['portfolios'] is String && data['portfolios'].isNotEmpty) {
-//           portfolioLinks.add(data['portfolios']);
-//         }
-//       }
-//       validateForm();
-//     } else {
-//       fetchPortfoliosResponse = ApiResponse.error(res.message ?? 'Failed to fetch portfolios');
-//     }
-//   } catch (e) {
-//     fetchPortfoliosResponse = ApiResponse.error('Failed to fetch portfolios');
-//   }
-// }
-
 }

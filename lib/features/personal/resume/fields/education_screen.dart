@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/resume/controller/education_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -45,7 +46,7 @@ class _EducationScreenState extends State<EducationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: widget.isEdit ? 'Edit Education' : 'Add Education',
+        title: widget.isEdit ? AppStrings.editEducation : AppStrings.addEducation,
       ),
       body: Padding(
         padding: EdgeInsets.all(SizeConfig.paddingL),
@@ -62,7 +63,7 @@ class _EducationScreenState extends State<EducationScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CustomText(
-                    "Education",
+                    AppStrings.education,
                     fontSize: SizeConfig.small,
                   ),
                   SizedBox(height: SizeConfig.size10),
@@ -72,7 +73,7 @@ class _EducationScreenState extends State<EducationScreen> {
                         selectedValue: controller.qualification.value.isEmpty
                             ? null
                             : controller.qualification.value,
-                        hintText: "Select Qualification",
+                        hintText:AppStrings.selectQualification,
                         onChanged: (val) {
                           controller.qualification.value = val ?? '';
                           controller.validate();
@@ -83,28 +84,28 @@ class _EducationScreenState extends State<EducationScreen> {
                   SizedBox(height: SizeConfig.size20),
 
                   CommonTextField(
-                    title: "School/College Name",
+                    title: AppStrings.schoolCollegeName,
                     textEditController: controller.schoolController,
-                    hintText: "E.g. Sagarbhanga High School",
+                    hintText:AppStrings.schoolCollegeHint,
                     fontSize: SizeConfig.small,
                   ),
 
                   SizedBox(height: SizeConfig.size18),
 
                   CommonTextField(
-                    title: "Board Name",
+                    title:AppStrings.boardName,
                     textEditController: controller.boardController,
-                    hintText: "E.g. CBSE",
+                    hintText:AppStrings.boardNameHint,
                     fontSize: SizeConfig.small,
                   ),
 
                   SizedBox(height: SizeConfig.size18),
 
                   CommonTextField(
-                    title: "Passing Year",
+                    title:AppStrings.passingYear,
                     textEditController: controller.yearController,
                     inputLength: 4,
-                    hintText: "E.g. 2020",
+                    hintText:AppStrings.passingYearHint,
                     fontSize: SizeConfig.small,
                     keyBoardType: TextInputType.number,
                     inputFormatters: [
@@ -116,9 +117,9 @@ class _EducationScreenState extends State<EducationScreen> {
                   SizedBox(height: SizeConfig.size18),
 
                   CommonTextField(
-                    title: "Performance Score",
+                    title: AppStrings.performanceScore,
                     textEditController: controller.scoreController,
-                    hintText: "E.g., 80%",
+                    hintText:AppStrings.performanceScoreHint,
                     fontSize: SizeConfig.small,
                     keyBoardType: TextInputType.number,
                     inputFormatters: [
@@ -133,8 +134,8 @@ class _EducationScreenState extends State<EducationScreen> {
                       Expanded(
                         child: Obx(() => CustomBtn(
                               title: controller.editingId.value == null
-                                  ? "Save"
-                                  : "Update",
+                                  ? AppStrings.save
+                                  : AppStrings.update,
                               isValidate: controller.isFormValid.value,
                               onTap: controller.isFormValid.value
                                   ? () async {

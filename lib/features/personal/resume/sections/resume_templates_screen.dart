@@ -1,5 +1,7 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -14,7 +16,7 @@ class ResumeTemplateScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: const CommonBackAppBar(title: 'Resume Templates'),
+      appBar: const CommonBackAppBar(title: AppStrings.resumeTemplates),
       body: Obx(() {
         if (controller.isLoading.value) {
           return const Center(child: CircularProgressIndicator());
@@ -89,12 +91,10 @@ class ResumeTemplateScreen extends StatelessWidget {
                                   color: Colors.grey[400],
                                 ),
                                 SizedBox(height: 4),
-                                Text(
-                                  'Template',
-                                  style: TextStyle(
+                                CustomText(
+                                  AppStrings.template,
                                     fontSize: 10,
                                     color: Colors.grey[500],
-                                  ),
                                 ),
                               ],
                             ),
@@ -109,7 +109,7 @@ class ResumeTemplateScreen extends StatelessWidget {
                         vertical: SizeConfig.size10),
                     child: PositiveCustomBtn(
                         onTap: () => controller.downloadTemplate(template),
-                        title: "Download"),
+                        title: AppStrings.download),
                   )
                 ],
               ),

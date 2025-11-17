@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
@@ -92,8 +93,8 @@ class _AddPublishingScreenState extends State<AddPublishingScreen> {
     return Scaffold(
       appBar: CommonBackAppBar(
         title: widget.publicationData != null
-            ? "Edit Publication"
-            : "Add Publication",
+            ? AppStrings.editPublication
+            : AppStrings.addPublication,
       ),
       body: SingleChildScrollView(
         child: SafeArea(
@@ -112,11 +113,11 @@ class _AddPublishingScreenState extends State<AddPublishingScreen> {
                         keyBoardType: TextInputType.text,
                         regularExpression:
                             RegularExpressionUtils.alphabetSpacePattern,
-                        title: "Title",
+                        title: AppStrings.title,
                         titleColor: AppColors.black1A,
                         fontSize: SizeConfig.small,
                         fontWeight: FontWeight.w400,
-                        hintText: "E.g. paper/Book Publication.....",
+                        hintText: AppStrings.publicationHint,
                         isValidate: true,
                         onChange: (value) => _validateForm(),
                       ),
@@ -128,11 +129,11 @@ class _AddPublishingScreenState extends State<AddPublishingScreen> {
                         textEditController: controller.linkController,
                         inputLength: AppConstants.inputCharterLimit100,
                         keyBoardType: TextInputType.url,
-                        title: "URL",
+                        title: AppStrings.url,
                         titleColor: AppColors.black1A,
                         fontSize: SizeConfig.small,
                         fontWeight: FontWeight.w400,
-                        hintText: "E.g. https://loremipsumdolor.com",
+                        hintText: AppStrings.urlHint,
                         isValidate: true,
                         onChange: (value) => _validateForm(),
                       ),
@@ -141,7 +142,7 @@ class _AddPublishingScreenState extends State<AddPublishingScreen> {
 
                       /// Date
                       CustomText(
-                        "Date",
+                        AppStrings.date,
                         color: AppColors.black1A,
                         fontSize: SizeConfig.small,
                         fontWeight: FontWeight.w400,
@@ -182,11 +183,11 @@ class _AddPublishingScreenState extends State<AddPublishingScreen> {
                         keyBoardType: TextInputType.multiline,
                         regularExpression:
                             RegularExpressionUtils.alphabetSpacePattern,
-                        title: "Description",
+                        title: AppStrings.description,
                         titleColor: AppColors.black1A,
                         fontSize: SizeConfig.small,
                         fontWeight: FontWeight.w400,
-                        hintText: "Type here...",
+                        hintText: AppStrings.typeHere,
                         isValidate: true,
                         maxLine: 4,
                         onChange: (value) => _validateForm(),
@@ -200,10 +201,10 @@ class _AddPublishingScreenState extends State<AddPublishingScreen> {
                                 ? _handleSave
                                 : null,
                             title: controller.isLoading.value
-                                ? "Saving..."
+                                ? AppStrings.saving
                                 : (widget.publicationData != null
-                                    ? "Update"
-                                    : "Save"),
+                                    ? AppStrings.update
+                                    : AppStrings.save),
                             isValidate: validate && !controller.isLoading.value,
                           )),
                     ],

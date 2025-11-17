@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/resume/resume_common_delete_widget.dart';
 import 'package:BlueEra/features/personal/resume/resume_common_edit_widget.dart';
@@ -7,6 +8,7 @@ import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class ResumeProfileSectionCard extends StatelessWidget {
   final String title;
@@ -68,25 +70,7 @@ class ResumeProfileSectionCard extends StatelessWidget {
                               ),
                               Padding(
                                 padding: EdgeInsets.only(top: SizeConfig.size3),
-                                // child: Row(
-                                //   crossAxisAlignment: CrossAxisAlignment.start,
-                                //   children: [
-                                //     ResumeCommonEditWidget(
-                                //       imgColor: AppColors.grey72,
-                                //       voidCallback: itemsEditCallback != null
-                                //           ? () => itemsEditCallback!(index)
-                                //           : () {},
-                                //     ),
-                                //     SizedBox(width: SizeConfig.size14),
-                                //     // CommonDeleteWidget(voidCallback: () {}),
-                                //     ResumeCommonDeleteWidget(
-                                //       voidCallback: () =>
-                                //           itemsDeleteCallback != null
-                                //               ? itemsDeleteCallback!(index)
-                                //               : () {},
-                                //     ),
-                                //   ],
-                                // ),
+
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -194,7 +178,7 @@ class ResumeProfileSectionCard extends StatelessWidget {
                 children: [
                   LocalAssets(imagePath: AppIconAssets.addBlueIcon),
                   SizedBox(width: SizeConfig.size4),
-                  CustomText("Add $title",
+                  CustomText("${AppStrings.add.tr} $title",
                       color: AppColors.primaryColor,
                       fontSize: SizeConfig.large),
                 ],

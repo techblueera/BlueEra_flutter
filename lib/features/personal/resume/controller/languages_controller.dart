@@ -75,7 +75,7 @@ import 'package:get/get.dart';
     final writeList = writeLanguages.map((e) => e.label).toList();
 
     if (speakList.isEmpty && writeList.isEmpty) {
-      commonSnackBar(message: "Please add at least one language");
+      commonSnackBar(message: AppStrings.addAtLeastOneLanguage);
       return;
     }
 
@@ -84,21 +84,19 @@ import 'package:get/get.dart';
       "write": writeList,
     };
 
-    print("Saving languages with payload: $params"); // For debug
-
     try {
       isLoading.value = true;
       final response = await _repo.addLanguages(params: params);
 
       if (response.isSuccess) {
-        commonSnackBar(message: response.response?.data['message'] ?? "Success");
+        commonSnackBar(message: response.response?.data['message'] ?? AppStrings.success);
         await getLanguagesApi();
         Get.back();
       } else {
-        commonSnackBar(message: response.response?.data['message'] ?? "Something went wrong");
+        commonSnackBar(message: response.response?.data['message'] ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
-      commonSnackBar(message: "Something went wrong");
+      commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
       isLoading.value = false;
     }

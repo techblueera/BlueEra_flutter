@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/resume/controller/bio_controller.dart';
 import 'package:BlueEra/features/personal/resume/controller/current_job_controller.dart';
@@ -58,7 +59,7 @@ class _ProfileSectionState extends State<ProfileSection> {
         Obx(() {
           final items = bioController.educationList;
           return ResumeProfileSectionCard(
-            title: "Bio",
+            title: AppStrings.bio,
             items: items.toList(),
             onAddPressed: items.isEmpty
                 ? () {
@@ -90,7 +91,7 @@ class _ProfileSectionState extends State<ProfileSection> {
         Obx(() {
           final items = qualificationController.educationList;
           return ResumeProfileSectionCard(
-            title: "Highest Qualification",
+            title:AppStrings.highestQualification,
             items: items.toList(),
             onAddPressed: items.isEmpty
                 ? () {
@@ -147,7 +148,7 @@ class _ProfileSectionState extends State<ProfileSection> {
           }).toList();
 
           return ResumeProfileSectionCard(
-            title: "Salary Details",
+            title: AppStrings.salaryDetails,
             items: updatedItems,
             onAddPressed: items.isEmpty
                 ? () {
@@ -181,7 +182,7 @@ class _ProfileSectionState extends State<ProfileSection> {
         Obx(() {
           final items = currentJobController.workExperienceList;
           return ResumeJobSectionCard(
-            title: "Current Job",
+            title:AppStrings.currentJob,
             items: items.toList(),
             onAddPressed: items.isEmpty
                 ? () {
@@ -195,16 +196,10 @@ class _ProfileSectionState extends State<ProfileSection> {
                   }
                 : null,
             itemsEditCallback: (index) async {
-              // await getResumeController.getMyResume();
               final rawJobData = currentJobController.rawCurrentJobData;
-              // if (currentJobController.rawCurrentJobData != null) {
-              //   currentJobController.setFieldsFromBackend(
-              //       currentJobController.rawCurrentJobData!);
-              // }
+
               if (rawJobData != null) {
                 currentJobController.setFieldsFromBackend(rawJobData);
-              } else {
-                // Handle null, possibly show error or fallback
               }
               Navigator.push(
                 context,

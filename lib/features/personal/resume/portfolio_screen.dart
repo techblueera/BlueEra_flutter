@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/resume/controller/portfolio_controller.dart';
@@ -22,7 +23,7 @@ class _PortfolioLinkScreenState extends State<PortfolioLinkScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CommonBackAppBar(title: "Add Portfolio / Work Samples"),
+      appBar: const CommonBackAppBar(title: AppStrings.addPortfolioWorkSamples),
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.all(SizeConfig.size20),
@@ -32,7 +33,7 @@ class _PortfolioLinkScreenState extends State<PortfolioLinkScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CustomText(
-                    "Portfolio / Work Samples",
+                    AppStrings.portfolioWorkSamples,
                     color: AppColors.black1A,
                     fontSize: SizeConfig.small,
                     fontWeight: FontWeight.w400,
@@ -45,7 +46,7 @@ class _PortfolioLinkScreenState extends State<PortfolioLinkScreen> {
                       Expanded(
                         child: HttpsTextField(
                           controller: controller.portfolioController,
-                          hintText: "Share Your Portfolio link",
+                          hintText: AppStrings.sharePortfolioLink,
                           isUrlValidate: false,
                           onChange: (value) {
                             controller.validateForm();
@@ -63,7 +64,7 @@ class _PortfolioLinkScreenState extends State<PortfolioLinkScreen> {
                                         .trim());
                                   }
                                 : null,
-                            title: 'Add',
+                            title: AppStrings.add,
                             isValidate: controller.isAddPortfolioValidate.value,
                           )),
                     ],
@@ -94,7 +95,7 @@ class _PortfolioLinkScreenState extends State<PortfolioLinkScreen> {
                                 controller.savePortfolio(context);
                               }
                             : null,
-                        title: "Save",
+                        title: AppStrings.save,
                         isValidate: controller.isValidate.value,
                       )),
                 ],

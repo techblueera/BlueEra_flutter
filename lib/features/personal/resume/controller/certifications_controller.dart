@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/personal/resume/model/certification_model.dart';
 import 'package:BlueEra/features/personal/resume/repo/resume_repo.dart';
@@ -52,48 +53,15 @@ class CertificationsController extends GetxController {
     issuingOrgController.text = certification.issuingOrg;
   }
 
-  // Future<void> getAllCertifications() async {
-  //   final res = await _repo.getAllCertifications();
-  //   if (res.isSuccess && res.response?.data != null) {
-  //     final items = (res.response!.data as List<dynamic>).map((e) {
-  //       final item = e as Map<String, dynamic>;
-  //       final org = item['issuingOrg']?.toString() ?? '';
-  //       final monthYear = formatMonthYear(item['certificateDate']);
-  //       final subtitle1 = org.isNotEmpty && monthYear.isNotEmpty
-  //           ? '$org, $monthYear'
-  //           : org + monthYear; // fallback handling
-
-  //       final attachment =
-  //           (item['certificateAttachment']?.toString().isNotEmpty ?? false)
-  //               ? [item['certificateAttachment'].toString()]
-  //               : [];
-
-  //       return {
-  //         '_id': item['_id'],
-  //         'title': item['title'] ?? '',
-  //         'subtitle1': subtitle1,
-  //         'document': attachment,
-  //         'issuingOrg': item['issuingOrg'] ?? '',
-  //         'certificateDate': item['certificateDate'],
-  //         'certificateAttachmentRaw':
-  //             (item['certificateAttachment'] ?? '').toString(),
-  //       };
-  //     }).toList();
-  //     certificationsList.assignAll(items);
-  //   } else {
-  //     certificationsList.clear();
-  //   }
-  // }
-
   Future<void> addCertification(Map<String, dynamic> params,
       {String? photoPath}) async {
     final res =
         await _repo.addCertification(params: params, photoPath: photoPath);
     if (res.isSuccess) {
-      commonSnackBar(message: 'Certification added successfully!');
+      commonSnackBar(message: AppStrings.certificationAdded);
       // await getAllCertifications();
     } else {
-      commonSnackBar(message: res.message ?? "Failed to add certification");
+      commonSnackBar(message: res.message ??AppStrings.certificationAddFailed);
     }
   }
 
@@ -102,20 +70,20 @@ class CertificationsController extends GetxController {
     final res = await _repo.updateCertification(
         id: id, params: params, photoPath: photoPath);
     if (res.isSuccess) {
-      commonSnackBar(message: 'Certification updated successfully!');
+      commonSnackBar(message: AppStrings.certificationUpdated);
       // await getAllCertifications();
     } else {
-      commonSnackBar(message: res.message ?? "Failed to update certification");
+      commonSnackBar(message: res.message ?? AppStrings.certificationUpdateFailed);
     }
   }
 
   Future<void> deleteCertification(String id) async {
     final res = await _repo.deleteCertification(id: id);
     if (res.isSuccess) {
-      commonSnackBar(message: 'Certification deleted successfully!');
+      commonSnackBar(message: AppStrings.certificationDeleted);
       // await getAllCertifications();
     } else {
-      commonSnackBar(message: res.message ?? "Failed to delete certification");
+      commonSnackBar(message: res.message ?? AppStrings.certificationDeleteFailed);
     }
   }
 

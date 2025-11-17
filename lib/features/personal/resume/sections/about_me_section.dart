@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/resume/add_achievement_screen.dart';
 import 'package:BlueEra/features/personal/resume/certificate_screen.dart';
@@ -18,6 +19,7 @@ import 'package:BlueEra/features/personal/resume/portfolio_screen.dart';
 import 'package:BlueEra/features/personal/resume/resume_profile_section_card.dart';
 import 'package:BlueEra/features/personal/resume/skills_resume_screen.dart';
 import 'package:BlueEra/widgets/common_chip.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/delete_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -85,11 +87,8 @@ class _AboutMeSectionState extends State<AboutMeSection> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Header
-                Text(
-                  "Skills",
-                  style: TextStyle(
-                      color: AppColors.grey72, fontSize: SizeConfig.medium),
-                ),
+                CustomText(AppStrings.skills,
+                    color: AppColors.grey72, fontSize: SizeConfig.medium),
 
                 SizedBox(height: 16),
 
@@ -103,16 +102,14 @@ class _AboutMeSectionState extends State<AboutMeSection> {
                         Icon(
                           Icons.add,
                           size: 16,
-                          color: Colors.blue,
+                          color: AppColors.primaryColor,
                         ),
                         SizedBox(width: 8),
-                        Text(
-                          "Add Skills",
-                          style: TextStyle(
-                            color: Colors.blue,
-                            fontSize: SizeConfig.large,
-                            fontWeight: FontWeight.w500,
-                          ),
+                        CustomText(
+                          AppStrings.addSkills,
+                          color: AppColors.primaryColor,
+                          fontSize: SizeConfig.large,
+                          fontWeight: FontWeight.w500,
                         ),
                       ],
                     ),
@@ -135,9 +132,9 @@ class _AboutMeSectionState extends State<AboutMeSection> {
                                         skillsController.deleteSkillsApi(skill);
                                         Navigator.of(context).pop();
                                       },
-                                      title: 'Delete Skill',
+                                      title: AppStrings.deleteSkill,
                                       content:
-                                          "Are you sure you want to delete '$skill'?",
+                                          "${AppStrings.deleteConfirm.tr} '$skill'?",
                                     );
                                   },
                                 ))
@@ -152,16 +149,14 @@ class _AboutMeSectionState extends State<AboutMeSection> {
                             Icon(
                               Icons.add,
                               size: 16,
-                              color: Colors.blue,
+                              color: AppColors.primaryColor,
                             ),
                             SizedBox(width: 8),
-                            Text(
-                              "Add Skills",
-                              style: TextStyle(
-                                color: Colors.blue,
-                                fontSize: SizeConfig.large,
-                                fontWeight: FontWeight.w500,
-                              ),
+                            CustomText(
+                              AppStrings.addSkills,
+                              color: AppColors.primaryColor,
+                              fontSize: SizeConfig.large,
+                              fontWeight: FontWeight.w500,
                             ),
                           ],
                         ),
@@ -193,11 +188,8 @@ class _AboutMeSectionState extends State<AboutMeSection> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Header
-                Text(
-                  "Languages",
-                  style: TextStyle(
-                      color: AppColors.grey72, fontSize: SizeConfig.medium),
-                ),
+                CustomText(AppStrings.language,
+                    color: AppColors.grey72, fontSize: SizeConfig.medium),
 
                 SizedBox(height: 16),
 
@@ -217,16 +209,14 @@ class _AboutMeSectionState extends State<AboutMeSection> {
                         Icon(
                           Icons.add,
                           size: 16,
-                          color: Colors.blue,
+                          color: AppColors.primaryColor,
                         ),
                         SizedBox(width: 8),
-                        Text(
-                          "Add Languages",
-                          style: TextStyle(
-                            color: Colors.blue,
-                            fontSize: SizeConfig.large,
-                            fontWeight: FontWeight.w500,
-                          ),
+                        CustomText(
+                          AppStrings.addLanguages,
+                          color: AppColors.primaryColor,
+                          fontSize: SizeConfig.large,
+                          fontWeight: FontWeight.w500,
                         ),
                       ],
                     ),
@@ -236,13 +226,10 @@ class _AboutMeSectionState extends State<AboutMeSection> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       if (langController.speakLanguages.isNotEmpty) ...[
-                        Text(
-                          "Languages That You Speak & Understand",
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.grey[600],
-                          ),
+                        CustomText(
+                          AppStrings.languagesSpeakUnderstand,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey[600],
                         ),
                         SizedBox(height: 12),
 
@@ -270,13 +257,10 @@ class _AboutMeSectionState extends State<AboutMeSection> {
                         SizedBox(height: 20),
                       ],
                       if (langController.writeLanguages.isNotEmpty) ...[
-                        Text(
-                          "Languages That You Can Write",
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.grey[600],
-                          ),
+                        CustomText(
+                          AppStrings.languagesWrite,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey[600],
                         ),
                         SizedBox(height: 12),
 
@@ -317,16 +301,14 @@ class _AboutMeSectionState extends State<AboutMeSection> {
                             Icon(
                               Icons.add,
                               size: 16,
-                              color: Colors.blue,
+                              color: AppColors.primaryColor,
                             ),
                             SizedBox(width: 8),
-                            Text(
-                              "Add Languages",
-                              style: TextStyle(
-                                color: Colors.blue,
-                                fontSize: SizeConfig.large,
-                                fontWeight: FontWeight.w500,
-                              ),
+                            CustomText(
+                              AppStrings.addLanguages,
+                              color: AppColors.primaryColor,
+                              fontSize: SizeConfig.large,
+                              fontWeight: FontWeight.w500,
                             ),
                           ],
                         ),
@@ -347,7 +329,7 @@ class _AboutMeSectionState extends State<AboutMeSection> {
                 ]
               : <Map<String, dynamic>>[];
           return ResumeProfileSectionCard(
-            title: "Career Objective",
+            title: AppStrings.careerObjective,
             items: items,
             onAddPressed: items.isEmpty
                 ? () async {
@@ -390,7 +372,7 @@ class _AboutMeSectionState extends State<AboutMeSection> {
               .toList();
 
           return ResumeProfileSectionCard(
-            title: "Portfolio / Work Samples",
+            title: AppStrings.portfolioWorkSamples,
             items: items,
             onAddPressed: () async {
               final result = await Navigator.push(
@@ -519,7 +501,7 @@ class _AboutMeSectionState extends State<AboutMeSection> {
           }).toList();
 
           return ResumeProfileSectionCard(
-            title: "Awards",
+            title: AppStrings.awards,
             items: items,
             onAddPressed: () {
               awardsController.clearForm();
@@ -554,7 +536,7 @@ class _AboutMeSectionState extends State<AboutMeSection> {
         Obx(() {
           final items = achievementsController.achievementsList;
           return ResumeProfileSectionCard(
-            title: "Achievements",
+            title: AppStrings.achievements,
             items: items.toList(),
             onAddPressed: () {
               achievementsController.clearForm();
@@ -596,7 +578,7 @@ class _AboutMeSectionState extends State<AboutMeSection> {
           final items = certificationsController.certificationsList;
 
           return ResumeProfileSectionCard(
-            title: "Certifications",
+            title: AppStrings.certifications,
             items: items.toList(),
             onAddPressed: () {
               certificationsController.clearForm();
@@ -638,7 +620,7 @@ class _AboutMeSectionState extends State<AboutMeSection> {
           final publications = publicationsController.publications;
 
           return ResumeProfileSectionCard(
-            title: "Publications",
+            title: AppStrings.publications,
             items: publications.map((pub) {
               final pubDate = pub['publishedDate'];
               String pubDateStr = '';
@@ -677,7 +659,7 @@ class _AboutMeSectionState extends State<AboutMeSection> {
                 await publicationsController
                     .deletePublicationApi(publications[index]['_id']);
                 await getResumeController.getMyResume();
-                commonSnackBar(message: "Publication deleted successfully");
+                commonSnackBar(message: AppStrings.publicationDeleted);
               });
             },
           );
@@ -704,11 +686,8 @@ class _AboutMeSectionState extends State<AboutMeSection> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Header
-                Text(
-                  "Hobbies",
-                  style: TextStyle(
-                      color: AppColors.grey72, fontSize: SizeConfig.medium),
-                ),
+                CustomText(AppStrings.hobbies,
+                    color: AppColors.grey72, fontSize: SizeConfig.medium),
 
                 SizedBox(height: 16),
 
@@ -722,16 +701,14 @@ class _AboutMeSectionState extends State<AboutMeSection> {
                         Icon(
                           Icons.add,
                           size: 16,
-                          color: Colors.blue,
+                          color: AppColors.primaryColor,
                         ),
                         SizedBox(width: 8),
-                        Text(
-                          "Add Hobbies",
-                          style: TextStyle(
-                            color: Colors.blue,
-                            fontSize: SizeConfig.large,
-                            fontWeight: FontWeight.w500,
-                          ),
+                        CustomText(
+                          AppStrings.addHobbies,
+                          color: AppColors.primaryColor,
+                          fontSize: SizeConfig.large,
+                          fontWeight: FontWeight.w500,
                         ),
                       ],
                     ),
@@ -758,9 +735,9 @@ class _AboutMeSectionState extends State<AboutMeSection> {
                                             hobby['_id'].toString());
                                         Navigator.of(context).pop();
                                       },
-                                      title: 'Delete Hobby',
+                                      title: AppStrings.deleteHobby,
                                       content:
-                                          "Are you sure you want to delete '${hobby['name']}'?",
+                                          "${AppStrings.deleteConfirm.tr} '${hobby['name']}'?",
                                     );
                                   },
                                 ))
@@ -784,16 +761,13 @@ class _AboutMeSectionState extends State<AboutMeSection> {
                             Icon(
                               Icons.add,
                               size: 16,
-                              color: Colors.blue,
+                              color: AppColors.primaryColor,
                             ),
                             SizedBox(width: 8),
-                            Text(
-                              "Add Hobbies",
-                              style: TextStyle(
-                                color: Colors.blue,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                              ),
+                            CustomText(
+                              AppStrings.addHobbies,
+                              color: AppColors.primaryColor,
+                              fontWeight: FontWeight.w500,
                             ),
                           ],
                         ),

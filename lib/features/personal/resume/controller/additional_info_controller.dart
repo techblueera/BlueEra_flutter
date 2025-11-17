@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/personal/resume/controller/profile_pic_controller.dart';
 import 'package:flutter/material.dart';
@@ -25,31 +26,6 @@ class AdditionalInfoController extends GetxController {
   final isAddMoreTextBox = false.obs;
   final moreTextController = TextEditingController();
 
-  // Future<void> fetchAdditionalInfos() async {
-  //   final res = await repo.fetchAllAdditionalInfo();
-  //   if (res.isSuccess && res.response?.data != null) {
-  //     final items = (res.response!.data as List<dynamic>).map((e) {
-  //       final item = e as Map<String, dynamic>;
-  //       return {
-  //         '_id': item['_id'],
-  //         'title': item['title'] ?? '',
-  //         'subtitle1':
-  //             formatDate(item['infoDate']), // date shown after title in card
-  //         'subtitle2': item['info'] ?? '', // additional description below title
-  //         'subtitle3':
-  //             item['additionalDesc'] ?? '', // more text box content at last
-  //         'document': (item['photoURL'] != null &&
-  //                 item['photoURL'].toString().isNotEmpty)
-  //             ? [item['photoURL']]
-  //             : [],
-  //       };
-  //     }).toList();
-  //     additionalInfoList.assignAll(items);
-  //   } else {
-  //     additionalInfoList.clear();
-  //   }
-  // }
-
   Future<void> updateAdditionalInfo(String id, Map<String, dynamic> inputParams,
       {String? photoPath, Map<String, dynamic>? date}) async {
     final res = await repo.updateAdditionalInfo(
@@ -59,13 +35,13 @@ class AdditionalInfoController extends GetxController {
       date: date,
     );
     if (res.isSuccess) {
-      commonSnackBar(message: "Additional Information updated");
+      commonSnackBar(message: AppStrings.additionalInfoUpdated);
       // await fetchAdditionalInfos();
 
       await getResumeController.getMyResume();
     } else {
       commonSnackBar(
-          message: res.message ?? "Failed to update additional info");
+          message: res.message ?? AppStrings.additionalInfoUpdateFailed);
     }
   }
 
@@ -77,17 +53,17 @@ class AdditionalInfoController extends GetxController {
       date: date,
     );
     if (res.isSuccess) {
-      commonSnackBar(message: "Additional Information added");
+      commonSnackBar(message:AppStrings.additionalInfoAdded);
       await getResumeController.getMyResume();
     } else {
-      commonSnackBar(message: res.message ?? "Failed to add additional info");
+      commonSnackBar(message: res.message ?? AppStrings.additionalInfoAddFailed);
     }
   }
 
   Future<void> deleteAdditionalInfo(String id) async {
     final res = await repo.deleteAdditionalInfo(id);
     if (res.isSuccess) {
-      commonSnackBar(message: "Additional Information deleted");
+      commonSnackBar(message: AppStrings.additionalInfoDeleted);
       // await fetchAdditionalInfos();
 
       await getResumeController.getMyResume();

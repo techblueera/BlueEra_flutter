@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/resume/controller/qualification_contoller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -58,8 +59,8 @@ class _HighestQualificationScreenState
     return Scaffold(
       appBar: CommonBackAppBar(
           title: widget.isEdit
-              ? 'Edit Highest Qualification'
-              : 'Add Highest Qualification'),
+              ? AppStrings.editHighestQualification
+              : AppStrings.addHighestQualification),
       body: Padding(
         padding: EdgeInsets.all(SizeConfig.paddingL),
         child: SingleChildScrollView(
@@ -77,7 +78,7 @@ class _HighestQualificationScreenState
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     CustomText(
-                      "Highest Qualification",
+                      AppStrings.highestEducation,
                       color: AppColors.black,
                       fontWeight: FontWeight.w500,
                       fontSize: SizeConfig.small,
@@ -89,7 +90,7 @@ class _HighestQualificationScreenState
                               controller.highestQualification.value.isEmpty
                                   ? null
                                   : controller.highestQualification.value,
-                          hintText: "Select Qualification",
+                          hintText: AppStrings.selectQualification,
                           onChanged: (val) {
                             controller.highestQualification.value = val ?? '';
                             controller.validateEducationForm();
@@ -100,14 +101,14 @@ class _HighestQualificationScreenState
 
                     // School/College
                     Obx(() => CommonTextField(
-                          title: "School/College Name",
+                          title: AppStrings.schoolCollegeName,
                           textEditController: controller.schoolController,
                           initialValue: controller.school.value,
                           onChange: (val) {
                             controller.school.value = val;
                             controller.validateEducationForm();
                           },
-                          hintText: "E.g. Sagarbhanga High School",
+                          hintText: AppStrings.schoolCollegeHint,
                           borderColor: AppColors.greyE5,
                           hintTextColor: AppColors.grey9B,
                           fontSize: SizeConfig.small,
@@ -121,14 +122,14 @@ class _HighestQualificationScreenState
 
                     // Board
                     Obx(() => CommonTextField(
-                          title: "Board Name",
+                          title: AppStrings.boardName,
                           textEditController: controller.boardController,
                           initialValue: controller.board.value,
                           onChange: (val) {
                             controller.board.value = val;
                             controller.validateEducationForm();
                           },
-                          hintText: "E.g. CBSE",
+                          hintText: AppStrings.boardNameHint,
                           borderColor: AppColors.greyE5,
                           hintTextColor: AppColors.grey9B,
                           fontSize: SizeConfig.small,
@@ -142,7 +143,7 @@ class _HighestQualificationScreenState
 
                     // Passing Year (formatting: digitsOnly, max length 4)
                     Obx(() => CommonTextField(
-                          title: "Passing Year",
+                          title: AppStrings.passingYear,
                           textEditController: controller.yearController,
                           initialValue: controller.year.value,
                           onChange: (val) {
@@ -150,7 +151,7 @@ class _HighestQualificationScreenState
                             controller.validateEducationForm();
                           },
                           inputLength: 4,
-                          hintText: "E.g. 2020",
+                          hintText: AppStrings.passingYearHint,
                           borderColor: AppColors.greyE5,
                           hintTextColor: AppColors.grey9B,
                           fontSize: SizeConfig.small,
@@ -169,14 +170,14 @@ class _HighestQualificationScreenState
 
                     // Performance Score (formatting: digitsOnly, max length 3, max value 100)
                     Obx(() => CommonTextField(
-                          title: "Performance Score",
+                          title: AppStrings.performanceScore,
                           textEditController: controller.scoreController,
                           initialValue: controller.score.value,
                           onChange: (val) {
                             controller.score.value = val;
                             controller.validateEducationForm();
                           },
-                          hintText: "E.g., 80%",
+                          hintText:AppStrings.performanceScoreHint,
                           borderColor: AppColors.greyE5,
                           hintTextColor: AppColors.grey9B,
                           fontSize: SizeConfig.small,
@@ -199,7 +200,7 @@ class _HighestQualificationScreenState
                         Expanded(
                     
                           child: Obx(() => CustomBtn(
-                                title: widget.isEdit ? "Update" : "Save",
+                                title: widget.isEdit ? AppStrings.update : AppStrings.save,
                                 isValidate:
                                     controller.isEducationFormValid.value,
                                 onTap: controller.isEducationFormValid.value

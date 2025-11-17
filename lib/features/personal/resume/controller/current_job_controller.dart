@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/model/get_resume_data_model.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/personal/resume/repo/resume_repo.dart';
 import 'package:flutter/material.dart';
@@ -181,9 +182,9 @@ class CurrentJobController extends GetxController {
       workExperienceList.clear();
       clearAllFields(); // Clean up form fields too
       // await fetchCurrentJobDetails();
-      commonSnackBar(message: "Current Job deleted");
+      commonSnackBar(message:AppStrings.currentJobDeleted);
     } else {
-      commonSnackBar(message: "Failed to delete job");
+      commonSnackBar(message:AppStrings.currentJobDeleteFailed);
     }
   }
 }

@@ -1,4 +1,5 @@
-  import 'package:BlueEra/core/constants/size_config.dart';
+  import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/resume/controller/salary_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -41,7 +42,7 @@ import 'package:get/get.dart';
     Widget build(BuildContext context) {
       SizeConfig.init(context);
       return Scaffold(
-        appBar: CommonBackAppBar(title: widget.isEdit ? "Edit Salary Details" : "Add Salary Details"),
+        appBar: CommonBackAppBar(title: widget.isEdit ? AppStrings.editSalaryDetails :AppStrings.addSalaryDetails),
         body: Padding(
           padding: EdgeInsets.all(SizeConfig.paddingL),
           child: SingleChildScrollView(
@@ -59,8 +60,8 @@ import 'package:get/get.dart';
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           CommonTextField(
-                            title: "Enter your Gross salary (Monthly)",
-                            hintText: "Eg. ₹ 10,000",
+                            title: AppStrings.enterGrossSalary,
+                            hintText: AppStrings.grossSalaryHint,
                             textEditController: controller.grossSalaryController,
                             keyBoardType: TextInputType.number,
                             fontSize: SizeConfig.small,
@@ -69,8 +70,8 @@ import 'package:get/get.dart';
                           ),
                           SizedBox(height: SizeConfig.size18),
                           CommonTextField(
-                            title: "Total Monthly Deduction (Eg: EPF/TDS/TCS/PF-etc)",
-                            hintText: "Eg. ₹ 10,000",
+                            title:AppStrings.totalMonthlyDeduction,
+                            hintText: AppStrings.grossSalaryHint,
                             textEditController: controller.monthlyDeductionController,
                             keyBoardType: TextInputType.number,
                             fontSize: SizeConfig.small,
@@ -79,8 +80,8 @@ import 'package:get/get.dart';
                           ),
                           SizedBox(height: SizeConfig.size18),
                           CommonTextField(
-                            title: "Earning Via Part Time Job (Monthly)",
-                            hintText: "Eg. ₹ 10,000",
+                            title: AppStrings.earningPartTime,
+                            hintText: AppStrings.grossSalaryHint,
                             textEditController: controller.partTimeEarningController,
                             keyBoardType: TextInputType.number,
                             fontSize: SizeConfig.small,
@@ -89,8 +90,8 @@ import 'package:get/get.dart';
                           ),
                           SizedBox(height: SizeConfig.size18),
                           CommonTextField(
-                            title: "Earning Via Freelancing job (Monthly)",
-                            hintText: "Eg. ₹ 10,000",
+                            title: AppStrings.earningFreelancing,
+                            hintText: AppStrings.grossSalaryHint,
                             textEditController: controller.freelanceEarningController,
                             keyBoardType: TextInputType.number,
                             fontSize: SizeConfig.small,
@@ -119,7 +120,7 @@ import 'package:get/get.dart';
                                   flex: 2,
                                   child: Padding(
                                     padding: EdgeInsets.only(top: SizeConfig.paddingS),
-                                    child: CustomText("Total Earning (Monthly) -"),
+                                    child: CustomText(AppStrings.totalEarningMonthly),
                                   ),
                                 ),
                                 Expanded(
@@ -142,7 +143,7 @@ import 'package:get/get.dart';
                                   flex: 2,
                                   child: Padding(
                                     padding: EdgeInsets.only(top: SizeConfig.paddingS),
-                                    child: CustomText("Your Annual Package -"),
+                                    child: CustomText(AppStrings.annualPackage),
                                   ),
                                 ),
                                 Expanded(
@@ -158,7 +159,7 @@ import 'package:get/get.dart';
                             )),
                         SizedBox(height: SizeConfig.size40),
                         Obx(() => CustomBtn(
-                              title: widget.isEdit ? "Update" : "Save",
+                              title: widget.isEdit ? AppStrings.update : AppStrings.save,
                               textColor: Colors.white,
                               radius: SizeConfig.size8,
                               isValidate: controller.isSalaryFormValid.value,

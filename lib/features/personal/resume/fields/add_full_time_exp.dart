@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/resume/controller/experience_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -24,7 +25,6 @@ class AddFullTimeExperienceScreen extends StatefulWidget {
 
 class _AddFullTimeExperienceScreenState
     extends State<AddFullTimeExperienceScreen> {
-  // final ExperienceController controller = Get.put(ExperienceController(isFullTime: true));
   final controller = Get.find<ExperienceController>(tag: 'fullTime');
 
   final _formKey = GlobalKey<FormState>();
@@ -41,12 +41,11 @@ class _AddFullTimeExperienceScreenState
 
   @override
   Widget build(BuildContext context) {
-    SizeConfig.init(context);
     return Scaffold(
       appBar: CommonBackAppBar(
           title: widget.isEdit
-              ? "Edit Full-Time Experience"
-              : "Add Full-Time Experience"),
+              ? AppStrings.editFullTimeExperience
+              :AppStrings.addFullTimeExperience),
       body: Padding(
         padding: EdgeInsets.all(SizeConfig.paddingM),
         child: SingleChildScrollView(
@@ -66,8 +65,8 @@ class _AddFullTimeExperienceScreenState
                     SizedBox(height: SizeConfig.size30),
 
                     CommonTextField(
-                      title: "Previous Company Name",
-                      hintText: "e.g., BlueCS Limited",
+                      title: AppStrings.previousCompanyName,
+                      hintText: AppStrings.previousCompanyHint,
                       fontSize: SizeConfig.small,
                       textEditController: controller.previousCompanyController,
                     ),
@@ -75,20 +74,20 @@ class _AddFullTimeExperienceScreenState
                     SizedBox(height: SizeConfig.size24),
 
                     CommonTextField(
-                      title: "Designation",
-                      hintText: "e.g., Software Engineer",
+                      title: AppStrings.designation,
+                      hintText: AppStrings.designationHint,
                       fontSize: SizeConfig.small,
                       textEditController: controller.designationController,
                     ),
 
                     SizedBox(height: SizeConfig.size24),
 
-                    CustomText("Job Type", fontSize: SizeConfig.small),
+                    CustomText(AppStrings.jobType, fontSize: SizeConfig.small),
                     SizedBox(height: SizeConfig.size10),
                     Obx(() => CommonDropdown<String>(
                           items: controller.jobTypeOptions,
                           selectedValue: controller.selectedJobType.value,
-                          hintText: "e.g., Full Time",
+                          hintText: AppStrings.jobTypeHint,
                           onChanged: (val) =>
                               controller.selectedJobType.value = val,
                           displayValue: (item) => item,
@@ -96,12 +95,12 @@ class _AddFullTimeExperienceScreenState
 
                     SizedBox(height: SizeConfig.size24),
 
-                    CustomText("Work Mode", fontSize: SizeConfig.small),
+                    CustomText(AppStrings.workMode, fontSize: SizeConfig.small),
                     SizedBox(height: SizeConfig.size10),
                     Obx(() => CommonDropdown<String>(
                           items: controller.workTypeOptions,
                           selectedValue: controller.selectedWorkType.value,
-                          hintText: "e.g., Remote",
+                          hintText: AppStrings.workModeHint,
                           onChanged: (val) =>
                               controller.selectedWorkType.value = val,
                           displayValue: (item) => item,
@@ -110,15 +109,15 @@ class _AddFullTimeExperienceScreenState
                     SizedBox(height: SizeConfig.size24),
 
                     CommonTextField(
-                      title: "Location",
-                      hintText: "e.g., Bangalore",
+                      title: AppStrings.location,
+                      hintText:AppStrings.locationHint,
                       fontSize: SizeConfig.small,
                       textEditController: controller.locationController,
                     ),
 
                     SizedBox(height: SizeConfig.size24),
 
-                    CustomText("Start Date", fontSize: SizeConfig.small),
+                    CustomText(AppStrings.startDate, fontSize: SizeConfig.small),
                     SizedBox(height: SizeConfig.size10),
                     Obx(() => NewDatePicker(
                           selectedDay: controller.selectedStartDay.value,
@@ -134,7 +133,7 @@ class _AddFullTimeExperienceScreenState
 
                     SizedBox(height: SizeConfig.size24),
 
-                    CustomText("End Date", fontSize: SizeConfig.small),
+                    CustomText(AppStrings.endDate, fontSize: SizeConfig.small),
                     SizedBox(height: SizeConfig.size10),
                     Obx(() => NewDatePicker(
                           selectedDay: controller.selectedEndDay.value,
@@ -151,8 +150,8 @@ class _AddFullTimeExperienceScreenState
                     SizedBox(height: SizeConfig.size24),
 
                     CommonTextField(
-                      title: "Description Of Your Job Role In This Company",
-                      hintText: "Yorem ipsum dolor sit ame…",
+                      title: AppStrings.jobRoleDescription,
+                      hintText:AppStrings.jobRoleDescriptionHint,
                       fontSize: SizeConfig.small,
                       maxLine: 4,
                       textEditController: controller.descriptionController,
@@ -164,7 +163,7 @@ class _AddFullTimeExperienceScreenState
                       children: [
                         Expanded(
                           child: Obx(() => CustomBtn(
-                                title: widget.isEdit ? "Update" : "Save",
+                                title: widget.isEdit ? AppStrings.update : AppStrings.save,
                                 isValidate: controller.isFormValid.value,
                                 onTap: controller.isFormValid.value
                                     ? () async {

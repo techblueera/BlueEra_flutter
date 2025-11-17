@@ -26,35 +26,6 @@ class CareerObjectiveController extends GetxController {
     careerObjectiveController.dispose();
     super.onClose();
   }
-
-  // Future<void> getCareerObjectiveApi() async {
-  //   try {
-  //     final response = await _repo.getCareerObjective();
-  //     if (response.isSuccess) {
-  //       final getCareerObjectiveData = response.response!.data;
-  //       String newObj = "";
-  //       if (getCareerObjectiveData is Map &&
-  //           getCareerObjectiveData[ApiKeys.careerObjective] != null) {
-  //         newObj = getCareerObjectiveData[ApiKeys.careerObjective];
-  //       } else if (getCareerObjectiveData is String) {
-  //         newObj = getCareerObjectiveData;
-  //       }
-
-  //       _lastCareerObjective = newObj;
-  //       careerObjective.value = newObj;
-  //       if (getCareerObjectiveData is Map &&
-  //           getCareerObjectiveData[ApiKeys.careerObjective] != null) {
-  //         careerObjective.value =
-  //             getCareerObjectiveData[ApiKeys.careerObjective];
-  //       } else if (getCareerObjectiveData is String) {
-  //         careerObjective.value = getCareerObjectiveData;
-  //       }
-  //     }
-  //   } catch (e) {
-  //     print("ERROR: $e");
-  //   }
-  // }
-
   Future<void> addCareerObjectiveApi() async {
     final params = {ApiKeys.careerObjective: careerObjectiveController.text};
     try {
@@ -62,7 +33,7 @@ class CareerObjectiveController extends GetxController {
       if (response.isSuccess) {
         commonSnackBar(
             message:
-                "${response.response?.data['message'] ?? "Career Objective added successfully"}");
+                "${response.response?.data['message'] ?? AppStrings.careerObjectiveAdded.tr}");
         // await getCareerObjectiveApi();
       } else {
         commonSnackBar(
@@ -81,7 +52,7 @@ class CareerObjectiveController extends GetxController {
       if (response.isSuccess) {
         commonSnackBar(
             message:
-                "${response.response?.data['message'] ?? "Career Objective updated successfully"}");
+                "${response.response?.data['message'] ?? AppStrings.careerObjectiveUpdated.tr}");
         // await getCareerObjectiveApi();
       } else {
         commonSnackBar(

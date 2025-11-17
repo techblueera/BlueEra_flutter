@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/model/get_resume_data_model.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/personal/resume/controller/profile_pic_controller.dart';
 import 'package:BlueEra/features/personal/resume/repo/resume_repo.dart';
@@ -157,64 +158,6 @@ class SalaryController extends GetxController {
       });
     }
   }
-
-  // Future<void> fetchSalaryDetails() async {
-  //   var res = await ResumeRepo().fetchSalaryDetails(params: {});
-  //   if (res.isSuccess) {
-  //     var data = res.response?.data;
-  //     grossSalaryController.text = data['grossSalary']?.toString() ?? '';
-  //     monthlyDeductionController.text = data['monthlyDeduction']?.toString() ?? '';
-  //     partTimeEarningController.text = data['partTimeearning']?.toString() ?? '';
-  //     freelanceEarningController.text = data['freelanceEarning']?.toString() ?? '';
-
-  //     workExperienceList.clear();
-  //     if (data != null) {
-  //       workExperienceList.add({
-  //         'title': "₹ ${grossSalaryController.text} LPA",
-  //         'grossSalary': grossSalaryController.text,
-  //         'monthlyDeduction': monthlyDeductionController.text,
-  //         'partTimeEarning': partTimeEarningController.text,
-  //         'freelanceEarning': freelanceEarningController.text,
-  //       });
-  //     }
-  //   } else {
-  //     workExperienceList.clear();
-  //   }
-  // }
-// Future<void> fetchSalaryDetails() async {
-//   var res = await ResumeRepo().fetchSalaryDetails(params: {});
-//   if (res.isSuccess) {
-//     var data = res.response?.data;
-
-//     // Clear previous data
-//     workExperienceList.clear();
-
-//     // Only add item if grossSalary exists and > 0
-//     final grossSalaryStr = data['grossSalary']?.toString() ?? '';
-//     final grossSalaryValue = double.tryParse(grossSalaryStr.replaceAll(',', '')) ?? 0;
-
-//     if (grossSalaryValue > 0) {
-//       grossSalaryController.text = grossSalaryStr;
-//       monthlyDeductionController.text = data['monthlyDeduction']?.toString() ?? '';
-//       partTimeEarningController.text = data['monthlyEarningViaPartTime']?.toString() ?? '';
-//       freelanceEarningController.text = data['monthlyEarningViaFreelancing']?.toString() ?? '';
-
-//       workExperienceList.add({
-//         'title': "₹ ${data['annualPackage']?.toString() ?? '0'}", // We'll fix title in next part
-//         'grossSalary': grossSalaryController.text,
-//         'monthlyDeduction': monthlyDeductionController.text,
-//         'partTimeEarning': partTimeEarningController.text,
-//         'freelanceEarning': freelanceEarningController.text,
-//         'annualPackage': data['annualPackage']?.toString() ?? '0',
-//       });
-//     } else {
-//       clearSalaryFields();
-//     }
-//   } else {
-//     workExperienceList.clear();
-//   }
-// }
-
   Future<void> addOrUpdateSalary(Map<String, dynamic> params) async {
     try {
       var res = await ResumeRepo().updateSalary(params: params);
@@ -222,12 +165,12 @@ class SalaryController extends GetxController {
         final profilePicController = Get.find<ProfilePicController>();
         await profilePicController.getMyResume();
         Get.back();
-        commonSnackBar(message: "Salary details updated");
+        commonSnackBar(message: AppStrings.salaryUpdated);
       } else {
-        commonSnackBar(message: res.message ?? "Failed to update salary");
+        commonSnackBar(message: res.message ?? AppStrings.salaryUpdateFailed);
       }
     } catch (e) {
-      commonSnackBar(message: "Error while updating salary");
+      commonSnackBar(message:AppStrings.salaryUpdateError);
     }
   }
 
@@ -237,12 +180,12 @@ class SalaryController extends GetxController {
       if (res.isSuccess) {
         clearSalaryFields();
         workExperienceList.clear();
-        commonSnackBar(message: "Salary details deleted");
+        commonSnackBar(message: AppStrings.salaryDeleted);
       } else {
-        commonSnackBar(message: res.message ?? "Failed to delete salary");
+        commonSnackBar(message: res.message ?? AppStrings.salaryDeleteFailed);
       }
     } catch (e) {
-      commonSnackBar(message: "Error while deleting salary");
+      commonSnackBar(message: AppStrings.salaryDeleteError);
     }
   }
 }

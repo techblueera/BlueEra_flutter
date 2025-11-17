@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
@@ -24,7 +25,7 @@ class _AddLanguageScreenState extends State<AddLanguageScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Add Language",
+        title:AppStrings.addLanguage,
       ),
       body: SafeArea(
         child: Padding(
@@ -36,7 +37,7 @@ class _AddLanguageScreenState extends State<AddLanguageScreen> {
                 children: [
                   // Speak & Understand
                   CustomText(
-                    "Languages that you speak & understand",
+                    AppStrings.langSpeakUnderstand,
                     fontSize: SizeConfig.small,
                   ),
                   SizedBox(height: SizeConfig.size8),
@@ -48,7 +49,7 @@ class _AddLanguageScreenState extends State<AddLanguageScreen> {
                                 (l) => !controller.speakLanguages.contains(l))
                             .toList(),
                         selectedValue: controller.selectedSpeakLanguage.value,
-                        hintText: "E.g. Bengali",
+                        hintText: AppStrings.langExample,
                         displayValue: (item) => item.label,
                         onChanged: (val) {
                           if (val != null) {
@@ -77,7 +78,7 @@ class _AddLanguageScreenState extends State<AddLanguageScreen> {
 
                   // Can Write
                   CustomText(
-                    "Languages that you can write",
+                    AppStrings.langWrite,
                     fontSize: SizeConfig.small,
                   ),
                   SizedBox(height: SizeConfig.size8),
@@ -89,7 +90,7 @@ class _AddLanguageScreenState extends State<AddLanguageScreen> {
                                 (l) => !controller.writeLanguages.contains(l))
                             .toList(),
                         selectedValue: controller.selectedWriteLanguage.value,
-                        hintText: "E.g. Bengali",
+                        hintText:AppStrings.langExample,
                         displayValue: (item) => item.label,
                         onChanged: (val) {
                           if (val != null) {
@@ -124,7 +125,7 @@ class _AddLanguageScreenState extends State<AddLanguageScreen> {
                               }
                             : null,
                         title:
-                            controller.isLoading.value ? "Saving..." : "Save",
+                            controller.isLoading.value ? AppStrings.saving : AppStrings.save,
                         isValidate: controller.isFormValid &&
                             !controller.isLoading.value,
                       )),

@@ -501,6 +501,7 @@ class AppStrings {
   static const blockUserDescription = "block_user_description";
   static const unfollow = "unfollow";
   static const food = "food";
+
   ///B-DEv JOB...
   static const viewAll = "viewAll";
   static const noJobScheduleYet = "no_job_schedule_yet";
@@ -710,5 +711,356 @@ class AppStrings {
   static const availableToJoinImmediately = "availableToJoinImmediately";
   static const addMoreQuestions = "addMoreQuestions";
 
+  ///RESUME Module
+  static const editAward = "editAward";
+  static const addAward = "addAward";
+  static const awardedByTitle = "awardedByTitle";
+  static const awardedByHint = "awardedByHint";
+  static const awardNameTitle = "awardNameTitle";
+  static const awardNameHint = "awardNameHint";
+  static const awardedDate = "awardedDate";
+  static const uploadAttachment = "uploadAttachment";
+  static const uploadDocumentPhoto = "uploadDocumentPhoto";
+  static const descriptionTitle = "descriptionTitle";
+  static const descriptionHint = "descriptionHint";
+  static const editBio = "editBio";
+  static const addBio = "addBio";
+  static const defaultBioDescription = "defaultBioDescription";
+  static const pleaseSelectDate = "pleaseSelectDate";
+  static const achievementAddedSuccess = "achievementAddedSuccess";
+  static const achievementAddFailed = "achievementAddFailed";
+  static const achievementUpdateSuccess = "achievementUpdateSuccess";
+  static const achievementUpdateFailed = "achievementUpdateFailed";
+  static const achievementDeleteSuccess = "achievementDeleteSuccess";
+  static const achievementDeleteFailed = "achievementDeleteFailed";
+  static const genericError = "genericError";
+  static const careerObjectiveAdded = "careerObjectiveAdded";
+  static const careerObjectiveUpdated = "careerObjectiveUpdated";
 
+  static const patentUpdated = "patentUpdated";
+  static const ngoOrgUpdated = "ngoOrgUpdated";
+
+  static const patentDeleted = "patentDeleted";
+  static const ngoOrgDeleted = "ngoOrgDeleted";
+
+  static const additionalInfoUpdated = "additionalInfoUpdated";
+  static const additionalInfoUpdateFailed = "additionalInfoUpdateFailed";
+
+  static const additionalInfoAdded = "additionalInfoAdded";
+  static const additionalInfoAddFailed = "additionalInfoAddFailed";
+
+  static const additionalInfoDeleted = "additionalInfoDeleted";
+
+  static const selectValidDate = "selectValidDate";
+
+  static const awardAdded = "awardAdded";
+  static const awardAddFailed = "awardAddFailed";
+  static const awardIdMissing = "awardIdMissing";
+
+  static const awardUpdated = "awardUpdated";
+  static const awardUpdateFailed = "awardUpdateFailed";
+
+  static const awardDeleted = "awardDeleted";
+  static const awardDeleteFailed = "awardDeleteFailed";
+
+  static const awardEnterTitle = "awardEnterTitle";
+  static const awardEnterIssuedBy = "awardEnterIssuedBy";
+  static const awardSelectCompleteDate = "awardSelectCompleteDate";
+  static const awardDateFuture = "awardDateFuture";
+  static const awardEnterDescription = "awardEnterDescription";
+
+  static const bioAdded = "bioAdded";
+  static const bioAddFailed = "bioAddFailed";
+
+  static const bioUpdated = "bioUpdated";
+  static const bioUpdateFailed = "bioUpdateFailed";
+
+  static const bioDeleted = "bioDeleted";
+  static const bioDeleteFailed = "bioDeleteFailed";
+  static const bioDeleteError = "bioDeleteError";
+
+  static const certificationAdded = "certificationAdded";
+  static const certificationAddFailed = "certificationAddFailed";
+
+  static const certificationUpdated = "certificationUpdated";
+  static const certificationUpdateFailed = "certificationUpdateFailed";
+
+  static const certificationDeleted = "certificationDeleted";
+  static const certificationDeleteFailed = "certificationDeleteFailed";
+
+  static const currentJobDeleted = "currentJobDeleted";
+  static const currentJobDeleteFailed = "currentJobDeleteFailed";
+
+  static const educationDeleted = "educationDeleted";
+  static const educationDeleteFailed = "educationDeleteFailed";
+
+  static const educationAdded = "educationAdded";
+  static const educationAddError = "educationAddError";
+
+  static const educationUpdated = "educationUpdated";
+  static const educationUpdateError = "educationUpdateError";
+
+  static const experienceUpdated = "experienceUpdated";
+  static const experienceAdded = "experienceAdded";
+  static const experienceDeleted = "experienceDeleted";
+  static const experienceDeleteFailed = "experienceDeleteFailed";
+
+  // Hobbies
+  static const hobbyAlreadyExists = "hobbyAlreadyExists";
+  static const hobbiesAddedSuccess = "hobbiesAddedSuccess";
+  static const hobbiesAddFailed = "hobbiesAddFailed";
+
+  static const hobbyDeletedSuccess = "hobbyDeletedSuccess";
+  static const hobbyDeleteFailed = "hobbyDeleteFailed";
+
+  static const additionFailed = "additionFailed";
+  static const deletionFailed = "deletionFailed";
+
+  static const addAtLeastOneLanguage = "addAtLeastOneLanguage";
+
+  // Portfolio
+  static const portfolioLinkExists = "portfolioLinkExists";
+  static const portfolioDeletedSuccess = "portfolioDeletedSuccess";
+  static const portfolioDeleteFailed = "portfolioDeleteFailed";
+  static const portfolioDeleteError = "portfolioDeleteError";
+  static const portfolioAddedSuccess = "portfolioAddedSuccess";
+
+  static const profilePicUpdated = "profilePicUpdated";
+  static const profilePicUpdateFailed = "profilePicUpdateFailed";
+  static const profilePicUploadError = "profilePicUploadError";
+
+  static const personalDetailsUpdated = "personalDetailsUpdated";
+  static const personalDetailsUpdateFailed = "personalDetailsUpdateFailed";
+
+// Publication
+  static const publicationAdded = "publicationAdded";
+  static const publicationIdMissing = "publicationIdMissing";
+  static const publicationUpdated = "publicationUpdated";
+  static const publicationUpdateFailed = "publicationUpdateFailed";
+  static const publicationDeleted = "publicationDeleted";
+  static const publicationEnterTitle = "publicationEnterTitle";
+  static const publicationEnterLink = "publicationEnterLink";
+  static const publicationEnterValidUrl = "publicationEnterValidUrl";
+  static const publicationEnterCompleteDate = "publicationEnterCompleteDate";
+  static const publicationEnterValidDay = "publicationEnterValidDay";
+  static const publicationEnterValidMonth = "publicationEnterValidMonth";
+  static const publicationEnterValidYear = "publicationEnterValidYear";
+  static const publicationEnterValidNumeric = "publicationEnterValidNumeric";
+  static const publicationEnterDescription = "publicationEnterDescription";
+
+  // Education
+  static const educationAddFailed = "educationAddFailed";
+  static const salaryUpdated = "salaryUpdated";
+  static const salaryUpdateFailed = "salaryUpdateFailed";
+  static const salaryUpdateError = "salaryUpdateError";
+
+  static const salaryDeleted = "salaryDeleted";
+  static const salaryDeleteFailed = "salaryDeleteFailed";
+  static const salaryDeleteError = "salaryDeleteError";
+
+  static const editCareerObjective = "editCareerObjective";
+  static const addCareerObjective = "addCareerObjective";
+  static const careerObjective = "careerObjective";
+  static const typeHere = "typeHere";
+
+  static const editCurrentJob = "editCurrentJob";
+  static const addCurrentJob = "addCurrentJob";
+  static const yourExperience = "yourExperience";
+  static const jobMode = "jobMode";
+  static const jobModeHint = "jobModeHint";
+  static const currentCompanyName = "currentCompanyName";
+  static const currentCompanyHint = "currentCompanyHint";
+  static const currentlyWorking = "currentlyWorking";
+  static const yesNoHint = "yesNoHint";
+  static const designationHint = "designationHint";
+  static const workType = "workType";
+  static const workTypeHint = "workTypeHint";
+  static const startDate = "startDate";
+  static const editFullTimeExperience = "editFullTimeExperience";
+  static const addFullTimeExperience = "addFullTimeExperience";
+
+  static const previousCompanyName = "previousCompanyName";
+  static const previousCompanyHint = "previousCompanyHint";
+
+  static const endDate = "endDate";
+
+  static const jobRoleDescription = "jobRoleDescription";
+  static const jobRoleDescriptionHint = "jobRoleDescriptionHint";
+  static const addLanguage = "addLanguage";
+  static const langSpeakUnderstand = "langSpeakUnderstand";
+  static const langExample = "langExample";
+  static const langWrite = "langWrite";
+  static const saving = "saving";
+
+  static const editNgo = "editNgo";
+  static const addNgo = "addNgo";
+  static const certifiedDate = "certifiedDate";
+  static const uploadDocument = "uploadDocument";
+  static const ngoDescriptionHint = "ngoDescriptionHint";
+
+  static const editPartTimeExp = "editPartTimeExp";
+  static const addPartTimeExp = "addPartTimeExp";
+  static const partTimeDescriptionTitle = "partTimeDescriptionTitle";
+  static const partTimeDescriptionHint = "partTimeDescriptionHint";
+
+  static const editPatent = "editPatent";
+  static const addPatent = "addPatent";
+  static const patentIssuedDate = "patentIssuedDate";
+  static const uploadPatentCertificate = "uploadPatentCertificate";
+  static const patentTitleHint = "patentTitleHint";
+  static const patentDescriptionHint = "patentDescriptionHint";
+
+  static const editPublication = "editPublication";
+  static const addPublication = "addPublication";
+  static const publicationHint = "publicationHint";
+  static const url = "url";
+  static const urlHint = "urlHint";
+
+// Validation
+  static const enterTitle = "enterTitle";
+  static const enterUrl = "enterUrl";
+  static const enterValidUrl = "enterValidUrl";
+
+  static const editSalaryDetails = "editSalaryDetails";
+  static const addSalaryDetails = "addSalaryDetails";
+
+  static const enterGrossSalary = "enterGrossSalary";
+  static const grossSalaryHint = "grossSalaryHint";
+
+  static const totalMonthlyDeduction = "totalMonthlyDeduction";
+  static const totalMonthlyDeductionHint = "totalMonthlyDeductionHint";
+
+  static const earningPartTime = "earningPartTime";
+  static const earningPartTimeHint = "earningPartTimeHint";
+
+  static const earningFreelancing = "earningFreelancing";
+  static const earningFreelancingHint = "earningFreelancingHint";
+
+  static const totalEarningMonthly = "totalEarningMonthly";
+  static const annualPackage = "annualPackage";
+
+  static const editAdditionalInfo = "editAdditionalInfo";
+  static const addAdditionalInformation = "addAdditionalInformation";
+  static const additionalDescription = "additionalDescription";
+  static const describeThisInfo = "describeThisInfo";
+  static const addDate = "addDate";
+  static const photo = "photo";
+  static const moreDetails = "moreDetails";
+  static const addMoreTextBox = "addMoreTextBox";
+
+  static const uploadYourDocumentPhoto = "uploadYourDocumentPhoto";
+  static const editPersonalDetails = "editPersonalDetails";
+
+  static const editEducation = "editEducation";
+  static const addEducation = "addEducation";
+  static const selectQualification = "selectQualification";
+  static const schoolCollegeName = "schoolCollegeName";
+  static const schoolCollegeHint = "schoolCollegeHint";
+  static const boardName = "boardName";
+  static const boardNameHint = "boardNameHint";
+  static const passingYear = "passingYear";
+  static const passingYearHint = "passingYearHint";
+  static const performanceScore = "performanceScore";
+  static const performanceScoreHint = "performanceScoreHint";
+  static const editHighestQualification = "editHighestQualification";
+  static const addHighestQualification = "addHighestQualification";
+
+  static const noName = "noName";
+  static const noEmail = "noEmail";
+  static const noLocation = "noLocation";
+
+  static const editProfilePicture = "editProfilePicture";
+  static const uploadImageForResume = "uploadImageForResume";
+  static const skills = "skills";
+  static const addSkills = "addSkills";
+
+  static const languages = "languages";
+  static const addLanguages = "addLanguages";
+  static const languagesSpeakUnderstand = "languagesSpeakUnderstand";
+  static const languagesWrite = "languagesWrite";
+  static const portfolioWorkSamples = "portfolioWorkSamples";
+  static const awards = "awards";
+  static const achievements = "achievements";
+
+  static const certifications = "certifications";
+
+  static const publications = "publications";
+
+  static const hobbies = "hobbies";
+  static const addHobbies = "addHobbies";
+
+  static const deleteSkill = "deleteSkill";
+  static const deleteHobby = "deleteHobby";
+  static const deleteConfirm = "deleteConfirm";
+
+  static const ngoStudentOrganisations = "ngoStudentOrganisations";
+  static const patents = "patents";
+  static const currentJob = "currentJob";
+  static const fullTimeExperience = "fullTimeExperience";
+  static const partTimeExperience = "partTimeExperience";
+  static const salaryDetails = "salaryDetails";
+  static const highestQualification = "highestQualification";
+  static const resumeTemplates = "resumeTemplates";
+  static const template = "template";
+  static const editAchievement = "editAchievement";
+  static const addAchievement = "addAchievement";
+  static const achievementTitle = "achievementTitle";
+  static const dateAwarded = "dateAwarded";
+  static const achievementDescription = "achievementDescription";
+  static const updating = "updating";
+  static const achievementHint = "achievementHint";
+  static const editCertification = "editCertification";
+  static const addCertification = "addCertification";
+  static const certificateName = "certificateName";
+  static const certificateNameHint = "certificateNameHint";
+  static const certificateIssuedBy = "certificateIssuedBy";
+  static const certificateIssuedByHint = "certificateIssuedByHint";
+  static const selectEducation = "selectEducation";
+  static const gradingSystem = "gradingSystem";
+  static const selectGradingSystemValidation = "selectGradingSystemValidation";
+  static const selectYourEducation = "selectYourEducation";
+  static const graduationDetails = "graduationDetails";
+  static const courseName = "courseName";
+  static const collegeName = "collegeName";
+  static const startYear = "startYear";
+  static const endYear = "endYear";
+  static const pleaseSelectAGradingSystem = "pleaseSelectAGradingSystem";
+  static const enterGrading = "enterGrading";
+
+  static const selectAHobby = "selectAHobby";
+  static const tellUsAboutHobbies = "tellUsAboutHobbies";
+  static const pleaseAddAtLeastOneHobby = "pleaseAddAtLeastOneHobby";
+  static const failedToSaveHobbies = "failedToSaveHobbies";
+
+  static const sharePortfolioLink = "sharePortfolioLink";
+  static const addPortfolioWorkSamples = "addPortfolioWorkSamples";
+  static const enterSkillName = "enterSkillName";
+
+  ///SUBSCRIPTION...
+// Premium / Redeem Screen
+  static const goPremium = "goPremium";
+  static const noCommitment = "noCommitment";
+  static const redeemCoin = "redeemCoin";
+  static const availableCoinAndValue = "availableCoinAndValue";
+  static const choosePaymentType = "choosePaymentType";
+  static const selectCoinToRedeem = "selectCoinToRedeem";
+  static const card = "card";
+  static const selectOffer = "selectOffer";
+  static const finalAmountToPay = "finalAmountToPay";
+  static const payThroughUPI = "payThroughUPI";
+  static const enableAutoPay = "enableAutoPay";
+  static const pay = "pay";
+  static const noDataFound = "noDataFound";
+  static const viewDetails = "viewDetails";
+
+  // Validation messages
+  static const pleaseSelectCoin = "pleaseSelectCoin";
+  static const pleaseSelectPayment = "pleaseSelectPayment";
+  static const pleaseSelectOffer = "pleaseSelectOffer";
+  static const myProducts = "myProducts";
+  ///BUSINESS MODEL...
+  static const yourBusinessProfile = "yourBusinessProfile";
+  static const currentLocationUnavailable = "currentLocationUnavailable";
+  static const locationPermissionMessage = "locationPermissionMessage";
+  static const changeLocationSettings = "changeLocationSettings";
 }

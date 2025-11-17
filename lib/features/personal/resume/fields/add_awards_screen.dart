@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
@@ -72,13 +73,12 @@ class _AddAwardsScreenState extends State<AddAwardsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    AppLocalizations.of(context);
 
     return Scaffold(
       appBar: CommonBackAppBar(
         title: _controller.selectedAward.value != null
-            ? "Edit Award"
-            : "Add Award",
+            ? AppStrings.editAward
+            : AppStrings.addAward,
       ),
       body: SingleChildScrollView(
         child: SafeArea(
@@ -97,11 +97,11 @@ class _AddAwardsScreenState extends State<AddAwardsScreen> {
                         keyBoardType: TextInputType.text,
                         regularExpression:
                             RegularExpressionUtils.alphabetSpacePattern,
-                        title: "Who Awarded You (Organization Name)",
+                        title: AppStrings.awardedByTitle,
                         titleColor: AppColors.black1A,
                         fontSize: SizeConfig.small,
                         fontWeight: FontWeight.w400,
-                        hintText: "E.g. ABC Wail fare Society",
+                        hintText: AppStrings.awardedByHint,
                         isValidate: true,
                         onChange: (value) => validateForm(),
                       ),
@@ -115,11 +115,11 @@ class _AddAwardsScreenState extends State<AddAwardsScreen> {
                         keyBoardType: TextInputType.text,
                         regularExpression:
                             RegularExpressionUtils.alphabetSpacePattern,
-                        title: "Name of the Award",
+                        title: AppStrings.awardNameTitle,
                         titleColor: AppColors.black1A,
                         fontSize: SizeConfig.small,
                         fontWeight: FontWeight.w400,
-                        hintText: "E.g. Best Employee of Year",
+                        hintText:AppStrings.awardNameHint,
                         isValidate: true,
                         onChange: (value) => validateForm(),
                       ),
@@ -128,7 +128,7 @@ class _AddAwardsScreenState extends State<AddAwardsScreen> {
 
                       /// Date
                       CustomText(
-                        "Awarded Date",
+                        AppStrings.awardedDate,
                         color: AppColors.black1A,
                         fontSize: SizeConfig.small,
                         fontWeight: FontWeight.w400,
@@ -183,7 +183,7 @@ class _AddAwardsScreenState extends State<AddAwardsScreen> {
 
                       /// Attachment
                       CustomText(
-                        "Upload Attachment (Optional)",
+                        AppStrings.uploadAttachment,
                         color: AppColors.black1A,
                         fontSize: SizeConfig.small,
                         fontWeight: FontWeight.w400,
@@ -199,21 +199,11 @@ class _AddAwardsScreenState extends State<AddAwardsScreen> {
                           validateForm();
                         },
                         onSelect: (context) async {
-                          // final file =
-                          //     await SelectProfilePictureDialog.pickFile(
-                          //         context);
-                          // if (file != null) {
-                          //   _controller.setAttachment(file);
-                          //   setState(() {
-                          //     imagePath = file.path;
-                          //   });
-                          //   validateForm();
-                          // }
+
                           final selected =
                               await SelectProfilePictureDialog.showLogoDialog(
                             context,
-                            AppLocalizations.of(context)!
-                                .uploadYourDocumentPhoto,
+                                  AppStrings.uploadDocumentPhoto
                           );
 
                           if (selected?.isNotEmpty ?? false) {
@@ -234,11 +224,11 @@ class _AddAwardsScreenState extends State<AddAwardsScreen> {
                         keyBoardType: TextInputType.text,
                         regularExpression:
                             RegularExpressionUtils.alphabetSpacePattern,
-                        title: "Description",
+                        title: AppStrings.description,
                         titleColor: AppColors.black1A,
                         fontSize: SizeConfig.small,
                         fontWeight: FontWeight.w400,
-                        hintText: "Share Experience....",
+                        hintText: AppStrings.descriptionHint,
                         isValidate: true,
                         maxLine: 4,
                         onChange: (value) => validateForm(),
@@ -250,18 +240,16 @@ class _AddAwardsScreenState extends State<AddAwardsScreen> {
                       Obx(() => CustomBtn(
                             onTap: validate.value
                                 ? () async {
-                                    print("Calling API...");
                                     if (_controller.selectedAward.value !=
                                         null) {
                                       await _controller.updateAwardApi();
                                     } else {
                                       await _controller.addAwardApi();
                                     }
-                                    print("API call done");
                                     Get.back();
                                   }
                                 : null,
-                            title: 'Save',
+                            title: AppStrings.save,
                             bgColor: validate.value
                                 ? AppColors.primaryColor
                                 : AppColors.shadowColor,

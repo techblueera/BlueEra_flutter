@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/resume/controller/profile_pic_controller.dart';
 import 'package:BlueEra/features/personal/resume/fields/edit_personal_details_screen.dart';
@@ -11,17 +12,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class ResumeProfileBio extends StatelessWidget {
-  const ResumeProfileBio({super.key});
+  ResumeProfileBio({super.key});
+
+  final controller = Get.find<ProfilePicController>();
 
   @override
   Widget build(BuildContext context) {
-    // final controller = Get.put(ProfileBioController());
-
-    final controller = Get.find<ProfilePicController>();
-
-    // Fetch bio when widget loads
-    // controller.fetchBio();
-
     return Obx(() {
       if (controller.isLoading.value) {
         return Center(child: CircularProgressIndicator());
@@ -35,7 +31,7 @@ class ResumeProfileBio extends StatelessWidget {
               children: [
                 Expanded(
                   child: CustomText(
-                    controller.getResumeData.value.name ?? "(No Name)",
+                    controller.getResumeData.value.name ?? AppStrings.noName,
                     color: AppColors.black28,
                     fontSize: SizeConfig.large18,
                     fontWeight: FontWeight.w700,
@@ -66,7 +62,7 @@ class ResumeProfileBio extends StatelessWidget {
                 SizedBox(width: 8), // Adjust spacing as needed
                 Expanded(
                   child: CustomText(
-                    controller.getResumeData.value.email ?? "(No Email)",
+                    controller.getResumeData.value.email ?? AppStrings.noEmail,
                     color: AppColors.black28,
                     fontSize: SizeConfig.large,
                   ),
@@ -104,7 +100,8 @@ class ResumeProfileBio extends StatelessWidget {
                 SizedBox(width: 8),
                 Expanded(
                   child: CustomText(
-                    controller.getResumeData.value.location ?? "(No location)",
+                    controller.getResumeData.value.location ??
+                        AppStrings.noLocation,
                     color: AppColors.black28,
                     fontSize: SizeConfig.large,
                   ),

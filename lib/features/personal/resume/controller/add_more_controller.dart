@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/personal/resume/repo/resume_repo.dart';
 import 'package:get/get.dart';
@@ -20,33 +21,6 @@ class EntityController extends GetxController {
 
   final RxList<Map<String, dynamic>> entityList = <Map<String, dynamic>>[].obs;
 
-
-
-  // Future<void> fetchEntities() async {
-  //   final res = await repo.fetchAllEntities(isPatent: isPatent);
-  //   if (res.isSuccess && res.response?.data != null) {
-  //     final rawList = res.response!.data as List<dynamic>;
-  //     entityList.assignAll(rawList.map((e) {
-  //       final item = e as Map<String, dynamic>;
-  //       return {
-  //         '_id': item['_id'],
-  //         'title': item['title'] ?? '',
-  //         'subtitle1': formatDate(isPatent
-  //             ? item['issuedDate']
-  //             : item['certifiedDate']), 
-  //         'document': isPatent
-  //             ? (item['patentCertification'] != null
-  //                 ? [item['patentCertification']]
-  //                 : [])
-  //             : (item['attachment'] != null ? [item['attachment']] : []),
-  //         'subtitle2': item['description'] ?? '', 
-  //       };
-  //     }).toList());
-  //   } else {
-  //     entityList.clear();
-  //   }
-  // }
-
   /// Add new entity
 Future<ResponseModel> addEntity(Map<String, dynamic> params, {String? imagePath}) async {
   final res = await repo.addEntity(isPatent: isPatent, params: params, imagePath: imagePath);
@@ -64,7 +38,7 @@ Future<ResponseModel> addEntity(Map<String, dynamic> params, {String? imagePath}
     imagePath: imagePath, 
   );
   if (res.isSuccess) {
-    commonSnackBar(message: isPatent ? "Patent updated" : "NGO Org updated");
+    commonSnackBar(message: isPatent ? AppStrings.patentUpdated : AppStrings.ngoOrgUpdated);
     // await fetchEntities();
   }
   return res;
@@ -75,7 +49,7 @@ Future<ResponseModel> addEntity(Map<String, dynamic> params, {String? imagePath}
   Future<ResponseModel> deleteEntity(String id) async {
     final res = await repo.deleteEntity(isPatent: isPatent, id: id);
     if (res.isSuccess) {
-      commonSnackBar(message: isPatent ? "Patent deleted" : "NGO Org deleted");
+      commonSnackBar(message: isPatent ? AppStrings.patentDeleted :AppStrings.ngoOrgDeleted);
       // await fetchEntities();
     }
     return res;

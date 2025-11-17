@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
@@ -19,6 +20,7 @@ import '../../../../../widgets/new_common_date_selection_dropdown.dart';
 class AddPatentsScreen extends StatefulWidget {
   final bool isEdit;
   final String? experienceId;
+
   const AddPatentsScreen({Key? key, this.isEdit = false, this.experienceId})
       : super(key: key);
 
@@ -32,18 +34,18 @@ class _AddPatentsScreenState extends State<AddPatentsScreen> {
   int? _selectedDay, _selectedMonth, _selectedYear;
   String? imagePath;
   bool validate = false;
-  bool isValidDate(int? day, int? month, int? year) {
-  if (day == null || month == null || year == null) return false;
-  try {
-    final date = DateTime(year, month, day);
-    final today = DateTime.now();
-    final todayOnly = DateTime(today.year, today.month, today.day);
-    return !date.isAfter(todayOnly);
-  } catch (e) {
-    return false;
-  }
-}
 
+  bool isValidDate(int? day, int? month, int? year) {
+    if (day == null || month == null || year == null) return false;
+    try {
+      final date = DateTime(year, month, day);
+      final today = DateTime.now();
+      final todayOnly = DateTime(today.year, today.month, today.day);
+      return !date.isAfter(todayOnly);
+    } catch (e) {
+      return false;
+    }
+  }
 
   final EntityController patentController =
       Get.find<EntityController>(tag: "patent");
@@ -76,7 +78,8 @@ class _AddPatentsScreenState extends State<AddPatentsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: CommonBackAppBar(
-            title: widget.isEdit ? "Edit Patent" : "Add Patent"),
+            title:
+                widget.isEdit ? AppStrings.editPatent : AppStrings.addPatent),
         body: SingleChildScrollView(
             child: SafeArea(
                 child: Padding(
@@ -92,16 +95,16 @@ class _AddPatentsScreenState extends State<AddPatentsScreen> {
                               keyBoardType: TextInputType.text,
                               regularExpression:
                                   RegularExpressionUtils.alphabetSpacePattern,
-                              title: "Title",
+                              title: AppStrings.title,
                               titleColor: AppColors.black1A,
                               fontSize: SizeConfig.small,
                               fontWeight: FontWeight.w400,
-                              hintText: "E.g. Lorem Ipsum Dolor",
+                              hintText: AppStrings.patentTitleHint,
                               isValidate: true,
                               onChange: (value) => validateForm(),
                             ),
                             SizedBox(height: SizeConfig.size15),
-                            CustomText("Patent Issued Date",
+                            CustomText(AppStrings.patentIssuedDate,
                                 color: AppColors.black1A,
                                 fontSize: SizeConfig.small,
                                 fontWeight: FontWeight.w400),
@@ -129,7 +132,7 @@ class _AddPatentsScreenState extends State<AddPatentsScreen> {
                                   validateForm();
                                 }),
                             SizedBox(height: SizeConfig.size15),
-                            CustomText("Upload Patent Certificate",
+                            CustomText(AppStrings.uploadPatentCertificate,
                                 color: AppColors.black1A,
                                 fontSize: SizeConfig.small,
                                 fontWeight: FontWeight.w400),
@@ -152,11 +155,11 @@ class _AddPatentsScreenState extends State<AddPatentsScreen> {
                               keyBoardType: TextInputType.text,
                               regularExpression:
                                   RegularExpressionUtils.alphabetSpacePattern,
-                              title: "Description",
+                              title: AppStrings.description,
                               titleColor: AppColors.black1A,
                               fontSize: SizeConfig.small,
                               fontWeight: FontWeight.w400,
-                              hintText: "Describe Your Patent.... ",
+                              hintText: AppStrings.patentDescriptionHint,
                               isValidate: true,
                               maxLine: 4,
                               onChange: (value) => validateForm(),
@@ -165,7 +168,6 @@ class _AddPatentsScreenState extends State<AddPatentsScreen> {
                             CustomBtn(
                               onTap: validate
                                   ? () async {
-                                 
                                       final params = {
                                         'title': titleCtrl.text.trim(),
                                         'description': descCtrl.text.trim(),
@@ -186,28 +188,28 @@ class _AddPatentsScreenState extends State<AddPatentsScreen> {
                                       Navigator.pop(context);
                                     }
                                   : null,
-                              title: widget.isEdit ? "Update" : "Save",
+                              title: widget.isEdit
+                                  ? AppStrings.update
+                                  : AppStrings.save,
                               isValidate: validate,
                             )
                           ]))
                     ])))));
   }
 
-
   void validateForm() {
-  final valid = titleCtrl.text.isNotEmpty &&
-      descCtrl.text.isNotEmpty &&
-      _selectedDay != null &&
-      _selectedMonth != null &&
-      _selectedYear != null &&
-      isValidDate(_selectedDay, _selectedMonth, _selectedYear) &&
-      (imagePath?.isNotEmpty ?? false);
+    final valid = titleCtrl.text.isNotEmpty &&
+        descCtrl.text.isNotEmpty &&
+        _selectedDay != null &&
+        _selectedMonth != null &&
+        _selectedYear != null &&
+        isValidDate(_selectedDay, _selectedMonth, _selectedYear) &&
+        (imagePath?.isNotEmpty ?? false);
 
-  setState(() {
-    validate = valid;
-  });
-}
-
+    setState(() {
+      validate = valid;
+    });
+  }
 
   void selectImage(BuildContext context) async {
     final locale = AppLocalizations.of(context);
