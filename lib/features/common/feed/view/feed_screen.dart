@@ -284,12 +284,14 @@ class _FeedScreenState extends State<FeedScreen> {
               );
             },
           );
+        }else{
+          return const SizedBox();
         }
       } else {
         return FeedShimmerCard();
       }
 
-      return const SizedBox();
+      //
     });
   }
 

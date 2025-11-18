@@ -10,6 +10,9 @@ import 'package:BlueEra/widgets/new_common_date_selection_dropdown.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../core/api/apiService/api_keys.dart';
+import '../../../../core/routes/route_helper.dart';
+
 class AddPartTimeExperienceScreen extends StatefulWidget {
   final bool isEdit; // Add this parameter
   final String? experienceId;
@@ -101,6 +104,25 @@ class _AddPartTimeExperienceScreenState extends State<AddPartTimeExperienceScree
                     SizedBox(height: SizeConfig.size24),
 
                     CommonTextField(
+                      onTap: (){
+                        Navigator.pushNamed(
+                          context,
+                          RouteHelper.getSearchLocationScreenRoute(),
+                          arguments: {
+                            'onPlaceSelected': (double? lat, double? lng,
+                                String? address) {
+                              if (address != null) {
+                                controller.locationController.text = address;
+                                setState(() {
+
+                                });
+                              }
+                            },
+                            ApiKeys.fromScreen: ""
+                          },
+                        );
+                      },
+                      readOnly: true,
                       fontSize: SizeConfig.small,
                       title: AppStrings.location,
                       hintText: AppStrings.locationHint,
