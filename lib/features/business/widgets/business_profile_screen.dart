@@ -1084,8 +1084,7 @@ void openBusinessDetailsEditSheet(BuildContext context) {
       text: viewBusinessDetailsController
               .businessProfileDetails?.data?.category_other ??
           "");
-  print(
-      "sldkslkdlc ${viewBusinessDetailsController.businessProfileDetails?.data?.category_other ?? ""}");
+
   viewBusinessDetailsController.selectedCategoryOfBusiness.value = CategoryData(
       id: viewBusinessDetailsController
           .businessProfileDetails?.data?.categoryDetails?.id,
@@ -1252,8 +1251,7 @@ void openBusinessDetailsEditSheet(BuildContext context) {
                                   viewBusinessDetailsController
                                       .businessSubCategoriesList
                                       .clear();
-                                  viewBusinessDetailsController
-                                      .getAllCategories();
+
                                 },
                                 displayValueSubTitle: (profession) =>
                                     profession.subTitle,
