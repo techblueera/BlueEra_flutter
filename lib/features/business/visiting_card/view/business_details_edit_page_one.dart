@@ -4,6 +4,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -150,7 +151,6 @@ class _BusinessDetailsEditPageOneState
 
   @override
   Widget build(BuildContext context) {
-    final appLocalizations = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
     return WillPopScope(
@@ -168,7 +168,7 @@ class _BusinessDetailsEditPageOneState
       child: Scaffold(
         appBar: CommonBackAppBar(
           isLeading: true,
-          title: "Business Details Update",
+          title: AppStrings.businessDetailsUpdate,
           onBackTap: () {
             if (widget.isFromCreateUser) {
               Get.offNamedUntil(
@@ -241,18 +241,18 @@ class _BusinessDetailsEditPageOneState
 
                         regularExpression:
                         RegularExpressionUtils.alphabetSpacePattern,
-                        title: "Business Name",
+                        title:AppStrings.businessName,
                         hintText: AppConstants.companyOrgBusiness,
                         isValidate: false,
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
-                            return "Business name is required";
+                            return AppStrings.businessNameRequired.tr;
                           }
                           if (value.trim().length < 6) {
-                            return "Minimum 6 characters required";
+                            return AppStrings.min6Characters.tr;
                           }
                           if (value.trim().length > 30) {
-                            return "Maximum 30 characters allowed";
+                            return AppStrings.max30Characters.tr;
                           }
                           return null;
                         },
@@ -262,7 +262,7 @@ class _BusinessDetailsEditPageOneState
                       ),
 
                       CustomText(
-                        appLocalizations?.dateOfIncorporation,
+                        AppStrings.dateOfIncorporation,
                         fontSize: SizeConfig.medium,
                         fontWeight: FontWeight.w500,
                         color: AppColors.black,
@@ -502,7 +502,7 @@ class _BusinessDetailsEditPageOneState
 
                       ///Mobile number
                       CustomText(
-                        'Mobile Number',
+                        AppStrings.phoneNumber,
                         fontSize: SizeConfig.medium,
                         fontWeight: FontWeight.w500,
                         color: AppColors.black,
@@ -534,7 +534,7 @@ class _BusinessDetailsEditPageOneState
                         height: SizeConfig.size20,
                       ),
                       CustomText(
-                        appLocalizations?.websiteOptional,
+                        AppStrings.websiteOptional,
                         fontSize: SizeConfig.medium,
                         fontWeight: FontWeight.w500,
                         color: AppColors.black,
@@ -704,7 +704,7 @@ class _BusinessDetailsEditPageOneState
                               onTap: () {
                                 Navigator.of(context).pop();
                               },
-                              title: appLocalizations?.cancel,
+                              title:AppStrings.cancel,
                               bgColor: Colors.transparent,
                               textColor: AppColors.primaryColor,
                               borderColor: AppColors.primaryColor,
@@ -719,18 +719,19 @@ class _BusinessDetailsEditPageOneState
                                 Map<String, dynamic> updatedParams = await buildBusinessDetailsPayload();
 
                                 if ((_formKey.currentState?.validate() ?? false) == false) {
-                                  commonSnackBar(message: "Please fix errors before saving");
+                                  commonSnackBar(message: AppStrings.fixErrorsBeforeSaving);
                                   return;
                                 }
 
                                 /// Validate required fields
                                 if (companyOrgNameTextController.text.isEmpty) {
-                                  commonSnackBar(message: "Please Enter Business Name");
+                                  commonSnackBar(message: AppStrings.pleaseEnterBusinessName);
+                                  // commonSnackBar(message: "Please Enter Business Name");
                                   return;
                                 }
 
                                 if (mobileController.text.isEmpty) {
-                                  commonSnackBar(message: "Please Enter Mobile Number");
+                                  commonSnackBar(message: AppStrings.pleaseEnterMobileNumber);
                                   return;
                                 }
 
@@ -767,7 +768,7 @@ class _BusinessDetailsEditPageOneState
                                   );
                                 }
                               },
-                              title: "Save",
+                              title: AppStrings.save,
                               isValidate: validate,
                             ),
                           ),

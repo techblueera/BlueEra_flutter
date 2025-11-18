@@ -35,7 +35,6 @@ import '../repo/business_profile_repo.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 
 Future<double?> getDistanceInKm(double targetLat, double targetLng) async {
-  print("Lat : ${targetLat} , lng : ${targetLng}");
   // 🔐 Check and request permission
   bool serviceEnabled = await geo.Geolocator.isLocationServiceEnabled();
   if (!serviceEnabled) return null;
@@ -704,9 +703,7 @@ class ViewBusinessDetailsController extends GetxController {
   // Fetch service from API
   final RxList<GetServiceModel> services = <GetServiceModel>[].obs;
   Future<void> fetchServices({required String visitBusinessId}) async {
-    print("sdllkmslkdcmsdlcmksdc ");
-    // try {
-    //   services.clear();
+
       errorMessage.value = '';
       final response =
       await BusinessProfileRepo().getServices(
@@ -718,10 +715,6 @@ class ViewBusinessDetailsController extends GetxController {
       final queryParam = {
         'type': 'service',
       };
-
-      print("=== FETCH SERVICES DEBUG ===");
-      print("Business ID: $visitBusinessId");
-      print("Query Params: $queryParam");
 
       await BusinessProfileRepo().getServices(
         businessId: visitBusinessId,
@@ -740,13 +733,8 @@ class ViewBusinessDetailsController extends GetxController {
       } else {
         businessServiceResponse.value = ApiResponse.error('error');
 
-        print("API failed with status: ${response.statusCode}");
       }
 
-    // } catch (e) {
-    //   businessServiceResponse.value = ApiResponse.error('error');
-    //   errorMessage.value = e.toString();
-    // } finally {}
   }
 
   // Fetch foods from API
@@ -773,14 +761,9 @@ class ViewBusinessDetailsController extends GetxController {
           foods.value = (data['data'] as List)
               .map((e) => GetFoodDetailsModel.fromJson(e))
               .toList();
-        } else {
-          print("⚠️ Unexpected API response: $data");
         }
-
-        print("✅ Loaded ${foods.length} food items");
       } else {
         businessFoodResponse.value = ApiResponse.error('error');
-        print("❌ API failed: ${responseModel.response?.data}");
       }
 
     } catch (e) {
@@ -788,23 +771,4 @@ class ViewBusinessDetailsController extends GetxController {
       errorMessage.value = e.toString();
     } finally {}
   }
-
-  // void deleteLocalLivePhoto(String imagePath) {
-  //   imgLocalL3.remove(imagePath);
-  //   update(['livePhotos']);
-  // }
-  //
-  // Future<void> uploadAllLocalLivePhotos() async {
-  //   if (imgLocalL3.isEmpty) return;
-  //   for (final path in List<String>.from(imgLocalL3)) {
-  //     try {
-  //       await saveBusinessImages(path, this);
-  //     } catch (e) {
-  //       print("Upload failed: $e");
-  //     }
-  //   }
-  //   imgLocalL3.clear();
-  //   update(['livePhotos']);
-  // }
-
 }

@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -66,7 +67,7 @@ class CommonDocumentPicker extends StatelessWidget {
               LocalAssets(imagePath: AppIconAssets.uploadIcon, imgColor:  theme.colorScheme.onTertiary),
               SizedBox(width: SizeConfig.size10),
               CustomText(
-                "Upload Document",
+              AppStrings.uploadDocument,
                 fontSize: SizeConfig.medium,
                 fontWeight: FontWeight.w400,
                 color:Color.fromRGBO(122, 139, 154, 1,),
@@ -81,7 +82,7 @@ class CommonDocumentPicker extends StatelessWidget {
               LocalAssets(imagePath: AppIconAssets.cameraWhiteIcon, imgColor: Color.fromRGBO(122, 139, 154, 1,)),
               SizedBox(width: SizeConfig.size7),
               CustomText(
-                "Take Photo",
+                AppStrings.takePhoto,
                 fontSize: SizeConfig.medium,
                 fontWeight: FontWeight.w400,
                 color: Color.fromRGBO(122, 139, 154, 1,),

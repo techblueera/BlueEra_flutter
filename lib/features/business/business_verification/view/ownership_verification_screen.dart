@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -80,7 +81,7 @@ class _OwnershipVerificationScreenState extends State<OwnershipVerificationScree
 
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Ownership Verification",
+        // title: "Ownership Verification",
       ),
       body:Padding(
         padding:  EdgeInsets.symmetric(horizontal: SizeConfig.size20,vertical:  SizeConfig.size20,),

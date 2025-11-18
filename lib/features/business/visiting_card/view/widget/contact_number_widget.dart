@@ -1,11 +1,13 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 // ignore: must_be_immutable
 class ContactInputField1 extends StatefulWidget {
@@ -37,8 +39,6 @@ class ContactInputField1 extends StatefulWidget {
 class _ContactInputFieldState extends State<ContactInputField1> {
   @override
   Widget build(BuildContext context) {
-    final appLocalizations = AppLocalizations.of(context)!;
-
     return Column(
       children: [
         Row(
@@ -49,10 +49,9 @@ class _ContactInputFieldState extends State<ContactInputField1> {
                   widget.onTypeChanged(ContactType.Mobile);
                 },
                 child: Row(
-
                   children: [
                     SizedBox(
-                      height:SizeConfig.size30 ,
+                      height: SizeConfig.size30,
                       width: SizeConfig.size30,
                       child: Radio<ContactType>(
                         activeColor: AppColors.primaryColor,
@@ -64,7 +63,7 @@ class _ContactInputFieldState extends State<ContactInputField1> {
                       ),
                     ),
                     CustomText(
-                      appLocalizations.officeMobNo,
+                      AppStrings.officeMobNo,
                     ),
                   ],
                 ),
@@ -78,7 +77,7 @@ class _ContactInputFieldState extends State<ContactInputField1> {
                 child: Row(
                   children: [
                     SizedBox(
-                      height:SizeConfig.size30 ,
+                      height: SizeConfig.size30,
                       width: SizeConfig.size30,
                       child: Radio<ContactType>(
                         activeColor: AppColors.primaryColor,
@@ -90,7 +89,7 @@ class _ContactInputFieldState extends State<ContactInputField1> {
                       ),
                     ),
                     CustomText(
-                      appLocalizations.officeLandline,
+                      AppStrings.officeLandline,
                     ),
                   ],
                 ),
@@ -98,7 +97,9 @@ class _ContactInputFieldState extends State<ContactInputField1> {
             ),
           ],
         ),
-        SizedBox(height:SizeConfig.size10 ,),
+        SizedBox(
+          height: SizeConfig.size10,
+        ),
         widget.selectedType == ContactType.Mobile
             ? _MobileField(
                 controller: widget.mobileController,
@@ -135,8 +136,6 @@ class _MobileField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final appLocalizations = AppLocalizations.of(context);
-
     return CommonTextField(
       textEditController: controller,
       inputLength: 10,
@@ -144,10 +143,8 @@ class _MobileField extends StatelessWidget {
       keyBoardType: TextInputType.number,
       regularExpression: RegularExpressionUtils.digitsPattern,
       validationType: ValidationTypeEnum.pNumber,
-      // title: appLocalizations?.mobileNumber,
-      hintText: appLocalizations?.enterMobileNo,
+      hintText: AppStrings.enterMobileNumberHint.tr,
       isValidate: true,
-
       onChange: (value) {
         final cursorPosition = controller.selection;
         controller.text = value;
@@ -176,7 +173,6 @@ class _LandlineField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return Container(
       // padding: EdgeInsets.only(top: 5.h),
       // decoration: BoxDecoration(borderRadius: BorderRadius.circular(10)),
@@ -184,24 +180,6 @@ class _LandlineField extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Expanded(
-          //   child: CommonTextField(
-          //     textEditController: codeController,
-          //     inputLength: 5,
-          //     keyBoardType: TextInputType.number,
-          //     regularExpression: RegularExpressionUtils.digitsPattern,
-          //     // validationType: ValidationTypeEnum.pNumber,
-          //     hintText: appLocalizations.prefix,
-          //     isValidate: true,
-          //     onChange: (value) {
-          //       final cursorPosition = codeController.selection;
-          //       codeController.text = value;
-          //       codeController.selection = cursorPosition;
-          //       updateSubmitButtonState();
-          //       prefixOnChange(value);
-          //     },
-          //   ),
-          // ),
           SizedBox(
             width: SizeConfig.size10,
           ),
@@ -214,8 +192,7 @@ class _LandlineField extends StatelessWidget {
               keyBoardType: TextInputType.number,
               regularExpression: RegularExpressionUtils.digitsPattern,
               validationType: ValidationTypeEnum.lNumber,
-              // title: appLocalizations?.mobileNumber,
-              hintText: 'Enter LandLine Number',
+              hintText: AppStrings.officeLandline.tr,
               isValidate: true,
               onChange: (value) {
                 final cursorPosition = numberController.selection;

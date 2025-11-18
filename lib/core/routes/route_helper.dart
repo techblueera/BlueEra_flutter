@@ -143,8 +143,7 @@ class RouteHelper {
 
   static String getFeedScreenRoute() => RouteConstant.FeedScreen;
 
-  static String getSelectCompanyVerificationScreenRoute() =>
-      RouteConstant.SelectCompanyVerificationScreen;
+
 
   static String getBusinessVerificationScreenRoute() =>
       RouteConstant.BusinessVerificationScreen;
@@ -468,10 +467,7 @@ class RouteHelper {
                 onHeaderVisibilityChanged: onHeaderVisibilityChanged,
                 postFilterType: postFilterType,
                 id: id));
-      case RouteConstant.SelectCompanyVerificationScreen:
-        return MaterialPageRoute(
-            builder: (_) => SelectCompanyVerificationScreen());
-      case RouteConstant.BusinessVerificationScreen:
+    case RouteConstant.BusinessVerificationScreen:
         return MaterialPageRoute(builder: (_) => BusinessVerificationScreen());
       case RouteConstant.OwnershipVerificationScreen:
         return MaterialPageRoute(builder: (_) => OwnershipVerificationScreen());

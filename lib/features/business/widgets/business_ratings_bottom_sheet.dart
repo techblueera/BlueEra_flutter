@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
@@ -131,7 +132,7 @@ class _BusinessRatingsBottomSheetState extends State<BusinessRatingsBottomSheet>
                         );
                       },
                     ) : EmptyStateWidget(
-                        message: 'No ratings found.'
+                        message: AppStrings.noRatingsFound
                     ),
                   ),
                 ],

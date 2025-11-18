@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:BlueEra/core/api/apiService/response_model.dart'
     show ResponseModel;
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/business/auth/repo/business_profile_repo.dart';
@@ -11,6 +12,7 @@ import 'package:get/get.dart';
 class BusinessDescriptionController extends GetxController {
   // RxList<String> descriptionSuggestions = <String>[].obs;
   RxBool isLoading = false.obs;
+
   // RxString selectedDescription = ''.obs;
 
   Future<void> generateDescriptions({
@@ -32,20 +34,21 @@ class BusinessDescriptionController extends GetxController {
         await showDescriptionSuggestionsDialog(onSaved: onSaved);
       } else {
         commonSnackBar(
-            message: "Error ${response.message ?? 'Something went wrong'}");
+            message:
+                "Error ${response.message ?? AppStrings.somethingWentWrong.tr}");
       }
     } catch (e) {
       logs("ERROR ${e}");
-      commonSnackBar(message: "Error Failed to fetch descriptions");
+      commonSnackBar(message: e.toString());
     } finally {
       isLoading.value = false;
     }
   }
 
-
   void selectDescription(String description) {
     selectedDescription.value = description;
   }
+
   var descriptionSuggestions = <String>[].obs;
   var selectedDescription = "".obs;
 

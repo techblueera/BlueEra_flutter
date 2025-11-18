@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -77,7 +78,7 @@ class _BusinessVerificationState extends State<BusinessVerification> {
       viewBusinessDetailsController.postVerifyBusinessDocs(data);
       Navigator.pop(context);
     } else {
-      commonSnackBar(message: "Please provide the required information");
+      commonSnackBar(message:AppStrings.pleaseProvideRequiredInfo);
     }
   }
 
@@ -132,12 +133,11 @@ class _BusinessVerificationState extends State<BusinessVerification> {
 
   @override
   Widget build(BuildContext context) {
-    final appLocalizations = AppLocalizations.of(context);
 
     return Scaffold(
         backgroundColor: AppColors.white,
         appBar: CommonBackAppBar(
-          title: "Business Verification",
+          title:AppStrings.businessVerification,
           titleColor: Colors.black,
           appBarColor: AppColors.white,
         ),
@@ -161,7 +161,7 @@ class _BusinessVerificationState extends State<BusinessVerification> {
                   height: 8,
                 ),
                 CustomText(
-                  "Add Details to verify your business.",
+                  AppStrings.addDetailsToVerifyBusiness,
                   fontWeight: FontWeight.w700,
                   fontSize: SizeConfig.size18,
                   color: AppColors.black,
@@ -172,8 +172,8 @@ class _BusinessVerificationState extends State<BusinessVerification> {
                   inputLength: AppConstants.inputCharterLimit50,
                   keyBoardType: TextInputType.text,
                   // regularExpression: RegularExpressionUtils.alphabetSpacePattern,
-                  title: appLocalizations?.enterGSTNumber,
-                  hintText: appLocalizations?.enterGSTNumber,
+                  title: AppStrings.enterGstNumber,
+                  hintText: AppStrings.enterGstNumber,
                   isValidate: false,
                 ),
                 // SizedBox(height: 16),
@@ -185,7 +185,7 @@ class _BusinessVerificationState extends State<BusinessVerification> {
                 //   color: AppColors.black,
                 // )),
                 SizedBox(height: 16),
-                CustomText("Choose Document Type",
+                CustomText(AppStrings.chooseDocumentType,
                     fontWeight: FontWeight.w400,
                     fontSize: SizeConfig.size14,
                     color: AppColors.black),
@@ -213,9 +213,8 @@ class _BusinessVerificationState extends State<BusinessVerification> {
                             borderRadius: BorderRadius.circular(2)),
                       ),
                       value: selectedDocType,
-                      hint: Text(
-                        "Select a document type",
-                        style: TextStyle(color: Colors.black),
+                      hint: CustomText(
+                        AppStrings.selectDocumentType.tr,
                       ),
                       items: [
                         ...documentTypes.map((type) => DropdownMenuItem(
@@ -224,7 +223,7 @@ class _BusinessVerificationState extends State<BusinessVerification> {
                             )),
                         DropdownMenuItem(
                           value: "Other Govt License",
-                          child: Text("Other Govt License"),
+                          child: CustomText(AppStrings.otherGovtLicense),
                         ),
                       ],
                       onChanged: (value) {
@@ -240,7 +239,7 @@ class _BusinessVerificationState extends State<BusinessVerification> {
                         controller: docController,
                         style: TextStyle(color: Colors.black),
                         decoration: InputDecoration(
-                          hintText: 'Enter Document Type',
+                          hintText:AppStrings.enterDocumentType.tr,
                           hintStyle: TextStyle(color: Color(0xFF7A8B9A)),
                           filled: true,
                           contentPadding: EdgeInsets.all(18),
@@ -279,13 +278,11 @@ class _BusinessVerificationState extends State<BusinessVerification> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Center(
-                          child: Text(
-                            'Verify',
-                            style: TextStyle(
+                          child: CustomText(
+                            AppStrings.verifyNow,
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
-                            ),
                           ),
                         ),
                       ),

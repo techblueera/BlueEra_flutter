@@ -3,6 +3,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/no_leading_space_formatter.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -13,6 +14,7 @@ import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.da
 import 'package:BlueEra/features/business/business_description/business_description_controller.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_bottom_sheet.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
+import 'package:BlueEra/features/business/widgets/description_preview_widget.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -28,6 +30,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 import '../../../widgets/highlight_text_widget.dart';
+
 // import 'package:lottie/lottie.dart';
 import 'package:flutter/gestures.dart';
 
@@ -42,9 +45,9 @@ class BusinessProfileWidget extends StatefulWidget {
 
 class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
   BusinessProfileDetails? details;
+
   // final listingDescriptionController = TextEditingController();
   final controller = Get.find<ViewBusinessDetailsController>();
-
 
   final businessDescriptionController =
       Get.put(BusinessDescriptionController());
@@ -61,12 +64,9 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
   Widget build(BuildContext context) {
     details = controller.businessProfileDetails?.data;
 
-    final appLocalizations = AppLocalizations.of(context);
     final theme = Theme.of(context);
     return Column(
       children: [
-
-
         /*   CustomFormCard(
             padding: EdgeInsets.all(SizeConfig.size10),
             child: Column(
@@ -571,7 +571,6 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
         ///ABOUT YOUR BUSINESS...
         Obx(() {
           return CustomFormCard(
-
             padding: EdgeInsets.all(SizeConfig.size10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -579,10 +578,9 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-
                     CustomText(
                       letterSpacing: 0.4,
-                      "Business Description",
+                      AppStrings.businessDescription,
                       fontSize: SizeConfig.large,
                       fontWeight: FontWeight.bold,
                       overflow: TextOverflow.ellipsis,
@@ -593,7 +591,8 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                             children: [
                               InkWell(
                                   onTap: () {
-                                    controller.listingDescriptionController.value.text =
+                                    controller.listingDescriptionController
+                                            .value.text =
                                         controller.businessDescription.value
                                             .toString();
                                     businessDescriptionController
@@ -638,7 +637,8 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                               ),
                               InkWell(
                                   onTap: () {
-                                    controller.listingDescriptionController.value.text=
+                                    controller.listingDescriptionController
+                                            .value.text =
                                         controller.businessDescription.value
                                             .toString();
                                     setState(() {
@@ -670,7 +670,7 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                                               .isListingDescriptionEdit.value;
                                     });
                                   },
-                                  title: "Cancel"),
+                                  title: AppStrings.cancel),
                               const SizedBox(
                                 width: 8,
                               ),
@@ -679,7 +679,8 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                                   width: 56,
                                   bgColor: theme.colorScheme.primary,
                                   onTap: () async {
-                                    if (controller.listingDescriptionController.value.text.isNotEmpty) {
+                                    if (controller.listingDescriptionController
+                                        .value.text.isNotEmpty) {
                                       businessDescriptionController
                                           .descriptionSuggestions
                                           .clear();
@@ -698,10 +699,10 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                                     } else {
                                       commonSnackBar(
                                           message:
-                                              "Description can not be empty");
+                                          AppStrings.descriptionEmpty);
                                     }
                                   },
-                                  title: "Save"),
+                                  title: AppStrings.save),
                             ],
                           )
                   ],
@@ -710,7 +711,7 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                   height: SizeConfig.size6,
                 ),
                 CustomText(
-                  appLocalizations?.tellCustomersWhatYouOffer,
+                  AppStrings.tellCustomersWhatYouOffer,
                   fontSize: SizeConfig.size12,
                   color: AppColors.secondaryTextColor,
                   fontWeight: FontWeight.w400,
@@ -726,58 +727,53 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                 (controller.isListingDescriptionEdit.value &&
                         controller.businessDescription != '')
                     ? Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.white,
-                    border: Border.all(color: AppColors.whiteE5),
-                    borderRadius: BorderRadius.circular(10),
-                    boxShadow: [AppShadows.textFieldShadow],
-                  ),
-                  width: double.infinity,
-                  margin: EdgeInsets.only(top: 16),
-                  padding: EdgeInsets.symmetric(horizontal: 13, vertical: 13),
-                  child: Obx(() {
-                    return DescriptionPreview(
-                      text: controller.businessDescription.value,
-                      dialogTitle: "Business Description",
-                    );
-                  }),
-                )
-
-                    : CommonTextField(
-
-                      borderWidth: 0,
-                      borderColor: Colors.transparent,
-
-                      hintText: "Add your business details",
-                      textEditController: controller.listingDescriptionController.value,
-                      maxLine: 5,
-                      inputLength: 900,
-
-
-                      isValidate: false,
-                      maxLength: AppConstants.inputCharterLimit400,
-                      inputFormatters: [
-                        LengthLimitingTextInputFormatter(
-                          AppConstants.inputCharterLimit400,
+                        decoration: BoxDecoration(
+                          color: AppColors.white,
+                          border: Border.all(color: AppColors.whiteE5),
+                          borderRadius: BorderRadius.circular(10),
+                          boxShadow: [AppShadows.textFieldShadow],
                         ),
-                        NoLeadingSpaceFormatter(),
-                        NoConsecutiveSpacesFormatter(),
-                      ],
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return "Please enter business details";
-                    }
-                    if (value.trim().length < 50) {
-                      return "Minimum 50 characters required";
-                    }
-                    if (value.trim().length > 900) {
-                      return "Maximum 900 characters allowed";
-                    }
-                    return null;
-                  },
-
-                    ),
-
+                        width: double.infinity,
+                        margin: EdgeInsets.only(top: 16),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 13, vertical: 13),
+                        child: Obx(() {
+                          return DescriptionPreview(
+                            text: controller.businessDescription.value,
+                            dialogTitle: AppStrings.businessDescription,
+                          );
+                        }),
+                      )
+                    : CommonTextField(
+                        borderWidth: 0,
+                        borderColor: Colors.transparent,
+                        hintText:AppStrings.addBusinessDetails,
+                        textEditController:
+                            controller.listingDescriptionController.value,
+                        maxLine: 5,
+                        inputLength: 900,
+                        isValidate: false,
+                        maxLength: AppConstants.inputCharterLimit400,
+                        inputFormatters: [
+                          LengthLimitingTextInputFormatter(
+                            AppConstants.inputCharterLimit400,
+                          ),
+                          NoLeadingSpaceFormatter(),
+                          NoConsecutiveSpacesFormatter(),
+                        ],
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return AppStrings.pleaseEnterBusinessDetails.tr;
+                          }
+                          if (value.trim().length < 50) {
+                            return AppStrings.min50Characters.tr;
+                          }
+                          if (value.trim().length > 900) {
+                            return AppStrings.max900Characters.tr;
+                          }
+                          return null;
+                        },
+                      ),
                 Obx(() {
                   return SizedBox(
                     height: (controller.isListingDescriptionEdit.value)
@@ -801,7 +797,7 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
             children: [
               CustomText(
                 color: AppColors.secondaryTextColor,
-                appLocalizations?.listYourProductServices,
+                AppStrings.listYourProductServices,
                 fontSize: SizeConfig.large,
                 fontWeight: FontWeight.bold,
               ),
@@ -817,7 +813,7 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                     Get.toNamed(RouteHelper.getInventoryScreenRoute());
                   } else {
                     commonSnackBar(
-                        message: "Upload 3 store picture at least...");
+                        message: AppStrings.upload3StorePictures);
                   }
                 },
                 borderRadius: BorderRadius.circular(10),
@@ -838,8 +834,7 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                           mainAxisAlignment: MainAxisAlignment.start,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            CustomText(
-                              appLocalizations?.addYourProductServices,
+                            CustomText(AppStrings.addProductServiceHere,
                               // fontSize: SizeConfig.small,
                               fontWeight: FontWeight.bold,
                               color: AppColors.mainTextColor,
@@ -848,7 +843,7 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                               height: SizeConfig.size6,
                             ),
                             CustomText(
-                              appLocalizations?.startSellingNow,
+                              AppStrings.startSellingNow,
                               // fontSize: SizeConfig.small,
                               fontWeight: FontWeight.bold,
                               color: AppColors.secondaryTextColor,
@@ -888,7 +883,7 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                       padding: const EdgeInsets.only(left: 4.0),
                       child: CustomText(
                         letterSpacing: 0.6,
-                        "Your live store pictures",
+                        AppStrings.yourLiveStorePictures,
                         fontSize: SizeConfig.large,
                         fontWeight: FontWeight.bold,
                         overflow: TextOverflow.ellipsis,
@@ -897,14 +892,13 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                     ),
                     CustomText(
                       textAlign: TextAlign.left,
-                      appLocalizations?.minThreeImg,
+                      AppStrings.minimum3Images,
                       fontSize: SizeConfig.size12,
                       color: AppColors.secondaryTextColor,
                       fontWeight: FontWeight.w400,
                     ),
                   ],
                 ),
-
                 SizedBox(
                   height: SizeConfig.size8,
                 ),
@@ -991,22 +985,24 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(left: 4.0,),
+                  padding: const EdgeInsets.only(
+                    left: 4.0,
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Expanded(
                         child: CustomText(
-                          "Your business live location",
+                          AppStrings.yourBusinessLiveLocation,
                           fontSize: SizeConfig.large,
                           fontWeight: FontWeight.bold,
                           overflow: TextOverflow.ellipsis,
                           color: AppColors.secondaryTextColor,
                         ),
                       ),
-
                       InkWell(
-                          onTap: () => updateLocationDialog(context, details, false),
+                          onTap: () =>
+                              updateLocationDialog(context, details, false),
                           child: LocalAssets(
                             height: 16,
                             imagePath: AppIconAssets.pen_line,
@@ -1030,11 +1026,9 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                 Padding(
                   padding: const EdgeInsets.only(left: 6.0),
                   child: CustomText(
-                      '${details?.address}',
+                    '${details?.address}',
                     fontSize: SizeConfig.size14,
                     fontWeight: FontWeight.w300,
-
-
                   ),
                 ),
                 // SizedBox(
@@ -1061,19 +1055,17 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
     );
   }
 
-
   Widget _buildImageContainer(String? imagePath, int index,
       bool uploadFromGallery, ViewBusinessDetailsController controller) {
     return Stack(
       children: [
         GestureDetector(
           onTap: () async {
-
             if (imagePath == "") {
               showCommonDialog(
                   context: context,
-                  header: "Store Live Photo",
-                  text: 'First of all you submit your store Live Photo (all 3)',
+                  header: AppStrings.storeLivePhoto,
+                  text: AppStrings.submitStoreLivePhoto,
                   confirmCallback: () async {
                     Get.back();
                   },
@@ -1084,14 +1076,11 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                       context,
                     );
                     if (imgStr != null) {
-                      controller.saveBusinessImages(
-                          imgStr,
-                          controller
-                      );
+                      controller.saveBusinessImages(imgStr, controller);
                     }
                   },
-                  confirmText: 'Cancel',
-                  cancelText: 'Ok');
+                  confirmText: AppStrings.cancel,
+                  cancelText: AppStrings.ok);
             } else {
               navigatePushTo(
                 context,
@@ -1135,7 +1124,7 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                           height: SizeConfig.size5,
                         ),
                         CustomText(
-                          "Add Live \nStore Photo",
+                          AppStrings.addLiveStorePhoto,
                           textAlign: TextAlign.center,
                           fontSize: SizeConfig.extraSmall,
                           decoration: TextDecoration.underline,
@@ -1182,7 +1171,7 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
       children: [
         InkWell(
           onTap: () {
-            if(imagePath != null){
+            if (imagePath != null) {
               navigatePushTo(
                 context,
                 ImageViewScreen(
@@ -1248,9 +1237,8 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
       ],
     );
   }
-
-
 }
+
 Future<void> updateLocationDialog(BuildContext context,
     BusinessProfileDetails? details, bool isFromMailScreen) {
   return showDialog(
@@ -1259,7 +1247,7 @@ Future<void> updateLocationDialog(BuildContext context,
       return AlertDialog(
         insetPadding: EdgeInsets.symmetric(horizontal: SizeConfig.size40),
         shape:
-        RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
         backgroundColor: AppColors.white,
         contentPadding: EdgeInsets.zero,
         content: Container(
@@ -1279,7 +1267,7 @@ Future<void> updateLocationDialog(BuildContext context,
                     onTap: () {
                       if (isFromMailScreen) {
                         Get.back();
-                       // Get.back();
+                        // Get.back();
                       } else {
                         Get.back();
                       }
@@ -1295,7 +1283,7 @@ Future<void> updateLocationDialog(BuildContext context,
                   LocalAssets(imagePath: AppIconAssets.warningIcon),
                   SizedBox(width: SizeConfig.size5),
                   CustomText(
-                    "Update Location?",
+                    AppStrings.updateLocation,
                     fontSize: SizeConfig.large,
                     fontWeight: FontWeight.w700,
                     textAlign: TextAlign.center,
@@ -1307,7 +1295,7 @@ Future<void> updateLocationDialog(BuildContext context,
                 height: SizeConfig.size7,
               ),
               CustomText(
-                  "You can only update your location once in your lifetime. Make sure your in right location.",
+                  AppStrings.updateLocationWarning,
                   fontSize: SizeConfig.medium,
                   textAlign: TextAlign.center,
                   color: AppColors.secondaryTextColor),
@@ -1320,12 +1308,12 @@ Future<void> updateLocationDialog(BuildContext context,
                       onTap: () {
                         if (isFromMailScreen) {
                           Get.back();
-                         // Get.back();
+                          // Get.back();
                         } else {
                           Get.back();
                         }
                       },
-                      title: "Cancel",
+                      title: AppStrings.cancel,
                       textColor: AppColors.secondaryTextColor,
                       bgColor: AppColors.white,
                       borderColor: AppColors.secondaryTextColor,
@@ -1346,7 +1334,7 @@ Future<void> updateLocationDialog(BuildContext context,
                               prevBusinessDetails: details),
                         );
                       },
-                      title: "Confirm",
+                      title: AppStrings.confirm,
                       isValidate: true,
                       bgColor: AppColors.red02,
                       radius: 8.0,
@@ -1360,404 +1348,4 @@ Future<void> updateLocationDialog(BuildContext context,
       );
     },
   );
-}
-
-class VisitingCardPreview extends StatelessWidget {
-  final GlobalKey cardKey = GlobalKey();
-
-  // final VisitingCardTheme theme;
-  final BusinessProfileDetails? details;
-
-  VisitingCardPreview({required this.details});
-
-  @override
-  Widget build(BuildContext context) {
-    bool _isBottomSheetOpen = false;
-
-    return Stack(
-      children: [
-        RepaintBoundary(
-          key: cardKey,
-          child: Container(
-            padding: EdgeInsets.all(SizeConfig.size16),
-            decoration: BoxDecoration(
-              color: Color(0xFF31475A),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: IntrinsicHeight(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Left: avatar + company block
-                  Expanded(
-                    // flex: 11,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Avatar
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            CircleAvatar(
-                              radius: 30,
-                              backgroundImage: (details?.logo != null &&
-                                      (details?.logo ?? '').isNotEmpty)
-                                  ? NetworkImage(details?.logo ?? '')
-                                  : null,
-                              backgroundColor: Color(0xFF31475A),
-                              child: (details?.logo == null ||
-                                      (details?.logo ?? '').isEmpty)
-                                  ? CustomText(
-                                      (details?.businessName ?? 'B')
-                                          .trim()
-                                          .split(' ')
-                                          .map((e) => e.isNotEmpty ? e[0] : '')
-                                          .take(2)
-                                          .join()
-                                          .toUpperCase(),
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                    )
-                                  : null,
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: SizeConfig.size12),
-
-                        // Company name and tagline
-                        CustomText(
-                          // 'BLUE (OPC) PVT LTD',
-                          details?.businessName ?? "",
-                          // details?.businessName ?? 'BLUE (OPC) PVT LTD',
-                          fontWeight: FontWeight.w700,
-                          fontSize: SizeConfig.size14,
-                          color: AppColors.white,
-                        ),
-                        SizedBox(height: SizeConfig.size6),
-                        CustomText(
-                          details?.natureOfBusiness ?? 'Consultant Services',
-                          color: AppColors.white,
-                          fontSize: SizeConfig.medium,
-                          fontWeight: FontWeight.w400,
-                        ),
-                        infoRow(
-                            icon: Icons.call,
-                            title:
-                                (details?.businessNumber?.officeLandlineNo?.number ??
-                                        0)
-                                    .toString(),
-                            fontSize: 10,
-                            fontWeight: FontWeight.w400,
-                            textColor: AppColors.white),
-
-                        SizedBox(height: SizeConfig.size12),
-
-                        // Short description (optional)
-                        CustomText(
-                          details?.businessDescription ??
-                              'to unique custom designs, we offer something special for every occasion.',
-                          color: AppColors.white,
-                          fontSize: SizeConfig.small,
-                          maxLines: 4,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                  VerticalDivider(
-                    color: AppColors.appBackgroundColor,
-                  ),
-
-                  // Right: person and contact info
-                  Expanded(
-                    // flex: 10,
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 25),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          CustomText(
-                            details?.ownerDetails?.isNotEmpty ?? false
-                                ? details?.ownerDetails?.first.name ?? ""
-                                : "",
-                            // details?.ownerDetails?.first.name ?? 'Manish Kumar',
-                            fontWeight: FontWeight.w700,
-                            fontSize: SizeConfig.size14,
-                            color: AppColors.appBackgroundColor,
-                          ),
-                          SizedBox(height: SizeConfig.size2),
-                          CustomText(
-                            details?.ownerDetails?.isNotEmpty ?? false
-                                ? details?.ownerDetails?.first
-                                        .role_in_business ??
-                                    ""
-                                : "",
-                            color: AppColors.appBackgroundColor,
-                            fontSize: SizeConfig.small,
-                          ),
-                          SizedBox(height: SizeConfig.size10),
-                          infoRow(
-                              icon: Icons.call,
-                              title: (details?.businessNumber?.officeMobNo
-                                          ?.number ??
-                                      0)
-                                  .toString(),
-                              fontSize: 10,
-                              fontWeight: FontWeight.w400,
-                              textColor: AppColors.white),
-                          // _infoRow(
-                          //     Icons.phone,
-                          //   (details?.businessNumber?.officeMobNo
-                          //                           ?.number ??
-                          //                       0)
-                          //                   .toString(),
-
-                          //     ),
-                          SizedBox(height: SizeConfig.size8),
-
-                          infoRow(
-                              icon: Icons.email,
-                              title: details?.ownerDetails?.isNotEmpty ?? false
-                                  ? details?.ownerDetails?.first.email ?? ""
-                                  : "",
-                              fontSize: 11,
-                              fontWeight: FontWeight.w400,
-                              textColor: AppColors.white),
-                          SizedBox(height: SizeConfig.size8),
-                          // _infoRow(
-                          //     Icons.public,
-                          //     details?.websiteUrl??"",
-                          //     // details?.websiteUrl ?? 'www.vikash.bluehr.com',
-                          //     textPrimary,
-                          //     textSecondary,
-                          //     iconAccent,
-                          //     ellipsis: true),
-                          infoRow(
-                              icon: Icons.language,
-                              title: details?.websiteUrl ?? "",
-                              fontSize: 10,
-                              fontWeight: FontWeight.w400,
-                              textColor: AppColors.white),
-                          SizedBox(height: SizeConfig.size10),
-                          infoRow(
-                              icon: Icons.add_location,
-                              title: details?.address ?? "",
-                              fontSize: 10,
-                              fontWeight: FontWeight.w400,
-
-                              textColor: AppColors.white)
-                          // _infoRow(
-                          //   Icons.add_location,
-                          //   details?.address??"",
-                          //   // details?.websiteUrl ?? 'www.vikash.bluehr.com',
-                          //   textPrimary,
-                          //   textSecondary,
-                          //   iconAccent,
-                          //   ellipsis: true),
-                          // CustomText(
-                          //   // "'www.vikash.bluehr.com",""
-                          //   details?.address ??"",
-                          //   //     '115, Road No 04 BN Ready Nagar Address abcdefgh1234567890 nmae Nagar\nHyderabad 834553',
-                          //   color: textSecondary,
-                          //   fontSize: SizeConfig.small,
-                          // ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        Positioned(
-          bottom: 10,
-          right: 10,
-          child: InkWell(
-            onTap: () async{
-    if (_isBottomSheetOpen) return; // ✅ Block second tap instantly
-    _isBottomSheetOpen = true; // ✅ Lock immediately
-
-    await VisitingCardHelper().shareVisitingCard(cardKey); // Wait for sheet to close
-
-    _isBottomSheetOpen = false; //
-    },
-            child: Container(
-              decoration: BoxDecoration(
-                  color: AppColors.primaryColor,
-                  boxShadow: [
-                    BoxShadow(
-                        color: AppColors.white, blurRadius: 6, spreadRadius: 2)
-                  ],
-                  borderRadius: BorderRadius.circular(12)),
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Icon(
-                  Icons.ios_share,
-                  color: AppColors.white,
-                ),
-              ),
-            ),
-          ),
-        )
-      ],
-    );
-  }
-
-  Widget infoRow(
-      {required IconData? icon,
-      required String? title,
-      Color? textColor,
-      double? fontSize,
-      FontWeight? fontWeight,
-      TextAlign? textAlign,
-      Color? iconColor}) {
-    return Row(
-      children: [
-        Icon(
-          icon,
-          size: 15,
-          color: AppColors.white,
-        ),
-        SizedBox(
-          width: 5,
-        ),
-        Expanded(
-            child: CustomText(
-          title,
-          fontSize: fontSize,
-          fontWeight: fontWeight,
-          color: textColor,
-              maxLines: 3,
-
-        ))
-      ],
-    );
-  }
-}
-class DescriptionPreview extends StatefulWidget {
-  final String text;
-  final String? dialogTitle;
-
-  const DescriptionPreview({
-    Key? key,
-    required this.text,
-    this.dialogTitle,
-  }) : super(key: key);
-
-  @override
-  State<DescriptionPreview> createState() => _DescriptionPreviewState();
-}
-
-class _DescriptionPreviewState extends State<DescriptionPreview> {
-  bool _expanded = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final maxChars = 120; // ~4 lines
-
-    final showMore = widget.text.length > maxChars;
-
-    final displayText = showMore && !_expanded
-        ? "${widget.text.substring(0, maxChars)}..."
-        : widget.text;
-
-    return RichText(
-      text: TextSpan(
-        style: TextStyle(
-          fontSize: SizeConfig.medium,
-          color: Colors.black,
-          fontFamily: AppConstants.OpenSans,
-        ),
-        children: [
-          TextSpan(text: displayText),
-
-          if (showMore && !_expanded)
-            TextSpan(
-              text: " Read more",
-              style: TextStyle(
-                color: AppColors.primaryColor,
-                fontWeight: FontWeight.w600,
-              ),
-              recognizer: TapGestureRecognizer()
-                ..onTap = () {
-                  _showFullTextDialog(context,TextStyle());
-                },
-            ),
-        ],
-      ),
-    );
-  }
-
-  void _showFullTextDialog(BuildContext context, TextStyle style) {
-    showDialog(
-      context: context,
-      builder: (_) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        insetPadding: EdgeInsets.symmetric(horizontal: 18, vertical: 18),
-        child: Container(
-          padding: EdgeInsets.all(SizeConfig.size16),
-          constraints: BoxConstraints(
-            maxWidth: MediaQuery.of(context).size.width * 0.92,
-            // ⬇️ height expands naturally but limits only when too tall
-            maxHeight: MediaQuery.of(context).size.height * 0.85,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min, // 🔹 dynamic height based on content
-            children: [
-              CustomText(
-                widget.dialogTitle ?? 'Business Description',
-                fontSize: SizeConfig.large18,
-                fontWeight: FontWeight.w700,
-                color: AppColors.mainTextColor,
-              ),
-
-              SizedBox(height: SizeConfig.size10),
-
-              Flexible(
-                child: SingleChildScrollView(
-                  physics: BouncingScrollPhysics(),
-                  child: HighlightText(
-                    text: widget.text,
-                    style: TextStyle(
-                      color: AppColors.mainTextColor,
-                      fontSize: SizeConfig.large,
-                      fontWeight: FontWeight.w400,
-                      fontFamily: AppConstants.OpenSans,
-                      height: 1.30,
-                    ),
-                  ),
-                ),
-              ),
-
-              // ⬇️ Reduced gap to minimize bottom space
-              SizedBox(height: SizeConfig.size4),
-
-              Align(
-                alignment: Alignment.centerRight,
-                child: Padding(
-                  padding: EdgeInsets.only(bottom: 4), // 🔹 small bottom padding
-                  child: TextButton(
-                    style: ButtonStyle(
-                      padding: WidgetStateProperty.all(EdgeInsets.zero),
-                    ),
-                    onPressed: () => Navigator.pop(context),
-                    child: CustomText(
-                      'Close',
-                      fontWeight: FontWeight.w600,
-                      fontSize: SizeConfig.medium15,
-                      color: AppColors.primaryColor,
-                    ),
-                  ),
-                ),
-              ),
-
-            ],
-
-          ),
-        ),
-      ),
-    );
-  }
 }
