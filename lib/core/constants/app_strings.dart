@@ -1094,8 +1094,7 @@ class AppStrings {
   static const propertyLocationHint = "propertyLocationHint";
   static const pincodeTitle = "pincodeTitle";
   static const pincodeHint = "pincodeHint";
-  static const descriptionTitle = "descriptionTitle";
-  static const descriptionHint = "descriptionHint";
+  static const propertyDescriptionTitle = "propertyDescriptionTitle";
   static const contactNumberTitle = "contactNumberTitle";
   static const editLabel = "editLabel";
   static const chargesTypeTitle = "chargesTypeTitle";
