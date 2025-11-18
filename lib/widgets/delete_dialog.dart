@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/resume/controller/languages_controller.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
@@ -22,14 +23,14 @@ void showConfirmDeleteDialog(BuildContext context, VoidCallback onConfirm) {
               padding: EdgeInsets.symmetric(vertical: SizeConfig.size10),
               alignment: Alignment.center,
               child: CustomText(
-                AppLocalizations.of(context)!.confirm,
+                AppStrings.confirm,
                 color: Colors.white,
                 fontSize: SizeConfig.large,
                 fontWeight: FontWeight.bold,
               ),
             ),
             SizedBox(height: SizeConfig.size20),
-            CustomText("Are you sure you want to delete?"),
+            CustomText(AppStrings.areYouSureDelete),
             SizedBox(height: SizeConfig.size20),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: SizeConfig.size20),
@@ -41,7 +42,7 @@ void showConfirmDeleteDialog(BuildContext context, VoidCallback onConfirm) {
                       borderColor: AppColors.primaryColor,
                       textColor: AppColors.primaryColor,
                       onTap: onConfirm,
-                      title: AppLocalizations.of(context)!.yes,
+                      title:AppStrings.yes,
                     ),
                   ),
                   SizedBox(width: SizeConfig.size10),
@@ -51,7 +52,7 @@ void showConfirmDeleteDialog(BuildContext context, VoidCallback onConfirm) {
                       borderColor: AppColors.primaryColor,
                       textColor: Colors.white,
                       onTap: () => Navigator.of(context).pop(),
-                      title: AppLocalizations.of(context)!.no,
+                      title: AppStrings.no,
                     ),
                   ),
                 ],
@@ -85,7 +86,7 @@ void showConfirmDialog(
               padding: EdgeInsets.symmetric(vertical: SizeConfig.size10),
               alignment: Alignment.center,
               child: CustomText(
-                title ?? 'Confirm',
+                title ?? AppStrings.confirm,
                 color: Colors.white,
                 fontSize: SizeConfig.large,
                 fontWeight: FontWeight.bold,
@@ -94,7 +95,9 @@ void showConfirmDialog(
             SizedBox(height: SizeConfig.size20),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: SizeConfig.paddingM),
-              child: CustomText(content ?? 'Are you sure you want to delete?'),
+              child: CustomText(
+                content ?? AppStrings.areYouSureDelete,
+              ),
             ),
             SizedBox(height: SizeConfig.size20),
             Padding(
@@ -107,7 +110,7 @@ void showConfirmDialog(
                       borderColor: AppColors.primaryColor,
                       textColor: AppColors.primaryColor,
                       onTap: onConfirm,
-                      title: AppLocalizations.of(context)!.yes,
+                      title: AppStrings.yes,
                     ),
                   ),
                   SizedBox(width: SizeConfig.size10),
@@ -117,7 +120,7 @@ void showConfirmDialog(
                       borderColor: AppColors.primaryColor,
                       textColor: Colors.white,
                       onTap: () => Navigator.of(context).pop(),
-                      title: AppLocalizations.of(context)!.no,
+                      title: AppStrings.no,
                     ),
                   ),
                 ],
@@ -139,12 +142,11 @@ void showConfirmDialogForLanguageDeletion(BuildContext context,
       controller.removeLanguageByCategory(language, category);
       Navigator.of(context).pop();
     },
-    title: 'Confirm delete',
+    title:AppStrings.confirm,
     content:
         'Are you sure you want to remove "${language.label}" from this category?',
   );
 }
-
 
 Future<bool> showBooleanConfirmDialog(
   BuildContext context, {
@@ -167,7 +169,7 @@ Future<bool> showBooleanConfirmDialog(
               padding: EdgeInsets.symmetric(vertical: SizeConfig.size10),
               alignment: Alignment.center,
               child: CustomText(
-                title ?? 'Confirm',
+                title ?? AppStrings.confirm,
                 color: Colors.white,
                 fontSize: SizeConfig.large,
                 fontWeight: FontWeight.bold,
@@ -176,7 +178,7 @@ Future<bool> showBooleanConfirmDialog(
             SizedBox(height: SizeConfig.size20),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: SizeConfig.paddingM),
-              child: CustomText(content ?? 'Are you sure you want to delete?'),
+              child: CustomText(content ?? AppStrings.areYouSureDelete),
             ),
             SizedBox(height: SizeConfig.size20),
             Padding(
@@ -192,7 +194,7 @@ Future<bool> showBooleanConfirmDialog(
                         confirmed = true;
                         Navigator.of(context).pop();
                       },
-                      title: AppLocalizations.of(context)!.yes,
+                      title: AppStrings.yes,
                     ),
                   ),
                   SizedBox(width: SizeConfig.size10),
@@ -205,7 +207,7 @@ Future<bool> showBooleanConfirmDialog(
                         confirmed = false;
                         Navigator.of(context).pop();
                       },
-                      title: AppLocalizations.of(context)!.no,
+                      title: AppStrings.no,
                     ),
                   ),
                 ],
@@ -220,4 +222,3 @@ Future<bool> showBooleanConfirmDialog(
 
   return confirmed;
 }
-

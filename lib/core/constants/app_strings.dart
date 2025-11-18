@@ -1458,6 +1458,49 @@ class AppStrings {
   static const officeLandline = "officeLandline";
 
   static const takePhoto = "takePhoto";
+  static const fullBusinessAddress = "fullBusinessAddress";
+  static const enterValidIndianPincode = "enterValidIndianPincode";
+  static const shortBusinessDescription = "shortBusinessDescription";
+  static const businessDescriptionExample = "businessDescriptionExample";
+  static const skip = "skip";
+  static const pleaseEnterValidLandline = "pleaseEnterValidLandline";
+  static const gpsLocationNotFound = "gpsLocationNotFound";
+
+  static const excelPdf = "excelPdf";
+  static const exportExcel = "exportExcel";
+  static const export = "export";
+
+  static const shortlisted = "shortlisted";
+  static const interview = "interview";
+  static const hired = "hired";
+///CHAT ONLY....
+  static const personal = "personal";
+  static const business = "business";
+  static const group = "group";
+  static const orders = "orders";
+  static const forward = "forward";
+  static const cantSelectPersonalAndBusinessBoth = "cantSelectPersonalAndBusinessBoth";
+  static const chatNow = "chatNow";
+  static const callNow = "callNow";
+  static const otp = "otp";
+  static const trackOrder = "trackOrder";
+  static const viewOrderAddress = "viewOrderAddress";
+  static const newDeliveryOrderReceived = "newDeliveryOrderReceived";
+  static const proceedToPickupPoint = "proceedToPickupPoint";
+  static const fetchingLocation = "fetchingLocation";
+  static const rideCharge = "rideCharge";
+  static const rejectOrder = "rejectOrder";
+  static const acceptOrder = "acceptOrder";
+  static const order = "order";
+  static const accepted = "accepted";
+  static const rejected = "rejected";
+  static const trackYourRider = "trackYourRider";
+  static const findingRiderLocation = "findingRiderLocation";
+  static const noChatsFound = "noChatsFound";
+  static const goToContactsStartConversation = "goToContactsStartConversation";
+  static const noConversationYet = "noConversationYet";
+  static const sayNamaste = "sayNamaste";
+  static const typeYourMessage = "typeYourMessage";
 
 
 ///BHAVESH END

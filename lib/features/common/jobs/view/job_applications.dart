@@ -17,9 +17,8 @@ class JobApplicationsScreen extends StatefulWidget {
   const JobApplicationsScreen(
       {super.key,
       required this.jobsData,
-        this.onHeaderVisibilityChanged,
-        required this.headerHeight
-      });
+      this.onHeaderVisibilityChanged,
+      required this.headerHeight});
 
   @override
   State<JobApplicationsScreen> createState() => _JobApplicationsScreenState();
@@ -59,14 +58,12 @@ class _JobApplicationsScreenState extends State<JobApplicationsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // backgroundColor: AppColors.whiteF3,
       appBar: CommonBackAppBar(
-        title: jobData?.jobTitle,
+        title: jobData?.jobTitle?.tr,
         isLeading: true,
         isPDFExport: true,
         jobID: jobData?.sId,
-        jobStatus: selectedIndex==1?AppConstants.Shortlisted:"",
-
+        jobStatus: selectedIndex == 1 ? AppConstants.Shortlisted : "",
       ),
       body: SafeArea(
         top: false,
@@ -101,7 +98,7 @@ class _JobApplicationsScreenState extends State<JobApplicationsScreen> {
                       });
                     },
                     labelBuilder: (jobCategory) {
-                      return jobCategory.label;
+                      return jobCategory.label.tr;
                     },
                     // isFilterIconShow: true,
                   ),

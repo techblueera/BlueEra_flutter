@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/jobs/controller/applied_job_controller.dart';
@@ -137,6 +138,7 @@ class _JobsScreenState extends State<JobsScreen> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
+        
         body: Obx(() => Stack(
               children: [
                 /// Main Scrollable Area with Dynamic Padding
@@ -255,9 +257,12 @@ class _JobsScreenState extends State<JobsScreen> {
 
   // Update the tab content builders to handle search results
   Widget _buildSelectedBusinessJobTabContent() {
+    logs("IF CONDITION==== 1");
+
     // If searching, show search results filtered by tab
     if (jobScreenController.isSearching.value ||
         _searchController.text.isNotEmpty) {
+      logs("IF CONDITION==== 2");
       return Obx(() {
         if (jobScreenController.isSearching.value) {
           return Center(child: CircularProgressIndicator());
@@ -291,14 +296,16 @@ class _JobsScreenState extends State<JobsScreen> {
   }
 
   Widget _getBusinessTabContent() {
-    switch (jobBusinessCategory[selectedIndex].label) {
-      case AppConstants.All:
+    logs("jobBusinessCategory[selectedIndex].label==== ${jobBusinessCategory[selectedIndex].label}");
+    logs("jobBusinessCategory[selectedIndex].labelId==== ${jobBusinessCategory[selectedIndex].labelId}");
+    switch (jobBusinessCategory[selectedIndex].labelId) {
+      case "My Posts":
         return AllJobPostScreen(
           key: ValueKey(AppConstants.All),
           onHeaderVisibilityChanged: _toggleAppBarBottomButtons,
           headerHeight: _headerHeight,
         );
-      case AppConstants.SCHEDULES:
+      case "Schedules":
         return AllJobPostScreen(
           key: ValueKey(AppConstants.SCHEDULES),
           onHeaderVisibilityChanged: _toggleAppBarBottomButtons,

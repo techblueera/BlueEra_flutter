@@ -302,6 +302,7 @@ extension MapCategoryExtension on String {
 enum ServiceCategory {
   homeServices('Home Services'),
   foods('Foods');
+
   final String label;
 
   const ServiceCategory(this.label);
@@ -369,21 +370,26 @@ enum JobFilteredCategory {
 }
 
 enum JobIndividualCategory {
-  all(label: AppStrings.all,labelId: AppConstants.All),
-  applied(label: AppStrings.applied,labelId:AppConstants.Applied ),
-  schedules(label: AppStrings.schedules,labelId:AppConstants.SCHEDULES,),
-  saved(label: AppStrings.tab_saved,labelId:AppConstants.Saved);
+  all(label: AppStrings.all, labelId: AppConstants.All),
+  applied(label: AppStrings.applied, labelId: AppConstants.Applied),
+  schedules(
+    label: AppStrings.schedules,
+    labelId: AppConstants.SCHEDULES,
+  ),
+  saved(label: AppStrings.tab_saved, labelId: AppConstants.Saved);
 
   final String label;
   final String labelId;
 
-  const JobIndividualCategory({required this.label,required this.labelId});
+  const JobIndividualCategory({required this.label, required this.labelId});
 }
 
 enum JobAppliedCategoryTab {
   all(label: AppStrings.all, labelId: AppConstants.All),
-  applied(label: AppStrings.jobStatusInProgress, labelId: AppConstants.IN_PROGRESS),
-  schedules(label: AppStrings.jobStatusInterview, labelId: AppConstants.INTERVIEW),
+  applied(
+      label: AppStrings.jobStatusInProgress, labelId: AppConstants.IN_PROGRESS),
+  schedules(
+      label: AppStrings.jobStatusInterview, labelId: AppConstants.INTERVIEW),
   saved(label: AppStrings.jobStatusClosed, labelId: AppConstants.CLOSED);
 
   final String label;
@@ -393,14 +399,14 @@ enum JobAppliedCategoryTab {
 }
 
 enum JobBusinessCategory {
-  myPosts(label: AppStrings.myPosts,labelId:'My Posts' ),
-  schedules(label: AppStrings.schedules,labelId:"Schedules"),
-  saved(label: AppStrings.tab_saved,labelId:"Saved");
+  myPosts(label: AppStrings.myPosts, labelId: 'My Posts'),
+  schedules(label: AppStrings.schedules, labelId: "Schedules"),
+  saved(label: AppStrings.tab_saved, labelId: "Saved");
 
   final String label;
   final String labelId;
 
-  const JobBusinessCategory({required this.label,required this.labelId});
+  const JobBusinessCategory({required this.label, required this.labelId});
 }
 
 /// Job Status
@@ -414,15 +420,15 @@ enum JobStatus {
 }
 
 enum ApplicationJobCategory {
-  all(label: 'All'),
-  shortlisted(label: 'Shortlisted'),
-  interview(label: 'Interview'),
-  // connect(label: 'Connect'),
-  hired(label: 'Hired');
+  all(label: AppStrings.all, labelId: 'All'),
+  shortlisted(label: AppStrings.shortlisted, labelId: 'Shortlisted'),
+  interview(label: AppStrings.interview, labelId: 'Interview'),
+  hired(label: AppStrings.hired, labelId: 'Hired');
 
   final String label;
+  final String labelId;
 
-  const ApplicationJobCategory({required this.label});
+  const ApplicationJobCategory({required this.label, required this.labelId});
 }
 
 /// Eduction Type
@@ -975,6 +981,7 @@ enum RentalServiceType {
   vehicle("Vehicle");
 
   final String label;
+
   const RentalServiceType(this.label);
 }
 
@@ -982,11 +989,11 @@ extension RentalServiceTabApi on RentalServiceType {
   String get apiValue {
     switch (this) {
       case RentalServiceType.homeStay:
-        return "Property";      // <--- API string
+        return "Property"; // <--- API string
       case RentalServiceType.flatRoom:
-        return "Flat";      // <--- API string
+        return "Flat"; // <--- API string
       case RentalServiceType.vehicle:
-        return "Vehicle";        // <--- API string
+        return "Vehicle"; // <--- API string
     }
   }
 }

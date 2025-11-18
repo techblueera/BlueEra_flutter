@@ -562,7 +562,6 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
           PopupMenuButton<String>(
             padding: EdgeInsets.zero,
             onSelected: (value) async {
-              print('Selected: $value');
               String? selectedExt;
               if (value == AppConstants.exportPDF) {
                 selectedExt = "pdf";
@@ -581,13 +580,13 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
               PopupMenuItem(
                 value: AppConstants.exportPDF,
                 child: CustomText(
-                  'Excel PDF',
+                 AppStrings.excelPdf,
                 ),
               ),
               PopupMenuItem(
                 value: AppConstants.exportExcel,
                 child: CustomText(
-                  'Export Excel',
+                  AppStrings.exportExcel,
                 ),
               ),
             ],
@@ -603,7 +602,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                     width: SizeConfig.size10,
                   ),
                   CustomText(
-                    "Export",
+                    AppStrings.export,
                     color: AppColors.primaryColor,
                     fontWeight: FontWeight.bold,
                   )

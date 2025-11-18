@@ -2,9 +2,6 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 
 class AppIconAssets {
   static const iconPath = AppConstants.baseSvgAssetsPath;
-  static String edit_pen_icon = "${iconPath}create_manual_product.svg";
-  // static String appIcon = "${AppConstants.baseIconAssetsPath}blue_era_app_logo.png";
-  // static String appIcon = "${AppConstants.baseIconAssetsPath}app_icon.svg";
   static String back_arrow = "${iconPath}back_arrow.svg";
   static String business_account = "${iconPath}business_account.svg";
   static String camera_sky = "${iconPath}camera_sky.svg";
@@ -294,9 +291,6 @@ class AppIconAssets {
   static const String train = '${iconPath}train.svg';
   // static const String  = '${iconPath}.svg';
   static const String chat_input_quick_reply = '${iconPath}chat_input_quick_reply.svg';
-  static String phone = "${AppConstants.baseIconAssetsPath}proicons_call.png";
-  static String mail = "${AppConstants.baseIconAssetsPath}mail.png";
-  static String calander = "${AppConstants.baseIconAssetsPath}calander.png";
   static String chat_media_forward = "${iconPath}chat_media_forward.svg";
 
   static String rating1="${iconPath}sad_rating.svg";
@@ -369,7 +363,6 @@ class AppIconAssets {
   static String pencilEditIcon = "${iconPath}pencil_edit_icon.svg";
   static String colorTemplateIcon = "${iconPath}color_template_icon.svg";
   static String upload_video_service = "${iconPath}upload_video_service.svg";
-  // static String blue_era_app_logo = "${AppConstants.baseIconAssetsPath}blue_era_app_logo.png";
   static String product_sale = "${iconPath}product_sale.svg";
   static String service_provider = "${iconPath}service_provider.svg";
   static String food_service = "${iconPath}food_service.svg";
@@ -379,8 +372,6 @@ class AppIconAssets {
   static String ai_generative = "${AppConstants.baseIconAssetsPath}ai_generative.png";
   static String open_close = "${AppConstants.baseIconAssetsPath}open_close.png";
   static String location_track = "${iconPath}location_track.svg";
-  static String porter = "${AppConstants.baseIconAssetsPath}porter.png";
-  static String rapido = "${AppConstants.baseIconAssetsPath}rapido.png";
   static String homeServiceIcon = "${iconPath}home_service_icon.svg";
   static String plumberIcon = "${iconPath}plumber_icon.svg";
   static String deliveryPartnerIcon = "${iconPath}delivery_partner_icon.svg";

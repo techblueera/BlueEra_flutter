@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/no_leading_space_formatter.dart';
@@ -49,15 +50,8 @@ class _CreateBusinessAccountStepTwoState
   final nameTextController = TextEditingController();
   final yourRoleController = TextEditingController();
   final emailTextController = TextEditingController();
-
-  // final businessDescriptionController = TextEditingController();
-
-  // final landmarkController = TextEditingController();
-
   ContactType? selectedType = ContactType.Mobile;
-
   final descriptionController = Get.put(BusinessDescriptionController());
-
   final viewBusinessDetailsController =
       Get.find<ViewBusinessDetailsController>();
   bool isFormValid = false;
@@ -80,8 +74,6 @@ class _CreateBusinessAccountStepTwoState
     viewBusinessDetailsController.listingDescriptionController.value
         .addListener(_validateForm);
     picCodeController.addListener(_validateForm);
-    // landmarkController.addListener(_validateForm);
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       updateAddressFromLocation();
     });
@@ -148,7 +140,6 @@ class _CreateBusinessAccountStepTwoState
 
   @override
   Widget build(BuildContext context) {
-    final appLocalizations = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -195,7 +186,7 @@ class _CreateBusinessAccountStepTwoState
 
                   ///websiteOptional
                   CustomText(
-                    appLocalizations?.websiteOptional,
+                    AppStrings.websiteOptional,
                     fontSize: SizeConfig.medium,
                     fontWeight: FontWeight.w500,
                     color: AppColors.black,
@@ -220,10 +211,10 @@ class _CreateBusinessAccountStepTwoState
                         textEditController: fullBusinessAddressTextController,
                         inputLength: AppConstants.inputCharterLimit50,
                         keyBoardType: TextInputType.text,
-                        title: appLocalizations?.fullBusinessAddress,
+                        title: AppStrings.fullBusinessAddress,
                         regularExpression:
                             RegularExpressionUtils.alphabetSpacePattern,
-                        hintText: appLocalizations?.fullBusinessAddress,
+                        hintText: AppStrings.addressHint,
                         isValidate: false,
                       ),
                       _buildAddressField()
@@ -256,8 +247,8 @@ class _CreateBusinessAccountStepTwoState
                     keyBoardType: TextInputType.text,
                     regularExpression:
                         RegularExpressionUtils.alphabetSpacePattern,
-                    title: appLocalizations?.city,
-                    hintText: appLocalizations?.city,
+                    title: AppStrings.city,
+                    hintText: AppStrings.city,
                     isValidate: false,
                     readOnly: true,
                   ),
@@ -271,16 +262,16 @@ class _CreateBusinessAccountStepTwoState
                     inputLength: AppConstants.inputCharterLimit6,
                     keyBoardType: TextInputType.number,
                     regularExpression: RegularExpressionUtils.digitsPattern,
-                    title: "Pin Code",
-                    hintText: "345434",
+                    title: AppStrings.pincodeTitle,
+                    hintText: AppStrings.pincodeHint,
                     isValidate: true,
                   //  readOnly: true,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return "Please enter Pin Code";
+                        return AppStrings.pleaseEnterPinCode.tr;
                       } else if (!RegExp(RegularExpressionUtils.pinCodeRegExp)
                           .hasMatch(value)) {
-                        return "Enter valid 6-digit Indian Pin Code";
+                        return AppStrings.enterValidIndianPincode.tr;
                       }
                       return null;
                     },
@@ -292,7 +283,7 @@ class _CreateBusinessAccountStepTwoState
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       CustomText(
-                        "Short Business Description",
+                        AppStrings.shortBusinessDescription,
                         fontSize: SizeConfig.medium,
                         fontWeight: FontWeight.w400,
                         color: AppColors.black,
@@ -339,7 +330,7 @@ class _CreateBusinessAccountStepTwoState
                     borderWidth: 0,
                     borderColor: Colors.transparent,
                     hintText:
-                        "Eg., Visit our store for casual and traditional wear...",
+                    AppStrings.businessDescriptionExample,
                     textEditController: viewBusinessDetailsController
                         .listingDescriptionController.value,
                     maxLine: 5,
@@ -374,7 +365,7 @@ class _CreateBusinessAccountStepTwoState
                   ),
                   Center(
                     child: CustomText(
-                      "Owner Details",
+                      AppStrings.ownerDetail,
                       fontSize: SizeConfig.large,
                       fontWeight: FontWeight.w600,
                     ),
@@ -388,7 +379,7 @@ class _CreateBusinessAccountStepTwoState
                     keyBoardType: TextInputType.text,
                     regularExpression:
                         RegularExpressionUtils.alphabetSpacePattern,
-                    title: "Your Name",
+                    title: AppStrings.yourNameHint,
                     hintText: AppConstants.name,
                     isValidate: false,
                   ),
@@ -401,8 +392,8 @@ class _CreateBusinessAccountStepTwoState
                     keyBoardType: TextInputType.text,
                     regularExpression:
                         RegularExpressionUtils.alphabetSpacePattern,
-                    title: appLocalizations?.yourRoleInTheBusiness,
-                    hintText: appLocalizations?.coFounderOwner,
+                    title: AppStrings.yourRole,
+                    hintText: AppStrings.yourRoleHint,
                     isValidate: false,
                   ),
                   SizedBox(
@@ -413,8 +404,8 @@ class _CreateBusinessAccountStepTwoState
                     inputLength: AppConstants.inputCharterLimit50,
                     keyBoardType: TextInputType.emailAddress,
                     regularExpression: RegularExpressionUtils.emailPattern,
-                    title: appLocalizations?.email,
-                    hintText: appLocalizations?.email,
+                    title: AppStrings.email,
+                    hintText: AppStrings.emailHint,
                     isValidate: true,
                     validationType: ValidationTypeEnum.email,
                   ),
@@ -432,7 +423,7 @@ class _CreateBusinessAccountStepTwoState
                               (route) => false,
                             );
                           },
-                          title: appLocalizations?.skip,
+                          title: AppStrings.skip,
                           bgColor: Colors.transparent,
                           textColor: AppColors.primaryColor,
                           borderColor: AppColors.primaryColor,
@@ -450,7 +441,7 @@ class _CreateBusinessAccountStepTwoState
                                     if (mobileController.length != 10) {
                                       commonSnackBar(
                                           message:
-                                              "Please enter your valid mobile number");
+                                          AppStrings.pleaseEnterValidMobileNo);
                                       return;
                                     }
                                   }
@@ -458,23 +449,14 @@ class _CreateBusinessAccountStepTwoState
                                   if (selectedType == ContactType.Landline) {
                                     if (landlineNumberController.text.length < 6 ||
                                         landlineNumberController.text.length > 8) {
-                                      commonSnackBar(message: "Please enter your valid landline number");
+                                      commonSnackBar(message:AppStrings.pleaseEnterValidLandline);
                                       return;
                                     }
 
                                   }
 
-                                  // log('address lat--> ${viewBusinessDetailsController.addressLat?.value}');
-                                  // log('address lng--> ${viewBusinessDetailsController.addressLong?.value}');
-                                  // if(viewBusinessDetailsController.addressLat?.value==0.0 && viewBusinessDetailsController.addressLong?.value==0.0){
-                                  //   commonSnackBar(
-                                  //       message:
-                                  //       "Please enable your location permission and gps to fetch business location");
-                                  //       return;
-                                  // }
 
                                   /// Submit action
-                                  print("Form submitted!");
                                   Map<String, dynamic> reqParam = {
                                     ApiKeys.businessId: businessId,
                                     ApiKeys.office_mob_no_Pre: 91,
@@ -519,7 +501,6 @@ class _CreateBusinessAccountStepTwoState
                                       }
                                     ]),
                                   };
-                                  logs("reqParam === $reqParam");
                                   await viewBusinessDetailsController
                                       .updateBusinessDetails(reqParam);
                                   Get.offNamedUntil(
@@ -529,7 +510,7 @@ class _CreateBusinessAccountStepTwoState
                                   );
                                 }
                               : null,
-                          title: "Submit",
+                          title: AppStrings.submit,
                           isValidate: isFormValid,
                         ),
                       ),
@@ -565,7 +546,7 @@ class _CreateBusinessAccountStepTwoState
           child: GestureDetector(
             onTap: () => updateAddressFromLocation(),
             child: CustomText(
-              'GPS location not found (Tap to fetch)',
+              AppStrings.gpsLocationNotFound,
               fontSize: SizeConfig.small,
               fontWeight: FontWeight.w600,
               color: AppColors.red,

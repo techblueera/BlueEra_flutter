@@ -34,7 +34,7 @@ commonConformationDialog({
                   alignment: Alignment.center,
                   padding: EdgeInsets.symmetric(vertical: SizeConfig.size10),
                   child: CustomText(
-                    AppLocalizations.of(context)!.confirm,
+                    AppStrings.confirm,
                     color: Colors.white,
                     fontSize: SizeConfig.large,
                     fontWeight: FontWeight.bold,
@@ -61,7 +61,7 @@ commonConformationDialog({
                           onTap: () {
                             confirmCallback();
                           },
-                          title: AppLocalizations.of(context)!.yes,
+                          title: AppStrings.yes,
                         ),
                       ),
                       SizedBox(
@@ -72,7 +72,7 @@ commonConformationDialog({
                           onTap: () {
                             cancelCallback();
                           },
-                          title: AppLocalizations.of(context)!.no,
+                          title: AppStrings.no,
                         ),
                       )
                     ],
