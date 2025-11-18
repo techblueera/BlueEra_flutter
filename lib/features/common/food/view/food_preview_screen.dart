@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/food/controller/food_upload_controller.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -36,7 +37,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                 Get.back();
                 Get.back();
               },
-              title: "Go Back"),
+              title: AppStrings.goBack),
         ),
       ),
       body: SafeArea(
@@ -104,7 +105,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                   SizedBox(height: SizeConfig.size16),
 
                   // 🔹 Key Ingredients
-                  _buildSectionTitle("Key Ingredients"),
+                  _buildSectionTitle(AppStrings.keyIngredients),
                   Wrap(
                     spacing: 8,
                     children: List<String>.from(
@@ -122,7 +123,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                   SizedBox(height: SizeConfig.size20),
 
                   // 🔹 Serving Options
-                  _buildSectionTitle("Serving Options"),
+                  _buildSectionTitle(AppStrings.servingOptions),
                   Column(
                     children: List<Map<String, dynamic>>.from(
                             widget.foodData["servingOptions"] ?? [])
@@ -131,7 +132,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                         child: ListTile(
                           leading: const Icon(Icons.restaurant),
                           title: CustomText("${e["size"]}"),
-                          subtitle: CustomText("Serves ${e["serves"]}"),
+                          subtitle: CustomText("${AppStrings.serves} ${e["serves"]}"),
                         ),
                       );
                     }).toList(),
@@ -140,7 +141,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                   SizedBox(height: SizeConfig.size20),
 
                   // 🔹 Accompaniments
-                  _buildSectionTitle("Accompaniments"),
+                  _buildSectionTitle(AppStrings.accompaniments),
                   Wrap(
                     spacing: 8,
                     children: List<String>.from(
@@ -157,24 +158,24 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                   SizedBox(height: SizeConfig.size20),
 
                   // 🔹 Nutrition Summary
-                  _buildSectionTitle("Nutritional Summary (per 100g)"),
+                  _buildSectionTitle(AppStrings.nutritionalSummaryPer100g),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       _nutritionCard(
-                          "Calories",
+                          AppStrings.caloriesKcal,
                           widget.foodData["nutritionalSummary_per100g"]
                               ["calories_kcal"]),
                       _nutritionCard(
-                          "Protein",
+                          AppStrings.proteinG,
                           widget.foodData["nutritionalSummary_per100g"]
                               ["protein_g"]),
                       _nutritionCard(
-                          "Carbs",
+                          AppStrings.carbsG,
                           widget.foodData["nutritionalSummary_per100g"]
                               ["carbs_g"]),
                       _nutritionCard(
-                          "Fat",
+                          AppStrings.fatG,
                           widget.foodData["nutritionalSummary_per100g"]
                               ["fat_g"]),
                     ],
@@ -183,7 +184,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                   SizedBox(height: SizeConfig.size20),
 
                   // 🔹 Key Minerals
-                  _buildSectionTitle("Key Minerals"),
+                  _buildSectionTitle(AppStrings.keyMinerals),
                   Wrap(
                     spacing: 8,
                     children:
@@ -199,7 +200,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                   SizedBox(height: SizeConfig.size20),
 
                   // 🔹 SEO Tags
-                  _buildSectionTitle("SEO Tags"),
+                  _buildSectionTitle(AppStrings.seoTags),
                   Wrap(
                     spacing: 8,
                     children:

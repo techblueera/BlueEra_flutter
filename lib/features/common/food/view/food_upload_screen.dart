@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
@@ -61,7 +62,7 @@ class _FoodUploadScreenState extends State<FoodUploadScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Food",
+        title: AppStrings.food,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -82,8 +83,8 @@ class _FoodUploadScreenState extends State<FoodUploadScreen> {
 
                       // Food Name Field
                       _buildTextField(
-                        label: 'Food Name',
-                        hint: 'E.g. Paneer Butter Masala....',
+                        label: AppStrings.foodName,
+                        hint: AppStrings.egPaneerButterMasala,
                         inputController: controller.foodNameController,
                         filedName: 'food_name',
                       ),
@@ -93,7 +94,7 @@ class _FoodUploadScreenState extends State<FoodUploadScreen> {
                       AbsorbPointer(
                         absorbing: controller.isCategoryLocked,
                         child: _buildTabSection(
-                          title: 'Food Type 1',
+                          title: AppStrings.foodType1,
                           tabs: controller.foodType1Options,
                           selectedIndex: controller.selectedFoodType1Index,
                           onTabSelected: (index, value) {
@@ -106,7 +107,7 @@ class _FoodUploadScreenState extends State<FoodUploadScreen> {
 
                       // Food Type 2 Selection
                       _buildTabSection(
-                        title: 'Food Type 2',
+                        title: AppStrings.foodType2,
                         tabs: controller.foodType2Options,
                         selectedIndex: controller.selectedFoodType2Index,
                         onTabSelected: (index, value) {
@@ -117,7 +118,7 @@ class _FoodUploadScreenState extends State<FoodUploadScreen> {
 
                       // Cooking Method Selection
                       _buildTabSection(
-                        title: 'Cooking Method',
+                        title: AppStrings.cookingMethod,
                         tabs: controller.cookingMethodOptions,
                         selectedIndex: controller.selectedCookingMethodIndex,
                         onTabSelected: (index, value) {
@@ -128,7 +129,7 @@ class _FoodUploadScreenState extends State<FoodUploadScreen> {
 
                       // Item Nature Selection
                       _buildTabSection(
-                        title: 'Item Nature',
+                        title: AppStrings.itemNature,
                         tabs: controller.itemNatureOptions,
                         selectedIndex: controller.selectedItemNatureIndex,
                         onTabSelected: (index, value) {
@@ -139,8 +140,8 @@ class _FoodUploadScreenState extends State<FoodUploadScreen> {
 
                       // City Name Field (Optional)
                       _buildTextField(
-                        label: 'City Name (Optional)',
-                        hint: 'E.g. Durgapur',
+                        label: AppStrings.cityNameOptional,
+                        hint: AppStrings.egDurgapur,
                         inputController: controller.cityNameController,
                         filedName: '',
                       ),
@@ -165,7 +166,7 @@ class _FoodUploadScreenState extends State<FoodUploadScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         CustomText(
-          'Upload Images',
+          AppStrings.uploadImages,
           fontSize: SizeConfig.large,
         ),
         SizedBox(height: SizeConfig.size10),
@@ -174,7 +175,7 @@ class _FoodUploadScreenState extends State<FoodUploadScreen> {
             final String? selected =
             await SelectProfilePictureDialog.showLogoDialog(
               context,
-              "Select Photo",
+              AppStrings.selectPhoto,
             );
             if ((selected?.isNotEmpty ?? false) && selected != null) {
               controller.selectedImage.value = File(selected);
@@ -282,7 +283,7 @@ class _FoodUploadScreenState extends State<FoodUploadScreen> {
               : null,
           title: controller.isGenerateFoodLoading.value
               ? null
-              : 'Generate',
+              : AppStrings.generate,
         isLoading: controller.isGenerateFoodLoading.value,
       );
     });

@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -168,7 +169,7 @@ class OwnProductCard extends StatelessWidget {
                           const SizedBox(width: 8),
                           if (discountProduct > 0)
                           CustomText(
-                            "${discountProduct}% Off",
+                            "${discountProduct}% ${AppStrings.off}",
                             fontSize: SizeConfig.small11,
                             color: Colors.green[600],
                             fontWeight: FontWeight.w400,
@@ -228,7 +229,7 @@ class OwnProductCard extends StatelessWidget {
                               color: AppColors.primaryColor, size: 16),
                           const SizedBox(width: 4),
                           CustomText(
-                            'Share Product',
+                            AppStrings.shareProduct,
                             color: AppColors.primaryColor,
                             fontWeight: FontWeight.w700,
                             fontSize: SizeConfig.small,
@@ -305,7 +306,7 @@ class OwnProductCard extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             CustomText(
-                                "Price: ",
+                                AppStrings.pricePrefix,
                                 fontSize: SizeConfig.small,
                                 fontWeight: FontWeight.w400,
                                 color: AppColors.secondaryTextColor
@@ -320,7 +321,7 @@ class OwnProductCard extends StatelessWidget {
                             const SizedBox(width: 6),
                             if (discountProduct > 0) ...[
                               CustomText(
-                                  "${discountProduct}% Off",
+                                  "${discountProduct}% ${AppStrings.off}",
                                   fontSize: SizeConfig.small,
                                   fontWeight: FontWeight.w400,
                                   color: Colors.green.shade600

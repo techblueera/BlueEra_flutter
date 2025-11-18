@@ -2,9 +2,10 @@ import 'dart:math' hide log;
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/common/business_service/model/get_service_model.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/sharing_business_service_card.dart';
+import 'package:BlueEra/features/common/service/model/get_service_model.dart';
+import 'package:BlueEra/features/common/service/view/sharing_business_service_card.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/visiting_card_helper.dart';
@@ -75,7 +76,7 @@ class _BusinessServiceCardState extends State<BusinessServiceCard> {
                 children: [
                   Expanded(
                     child: CustomText(
-                        "Share card to social media, Grow business",
+                        AppStrings.shareCardToSocialMediaGrowBusiness,
                         color: AppColors.secondaryTextColor,
                         fontWeight: FontWeight.w400,
                         fontSize: SizeConfig.small,

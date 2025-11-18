@@ -1,16 +1,16 @@
 import 'dart:developer';
 import 'dart:io';
-
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
-import 'package:BlueEra/features/common/business_service/controller/service_controller.dart';
+import 'package:BlueEra/features/common/service/controller/service_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -64,7 +64,6 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
 
   @override
   void dispose() {
-    log('deleted');
     Get.delete<ServiceController>();
     super.dispose();
   }
@@ -75,7 +74,7 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
 
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Service",
+        title: AppStrings.service,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -111,7 +110,7 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                                     CustomText(" ⚠️ "),
                                     Expanded(
                                       child: CustomText(
-                                        "Your Profession & Designation given below",
+                                        AppStrings.yourProfessionDesignation,
                                         color: Colors.blue.shade800,
                                         fontSize: SizeConfig.size16,
                                       ),
@@ -126,7 +125,7 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     CustomText(
-                                      "Profession : ",
+                                      AppStrings.profession,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.blue.shade800,
                                     ),
@@ -146,7 +145,7 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     CustomText(
-                                      "Work Type : ",
+                                      AppStrings.workType,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.blue.shade800,
                                     ),
@@ -162,7 +161,7 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                                 ),
                                 SizedBox(height: SizeConfig.size5),
                                 CustomText(
-                                  "Kindly add services to your Profession & work type only unless result may affected",
+                                  AppStrings.kindlyAddServicesProfession,
                                   color: AppColors.red00,
                                   overflow: TextOverflow.ellipsis,
                                   fontSize: SizeConfig.small,
@@ -179,7 +178,7 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                                     CustomText(" ⚠️ "),
                                     Expanded(
                                       child: CustomText(
-                                        "Your Category & Subcategory given below",
+                                        AppStrings.yourCategorySubcategory,
                                         color: Colors.blue.shade800,
                                         fontSize: SizeConfig.size16,
                                       ),
@@ -192,7 +191,7 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     CustomText(
-                                      "Category : ",
+                                      '${AppStrings.category} : ',
                                       fontWeight: FontWeight.bold,
                                       color: Colors.blue.shade800,
                                     ),
@@ -212,7 +211,7 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     CustomText(
-                                      "Subcategory : ",
+                                      AppStrings.subcategory,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.blue.shade800,
                                     ),
@@ -228,7 +227,7 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                                 ),
                                 SizedBox(height: SizeConfig.size5),
                                 CustomText(
-                                  "Kindly add services to your category & subcategory only unless result may effected",
+                                  AppStrings.kindlyAddServicesCategory,
                                   color: AppColors.red00,
                                   overflow: TextOverflow.ellipsis,
                                   fontSize: SizeConfig.small,
@@ -245,10 +244,10 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                     SizedBox(height: SizeConfig.size20),
                     // Service Name Field
                     CommonTextField(
-                      title: 'Service Name',
+                      title:  AppStrings.serviceName,
                       readOnly: isFromEarnWithBlueEraService,
                       textEditController: controller.serviceNameController,
-                      hintText: 'E.g. Car washing....',
+                      hintText: AppStrings.hintServiceName,
                       onChange: (value) {
                         controller.serviceName.value = value;
                       },
@@ -257,11 +256,10 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                     SizedBox(height: SizeConfig.size20),
                     // Short description Field (Optional)
                     CommonTextField(
-                      title: 'Short Description / Highlight',
+                      title: AppStrings.shortDescription,
                       textEditController:
                           controller.serviceShortDescriptionController,
-                      hintText:
-                          'E.g. Restore your car’s shine with our professional wash service — removing dirt, dust, and grime for a spotless, fresh look every time you drive.',
+                      hintText: AppStrings.hintShortDescription,
                       maxLine: 2,
                       isValidate: true,
                       validator: validateServiceDescription,
@@ -290,7 +288,7 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         CustomText(
-          'Upload Images',
+          AppStrings.uploadImages,
           fontSize: SizeConfig.large,
         ),
         SizedBox(height: SizeConfig.size10),
@@ -299,7 +297,7 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                 final String? selected =
                     await SelectProfilePictureDialog.showLogoDialog(
                   context,
-                  "Select Photo",
+                      AppStrings.selectPhoto,
                 );
                 if ((selected?.isNotEmpty ?? false) && selected != null) {
                   controller.selectedImage.value = File(selected);
@@ -366,7 +364,7 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                 : null,
             title: controller.isGenerateAiServiceLoading.value
                 ? null // hide text
-                : 'Generate',
+                : AppStrings.generate,
             isLoading: controller.isGenerateAiServiceLoading.value
         );
       else
@@ -403,7 +401,7 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                 : null,
             title: controller.isGenerateAiServiceLoading.value
                 ? null // hide text
-                : 'Generate',
+                : AppStrings.generate,
             isLoading: controller.isGenerateAiServiceLoading.value
         );
     });
@@ -432,9 +430,9 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
 
   String? validateServiceDescription(String? value) {
     if (value == null || value.isEmpty)
-      return 'Service description is required';
+      return AppStrings.serviceDescriptionRequired;
     if (value.length < 15)
-      return 'Service description name must be at least 15 characters';
+      return AppStrings.serviceDescriptionMinLength;
     return null;
   }
 }

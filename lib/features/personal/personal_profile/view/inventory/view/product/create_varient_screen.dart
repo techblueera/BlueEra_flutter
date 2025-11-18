@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
@@ -37,7 +38,7 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
     return Scaffold(
       backgroundColor: AppColors.whiteF3,
       appBar: CommonBackAppBar(
-        title: 'Create Variant Combination ',
+        title: AppStrings.createVariantCombination,
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(SizeConfig.size15),
@@ -81,7 +82,7 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                         if (selectedEmpty)
                           Expanded(
                             child: PositiveCustomBtn(
-                              title: 'Skip',
+                              title: AppStrings.skip,
                               bgColor: AppColors.white,
                               borderColor: AppColors.primaryColor,
                               textColor: AppColors.primaryColor,
@@ -101,7 +102,7 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                           SizedBox(width: SizeConfig.size10),
                           Expanded(
                           child: PositiveCustomBtn(
-                            title: 'Next',
+                            title: AppStrings.next,
                             bgColor: widget.controller.isNextEnabled.value
                                 ? AppColors.primaryColor
                                 : AppColors.greyE5,
@@ -124,8 +125,8 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                             }
                                 : () {
                               Get.snackbar(
-                                'Error',
-                                'Please select each variant to further proceed',
+                                AppStrings.error,
+                                AppStrings.selectVariantPrompt,
                               );
                             },
                           ),
@@ -146,7 +147,7 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                  crossAxisAlignment: CrossAxisAlignment.start,
                  children: [
                    CustomText(
-                     'Listing',
+                     AppStrings.listing,
                      fontWeight: FontWeight.bold,
                      fontSize: SizeConfig.large,
                      color: AppColors.mainTextColor,
@@ -338,7 +339,7 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                                  elevation: 8,
                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                  onSelected: (value) async {
-                                   if (value == 'Delete Variant') {
+                                   if (value == 'deleteVariant') {
                                      widget.controller.listedProducts.removeAt(productIndex);
                                    }
                                  },
@@ -357,7 +358,7 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                    CustomBtn(
                      title: widget.controller.isAddProductToInventoryLoading.value
                          ? null // hide text
-                         : 'Go to Product Page',
+                         : AppStrings.goToProductPage,
                      bgColor: AppColors.primaryColor,
                      borderColor: AppColors.primaryColor,
                      radius: 10.0,
@@ -395,7 +396,7 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               CustomText(
-                'Color',
+                AppStrings.color,
                 fontSize: SizeConfig.medium,
                 fontWeight: FontWeight.w600,
                 color: AppColors.black,
@@ -411,7 +412,7 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                     ),
                     SizedBox(width: 4),
                     Text(
-                      'Add More',
+                      AppStrings.addMoreTitle,
                       style: TextStyle(
                         color: AppColors.primaryColor,
                         fontSize: SizeConfig.small,
@@ -545,7 +546,7 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                     ),
                     SizedBox(width: 4),
                     Text(
-                      'Add More',
+                      AppStrings.addMoreTitle,
                       style: TextStyle(
                         color: AppColors.primaryColor,
                         fontSize: SizeConfig.small,
@@ -658,7 +659,7 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
           ),
           SizedBox(width: 8),
           CustomText(
-            'Add More Variant',
+            AppStrings.addMoreVariant,
             color: AppColors.primaryColor,
             fontSize: SizeConfig.large,
             fontWeight: FontWeight.w600,
@@ -794,7 +795,7 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                     },
                     title: widget.controller.isAddUpdateProductVariantLoading.value
                         ? null
-                        : 'Save',
+                        : AppStrings.save,
                     isLoading: widget.controller.isAddUpdateProductVariantLoading.value,
                     bgColor: AppColors.primaryColor,
                     borderColor: AppColors.primaryColor,
@@ -869,7 +870,7 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                                 controller: textCtrl,
                                 onChanged: (val) => setState(() => inputText = val),
                                 decoration: InputDecoration(
-                                  hintText: "Add $attributeKey",
+                                  hintText: "${AppStrings.add} $attributeKey",
                                   hintStyle: TextStyle(
                                     color: AppColors.grey9B,
                                     fontSize: 14,
@@ -889,7 +890,7 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                                   ScaleTransition(scale: anim, child: child),
                               child: inputText.isNotEmpty
                                   ? InkWell(
-                                key: ValueKey("add_$attributeKey"),
+                                key: ValueKey("${AppStrings.add}_$attributeKey"),
                                 onTap: () {
                                   final val = inputText.trim();
                                   if (val.isNotEmpty &&
@@ -907,7 +908,7 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                                 ),
                               )
                                   : SizedBox.shrink(
-                                  key: ValueKey("empty_$attributeKey")),
+                                  key: ValueKey("${AppStrings.empty}_$attributeKey")),
                             ),
                           ],
                         ),
@@ -986,7 +987,7 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                         },
                         title: widget.controller.isAddUpdateProductVariantLoading.value
                             ? null
-                            : 'Save',
+                            : AppStrings.save,
                         isLoading: widget.controller.isAddUpdateProductVariantLoading.value,
                         bgColor: AppColors.primaryColor,
                         borderColor: AppColors.primaryColor,
@@ -1006,7 +1007,10 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
 
   List<PopupMenuEntry<String>> popupProductListedVariantMenuItems() {
     final items = <Map<String, dynamic>>[
-      {'title': 'Delete Variant'},
+      {
+        'key': 'deleteVariant',
+        'title': AppStrings.deleteVariant,
+      },
     ];
 
     final List<PopupMenuEntry<String>> entries = [];
@@ -1015,7 +1019,7 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
       entries.add(
         PopupMenuItem<String>(
           height: SizeConfig.size35,
-          value: items[i]['title'],
+          value: items[i]['key'],
           child: CustomText(
             items[i]['title'],
             fontSize: SizeConfig.medium,

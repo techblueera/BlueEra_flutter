@@ -1,10 +1,11 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
-import 'package:BlueEra/features/common/business_service/model/get_service_model.dart';
-import 'package:BlueEra/features/common/business_service/view/service_details_view_screen.dart';
 import 'package:BlueEra/features/common/food/view/widget/km_away_text_widget.dart';
+import 'package:BlueEra/features/common/service/model/get_service_model.dart';
+import 'package:BlueEra/features/common/service/view/service_details_view_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -104,7 +105,7 @@ class _ServiceCardBusinessState extends State<ServiceCardBusiness> {
               alignment: Alignment.centerLeft,
               padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
               child: CustomText(
-                serviceData?.title ?? "N/A",
+                serviceData?.title ?? AppStrings.na,
                 fontSize: SizeConfig.small,
                 fontWeight: FontWeight.w500,
                 overflow: TextOverflow.ellipsis,
@@ -117,7 +118,7 @@ class _ServiceCardBusinessState extends State<ServiceCardBusiness> {
               alignment: Alignment.centerLeft,
               padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
               child: CustomText(
-                serviceData?.business?.categoryOfBusiness?.name ?? "N/A",
+                serviceData?.business?.categoryOfBusiness?.name ?? AppStrings.na,
                 fontSize: SizeConfig.small,
                 overflow: TextOverflow.ellipsis,
                 maxLines: 1,
@@ -130,7 +131,7 @@ class _ServiceCardBusinessState extends State<ServiceCardBusiness> {
               alignment: Alignment.centerLeft,
               padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
               child: CustomText(
-                serviceData?.business?.businessName ?? "N/A",
+                serviceData?.business?.businessName ?? AppStrings.na,
                 fontSize: SizeConfig.small,
                 overflow: TextOverflow.ellipsis,
                 maxLines: 2,
@@ -145,8 +146,8 @@ class _ServiceCardBusinessState extends State<ServiceCardBusiness> {
                   color: Colors.green, borderRadius: BorderRadius.circular(30)),
               child: CustomText(
                 (maxDiscount?.amountOff != null)
-                    ? "${maxDiscount?.amountOff.toString()}% Off"
-                    : "0% Off",
+                    ? "${maxDiscount?.amountOff.toString()}% ${AppStrings.off}"
+                    : "0% ${AppStrings.off}",
                 fontSize: SizeConfig.size10,
                 color: Colors.white,
                 maxLines: 1,

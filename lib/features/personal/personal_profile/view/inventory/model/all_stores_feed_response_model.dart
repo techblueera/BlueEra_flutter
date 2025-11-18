@@ -1,6 +1,6 @@
 import 'package:BlueEra/core/api/model/get_all_store_res_model.dart';
-import 'package:BlueEra/features/common/business_service/model/get_service_model.dart';
 import 'package:BlueEra/features/common/food/model/get_food_details_model.dart';
+import 'package:BlueEra/features/common/service/model/get_service_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 
 class AllStoresFeedResponseModel {

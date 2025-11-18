@@ -7,6 +7,8 @@ import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.da
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/food/view/food_details_view_screen.dart';
 import 'package:BlueEra/features/common/food/view/widget/km_away_text_widget.dart';
+import 'package:BlueEra/features/common/service/model/get_service_model.dart';
+import 'package:BlueEra/features/common/service/view/service_details_view_screen.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -25,8 +27,6 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/constants/app_icon_assets.dart';
 import '../../../../widgets/common_box_shadow.dart';
-import '../../../common/business_service/model/get_service_model.dart';
-import '../../../common/business_service/view/service_details_view_screen.dart';
 import '../../../common/food/model/get_food_details_model.dart';
 import '../../../personal/personal_profile/view/inventory/controller/product_controller.dart';
 import '../../auth/controller/chat_theme_controller.dart';

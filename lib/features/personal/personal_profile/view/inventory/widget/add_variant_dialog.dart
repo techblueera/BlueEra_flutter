@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/color_selection_tile.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -74,7 +75,7 @@ class _AddVariantDialogState extends State<AddVariantDialog> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     CustomText(
-                      'Add Variant',
+                      AppStrings.addVariant,
                       fontSize: SizeConfig.medium,
                       fontWeight: FontWeight.w600,
                       color: AppColors.mainTextColor,
@@ -89,8 +90,8 @@ class _AddVariantDialogState extends State<AddVariantDialog> {
 
                 // Variant Name Field
                 CommonTextField(
-                  title: 'Variant Name',
-                  hintText: 'e.g. size, storage, material, color',
+                  title: AppStrings.variantName,
+                  hintText: AppStrings.variantNameHint,
                   textEditController: titleController,
                   isValidate: true,
                   onChange: (_) => setState(() {}),
@@ -185,7 +186,7 @@ class _AddVariantDialogState extends State<AddVariantDialog> {
                             child: TextField(
                               controller: detailController,
                               decoration: InputDecoration(
-                                hintText: "Enter value",
+                                hintText: AppStrings.enterValue,
                                 hintStyle: TextStyle(
                                   color: AppColors.grey9B,
                                   fontSize: 14,
@@ -243,7 +244,7 @@ class _AddVariantDialogState extends State<AddVariantDialog> {
                 CustomBtn(
                   title: widget.controller.isAddUpdateProductVariantLoading.value
                       ? null
-                      : 'Add Variant',
+                      : AppStrings.addVariant,
                     isLoading: widget.controller.isAddUpdateProductVariantLoading.value,
                     onTap: () async {
                     if (!formKey.currentState!.validate()) return;
@@ -253,8 +254,8 @@ class _AddVariantDialogState extends State<AddVariantDialog> {
 
                     if (widget.controller.dynamicAttributes.containsKey(title)) {
                       Get.snackbar(
-                        'Error',
-                        'This attribute already exists!',
+                        AppStrings.error,
+                        AppStrings.attributeExists,
                         snackPosition: SnackPosition.TOP,
                         backgroundColor: Colors.redAccent,
                         colorText: Colors.white,
@@ -265,8 +266,8 @@ class _AddVariantDialogState extends State<AddVariantDialog> {
                     if (isColor) {
                       if (localSelectedColors.isEmpty) {
                         Get.snackbar(
-                          'Error',
-                          'Please pick at least one color.',
+                          AppStrings.error,
+                          AppStrings.pickAtLeastOneColor,
                           snackPosition: SnackPosition.TOP,
                           backgroundColor: Colors.redAccent,
                           colorText: Colors.white,
@@ -302,8 +303,8 @@ class _AddVariantDialogState extends State<AddVariantDialog> {
 
                       if (widget.controller.dynamicAttributes.containsKey(title)) {
                         Get.snackbar(
-                          'Duplicate Attribute',
-                          'The attribute "$title" already exists.',
+                          AppStrings.duplicateAttribute,
+                          '${AppStrings.theAttribute} "$title" ${AppStrings.alreadyExists}',
                           snackPosition: SnackPosition.TOP,
                         );
                         return;

@@ -1,10 +1,11 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/common/business_service/controller/service_controller.dart';
-import 'package:BlueEra/features/common/business_service/model/get_service_model.dart';
+import 'package:BlueEra/features/common/service/controller/service_controller.dart';
+import 'package:BlueEra/features/common/service/model/get_service_model.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
@@ -62,7 +63,7 @@ class _ShareServiceScreenState extends State<ShareServiceScreen> {
               navigatePushTo(
                 context,
                 ImageViewScreen(
-                  appBarTitle: singleServiceData?.title ?? "N/A",
+                  appBarTitle: singleServiceData?.title ?? AppStrings.na,
                   subTitle: singleServiceData?.description,
                   imageUrls: singleServiceData!.photos!,
                   initialIndex: 0,
@@ -97,7 +98,7 @@ class _ShareServiceScreenState extends State<ShareServiceScreen> {
                 Padding(
                   padding: const EdgeInsets.only(left: 8.0),
                   child:  CustomText(
-                    singleServiceData?.title ?? "N/A",
+                    singleServiceData?.title ?? AppStrings.na,
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     overflow: TextOverflow.ellipsis,
@@ -134,7 +135,7 @@ class _ShareServiceScreenState extends State<ShareServiceScreen> {
                           Row(
                             children: [
                               CustomText(
-                                "Open :",
+                               '${AppStrings.open} : ',
                                 fontSize: 12,
                                 fontWeight: FontWeight.w400,
                                 overflow: TextOverflow.ellipsis,
@@ -157,7 +158,7 @@ class _ShareServiceScreenState extends State<ShareServiceScreen> {
                                 overflow: TextOverflow.ellipsis,
                               ),
                               CustomText(
-                                "Close :",
+                                "${AppStrings.close} : ",
                                 fontSize: 12,
                                 fontWeight: FontWeight.w400,
                                 overflow: TextOverflow.ellipsis,

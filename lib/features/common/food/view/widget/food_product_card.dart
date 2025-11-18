@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
@@ -52,7 +53,7 @@ class _FoodCardBusinessState extends State<FoodCardBusiness> {
   Widget build(BuildContext context) {
     final priceOptions = serviceData?.priceOptions;
 
-    String priceText = "N/A";
+    String priceText = AppStrings.na;
     if (priceOptions != null && priceOptions.isNotEmpty) {
       if (priceOptions.length == 1) {
         priceText = "${priceOptions.first.price ?? ''}";
@@ -112,7 +113,7 @@ class _FoodCardBusinessState extends State<FoodCardBusiness> {
               alignment: Alignment.centerLeft,
               padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
               child: CustomText(
-                serviceData?.title ?? "N/A",
+                serviceData?.title ?? AppStrings.na,
                 fontSize: SizeConfig.medium,
                 fontWeight: FontWeight.w600,
                 overflow: TextOverflow.ellipsis,
@@ -136,7 +137,7 @@ class _FoodCardBusinessState extends State<FoodCardBusiness> {
                                 : Colors.red,
                             borderRadius: BorderRadius.circular(6),
                           ),
-                          child: CustomText("${serviceData?.vegType ?? "veg"}",
+                          child: CustomText("${serviceData?.vegType ?? AppStrings.veg}",
                               color: Colors.white,
                               fontSize: 11,
                               fontWeight: FontWeight.w600),
@@ -153,7 +154,7 @@ class _FoodCardBusinessState extends State<FoodCardBusiness> {
                         size: 19,
                       ),
                       CustomText(
-                        serviceData?.subCategory ?? "N/A",
+                        serviceData?.subCategory ?? AppStrings.na,
                         fontSize: SizeConfig.small,
                         fontWeight: FontWeight.w500,
                         color: AppColors.navy,
@@ -169,7 +170,7 @@ class _FoodCardBusinessState extends State<FoodCardBusiness> {
             Padding(
               padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
               child: CustomText(
-                "Energy : ${serviceData?.nutritionalSummaryPer100g?.caloriesKcal ?? "N/A"} Cal/100gm",
+                "${AppStrings.energyPrefix}${serviceData?.nutritionalSummaryPer100g?.caloriesKcal ?? AppStrings.na} ${AppStrings.Cal100gm}",
                 fontSize: SizeConfig.small,
                 fontWeight: FontWeight.w500,
                 overflow: TextOverflow.ellipsis,
@@ -182,7 +183,7 @@ class _FoodCardBusinessState extends State<FoodCardBusiness> {
                     padding:
                         EdgeInsets.symmetric(horizontal: SizeConfig.size10),
                     child: CustomText(
-                      "Price : ₹ ${serviceData?.singlePrice ?? "0"}",
+                      "${AppStrings.pricePrefix}₹ ${serviceData?.singlePrice ?? "0"}",
                       fontSize: SizeConfig.small,
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
@@ -193,7 +194,7 @@ class _FoodCardBusinessState extends State<FoodCardBusiness> {
                     padding:
                         EdgeInsets.symmetric(horizontal: SizeConfig.size10),
                     child: CustomText(
-                      "Price : ₹ ${priceText}",
+                      "${AppStrings.pricePrefix}₹ ${priceText}",
                       fontWeight: FontWeight.w600,
                       overflow: TextOverflow.ellipsis,
                       color: AppColors.primaryColor,

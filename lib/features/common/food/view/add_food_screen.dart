@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -18,7 +19,7 @@ import '../../../../widgets/common_card_widget.dart';
 import '../../auth/views/dialogs/select_profile_picture_dialog.dart';
 import '../controller/food_upload_controller.dart';
 import '../model/food_ai_res_model.dart';
-import '../../../personal/personal_profile/view/inventory/widget/add_services_screen.dart';
+import '../../service/view/add_services_screen.dart';
 
 
 class SubmitFoodProductPage extends StatefulWidget {
@@ -78,7 +79,7 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
         Obx(() => Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const CustomText("Discount (Optional)", fontWeight: FontWeight.w400),
+            const CustomText(AppStrings.discountOptional, fontWeight: FontWeight.w400),
             SizedBox(
               height: SizeConfig.size8,
             ),
@@ -97,7 +98,7 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
               child: ListTile(
                 contentPadding: EdgeInsets.zero,
                 title: CustomText(
-                  "Discount Coupon",
+                  AppStrings.discountCoupon,
                   fontFamily: "Arial",
                 ),
                 trailing: const Icon(CupertinoIcons.chevron_forward),
@@ -277,7 +278,7 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
                         ),
                         SizedBox(width: 6),
                         const CustomText(
-                          "Add More Coupon",
+                          AppStrings.addMoreCoupon,
                           color: Colors.blue,
                           fontWeight: FontWeight.w500,
                         ),
@@ -297,7 +298,7 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: 'Food',
+        title: AppStrings.food,
       ),
 
       body: SafeArea(
@@ -318,9 +319,9 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: const [
-                            Text("Upload Images",
+                            Text(AppStrings.uploadImages,
                                 style: TextStyle(fontWeight: FontWeight.w500)),
-                            Text("Min-1 / Max-2",
+                            Text(AppStrings.min1Max2,
                                 style: TextStyle(color: Colors.grey)),
                           ],
                         ),
@@ -345,14 +346,11 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
                                       await SelectProfilePictureDialog
                                           .showLogoDialog(
                                         context,
-                                        "Select Photo",
+                                        AppStrings.selectPhoto,
                                       );
                                       if ((selected?.isNotEmpty ?? false) &&
                                           selected != null) {
                                         controller.imageLocalPaths.add(selected);
-                                      } else {
-                                        commonSnackBar(
-                                            message: "Something went wrong please try again");
                                       }
                                     },
                                     child: Container(
@@ -426,7 +424,9 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
                         ),
                         const SizedBox(height: 16),
 
-                        _buildTextField("Food Name", "E.g. Paneer Butter Masala...",
+                        _buildTextField(
+                            AppStrings.foodName,
+                            AppStrings.egPaneerButterMasala,
                             controller: controller.foodNameCtrl),
 
                         SizedBox(height: SizeConfig.size10),
@@ -436,7 +436,8 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
                           return AbsorbPointer(
                             absorbing: widget.providerType == ProductServiceProviderType.user,
                             child: _buildDropdown(
-                                "Category tag", "E.g. Main Course...",
+                                AppStrings.categoryTag,
+                                AppStrings.egMainCourse,
                                 selectedValue: controller.selectedCategory.value,
                                 onChanged: (v) =>
                                 controller.selectedCategory.value = v!,
@@ -449,7 +450,8 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
 
                         Obx(() {
                           return _buildDropdown(
-                              "Sub Category", "E.g. Veg, North Indian...",
+                              AppStrings.subCategory,
+                              AppStrings.egVegNorthIndian,
                               selectedValue: controller.selectedSubCategory.value,
                               onChanged: (v) =>
                               controller.selectedSubCategory.value = v!,
@@ -459,8 +461,9 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
                         SizedBox(height: SizeConfig.size10),
 
                         // Description
-                        _buildTextField("Food Description",
-                            "Horem ipsum dolor sit amet, consectetur adipiscing...",
+                        _buildTextField(
+                            AppStrings.foodDescription,
+                            AppStrings.egFreshSpicyAndWellCooked,
                             controller: controller.descCtrl,
                             maxLines: 5),
 
@@ -478,7 +481,7 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
                           child: ListTile(
                             contentPadding: EdgeInsets.zero,
                             leading: const Icon(Icons.add_circle_outline),
-                            title: const Text("Add ons"),
+                            title: const Text(AppStrings.addOns),
                             trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                             onTap: () async {
                               final result = await Navigator.push(
@@ -535,15 +538,15 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
                                 children: [
                                   // 🔹 Key Ingredients
                                   const SizedBox(height: 10),
-                                  _buildSectionTitle("Cooking Method"),
+                                  _buildSectionTitle(AppStrings.cookingMethod),
                                   const SizedBox(height: 6),
                                   CustomText("${controller.selectedCookingMethod.value}",fontSize: 16,fontWeight: FontWeight.w500,),
                                   const SizedBox(height: 10),
-                                  _buildSectionTitle("Item Nature"),
+                                  _buildSectionTitle(AppStrings.itemNature),
                                   const SizedBox(height: 6),
                                   CustomText("${controller.selectedItemNature.value}",fontSize: 16,fontWeight: FontWeight.w500,),
                                   const SizedBox(height: 10),
-                                  _buildSectionTitle("Key Ingredients"),
+                                  _buildSectionTitle(AppStrings.keyIngredients),
                                   const SizedBox(height: 4),
                                   Obx(() {
                                     return Wrap(
@@ -571,7 +574,7 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
                                   SizedBox(height: SizeConfig.size12),
 
                                   // 🔹 Serving Options
-                                  _buildSectionTitle("Serving Options"),
+                                  _buildSectionTitle(AppStrings.servingOptions),
                                   const SizedBox(height: 4),
                                   Column(
                                     children: List<Map<String, dynamic>>.from(
@@ -582,7 +585,7 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
                                           leading: const Icon(Icons.restaurant),
                                           title: CustomText("${e["size"]}"),
                                           subtitle: CustomText(
-                                              "Serves ${e["serves"]}"),
+                                              "${AppStrings.serves} ${e["serves"]}"),
                                         ),
                                       );
                                     }).toList(),
@@ -591,7 +594,7 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
                                   SizedBox(height: SizeConfig.size12),
 
                                   // 🔹 Accompaniments
-                                  _buildSectionTitle("Accompaniments"),
+                                  _buildSectionTitle(AppStrings.accompaniments),
                                   const SizedBox(height: 4),
 
                                   Obx(() {
@@ -620,29 +623,29 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
 
                                   // 🔹 Nutrition Summary
                                   _buildSectionTitle(
-                                      "Nutritional Summary (per 100g)"),
+                                      AppStrings.nutritionalSummaryPer100g),
                                   const SizedBox(height: 4),
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment
                                         .spaceAround,
                                     children: [
                                       _nutritionCard(
-                                          "Calories",
+                                          AppStrings.caloriesKcal,
                                           widget
                                               .foodData["nutritionalSummary_per100g"]
                                           ["calories_kcal"]),
                                       _nutritionCard(
-                                          "Protein",
+                                          AppStrings.proteinG,
                                           widget
                                               .foodData["nutritionalSummary_per100g"]
                                           ["protein_g"]),
                                       _nutritionCard(
-                                          "Carbs",
+                                          AppStrings.carbsG,
                                           widget
                                               .foodData["nutritionalSummary_per100g"]
                                           ["carbs_g"]),
                                       _nutritionCard(
-                                          "Fat",
+                                          AppStrings.fatG,
                                           widget
                                               .foodData["nutritionalSummary_per100g"]
                                           ["fat_g"]),
@@ -652,7 +655,7 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
                                   SizedBox(height: SizeConfig.size12),
 
                                   // 🔹 Key Minerals
-                                  _buildSectionTitle("Key Minerals"),
+                                  _buildSectionTitle(AppStrings.keyMinerals),
                                   const SizedBox(height: 4),
                                   Wrap(
                                     spacing: 8,
@@ -670,7 +673,7 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
                                   SizedBox(height: SizeConfig.size12),
 
                                   // 🔹 SEO Tags
-                                  _buildSectionTitle("SEO Tags"),
+                                  _buildSectionTitle(AppStrings.seoTags),
                                   const SizedBox(height: 4),
                                   Wrap(
                                     spacing: 8,
@@ -703,7 +706,7 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
                         _discountSection(),
                         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            CustomText("Price",),
+                            CustomText(AppStrings.price),
                             Row(
                               children: [
                                 Row(
@@ -720,7 +723,7 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
                                       );
                                     }),
                                     const CustomText(
-                                      "Single Product", fontSize: 12,)
+                                      AppStrings.singleProduct, fontSize: 12,)
                                   ],
                                 ),
                                 const SizedBox(width: 16),
@@ -739,7 +742,7 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
                                             false),
                                       );
                                     }),
-                                    const CustomText("Multiple type", fontSize: 12,)
+                                    const CustomText(AppStrings.multipleType, fontSize: 12,)
                                   ],
                                 ),
                               ],
@@ -758,7 +761,7 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
                                       child: CommonTextField(
                                         contentPadding: EdgeInsets.symmetric(
                                             vertical: 14, horizontal: 12),
-                                        hintText: "E.g. Small",
+                                        hintText: AppStrings.egSmall,
                                         textEditController: TextEditingController(),
                                         keyBoardType: TextInputType.number,
                                       ),
@@ -768,7 +771,7 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
                                       child: CommonTextField(
                                         contentPadding: EdgeInsets.symmetric(
                                             vertical: 14, horizontal: 12),
-                                        hintText: "E.g. ₹300",
+                                        hintText: AppStrings.egRs300,
                                         textEditController: controller
                                             .singlePriceController,
                                         keyBoardType: TextInputType.number,
@@ -950,7 +953,7 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
                             },
                             title: controller.isAddFoodLoading.value
                                 ? null
-                                : 'Post Food',
+                                : AppStrings.postFood,
                             isLoading: controller.isAddFoodLoading.value,
                             bgColor: AppColors.primaryColor,
                           ),
@@ -1123,7 +1126,7 @@ class _AddOnsPageState extends State<AddOnsPage> {
         appBar: CommonBackAppBar(onBackTap: () {
           Navigator.pop(context, addOns);
         },
-          title: 'Add Ons',
+          title: AppStrings.addOnsTitle,
         ),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -1146,12 +1149,13 @@ class _AddOnsPageState extends State<AddOnsPage> {
               children: [
                 // Extra Add field
                 const Text(
-                    "Extra Add", style: TextStyle(fontWeight: FontWeight.w500)),
+                    AppStrings.extraAdd,
+                    style: TextStyle(fontWeight: FontWeight.w500)),
                 const SizedBox(height: 6),
                 TextField(
                   controller: extraCtrl,
                   decoration: InputDecoration(
-                    hintText: "e.g. Butter Naan",
+                    hintText: AppStrings.egButterNaan,
                     filled: true,
                     fillColor: Colors.grey.shade100,
                     contentPadding: const EdgeInsets.symmetric(
@@ -1166,13 +1170,13 @@ class _AddOnsPageState extends State<AddOnsPage> {
 
                 // Price field
                 const Text(
-                    "Price", style: TextStyle(fontWeight: FontWeight.w500)),
+                    AppStrings.price, style: TextStyle(fontWeight: FontWeight.w500)),
                 const SizedBox(height: 6),
                 TextField(
                   controller: priceCtrl,
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
-                    hintText: "e.g. ₹30",
+                    hintText: AppStrings.egRs300,
                     filled: true,
                     fillColor: Colors.grey.shade100,
                     contentPadding: const EdgeInsets.symmetric(
@@ -1217,7 +1221,7 @@ class _AddOnsPageState extends State<AddOnsPage> {
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
                     child: const Text(
-                      "Save",
+                      AppStrings.save,
                       style: TextStyle(
                           color: Colors.white, fontWeight: FontWeight.w600),
                     ),
@@ -1255,7 +1259,7 @@ class PriceOptionsWidget extends StatelessWidget {
                   // Label field
                   Expanded(
                     child: CommonTextField(
-                      hintText: "E.g. Small",
+                      hintText: AppStrings.egSmall,
                       textEditController: option.labelController,
                     ),
                   ),
@@ -1264,7 +1268,7 @@ class PriceOptionsWidget extends StatelessWidget {
                   // Price field
                   Expanded(
                     child: CommonTextField(
-                      hintText: "E.g. ₹300",
+                      hintText: AppStrings.egRs300,
                       keyBoardType: TextInputType.number,
                       textEditController: option.priceController,
                     ),
@@ -1292,7 +1296,7 @@ class PriceOptionsWidget extends StatelessWidget {
                 alignment: Alignment.centerLeft,
                 child:  InkWell(
                     onTap: controller.addPriceOption,
-                    child: const CustomText("Add Size/Price",color: Colors.blue,)),
+                    child: const CustomText(AppStrings.addSizePrice, color: Colors.blue,)),
               ),
             ],
           ),

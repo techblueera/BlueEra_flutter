@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -120,7 +121,7 @@ class _FoodAndGroceryScreenState extends State<FoodAndGroceryScreen>
             ],
           );
         }else{
-          return Center(child: Text('No food service found', style: TextStyle(fontSize: 18)));
+          return Center(child: Text(AppStrings.noFoodServiceFound, style: TextStyle(fontSize: 18)));
         }
       }),
     );
@@ -139,7 +140,7 @@ class FoodItemCard extends StatelessWidget {
 
     final priceOptions = foodData.priceOptions;
 
-    String priceText = "N/A";
+    String priceText = AppStrings.na;
     if (priceOptions != null && priceOptions.isNotEmpty) {
       if (priceOptions.length == 1) {
         priceText = "${priceOptions.first.price ?? ''}";
@@ -235,7 +236,7 @@ class FoodItemCard extends StatelessWidget {
                         children: [
                           Expanded(
                             child: CustomText(
-                              foodData.title ?? "N/A",
+                              foodData.title ?? AppStrings.na,
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                               overflow: TextOverflow.ellipsis,
@@ -247,9 +248,9 @@ class FoodItemCard extends StatelessWidget {
                               onPressed: () async {
                                 await showCommonDialog(
                                 context: context,
-                                text: "Are you sure you want to delete this food service? Once deleted, it cannot be recovered.",
-                                confirmText: 'Delete',
-                                cancelText: 'Cancel',
+                                text: AppStrings.areYouSureDeleteThisFoodService,
+                                confirmText: AppStrings.delete,
+                                cancelText: AppStrings.cancel,
                                 confirmCallback: () {
                                   controller.deleteFoodService(
                                       serviceId: foodData.id ?? '',
@@ -320,14 +321,14 @@ class FoodItemCard extends StatelessWidget {
                             fit: BoxFit.scaleDown,
                             child: (foodData.priceType == "single")
                                 ? CustomText(
-                              "Price : ₹ ${foodData.singlePrice ?? "0"}",
+                              "${AppStrings.pricePrefix}₹ ${foodData.singlePrice ?? "0"}",
                               fontSize: SizeConfig.small,
                               overflow: TextOverflow.ellipsis,
                               maxLines: 1,
                               color: AppColors.primaryColor,
                             )
                                 : CustomText(
-                              "Price : ₹${priceText}",
+                              "${AppStrings.pricePrefix}₹${priceText}",
                               fontWeight: FontWeight.w600,
                               overflow: TextOverflow.ellipsis,
                               color: AppColors.primaryColor,

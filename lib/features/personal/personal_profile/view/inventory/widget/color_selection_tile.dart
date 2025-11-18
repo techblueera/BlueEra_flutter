@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
 import 'package:BlueEra/widgets/color_picker_widget.dart';
@@ -48,7 +49,7 @@ class ColorSelectionTile extends StatelessWidget {
             LocalAssets(imagePath: AppIconAssets.colorTemplateIcon),
             SizedBox(width: SizeConfig.size8),
             CustomText(
-              'Select Color',
+              AppStrings.selectColor,
               color: AppColors.grey9A,
               fontWeight: FontWeight.w400,
               fontSize: SizeConfig.large,

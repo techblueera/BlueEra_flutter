@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_enum.dart' hide MediaType;
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -374,7 +375,7 @@ class ProductController extends GetxController{
 
   bool _validate() {
     if(step1Images.length < 1) {
-      commonSnackBar(message: 'Please take minimum one product images');
+      commonSnackBar(message: AppStrings.pleaseTakeMinimumOneProductImage);
       return false;
     }
 
@@ -432,7 +433,7 @@ class ProductController extends GetxController{
           },
         );
       } else {
-        commonSnackBar(message: responseModel.message ?? 'something went wrong.');
+        commonSnackBar(message: responseModel.message ?? AppStrings.somethingWentWrong);
         generateAiProductContentResponse.value = ApiResponse.error('error');
       }
     } catch (e, s) {
@@ -609,7 +610,7 @@ class ProductController extends GetxController{
     } catch (e, s) {
       print('stack trace-- $s');
       createProductResponse.value = ApiResponse.error('error');
-      commonSnackBar(message: 'something went wrong.');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
       isCreateProductLoading.value = false;
     }
@@ -715,7 +716,7 @@ class ProductController extends GetxController{
       }
     } catch (e) {
       addProductToInventoryResponse.value = ApiResponse.error('error');
-      commonSnackBar(message: 'something went wrong.');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
       isAddProductToInventoryLoading.value = false;
     }
@@ -840,7 +841,7 @@ class ProductController extends GetxController{
       }
     } catch (e) {
       addUpdateProductVariantApiResponse.value = ApiResponse.error('error');
-      commonSnackBar(message: 'Something went wrong.');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
       return false;
     } finally {
       isAddUpdateProductVariantLoading.value = false;

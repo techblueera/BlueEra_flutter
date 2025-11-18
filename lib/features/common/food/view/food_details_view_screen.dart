@@ -2,6 +2,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -42,7 +43,7 @@ class FoodDetailsViewScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Details",
+        title: AppStrings.detailsTitle,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -108,7 +109,7 @@ class FoodDetailsViewScreen extends StatelessWidget {
                                 CustomText(
                                   item.business?.businessName
                                           ?.capitalizeFirst ??
-                                      "NA",
+                                      AppStrings.na,
                                   fontSize: SizeConfig.large18,
                                   fontWeight: FontWeight.w700,
                                   color: AppColors.mainTextColor,
@@ -116,7 +117,7 @@ class FoodDetailsViewScreen extends StatelessWidget {
                                 ),
                                 CustomText(
                                   item.business?.categoryOfBusiness?.name ??
-                                      "NA",
+                                      AppStrings.na,
                                   fontSize: SizeConfig.large,
                                   fontWeight: FontWeight.w500,
                                   color: AppColors.mainTextColor,
@@ -225,7 +226,7 @@ class FoodDetailsViewScreen extends StatelessWidget {
                               // right: SizeConfig.size5,
                               bottom: SizeConfig.size8),
                           child: CustomText(
-                            "Chat",
+                            AppStrings.chat,
                             fontWeight: FontWeight.bold,
                             color: AppColors.white,
                           ),
@@ -293,7 +294,7 @@ class FoodDetailsViewScreen extends StatelessWidget {
                     SizedBox(height: SizeConfig.size10),
 
                     // ---- DESCRIPTION ----
-                    CustomText("      ${item.description ?? " "}",
+                    CustomText("      ${item.description ?? AppStrings.na}",
                         fontSize: SizeConfig.size15, color: Colors.black87),
                   ],
                 ),
@@ -319,7 +320,7 @@ class FoodDetailsViewScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      CustomText("Price Options",
+                      CustomText(AppStrings.priceOptions,
                           fontSize: SizeConfig.size18,
                           fontWeight: FontWeight.bold),
                       SizedBox(height: SizeConfig.size8),
@@ -371,7 +372,7 @@ class FoodDetailsViewScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      CustomText("Key Ingredients",
+                      CustomText(AppStrings.keyIngredients,
                           fontSize: SizeConfig.size18,
                           fontWeight: FontWeight.bold),
                       SizedBox(height: SizeConfig.size8),
@@ -407,15 +408,15 @@ class FoodDetailsViewScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      CustomText("Nutritional Summary (per 100g)",
+                      CustomText(AppStrings.nutritionalSummaryPer100g,
                           fontSize: SizeConfig.size18,
                           fontWeight: FontWeight.bold),
                       SizedBox(height: SizeConfig.size8),
-                      _nutritionRow("Calories", nutrition.caloriesKcal),
-                      _nutritionRow("Protein", nutrition.proteinG),
-                      _nutritionRow("Carbs", nutrition.carbsG),
+                      _nutritionRow(AppStrings.caloriesKcal, nutrition.caloriesKcal),
+                      _nutritionRow(AppStrings.proteinG, nutrition.proteinG),
+                      _nutritionRow(AppStrings.carbsG, nutrition.carbsG),
                       _nutritionRow(
-                        "Fat",
+                        AppStrings.fatG,
                         nutrition.fatG,
                       ),
                     ],
@@ -454,7 +455,7 @@ class FoodDetailsViewScreen extends StatelessWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            CustomText("Business Location",
+                            CustomText(AppStrings.businessLocation,
                                 fontSize: SizeConfig.size18,
                                 fontWeight: FontWeight.bold),
                             Icon(
@@ -513,7 +514,7 @@ class FoodDetailsViewScreen extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           CustomText(name, fontSize: SizeConfig.size15),
-          CustomText(value ?? "-", fontWeight: FontWeight.w600),
+          CustomText(value ?? AppStrings.na, fontWeight: FontWeight.w600),
         ],
       ),
     );

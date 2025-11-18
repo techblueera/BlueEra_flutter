@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -69,9 +70,9 @@ class _Step2SectionState extends State<Step2Section> {
 
     await showCommonDialog(
       context: context,
-      text: 'Do you really want to go back? Unsaved changes will be lost.',
-      confirmText: 'Discard',
-      cancelText: 'Cancel',
+      text: AppStrings.changesWillBeLost,
+      confirmText: AppStrings.confirm,
+      cancelText: AppStrings.cancel,
       confirmCallback: () {
         _restoreOldValues(); // Restore previous values
         Get.close(2); // Close two screens
@@ -128,7 +129,7 @@ class _Step2SectionState extends State<Step2Section> {
       child: Scaffold(
         backgroundColor: AppColors.whiteF3,
         appBar: CommonBackAppBar(
-          title: 'Product feature',
+          title: AppStrings.productFeature,
           onBackTap: () async {
             final shouldPop = await _handleBackPress(context);
             if (shouldPop) {
@@ -187,7 +188,7 @@ class _Step2SectionState extends State<Step2Section> {
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
                   child: CustomBtn(
-                    title: 'Save',
+                    title: AppStrings.save,
                     onTap: ()=> Get.back(),
                     // onTap: widget.controller.onNext,
                     bgColor: AppColors.primaryColor,
@@ -264,7 +265,7 @@ class _Step2SectionState extends State<Step2Section> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CustomText(
-            'Add Product Features',
+            AppStrings.addProductFeatures,
             fontSize: SizeConfig.medium,
             fontWeight: FontWeight.bold,
             color: AppColors.black,
@@ -280,8 +281,8 @@ class _Step2SectionState extends State<Step2Section> {
                   children: [
                     Expanded(
                       child: CommonTextField(
-                        title: 'Feature ${i + 1}',
-                        hintText: 'E.g. Vorem ipsum dolor sit amet,',
+                        title: '${AppStrings.feature} ${i + 1}',
+                        hintText: AppStrings.hintProductFeature,
                         textEditController: controller.featureControllers[i],
                         maxLine: 2,
                         validator: (value)=> ValidationMethod().validateFeatures(value, i),
@@ -318,7 +319,7 @@ class _Step2SectionState extends State<Step2Section> {
               children: [
                 LocalAssets(imagePath: AppIconAssets.addBlueIcon),
                 SizedBox(width: SizeConfig.size10),
-                CustomText("Add More Option", color: AppColors.primaryColor),
+                CustomText(AppStrings.addMoreOption, color: AppColors.primaryColor),
               ],
             ),
           ),
@@ -329,7 +330,7 @@ class _Step2SectionState extends State<Step2Section> {
               children: [
                 LocalAssets(imagePath: AppIconAssets.addBlueIcon),
                 SizedBox(width: SizeConfig.size10),
-                CustomText("Add Link (Reference / Website)",
+                CustomText(AppStrings.addLinkReferenceWebsite,
                     color: AppColors.primaryColor),
               ],
             ),
@@ -338,8 +339,8 @@ class _Step2SectionState extends State<Step2Section> {
               ? Padding(
             padding: EdgeInsets.only(top: SizeConfig.size15),
             child: HttpsTextField(
-              title: "Link (Reference / Website)",
-              hintText: "https://example.com",
+              title: AppStrings.linkReferenceWebsite,
+              hintText: AppStrings.httpsExampleCom,
               controller: controller.linkController,
               isUrlValidate: false
             ),
@@ -434,7 +435,7 @@ class _Step2SectionState extends State<Step2Section> {
 
                       if(index==0)...[
                         CustomText(
-                          'Details',
+                          AppStrings.details,
                           fontSize: SizeConfig.medium,
                           fontWeight: FontWeight.w500,
                           color: AppColors.black,
@@ -524,7 +525,7 @@ class _Step2SectionState extends State<Step2Section> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 CustomText(
-                  'Add More Details',
+                  AppStrings.addMoreDetails,
                   fontSize: SizeConfig.medium,
                   fontWeight: FontWeight.bold,
                   color: AppColors.black,
@@ -552,7 +553,7 @@ class _Step2SectionState extends State<Step2Section> {
 
   Future<void> showAddMoreDetailsDialog(BuildContext context) async {
     if(widget.controller.detailsList.length==5){
-      commonSnackBar(message: 'You can\'t add more than five detail');
+      commonSnackBar(message: AppStrings.youCantAddMoreThanFiveDetail);
       return;
     }
 

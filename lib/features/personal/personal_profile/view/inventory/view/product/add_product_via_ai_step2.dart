@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
@@ -157,7 +158,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
     return Scaffold(
       backgroundColor: AppColors.appBackgroundColor,
       appBar: CommonBackAppBar(
-        title: "Add Product Via AI",
+        title: AppStrings.addProductViaAI,
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(SizeConfig.size16),
@@ -168,14 +169,14 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CustomText(
-                        'add product within 1 min via aI',
+                        AppStrings.addProductWithin1Min,
                         fontSize: SizeConfig.large,
                         fontWeight: FontWeight.w600,
                         color: AppColors.mainTextColor,
                       ),
                       SizedBox(height: SizeConfig.size20),
                       CustomText(
-                        'Upload product Images',
+                        AppStrings.uploadProductImages,
                         fontSize: SizeConfig.small,
                         fontWeight: FontWeight.w400,
                         color: AppColors.black28,
@@ -307,7 +308,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
 
                       /// category
                       CustomText(
-                        'Category',
+                        AppStrings.category,
                         fontSize: SizeConfig.medium,
                         fontWeight: FontWeight.w500,
                         color: AppColors.black,
@@ -350,7 +351,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 CustomText(
-                                  'Select a category',
+                                  AppStrings.selectCategory,
                                   color: AppColors.grey9A,
                                   fontWeight: FontWeight.w400,
                                   fontSize: SizeConfig.large,
@@ -372,7 +373,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CustomText(
-                    'Here Is Your Product details',
+                    AppStrings.hereIsYourProduct,
                     fontSize: SizeConfig.large,
                     fontWeight: FontWeight.w600,
                     color: AppColors.mainTextColor,
@@ -400,7 +401,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                   CustomBtn(
                       title: controller.isCreateProductLoading.value
                           ? null // hide text
-                          : 'Post Product',
+                          : AppStrings.postProduct,
                     onTap: (){
                       //Get.to(()=> ProductPreviewScreen(controller: controller));
                        controller.createProductViaAi(
@@ -442,7 +443,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               CustomText(
-                'Product details',
+                AppStrings.productDetails,
                 fontSize: SizeConfig.large,
                 fontWeight: FontWeight.w600,
                 color: AppColors.mainTextColor,
@@ -463,7 +464,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
           Row(
             children: [
               CustomText(
-                'Product Name: ',
+                '${AppStrings.productName}: ',
                 fontSize: SizeConfig.medium,
                 fontWeight: FontWeight.w600,
                 color: AppColors.secondaryTextColor,
@@ -485,7 +486,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CustomText(
-                'Brand: ',
+                '${AppStrings.brand}: ',
                 fontSize: SizeConfig.medium,
                 fontWeight: FontWeight.w600,
                 color: AppColors.secondaryTextColor,
@@ -504,7 +505,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
           SizedBox(height: SizeConfig.size10),
 
           CustomText(
-            'Product Description: ',
+            '${AppStrings.productDescription}: ',
             fontSize: SizeConfig.medium,
             fontWeight: FontWeight.w600,
             color: AppColors.secondaryTextColor,
@@ -520,7 +521,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
               height: 1.5,
             ),
             expandMode: ExpandMode.dialog,
-            dialogTitle: 'Product Description',
+            dialogTitle: AppStrings.productDescription,
           ),
 
           SizedBox(height: SizeConfig.size10),
@@ -529,7 +530,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CustomText(
-                'Tags/Keywords: ',
+                '${AppStrings.tagsKeywords}: ',
                 fontSize: SizeConfig.medium,
                 fontWeight: FontWeight.w600,
                 color: AppColors.secondaryTextColor,
@@ -564,7 +565,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               CustomText(
-                'Product Features',
+                AppStrings.productFeatures,
                 fontSize: SizeConfig.large,
                 fontWeight: FontWeight.w600,
                 color: AppColors.mainTextColor,
@@ -625,7 +626,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CustomText(
-                    'Website: ',
+                    '${AppStrings.website}: ',
                     fontSize: SizeConfig.medium,
                     fontWeight: FontWeight.w600,
                     color: AppColors.secondaryTextColor,
@@ -654,7 +655,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     CustomText(
-                      'More Details: ',
+                      '${AppStrings.moreDetails}: ',
                       fontSize: SizeConfig.medium,
                       fontWeight: FontWeight.w600,
                       color: AppColors.secondaryTextColor,
@@ -718,7 +719,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               CustomText(
-                'Pricing & warranty',
+                AppStrings.pricingWarranty,
                 fontSize: SizeConfig.large,
                 fontWeight: FontWeight.w600,
                 color: AppColors.mainTextColor,
@@ -742,7 +743,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
             child: Row(
               children: [
                 CustomText(
-                  'MRP: ',
+                  '${AppStrings.mrp}: ',
                   fontSize: SizeConfig.medium,
                   fontWeight: FontWeight.w600,
                   color: AppColors.secondaryTextColor,
@@ -766,7 +767,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
               child: Row(
                 children: [
                   CustomText(
-                    'Product Warranty: ',
+                    '${AppStrings.productWarranty}: ',
                     fontSize: SizeConfig.medium,
                     fontWeight: FontWeight.w600,
                     color: AppColors.secondaryTextColor,
@@ -790,7 +791,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
               child: Row(
                 children: [
                   CustomText(
-                    'Expiry Time: ',
+                    '${AppStrings.expiryTime}: ',
                     fontSize: SizeConfig.medium,
                     fontWeight: FontWeight.w600,
                     color: AppColors.secondaryTextColor,
@@ -815,7 +816,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CustomText(
-                    'User Guidance: ',
+                    '${AppStrings.userGuidance}: ',
                     fontSize: SizeConfig.medium,
                     fontWeight: FontWeight.w600,
                     color: AppColors.secondaryTextColor,
@@ -875,7 +876,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CustomText(
-            'Variant',
+            AppStrings.variant,
             fontSize: SizeConfig.large,
             fontWeight: FontWeight.w600,
             color: AppColors.mainTextColor,
@@ -906,7 +907,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
           if(controller.selectedColors.isNotEmpty)
             ...[
               CustomText(
-                'Color: ',
+                '${AppStrings.color}: ',
                 fontSize: SizeConfig.medium,
                 fontWeight: FontWeight.w600,
                 color: AppColors.secondaryTextColor,

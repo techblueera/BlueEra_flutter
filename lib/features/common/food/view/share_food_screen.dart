@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/food/controller/food_upload_controller.dart';
@@ -47,7 +48,7 @@ class _ShareFoodScreenState extends State<ShareFoodScreen> {
     final GetFoodDetailsModel? singleFoodData = controller.singleFoodServiceData.value;
 
     final priceOptions = singleFoodData?.priceOptions;
-    String priceText = "N/A";
+    String priceText = AppStrings.na;
     if (priceOptions != null && priceOptions.isNotEmpty) {
       if (priceOptions.length == 1) {
         priceText = "${priceOptions.first.price ?? ''}";
@@ -74,7 +75,7 @@ class _ShareFoodScreenState extends State<ShareFoodScreen> {
               navigatePushTo(
                 context,
                 ImageViewScreen(
-                  appBarTitle: singleFoodData?.title ?? "N/A",
+                  appBarTitle: singleFoodData?.title ?? AppStrings.na,
                   subTitle: singleFoodData?.description,
                   imageUrls: singleFoodData!.photos!,
                   initialIndex: 0,
@@ -113,7 +114,7 @@ class _ShareFoodScreenState extends State<ShareFoodScreen> {
                     left: 10.0,
                   ),
                   child: CustomText(
-                    singleFoodData?.title ?? "N/A",
+                    singleFoodData?.title ?? AppStrings.na,
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     overflow: TextOverflow.ellipsis,
@@ -174,14 +175,14 @@ class _ShareFoodScreenState extends State<ShareFoodScreen> {
                         fit: BoxFit.scaleDown,
                         child: (singleFoodData?.priceType == "single")
                             ? CustomText(
-                          "Price : ₹ ${singleFoodData?.singlePrice ?? "0"}",
+                          "${AppStrings.pricePrefix}₹ ${singleFoodData?.singlePrice ?? "0"}",
                           fontSize: SizeConfig.small,
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
                           color: AppColors.primaryColor,
                         )
                             : CustomText(
-                          "Price : ₹${priceText}",
+                          "${AppStrings.pricePrefix}₹${priceText}",
                           fontWeight: FontWeight.w600,
                           overflow: TextOverflow.ellipsis,
                           color: AppColors.primaryColor,

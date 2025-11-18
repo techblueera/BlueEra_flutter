@@ -1,7 +1,8 @@
+import 'dart:developer';
 import 'dart:io';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
-import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/select_product_image_dialog.dart';
@@ -41,7 +42,7 @@ class _SubmitVariantDialogState extends State<SubmitVariantDialog> {
     try {
       final List<String>? selected = await SelectProductImageDialog.showLogoDialog(
         context,
-        'Product Image',
+        AppStrings.productImage,
       );
       if (selected != null && selected.isNotEmpty) {
         final remaining = maxAllowedProductImage - productImages.length;
@@ -51,7 +52,7 @@ class _SubmitVariantDialogState extends State<SubmitVariantDialog> {
         });
       }
     } catch (e) {
-      commonSnackBar(message: 'Image pick failed: $e');
+      log('Image pick failed: $e');
     }
   }
 
@@ -126,7 +127,7 @@ class _SubmitVariantDialogState extends State<SubmitVariantDialog> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           CustomText(
-                            'Upload product Images (Optional)',
+                            AppStrings.uploadProductImagesOptional,
                             fontSize: SizeConfig.small,
                             fontWeight: FontWeight.w600,
                             color: AppColors.primaryColor,
@@ -209,8 +210,8 @@ class _SubmitVariantDialogState extends State<SubmitVariantDialog> {
                 CommonTextField(
                   contentPadding:
                   EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-                  title: 'Product MRP',
-                  hintText: "E.g. - ₹1500",
+                  title: AppStrings.productMrp,
+                  hintText: AppStrings.exampleMrp,
                   textEditController: productMrpController,
                   keyBoardType: TextInputType.number,
                   validator: (value) => ValidationMethod().validatePrice(
@@ -226,8 +227,8 @@ class _SubmitVariantDialogState extends State<SubmitVariantDialog> {
                 CommonTextField(
                   contentPadding:
                   EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-                  title: 'Product Price',
-                  hintText: 'E.g. - ₹800',
+                  title: AppStrings.productPrice,
+                  hintText: AppStrings.examplePrice,
                   textEditController: productPriceController,
                   keyBoardType: TextInputType.number,
                   validator: (value) => ValidationMethod().validatePrice(
@@ -243,8 +244,8 @@ class _SubmitVariantDialogState extends State<SubmitVariantDialog> {
                 Obx(() =>
                      CustomText(
                   discountPercent.value > 0
-                      ? "Discount: ${discountPercent.value.toStringAsFixed(2)}%"
-                      : "Discount: 0%",
+                      ? "${AppStrings.discount}: ${discountPercent.value.toStringAsFixed(2)}%"
+                      : "${AppStrings.discount}: 0%",
                   fontSize: SizeConfig.medium,
                   fontWeight: FontWeight.w500,
                   color: AppColors.primaryColor,
@@ -252,7 +253,7 @@ class _SubmitVariantDialogState extends State<SubmitVariantDialog> {
                 ),
                 SizedBox(height: SizeConfig.size16),
                 CustomBtn(
-                  title: 'Publish',
+                  title: AppStrings.publish,
                   onTap: () {
                     if (formKey.currentState!.validate()) {
                       widget.controller.addProductsInListing(
