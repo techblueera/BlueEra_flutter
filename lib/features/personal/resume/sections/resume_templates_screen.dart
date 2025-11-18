@@ -9,9 +9,19 @@ import '../../../../widgets/common_back_app_bar.dart';
 import '../controller/resume_templates_controller.dart';
 import '../model/resume_template_model.dart';
 
-class ResumeTemplateScreen extends StatelessWidget {
-  final controller = Get.put(ResumeTemplateController());
+class ResumeTemplateScreen extends StatefulWidget {
+  @override
+  State<ResumeTemplateScreen> createState() => _ResumeTemplateScreenState();
+}
 
+class _ResumeTemplateScreenState extends State<ResumeTemplateScreen> {
+  final controller = Get.put(ResumeTemplateController());
+@override
+  void initState() {
+    // TODO: implement initState
+  controller.fetchTemplates();
+  super.initState();
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -32,6 +42,7 @@ class ResumeTemplateScreen extends StatelessWidget {
           ),
           itemBuilder: (_, index) {
             final ResumeTemplateModel template = controller.templates[index];
+
             return Container(
               decoration: BoxDecoration(
                 color: Colors.white,

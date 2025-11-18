@@ -36,20 +36,21 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
     with SingleTickerProviderStateMixin {
   List<TabItem> postTab = [];
   int selectedIndex = 0;
-  late VisitProfileController controller;
+
   List<SortBy>? filters;
   SortBy selectedFilter = SortBy.Latest;
   final ScrollController _scrollController = ScrollController();
   final OverviewController overViewController = Get.put(OverviewController());
   final FeedController feedController = Get.put(FeedController());
-  late VisitProfileController? visitController;
+   VisitProfileController visitController=Get.isRegistered<VisitProfileController>()?
+   Get.find<VisitProfileController>(): Get.put(VisitProfileController());
 
   @override
   void initState() {
     selectedFilter = SortBy.Latest;
     setFilters();
 
-    controller = Get.put(VisitProfileController());
+
     setFilters();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -64,14 +65,14 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
           query: "",
           screenName: '');
 
-      controller.fetchUserById(userId: widget.authorId);
-      controller.getUserChannelDetailsController(userId: widget.authorId);
+      visitController.fetchUserById(userId: widget.authorId);
+      visitController.getUserChannelDetailsController(userId: widget.authorId);
 
-      if (Get.isRegistered<VisitProfileController>()) {
-        visitController = Get.find<VisitProfileController>();
-      } else {
-        visitController = Get.put(VisitProfileController());
-      }
+      // if (Get.isRegistered<VisitProfileController>()) {
+      //   visitController = Get.find<VisitProfileController>();
+      // } else {
+      //   visitController = Get.put(VisitProfileController());
+      // }
       apiCalling();
 
       _setupScrollListener();
@@ -85,7 +86,7 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
   }
 
   apiCalling() async {
-    await visitController?.getTestimonialController(userID: widget.authorId);
+    await visitController.getTestimonialController(userID: widget.authorId);
   }
 
   void _setupScrollListener() {
@@ -128,8 +129,8 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
     return Scaffold(
       appBar: CommonBackAppBar(),
       body: Obx(() {
-        final user = controller.userData.value?.user;
-        if (controller.isProfileLoading.value) {
+        final user = visitController.userData.value?.user;
+        if (visitController.isProfileLoading.value) {
           return Center(child: CircularProgressIndicator());
         }
 
@@ -181,6 +182,7 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
 
 
   Widget _buildTabContent(int index) {
+
     switch (postTab[index].id) {
       case 'Posts':
         return FeedScreen(
@@ -190,7 +192,7 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
             id: widget.authorId);
       case 'Testimonials':
         return TestimonialsScreen(
-          userName: controller.userData.value?.user?.name ?? 'N/A',
+          userName: visitController.userData.value?.user?.name ?? 'N/A',
           visitUserID: widget.authorId,
           isSelfTestimonial: false,
           screenFromName: widget.screenFromName,

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
@@ -132,10 +134,12 @@ class VisitProfileController extends GetxController {
       ///FOR NOW WE SET
       ResponseModel responseModel =
           await UserRepo().followUser(followUserId: candidateResumeId);
+
       if (responseModel.isSuccess) {
         isFollow.value = true;
         followUnFollowResponse.value = ApiResponse.complete(responseModel);
         followerCount.value++;
+
 
         /// Update follow status in store screen
         updateFollowStatusForStore(candidateResumeId, true);

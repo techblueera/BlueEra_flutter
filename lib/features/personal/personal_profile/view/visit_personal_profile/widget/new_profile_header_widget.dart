@@ -28,7 +28,6 @@ class NewProfileHeaderWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return Container(
       margin: EdgeInsets.all(SizeConfig.size8),
       decoration: BoxDecoration(
@@ -38,53 +37,54 @@ class NewProfileHeaderWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+
           /// ==== Banner ====
           Stack(
             clipBehavior: Clip.none,
             children: [
-        SizedBox(
-        height: 166,
-        width: double.infinity,
-        child: Stack(
-          children: [
-            // Background image
-            ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(12),
-                topRight: Radius.circular(12),
-              ),
-              child: Image.network(
-                (user?.coverPicture?.isNotEmpty ?? false)
-                    ? user!.coverPicture!
-                    : (user?.profileImage ?? ''),
-                height: 140,
+              SizedBox(
+                height: 166,
                 width: double.infinity,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    height: 140,
-                    width: double.infinity,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF8DD0F7),
-                      borderRadius: BorderRadius.only(
+                child: Stack(
+                  children: [
+                    // Background image
+                    ClipRRect(
+                      borderRadius: const BorderRadius.only(
                         topLeft: Radius.circular(12),
                         topRight: Radius.circular(12),
                       ),
-                    ),
-                    child: const Center(
-                      child: Icon(
-                        Icons.error_outline,
-                        size: 40,
-                        color: Colors.white,
+                      child: Image.network(
+                        (user?.coverPicture?.isNotEmpty ?? false)
+                            ? user!.coverPicture!
+                            : (user?.profileImage ?? ''),
+                        height: 140,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            height: 140,
+                            width: double.infinity,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF8DD0F7),
+                              borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(12),
+                                topRight: Radius.circular(12),
+                              ),
+                            ),
+                            child: const Center(
+                              child: Icon(
+                                Icons.error_outline,
+                                size: 40,
+                                color: Colors.white,
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ),
-                  );
-                },
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
-      ),
 
               /// ==== Profile Image ====
               Positioned(
@@ -96,18 +96,18 @@ class NewProfileHeaderWidget extends StatelessWidget {
                   child: CircleAvatar(
                     radius: 35,
                     backgroundImage: (user?.profileImage != null &&
-                            (user?.profileImage?.isNotEmpty ?? false))
+                        (user?.profileImage?.isNotEmpty ?? false))
                         ? NetworkImage(user?.profileImage ?? "")
                         : null,
                     backgroundColor: AppColors.primaryColor,
                     child: (user?.profileImage == null ||
-                            (user?.profileImage?.isEmpty ?? false))
+                        (user?.profileImage?.isEmpty ?? false))
                         ? CustomText(
-                            getInitials(user?.name),
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: SizeConfig.size20,
-                          )
+                      getInitials(user?.name),
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: SizeConfig.size20,
+                    )
                         : null,
                   ),
                 ),
@@ -150,7 +150,8 @@ class NewProfileHeaderWidget extends StatelessWidget {
                                   controller.isFollow.value
                                       ? AppStrings.unfollow
                                       : AppStrings.follow,
-                                  color: controller.isFollow.value?AppColors.secondaryTextColor:Colors.white,
+                                  color: controller.isFollow.value ? AppColors
+                                      .secondaryTextColor : Colors.white,
                                   fontWeight: FontWeight.w700,
                                   fontSize: SizeConfig.size10,
                                 ),
@@ -209,7 +210,7 @@ class NewProfileHeaderWidget extends StatelessWidget {
                             horizontal: 14, vertical: 4),
                         decoration: BoxDecoration(
                           border:
-                              Border.all(color: AppColors.secondaryTextColor),
+                          Border.all(color: AppColors.secondaryTextColor),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: CustomText(
@@ -220,7 +221,7 @@ class NewProfileHeaderWidget extends StatelessWidget {
                       ),
                     Padding(
                       padding:
-                          EdgeInsets.symmetric(horizontal: SizeConfig.size6),
+                      EdgeInsets.symmetric(horizontal: SizeConfig.size6),
                       child: Column(
                         children: [
                           if (user?.profession != null &&
@@ -271,8 +272,9 @@ class NewProfileHeaderWidget extends StatelessWidget {
                 //  _divider(),
                 InkWell(
                   onTap: () {
-                    Get.to(() => FollowersFollowingPage(
-                        tabIndex: 0, userID: user?.id ?? ""));
+                    Get.to(() =>
+                        FollowersFollowingPage(
+                            tabIndex: 0, userID: user?.id ?? ""));
                   },
                   child: statBlock(
                       AppStrings.following,
@@ -282,14 +284,18 @@ class NewProfileHeaderWidget extends StatelessWidget {
                 const SizedBox(width: 20),
 
                 //  _divider(),
-                InkWell(
-                  onTap: () {
-                    Get.to(() => FollowersFollowingPage(
-                        tabIndex: 1, userID: user?.id ?? ""));
-                  },
-                  child: statBlock(
-                      AppStrings.followers, controller.followerCount.value.toString()),
-                ),
+                Obx(() {
+                  return InkWell(
+                    onTap: () {
+                      Get.to(() =>
+                          FollowersFollowingPage(
+                              tabIndex: 1, userID: user?.id ?? ""));
+                    },
+                    child: statBlock(
+                        AppStrings.followers,
+                        controller.followerCount.value.toString()),
+                  );
+                }),
               ],
             ),
           ),
@@ -310,7 +316,7 @@ class NewProfileHeaderWidget extends StatelessWidget {
                 letterSpacing: 0.2,
                 fontWeight: FontWeight.w400,
                 height:
-                    1.5, // 👈 increases vertical gap between lines (default is ~1.0)
+                1.5, // 👈 increases vertical gap between lines (default is ~1.0)
               ),
               expandMode: ExpandMode.dialog,
               dialogTitle: AppStrings.bio.tr,

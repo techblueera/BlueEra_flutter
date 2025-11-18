@@ -152,26 +152,25 @@ class _AddCurrentJobScreenState extends State<AddCurrentJobScreen> {
                           )),
                       SizedBox(height: SizeConfig.size24),
 
-                      InkWell(
-                        onTap: () {
-                          Navigator.pushNamed(
-                            context,
-                            RouteHelper.getSearchLocationScreenRoute(),
-                            arguments: {
-                              'onPlaceSelected': (double? lat, double? lng,
-                                  String? address) {
-                                if (address != null) {
-                                  controller.locationController.text = address;
-                                  setState(() {
+                       CommonTextField(
+                          onTap: (){
+                            Navigator.pushNamed(
+                              context,
+                              RouteHelper.getSearchLocationScreenRoute(),
+                              arguments: {
+                                'onPlaceSelected': (double? lat, double? lng,
+                                    String? address) {
+                                  if (address != null) {
+                                    controller.locationController.text = address;
+                                    setState(() {
 
-                                  });
-                                }
+                                    });
+                                  }
+                                },
+                                ApiKeys.fromScreen: ""
                               },
-                              ApiKeys.fromScreen: ""
-                            },
-                          );
-                        },
-                        child: CommonTextField(
+                            );
+                          },
                           textEditController: controller.locationController,
                           hintText: AppStrings.locationHint,
                           isValidate: false,
@@ -181,7 +180,6 @@ class _AddCurrentJobScreenState extends State<AddCurrentJobScreen> {
                           readOnly: true,
                           // Make it read-only since we'll use the search screen
                         ),
-                      ),
                       SizedBox(height: SizeConfig.size24),
                       CustomText(
                         AppStrings.startDate,

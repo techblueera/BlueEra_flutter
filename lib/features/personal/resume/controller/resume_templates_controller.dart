@@ -15,7 +15,7 @@ class ResumeTemplateController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-  //  fetchTemplates();
+   fetchTemplates();
   }
 
   Future<void> fetchTemplates() async {

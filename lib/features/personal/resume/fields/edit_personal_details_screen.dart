@@ -10,6 +10,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
+import '../../../../core/constants/app_enum.dart';
+import '../../../../core/constants/common_methods.dart' as ValidationMethod;
+
 class EditPersonalDetailsScreen extends StatefulWidget {
   const EditPersonalDetailsScreen({Key? key}) : super(key: key);
 
@@ -90,6 +93,11 @@ class _EditPersonalDetailsScreenState extends State<EditPersonalDetailsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CommonTextField(
+                        onChange: (val){
+                          setState(() {
+
+                          });
+                        },
                         title: AppStrings.fullName,
                         hintText: "E.g. Sujoy Ghosh",
                         fontSize: SizeConfig.small,
@@ -97,6 +105,28 @@ class _EditPersonalDetailsScreenState extends State<EditPersonalDetailsScreen> {
                       ),
                       SizedBox(height: SizeConfig.paddingL),
                       CommonTextField(
+                        validationType: ValidationTypeEnum.email,
+                        onChange: (email){
+                          final emailRegex = RegExp(r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$');
+                          if(emailRegex.hasMatch(email??'')){
+                            isValid=true;
+                          }else{
+                            isValid=false;
+                          }
+                          setState(() {
+
+                          });
+                        },
+                        validator:(email){
+                            final emailRegex = RegExp(r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$');
+                            if(emailRegex.hasMatch(email??'')){
+                              isValid=true;
+                              return null;
+                            }else{
+                              isValid=false;
+                              return 'Enter valid email';
+                            }
+                        },
                         title: AppStrings.email,
                         hintText: "E.g. bluecs.info@gmail.com",
                         fontSize: SizeConfig.small,
@@ -105,6 +135,10 @@ class _EditPersonalDetailsScreenState extends State<EditPersonalDetailsScreen> {
                       ),
                       SizedBox(height: SizeConfig.paddingL),
                       CommonTextField(
+                        validationType: ValidationTypeEnum.pNumber,
+                        onChange: (val){
+
+                        },
                         title: AppStrings.phoneNumber,
                         hintText: "E.g. +91 1234567890",
                         textEditController: phoneController,
@@ -117,7 +151,9 @@ class _EditPersonalDetailsScreenState extends State<EditPersonalDetailsScreen> {
                       ),
                       SizedBox(height: SizeConfig.paddingL),
                       InkWell(
-                        onTap: () {
+
+                        child: CommonTextField(
+                          onTap: (){
                           Navigator.pushNamed(
                             context,
                             RouteHelper.getSearchLocationScreenRoute(),
@@ -126,16 +162,15 @@ class _EditPersonalDetailsScreenState extends State<EditPersonalDetailsScreen> {
                                   String? address) {
                                 if (address != null) {
                                   locationController.text = address;
-                                 setState(() {
+                                  setState(() {
 
-                                 });
+                                  });
                                 }
                               },
                               ApiKeys.fromScreen: ""
                             },
                           );
                         },
-                        child: CommonTextField(
                           textEditController: locationController,
                           hintText: AppStrings.locationHint,
                           isValidate: false,
@@ -150,16 +185,15 @@ class _EditPersonalDetailsScreenState extends State<EditPersonalDetailsScreen> {
                       CustomBtn(
                         title: AppStrings.update,
                         isValidate: isValid,
-                        onTap: isValid
-                            ? () async {
-                                await controller.updateProfileDetails(
-                                  name: nameController.text.trim(),
-                                  email: emailController.text.trim(),
-                                  phone: phoneController.text.trim(),
-                                  location: locationController.text.trim(),
-                                );
-                              }
-                            : null,
+                        onTap: (isValid==false||phoneController.text.isEmpty||phoneController.text.length<10)
+                            ? null:() async {
+                          await controller.updateProfileDetails(
+                            name: nameController.text.trim(),
+                            email: emailController.text.trim(),
+                            phone: phoneController.text.trim(),
+                            location: locationController.text.trim(),
+                          );
+                        },
                       ),
                     ],
                   ),
