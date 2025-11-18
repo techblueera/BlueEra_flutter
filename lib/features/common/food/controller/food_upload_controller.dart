@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
@@ -210,7 +211,7 @@ class FoodUploadController extends GetxController {
         ));
         foodAiResponse.value = ApiResponse.complete(foodAiResponseModel);
       } else {
-        foodAiResponse.value = ApiResponse.error('Failed to load feed');
+        foodAiResponse.value = ApiResponse.error('Failed to generate ai food response');
       }
     } catch (e) {
       logs("ERROR===== ${e}");
@@ -324,7 +325,7 @@ class FoodUploadController extends GetxController {
            await uploadAllImages(images);
          }
          UploadProgressDialog.close();
-         commonSnackBar(message: 'Food Added Successfully');
+         commonSnackBar(message: AppStrings.foodAddedSuccess);
          // Map<String, dynamic> params = {
          //   ApiKeys.all: false,
          //   ApiKeys.type: "food",
@@ -340,7 +341,7 @@ class FoodUploadController extends GetxController {
        }
      } catch (e) {
        UploadProgressDialog.close();
-       commonSnackBar(message: 'Something went wrong.');
+       log('error-- >  $e');
      }finally{
        isAddFoodLoading.value = false;
      }
@@ -377,7 +378,7 @@ class FoodUploadController extends GetxController {
       }
     } catch (e) {
       UploadProgressDialog.close();
-      commonSnackBar(message: 'Something went wrong during image upload.');
+      logs("ERROR===== $e");
     }
   }
 
@@ -404,7 +405,7 @@ class FoodUploadController extends GetxController {
       }
     } catch (e) {
       uploadFileToS3Response = ApiResponse.error('error');
-      commonSnackBar(message: AppStrings.somethingWentWrong);
+      logs("ERROR===== $e");
     }
   }
 

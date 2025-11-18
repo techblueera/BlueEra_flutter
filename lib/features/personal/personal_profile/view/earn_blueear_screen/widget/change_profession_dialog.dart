@@ -4,6 +4,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -62,7 +63,7 @@ Future<void> showProfessionChangeDialog({
                         vertical: SizeConfig.size10,
                       ),
                       child: CustomText(
-                        AppLocalizations.of(context)!.confirm,
+                        AppStrings.confirm,
                         color: Colors.white,
                         fontSize: SizeConfig.large,
                         fontWeight: FontWeight.bold,
@@ -76,7 +77,7 @@ Future<void> showProfessionChangeDialog({
                         horizontal: SizeConfig.size10,
                       ),
                       child: CustomText(
-                        'Your profession and work type will be changed. Continue?',
+                        AppStrings.professionChangeMsg,
                         textAlign: TextAlign.center,
                       ),
                     ),
@@ -132,7 +133,7 @@ Future<void> showProfessionChangeDialog({
                                 }
                               },
                               title:
-                              isLoading ? 'Updating...' : 'Update',
+                              isLoading ? AppStrings.updating : AppStrings.update,
                             ),
                           ),
                           SizedBox(width: SizeConfig.size10),
@@ -141,7 +142,7 @@ Future<void> showProfessionChangeDialog({
                               onTap: () {
                                 if (!isLoading) Get.back();
                               },
-                              title: 'Cancel',
+                              title: AppStrings.cancel,
                             ),
                           ),
                         ],
@@ -172,7 +173,7 @@ void _onDeliveryPartnerOnClick() {
   final allCompleted = stepStatus.values.every((status) => status == true);
 
   if (allCompleted) {
-    commonSnackBar(message: 'All steps are already submitted.');
+    commonSnackBar(message: AppStrings.allStepsSubmitted);
     return;
   }
 

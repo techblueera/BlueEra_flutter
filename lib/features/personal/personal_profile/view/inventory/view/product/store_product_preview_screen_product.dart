@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -131,15 +132,16 @@ class _StoreProductPreviewScreenProductState
     showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Discard changes?'),
-        content: const Text(
-            'Do you really want to go back? Your product data will be lost.'),
+        title: const CustomText(AppStrings.discardChanges),
+        content: const CustomText(
+            AppStrings.doYouReallyWantToGoBack
+        ),
         actions: [
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
             },
-            child: const Text('No'),
+            child: const CustomText(AppStrings.no),
           ),
           TextButton(
             onPressed: () {
@@ -149,7 +151,7 @@ class _StoreProductPreviewScreenProductState
                     RouteHelper.getInventoryScreenRoute(),
               );
             },
-            child: const Text('Yes'),
+            child: const CustomText(AppStrings.yes),
           ),
         ],
       ),
@@ -354,7 +356,7 @@ class _StoreProductPreviewScreenProductState
                                       CustomText(
                                         widget.productStore?.business_name
                                                 ?.capitalizeFirst ??
-                                            "NA",
+                                            AppStrings.na,
                                         fontSize: SizeConfig.large18,
                                         fontWeight: FontWeight.w700,
                                         color: AppColors.mainTextColor,
@@ -365,7 +367,7 @@ class _StoreProductPreviewScreenProductState
                                       // ),
                                       CustomText(
                                         widget.productStore?.category ??
-                                            "NA",
+                                            AppStrings.na,
                                         fontSize: SizeConfig.large,
                                         fontWeight: FontWeight.w500,
                                         color: AppColors.mainTextColor,
@@ -439,25 +441,25 @@ class _StoreProductPreviewScreenProductState
                       ),
                       SizedBox(height: SizeConfig.size10),
                       _buildExpandableSection(
-                          title: 'Product Details',
+                          title: AppStrings.productDetails,
                           content: _buildProductDetailsContent(),
                           initiallyExpanded: true),
                       _buildExpandableSection(
-                          title: 'Product Features',
+                          title: AppStrings.productFeatures,
                           content: _buildProductFeaturesContent()),
                       _buildExpandableSection(
-                          title: 'Pricing & Warranty',
+                          title: AppStrings.pricingWarranty,
                           content: _buildPricingAndWarrantyContent()),
                       if (widget.productStore == null)
                         _buildExpandableSection(
-                            title: 'Variant',
+                            title: AppStrings.variant,
                             content: _buildProductVariantContent()),
                       SizedBox(height: SizeConfig.size20),
                       if (widget.productStore == null)
 
                         /// Submit
                         CustomBtn(
-                          title: 'Create Variant  - Start Selling',
+                          title: AppStrings.createVariantStartSelling,
                           onTap: () {
                             if (widget.productStore == null) {
                               Get.toNamed(
@@ -568,7 +570,7 @@ class _StoreProductPreviewScreenProductState
         // ),
 
         CustomText(
-          'Product Description: ',
+          '${AppStrings.productDescription}: ',
           fontSize: SizeConfig.medium,
           fontWeight: FontWeight.w600,
           color: AppColors.secondaryTextColor,
@@ -584,7 +586,7 @@ class _StoreProductPreviewScreenProductState
             height: 1.5,
           ),
           expandMode: ExpandMode.dialog,
-          dialogTitle: 'Product Description',
+          dialogTitle: AppStrings.productDescription,
         ),
 
         SizedBox(height: SizeConfig.size10),
@@ -593,7 +595,7 @@ class _StoreProductPreviewScreenProductState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CustomText(
-                    'Tags/Keywords: ',
+                    '${AppStrings.tagsKeywords}: ',
                     fontSize: SizeConfig.medium,
                     fontWeight: FontWeight.w600,
                     color: AppColors.secondaryTextColor,
@@ -659,7 +661,7 @@ class _StoreProductPreviewScreenProductState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomText(
-                  'Website: ',
+                  '${AppStrings.website}: ',
                   fontSize: SizeConfig.medium,
                   fontWeight: FontWeight.w600,
                   color: AppColors.secondaryTextColor,
@@ -685,7 +687,7 @@ class _StoreProductPreviewScreenProductState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomText(
-                  'More Details: ',
+                  '${AppStrings.moreDetails}: ',
                   fontSize: SizeConfig.medium,
                   fontWeight: FontWeight.w600,
                   color: AppColors.secondaryTextColor,
@@ -741,7 +743,7 @@ class _StoreProductPreviewScreenProductState
                 child: Row(
                   children: [
                     CustomText(
-                      'MRP: ',
+                      '${AppStrings.mrp}: ',
                       fontSize: SizeConfig.medium,
                       fontWeight: FontWeight.w600,
                       color: AppColors.secondaryTextColor,
@@ -764,7 +766,7 @@ class _StoreProductPreviewScreenProductState
             child: Row(
               children: [
                 CustomText(
-                  'Product Warranty: ',
+                  '${AppStrings.productWarranty}: ',
                   fontSize: SizeConfig.medium,
                   fontWeight: FontWeight.w600,
                   color: AppColors.secondaryTextColor,
@@ -787,7 +789,7 @@ class _StoreProductPreviewScreenProductState
             child: Row(
               children: [
                 CustomText(
-                  'Expiry Time: ',
+                  '${AppStrings.expiryTime}: ',
                   fontSize: SizeConfig.medium,
                   fontWeight: FontWeight.w600,
                   color: AppColors.secondaryTextColor,
@@ -811,7 +813,7 @@ class _StoreProductPreviewScreenProductState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomText(
-                  'User Guidance: ',
+                  '${AppStrings.userGuidance}: ',
                   fontSize: SizeConfig.medium,
                   fontWeight: FontWeight.w600,
                   color: AppColors.secondaryTextColor,
@@ -863,7 +865,7 @@ class _StoreProductPreviewScreenProductState
       children: [
         if (controller.selectedColors.isNotEmpty) ...[
           CustomText(
-            'Color: ',
+            '${AppStrings.color}: ',
             fontSize: SizeConfig.medium,
             fontWeight: FontWeight.w600,
             color: AppColors.secondaryTextColor,
@@ -985,7 +987,7 @@ class _StoreProductPreviewScreenProductState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CustomText(
-            'Listed Variants',
+            AppStrings.listedVariants,
             fontSize: SizeConfig.large,
             fontWeight: FontWeight.w600,
             color: AppColors.mainTextColor,
@@ -1328,7 +1330,7 @@ class _StoreProductPreviewScreenProductState
                           decoration: TextDecoration.lineThrough,
                         ),
                         CustomText(
-                          ' ${product.discount}% off',
+                          ' ${product.discount}% ${AppStrings.off}',
                           fontSize: SizeConfig.small11,
                           color: Colors.green[600],
                           fontWeight: FontWeight.w400,
@@ -1339,7 +1341,7 @@ class _StoreProductPreviewScreenProductState
 
                     // Status
                     CustomText(
-                      'Active Products',
+                      AppStrings.activeProducts,
                       fontWeight: FontWeight.w600,
                       fontSize: SizeConfig.small11,
                       color: AppColors.primaryColor,
@@ -1443,7 +1445,7 @@ class _StoreProductPreviewScreenProductState
                       right: SizeConfig.size15,
                       bottom: SizeConfig.size8),
                   child: CustomText(
-                    "Chat",
+                    AppStrings.chat,
                     fontWeight: FontWeight.bold,
                     color: AppColors.white,
                   ),
@@ -1494,7 +1496,7 @@ class _StoreProductPreviewScreenProductState
                   children: [
                     Expanded(
                       child: const Text(
-                        "Selected Variants",
+                        AppStrings.selectedVariants,
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -1517,7 +1519,7 @@ class _StoreProductPreviewScreenProductState
                   buildVariantsList(selectedVariants)
                 else
                   const Text(
-                    "No variants selected",
+                    AppStrings.noVariantsSelected,
                     style: TextStyle(fontSize: 14, color: Colors.grey),
                   ),
               ],

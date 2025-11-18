@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/add_more_details_screen/add_more_details_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -35,7 +36,7 @@ class AddMoreDetailsDialog extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     CustomText(
-                      'Add More Details',
+                      AppStrings.addMoreDetails,
                       fontSize: SizeConfig.medium,
                       fontWeight: FontWeight.w600,
                       color: AppColors.mainTextColor,
@@ -55,7 +56,7 @@ class AddMoreDetailsDialog extends StatelessWidget {
 
                 // Title Field
                 CustomText(
-                  'Title',
+                  AppStrings.title,
                   fontSize: SizeConfig.medium,
                   fontWeight: FontWeight.w600,
                   color: AppColors.black,
@@ -63,7 +64,7 @@ class AddMoreDetailsDialog extends StatelessWidget {
                 SizedBox(height: SizeConfig.size8),
                 CommonTextField(
                   textEditController: controller.titleController,
-                  hintText: 'e.g. Title',
+                  hintText: AppStrings.egTitle,
                   validator: controller.validateTitle,
                   maxLength: 50,
                   isCounterVisible: true
@@ -73,7 +74,7 @@ class AddMoreDetailsDialog extends StatelessWidget {
 
                 // Variant Field
                 CustomText(
-                  'Details',
+                  AppStrings.details,
                   fontSize: SizeConfig.medium,
                   fontWeight: FontWeight.w600,
                   color: AppColors.black,
@@ -81,7 +82,7 @@ class AddMoreDetailsDialog extends StatelessWidget {
                 SizedBox(height: SizeConfig.size8),
                 CommonTextField(
                   textEditController: controller.detailController,
-                  hintText: 'e.g. Wireless Earbuds Bo....',
+                  hintText: AppStrings.egWirelessEarbudsBox,
                   validator: controller.validateDetail,
                   maxLength: 200,
                   isCounterVisible: true
@@ -91,7 +92,7 @@ class AddMoreDetailsDialog extends StatelessWidget {
 
                 // Save Button
                 Obx(() => CustomBtn(
-                  title: 'Save',
+                  title: AppStrings.save,
                   onTap: controller.isLoading.value
                       ? null
                       : ()=> controller.saveDetails(fromScreen: fromScreen),

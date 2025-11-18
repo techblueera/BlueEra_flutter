@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -23,7 +24,7 @@ class InventoryController extends GetxController {
   final TextEditingController searchController = TextEditingController();
   
   RxBool isLoading = false.obs;
-  RxString selectedFilter = 'Draft'.obs;
+  RxString selectedFilter = AppStrings.draft.obs;
   RxList<ProductModel> products = <ProductModel>[].obs;
   RxList<ProductModel> filteredProducts = <ProductModel>[].obs;
   RxList<CategoryInventoryModel> categories = <CategoryInventoryModel>[].obs;
@@ -31,7 +32,12 @@ class InventoryController extends GetxController {
 
   RxBool isMenuOpen = false.obs;
 
-  final List<String> productTab = ["All", "Live", 'Draft', 'Out Of Stock'];
+  final List<String> productTab = [
+    AppStrings.all,
+    AppStrings.live,
+    AppStrings.draft,
+    AppStrings.outOfStock
+  ];
   RxInt selectedProductIndex = 0.obs;
 
   RxList<GetProductData> allProducts = <GetProductData>[].obs;
@@ -309,7 +315,6 @@ class InventoryController extends GetxController {
     return missingPriceIds;
   }
 
-
   void fillMissingSellingPricesWithDefaults(
       List<VariantData> allVariants, List<String> missingPriceIds) {
     for (final variantId in missingPriceIds) {
@@ -496,155 +501,16 @@ class InventoryController extends GetxController {
     // If there's a search query, let _filterData handle it
   }
 
-  // void toggleProductSelection(ProductItem product) {
-  //   if (product.isSelected) {
-  //     // Deselect product
-  //     product.isSelected = false;
-  //     product.showSellingPrice = false;
-  //     product.sellingPrice = '';
-  //     selectedProducts.remove(product);
-  //     showErrorBanner.value = false;
-  //   } else {
-  //     // Try to select product
-  //     if (selectedProducts.length >= maxSelectionLimit) {
-  //       showErrorBanner.value = true;
-  //       return;
-  //     }
-  //
-  //     product.isSelected = true;
-  //     product.showSellingPrice = true;
-  //     selectedProducts.add(product);
-  //     showErrorBanner.value = false;
-  //   }
-  //
-  //   // Update the lists
-  //   final index = allProducts.indexWhere((p) => p.id == product.id);
-  //   if (index != -1) {
-  //     allProducts[index] = product;
-  //   }
-  //
-  //   final filteredIndex = filteredProducts.indexWhere((p) => p.id == product.id);
-  //   if (filteredIndex != -1) {
-  //     filteredProducts[filteredIndex] = product;
-  //   }
-  //
-  //   update();
-  // }
-
-  // void updateSellingPrice(ProductItem product, String price) {
-  //   product.sellingPrice = price;
-  //
-  //   // Update the lists
-  //   final index = allProducts.indexWhere((p) => p.id == product.id);
-  //   if (index != -1) {
-  //     allProducts[index] = product;
-  //   }
-  //
-  //   final filteredIndex = filteredProducts.indexWhere((p) => p.id == product.id);
-  //   if (filteredIndex != -1) {
-  //     filteredProducts[filteredIndex] = product;
-  //   }
-  //
-  //   update();
-  // }
-
-
-  void postProduct() {
-    // if (selectedProducts.isEmpty) {
-    //   // Show error or validation
-    //   return;
-    // }
-
-    isLoading.value = true;
-
-    // TODO: Implement post product functionality
-    Future.delayed(const Duration(seconds: 1), () {
-      isLoading.value = false;
-      Get.back();
-    });
-  }
-
   void dismissErrorBanner() {
     showErrorBanner.value = false;
   }
 
-  void copyListing(String productId) {
-    // Implement copy listing functionality
-
-  }
-
-  void addVariant(String productId) {
-    // Implement add variant functionality
-
-  }
-
-  void showVariant(String productId) {
-    // Implement show variant functionality
-
-  }
-
-  void addProduct() {
-    // Navigate to add product screen
-
-  }
-
-  void addCategory() {
-    // Navigate to add category screen
-
-  }
-
-  void addToCart(String productId) {
-    // Implement add to cart functionality
-   commonSnackBar(message: "product added successfully to cart.");
-  }
-
-  void handleProductOption(String option, String productId) {
-    switch (option) {
-      case 'Edit':
-        commonSnackBar(message: "Product Edited.");
-        break;
-      case 'Unpublish':
-        commonSnackBar(message: "Product Unpublished.");
-        break;
-      case 'Copy Listing':
-        // copyListing(productId);
-        break;
-        case 'Out of Stock':
-        // copyListing(productId);
-        break;
-      case 'Delete':
-        // Implement delete functionality
-        commonSnackBar(message: "Product Deleted.");
-        break;
-    }
-  }
-
-  void handleCategoryOption(String option, String categoryId) {
-    switch (option) {
-      case 'Edit':
-        // Implement edit functionality
-        commonSnackBar(message: "Edit Category.");
-        break;
-      case 'Unpublish':
-        // Implement unpublish functionality
-        commonSnackBar(message: "Unpublish Category.");
-        break;
-      case 'Copy Listing':
-        copyListing(categoryId);
-        break;
-      case 'Delete':
-        // Implement delete functionality
-        commonSnackBar(message: "Category Deleted.");
-        break;
-    }
-  }
 
   RxBool isDeleteProductVariantLoading = false.obs;
 
   void deleteProduct() {
     try {
       isDeleteProductVariantLoading.value = true;
-
 
       // final response = await InventoryRepo().fetchOwnDraftedAndPublicProductsApi(queryParams: queryParams);
       // if (response.isSuccess) {

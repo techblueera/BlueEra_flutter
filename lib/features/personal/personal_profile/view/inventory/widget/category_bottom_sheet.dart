@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -36,7 +37,7 @@ Future<void> showCategoryBottomSheet(BuildContext context) async {
                 child: Row(
                   children: [
                     CustomText(
-                      "Category",
+                      AppStrings.category,
                       color: AppColors.mainTextColor,
                       fontSize: SizeConfig.large,
                       fontWeight: FontWeight.w600,
@@ -61,7 +62,7 @@ Future<void> showCategoryBottomSheet(BuildContext context) async {
                 child: CommonTextField(
                   textEditController: controller.searchController,
                   onChange: (value) => controller.onSearchChanged(value),
-                  hintText: 'Search categories...',
+                  hintText: AppStrings.searchCategories,
                   isValidate: false,
                   hintStyle: TextStyle(
                     color: Colors.grey[500],
@@ -136,7 +137,7 @@ Future<void> showCategoryBottomSheet(BuildContext context) async {
               Expanded(
                   child: controller.loading.value
                       ? Center(child:  CustomText(
-                      'Searching...',
+                      AppStrings.searching,
                       fontSize: SizeConfig.extraLarge22,
                       fontWeight: FontWeight.w600,
                       color: AppColors.mainTextColor
@@ -206,7 +207,7 @@ Widget _buildSearchResults(ProductController controller, BuildContext context) {
             // controller.breadcrumb.add(cat);
             // Navigator.pop(context, controller.breadcrumb);
           },
-          title: 'Select',
+          title: AppStrings.select,
           width: SizeConfig.size60,
           height: SizeConfig.size30,
           bgColor: AppColors.primaryColor.withValues(alpha: 0.1),
@@ -218,7 +219,7 @@ Widget _buildSearchResults(ProductController controller, BuildContext context) {
     },
   ) : ListTile(
     title: CustomText(
-      'Other',
+      AppStrings.other,
       color: AppColors.mainTextColor,
       fontSize: SizeConfig.large,
       fontWeight: FontWeight.w400,
@@ -232,7 +233,7 @@ Widget _buildSearchResults(ProductController controller, BuildContext context) {
         // controller.breadcrumb.add(cat);
         // Navigator.pop(context, controller.breadcrumb);
       },
-      title: 'Select',
+      title: AppStrings.select,
       width: SizeConfig.size60,
       height: SizeConfig.size30,
       bgColor: AppColors.primaryColor.withValues(alpha: 0.1),
@@ -254,7 +255,7 @@ Widget _buildSearchIndicationWidget() {
           size: 40,
         ),
         CustomText(
-            'Please search for category',
+            AppStrings.pleaseSearchForCategory,
              fontSize: SizeConfig.extraLarge22,
              fontWeight: FontWeight.w600,
              color: AppColors.mainTextColor
@@ -264,37 +265,3 @@ Widget _buildSearchIndicationWidget() {
   );
 }
 
-// Widget _buildManualCategories(ManualListingScreenController controller, BuildContext context) {
-//   return ListView.separated(
-//     itemCount: controller.categories.length,
-//     separatorBuilder: (_, __) => CommonHorizontalDivider(color: AppColors.whiteE5),
-//     itemBuilder: (_, index) {
-//       final cat = controller.categories[index];
-//       return ListTile(
-//         title: CustomText(
-//           cat.name ?? '',
-//           color: AppColors.mainTextColor,
-//           fontSize: SizeConfig.large,
-//           fontWeight: FontWeight.w400,
-//           fontFamily: AppConstants.OpenSans,
-//         ),
-//         trailing: (cat.root ?? false)
-//             ? PositiveCustomBtn(
-//           onTap: () {
-//             controller.breadcrumb.add(cat);
-//             Navigator.pop(context, controller.breadcrumb);
-//           },
-//           title: 'Select',
-//           width: SizeConfig.size60,
-//           height: SizeConfig.size30,
-//           bgColor: AppColors.primaryColor.withValues(alpha: 0.1),
-//           borderColor: AppColors.primaryColor,
-//           textColor: AppColors.primaryColor,
-//           radius: 10.0,
-//         )
-//             : const Icon(Icons.arrow_forward_ios, size: 14),
-//         onTap: (cat.root ?? false) ? null : () => controller.selectCategory(cat),
-//       );
-//     },
-//   );
-// }

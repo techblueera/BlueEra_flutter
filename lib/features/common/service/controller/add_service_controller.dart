@@ -11,13 +11,13 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/features/common/business_service/repo/service_ai_repo.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
+import 'package:BlueEra/features/common/service/repo/service_ai_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/repo/earn_service_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/add_service_response_model.dart';
+import 'package:BlueEra/features/common/service/model/add_service_response_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/detail_item.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/add_services_screen.dart';
+import 'package:BlueEra/features/common/service/view/add_services_screen.dart';
 import 'package:BlueEra/widgets/select_product_image_dialog.dart';
 import 'package:BlueEra/widgets/uploading_progressing_dialog.dart';
 import 'package:flutter/material.dart';
@@ -62,43 +62,43 @@ class AddServiceController extends GetxController {
 
   // Validation method
   String? validateServiceName(String? value) {
-    if (value == null || value.isEmpty) return 'Service name is required';
-    if (value.length < 3) return 'Product name must be at least 3 characters';
+    if (value == null || value.isEmpty) return AppStrings.serviceNameRequired;
+    if (value.length < 3) return AppStrings.serviceNameMinLength;
     return null;
   }
 
   String? validateServiceDescription(String? value) {
     if (value == null || value.isEmpty)
-      return 'Service description is required';
+      return AppStrings.serviceDescRequired;
     if (value.length < 15)
-      return 'Service description name must be at least 15 characters';
+      return AppStrings.serviceDescMinLength;
     return null;
   }
 
   String? validateAmount(String? value) {
-    if (value == null || value.isEmpty) return 'Amount is required';
+    if (value == null || value.isEmpty) return AppStrings.amountRequired;
 
     // Try parsing the value to a number
     final amount = double.tryParse(value);
-    if (amount == null) return 'Enter a valid number';
-    if (amount <= 0) return 'Amount must be greater than zero';
+    if (amount == null) return  AppStrings.enterValidNumber;
+    if (amount <= 0) return AppStrings.amountGreaterThanZero;
 
     return null;
   }
 
   String? validateMinPrice(String? value, TextEditingController maxPriceCtrl) {
     if (value == null || value.trim().isEmpty) {
-      return "Min price is required";
+      return AppStrings.minPriceRequired;
     }
 
     final min = int.tryParse(value);
     if (min == null || min <= 0) {
-      return "Enter valid min price";
+      return  AppStrings.enterValidMinPrice;
     }
 
     final max = int.tryParse(maxPriceCtrl.text);
     if (max != null && min >= max) {
-      return "Min must be less than Max";
+      return AppStrings.minLessThanMax;
     }
 
     return null;
@@ -106,17 +106,17 @@ class AddServiceController extends GetxController {
 
   String? validateMaxPrice(String? value, TextEditingController minPriceCtrl) {
     if (value == null || value.trim().isEmpty) {
-      return "Max price is required";
+      return AppStrings.maxPriceRequired;
     }
 
     final max = int.tryParse(value);
     if (max == null || max <= 0) {
-      return "Enter valid max price";
+      return AppStrings.enterValidMaxPrice;
     }
 
     final min = int.tryParse(minPriceCtrl.text);
     if (min != null && max <= min) {
-      return "Max must be greater than Min";
+      return AppStrings.maxGreaterThanMin;
     }
 
     return null;
@@ -127,7 +127,7 @@ class AddServiceController extends GetxController {
       final List<String>? selected =
           await SelectProductImageDialog.showLogoDialog(maxImages: maxImages,
         context,
-        accountTypeGlobal==AppConstants.individual? "Service Image":'Product Image',
+        AppStrings.serviceImage,
       );
 
       if (selected != null) {
@@ -138,7 +138,7 @@ class AddServiceController extends GetxController {
         imageLocalPaths.addAll(addList);
       }
     } catch (e) {
-      commonSnackBar(message: 'Image pick failed: $e');
+      log('Image pick failed: $e');
     }
   }
 
@@ -150,7 +150,7 @@ class AddServiceController extends GetxController {
 
   void addFacility() {
     if (facilities.length == 10) {
-      commonSnackBar(message: 'You can\'t add more than 10 facilities');
+      commonSnackBar(message: AppStrings.max10Facilities);
       return;
     }
 
@@ -186,7 +186,7 @@ class AddServiceController extends GetxController {
     final parts = time24.split(":");
     int hour = int.parse(parts[0]);
     final minute = parts[1];
-    final suffix = hour >= 12 ? "PM" : "AM";
+    final suffix = hour >= 12 ? AppStrings.pm : AppStrings.am;
     if (hour == 0) hour = 12;
     if (hour > 12) hour -= 12;
     return "${hour.toString().padLeft(2, '0')}:$minute $suffix";
@@ -208,23 +208,23 @@ class AddServiceController extends GetxController {
     if (imageLocalPaths.length < 1 || imageLocalPaths.length > 5) {
       commonSnackBar(
           message: (imageLocalPaths.length < 1)
-              ? 'Please take minimum two services images'
-              : 'You can\'t add more than five images');
+              ? AppStrings.minTwoImages
+              : AppStrings.maxFiveImages);
       return false;
     }
 
     if (facilities.isEmpty) {
-      commonSnackBar(message: 'Please add a facility');
+      commonSnackBar(message: AppStrings.addFacility);
       return false;
     }
 
     if (startTime.value.isEmpty) {
-      commonSnackBar(message: "Start time is required");
+      commonSnackBar(message: AppStrings.startTimeRequired);
       return false;
     }
 
     if (endTime.value.isEmpty) {
-      commonSnackBar(message: "End time is required");
+      commonSnackBar(message: AppStrings.endTimeRequired);
       return false;
     }
 
@@ -232,7 +232,7 @@ class AddServiceController extends GetxController {
     final endIndex = timeSlots.indexOf(endTime.value);
 
     if (startIndex >= endIndex) {
-      commonSnackBar(message: "Start time must be before End time");
+      commonSnackBar(message: AppStrings.startBeforeEnd);
       return false;
     }
 
@@ -250,7 +250,7 @@ class AddServiceController extends GetxController {
 
     try {
       UploadProgressDialog.show(
-          initialProgress: 0.0, title: "Creating Service...");
+          initialProgress: 0.0, title: AppStrings.creatingService);
 
       Map<String, dynamic> params = {
         ApiKeys.type: 'service',
@@ -332,7 +332,7 @@ class AddServiceController extends GetxController {
 
         // ✅ Close dialog once and navigate back
         UploadProgressDialog.close();
-        commonSnackBar(message: "Service added successfully");
+        commonSnackBar(message: AppStrings.serviceAddedSuccess);
         Get.close(2);
         // Get.back();
         // Get.back();
@@ -344,7 +344,7 @@ class AddServiceController extends GetxController {
     } catch (e) {
       UploadProgressDialog.close();
       createServiceResponse.value = ApiResponse.error('error');
-      commonSnackBar(message: 'Something went wrong.');
+      log('Something went wrong--> $e');
     }
   }
 
@@ -378,7 +378,7 @@ class AddServiceController extends GetxController {
       }
     } catch (e) {
       UploadProgressDialog.close();
-      commonSnackBar(message: 'Something went wrong during image upload.');
+      log('Something went wrong during image upload. $e');
     }
   }
 

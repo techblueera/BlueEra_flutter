@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
@@ -31,7 +32,7 @@ class StandaloneFoodScreen extends StatelessWidget {
       }
 
       if (controller.foods.isEmpty) {
-        return const Center(child: CustomText('No food service found'));
+        return const Center(child: CustomText(AppStrings.noFoodServiceFound));
       }
 
       // Show either grid view or horizontal list based on selection
@@ -43,7 +44,7 @@ class StandaloneFoodScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CustomText("Foods",
+              CustomText(AppStrings.foods,
                   fontWeight: FontWeight.w600,
                   fontSize: SizeConfig.medium15,
                   color: AppColors.secondaryTextColor),

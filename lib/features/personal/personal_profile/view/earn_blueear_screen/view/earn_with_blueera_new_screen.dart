@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/delivery_partner_orders/delivery_partner_orders.dart';
@@ -7,7 +8,7 @@ import 'package:BlueEra/features/personal/auth/controller/view_personal_details_
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/controller/earn_with_blueera_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
 import 'package:BlueEra/features/common/food/view/food_and_grocery_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/service/view_service_list.dart';
+import 'package:BlueEra/features/common/service/view/view_service_list.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/own_product_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/view/rental_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/earn_with_blue_era_bottom_sheet.dart';
@@ -115,7 +116,7 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> wit
             child: Row(
               children: [
                 CustomText(
-                  'Go Live',
+                  AppStrings.goLive,
                   fontWeight: FontWeight.w600,
                   fontSize: SizeConfig.large,
                   color: AppColors.primaryColor
@@ -141,9 +142,9 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> wit
             indicatorWeight: 2,
             labelStyle: TextStyle(fontWeight: FontWeight.w600),
             tabs: [
-              Tab(text: 'My Order'),
-              Tab(text: 'My Store'),
-              Tab(text: 'Business Cards'),
+              Tab(text: AppStrings.myOrder),
+              Tab(text: AppStrings.myStore),
+              Tab(text: AppStrings.businessCards),
             ],
           ),
         ),
@@ -169,7 +170,7 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> wit
            _buildEarnWithBlueEraStore(),
            SizedBox(
              child: CustomText(
-                 'Coming soon.'
+                 AppStrings.comingSoon
              ),
            ),
          ]),
@@ -267,7 +268,7 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> wit
           }
 
           if (productList.isEmpty) {
-            tabContent = EmptyStateWidget(message: 'No product found');
+            tabContent = EmptyStateWidget(message: AppStrings.noProductFound);
             break;
           }
 

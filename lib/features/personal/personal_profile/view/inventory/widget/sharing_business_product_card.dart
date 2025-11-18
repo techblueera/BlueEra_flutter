@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
@@ -156,7 +157,7 @@ class SharingBusinessProductCard extends StatelessWidget {
                     children: [
 
                       CustomText(
-                        "MRP: ",
+                        "${AppStrings.mrp}: ",
                         color: AppColors.secondaryTextColor,
                         fontSize: 13 * scaleFactor,
                         fontWeight: FontWeight.w700
@@ -246,7 +247,7 @@ class SharingBusinessProductCard extends StatelessWidget {
                       Stack(
                         children: [
                           Text(
-                            'OFF',
+                            AppStrings.offCaps,
                             style: TextStyle(
                               fontWeight: FontWeight.w700,
                               fontSize: 15 * scaleFactor,
@@ -257,7 +258,7 @@ class SharingBusinessProductCard extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            'OFF',
+                            AppStrings.offCaps,
                             style: TextStyle(
                               color: AppColors.secondaryTextColor,
                               fontWeight: FontWeight.w700,
@@ -319,7 +320,7 @@ class SharingBusinessProductCard extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                             ),
                             CustomText(
-                              "$businessOwnerNameGlobal (Owner)",
+                              "$businessOwnerNameGlobal (${AppStrings.owner})",
                               color: AppColors.secondaryTextColor,
                               fontSize: 11 * scaleFactor,
                               maxLines: 1,

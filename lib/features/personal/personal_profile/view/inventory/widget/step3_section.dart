@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
@@ -61,9 +62,9 @@ class _Step3SectionState extends State<Step3Section> {
 
     await showCommonDialog(
       context: context,
-      text: 'Your changes will be lost if you go back.',
-      confirmText: 'Discard',
-      cancelText: 'Cancel',
+      text: AppStrings.changesWillBeLost,
+      confirmText: AppStrings.confirm,
+      cancelText: AppStrings.cancel,
       confirmCallback: () {
         _restoreOldValues();
         Get.close(2);
@@ -92,7 +93,7 @@ class _Step3SectionState extends State<Step3Section> {
       child: Scaffold(
         backgroundColor: AppColors.whiteF3,
         appBar: CommonBackAppBar(
-          title: 'Pricing & Warranty',
+          title: AppStrings.pricingWarranty,
           onBackTap: () async {
             final shouldPop = await _handleBackPress(context);
             if (shouldPop) {
@@ -163,8 +164,8 @@ class _Step3SectionState extends State<Step3Section> {
                   /// MRP
                   CommonTextField(
                     textEditController: widget.controller.mrpController,
-                    title: 'MRP (Original Price with GST)',
-                    hintText: 'E.g. ₹1499',
+                    title: AppStrings.mrpOriginalPriceWithGst,
+                    hintText: AppStrings.egRs1499,
                     keyBoardType: TextInputType.number,
                     validator: ValidationMethod().validateMRP,
                     showLabel: true,
@@ -203,8 +204,8 @@ class _Step3SectionState extends State<Step3Section> {
 
                   CommonTextField(
                     textEditController: widget.controller.productWarrantyController,
-                    title: 'Product Warranty',
-                    hintText: 'E.g. 1 year',
+                    title: AppStrings.productWarranty,
+                    hintText: AppStrings.eg1Year,
                     keyBoardType: TextInputType.number,
                     validator: ValidationMethod().validateProductWarranty,
                     showLabel: true,
@@ -218,8 +219,8 @@ class _Step3SectionState extends State<Step3Section> {
                   /// Expiry Date
                   CommonTextField(
                     textEditController: widget.controller.productExpiryDurationController,
-                    title: 'Add Expiry Date (Optional)',
-                    hintText: 'E.g. 1 year',
+                    title: AppStrings.addExpiryDateOptional,
+                    hintText: AppStrings.eg1Year,
                     keyBoardType: TextInputType.text,
                     validator: ValidationMethod().validateProductExpiration,
                     showLabel: true,
@@ -250,7 +251,7 @@ class _Step3SectionState extends State<Step3Section> {
                   PositiveCustomBtn(
                     onTap: ()=> Get.back(),
                     // onTap: widget.controller.onNext,
-                    title: 'Save',
+                    title: AppStrings.save,
                     bgColor: AppColors.primaryColor,
                     borderColor: AppColors.primaryColor,
                   ),
@@ -271,7 +272,7 @@ class _Step3SectionState extends State<Step3Section> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         CustomText(
-          'Add Product GuideLine',
+          AppStrings.addProductGuideLine,
           fontSize: SizeConfig.medium,
           fontWeight: FontWeight.bold,
           color: AppColors.black,
@@ -287,8 +288,8 @@ class _Step3SectionState extends State<Step3Section> {
                 children: [
                   Expanded(
                     child: CommonTextField(
-                      title: 'User Guide ${i + 1}',
-                      hintText: 'E.g. Vorem ipsum dolor sit amet,',
+                      title: '${AppStrings.userGuide} ${i + 1}',
+                      hintText: AppStrings.hintUserGuide,
                       textEditController: widget.controller.featureControllers[i],
                       maxLine: 2,
                       validator: (value)=> ValidationMethod().validateUserGuideLine(value, i),
@@ -325,7 +326,7 @@ class _Step3SectionState extends State<Step3Section> {
             children: [
               LocalAssets(imagePath: AppIconAssets.addBlueIcon),
               SizedBox(width: SizeConfig.size10),
-              CustomText("Add More User GuideLine", color: AppColors.primaryColor),
+              CustomText(AppStrings.addMoreUserGuideLine, color: AppColors.primaryColor),
             ],
           ),
         ),

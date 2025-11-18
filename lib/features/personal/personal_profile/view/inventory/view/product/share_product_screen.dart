@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -123,7 +124,7 @@ class _ShareProductScreenState extends State<ShareProductScreen> {
                   navigatePushTo(
                     context,
                     ImageViewScreen(
-                      appBarTitle: singleProductData?.name ?? "N/A",
+                      appBarTitle: singleProductData?.name ?? AppStrings.na,
                       subTitle: singleProductData?.description,
                       imageUrls: singleProductData!.media,
                       initialIndex: 0,

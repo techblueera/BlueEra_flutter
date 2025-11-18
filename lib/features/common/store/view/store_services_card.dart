@@ -1,8 +1,8 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/common/business_service/model/get_service_model.dart';
-import 'package:BlueEra/features/common/business_service/view/service_details_view_screen.dart';
+import 'package:BlueEra/features/common/service/model/get_service_model.dart';
+import 'package:BlueEra/features/common/service/view/service_details_view_screen.dart';
 import 'package:BlueEra/features/common/store/widget/store_km_away_text_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';

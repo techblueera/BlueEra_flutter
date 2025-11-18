@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -43,9 +44,9 @@ class _Step1SectionState extends State<Step1Section> {
 
     await showCommonDialog(
       context: context,
-      text: 'Do you really want to go back? Unsaved changes will be lost.',
-      confirmText: 'Discard',
-      cancelText: 'Cancel',
+      text: AppStrings.doYouReallyWantToGoBack,
+      confirmText: AppStrings.confirm,
+      cancelText: AppStrings.cancel,
       confirmCallback: () {
         Get.close(2);
         shouldPop = true;
@@ -79,7 +80,7 @@ class _Step1SectionState extends State<Step1Section> {
       child: Scaffold(
         backgroundColor: AppColors.whiteF3,
         appBar: CommonBackAppBar(
-          title: 'Product Details',
+          title: AppStrings.productDetails,
           onBackTap: () async {
             final shouldPop = await handleBackPress(context);
             if (shouldPop) {
@@ -107,14 +108,13 @@ class _Step1SectionState extends State<Step1Section> {
                     children: [
                       // /// Product Images
                       // _buildMediaUploadSection(controller),
-                      //
                       // SizedBox(height: SizeConfig.size15),
 
                       /// Product Name
                       CommonTextField(
                         textEditController: widget.controller.productNameController,
-                        hintText: 'E.g. Wireless Earbuds Boat Airdopes 161',
-                        title: "Product Name",
+                        hintText: AppStrings.productDescription,
+                        title: AppStrings.productName,
                         validator: ValidationMethod().validateProductName,
                         showLabel: true,
                         maxLength: 360,
@@ -250,8 +250,8 @@ class _Step1SectionState extends State<Step1Section> {
                       /// Brand
                       CommonTextField(
                         textEditController: widget.controller.brandController,
-                        hintText: 'E.g. Samsung',
-                        title: "Brand ( if any )",
+                        hintText: AppStrings.egSamsung,
+                        title: AppStrings.brandIfAny,
                         validator: ValidationMethod().validateBrandName,
                         showLabel: true,
                         maxLength: 30,
@@ -266,10 +266,9 @@ class _Step1SectionState extends State<Step1Section> {
                       /// Product Description
                       CommonTextField(
                         textEditController: widget.controller.productDescriptionController,
-                        hintText:
-                            "Lorem ipsum dolor sit amet conseceter adisping...",
+                        hintText: AppStrings.hintProductDesc,
                         maxLine: 5,
-                        title: 'Product Description',
+                        title: AppStrings.productDescription,
                         validator: ValidationMethod().validateProductDescription,
                         maxLength: 600,
                         isCounterVisible: true
@@ -280,7 +279,7 @@ class _Step1SectionState extends State<Step1Section> {
                   SizedBox(height: SizeConfig.size30),
 
                   CustomBtn(
-                    title: 'Save',
+                    title: AppStrings.save,
                     onTap: ()=> Get.back(),
                     // onTap: widget.controller.onNext,
                     bgColor: AppColors.primaryColor,
@@ -322,7 +321,7 @@ class _Step1SectionState extends State<Step1Section> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         CustomText(
-          'Add Tags / Keywords',
+          AppStrings.addTagsKeywords,
           fontSize: SizeConfig.medium,
           color: AppColors.black,
         ),
@@ -345,7 +344,7 @@ class _Step1SectionState extends State<Step1Section> {
                   controller: controller.tagsController,
                   onChanged: (_) => controller.update(["addIcon"]),
                   decoration: const InputDecoration(
-                    hintText: 'Tag/Keyword ',
+                    hintText: AppStrings.tagKeyword,
                     hintStyle: TextStyle(
                       color: AppColors.grey9B,
                       fontSize: 14,

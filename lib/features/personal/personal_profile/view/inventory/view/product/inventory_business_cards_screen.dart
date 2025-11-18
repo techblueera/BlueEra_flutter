@@ -1,16 +1,18 @@
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/features/common/service/controller/service_controller.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart' show CommonBackAppBar;
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
-import 'package:BlueEra/features/common/business_service/controller/service_controller.dart';
 import 'package:BlueEra/features/common/food/controller/food_upload_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/business_product_card.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/business_service_card.dart';
+import 'package:BlueEra/features/common/service/view/business_service_card.dart';
 import 'package:BlueEra/features/common/food/view/business_food_service_card.dart';
 
 class InventoryBusinessCardsScreen extends StatefulWidget {
@@ -47,20 +49,20 @@ class _InventoryBusinessCardsScreenState extends State<InventoryBusinessCardsScr
     _tabTypes = [];
 
     if (isShowProduct.contains(business)) {
-      _tabs.add(const Tab(text: 'My Products'));
+      _tabs.add(const Tab(text: AppStrings.myProducts));
       _tabTypes.add('product');
     }
     if (isShowService.contains(business)) {
-      _tabs.add(const Tab(text: 'My Services'));
+      _tabs.add(const Tab(text: AppStrings.myServices));
       _tabTypes.add('service');
     }
     if (isShowFood.contains(business)) {
-      _tabs.add(const Tab(text: 'Food & Grocery'));
+      _tabs.add(const Tab(text: AppStrings.foodAndGrocery));
       _tabTypes.add('food');
     }
 
     if (_tabs.isEmpty) {
-      debugPrint(" No matching tabs found for businessType: $business");
+      debugPrint(" ${AppStrings.noMatchingTabsFound} $business");
       setState(() => _isLoading = false);
       return;
     }
@@ -129,7 +131,7 @@ class _InventoryBusinessCardsScreenState extends State<InventoryBusinessCardsScr
         ),
         child: CommonBackAppBar(
           isLeading: widget.showBackAppBar ? true : null,
-          title: widget.showBackAppBar ? 'My Business Cards' : null,
+          title: widget.showBackAppBar ? AppStrings.myBusinessCards : null,
           bottomWidget: TabBar(
             controller: _tabController,
             labelColor: AppColors.primaryColor,
@@ -152,7 +154,7 @@ class _InventoryBusinessCardsScreenState extends State<InventoryBusinessCardsScr
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (inventoryController.allProducts.isEmpty) {
-                  return const Center(child: Text('No products found'));
+                  return const Center(child: CustomText(AppStrings.noProductsFound));
                 }
                 return Padding(
                   padding: const EdgeInsets.only(bottom: kBottomNavigationBarHeight),
@@ -169,7 +171,7 @@ class _InventoryBusinessCardsScreenState extends State<InventoryBusinessCardsScr
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (serviceController.serviceDataList.isEmpty) {
-                  return const Center(child: Text('No services found'));
+                  return const Center(child: Text(AppStrings.noServicesFound));
                 }
                 return Padding(
                   padding: const EdgeInsets.only(bottom: kBottomNavigationBarHeight),
@@ -184,7 +186,7 @@ class _InventoryBusinessCardsScreenState extends State<InventoryBusinessCardsScr
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (foodUploadController.foodDataList.isEmpty) {
-                  return const Center(child: Text('No food items found'));
+                  return const Center(child: Text(AppStrings.noFoodItemsFound));
                 }
                 return Padding(
                   padding: const EdgeInsets.only(bottom: kBottomNavigationBarHeight),

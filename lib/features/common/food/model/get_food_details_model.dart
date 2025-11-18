@@ -1,4 +1,4 @@
-import 'package:BlueEra/features/common/business_service/model/get_service_model.dart';
+import 'package:BlueEra/features/common/service/model/get_service_model.dart';
 
 /// _id : "68dcaa3fd0dc5de645817be8"
 /// userId : "68beb748ae9530cebdebcb6a"

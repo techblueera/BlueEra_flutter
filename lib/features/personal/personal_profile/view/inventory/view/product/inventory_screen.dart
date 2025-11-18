@@ -4,14 +4,15 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/features/common/business_service/controller/service_controller.dart';
 import 'package:BlueEra/features/common/food/controller/food_upload_controller.dart';
+import 'package:BlueEra/features/common/service/controller/service_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/product_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/service/view_service_list.dart';
+import 'package:BlueEra/features/common/service/view/view_service_list.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -53,13 +54,13 @@ class _InventoryScreenState extends State<InventoryScreen>
     _businessType = business;
     _tabs = [];
 
-    if (isShowProduct.contains(business)) _tabs.add(const Tab(text: 'My Products'));
-    if (isShowService.contains(business)) _tabs.add(const Tab(text: 'My Services'));
-    if (isShowFood.contains(business)) _tabs.add(const Tab(text: 'Food & Grocery'));
+    if (isShowProduct.contains(business)) _tabs.add(const Tab(text: AppStrings.myProducts));
+    if (isShowService.contains(business)) _tabs.add(const Tab(text: AppStrings.myServices));
+    if (isShowFood.contains(business)) _tabs.add(const Tab(text: AppStrings.foodAndGrocery));
 
     _tabController = TabController(length: _tabs.length, vsync: this);
     if (_tabs.isEmpty) {
-      debugPrint("No tabs available for business type: $business");
+      log("No tabs available for business type: $business");
       setState(() => _isLoading = false);
       return;
     }
@@ -111,7 +112,7 @@ class _InventoryScreenState extends State<InventoryScreen>
         child: CommonBackAppBar(
           controller: searchController,
           searchHintText:
-              'Search ...',
+              AppStrings.searchHintText,
               // 'Search ${_tabController.index == 0 ? 'Product' : _tabController.index == 1 ? 'Service' : 'Food & Grocery'}...',
           onClearCallback: () => searchController.clear(),
           isSearch: true,
@@ -125,11 +126,11 @@ class _InventoryScreenState extends State<InventoryScreen>
             labelStyle: TextStyle(fontWeight: FontWeight.w600),
             tabs: [
               if (isShowProduct.contains(_businessType))
-                const Tab(text: 'My Products'),
+                const Tab(text: AppStrings.myProducts),
               if (isShowService.contains(_businessType))
-                const Tab(text: 'My Services'),
+                const Tab(text: AppStrings.myServices),
               if (isShowFood.contains(_businessType))
-                const Tab(text: 'Food & Grocery'),
+                const Tab(text: AppStrings.foodAndGrocery),
             ],
           ),
         ),

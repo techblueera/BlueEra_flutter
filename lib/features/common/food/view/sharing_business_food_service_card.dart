@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/food/controller/food_upload_controller.dart';
@@ -202,14 +203,14 @@ class SharingBusinessFoodServiceCard extends StatelessWidget {
                         fit: BoxFit.scaleDown,
                         child: (foodServiceData.priceType == "single")
                             ? CustomText(
-                          "Price : ₹ ${foodServiceData.singlePrice ?? "0"}",
+                          "${AppStrings.pricePrefix}₹ ${foodServiceData.singlePrice ?? "0"}",
                           fontSize: SizeConfig.small,
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
                           color: AppColors.primaryColor,
                         )
                             : CustomText(
-                          "Price : ₹ ${priceText}",
+                          "${AppStrings.pricePrefix}₹ ${priceText}",
                           fontWeight: FontWeight.w600,
                           overflow: TextOverflow.ellipsis,
                           color: AppColors.primaryColor,

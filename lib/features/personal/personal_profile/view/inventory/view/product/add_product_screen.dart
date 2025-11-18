@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -49,7 +50,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
         Scaffold(
           backgroundColor: AppColors.appBackgroundColor,
           appBar: CommonBackAppBar(
-              title: "Add Product",
+              title: AppStrings.addProduct,
               buildCustomWidget: (controller.searchProduct.isNotEmpty) ?
               ()=> GestureDetector(
                 onTap: () =>
@@ -77,7 +78,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                       ),
                       const SizedBox(width: 4),
                       CustomText(
-                        'Create Own',
+                        AppStrings.createOwn,
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: AppColors.primaryColor,
@@ -135,7 +136,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                           SizedBox(width: SizeConfig.size12),
                           Expanded(
                             child: CustomText(
-                              "You can't select more than 10 products at a time.",
+                              AppStrings.max10Products,
                               fontSize: SizeConfig.medium,
                               fontWeight: FontWeight.w500,
                               color: AppColors.red,
@@ -165,14 +166,14 @@ class _AddProductScreenState extends State<AddProductScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               CustomText(
-                                'Enter Product Name here',
+                                AppStrings.enterProductName,
                                 fontSize: SizeConfig.large,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.black,
                               ),
                               SizedBox(height: SizeConfig.size8),
                               CustomText(
-                                'Find product name to get autofill product details.',
+                                AppStrings.findProductName,
                                 fontSize: SizeConfig.small,
                                 color: AppColors.grey9B,
                               ),
@@ -181,7 +182,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                   textEditController: controller.searchController,
                                   onChange: (value) =>
                                       controller.onSearchChanged(value),
-                                  hintText: "e.g. Wireless Earbuds Boat Airdope....",
+                                  hintText:  AppStrings.hintProductName,
                                   showClearIcon: controller.searchProduct
                                       .isNotEmpty,
                                   onClearTap: () {
@@ -213,7 +214,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                           .start,
                                       children: [
                                         CustomText(
-                                          "Product Variants",
+                                          AppStrings.productVariants,
                                           fontSize: SizeConfig.small,
                                           fontWeight: FontWeight.w600,
                                           color: AppColors.secondaryTextColor,
@@ -259,17 +260,16 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                                         borderRadius: BorderRadius.circular(12),
                                                       ),
                                                       title: const CustomText(
-                                                        "Use Listed Prices?",
+                                                        AppStrings.useListedPrices,
                                                         fontWeight: FontWeight.bold
                                                       ),
-                                                      content: const Text(
-                                                        "Some selected variants don’t have a selling price entered.\n\n"
-                                                            "Would you like to use their listed prices instead?",
+                                                      content: const CustomText(
+                                                        AppStrings.useListedPricesMsg,
                                                       ),
                                                       actions: [
                                                         TextButton(
                                                           onPressed: () => Navigator.of(context).pop(false),
-                                                          child: const Text("Cancel"),
+                                                          child: const CustomText(AppStrings.cancel),
                                                         ),
                                                         ElevatedButton(
                                                           style: ElevatedButton.styleFrom(
@@ -279,7 +279,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                                             ),
                                                           ),
                                                           onPressed: () => Navigator.of(context).pop(true),
-                                                          child: const Text("Continue", style: TextStyle(color: AppColors.white)),
+                                                          child: const CustomText(
+                                                              AppStrings.continueText,
+                                                              color: AppColors.white
+                                                          ),
                                                         ),
                                                       ],
                                                     );
@@ -304,7 +307,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                                 : null,
                                           title: controller.cloneProductVariantLoading.value
                                               ? null // hide text
-                                              : 'Publish',
+                                              : AppStrings.publish,
                                           height: SizeConfig.size35,
                                           bgColor: controller.hasAnySelected()
                                               ? AppColors.primaryColor
@@ -392,7 +395,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                           children: [
                                             Flexible(
                                               child: CustomText(
-                                                  "No product Here, don’t worry you can create product manually ",
+                                                  AppStrings.noProductHere,
                                                   fontSize: SizeConfig.small,
                                                   fontWeight: FontWeight.w400,
                                                   color: AppColors.secondaryTextColor,
@@ -439,15 +442,14 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                                         crossAxisAlignment: CrossAxisAlignment.start,
                                                         children: [
                                                           CustomText(
-                                                            "Generate Product With AI Within 1 Min. ",
+                                                           AppStrings.generateProductWithAI,
                                                             fontSize: SizeConfig.medium15,
                                                             fontWeight: FontWeight.bold,
                                                             color: AppColors.mainTextColor,
                                                           ),
                                                           SizedBox(height: 10.0),
                                                           CustomText(
-                                                            "Open the full manual form\nto add detailed information section by section.",
-                                                            color: AppColors.secondaryTextColor,
+                                                            AppStrings.openFullManualForm,                                                            color: AppColors.secondaryTextColor,
                                                             fontSize: SizeConfig.medium,
                                                             fontWeight: FontWeight.w600,
                                                             fontFamily: AppConstants.OpenSans,
@@ -470,7 +472,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                           .start,
                                       children: [
                                         CustomText(
-                                          "Products",
+                                          AppStrings.products,
                                           fontSize: SizeConfig.small,
                                           fontWeight: FontWeight.w600,
                                           color: AppColors.secondaryTextColor,
@@ -706,7 +708,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
               Row(
                 children: [
                   CustomText(
-                    'Selling price',
+                    AppStrings.sellingPrice,
                     fontSize: SizeConfig.small,
                     color: AppColors.mainTextColor,
                     fontWeight: FontWeight.w500,
@@ -888,7 +890,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     );
                   },
                   height: 30,
-                  title: 'Create Own Variants',
+                  title: AppStrings.createOwnVariants,
                   bgColor: AppColors.primaryColor,
                   borderColor: AppColors.primaryColor,
                   radius: 10.0,

@@ -2,12 +2,13 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart' show getInitials, canGoogleMapOpen, isGuestUser, createProfileScreen, navigatePushTo, AppConstants;
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
-import 'package:BlueEra/features/common/business_service/model/get_service_model.dart';
+import 'package:BlueEra/features/common/service/model/get_service_model.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
@@ -42,7 +43,7 @@ class ServiceDetailsScreen extends StatelessWidget {
     return Scaffold(
       // backgroundColor: Colors.white,
       appBar: CommonBackAppBar(
-        title: service.title ?? "Service Details",
+        title: service.title ?? AppStrings.serviceDetails,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -58,7 +59,7 @@ class ServiceDetailsScreen extends StatelessWidget {
                       Get.context!,
                       ImageViewScreen(
                         subTitle: service.title ?? "",
-                        appBarTitle: 'Food Service',
+                        appBarTitle: AppStrings.service,
                         imageUrls: service.photos ?? [],
                         initialIndex: 0,
                       ),
@@ -220,7 +221,7 @@ class ServiceDetailsScreen extends StatelessWidget {
                               // right: SizeConfig.size5,
                               bottom: SizeConfig.size8),
                           child: CustomText(
-                            "Chat",
+                            AppStrings.chat,
                             fontWeight: FontWeight.bold,
                             color: AppColors.white,
                           ),
@@ -296,7 +297,7 @@ class ServiceDetailsScreen extends StatelessWidget {
                   children: [
                     // --- Description ---
                     CustomText(
-                      "Description",
+                      AppStrings.description,
                       fontSize: SizeConfig.size18,
                       fontWeight: FontWeight.w600,
                     ),
@@ -331,7 +332,7 @@ class ServiceDetailsScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CustomText(
-                        "Facilities",
+                        AppStrings.facilities,
                         fontSize: SizeConfig.size18,
                         fontWeight: FontWeight.w600,
                       ),
@@ -407,7 +408,7 @@ class ServiceDetailsScreen extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          CustomText("Business Location",
+                          CustomText(AppStrings.businessLocation,
                               fontSize: SizeConfig.size18,
                               fontWeight: FontWeight.bold),
                           Icon(Icons.directions,color: AppColors.primaryColor,),
@@ -446,7 +447,7 @@ class ServiceDetailsScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CustomText(
-                        "Service Timings",
+                        AppStrings.serviceTimings,
                         fontSize: SizeConfig.size18,
                         fontWeight: FontWeight.w600,
                       ),

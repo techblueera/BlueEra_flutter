@@ -1,8 +1,9 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/common/business_service/model/get_service_model.dart';
+import 'package:BlueEra/features/common/service/model/get_service_model.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -167,7 +168,7 @@ class SharingBusinessServiceCard extends StatelessWidget {
                         child: Row(
                           children: [
                             CustomText(
-                              "Open :",
+                              "${AppStrings.open} :",
                               fontSize: 12,
                               fontWeight: FontWeight.w400,
                               overflow: TextOverflow.ellipsis,
@@ -183,7 +184,7 @@ class SharingBusinessServiceCard extends StatelessWidget {
                               maxLines: 1,
                             ),
                             CustomText(
-                              " Close :",
+                              " ${AppStrings.close} :",
                               fontSize: 12,
                               fontWeight: FontWeight.w400,
                               overflow: TextOverflow.ellipsis,
@@ -298,7 +299,7 @@ class SharingBusinessServiceCard extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                             ),
                             CustomText(
-                              "$businessOwnerNameGlobal (Owner)",
+                              "$businessOwnerNameGlobal (${AppStrings.owner})",
                               color: AppColors.secondaryTextColor,
                               fontSize: 11 * scaleFactor,
                               maxLines: 1,

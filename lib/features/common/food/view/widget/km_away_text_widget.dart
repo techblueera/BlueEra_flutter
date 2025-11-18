@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -52,7 +53,7 @@ class _KmAwayTextWidgetState extends State<KmAwayTextWidget> {
                 width: SizeConfig.size5,
               ),
               CustomText(
-                "${kmAway.toStringAsFixed(0)} km away",
+                "${kmAway.toStringAsFixed(0)} ${AppStrings.kmAway}",
                 fontSize: SizeConfig.size8,
                 maxLines: 1,
                 color: AppColors.primaryColor,

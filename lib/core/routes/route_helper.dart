@@ -11,7 +11,6 @@ import 'package:BlueEra/features/common/auth/views/screens/create_user_account.d
 import 'package:BlueEra/features/common/auth/views/screens/mobile_number_screen.dart';
 import 'package:BlueEra/features/common/auth/views/screens/otp_page_screen.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_bar_screen.dart';
-import 'package:BlueEra/features/common/business_service/view/service_upload_screen.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/address_location_riding_screen.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/driving_verification_riding_screen.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/personal_identification_riding_screen.dart';
@@ -57,6 +56,7 @@ import 'package:BlueEra/features/common/reel/view/tag_people_screen.dart';
 import 'package:BlueEra/features/common/reel/view/video/full_video_preview_screen.dart';
 import 'package:BlueEra/features/common/reel/view/video/video_player_screen.dart';
 import 'package:BlueEra/features/common/reel/view/video/video_recorder_screen.dart';
+import 'package:BlueEra/features/common/service/view/service_upload_screen.dart';
 import 'package:BlueEra/features/common/store/view/newstore_screen.dart';
 import 'package:BlueEra/features/journey/view/journey_planning_screen.dart';
 import 'package:BlueEra/features/journey/view/update_journy_screen.dart';
@@ -76,7 +76,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/p
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/generate_ai_product_content.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/product_preview_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/store_product_preview_screen_product.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/inventory_business_cards_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/inventory_business_cards_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents_screen/add_document_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/payment_setting_screen/add_account_screen/add_account_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/payment_setting_screen/add_account_upi/add_accountupi_screen.dart';

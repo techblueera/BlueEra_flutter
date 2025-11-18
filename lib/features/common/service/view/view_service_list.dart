@@ -1,15 +1,16 @@
 import 'package:BlueEra/core/constants/app_enum.dart';
-import 'package:BlueEra/features/common/business_service/controller/service_controller.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/features/common/service/controller/service_controller.dart';
+import 'package:BlueEra/features/common/service/model/get_service_model.dart';
+import 'package:BlueEra/features/common/service/view/service_details_view_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../../../../../core/api/apiService/api_keys.dart';
-import '../../../../../../../core/constants/app_colors.dart';
+import '../../../../core/api/apiService/api_keys.dart';
+import '../../../../core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/common/business_service/model/get_service_model.dart';
-import 'package:BlueEra/features/common/business_service/view/service_details_view_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 
 class ViewServiceList extends StatefulWidget {
@@ -160,7 +161,7 @@ class _ViewServiceListState extends State<ViewServiceList> {
                                       children: [
                                         Expanded(
                                           child: CustomText(
-                                            serviceData.title ?? "N/A",
+                                            serviceData.title ?? AppStrings.na,
                                             fontSize: 16,
                                             fontWeight: FontWeight.bold,
                                             overflow: TextOverflow.ellipsis,
@@ -171,9 +172,9 @@ class _ViewServiceListState extends State<ViewServiceList> {
                                             onPressed: () async {
                                               await showCommonDialog(
                                                 context: context,
-                                                text: "Are you sure you want to delete this service? Once deleted, it cannot be recovered.",
-                                                confirmText: 'Delete',
-                                                cancelText: 'Cancel',
+                                                text: AppStrings.areYouSureDelete,
+                                                confirmText: AppStrings.delete,
+                                                cancelText: AppStrings.cancel,
                                                 confirmCallback: () {
                                                   serviceController.deleteService(
                                                       serviceId: serviceData.id ?? '',
@@ -220,7 +221,7 @@ class _ViewServiceListState extends State<ViewServiceList> {
                                           Row(
                                             children: [
                                               CustomText(
-                                                "Open :",
+                                                "${AppStrings.open} :",
                                                 fontSize: 12,
                                                 fontWeight: FontWeight.w400,
                                                 overflow: TextOverflow.ellipsis,
@@ -243,7 +244,7 @@ class _ViewServiceListState extends State<ViewServiceList> {
                                                 overflow: TextOverflow.ellipsis,
                                               ),
                                               CustomText(
-                                                "Close :",
+                                                "${AppStrings.close} :",
                                                 fontSize: 12,
                                                 fontWeight: FontWeight.w400,
                                                 overflow: TextOverflow.ellipsis,
@@ -287,7 +288,7 @@ class _ViewServiceListState extends State<ViewServiceList> {
         );
       }
       else{
-        return Center(child: Text('No Services', style: TextStyle(fontSize: 18)));
+        return Center(child: Text(AppStrings.noServices, style: TextStyle(fontSize: 18)));
       }
 
     });

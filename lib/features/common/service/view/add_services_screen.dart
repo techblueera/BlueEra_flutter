@@ -1,16 +1,17 @@
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/common/business_service/controller/service_controller.dart';
-import 'package:BlueEra/features/common/business_service/model/service_ai_generate_model.dart';
+import 'package:BlueEra/features/common/service/controller/add_service_controller.dart';
+import 'package:BlueEra/features/common/service/controller/service_controller.dart';
+import 'package:BlueEra/features/common/service/model/service_ai_generate_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/add_service_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/add_more_details_dialog.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -23,8 +24,8 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:get/get.dart';
-import '../../../../../../core/constants/app_icon_assets.dart';
-import '../../../../../../widgets/local_assets.dart';
+import '../../../../core/constants/app_icon_assets.dart';
+import '../../../../widgets/local_assets.dart';
 
 class AddServicesScreenNew extends StatefulWidget {
   final String? channelId;
@@ -125,7 +126,7 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
                                 CustomText(" ⚠️ "),
                                 Expanded(
                                   child: CustomText(
-                                    "Your Profession & Designation given below",
+                                    AppStrings.yourProfessionDesignation,
                                     color: Colors.blue.shade800,
                                     fontSize: SizeConfig.size16,
                                   ),
@@ -138,7 +139,7 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 CustomText(
-                                  "Profession : ",
+                                  AppStrings.profession,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.blue.shade800,
                                 ),
@@ -158,7 +159,7 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 CustomText(
-                                  "Work Type : ",
+                                  "${AppStrings.workType} : ",
                                   fontWeight: FontWeight.bold,
                                   color: Colors.blue.shade800,
                                 ),
@@ -185,7 +186,7 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
                                 CustomText(" ⚠️ "),
                                 Expanded(
                                   child: CustomText(
-                                    "Your Category & Subcategory given below",
+                                    AppStrings.yourCategorySubcategory,
                                     color: Colors.blue.shade800,
                                     fontSize: SizeConfig.size16,
                                   ),
@@ -198,7 +199,7 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 CustomText(
-                                  "Category : ",
+                                  '${AppStrings.category} : ',
                                   fontWeight: FontWeight.bold,
                                   color: Colors.blue.shade800,
                                 ),
@@ -218,7 +219,7 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 CustomText(
-                                  "Subcategory : ",
+                                  AppStrings.subCategory,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.blue.shade800,
                                 ),
@@ -241,7 +242,7 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const CustomText("Upload Images",
+                          const CustomText(AppStrings.uploadImages,
                               fontWeight: FontWeight.w400),
                           const CustomText("Min 2 / Max 5",
                               fontWeight: FontWeight.w400),
@@ -269,7 +270,7 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
                                     5) {
                                   commonSnackBar(
                                     message:
-                                        'Limit reached\nYou can upload up to 5 images only.',
+                                        AppStrings.limitReachedImages,
                                   );
                                 } else {
                                   addServiceController.pickImages(context);
@@ -345,8 +346,8 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
                       CommonTextField(
                           contentPadding: EdgeInsets.symmetric(
                               vertical: 14, horizontal: 12),
-                          title: "Service Name",
-                          hintText: "E.g. Hospital OPD Consultation...",
+                          title: AppStrings.serviceName,
+                          hintText: AppStrings.hintServiceName,
                           textEditController:
                               addServiceController.serviceNameCtrl,
                           validator: addServiceController.validateServiceName,
@@ -357,7 +358,7 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
 
                       /// facility
                       CustomText(
-                        'Facilities',
+                        AppStrings.facilities,
                         fontSize: SizeConfig.medium,
                         color: AppColors.black,
                       ),
@@ -381,7 +382,7 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
                                 onChanged: (_) =>
                                     addServiceController.update(["addIcon"]),
                                 decoration: const InputDecoration(
-                                  hintText: 'Facility',
+                                  hintText: AppStrings.facility,
                                   hintStyle: TextStyle(
                                     color: AppColors.grey9B,
                                     fontSize: 14,
@@ -457,9 +458,8 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
 
                       /// service description
                       CommonTextField(
-                          title: "Service Description",
-                          hintText:
-                              "Horem ipsum dolor sit amet, consectetur adipiscing...",
+                          title: AppStrings.serviceDescription,
+                          hintText: AppStrings.hintServiceDescription,
                           textEditController:
                               addServiceController.descriptionCtrl,
                           maxLine: 4,
@@ -515,8 +515,8 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
                       CommonTextField(
                         contentPadding:
                             EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-                        title: "Minimum booking Amount",
-                        hintText: "E.g. ₹300",
+                        title: AppStrings.minimumBookingAmount,
+                        hintText: AppStrings.egRs300,
                         textEditController: addServiceController.minBookingCtrl,
                         keyBoardType: TextInputType.number,
                         regularExpression: RegularExpressionUtils.digitsPattern,
@@ -540,7 +540,7 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
                                       children: [
                                         if (index == 0) ...[
                                           CustomText(
-                                            'Details',
+                                            AppStrings.details,
                                             fontSize: SizeConfig.medium,
                                             fontWeight: FontWeight.w500,
                                             color: AppColors.black,
@@ -645,7 +645,7 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           CustomText(
-                            "Add More Details",
+                            AppStrings.addMoreDetails,
                             fontWeight: FontWeight.w600,
                           ),
                           GestureDetector(
@@ -669,7 +669,7 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
                       ),
                       SizedBox(height: SizeConfig.size30),
                       CustomBtn(
-                        title: 'Post Service',
+                        title: AppStrings.postService,
                         onTap: () => addServiceController.createServiceApi(
                             channelId: widget.channelId,
                             providerType: widget.providerType,
@@ -698,7 +698,7 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const CustomText("Timing", fontWeight: FontWeight.w500),
+            const CustomText(AppStrings.timing, fontWeight: FontWeight.w500),
             Obx(() => Row(
                   children: [
                     SizedBox(
@@ -712,7 +712,7 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
                         groupValue: addServiceController.isSpecial.value,
                         onChanged: (val) =>
                             addServiceController.isSpecial.value = val ?? false,
-                        title: const CustomText("Default", fontSize: 12),
+                        title: const CustomText(AppStrings.defaultTiming, fontSize: 12),
                       ),
                     ),
                     SizedBox(
@@ -726,7 +726,7 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
                         groupValue: addServiceController.isSpecial.value,
                         onChanged: (val) =>
                             addServiceController.isSpecial.value = val ?? true,
-                        title: const CustomText("Special", fontSize: 12),
+                        title: const CustomText(AppStrings.specialTiming, fontSize: 12),
                       ),
                     ),
                   ],
@@ -741,7 +741,7 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
           children: [
             Expanded(
               child: Obx(() => _buildDropdown(
-                    hint: "Start Time",
+                    hint: AppStrings.startTime,
                     value: addServiceController.startTime.value,
                     items: addServiceController.timeSlots,
                     onChanged: (val) =>
@@ -751,7 +751,7 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
             SizedBox(width: SizeConfig.size10),
             Expanded(
               child: Obx(() => _buildDropdown(
-                    hint: "End Time",
+                    hint: AppStrings.endTime,
                     value: addServiceController.endTime.value,
                     items: addServiceController.timeSlots,
                     onChanged: (val) =>
@@ -804,7 +804,7 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const CustomText("Price", fontWeight: FontWeight.w500),
+              const CustomText(AppStrings.price, fontWeight: FontWeight.w500),
               Row(
                 children: [
                   SizedBox(
@@ -818,7 +818,7 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
                       onChanged: (val) =>
                           addServiceController.isRange.value = val ?? false,
                       title: CustomText(
-                        "Fixed",
+                        AppStrings.fixedPrice,
                         fontSize: 12,
                       ),
                     ),
@@ -833,7 +833,7 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
                       groupValue: addServiceController.isRange.value,
                       onChanged: (val) =>
                           addServiceController.isRange.value = val ?? true,
-                      title: CustomText("Range", fontSize: 12),
+                      title: CustomText(AppStrings.rangePrice, fontSize: 12),
                     ),
                   ),
                 ],
@@ -847,7 +847,7 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
                       child: CommonTextField(
                         contentPadding:
                             EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-                        hintText: "Min - ₹300",
+                        hintText: "${AppStrings.min} - ₹300",
                         textEditController: addServiceController.minPriceCtrl,
                         keyBoardType: TextInputType.number,
                         validator: (value) => ValidationMethod()
@@ -860,7 +860,7 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
                       child: CommonTextField(
                         contentPadding:
                             EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-                        hintText: "Max - ₹800",
+                        hintText: "${AppStrings.max} - ₹800",
                         textEditController: addServiceController.maxPriceCtrl,
                         keyBoardType: TextInputType.number,
                         validator: (value) => ValidationMethod()
@@ -873,16 +873,16 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
               : CommonTextField(
                   contentPadding:
                       EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-                  hintText: "E.g. ₹300",
+                  hintText: AppStrings.egRs300,
                   textEditController: addServiceController.priceCtrl,
                   keyBoardType: TextInputType.number,
                   validator: addServiceController.validateAmount,
                 ),
           SizedBox(height: SizeConfig.size20),
           CommonTextField(
-            title: " Per (Unit)",
+            title: AppStrings.perUnit,
             // contentPadding: EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-            hintText: "E.g. ₹-Per Service, Hours, Course...",
+            hintText: AppStrings.hintPerUnit,
             textEditController: addServiceController.perUnitCtrl,
             regularExpression: RegularExpressionUtils.alphabetPatternSpace,
             maxLength: 10,
@@ -900,7 +900,7 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
         Obx(() => Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const CustomText("Discount", fontWeight: FontWeight.w400),
+                const CustomText(AppStrings.discount, fontWeight: FontWeight.w400),
                 SizedBox(
                   height: SizeConfig.size8,
                 ),
@@ -919,7 +919,7 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
                         child: ListTile(
                           contentPadding: EdgeInsets.zero,
                           title: CustomText(
-                            "Discount Coupon",
+                            AppStrings.discountCoupon,
                             fontFamily: "Arial",
                           ),
                           trailing: const Icon(CupertinoIcons.chevron_forward),
@@ -1110,7 +1110,7 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
 
   Future<void> showAddMoreDetailsDialog(BuildContext context) async {
     if (addServiceController.detailsList.length == 5) {
-      commonSnackBar(message: 'You can\'t add more than five detail');
+      commonSnackBar(message: AppStrings.cantAddMoreThanFive);
       return;
     }
 
@@ -1141,7 +1141,7 @@ void showAddMoreDetailsDialog(BuildContext context) {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const CustomText(
-                "Add More Details",
+                AppStrings.addMoreDetails,
                 fontWeight: FontWeight.w600,
                 fontSize: 16,
               ),
@@ -1151,8 +1151,8 @@ void showAddMoreDetailsDialog(BuildContext context) {
               CommonTextField(
                 contentPadding:
                     const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-                title: "Title",
-                hintText: "e.g. Size",
+                title: AppStrings.title,
+                hintText: AppStrings.egSize,
                 textEditController: titleCtrl,
               ),
               const SizedBox(height: 16),
@@ -1161,8 +1161,8 @@ void showAddMoreDetailsDialog(BuildContext context) {
               CommonTextField(
                 contentPadding:
                     const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-                title: "Details",
-                hintText: "e.g. Wireless Earbuds Box",
+                title: AppStrings.details,
+                hintText: AppStrings.egWirelessEarbudsBox,
                 textEditController: detailsCtrl,
               ),
               const SizedBox(height: 24),
@@ -1282,8 +1282,8 @@ void showDiscountCouponDialog(BuildContext context) {
                       CommonTextField(
                         contentPadding: const EdgeInsets.symmetric(
                             vertical: 14, horizontal: 12),
-                        title: "Coupon Name",
-                        hintText: "e.g. FLYDEAL",
+                        title: AppStrings.couponName,
+                        hintText: AppStrings.egCouponName,
                         textEditController: couponNameCtrl,
                         validator: validateCouponName,
                         maxLength: 30,
@@ -1295,9 +1295,9 @@ void showDiscountCouponDialog(BuildContext context) {
                       CommonTextField(
                         contentPadding: const EdgeInsets.symmetric(
                             vertical: 14, horizontal: 12),
-                        title: "Description / Terms And Condition",
+                        title: AppStrings.descriptionTerms,
                         hintText:
-                            "Horem ipsum dolor sit amet, consectetur adipiscing...",
+                            AppStrings.hintDescriptionTerms,
                         textEditController: descriptionCtrl,
                         validator: validateDescription,
                         maxLength: 200,
@@ -1309,8 +1309,8 @@ void showDiscountCouponDialog(BuildContext context) {
                       CommonTextField(
                         contentPadding: const EdgeInsets.symmetric(
                             vertical: 14, horizontal: 12),
-                        title: "Code Name (Optional)",
-                        hintText: "e.g. FLYDEAL",
+                        title: AppStrings.codeNameOptional,
+                        hintText: AppStrings.egCouponName,
                         textEditController: codeNameCtrl,
                         isValidate: false,
                       ),
@@ -1321,7 +1321,7 @@ void showDiscountCouponDialog(BuildContext context) {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const CustomText(
-                            "Total Off",
+                            AppStrings.totalOff,
                             fontWeight: FontWeight.w500,
                           ),
                           Row(
@@ -1340,7 +1340,7 @@ void showDiscountCouponDialog(BuildContext context) {
                                         horizontal: -4, vertical: -4),
                                   ),
                                   const CustomText(
-                                    "In Rupees",
+                                    AppStrings.inRupees,
                                     fontSize: 12,
                                   ),
                                 ],
@@ -1360,7 +1360,7 @@ void showDiscountCouponDialog(BuildContext context) {
                                         horizontal: -4, vertical: -4),
                                   ),
                                   const CustomText(
-                                    "In Percentage",
+                                    AppStrings.inPercentage,
                                     fontSize: 12,
                                   ),
                                 ],
@@ -1376,7 +1376,7 @@ void showDiscountCouponDialog(BuildContext context) {
                         contentPadding: const EdgeInsets.symmetric(
                             vertical: 14, horizontal: 12),
                         hintText:
-                            selectedType == "rupees" ? "e.g. 300" : "e.g. 10%",
+                            selectedType == "rupees" ? AppStrings.egRs300 : AppStrings.egPer10,
                         textEditController: totalOffCtrl,
                         validator: (value) =>
                             validateTotalOff(value, selectedType),
@@ -1416,12 +1416,12 @@ void showDiscountCouponDialog(BuildContext context) {
                                   .addCoupon(coupon);
 
                               Get.back();
-                              Get.snackbar("Success", "Coupon saved!");
+                              Get.snackbar(AppStrings.success, AppStrings.couponSaved);
 
                             }
                           },
                           child: const CustomText(
-                            "Save",
+                            AppStrings.save,
                             color: Colors.white,
                             fontWeight: FontWeight.w600,
                             fontSize: 16,

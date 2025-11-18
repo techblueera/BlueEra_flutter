@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
@@ -73,8 +74,8 @@ class _SkipVariantDialogState extends State<SkipVariantDialog> {
                 CommonTextField(
                   contentPadding:
                   EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-                  title: 'Product MRP',
-                  hintText: "E.g. - ₹1500",
+                  title: AppStrings.productMrp,
+                  hintText: AppStrings.exampleMrp,
                   textEditController: productMrpController,
                   keyBoardType: TextInputType.number,
                   validator: (value) => ValidationMethod().validatePrice(
@@ -90,8 +91,8 @@ class _SkipVariantDialogState extends State<SkipVariantDialog> {
                 CommonTextField(
                   contentPadding:
                   EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-                  title: 'Product Price',
-                  hintText: 'E.g. - ₹800',
+                  title: AppStrings.productPrice,
+                  hintText: AppStrings.examplePrice,
                   textEditController: productPriceController,
                   keyBoardType: TextInputType.number,
                   validator: (value) => ValidationMethod().validatePrice(
@@ -107,8 +108,8 @@ class _SkipVariantDialogState extends State<SkipVariantDialog> {
                 Obx(() =>
                     CustomText(
                       discountPercent.value > 0
-                          ? "Discount: ${discountPercent.value.toStringAsFixed(2)}%"
-                          : "Discount: 0%",
+                          ? "${AppStrings.discount}: ${discountPercent.value.toStringAsFixed(2)}%"
+                          : "${AppStrings.discount}: 0%",
                       fontSize: SizeConfig.medium,
                       fontWeight: FontWeight.w500,
                       color: AppColors.primaryColor,
@@ -139,7 +140,7 @@ class _SkipVariantDialogState extends State<SkipVariantDialog> {
                 // ),
                 SizedBox(height: SizeConfig.size16),
                 CustomBtn(
-                  title: 'Publish',
+                  title: AppStrings.publish,
                   onTap: () {
                     if (formKey.currentState!.validate()) {
                       widget.controller.addProductsInListing(

@@ -16,7 +16,7 @@ import 'package:BlueEra/features/common/reel/controller/channel_controller.dart'
 import 'package:BlueEra/features/common/reel/models/channel_model.dart';
 import 'package:BlueEra/features/common/reel/view/channel/channel_products_listing.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/profile_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/service/view_service_list.dart';
+import 'package:BlueEra/features/common/service/view/view_service_list.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/widget/new_profile_header_widget.dart';

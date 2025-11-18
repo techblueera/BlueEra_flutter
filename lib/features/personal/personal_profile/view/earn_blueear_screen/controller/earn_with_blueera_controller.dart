@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/repo/inventory_repo.dart';
@@ -12,14 +13,12 @@ class EarnWithBlueEraController extends GetxController{
 
   RxInt selectedProductsServicesTabIndex = 0.obs;
   final List<String> productsServicesTab = [
-    "Self Work",
-    "Delivery Partner",
-    "Product",
-    "Food",
-    "Home Services",
-    "Rental Services",
-    // "Counselling/Consulting",
-    // "Tuition Classes",
+    AppStrings.selfWork,
+    AppStrings.deliveryPartner,
+    AppStrings.homeMadeProducts,
+    AppStrings.homeMadeFoodItems,
+    AppStrings.homeServices,
+    AppStrings.rentalServices,
   ];
   RxBool showGoLiveEnabled = false.obs;
 

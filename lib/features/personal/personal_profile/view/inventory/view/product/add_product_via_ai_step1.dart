@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
@@ -35,7 +36,7 @@ class _AddProductViaAiStep1State extends State<AddProductViaAiStep1> {
     return Scaffold(
       backgroundColor: AppColors.appBackgroundColor,
       appBar: CommonBackAppBar(
-          title: "Add Product Via AI",
+          title: AppStrings.addProductViaAI,
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(SizeConfig.size16),
@@ -48,14 +49,14 @@ class _AddProductViaAiStep1State extends State<AddProductViaAiStep1> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CustomText(
-                        'add product within 1 min via aI',
+                        AppStrings.addProductWithin1Min,
                         fontSize: SizeConfig.large,
                         fontWeight: FontWeight.w600,
                         color: AppColors.mainTextColor,
                       ),
                       SizedBox(height: SizeConfig.size20),
                       CustomText(
-                        'Upload product Images',
+                        AppStrings.uploadProductImages,
                         fontSize: SizeConfig.small,
                         fontWeight: FontWeight.w400,
                         color: AppColors.black28,
@@ -128,8 +129,8 @@ class _AddProductViaAiStep1State extends State<AddProductViaAiStep1> {
                       /// Product Name
                       CommonTextField(
                           textEditController: addProductViaAiController.productNameStep1Controller,
-                          hintText: 'e.g. t-shirt/mobile',
-                          title: "Product Name & Brand",
+                          title: AppStrings.productNameBrand,
+                          hintText: AppStrings.egTShirtMobile,
                           validator: ValidationMethod().validateProductName,
                           showLabel: true,
                           maxLength: 30,
@@ -141,10 +142,9 @@ class _AddProductViaAiStep1State extends State<AddProductViaAiStep1> {
                       /// Product Description
                       CommonTextField(
                           textEditController: addProductViaAiController.productDescriptionStep1Controller,
-                          hintText:
-                          "e.g. t-shirt/mens wear/shirt/cotton mix silk/casual wear",
+                          title: AppStrings.productDescSpec,
+                          hintText: AppStrings.hintProductDesc,
                           maxLine: 4,
-                          title: 'Product Description / Specification',
                           validator: ValidationMethod().validateProductDescription,
                           maxLength: 100,
                           isCounterVisible: true
@@ -155,7 +155,7 @@ class _AddProductViaAiStep1State extends State<AddProductViaAiStep1> {
                       CustomBtn(
                         title: addProductViaAiController.isLoading.value
                           ? null // hide text
-                          : 'Generate',
+                          : AppStrings.generate,
                         onTap: ()=> addProductViaAiController.onGenerate(
                             addProductViaAiController,
                             widget.id,
