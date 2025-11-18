@@ -1604,8 +1604,6 @@ class AppStrings {
   static const String professionChangeMsg   = 'professionChangeMsg';
   static const String allStepsSubmitted     = 'allStepsSubmitted';
 
-}
-
   ///BHAVESH START
   static const ownerDetail = "owner_detail";
   static const yourName = "your_name";
@@ -1646,7 +1644,6 @@ class AppStrings {
   static const categoryOfBusiness = "category_of_business";
   static const categoryOfBusinessService = "category_of_business_service";
   static const selectBusinessCategory = "select_business_category";
-  static const subCategory = "sub_category";
   static const selectSubCategory = "select_sub_category";
   static const businessSpecializationOptional = "business_specialization_optional";
   static const businessSpecializationHint = "business_specialization_hint";
@@ -1712,7 +1709,6 @@ class AppStrings {
 
   static const report = "report";
   static const reportThisProfile = "report_this_profile";
-  static const open = "open";
   static const inquiries = "inquiries";
   static const visitingCard = "visitingCard";
   static const noImageSelected = "noImageSelected";
@@ -1721,7 +1717,6 @@ class AppStrings {
   static const verifiedProfile = "verifiedProfile";
   static const uploadBusinessLogo  = "uploadBusinessLogo";
 
-  static const businessLocation = "businessLocation";
   static const pleaseEnterPinCode = "pleaseEnterPinCode";
   static const pleaseEnterAddress = "pleaseEnterAddress";
 
@@ -1738,7 +1733,6 @@ class AppStrings {
   static const enterValidIndianPincode = "enterValidIndianPincode";
   static const shortBusinessDescription = "shortBusinessDescription";
   static const businessDescriptionExample = "businessDescriptionExample";
-  static const skip = "skip";
   static const pleaseEnterValidLandline = "pleaseEnterValidLandline";
   static const gpsLocationNotFound = "gpsLocationNotFound";
 
