@@ -26,7 +26,6 @@ class _BusinessOwnProfileScreenState extends State<BusinessOwnProfileScreen> {
   void initState() {
     ///GET PROFILE API CALLING...
     viewProfileController.viewBusinessProfile();
-    viewProfileController.getAllCategories();
     super.initState();
   }
 
