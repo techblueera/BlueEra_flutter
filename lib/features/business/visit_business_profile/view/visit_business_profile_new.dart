@@ -1,5 +1,7 @@
+import 'package:BlueEra/core/api/model/tab_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/model/getAllProductDetailsModel.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
@@ -24,7 +26,6 @@ import '../../auth/controller/view_business_details_controller.dart';
 import '../../widgets/live_photos_of_business_widget.dart';
 import 'package:BlueEra/features/common/product_listing/view/standalone_product_screen.dart';
 
-
 class VisitBusinessProfileNew extends StatefulWidget {
   final String businessId;
   final String screenName;
@@ -45,7 +46,7 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
   final chatViewController = Get.put(ChatViewController());
 
   late VisitProfileController visitProfileController;
-  List<String> tabs = [];
+  // List<String> tabs = [];
   List<SortBy>? filters;
   SortBy selectedFilter = SortBy.Latest;
 
@@ -66,7 +67,6 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
   void dispose() {
     _tabController.dispose();
     super.dispose();
-
   }
 
   setFilters() {
@@ -75,7 +75,6 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: CommonBackAppBar(),
       body: GetBuilder<ViewBusinessDetailsController>(
@@ -87,19 +86,35 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
           if ((controller.viewBusinessResponseNew.status == Status.COMPLETE)) {
             final businessData = controller.visitedBusinessProfileDetails?.data;
 
-            final List<String> tabs = [
-              'Overview',
-              'Posts',
-              // 'Shorts',
-              // 'Video',
-              if(isShowProduct.contains(businessData?.typeOfBusiness?.toLowerCase())) 'Products',
-              if(isShowService.contains(businessData?.typeOfBusiness?.toLowerCase())) 'Service',
-              if(isShowFood.contains(businessData?.typeOfBusiness?.toLowerCase())) 'Foods'
+            // final List<String> tabs = [
+            //   'Overview',
+            //   'Posts',
+            //   if (isShowProduct
+            //       .contains(businessData?.typeOfBusiness?.toLowerCase()))
+            //     'Products',
+            //   if (isShowService
+            //       .contains(businessData?.typeOfBusiness?.toLowerCase()))
+            //     'Service',
+            //   if (isShowFood
+            //       .contains(businessData?.typeOfBusiness?.toLowerCase()))
+            //     'Foods'
+            // ];
+            List<TabItem> postTabs = [
+              TabItem(id: 'Overview', title: AppStrings.overview.tr),
+              TabItem(id: 'Posts', title: AppStrings.posts.tr),
+              if (isShowProduct
+                  .contains(businessData?.typeOfBusiness?.toLowerCase()))
+                TabItem(id: 'Products', title: AppStrings.tab_product.tr),
+              if (isShowService
+                  .contains(businessData?.typeOfBusiness?.toLowerCase()))
+                TabItem(id: 'Service', title: AppStrings.tab_service.tr),
+              if (isShowFood
+                  .contains(businessData?.typeOfBusiness?.toLowerCase()))
+                TabItem(id: 'Foods', title: AppStrings.food.tr),
             ];
 
-
             return DefaultTabController(
-              length: tabs.length,
+              length: postTabs.length,
               child: NestedScrollView(
                 headerSliverBuilder: (context, innerBoxIsScrolled) => [
                   SliverToBoxAdapter(
@@ -120,23 +135,23 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
                             // controller.getParticularRatingApi(data);
                           }
                         },
-                        tabs: tabs,
+                        tabs: postTabs.map((e) => e.title).toList(),
                         tabController: _tabController,
                       ),
                     ),
                   ),
-
                 ],
                 body: TabBarView(
                   controller: _tabController,
                   children: [
                     // overview tab
                     SingleChildScrollView(
-
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          SizedBox(height: SizeConfig.size10,),
+                          SizedBox(
+                            height: SizeConfig.size10,
+                          ),
                           // controller.userData.value?.user
 
                           RatingSummaryWidget(
@@ -179,24 +194,26 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
 
                             Container(
                               margin: EdgeInsets.symmetric(horizontal: 10),
-                              padding: const EdgeInsets.symmetric(horizontal: 10.0,vertical: 10),
-                              decoration: BoxDecoration(borderRadius: BorderRadius.circular(8),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10.0, vertical: 10),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
                                 color: Colors.white,
-
                               ),
-
-
                               child: Column(
                                 children: [
                                   SizedBox(
                                     height: SizeConfig.size6,
                                   ),
                                   Row(
-                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
                                     children: [
                                       LocalAssets(
-                                        height: 30,width: 30,
-                                        imagePath: AppIconAssets.locationOutlineIconGreyIcon,
+                                        height: 30,
+                                        width: 30,
+                                        imagePath: AppIconAssets
+                                            .locationOutlineIconGreyIcon,
                                         boxFix: BoxFit.cover,
                                       ),
                                       SizedBox(
@@ -204,7 +221,7 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
                                       ),
                                       Expanded(
                                         child: CustomText(
-                                          businessData?.address??'',
+                                          businessData?.address ?? '',
                                           fontSize: SizeConfig.size14,
                                           color: AppColors.mainTextColor,
                                           fontWeight: FontWeight.w400,
@@ -253,14 +270,18 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
                                   //   ],
                                   // ),
 
-                                  BusinessLocationWidget(locationText: businessData?.address,
-                                      latitude: (businessData?.businessLocation?.lat
+                                  BusinessLocationWidget(
+                                      locationText: businessData?.address,
+                                      latitude: (businessData
+                                              ?.businessLocation?.lat
                                               ?.toDouble() ??
                                           0.0),
-                                      longitude: (businessData?.businessLocation?.lon
+                                      longitude: (businessData
+                                              ?.businessLocation?.lon
                                               ?.toDouble() ??
                                           0.0),
-                                      businessName: businessData?.businessName ?? "",
+                                      businessName:
+                                          businessData?.businessName ?? "",
                                       padding: 0,
                                       isTitleShow: false),
                                 ],
@@ -320,26 +341,29 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
                     //   ],
                     // ),
 
-                    if(isShowProduct.contains(businessData?.typeOfBusiness?.toLowerCase()))
-                    StandaloneProductScreen(
-                      businessId: businessData?.id ?? "",
-                      isGrid: true,
-                      businessData: businessData,
-                    ),
+                    if (isShowProduct
+                        .contains(businessData?.typeOfBusiness?.toLowerCase()))
+                      StandaloneProductScreen(
+                        businessId: businessData?.id ?? "",
+                        isGrid: true,
+                        businessData: businessData,
+                      ),
 
-                    if(isShowService.contains(businessData?.typeOfBusiness?.toLowerCase()))
-                    StandaloneServiceScreen(
-                      businessId: businessData?.id ?? "",
-                      isGrid: true,
-                      businessData: businessData,
-                    ),
+                    if (isShowService
+                        .contains(businessData?.typeOfBusiness?.toLowerCase()))
+                      StandaloneServiceScreen(
+                        businessId: businessData?.id ?? "",
+                        isGrid: true,
+                        businessData: businessData,
+                      ),
 
-                    if(isShowFood.contains(businessData?.typeOfBusiness?.toLowerCase()))
-                    StandaloneFoodScreen(
-                      businessId: businessData?.id ?? "",
-                      isGrid: true,
-                      businessData: businessData,
-                    ),
+                    if (isShowFood
+                        .contains(businessData?.typeOfBusiness?.toLowerCase()))
+                      StandaloneFoodScreen(
+                        businessId: businessData?.id ?? "",
+                        isGrid: true,
+                        businessData: businessData,
+                      ),
                   ],
                 ),
               ),
@@ -358,7 +382,6 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
       ),
     );
   }
-
 
   // Widget buildRatingSummary({
   //   required double rating,
@@ -826,10 +849,9 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
           );
   }
 
-
   Widget postsTab({BusinessProfileDetails? data}) {
     return Padding(
-      padding:  EdgeInsets.only(top: SizeConfig.size10),
+      padding: EdgeInsets.only(top: SizeConfig.size10),
       child: FeedScreen(
         key: const ValueKey('feedScreen_others_posts'),
         postFilterType: PostType.otherPosts,

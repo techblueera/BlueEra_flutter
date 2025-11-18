@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -24,7 +25,8 @@ class RatingFeedbackDialog extends StatefulWidget {
 class _RatingFeedbackDialogState extends State<RatingFeedbackDialog> {
   int selectedRating = 0;
   final TextEditingController _feedbackController = TextEditingController();
-  final ViewBusinessDetailsController _ratingController = ViewBusinessDetailsController();
+  final ViewBusinessDetailsController _ratingController =
+      ViewBusinessDetailsController();
   bool _isSubmitting = false;
 
   String _getRatingImage(int index) {
@@ -86,13 +88,14 @@ class _RatingFeedbackDialogState extends State<RatingFeedbackDialog> {
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
-                     CustomText(
-                      (widget.reviewFor == AppConstants.business) ?
-                      'How would you rate this\nbusiness?' : 'How would you rate this\n user?',
-                        textAlign: TextAlign.center,
-                        fontSize: SizeConfig.large18,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.mainTextColor,
+                    CustomText(
+                      (widget.reviewFor == AppConstants.business)
+                          ? AppStrings.rateThisBusiness.tr
+                          : AppStrings.rateThisUser.tr,
+                      textAlign: TextAlign.center,
+                      fontSize: SizeConfig.large18,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.mainTextColor,
                     ),
                     const SizedBox(height: 16),
                     FittedBox(
@@ -107,7 +110,8 @@ class _RatingFeedbackDialogState extends State<RatingFeedbackDialog> {
                               });
                             },
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 10),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 10),
                               child: SvgPicture.asset(
                                 _getRatingImage(index),
                                 width: 40,
@@ -126,7 +130,7 @@ class _RatingFeedbackDialogState extends State<RatingFeedbackDialog> {
                     Align(
                       alignment: Alignment.centerLeft,
                       child: CustomText(
-                        'Write a Feedback (Optional)',
+                        AppStrings.writeFeedbackOptional,
                         fontSize: SizeConfig.small,
                         fontWeight: FontWeight.w400,
                         color: AppColors.mainTextColor,
@@ -135,14 +139,14 @@ class _RatingFeedbackDialogState extends State<RatingFeedbackDialog> {
                     const SizedBox(height: 10),
                     CommonTextField(
                       textEditController: _feedbackController,
-                      hintText: 'E.g. "Great service, quick\nresponse, highly recommended!"',
+                      hintText:
+                      AppStrings.feedbackExample,
                       isValidate: false,
                       maxLine: 4,
                       maxLength: 120,
                       isCounterVisible: true,
                     ),
                     const SizedBox(height: 16),
-
                     Row(
                       children: [
                         Expanded(
@@ -151,7 +155,7 @@ class _RatingFeedbackDialogState extends State<RatingFeedbackDialog> {
                             onTap: () {
                               Get.back();
                             },
-                            title: "Cancel",
+                            title: AppStrings.cancel,
                             textColor: AppColors.primaryColor,
                             isValidate: false,
                             bgColor: AppColors.white,
@@ -167,9 +171,9 @@ class _RatingFeedbackDialogState extends State<RatingFeedbackDialog> {
                             onTap: _isSubmitting
                                 ? null
                                 : () {
-                              _submitFeedback(widget.reviewFor);
-                            },
-                            title: "Submit",
+                                    _submitFeedback(widget.reviewFor);
+                                  },
+                            title: AppStrings.submit,
                             bgColor: AppColors.primaryColor,
                             borderColor: AppColors.primaryColor,
                             radius: 10.0,
@@ -177,7 +181,6 @@ class _RatingFeedbackDialogState extends State<RatingFeedbackDialog> {
                         ),
                       ],
                     )
-
                   ],
                 ),
               ),
@@ -190,10 +193,7 @@ class _RatingFeedbackDialogState extends State<RatingFeedbackDialog> {
 
   void _submitFeedback(String ratingFrom) async {
     if (selectedRating == 0) {
-      commonSnackBar(
-          message: "Please select a rating");
-
-
+      commonSnackBar(message: AppStrings.pleaseSelectRating);
       return;
     }
 

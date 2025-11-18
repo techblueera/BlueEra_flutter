@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/controller/location_controller.dart';
@@ -105,11 +106,9 @@ class _BusinessLocationBottomSheetState
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    "Business Location",
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                  CustomText(
+                    AppStrings.businessLocation,
+
                   ),
                   IconButton(
                     icon: const Icon(Icons.close),
@@ -129,7 +128,7 @@ class _BusinessLocationBottomSheetState
               TextButton(
                 onPressed: () =>  updateAddressFromLocation(),
                 child: CustomText(
-                  'Tap to fetch current business location',
+                  AppStrings.tapToFetchBusinessLocation,
                   fontSize: SizeConfig.small,
                   fontWeight: FontWeight.w600,
                   color: AppColors.primaryColor,
@@ -147,13 +146,13 @@ class _BusinessLocationBottomSheetState
               SizedBox(height: SizeConfig.size16),
               CommonTextField(
                 textEditController: picCodeController,
-                title: "Pin Code",
+                title: AppStrings.pincodeTitle,
                 keyBoardType: TextInputType.number,
               ),
               SizedBox(height: SizeConfig.size24),
 
               CustomBtn(
-                title: "Save",
+                title: AppStrings.save,
                 bgColor: AppColors.primaryColor,
                 radius: 10,
                 onTap: () {
@@ -185,11 +184,11 @@ class _BusinessLocationBottomSheetState
 
                   } else {
                   commonSnackBar(
-                     message: "Please Enter Pin Code");
+                     message:AppStrings.pleaseEnterPinCode);
                    }
                   } else {
                     commonSnackBar(
-                        message: "Please Enter address");
+                        message:AppStrings.pleaseEnterAddress);
                   }
                 },
               ),

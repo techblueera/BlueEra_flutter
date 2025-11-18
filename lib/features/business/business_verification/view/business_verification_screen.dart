@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/business_verification/view/widget/custom_dropdown_widget.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
@@ -11,6 +12,7 @@ import 'package:BlueEra/widgets/common_document_picker.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../../common/auth/views/dialogs/select_profile_picture_dialog.dart';
 
@@ -29,12 +31,11 @@ class _BusinessVerificationScreenState extends State<BusinessVerificationScreen>
 
   @override
   Widget build(BuildContext context) {
-    final appLocalizations = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: CommonBackAppBar(
           isLeading: true,
-          title: appLocalizations?.businessVerification
+          title: AppStrings.businessVerification
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -45,7 +46,7 @@ class _BusinessVerificationScreenState extends State<BusinessVerificationScreen>
                  Align(
                    alignment: Alignment.centerLeft,
                    child: CustomText(
-                     appLocalizations?.chooseWhatYouWantToVerify,
+                     AppStrings.chooseWhatToVerify,
                      fontSize: SizeConfig.large,
                      fontWeight: FontWeight.w700,
                    ),
@@ -58,8 +59,8 @@ class _BusinessVerificationScreenState extends State<BusinessVerificationScreen>
                    inputLength: AppConstants.inputCharterLimit50,
                    keyBoardType: TextInputType.text,
                    // regularExpression: RegularExpressionUtils.alphabetSpacePattern,
-                   title: appLocalizations?.enterGSTNumber,
-                   hintText: appLocalizations?.enterGSTNumber,
+                   title: AppStrings.enterGstNumber,
+                   hintText: AppStrings.enterGstNumber,
                    isValidate: false,
                    onChange: (value) => validateForm(),
                  ),
@@ -67,7 +68,7 @@ class _BusinessVerificationScreenState extends State<BusinessVerificationScreen>
                    height: SizeConfig.size25,
                  ),
                  CustomText(
-                   appLocalizations?.or,
+                   "Or",
                    fontSize: SizeConfig.extraLarge22,
                  ),
                  SizedBox(
@@ -75,11 +76,10 @@ class _BusinessVerificationScreenState extends State<BusinessVerificationScreen>
                  ),
                  // Document dropdown
                  CustomDropdownForDocumentType(
-                   title: appLocalizations?.chooseDocumentType,
-                   hint: appLocalizations?.selectADocumentType??"",
+                   title: AppStrings.chooseDocumentType.tr,
+                   hint: AppStrings.selectDocumentType.tr,
                    items: BusinessDocumentType.values,
                    onChanged: (value) {
-                     log('Selected or Typed: $value');
                      setState(() {
                        selectedDocument = value;
                        validateForm();
@@ -106,7 +106,7 @@ class _BusinessVerificationScreenState extends State<BusinessVerificationScreen>
                      onTap: () {
 
                      },
-                     title: appLocalizations?.verifyNow,
+                     title: AppStrings.verifyNow,
                      isValidate: validate
                  ),
                ],

@@ -1,10 +1,12 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
+import 'package:BlueEra/features/business/widgets/description_preview_widget.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/profile_controller.dart';
@@ -66,8 +68,6 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
 
   @override
   Widget build(BuildContext context) {
-    print('ssss${widget.businessProfileDetails.openTime}');
-    print('ssss${widget.businessProfileDetails.closeTime}');
     final open = widget.businessProfileDetails.openTime ?? "09:00 AM";
     final close = widget.businessProfileDetails.closeTime ?? "06:00 PM";
 
@@ -136,7 +136,7 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
 
                 children: [
 
-                  _buildActionButton("Chat", AppColors.white,
+                  _buildActionButton(AppStrings.chat.tr, AppColors.white,
                       AppColors.primaryColor,
                           true,
 
@@ -173,8 +173,8 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
                       }),
                   const SizedBox(width: 6),
                   _buildActionButton(controllerVisit.isFollow.value
-                      ? "Unfollow"
-                      : "Follow",
+                      ? AppStrings.unfollow.tr
+                      : AppStrings.follow.tr,
                       controllerVisit.isFollow.value?  AppColors.greylite:AppColors.primaryColor,
                       controllerVisit.isFollow.value? AppColors.secondaryTextColor:AppColors.white,
                           false,
@@ -232,19 +232,19 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
                               context: context,
                               builder: (_) =>
                                   AlertDialog(
-                                    title: const Text("Report"),
-                                    content: const Text("Report this profile?"),
+                                    title: const CustomText(AppStrings.report),
+                                    content: const CustomText(AppStrings.reportThisProfile),
                                     actions: [
                                       TextButton(
                                         onPressed: () => Navigator.pop(context),
-                                        child: const Text("Cancel"),
+                                        child: const CustomText(AppStrings.cancel),
                                       ),
                                       TextButton(
                                         onPressed: () {
                                           Navigator.pop(context);
                                           // Perform report action
                                         },
-                                        child: const Text("Report"),
+                                        child: const CustomText(AppStrings.report),
                                       ),
                                     ],
                                   ),
@@ -293,7 +293,7 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
                 ),
                 const SizedBox(width: 8),
                 _buildTag(
-                  isOpenNow ? "Open" : "Close",
+                  isOpenNow ? AppStrings.open.tr : AppStrings.close.tr,
                   bgColor: AppColors.white,
                   textColor: isOpenNow ? AppColors.greenShade : AppColors.redLite,
                 ),
@@ -311,7 +311,7 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
               padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
               child: DescriptionPreview(
                 text: widget.businessProfileDetails.businessDescription ?? '',
-                dialogTitle: "Business Description", // optional
+                dialogTitle: AppStrings.businessDescription.tr, // optional
               ),
             ),
 
@@ -345,13 +345,13 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      buildInfo("Rating",
+                      buildInfo(AppStrings.ratings.tr,
                           "★ ${(widget.businessProfileDetails.rating ?? 0)
                               .toStringAsFixed(1)}"),
                       SizedBox(
                         height: SizeConfig.size12,
                       ),
-                      buildInfo("Views",
+                      buildInfo(AppStrings.view.tr,
                           "${formatIndianNumber(
                               widget.businessProfileDetails.total_views ??
                                   0)}"),
@@ -385,7 +385,7 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-                          buildInfo("Inquiries", formatIndianNumber(0)),
+                          buildInfo(AppStrings.inquiries.tr, formatIndianNumber(0)),
                           SizedBox(
                             height: SizeConfig.size12,
                           ),
@@ -399,7 +399,7 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
                                           .userId ?? "",
                                     ));
                               },
-                              child: buildInfo("Followers",
+                              child: buildInfo(AppStrings.followers.tr,
                                   "${formatIndianNumber(
                                       controllerVisit.followerCount.value)}")),
                         ],
@@ -426,7 +426,7 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     CustomText(
-                      "Joined",
+                      AppStrings.joined,
                       fontSize: SizeConfig.size12,
                       color: AppColors.secondaryTextColor,
                       fontWeight: FontWeight.w700,
@@ -540,13 +540,10 @@ List<PopupMenuEntry<String>> popupMenuVisitProfileItemss() {
             width: SizeConfig.size20,
           ),
           const SizedBox(width: 8),
-          Text(
-            'Share',
-            style: TextStyle(
-              color: Colors.black87,
-              fontSize: 14,
+          CustomText(
+            AppStrings.share,
+
               fontWeight: FontWeight.w500,
-            ),
           ),
         ],
       ),
@@ -571,13 +568,10 @@ List<PopupMenuEntry<String>> popupMenuVisitProfileItemss() {
 
           const Icon(Icons.block_outlined, color: Colors.black54, size: 20),
           const SizedBox(width: 8),
-          Text(
-            'Report',
-            style: TextStyle(
-              color: Colors.black87,
-              fontSize: 14,
+          CustomText(
+            AppStrings.report,
+
               fontWeight: FontWeight.w500,
-            ),
           ),
         ],
       ),
@@ -620,139 +614,3 @@ Widget buildInfo(String title, String value) {
     ],
   );
 }
-
-class DescriptionPreview extends StatefulWidget {
-  final String text;
-  final String? dialogTitle;
-
-  const DescriptionPreview({
-    Key? key,
-    required this.text,
-    this.dialogTitle,
-  }) : super(key: key);
-
-  @override
-  State<DescriptionPreview> createState() => _DescriptionPreviewState();
-}
-
-class _DescriptionPreviewState extends State<DescriptionPreview> {
-  bool _expanded = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final maxChars = 120; // ~4 lines
-
-    final showMore = widget.text.length > maxChars;
-
-    final displayText = showMore && !_expanded
-        ? "${widget.text.substring(0, maxChars)}..."
-        : widget.text;
-
-    return RichText(
-      text: TextSpan(
-        style: TextStyle(
-          fontSize: SizeConfig.medium,
-          color: Colors.black,
-          fontFamily: AppConstants.OpenSans,
-        ),
-        children: [
-          TextSpan(text: displayText),
-
-          if (showMore && !_expanded)
-            TextSpan(
-              text: " Read more",
-              style: TextStyle(
-                color: AppColors.primaryColor,
-                fontWeight: FontWeight.w600,
-              ),
-              recognizer: TapGestureRecognizer()
-                ..onTap = () {
-                  _showFullTextDialog(context, TextStyle());
-                },
-            ),
-        ],
-      ),
-    );
-  }
-
-  void _showFullTextDialog(BuildContext context, TextStyle style) {
-    showDialog(
-      context: context,
-      builder: (_) =>
-          Dialog(
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16)),
-            insetPadding: EdgeInsets.symmetric(horizontal: 18, vertical: 18),
-            child: Container(
-              padding: EdgeInsets.all(SizeConfig.size16),
-              constraints: BoxConstraints(
-                maxWidth: MediaQuery
-                    .of(context)
-                    .size
-                    .width * 0.92,
-                // ⬇️ height expands naturally but limits only when too tall
-                maxHeight: MediaQuery
-                    .of(context)
-                    .size
-                    .height * 0.85,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                // 🔹 dynamic height based on content
-                children: [
-                  CustomText(
-                    widget.dialogTitle ?? 'Business Description',
-                    fontSize: SizeConfig.large18,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.mainTextColor,
-                  ),
-
-                  SizedBox(height: SizeConfig.size10),
-
-                  Flexible(
-                    child: SingleChildScrollView(
-                      physics: BouncingScrollPhysics(),
-                      child: HighlightText(
-                        text: widget.text,
-                        style: TextStyle(
-                          color: AppColors.mainTextColor,
-                          fontSize: SizeConfig.large,
-                          fontWeight: FontWeight.w400,
-                          fontFamily: AppConstants.OpenSans,
-                          height: 1.30,
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // ⬇️ Reduced gap to minimize bottom space
-                  SizedBox(height: SizeConfig.size4),
-
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: Padding(
-                      padding: EdgeInsets.only(bottom: 4),
-                      // 🔹 small bottom padding
-                      child: TextButton(
-                        style: ButtonStyle(
-                          padding: WidgetStateProperty.all(EdgeInsets.zero),
-                        ),
-                        onPressed: () => Navigator.pop(context),
-                        child: CustomText(
-                          'Close',
-                          fontWeight: FontWeight.w600,
-                          fontSize: SizeConfig.medium15,
-                          color: AppColors.primaryColor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-    );
-  }
-}
-

@@ -80,12 +80,8 @@ class _CustomDropdownForDocumentTypeState extends State<CustomDropdownForDocumen
     RenderBox renderBox = context.findRenderObject() as RenderBox;
     var size = renderBox.size;
     var offset = renderBox.localToGlobal(Offset.zero);
-    log("size is--> $size");
-    log("offset is--> $offset");
-    log("_selectedItem is--> $_selectedItem");
 
     if(_selectedItem == BusinessDocumentType.otherGovtLicense){
-      log("inside this");
       _showTextField.value = true;
     }
 

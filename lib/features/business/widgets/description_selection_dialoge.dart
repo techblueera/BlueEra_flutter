@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/business_description/business_description_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -25,7 +26,7 @@ import 'package:get/get.dart';
           return const Padding(
             padding: EdgeInsets.all(24),
             child: CustomText(
-              "No descriptions yet. Generate to see suggestions.",
+              AppStrings.noDescriptionsYet,
               textAlign: TextAlign.center,
             ),
           );
@@ -37,7 +38,7 @@ import 'package:get/get.dart';
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const CustomText("Select a Description",
+              const CustomText(AppStrings.selectDescription,
                   fontSize: 18, fontWeight: FontWeight.w600),
               const SizedBox(height: 12),
 
@@ -104,7 +105,7 @@ import 'package:get/get.dart';
                 children: [
                   TextButton(
                     onPressed: () => Get.back(),
-                    child: const CustomText("Cancel"),
+                    child: const CustomText(AppStrings.cancel),
                   ),
                   const SizedBox(width: 8),
                   ElevatedButton(
@@ -129,7 +130,7 @@ import 'package:get/get.dart';
                           borderRadius: BorderRadius.circular(10)),
                     ),
                     child: const CustomText(
-                      "Submit",
+                      AppStrings.submit,
                       color: AppColors.white,
                     ),
                   ),

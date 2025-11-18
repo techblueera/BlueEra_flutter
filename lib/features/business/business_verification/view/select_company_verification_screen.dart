@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
@@ -23,12 +24,11 @@ class _SelectCompanyVerificationScreenState extends State<SelectCompanyVerificat
 
   @override
   Widget build(BuildContext context) {
-    final appLocalizations = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: CommonBackAppBar(
         isLeading: true,
-        title: appLocalizations?.businessVerification
+        title: AppStrings.businessVerification
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -45,7 +45,7 @@ class _SelectCompanyVerificationScreenState extends State<SelectCompanyVerificat
                 Align(
                   alignment: Alignment.centerLeft,
                   child: CustomText(
-                    appLocalizations?.chooseWhatYouWantToVerify,
+                    AppStrings.chooseWhatYouWantToVerify,
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
                   ),
@@ -59,10 +59,10 @@ class _SelectCompanyVerificationScreenState extends State<SelectCompanyVerificat
                       });
                     },
                     isSelected: (verificationType == VerificationType.business) ? true : false,
-                    title: appLocalizations!.businessVerification,
-                    heading: appLocalizations.verifyYourBusinessDetailsUsingGst,
-                    descriptionOne: appLocalizations.confirmsYourBusinessIsRegistered,
-                    descriptionTwo: appLocalizations.requiredGstOrLicenseCertificate
+                    title: AppStrings.businessVerification,
+                    heading: AppStrings.verifyYourBusinessDetailsUsingGst,
+                    descriptionOne: AppStrings.confirmsYourBusinessIsRegistered,
+                    descriptionTwo: AppStrings.requiredGstOrLicenseCertificate
                 ),
                 SizedBox(height: SizeConfig.size12),
                 _buildVerificationCard(
@@ -72,10 +72,10 @@ class _SelectCompanyVerificationScreenState extends State<SelectCompanyVerificat
                       });
                     },
                     isSelected: (verificationType == VerificationType.ownership) ? true : false,
-                    title: appLocalizations.ownershipVerification,
-                    heading: appLocalizations.verifyThatYouAreTheOwnerOfTheBusiness,
-                    descriptionOne: appLocalizations.confirmsYourIdentityAsTheBusinessOwner,
-                    descriptionTwo: appLocalizations.requiredAadhaarVoterIdOrSimilar
+                    title: AppStrings.ownershipVerification,
+                    heading: AppStrings.verifyYouAreOwner,
+                    descriptionOne: AppStrings.confirmsYourIdentityAsBusinessOwner,
+                    descriptionTwo: AppStrings.requiredAadhaarVoterIdOrSimilar
                 ),
                 SizedBox(height: SizeConfig.size20),
 
@@ -91,7 +91,7 @@ class _SelectCompanyVerificationScreenState extends State<SelectCompanyVerificat
                         }
                       }
                     },
-                    title: appLocalizations.verifyNow,
+                    title: AppStrings.verifyNow,
                     isValidate: (verificationType != null) ? true : false
                 ),
 
