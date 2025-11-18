@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
@@ -28,13 +29,13 @@ class _PersonalIdentificationRidingScreenState extends State<PersonalIdentificat
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Personal Identification",
+        title: AppStrings.personalIdentification,
         // onBackTap: onBackPressed,
         buildCustomWidget: ()=> Padding(
           padding: const EdgeInsets.only(right: 16),
           child: Center(
             child: Text(
-              "Step-3/6",
+              "${AppStrings.stepLabel}3/6",
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
@@ -58,7 +59,7 @@ class _PersonalIdentificationRidingScreenState extends State<PersonalIdentificat
                           children: [
                             Expanded(
                               child: CustomText(
-                                'Upload Your Live Photo',
+                                AppStrings.uploadYourLivePhoto,
                                 fontSize: SizeConfig.small,
                                 color: AppColors.mainTextColor,
                                 fontWeight: FontWeight.w400,
@@ -67,7 +68,7 @@ class _PersonalIdentificationRidingScreenState extends State<PersonalIdentificat
                             Padding(
                               padding: EdgeInsets.only(left: SizeConfig.size8),
                               child: CustomText(
-                                  "Min-${controller.maxLiveUploadImages} Images",
+                                  '${AppStrings.minLabel}${controller.maxLiveUploadImages} ${AppStrings.images}',
                                   // "Min-$minImages Images/Max-${maxImages}Images",
                                   fontSize: SizeConfig.medium,
                                   color: AppColors.mainTextColor,
@@ -161,18 +162,18 @@ class _PersonalIdentificationRidingScreenState extends State<PersonalIdentificat
                         /// Aadhar
                         CommonTextField(
                           textEditController: controller.aadharController,
-                          title: 'Aadhar Number',
+                          title: AppStrings.aadharNumber,
                           fontSize: SizeConfig.small,
                           fontWeight: FontWeight.w400,
                           titleColor: AppColors.mainTextColor,
-                          hintText: "E.g. 23333....",
+                          hintText: AppStrings.eg23333,
                           keyBoardType: TextInputType.number,
                           validator: ValidationMethod.validateAadhaar,
                           maxLength: 12,
                         ),
                         SizedBox(height: SizeConfig.paddingM),
                         CustomText(
-                          'Upload Aadhar (Both Side)',
+                          AppStrings.uploadAadharBothSide,
                           fontSize: SizeConfig.small,
                           color: AppColors.mainTextColor,
                           fontWeight: FontWeight.w400,
@@ -182,7 +183,7 @@ class _PersonalIdentificationRidingScreenState extends State<PersonalIdentificat
                           children: [
                             Expanded(
                               child: CommonImageUploadTile(
-                                title: 'Aadhar Front',
+                                title: AppStrings.aadharFront,
                                 imageFile: controller.aadharFrontImage,
                                 context: context,
                                 onImageSelected: () async {
@@ -197,7 +198,7 @@ class _PersonalIdentificationRidingScreenState extends State<PersonalIdentificat
                             Expanded(
                               child:
                               CommonImageUploadTile(
-                                title: 'Aadhar Back',
+                                title: AppStrings.aadharBack,
                                 imageFile: controller.aadharBackImage,
                                 context: context,
                                 onImageSelected: () async {
@@ -222,11 +223,11 @@ class _PersonalIdentificationRidingScreenState extends State<PersonalIdentificat
                         /// Pan Number
                         CommonTextField(
                           textEditController: controller.panNumberController,
-                          title: 'Pan Number',
+                          title: AppStrings.panNumber,
                           fontSize: SizeConfig.small,
                           fontWeight: FontWeight.w400,
                           titleColor: AppColors.mainTextColor,
-                          hintText: "E.g. ABCDE12....",
+                          hintText: AppStrings.egABCDE12,
                           keyBoardType: TextInputType.text,
                           validator: ValidationMethod.validatePAN,
                           isCapitalize: true,
@@ -234,14 +235,14 @@ class _PersonalIdentificationRidingScreenState extends State<PersonalIdentificat
                         ),
                         SizedBox(height: SizeConfig.paddingM),
                         CustomText(
-                          'Upload Pan',
+                          AppStrings.uploadPan,
                           fontSize: SizeConfig.small,
                           color: AppColors.mainTextColor,
                           fontWeight: FontWeight.w400,
                         ),
                         SizedBox(height: SizeConfig.size8),
                         CommonImageUploadTile(
-                          title: 'Upload Pan',
+                          title: AppStrings.uploadPan,
                           imageFile: controller.panCardImage,
                           context: context,
                           onImageSelected: () async {
@@ -258,7 +259,7 @@ class _PersonalIdentificationRidingScreenState extends State<PersonalIdentificat
                 CustomBtn(
                   title: controller.isRiderPersonalIdentificationLoading.value
                       ? null
-                      : 'Next',
+                      : AppStrings.nextButton,
                   onTap: ()=> controller.ridersOnboardingPersonalIdentificationApi(),
                   radius: 10.0,
                   bgColor: AppColors.primaryColor,

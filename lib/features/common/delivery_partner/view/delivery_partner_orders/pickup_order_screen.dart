@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_orders_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/order_card.dart';
@@ -7,7 +8,6 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '../../../../../core/api/apiService/api_response.dart';
 import '../../../../../core/constants/app_enum.dart';
 import '../../../../chat/auth/model/rider_orders_details_model.dart';
@@ -113,7 +113,7 @@ class _PickupOrderScreenState extends State<PickupOrderScreen> {
     return
       ordersList.isEmpty
         ? Center(
-      child: CustomText("No Orders Found"),
+      child: CustomText(AppStrings.noOrdersFound),
     )
         : ListView.builder(
         itemCount: ordersList.length,
@@ -131,23 +131,4 @@ class _PickupOrderScreenState extends State<PickupOrderScreen> {
         });
   }
 
-  // Widget _buildCancelled(List<RiderOrdersDetailsModel> ordersList) {
-  //   return ordersList.isEmpty
-  //       ? Center(
-  //     child: CustomText("No Orders Found"),
-  //   )
-  //       : ListView.builder(
-  //       itemCount: ordersList.length,
-  //       padding: EdgeInsets.only(
-  //           top: SizeConfig.size10,
-  //           bottom: kBottomNavigationBarHeight + SizeConfig.size40,
-  //           left: SizeConfig.size15,
-  //           right: SizeConfig.size15),
-  //       itemBuilder: (context, index) {
-  //         RiderOrdersDetailsModel rider = ordersList[index];
-  //         return OrderCard(
-  //             order: rider,
-  //             selectedPickUp: controller.selectedPickUp.value);
-  //       });
-  // }
 }

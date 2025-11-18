@@ -6,7 +6,7 @@ import 'package:BlueEra/features/common/delivery_partner/view/delivery_partner_o
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/controller/earn_with_blueera_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/foodandgrocery/food_and_grocery_screen.dart';
+import 'package:BlueEra/features/common/food/view/food_and_grocery_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/service/view_service_list.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/own_product_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/view/rental_service_screen.dart';

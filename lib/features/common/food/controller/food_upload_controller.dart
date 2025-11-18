@@ -18,7 +18,7 @@ import 'package:flutter/material.dart';
 import 'package:dio/dio.dart' as dio;
 import '../../../../core/constants/app_strings.dart';
 import '../../../../widgets/uploading_progressing_dialog.dart';
-import '../../../personal/personal_profile/view/inventory/add_food/add_food_screen.dart';
+import '../view/add_food_screen.dart';
 import '../../reel/repo/channel_repo.dart';
 import '../model/get_food_details_model.dart';
 import '../model/upload_food_load_url_model.dart';

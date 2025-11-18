@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -65,10 +66,10 @@ class _AddHighlightsWidgetState extends State<AddHighlightsWidget> {
 
     if (highlights.length > 10) {
       Get.snackbar(
-        'Limit Exceeded',
-        'You can add up to 10 highlights only.',
+        AppStrings.limitExceeded,
+        AppStrings.highlightLimitMessage,
         snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.withOpacity(0.8),
+        backgroundColor: Colors.red.withValues(alpha: 0.8),
         colorText: Colors.white,
         margin: const EdgeInsets.all(12),
         borderRadius: 8,
@@ -105,7 +106,7 @@ class _AddHighlightsWidgetState extends State<AddHighlightsWidget> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomText(
-                    'Add Highlights',
+                  AppStrings.addHighlightsTitle,
                     fontSize: SizeConfig.small,
                     fontWeight: FontWeight.w400,
                     color: AppColors.mainTextColor,
@@ -123,7 +124,7 @@ class _AddHighlightsWidgetState extends State<AddHighlightsWidget> {
                           Expanded(
                             child: CommonTextField(
                               textEditController: _controllers[index],
-                              hintText: 'E.g. 2 peoples',
+                              hintText: AppStrings.hintHighlightsExample,
                               isValidate: true,
                             ),
                           ),
@@ -148,7 +149,7 @@ class _AddHighlightsWidgetState extends State<AddHighlightsWidget> {
                         imagePath: AppIconAssets.addBlueIcon,
                       ),
                       CustomText(
-                        'Add More',
+                        AppStrings.addMoreTitle,
                         fontSize: SizeConfig.large,
                         fontWeight: FontWeight.w400,
                         color: AppColors.primaryColor,
@@ -167,7 +168,7 @@ class _AddHighlightsWidgetState extends State<AddHighlightsWidget> {
                           borderRadius: BorderRadius.circular(10)),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
-                    child: const Text('Save',
+                    child: const Text(AppStrings.save,
                         style: TextStyle(fontSize: 16, color: Colors.white)),
                   ),
                 ),

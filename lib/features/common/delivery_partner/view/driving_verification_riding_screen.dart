@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
@@ -26,13 +27,13 @@ class _DrivingVerificationRidingScreenState extends State<DrivingVerificationRid
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Driving Verification",
+        title: AppStrings.drivingVerification,
         // onBackTap: onBackPressed,
         buildCustomWidget: ()=> Padding(
           padding: const EdgeInsets.only(right: 16),
           child: Center(
             child: Text(
-              "Step-4/6",
+              "${AppStrings.stepLabel}4/6",
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
@@ -54,11 +55,11 @@ class _DrivingVerificationRidingScreenState extends State<DrivingVerificationRid
                         /// RC
                         CommonTextField(
                           textEditController: controller.rcController,
-                          title: 'RC Number',
+                          title: AppStrings.rcNumber,
                           fontSize: SizeConfig.small,
                           fontWeight: FontWeight.w400,
                           titleColor: AppColors.mainTextColor,
-                          hintText: "E.g. UP32AB12....",
+                          hintText: AppStrings.egUP32AB12,
                           keyBoardType: TextInputType.text,
                           validator: ValidationMethod.validateRC,
                           isCapitalize: true,
@@ -66,7 +67,7 @@ class _DrivingVerificationRidingScreenState extends State<DrivingVerificationRid
                         ),
                         SizedBox(height: SizeConfig.paddingM),
                         CustomText(
-                          'Upload RC (Both Side)',
+                          AppStrings.uploadRcBothSide,
                           fontSize: SizeConfig.small,
                           color: AppColors.mainTextColor,
                           fontWeight: FontWeight.w400,
@@ -76,7 +77,7 @@ class _DrivingVerificationRidingScreenState extends State<DrivingVerificationRid
                           children: [
                             Expanded(
                               child: CommonImageUploadTile(
-                                title: 'RC Front',
+                                title: AppStrings.rcFront,
                                 imageFile: controller.rcFrontImage,
                                 context: context,
                                 onImageSelected: () async {
@@ -91,7 +92,7 @@ class _DrivingVerificationRidingScreenState extends State<DrivingVerificationRid
                             Expanded(
                               child:
                               CommonImageUploadTile(
-                                title: 'RC Back',
+                                title: AppStrings.rcBack,
                                 imageFile: controller.rcBackImage,
                                 context: context,
                                 onImageSelected: () async {
@@ -116,11 +117,11 @@ class _DrivingVerificationRidingScreenState extends State<DrivingVerificationRid
                       children: [
                         CommonTextField(
                           textEditController: controller.drivingLicenseController,
-                          title: 'Driving Licence Number',
+                          title: AppStrings.drivingLicenceNumber,
                           fontSize: SizeConfig.small,
                           fontWeight: FontWeight.w400,
                           titleColor: AppColors.mainTextColor,
-                          hintText: "E.g. DL0420110....",
+                          hintText: AppStrings.egDL0420110,
                           keyBoardType: TextInputType.text,
                           validator: ValidationMethod.validateDrivingLicense,
                           isCapitalize: true,
@@ -128,7 +129,7 @@ class _DrivingVerificationRidingScreenState extends State<DrivingVerificationRid
                         ),
                         SizedBox(height: SizeConfig.paddingM),
                         CustomText(
-                          'Upload Driving Licence (Both Side)',
+                          AppStrings.uploadDrivingLicenceBothSide,
                           fontSize: SizeConfig.small,
                           color: AppColors.mainTextColor,
                           fontWeight: FontWeight.w400,
@@ -138,7 +139,7 @@ class _DrivingVerificationRidingScreenState extends State<DrivingVerificationRid
                           children: [
                             Expanded(
                               child: CommonImageUploadTile(
-                                title: 'License Front',
+                                title: AppStrings.licenseFront,
                                 imageFile: controller.drivingLicenseFrontImage,
                                 context: context,
                                 onImageSelected: () async {
@@ -153,7 +154,7 @@ class _DrivingVerificationRidingScreenState extends State<DrivingVerificationRid
                             Expanded(
                               child:
                               CommonImageUploadTile(
-                                title: 'License Back',
+                                title: AppStrings.licenseBack,
                                 imageFile: controller.drivingLicenseBackImage,
                                 context: context,
                                 onImageSelected: () async {
@@ -174,7 +175,7 @@ class _DrivingVerificationRidingScreenState extends State<DrivingVerificationRid
                CustomBtn(
                   title: controller.isRiderDrivingVerificationLoading.value
                       ? null
-                      : 'Next',
+                      :  AppStrings.nextButton,
                   onTap: ()=> controller.ridersOnboardingDrivingVerificationApi(),              radius: 10.0,
                   bgColor: AppColors.primaryColor,
                   isLoading: controller.isRiderDrivingVerificationLoading.value,

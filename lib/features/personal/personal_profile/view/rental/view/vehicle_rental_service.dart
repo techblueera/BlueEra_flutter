@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -82,19 +83,19 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
       child: Obx(()=> Scaffold(
         appBar: CommonBackAppBar(
           title: controller.currentStep.value == 0
-              ? "Owner Details" :
+              ? AppStrings.ownerDetails :
                controller.currentStep.value == 1
-                     ?  "Vehicle Details"
+                     ?  AppStrings.vehicleDetails
                      : controller.currentStep.value == 2
-                           ? "Documents & Condition "
+                           ? AppStrings.documentsCondition
                                 : controller.currentStep.value == 3
-                                  ? "Rental Information" : "Vehicle  Images ",
+                                  ? AppStrings.rentalInformation : AppStrings.vehicleImages,
           onBackTap: controller.previousStep,
           buildCustomWidget: ()=> Padding(
                 padding: const EdgeInsets.only(right: 16),
                 child: Center(
                   child: Text(
-                    "Step-${controller.currentStep.value + 1}/${controller.totalSteps}",
+                    "${AppStrings.stepLabel}${controller.currentStep.value + 1}/${controller.totalSteps}",
                     style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
                 ),
@@ -144,9 +145,9 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                         textEditController: controller.ownerNameCtrl,
                         inputLength: AppConstants.inputCharterLimit50,
                         keyBoardType: TextInputType.text,
-                        title: "Owner Name",
+                        title: AppStrings.ownerName,
                         regularExpression: RegularExpressionUtils.alphabetSpacePattern,
-                        hintText: "E.g. Rahul Sharma....",
+                        hintText: AppStrings.egRahulSharma,
                         isValidate: true,
                       ),
                       SizedBox(height: SizeConfig.paddingM),
@@ -154,7 +155,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           CustomText(
-                            "Contact Number",
+                            AppStrings.contactNumber,
                             fontSize: SizeConfig.small,
                             fontWeight: FontWeight.w400,
                             color: AppColors.mainTextColor,
@@ -173,7 +174,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
 
                             },
                             child: CustomText(
-                              "Edit",
+                              AppStrings.edit,
                               fontSize: SizeConfig.small,
                               fontWeight: FontWeight.w600,
                               color: AppColors.primaryColor,
@@ -211,7 +212,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                               regularExpression:
                               RegularExpressionUtils.digitsPattern,
                               validationType: ValidationTypeEnum.pNumber,
-                              hintText: langController.tr('Enter your mobile number'),
+                              hintText: AppStrings.enterMobileNumber,
                               hintStyle: TextStyle(
                                 fontSize: langController.selectedCode.value == 'ta' ? 12 : 14,
                               ),
@@ -222,8 +223,8 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                       ),
                       SizedBox(height: SizeConfig.paddingM),
                       CommonTextField(
-                        title: "Email",
-                        hintText: "Enter your email address",
+                        title: AppStrings.email,
+                        hintText: AppStrings.enterYourEmailAddress,
                         textEditController: controller.emailCtrl,
                         validationType: ValidationTypeEnum.email,
                         onChange: (val) {
@@ -255,12 +256,12 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                                 } else {
                                   commonSnackBar(
                                       message:
-                                      'Please enter a valid email address');
+                                      AppStrings.pleaseEnterValidEmail);
                                 }
 
                               },
                               child: CustomText(
-                                'Get Verify',
+                                AppStrings.getVerify,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.primaryColor,
                               ),
@@ -274,8 +275,8 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                           Expanded(
                             child: CommonLocationSearchField(
                               controller: controller.locationCtrl,
-                              title: "Home Location",
-                              hintText: "E.g. Lucknow, Gomti Nagar...",
+                              title: AppStrings.homeLocation,
+                              hintText: AppStrings.egLucknowGomtiNagar,
                               onSelected: (placeId, lat, lng, address) async {
                                 print("PlaceId: $placeId Selected: $address → ($lat, $lng)");
                                 controller.locationCtrl.text = address;
@@ -330,11 +331,11 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                       SizedBox(height: SizeConfig.paddingM),
                       CommonTextField(
                         textEditController: controller.pinCodeCtrl,
-                        title: 'Pincode',
+                        title: AppStrings.pincodeTitle,
                         fontSize: SizeConfig.small,
                         fontWeight: FontWeight.w400,
                         titleColor: AppColors.mainTextColor,
-                        hintText: "E.g. 700045....",
+                        hintText: AppStrings.pincodeHint,
                         keyBoardType: TextInputType.number,
                         inputLength: AppConstants.inputCharterLimit6,
                         validator: ValidationMethod().validatePin,
@@ -343,17 +344,17 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                       CommonTextField(
                         textEditController: controller.landmarkCtrl,
                         inputLength: AppConstants.inputCharterLimit30,
-                        title: 'House No. and Land Mark ',
+                        title: AppStrings.houseNoAndLandMark,
                         fontSize: SizeConfig.small,
                         fontWeight: FontWeight.w400,
                         titleColor: AppColors.mainTextColor,
-                        hintText: "E.g. Flat 21B, Lake View Apartment....",
+                        hintText: AppStrings.egFlat21B,
                         keyBoardType: TextInputType.text,
                         isValidate: true,
                       ),
                       SizedBox(height: SizeConfig.paddingL),
                       CustomBtn(
-                        title: 'Next',
+                        title: AppStrings.nextButton,
                         onTap: controller.validateStepOne,
                         radius: 10.0,
                         bgColor: AppColors.primaryColor,
@@ -391,7 +392,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
               children:[
                 /// Registration Type
                 CustomText(
-                  "Registration Type",
+                  AppStrings.registrationType,
                   fontSize: SizeConfig.small,
                   fontWeight: FontWeight.w400,
                   color: AppColors.mainTextColor,
@@ -400,7 +401,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                 CommonDropdown<RentalVehicleRegistrationType>(
                   items: RentalVehicleRegistrationType.values,
                   selectedValue: controller.selectedVehicleRegistrationType.value,
-                  hintText: "E.g. Personal, Commercial, Commercial Goods....",
+                  hintText: AppStrings.egPersonalCommercial,
                   displayValue: (value) => value.displayName,
                   onChanged: (value) {
                     controller.selectedVehicleRegistrationType.value = value;
@@ -413,7 +414,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
 
                 /// Vehicle Type
                 CustomText(
-                  "Vehicle Type",
+                  AppStrings.vehicleType,
                   fontSize: SizeConfig.small,
                   fontWeight: FontWeight.w400,
                   color: AppColors.mainTextColor,
@@ -422,7 +423,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                 CommonDropdown<VehicleType>(
                   items: VehicleType.values,
                   selectedValue: controller.selectedVehicleType.value,
-                  hintText: "E.g. 'Two Wheeler', Three Wheeler....",
+                  hintText: AppStrings.egTwoThreeWheeler,
                   displayValue: (value) => value.displayName,
                   onChanged: (value) {
                     controller.selectedVehicleType.value = value;
@@ -435,8 +436,8 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
 
                 /// Vehicle Name
                 CommonTextField(
-                  title: "Vehicle Name",
-                  hintText: "E.g. SP125....",
+                  title: AppStrings.vehicleName,
+                  hintText: AppStrings.egSP125,
                   textEditController: controller.vehicleNameCtrl,
                   isValidate: true,
                 ),
@@ -444,7 +445,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
 
                 /// Fuel Type
                 CustomText(
-                  "Fuel Type",
+                  AppStrings.fuelType,
                   fontSize: SizeConfig.small,
                   fontWeight: FontWeight.w400,
                   color: AppColors.mainTextColor,
@@ -453,7 +454,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                 CommonDropdown<FuelType>(
                   items: FuelType.values,
                   selectedValue: controller.selectedFuelType.value,
-                  hintText: "E.g. Petrol, Diesel....",
+                  hintText: AppStrings.egPetrolDiesel,
                   displayValue: (value) => value.displayName,
                   onChanged: (value) {
                     controller.selectedFuelType.value = value;
@@ -466,8 +467,8 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
 
                 /// Vehicle Number
                 CommonTextField(
-                  title: "Vehicle Number",
-                  hintText: "E.g. Wb5454....",
+                  title: AppStrings.vehicleNumber,
+                  hintText: AppStrings.egWB5454,
                   textEditController: controller.vehicleRegistrationNumberCtrl,
                   validator: ValidationMethod.validateVehicleNumber,
                   isCapitalize: true,
@@ -476,8 +477,8 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                 SizedBox(height: SizeConfig.paddingM),
                 /// Vehicle Model
                 CommonTextField(
-                  title: "Vehicle Model (Year of Manufacturing)",
-                  hintText: "E.g. 2020",
+                  title: AppStrings.vehicleModelYearManufacturing,
+                  hintText: AppStrings.eg2020,
                   keyBoardType: TextInputType.number,
                   textEditController: controller.vehicleModelCtrl,
                   isValidate: true,
@@ -486,8 +487,8 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
 
                 if(controller.selectedVehicleRegistrationType != RentalVehicleRegistrationType.CommercialGoods)
                   CommonTextField(
-                    title: "Seating Capacity",
-                    hintText: "E.g. 10 People....",
+                    title: AppStrings.seatingCapacity,
+                    hintText: AppStrings.eg10People,
                     keyBoardType: TextInputType.number,
                     textEditController: controller.seatingCapacityCtrl,
                     isValidate: true,
@@ -499,7 +500,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                           CustomText(
-                            "Load Capacity",
+                            AppStrings.loadCapacity,
                             fontSize: SizeConfig.small,
                             fontWeight: FontWeight.w400,
                             color: AppColors.mainTextColor,
@@ -517,7 +518,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                                     activeColor: AppColors.primaryColor,
                                   ),
                                   CustomText(
-                                    "KG",
+                                    AppStrings.kg,
                                     color: AppColors.secondaryTextColor,
                                     fontWeight: FontWeight.w400,
                                     fontSize: SizeConfig.small,
@@ -536,7 +537,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                                     activeColor: AppColors.primaryColor,
                                   ),
                                   CustomText(
-                                    "TON",
+                                    AppStrings.ton,
                                     color: AppColors.secondaryTextColor,
                                     fontWeight: FontWeight.w400,
                                     fontSize: SizeConfig.small,
@@ -549,7 +550,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                       ),
                       SizedBox(height: SizeConfig.size8),
                       CommonTextField(
-                        hintText: "E.g. 100KG....",
+                        hintText: AppStrings.eg100KG,
                         keyBoardType: TextInputType.number,
                         textEditController: controller.loadCapacityCtrl,
                         isValidate: true,
@@ -559,7 +560,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
 
                 SizedBox(height: SizeConfig.paddingL),
                 CustomBtn(
-                  title: 'Next',
+                  title: AppStrings.nextButton,
                   onTap: controller.validateStepTwo,
                   radius: 10.0,
                   bgColor: AppColors.primaryColor,
@@ -589,11 +590,11 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                 /// RC
                 CommonTextField(
                   textEditController: controller.rcController,
-                  title: 'RC Number',
+                  title: AppStrings.rcNumber,
                   fontSize: SizeConfig.small,
                   fontWeight: FontWeight.w400,
                   titleColor: AppColors.mainTextColor,
-                  hintText: "E.g. UP32AB12....",
+                  hintText: AppStrings.egUP32AB12,
                   keyBoardType: TextInputType.text,
                   validator: ValidationMethod.validateRC,
                   isCapitalize: true,
@@ -601,7 +602,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                 ),
                 SizedBox(height: SizeConfig.paddingM),
                 CustomText(
-                  'Upload RC (Both Side)',
+                  AppStrings.uploadRcBothSide,
                   fontSize: SizeConfig.small,
                   color: AppColors.mainTextColor,
                   fontWeight: FontWeight.w400,
@@ -611,7 +612,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                   children: [
                     Expanded(
                       child: CommonImageUploadTile(
-                        title: 'RC Front',
+                        title: AppStrings.rcFront,
                         imageFile: controller.rcFrontImage,
                         context: context,
                         onImageSelected: () async {
@@ -626,7 +627,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                     Expanded(
                       child:
                       CommonImageUploadTile(
-                        title: 'RC Back',
+                        title: AppStrings.rcBack,
                         imageFile: controller.rcBackImage,
                         context: context,
                         onImageSelected: () async {
@@ -642,14 +643,14 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
 
                 SizedBox(height: SizeConfig.paddingM),
                 CustomText(
-                  'Insurance Document Upload',
+                  AppStrings.insuranceDocumentUpload,
                   fontSize: SizeConfig.small,
                   color: AppColors.mainTextColor,
                   fontWeight: FontWeight.w400,
                 ),
                 SizedBox(height: SizeConfig.size8),
                 CommonImageUploadTile(
-                  title: 'Insurance Document Upload',
+                  title: AppStrings.insuranceDocumentUpload,
                   imageFile: controller.insuranceImage,
                   context: context,
                   onImageSelected: () async {
@@ -662,14 +663,14 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
 
                 SizedBox(height: SizeConfig.paddingM),
                 CustomText(
-                  'Pollution Certificate Upload',
+                  AppStrings.pollutionCertificateUpload,
                   fontSize: SizeConfig.small,
                   color: AppColors.mainTextColor,
                   fontWeight: FontWeight.w400,
                 ),
                 SizedBox(height: SizeConfig.size8),
                 CommonImageUploadTile(
-                  title: 'Pollution Certificate Upload',
+                  title: AppStrings.pollutionCertificateUpload,
                   imageFile: controller.pucImage,
                   context: context,
                   onImageSelected: () async {
@@ -682,14 +683,14 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
 
                 SizedBox(height: SizeConfig.paddingM),
                 CustomText(
-                  'Fitness Certificate (for commercial use)',
+                  AppStrings.fitnessCertificateCommercial,
                   fontSize: SizeConfig.small,
                   color: AppColors.mainTextColor,
                   fontWeight: FontWeight.w400,
                 ),
                 SizedBox(height: SizeConfig.size8),
                 CommonImageUploadTile(
-                  title: 'Fitness Certificate (for commercial use)',
+                  title: AppStrings.fitnessCertificateCommercial,
                   imageFile: controller.vehicleFitnessCertificateImage,
                   context: context,
                   onImageSelected: () async {
@@ -705,9 +706,9 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                   textEditController: controller.vehicleDesCtrl,
                   inputLength: AppConstants.inputCharterLimit200,
                   keyBoardType: TextInputType.text,
-                  title: "Vehicle Condition Description",
+                  title: AppStrings.vehicleConditionDescription,
                   regularExpression: RegularExpressionUtils.alphabetSpacePattern,
-                  hintText: "E.g. Good Condition...",
+                  hintText: AppStrings.egGoodCondition,
                   validator: ValidationMethod().validateVehicleDescription,
                   maxLine: 3,
                   maxLength: 200,
@@ -715,7 +716,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
 
                 SizedBox(height: SizeConfig.paddingL),
                 CustomBtn(
-                  title: 'Next',
+                  title: AppStrings.nextButton,
                   onTap: controller.validateStepThree,
                   radius: 10.0,
                   bgColor: AppColors.primaryColor,
@@ -748,7 +749,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     CustomText(
-                      'Charges Type',
+                      AppStrings.chargesTypeTitle,
                       fontSize: SizeConfig.medium,
                       color: AppColors.mainTextColor,
                       fontWeight: FontWeight.w400,
@@ -760,7 +761,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                           child: CommonDropdown<ChargesTypes>(
                             items: ChargesTypes.values.toList(),
                             selectedValue: controller.selectedChargesTypes.value,
-                            hintText: "E.g. Hourly..",
+                            hintText: AppStrings.chargesTypeHint,
                             displayValue: (item) => item.label,
                             onChanged: (val) {
                               if (val != null) {
@@ -769,7 +770,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                             },
                               validator: (value){
                                 if(value==null){
-                                  return 'Please select charges type.';
+                                  return AppStrings.selectChargesTypeError;
                                 }
                                 return null;
                               }
@@ -782,7 +783,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                             fontSize: SizeConfig.small,
                             fontWeight: FontWeight.w400,
                             titleColor: AppColors.mainTextColor,
-                            hintText: "E.g. ₹2000",
+                            hintText: AppStrings.egRs2000,
                             keyBoardType: TextInputType.number,
                             isValidate: true,
                           ),
@@ -792,8 +793,8 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                     SizedBox(height: SizeConfig.paddingM),
                     CommonLocationSearchField(
                       controller: controller.pickUpLocationCtrl,
-                      title: "Pickup Location",
-                      hintText: "E.g. Subhas Palli, Gomti Nagar, luckn....",
+                      title: AppStrings.pickupLocation,
+                      hintText: AppStrings.egSubhasPalliGomtiNagar,
                       onSelected: (placeId, lat, lng, address) async {
                         print("PlaceId: $placeId Selected: $address → ($lat, $lng)");
                         controller.pickUpLocationCtrl.text = address;
@@ -865,7 +866,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                       SizedBox(height: SizeConfig.paddingL),
 
                       CustomBtn(
-                        title: 'Next',
+                        title: AppStrings.nextButton,
                         onTap: controller.validateStepFour,
                         radius: 10.0,
                         bgColor: AppColors.primaryColor,
@@ -896,12 +897,12 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
             GetBuilder<CommonMultipleImageSectionController>(
               id: CommonMultipleImageSectionController.vehicleNumberPlateImageId,
               builder: (ctrl) => CommonMultipleImageUploadSection(
-                title: 'Upload Vehicle Number Plate Image',
+                title: AppStrings.uploadVehicleNumberPlateImage,
                 maxImages: 1,
                 images: controller.vehicleNumberPlateImages,
                 onAddImage: () async {
                   multipleImageSectionController.addImages(
-                      label: 'Vehicle Number Plate Images',
+                      label: AppStrings.vehicleNumberPlateImages,
                       imageList: controller.vehicleNumberPlateImages,
                       updateId: CommonMultipleImageSectionController.vehicleNumberPlateImageId,
                       maxUploadImages: 1
@@ -922,13 +923,13 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
             GetBuilder<CommonMultipleImageSectionController>(
               id: CommonMultipleImageSectionController.vehicleRightSideImageId,
               builder: (ctrl) => CommonMultipleImageUploadSection(
-                title: 'Upload Vehicle Right Side Images',
+                title: AppStrings.uploadVehicleRightSideImages,
                 minImages: 2,
                 maxImages: controller.maxVehicleImageUpload,
                 images: controller.vehicleRightSideImages,
                 onAddImage: () async {
                   multipleImageSectionController.addImages(
-                      label: 'Vehicle Right Side Images',
+                      label: AppStrings.vehicleRightSideImages,
                       imageList: controller.vehicleRightSideImages,
                       updateId: CommonMultipleImageSectionController.vehicleRightSideImageId,
                       maxUploadImages: controller.maxVehicleImageUpload
@@ -949,13 +950,13 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
             GetBuilder<CommonMultipleImageSectionController>(
               id: CommonMultipleImageSectionController.vehicleLeftSideImageId,
               builder: (ctrl) => CommonMultipleImageUploadSection(
-                title: 'Upload Vehicle Left Side Images',
+                title: AppStrings.uploadVehicleLeftSideImages,
                 minImages: 2,
                 maxImages: controller.maxVehicleImageUpload,
                 images: controller.vehicleLeftSideImages,
                 onAddImage: () async {
                   multipleImageSectionController.addImages(
-                      label: 'Upload Vehicle Left Side Images',
+                      label: AppStrings.vehicleLeftSideImages,
                       imageList: controller.vehicleLeftSideImages,
                       updateId: CommonMultipleImageSectionController.vehicleLeftSideImageId,
                       maxUploadImages: controller.maxVehicleImageUpload
@@ -976,12 +977,12 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
             GetBuilder<CommonMultipleImageSectionController>(
               id: CommonMultipleImageSectionController.vehicleFrontImageId,
               builder: (ctrl) => CommonMultipleImageUploadSection(
-                title: 'Upload Vehicle Front and Back Images',
+                title: AppStrings.uploadVehicleFrontImages,
                 maxImages: 2,
                 images: controller.vehicleFrontImages,
                 onAddImage: () async {
                   multipleImageSectionController.addImages(
-                      label: 'Vehicle Front and Back Images',
+                      label: AppStrings.vehicleFrontImages,
                       imageList: controller.vehicleFrontImages,
                       updateId: CommonMultipleImageSectionController.vehicleFrontImageId,
                       maxUploadImages: 1
@@ -1002,12 +1003,12 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
             GetBuilder<CommonMultipleImageSectionController>(
               id: CommonMultipleImageSectionController.vehicleBackImageId,
               builder: (ctrl) => CommonMultipleImageUploadSection(
-                title: 'Upload Vehicle Front and Back Images',
+                title: AppStrings.uploadVehicleBackImages,
                 maxImages: 2,
                 images: controller.vehicleBackImages,
                 onAddImage: () async {
                   multipleImageSectionController.addImages(
-                      label: 'Vehicle Front and Back Images',
+                      label: AppStrings.vehicleBackImages,
                       imageList: controller.vehicleBackImages,
                       updateId: CommonMultipleImageSectionController.vehicleBackImageId,
                       maxUploadImages: 1
@@ -1027,7 +1028,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
             CustomBtn(
               title: controller.isVehicleRentalServiceLoading.value
                   ? null
-                  : 'Post Now',
+                  : AppStrings.postNowButton,
               onTap: controller.validateStepFive,
               radius: 10.0,
               bgColor: AppColors.primaryColor,
@@ -1045,7 +1046,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
         Row(
           children: [
             CustomText(
-              'Home Highlights',
+              AppStrings.homeHighlightsTitle,
               fontSize: SizeConfig.small,
               fontWeight: FontWeight.w400,
               color: AppColors.mainTextColor,
@@ -1067,7 +1068,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                         imagePath: AppIconAssets.addBlueIcon,
                       ),
                       CustomText(
-                        'Add More',
+                        AppStrings.addMoreTitle,
                         fontSize: SizeConfig.large,
                         fontWeight: FontWeight.w400,
                         color: AppColors.primaryColor,
@@ -1157,7 +1158,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                 FittedBox(
                   fit: BoxFit.scaleDown,
                   child: CustomText(
-                    'Add Highlights',
+                    AppStrings.addHighlightsTitle,
                     fontSize: SizeConfig.large,
                     fontWeight: FontWeight.w400,
                     color: AppColors.mainTextColor,

@@ -2,6 +2,7 @@ import 'package:BlueEra/core/api/model/place_details.dart';
 import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -30,13 +31,13 @@ class _AddressLocationRidingScreenState extends State<AddressLocationRidingScree
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Address & Location",
+        title: AppStrings.addressAndLocation,
         // onBackTap: onBackPressed,
         buildCustomWidget: ()=> Padding(
           padding: const EdgeInsets.only(right: 16),
           child: Center(
             child: Text(
-              "Step-2/6",
+              "${AppStrings.stepLabel}2/6",
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
@@ -58,8 +59,8 @@ class _AddressLocationRidingScreenState extends State<AddressLocationRidingScree
                       Expanded(
                         child: CommonLocationSearchField(
                           controller: controller.locationController,
-                          title: "Home Location",
-                          hintText: "E.g. Lucknow, Gomti Nagar...",
+                          title: AppStrings.homeLocation,
+                          hintText: AppStrings.egLucknowGomtiNagar,
                           onSelected: (placeId, lat, lng, address) async {
                             print("PlaceId: $placeId Selected: $address → ($lat, $lng)");
                             controller.locationController.text = address;
@@ -121,12 +122,12 @@ class _AddressLocationRidingScreenState extends State<AddressLocationRidingScree
                   SizedBox(height: SizeConfig.paddingM),
                   CommonTextField(
                     textEditController: controller.landmarkController,
-                    title: 'House No. and Land Mark ',
+                    title: AppStrings.houseNoAndLandMark,
                     inputLength: AppConstants.inputCharterLimit30,
                     fontSize: SizeConfig.small,
                     fontWeight: FontWeight.w400,
                     titleColor: AppColors.mainTextColor,
-                    hintText: "E.g. Flat 21B, Lake View Apartment....",
+                    hintText: AppStrings.egFlat21B,
                     keyBoardType: TextInputType.text,
                     isValidate: true,
                   ),
@@ -134,11 +135,11 @@ class _AddressLocationRidingScreenState extends State<AddressLocationRidingScree
                   CommonTextField(
                     textEditController: controller.pinCodeController,
                     // readOnly: true,
-                    title: 'Pincode',
+                    title: AppStrings.pincodeTitle,
                     fontSize: SizeConfig.small,
                     fontWeight: FontWeight.w400,
                     titleColor: AppColors.mainTextColor,
-                    hintText: "E.g. 700045....",
+                    hintText: AppStrings.pincodeHint,
                     keyBoardType: TextInputType.number,
                     inputLength: AppConstants.inputCharterLimit6,
                     validator: ValidationMethod().validatePin,
@@ -147,11 +148,11 @@ class _AddressLocationRidingScreenState extends State<AddressLocationRidingScree
                   CommonTextField(
                     textEditController: controller.cityController,
                     readOnly: true,
-                    title: 'City',
+                    title: AppStrings.city,
                     fontSize: SizeConfig.small,
                     fontWeight: FontWeight.w400,
                     titleColor: AppColors.mainTextColor,
-                    hintText: "E.g. Kolkata....",
+                    hintText: AppStrings.egKolkata,
                     keyBoardType: TextInputType.text,
                     isValidate: true,
                     inputLength: AppConstants.inputCharterLimit50,
@@ -160,11 +161,11 @@ class _AddressLocationRidingScreenState extends State<AddressLocationRidingScree
                   CommonTextField(
                     textEditController: controller.stateController,
                     readOnly: true,
-                    title: 'State',
+                    title: AppStrings.state,
                     fontSize: SizeConfig.small,
                     fontWeight: FontWeight.w400,
                     titleColor: AppColors.mainTextColor,
-                    hintText: "E.g. West Bengal....",
+                    hintText: AppStrings.egWestBengal,
                     keyBoardType: TextInputType.text,
                     isValidate: true,
                     inputLength: AppConstants.inputCharterLimit50,
@@ -173,7 +174,7 @@ class _AddressLocationRidingScreenState extends State<AddressLocationRidingScree
                   SizedBox(height: SizeConfig.paddingM),
 
                   CustomText(
-                    'Enable Live Location',
+                    AppStrings.enableLiveLocation,
                     fontSize: SizeConfig.small,
                     color: AppColors.mainTextColor,
                     fontWeight: FontWeight.w600,
@@ -183,7 +184,7 @@ class _AddressLocationRidingScreenState extends State<AddressLocationRidingScree
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       CustomText(
-                        'Allow location access',
+                        AppStrings.allowLocationAccess,
                         fontSize: SizeConfig.medium,
                         color: AppColors.secondaryTextColor,
                         fontWeight: FontWeight.w400,
@@ -203,7 +204,7 @@ class _AddressLocationRidingScreenState extends State<AddressLocationRidingScree
                   CustomBtn(
                     title: controller.isRidersAddressLoading.value
                         ? null
-                        : 'Next',
+                        : AppStrings.nextButton,
                     onTap: ()=> controller.ridersOnboardingAddressApi(),
                     radius: 10.0,
                     bgColor: AppColors.primaryColor,

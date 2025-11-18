@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_orders_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/delivery_partner_orders/pickup_order_screen.dart';
@@ -57,13 +58,13 @@ class _DeliveryPartnerOrdersState extends State<DeliveryPartnerOrders>  {
                   case 0:
                     return PickupOrderScreen();
                   case 1:
-                    return CustomText('Coming Soon...');
+                    return CustomText(AppStrings.comingSoon);
                 // return GroceryOrderScreen();
                   case 2:
-                    return CustomText('Coming Soon...');
+                    return CustomText(AppStrings.comingSoon);
                 // return ParcelOrderScreen();
                   case 3:
-                    return CustomText('Coming Soon...');
+                    return CustomText(AppStrings.comingSoon);
                 // return IncomeScreen();
                   default:
                     return SizedBox.shrink(); // fallback

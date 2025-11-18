@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/controller/rental_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/model/rental_service_response.dart';
@@ -113,7 +114,7 @@ class _RentalServiceScreenState extends State<RentalServiceScreen> {
     if (list.isEmpty) {
       return Center(
         child: EmptyStateWidget(
-          message: "${rentalServiceTab.label} services are empty\nCreate your service",
+          message: "${rentalServiceTab.label} ${AppStrings.servicesAreEmpty}\n${AppStrings.createYourService}",
         ),
       );
     }
@@ -145,9 +146,9 @@ class _RentalServiceScreenState extends State<RentalServiceScreen> {
                   deleteServiceApi: () async {
                     await showCommonDialog(
                     context: context,
-                    text: "Are you sure you want to delete this service? Once deleted, it cannot be recovered.",
-                    confirmText: 'Delete',
-                    cancelText: 'Cancel',
+                    text: AppStrings.areYouSureDelete,
+                    confirmText: AppStrings.delete,
+                    cancelText: AppStrings.cancel,
                     confirmCallback: () {
                       controller.deleteService(
                           serviceId: service.sId ?? '',

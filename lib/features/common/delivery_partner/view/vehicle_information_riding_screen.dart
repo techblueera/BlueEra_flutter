@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
@@ -30,13 +31,13 @@ class _VehicleInformationRidingScreenState extends State<VehicleInformationRidin
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Vehicle Information  ",
+        title: AppStrings.vehicleInformation,
         // onBackTap: onBackPressed,
         buildCustomWidget: ()=> Padding(
           padding: const EdgeInsets.only(right: 16),
           child: Center(
             child: Text(
-              "Step-6/6",
+              "${AppStrings.stepLabel}6/6",
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
@@ -54,7 +55,7 @@ class _VehicleInformationRidingScreenState extends State<VehicleInformationRidin
                 children: [
                   /// Registration Type
                   CustomText(
-                    "Registration Type",
+                    AppStrings.registrationType,
                     fontSize: SizeConfig.small,
                     fontWeight: FontWeight.w400,
                     color: AppColors.mainTextColor,
@@ -63,7 +64,7 @@ class _VehicleInformationRidingScreenState extends State<VehicleInformationRidin
                   CommonDropdown<VehicleRegistrationType>(
                     items: VehicleRegistrationType.values,
                     selectedValue: controller.selectedVehicleRegistrationType.value,
-                    hintText: "E.g. Personal, Commercial....",
+                    hintText: AppStrings.egPersonalCommercial,
                     displayValue: (value) => value.displayName,
                     onChanged: (value) {
                       controller.selectedVehicleRegistrationType.value = value;
@@ -76,7 +77,7 @@ class _VehicleInformationRidingScreenState extends State<VehicleInformationRidin
 
                   /// Vehicle Type
                   CustomText(
-                    "Vehicle Type",
+                    AppStrings.vehicleType,
                     fontSize: SizeConfig.small,
                     fontWeight: FontWeight.w400,
                     color: AppColors.mainTextColor,
@@ -85,7 +86,7 @@ class _VehicleInformationRidingScreenState extends State<VehicleInformationRidin
                   CommonDropdown<VehicleType>(
                     items: VehicleType.values,
                     selectedValue: controller.selectedVehicleType.value,
-                    hintText: "E.g. 'Two Wheeler', Three Wheeler....",
+                    hintText: AppStrings.egTwoThreeWheeler,
                     displayValue: (value) => value.displayName,
                     onChanged: (value) {
                       controller.selectedVehicleType.value = value;
@@ -98,8 +99,8 @@ class _VehicleInformationRidingScreenState extends State<VehicleInformationRidin
 
                   /// Vehicle Name
                   CommonTextField(
-                    title: "Vehicle Name",
-                    hintText: "E.g. SP125....",
+                    title: AppStrings.vehicleName,
+                    hintText: AppStrings.egSP125,
                     textEditController: controller.vehicleNameController,
                     isValidate: true,
                   ),
@@ -107,7 +108,7 @@ class _VehicleInformationRidingScreenState extends State<VehicleInformationRidin
 
                   /// Fuel Type
                   CustomText(
-                    "Fuel Type",
+                    AppStrings.fuelType,
                     fontSize: SizeConfig.small,
                     fontWeight: FontWeight.w400,
                     color: AppColors.mainTextColor,
@@ -116,7 +117,7 @@ class _VehicleInformationRidingScreenState extends State<VehicleInformationRidin
                   CommonDropdown<FuelType>(
                     items: FuelType.values,
                     selectedValue: controller.selectedFuelType.value,
-                    hintText: "E.g. Petrol, Diesel....",
+                    hintText: AppStrings.egPetrolDiesel,
                     displayValue: (value) => value.displayName,
                     onChanged: (value) {
                       controller.selectedFuelType.value = value;
@@ -129,8 +130,8 @@ class _VehicleInformationRidingScreenState extends State<VehicleInformationRidin
 
                   /// Vehicle Number
                   CommonTextField(
-                    title: "Vehicle Number",
-                    hintText: "E.g. Wb5454....",
+                    title: AppStrings.vehicleNumber,
+                    hintText: AppStrings.egWB5454,
                     textEditController: controller.vehicleRegistrationNumberController,
                     validator: ValidationMethod.validateVehicleNumber,
                     isCapitalize: true,
@@ -140,8 +141,8 @@ class _VehicleInformationRidingScreenState extends State<VehicleInformationRidin
 
                   /// Vehicle Model
                   CommonTextField(
-                    title: "Vehicle Model (Year of Manufacturing)",
-                    hintText: "E.g. 2020",
+                    title: AppStrings.vehicleModelYearManufacturing,
+                    hintText: AppStrings.eg2020,
                     // hintText: "E.g. Honda, Maruti, BMW....",
                     keyBoardType: TextInputType.number,
                     textEditController: controller.vehicleModelController,
@@ -187,27 +188,27 @@ class _VehicleInformationRidingScreenState extends State<VehicleInformationRidin
                                 fontFamily: AppConstants.OpenSans,
                               ),
                               children: [
-                                const TextSpan(text: 'Accept All '),
+                                const TextSpan(text: AppStrings.acceptAll),
                                 TextSpan(
-                                  text: 'Terms & Conditions',
+                                  text: AppStrings.termsConditions,
                                   style: const TextStyle(color: AppColors.primaryColor),
                                   recognizer: TapGestureRecognizer()
                                     ..onTap = () {
                                       Get.to(() => CommonWebView(
                                         urlLink: tncLink,
-                                        urlTitle: 'Terms & Conditions',
+                                        urlTitle: AppStrings.termsConditions,
                                       ));
                                     },
                                 ),
-                                const TextSpan(text: ' and\n'),
+                                const TextSpan(text: ' ${AppStrings.and}\n'),
                                 TextSpan(
-                                  text: 'Privacy Policy',
+                                  text: AppStrings.privacyPolicy,
                                   style: const TextStyle(color: AppColors.primaryColor),
                                   recognizer: TapGestureRecognizer()
                                     ..onTap = () {
                                       Get.to(() => CommonWebView(
                                         urlLink: privacyLink,
-                                        urlTitle: 'Privacy Policy',
+                                        urlTitle: AppStrings.privacyPolicy,
                                       ));
                                     },
                                 ),
@@ -224,7 +225,7 @@ class _VehicleInformationRidingScreenState extends State<VehicleInformationRidin
                   CustomBtn(
                     title: controller.isRiderVehicleInformationLoading.value
                         ? null
-                        : 'Post Now',
+                        : AppStrings.postNowButton,
                     onTap: ()=> controller.ridersOnboardingVehicleInformationApi(),
                     radius: 10.0,
                     bgColor: AppColors.primaryColor,
