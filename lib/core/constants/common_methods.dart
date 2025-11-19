@@ -234,7 +234,7 @@ String timeAgoFormatted(DateTime date) {
   } else {
     final months = (difference.inDays / 30).floor();
     if (months >= 1) {
-      return '${months}m';
+      return '${months}mo';
     }
     return date.toLocal().toString().split(' ')[0]; // fallback
   }

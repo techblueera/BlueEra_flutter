@@ -12,8 +12,10 @@ import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/post/controller/message_post_controller.dart';
 import 'package:BlueEra/features/common/post/controller/tag_user_controller.dart';
 import 'package:BlueEra/features/common/post/message_post/create_message_post_screen_new.dart';
+import 'package:BlueEra/features/common/post/message_post/edit_photo_feed_widget.dart';
 import 'package:BlueEra/features/common/post/message_post/insta_slider_network_widget.dart';
 import 'package:BlueEra/features/common/post/message_post/insta_slider_widget.dart';
+import 'package:BlueEra/features/common/post/message_post/photo_upload_widget.dart';
 import 'package:BlueEra/features/common/post/widget/tag_user_screen.dart';
 import 'package:BlueEra/features/common/post/widget/user_chip.dart';
 import 'package:BlueEra/widgets/channel_profile_header.dart';
@@ -218,7 +220,19 @@ class _MessagePostPreviewScreenNewState
                                 ),
 
                               if (msgPostController.imagesList.isNotEmpty)
-                                InstaSlider(),
+                                // InstaSlider(),
+                                LocalMediaGrid(
+                                  files: msgPostController.imagesList,
+                                  isVideo:
+                                      msgPostController.selectedType.value ==
+                                          MediaType.video,
+                                  videoThumbnails:
+                                      msgPostController.videoThumbnails,
+                                  onEditTap: (index) =>
+                                      Get.off(PhotoListingWidget()),
+                                  onTapMedia: (index) => openVideoPreview(
+                                      msgPostController.imagesList[index]),
+                                ),
                               if (msgPostController.isMsgPostEdit &&
                                   msgPostController.uploadImageList.isNotEmpty)
                                 InstaSliderNetwork(

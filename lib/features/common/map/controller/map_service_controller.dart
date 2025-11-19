@@ -1,10 +1,13 @@
 import 'dart:developer';
+import 'dart:math';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/map/model/food_service_model_response.dart';
 import 'package:BlueEra/features/common/map/model/rental_service_model.dart';
@@ -88,6 +91,28 @@ class MapServiceController extends GetxController {
   //       );
   //   }
   // }
+  double calculateDistance({
+    required double startLat,
+    required double startLng,
+    required double endLat,
+    required double endLng,
+  }) {
+    const double earthRadius = 6371; // km
+
+    double dLat = (endLat - startLat) * (3.141592653589793 / 180);
+    double dLng = (endLng - startLng) * (3.141592653589793 / 180);
+
+    double a =
+        (sin(dLat / 2) * sin(dLat / 2)) +
+            cos(startLat * (3.141592653589793 / 180)) *
+                cos(endLat * (3.141592653589793 / 180)) *
+                sin(dLng / 2) *
+                sin(dLng / 2);
+
+    double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+
+    return earthRadius * c; // returns distance in km
+  }
 
   /// fetch home service
   Future<void> fetchHomeService({
@@ -97,41 +122,111 @@ class MapServiceController extends GetxController {
     required String subType,
   }) async {
     homeServiceResponse = ApiResponse.initial('Initial').obs;
+
     final Map<String, dynamic> queryParams = {
       ApiKeys.type: serviceType,
       ApiKeys.subType: subType,
       ApiKeys.page: 1,
       ApiKeys.limit: 20,
     };
+
     ResponseModel response =
-        await MapServiceRepo().fetchAllHomeServices(queryParams: queryParams);
+    await MapServiceRepo().fetchAllHomeServices(queryParams: queryParams);
 
     try {
       if (response.isSuccess) {
         homeServiceResponse.value = ApiResponse.complete(response);
+
         final responseModel =
-            ServiceModelResponse.fromJson(response.response?.data);
+        ServiceModelResponse.fromJson(response.response?.data);
+
         homeServiceList.clear();
+
         for (var service in responseModel.services ?? []) {
           if (service.data != null && service.data!.isNotEmpty) {
-            homeServiceList.addAll(service.data!);
+            for (ServiceData item in service.data!) {
+              logs("item==== ${item}");
+              logs("item==== ${item.runtimeType}");
+              logs("item==== ${item.userLocation?.lat}");
+              // Assuming item has latitude & longitude
+              double itemLat = double.tryParse(item.userLocation?.lat.toString() ?? "0") ?? 0.0;
+              double itemLng = double.tryParse(item.userLocation?.lon.toString() ?? "0") ?? 0.0;
+
+              // double distanceKm = calculateDistance(
+              //   startLat: lat,
+              //   startLng: lng,
+              //   endLat: itemLat,
+              //   endLng: itemLng,
+              // );
+              //
+              // // Add distance field inside model dynamically
+              // item.distance = distanceKm.toInt();
+              double? tempDistance;
+              if (itemLat != 0 && itemLng != 0) {
+                tempDistance = await getDistanceInKm( itemLat, itemLng);
+              } else {
+                tempDistance = 0.0; // or null
+              }
+              item.distance=tempDistance?.toInt();
+              homeServiceList.add(item);
+            }
           }
         }
-        // homeServiceProfessionsList.assignAll(responseModel.professions??[]);
       } else {
         homeServiceResponse.value = ApiResponse.error('error');
         commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e, s) {
-      log('stack trace --> $s');
+      print('stack trace --> $s');
       homeServiceResponse.value = ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
       isHomeServiceLoading.value = false;
-      // isTargetLoading = false;
     }
   }
+
+  // Future<void> fetchHomeService({
+  //   required double lat,
+  //   required double lng,
+  //   required String serviceType,
+  //   required String subType,
+  // }) async {
+  //   homeServiceResponse = ApiResponse.initial('Initial').obs;
+  //   final Map<String, dynamic> queryParams = {
+  //     ApiKeys.type: serviceType,
+  //     ApiKeys.subType: subType,
+  //     ApiKeys.page: 1,
+  //     ApiKeys.limit: 20,
+  //   };
+  //   ResponseModel response =
+  //       await MapServiceRepo().fetchAllHomeServices(queryParams: queryParams);
+  //
+  //   try {
+  //     if (response.isSuccess) {
+  //       homeServiceResponse.value = ApiResponse.complete(response);
+  //       final responseModel =
+  //           ServiceModelResponse.fromJson(response.response?.data);
+  //       homeServiceList.clear();
+  //       for (var service in responseModel.services ?? []) {
+  //         if (service.data != null && service.data!.isNotEmpty) {
+  //           homeServiceList.addAll(service.data!);
+  //         }
+  //       }
+  //     } else {
+  //       homeServiceResponse.value = ApiResponse.error('error');
+  //       commonSnackBar(
+  //           message: response.message ?? AppStrings.somethingWentWrong);
+  //     }
+  //   } catch (e, s) {
+  //     log('stack trace --> $s');
+  //     homeServiceResponse.value = ApiResponse.error('error');
+  //     commonSnackBar(message: AppStrings.somethingWentWrong);
+  //   } finally {
+  //     isHomeServiceLoading.value = false;
+  //     // isTargetLoading = false;
+  //   }
+  // }
 
   /// fetch rental service
   Future<void> fetchRentalService({
@@ -164,7 +259,7 @@ class MapServiceController extends GetxController {
             message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e, s) {
-      log('stack trace --> $s');
+      print('stack trace --> $s');
       rentalServiceResponse.value = ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
@@ -276,7 +371,7 @@ class MapServiceController extends GetxController {
             message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e, s) {
-      log('error--> $s');
+      print('error--> $s');
       foodServiceResponse.value = ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {

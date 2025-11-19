@@ -82,7 +82,7 @@ class RelatedStoresList {
   List<dynamic>? ownerDetails;
   String? createdAt;
   String? updatedAt;
-  int? avg_rating;
+  num? avg_rating;
   num? v;
 
   Map<String, dynamic> toJson() {

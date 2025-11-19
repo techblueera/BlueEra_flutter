@@ -113,7 +113,7 @@ class UnjoinChannelCardWidget extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       CustomText(
-                        formatTime(channelModel.ownership?.claimedAt ?? ""),
+                        formatClaimedAt(channelModel.ownership?.claimedAt ?? ""),
                         fontSize: SizeConfig.small11,
                         color: Colors.grey.shade600,
                       ),

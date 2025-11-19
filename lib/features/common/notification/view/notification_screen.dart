@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:BlueEra/core/api/model/tab_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -33,15 +34,16 @@ class _NotificationScreenState extends State<NotificationScreen> {
   final TextEditingController searchController = TextEditingController();
   List<NotificationDataList> allNotifications = [];
   late List<NotificationDataList> filteredNotifications;
-bool isLoading = true;
-  final List<String> notificationFilters = [
+  bool isLoading = true;
+   List<TabItem> notificationFilters = [];
+ /* final List<TabItem> notificationFilters = [
     "All",
     "Chats",
     "Orders",
     "Tags",
     "Jobs",
     "Posts"
-  ];
+  ];*/
   int selectedIndex = 0;
   Timer? _debounce;
 
@@ -61,8 +63,6 @@ bool isLoading = true;
     searchController.dispose();
     super.dispose();
   }
-  
-
 
   Future<void> fetchNotification() async {
     try {
@@ -71,7 +71,8 @@ bool isLoading = true;
       if (response.isSuccess) {
         final data = response.response!.data;
 
-        final List<NotificationDataList> fetchedData = List<NotificationDataList>.from(
+        final List<NotificationDataList> fetchedData =
+            List<NotificationDataList>.from(
           (data['data'] as List).map((e) => NotificationDataList.fromJson(e)),
         );
 
@@ -93,12 +94,15 @@ bool isLoading = true;
 
   Future<void> deleteNotification({required String? notifyId}) async {
     try {
-      final response = await NotificationListRepo().deleteNotification(notifyId: notifyId ?? "");
+      final response = await NotificationListRepo()
+          .deleteNotification(notifyId: notifyId ?? "");
 
       if (response.isSuccess) {
-        commonSnackBar(message: response.message ?? 'Notification deleted successfully');
+        commonSnackBar(
+            message: response.message ?? AppStrings.notificationDeleted.tr);
       } else {
-        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
@@ -110,15 +114,17 @@ bool isLoading = true;
       final response = await NotificationListRepo().deleteAllNotification();
 
       if (response.isSuccess) {
-        commonSnackBar(message: response.message ?? 'All notifications deleted successfully');
+        commonSnackBar(
+            message:
+                response.message ?? AppStrings.allNotificationsDeleted.tr);
       } else {
-        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
   }
-
 
   void _onSearchChanged(String query) {
     if (_debounce?.isActive ?? false) _debounce?.cancel();
@@ -128,16 +134,23 @@ bool isLoading = true;
   void filterNotifications(String query) {
     setState(() {
       filteredNotifications = allNotifications
-          .where((notification) =>
-          (notification.message ?? '')
+          .where((notification) => (notification.message ?? '')
               .toLowerCase()
               .contains(query.toLowerCase()))
           .toList();
     });
   }
-
   @override
   Widget build(BuildContext context) {
+    notificationFilters=[
+      TabItem(id: 'All', title: AppStrings.all.tr),
+      TabItem(id: 'Chats', title: AppStrings.chat.tr),
+      TabItem(id: 'Orders', title: AppStrings.orders.tr),
+      TabItem(id: 'Tags', title: AppStrings.tagsText.tr),
+      TabItem(id: 'Jobs', title: AppStrings.jobs.tr),
+      TabItem(id: 'Posts', title: AppStrings.posts.tr),
+
+    ];
     return Scaffold(
       appBar: CommonBackAppBar(
           isSearch: true,
@@ -146,10 +159,10 @@ bool isLoading = true;
             searchController.clear();
           },
           iClearButton: true,
-          onClearNotificationsTap: (){
+          onClearNotificationsTap: () {
             clearAllNotifications(0);
           },
-          isSettingButton: true),
+          isSettingButton: false),
       body: SafeArea(
         top: false,
         child: Padding(
@@ -159,7 +172,7 @@ bool isLoading = true;
             children: [
               // 🔘 Filter Chips
               _buildTabButtons(),
-        
+
               // 📋 Notification List
               _buildNotificationList()
             ],
@@ -168,6 +181,7 @@ bool isLoading = true;
       ),
     );
   }
+
   String? getTypeFromTabLabel(String label) {
     switch (label) {
       case "Chats":
@@ -204,304 +218,151 @@ bool isLoading = true;
             }
           });
         },
-        labelBuilder: (String label) => label);
+        labelBuilder: (TabItem label) => label.title);
   }
 
   Widget _buildNotificationList() {
     return Expanded(
         child: filteredNotifications.isNotEmpty
             ? ListView.builder(
-              itemCount: filteredNotifications.length,
-              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-              padding: EdgeInsets.only(top: SizeConfig.paddingXSL, bottom: SizeConfig.size20),
-              itemBuilder: (_, index) {
-                final data = filteredNotifications[index];
-                final isLast = index == filteredNotifications.length - 1;
+                itemCount: filteredNotifications.length,
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                padding: EdgeInsets.only(
+                    top: SizeConfig.paddingXSL, bottom: SizeConfig.size20),
+                itemBuilder: (_, index) {
+                  final data = filteredNotifications[index];
+                  final isLast = index == filteredNotifications.length - 1;
 
-                final String imageUrl = data.user?.profileImage ?? '';
-                final String id = data.sId??"";
-                final String title = data.message ?? '';
-                final String status = data.status ?? '';
-                String time = '';
-                try {
-                  if (data.createdAt != null && data.createdAt!.isNotEmpty) {
-                    final parsedDate = DateTime.tryParse(data.createdAt!);
-                    if (parsedDate != null) {
-                      time = timeAgoFormatted(parsedDate);
+                  final String imageUrl = data.user?.profileImage ?? '';
+                  final String id = data.sId ?? "";
+                  final String title = data.message ?? '';
+                  final String status = data.status ?? '';
+                  String time = '';
+                  try {
+                    if (data.createdAt != null && data.createdAt!.isNotEmpty) {
+                      final parsedDate = DateTime.tryParse(data.createdAt!);
+                      if (parsedDate != null) {
+                        time = timeAgoFormatted(parsedDate);
+                      }
                     }
+                  } catch (_) {
+                    time = '';
                   }
-                } catch (_) {
-                  time = '';
-                }
-                return Column(
-                  children: [
-                    Container(
-                      color: status == "UNREAD"
-                          ? AppColors.greenE0
-                          : Colors.transparent,
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(
-                            vertical: SizeConfig.size10,
-                            horizontal: SizeConfig.size15),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-
+                  return Column(
+                    children: [
+                      Container(
+                        color: status == "UNREAD"
+                            ? AppColors.greenE0
+                            : Colors.transparent,
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(
+                              vertical: SizeConfig.size10,
+                              horizontal: SizeConfig.size15),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
                               Center(
-                                child: CircleAvatar(
+                                  child: CircleAvatar(
                                 radius: 4,
-                                backgroundColor:(index == 0 || index == 1)? AppColors.primaryColor : AppColors.transparent,
+                                backgroundColor: (index == 0 || index == 1)
+                                    ? AppColors.primaryColor
+                                    : AppColors.transparent,
                               )),
-                            Padding(
-                              padding:
-                                  EdgeInsets.only(left: SizeConfig.size5),
-                              child: InkWell(
-                                onTap: () {
-                                  navigatePushTo(
-                                    context,
-                                    ImageViewScreen(
-                                      appBarTitle: title,
-                                      imageUrls: [imageUrl],
-                                      initialIndex: 0,
-                                    ),
-                                  );
-                                },
-                                child: Padding(
-                                  padding: EdgeInsets.only(top: SizeConfig.size2),
-                                  child: CachedAvatarWidget(
-                                    imageUrl: imageUrl,
-                                    size: SizeConfig.size45,
-                                    borderRadius: SizeConfig.size30,
-                                    boxShadow: [
-                                      BoxShadow(
-                                          color: AppColors.black1F,
-                                          offset: Offset(0, 2))
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                            SizedBox(width: SizeConfig.size10),
-                            Expanded(
-                              child: CustomText(
-                                title,
-                                maxLines: 2,
-                                fontWeight: FontWeight.w600,
-                                overflow: TextOverflow.ellipsis,
-                                color: AppColors.mainTextColor,
-                                fontSize: SizeConfig.small,
-                              ),
-                            ),
-                            Column(
-                              children: [
-                                CustomText(time),
-                                SizedBox(
-                                  height: SizeConfig.size2,
-                                ),
-                                PopupMenuButton<String>(
-                                  onSelected: (value) {
-                                    if (value == 'delete') {
-                                      clearAllNotifications(1, notifyId: id);
-                                    }
+                              Padding(
+                                padding:
+                                    EdgeInsets.only(left: SizeConfig.size5),
+                                child: InkWell(
+                                  onTap: () {
+                                    navigatePushTo(
+                                      context,
+                                      ImageViewScreen(
+                                        appBarTitle: title,
+                                        imageUrls: [imageUrl],
+                                        initialIndex: 0,
+                                      ),
+                                    );
                                   },
-                                  color: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(20),
+                                  child: Padding(
+                                    padding:
+                                        EdgeInsets.only(top: SizeConfig.size2),
+                                    child: CachedAvatarWidget(
+                                      imageUrl: imageUrl,
+                                      size: SizeConfig.size45,
+                                      borderRadius: SizeConfig.size30,
+                                      boxShadow: [
+                                        BoxShadow(
+                                            color: AppColors.black1F,
+                                            offset: Offset(0, 2))
+                                      ],
+                                    ),
                                   ),
-                                  itemBuilder: (BuildContext context) => [
-                                    PopupMenuItem<String>(
-                                      value: 'delete',
-                                      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
-                                      child: Center(
-                                        child: CustomText(
-                                          'Delete',
-                                          fontSize: SizeConfig.medium,
-                                          fontWeight: FontWeight.w400,
-                                          color: AppColors.mainTextColor,
+                                ),
+                              ),
+                              SizedBox(width: SizeConfig.size10),
+                              Expanded(
+                                child: CustomText(
+                                  title,
+                                  maxLines: 2,
+                                  fontWeight: FontWeight.w600,
+                                  overflow: TextOverflow.ellipsis,
+                                  color: AppColors.mainTextColor,
+                                  fontSize: SizeConfig.small,
+                                ),
+                              ),
+                              Column(
+                                children: [
+                                  CustomText(time),
+                                  SizedBox(
+                                    height: SizeConfig.size2,
+                                  ),
+                                  PopupMenuButton<String>(padding: EdgeInsets.zero,
+                                    onSelected: (value) {
+                                      if (value == 'delete') {
+                                        clearAllNotifications(1, notifyId: id);
+                                      }
+                                    },
+                                    color: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    itemBuilder: (BuildContext context) => [
+                                      PopupMenuItem<String>(
+                                        value: 'delete',
+                                        padding: EdgeInsets.zero, // REMOVE EXTRA PADDING
+                                        height: 20,
+                                        // padding: EdgeInsets.symmetric(
+                                        //     horizontal: SizeConfig.size8),
+                                        child: Center(
+                                          child: CustomText(
+                                            AppStrings.delete.tr,
+                                            fontSize: SizeConfig.medium,
+                                            fontWeight: FontWeight.w400,
+                                            color: AppColors.mainTextColor,
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                  ],
-                                  child: Icon(Icons.more_vert), // Your trigger widget
-                                ),
-                              ],
-                            )
-                          ],
+                                    ],
+                                    child: Icon(
+                                        Icons.more_vert), // Your trigger widget
+                                  ),
+                                ],
+                              )
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                    if (!isLast)
-                      CommonHorizontalDivider(
-                        color: AppColors.whiteE0,
-                      )
-                  ],
-                );
-              },
-            )
-            : EmptyStateWidget(message: "No notifications found"));
+                      if (!isLast)
+                        CommonHorizontalDivider(
+                          color: AppColors.whiteE0,
+                        )
+                    ],
+                  );
+                },
+              )
+            : EmptyStateWidget(message: AppStrings.noNotificationsFound.tr));
   }
 
-  // Widget _buildNotificationList() {
-  //   return Expanded(
-  //     child: ListView.builder(
-  //       itemCount: 15,
-  //       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-  //       padding: EdgeInsets.all(SizeConfig.size15),
-  //       itemBuilder: (_, index) {
-  //
-  //         return Row(
-  //           crossAxisAlignment: CrossAxisAlignment.center,
-  //           children: [
-  //             InkWell(
-  //               onTap: () {
-  //                 navigatePushTo(
-  //                     context,
-  //                     ImageViewScreen(
-  //                       appBarTitle: AppLocalizations.of(context)!.imageViewer,
-  //                       imageUrls: [
-  //                           'https://randomuser.me/api/portraits/men/32.jpg'
-  //                       ],
-  //                       initialIndex: 0,
-  //                     )
-  //                 );
-  //               },
-  //               child: Padding(
-  //                 padding: EdgeInsets.symmetric(
-  //                     vertical: SizeConfig.size8),
-  //                 child: CircleAvatar(
-  //                   radius: SizeConfig.size32,
-  //                   backgroundColor: AppColors.orange35,
-  //                   child: CachedCircleAvatar(
-  //                     imageUrl: 'https://randomuser.me/api/portraits/men/32.jpg',
-  //                     radius: SizeConfig.size30,
-  //                   ),
-  //                 ),
-  //               ),
-  //             ),
-  //             SizedBox(width: SizeConfig.size12),
-  //             Column(
-  //               crossAxisAlignment: CrossAxisAlignment.start,
-  //               children: [
-  //                 CustomText(
-  //                     'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-  //                     maxLines: 2,
-  //                     overflow: TextOverflow.ellipsis),
-  //                 SizedBox(width: SizeConfig.size5),
-  //                 CustomText(
-  //                   '1m ago.',
-  //                   color: AppColors.grey9A,
-  //                 ),
-  //
-  //                 // widget
-  //                 //     .getNotificationsModel
-  //                 //     .data![index]
-  //                 //     .type ==
-  //                 //     'LIKE' ||
-  //                 //     widget
-  //                 //         .getNotificationsModel
-  //                 //         .data![index]
-  //                 //         .type ==
-  //                 //         'POST'
-  //                 //     ? TextButton(
-  //                 //     onPressed: () {
-  //                 //       Navigator.pop(context);
-  //                 //       // Navigator.push(
-  //                 //       //     context,
-  //                 //       //     MaterialPageRoute(
-  //                 //       //         builder: (context) => SinglePostScreen(
-  //                 //       //             postId: widget
-  //                 //       //                 .getNotificationsModel
-  //                 //       //                 .data![
-  //                 //       //             index]
-  //                 //       //                 .metadata!
-  //                 //       //                 .postId
-  //                 //       //                 .toString())));
-  //                 //     },
-  //                 //     style: ButtonStyle(
-  //                 //         padding: WidgetStateProperty.all<
-  //                 //             EdgeInsets>(
-  //                 //             EdgeInsets.zero)),
-  //                 //     child: Text(
-  //                 //       "goToPost",
-  //                 //       style: TextStyle(
-  //                 //           color:
-  //                 //           AppColors.white,
-  //                 //           fontWeight:
-  //                 //           FontWeight.bold),
-  //                 //     ))
-  //                 //     : widget
-  //                 //     .getNotificationsModel
-  //                 //     .data![index]
-  //                 //     .type ==
-  //                 //     'CONNECTION_RECEIVED'
-  //                 //     ? TextButton(
-  //                 //     style: ButtonStyle(
-  //                 //         padding:
-  //                 //         WidgetStateProperty.all<EdgeInsets>(
-  //                 //             EdgeInsets.zero)),
-  //                 //     onPressed: () {
-  //                 //       Navigator.pop(
-  //                 //           context);
-  //                 //       // Navigator.pushReplacement(
-  //                 //       //     context,
-  //                 //       //     MaterialPageRoute(
-  //                 //       //         builder: (context) => const Dashboard(
-  //                 //       //             selectedTab:
-  //                 //       //             0,
-  //                 //       //             currentIndex:
-  //                 //       //             0,
-  //                 //       //             changeScreenTo:
-  //                 //       //             '',
-  //                 //       //             showDialog:
-  //                 //       //             false)));
-  //                 //     },
-  //                 //     child: Text(
-  //                 //       "goToRequests",
-  //                 //       style: TextStyle(
-  //                 //         // color: AppColors
-  //                 //         //     .primaryColor,
-  //                 //           color: AppColors
-  //                 //               .white,
-  //                 //           fontWeight:
-  //                 //           FontWeight
-  //                 //               .bold),
-  //                 //     ))
-  //                 //     : TextButton(
-  //                 //     onPressed: () {
-  //                 //       Navigator.pop(
-  //                 //           context);
-  //                 //       // Navigator.pushReplacement(
-  //                 //       //     context,
-  //                 //       //     MaterialPageRoute(
-  //                 //       //         builder: (context) => const Dashboard(
-  //                 //       //             selectedTab:
-  //                 //       //             0,
-  //                 //       //             currentIndex:
-  //                 //       //             0,
-  //                 //       //             changeScreenTo:
-  //                 //       //             '',
-  //                 //       //             showDialog:
-  //                 //       //             false)));
-  //                 //     },
-  //                 //     style: ButtonStyle(padding: WidgetStateProperty.all<EdgeInsets>(EdgeInsets.zero)),
-  //                 //     child: Text(
-  //                 //       '${"send"} ${widget.getNotificationsModel.data![index].metadata!.name!} ${"aMessage"}',
-  //                 //       style: const TextStyle(
-  //                 //           color: AppColors
-  //                 //               .primaryColor,
-  //                 //           fontWeight:
-  //                 //           FontWeight
-  //                 //               .bold),
-  //                 //     ))
-  //
-  //               ],
-  //             )
-  //           ],
-  //         );
-  //       },
-  //     ),
-  //   );
-  // }
 
   Future<void> clearAllNotifications(int selected, {String? notifyId}) {
     return showDialog(
@@ -518,48 +379,53 @@ bool isLoading = true;
                 left: SizeConfig.size16,
                 right: SizeConfig.size16,
                 bottom: SizeConfig.size16,
-                top: SizeConfig.size8
-            ),
+                top: SizeConfig.size8),
             // margin: EdgeInsets.symmetric(
             //     vertical: SizeConfig.size30, horizontal: SizeConfig.size40),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
+                SizedBox(
+                  height: SizeConfig.size7,
+                ),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Align(
-                        alignment: Alignment.topRight,
-                        child: InkWell(
-                          onTap: ()=> Get.back(),
-                          child: Icon(
-                            Icons.close,
-                            color: AppColors.secondaryTextColor,
-                          ),
-                        )
-                    ),
+
                     LocalAssets(
                         imagePath: AppIconAssets.goldenNotificationIcon),
                     SizedBox(width: SizeConfig.size5),
                     CustomText(
-                      selected == 0?"Clear All Notifications?":"Clear Notification?",
+                      selected == 0
+                          ? AppStrings.clearAllNotifications.tr
+                          : AppStrings.clearNotification.tr,
                       fontSize: SizeConfig.large,
                       fontWeight: FontWeight.w700,
                       textAlign: TextAlign.center,
                       color: AppColors.mainTextColor,
                     ),
+                    Align(
+                        alignment: Alignment.topRight,
+                        child: InkWell(
+                          onTap: () => Get.back(),
+                          child: Icon(
+                            Icons.close,
+                            color: AppColors.secondaryTextColor,
+                          ),
+                        )),
                   ],
                 ),
                 SizedBox(
                   height: SizeConfig.size7,
                 ),
                 CustomText(
-                    selected == 0? "This will remove all your current notifications. You won’t be able to view them again.":"This will remove your current notifications. You won’t be able to view them again.",
+                    selected == 0
+                        ? AppStrings.clearAllDescription.tr
+                        : AppStrings.clearDescription.tr,
                     fontSize: SizeConfig.medium,
                     textAlign: TextAlign.center,
-                    color: AppColors.secondaryTextColor
-                ),
+                    color: AppColors.secondaryTextColor),
                 SizedBox(height: SizeConfig.size15),
                 Row(
                   children: [
@@ -569,26 +435,29 @@ bool isLoading = true;
                         onTap: () {
                           Navigator.pop(context, false);
                         },
-                        title: "Cancel",
+                        title: AppStrings.cancel.tr,
                         textColor: AppColors.secondaryTextColor,
                         bgColor: AppColors.white,
                         borderColor: AppColors.secondaryTextColor,
                         radius: 8.0,
                       ),
                     ),
+                    SizedBox(
+                      width: SizeConfig.size10,
+                    ),
                     Expanded(
                       child: CustomBtn(
                         height: SizeConfig.size45,
                         onTap: () {
-                         if(selected == 0){
-                           handleNotificationDelete(0);
-                         }else{
-                           handleNotificationDelete(1,notifyId: notifyId);
-                         }
+                          if (selected == 0) {
+                            handleNotificationDelete(0);
+                          } else {
+                            handleNotificationDelete(1, notifyId: notifyId);
+                          }
                           Navigator.pop(context, false);
                           setState(() {});
                         },
-                        title: selected == 0? "Clear All":"Clear",
+                        title: selected == 0 ?AppStrings.clearAll.tr : AppStrings.clear.tr,
                         isValidate: true,
                         bgColor: AppColors.red02,
                         radius: 8.0,
@@ -612,22 +481,25 @@ bool isLoading = true;
     );
   }
 
-
-  Future<void> handleNotificationDelete(int selected, {String? notifyId}) async {
+  Future<void> handleNotificationDelete(int selected,
+      {String? notifyId}) async {
     if (selected == 0) {
       // ✅ Clear all notifications
       try {
         final response = await NotificationListRepo().deleteAllNotification();
 
         if (response.isSuccess) {
-          commonSnackBar(message: response.message ?? 'All notifications deleted successfully');
+          commonSnackBar(
+              message:
+                  response.message ??AppStrings.allNotificationsDeleted.tr);
 
           setState(() {
             allNotifications.clear();
             filteredNotifications.clear();
           });
         } else {
-          commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+          commonSnackBar(
+              message: response.message ?? AppStrings.somethingWentWrong);
         }
       } catch (e) {
         commonSnackBar(message: AppStrings.somethingWentWrong);
@@ -636,24 +508,26 @@ bool isLoading = true;
       if (notifyId == null || notifyId.isEmpty) return;
 
       try {
-        final response = await NotificationListRepo().deleteNotification(notifyId: notifyId);
+        final response =
+            await NotificationListRepo().deleteNotification(notifyId: notifyId);
 
         if (response.isSuccess) {
-          commonSnackBar(message: response.message ?? 'Notification deleted successfully');
+          commonSnackBar(
+              message: response.message ??AppStrings.notificationDeleted.tr);
 
           setState(() {
             allNotifications.removeWhere((item) => item.sId == notifyId);
             filteredNotifications.removeWhere((item) => item.sId == notifyId);
           });
         } else {
-          commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+          commonSnackBar(
+              message: response.message ?? AppStrings.somethingWentWrong);
         }
       } catch (e) {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }
     }
   }
-
 }
 
 class NotificationData {

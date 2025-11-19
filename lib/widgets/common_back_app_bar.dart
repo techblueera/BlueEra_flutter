@@ -173,7 +173,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    AppLocalizations.of(context);
+    // AppLocalizations.of(context);
     return AppBar(
       elevation: 4,
       shadowColor: Colors.black26,
@@ -316,7 +316,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                   child: IconButton(
                     onPressed: onClearNotificationsTap ?? () {},
                     icon: CustomText(
-                      AppLocalizations.of(context)!.clear,
+                      AppStrings.clear,
                       fontSize: SizeConfig.small,
                       color: AppColors.primaryColor,
                     ),

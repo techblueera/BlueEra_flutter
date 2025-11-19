@@ -63,7 +63,7 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
           } else if (accountController.index == '2') {
             return Column(
               children: [
-                SizedBox(height: SizeConfig.size20),
+                // SizedBox(height: SizeConfig.size20),
                 // _buildHelpFormSection(accountController),
               ],
             );
@@ -87,7 +87,7 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
                 ),
                 child: Column(
                   children: [
-                    SizedBox(height: SizeConfig.size20),
+                    // SizedBox(height: SizeConfig.size20),
                     _helpServiceCard(
                       AppIconAssets.personIcon,
                       AppStrings.editProfile,
@@ -96,7 +96,7 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
                         accountController.setTitle("Edit Profile");
                       },
                     ),
-                    SizedBox(height: SizeConfig.size20),
+                    // SizedBox(height: SizeConfig.size20),
                     _helpServiceCard(
                       AppIconAssets.call,
                       AppStrings.changePhoneNumber,
@@ -105,22 +105,23 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
                         accountController.setTitle("Change Phone number");
                       },
                     ),
-                    SizedBox(height: SizeConfig.size20),
-                    Padding(
-                        padding: EdgeInsets.only(
-                          left: SizeConfig.size16,
-                          right: SizeConfig.size16,
-                          bottom: SizeConfig.size10,
+                    // SizedBox(height: SizeConfig.size20),
+                    Container(
+                      padding: EdgeInsets.only(
+                        left: SizeConfig.size10,
+                        // right: SizeConfig.size10,
+                        // bottom: SizeConfig.size10,
+                      ),
+                      child: buildSettingItem(
+                        imagePath: AppIconAssets.notificationOutlineIcon,
+                        title:AppStrings.allNotification,
+                        control: buildToggleSwitch(
+                          value: accountController.allnotify,
+                          onChanged:
+                          accountController.toggleAllNotification,
                         ),
-                        child: buildSettingItem(
-                          imagePath: AppIconAssets.notificationOutlineIcon,
-                          title:AppStrings.allNotification,
-                          control: buildToggleSwitch(
-                            value: accountController.allnotify,
-                            onChanged:
-                            accountController.toggleAllNotification,
-                          ),
-                        ))
+                      ),
+                    )
                   ],
                 ),
               ),
@@ -132,7 +133,6 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
                 ),
                 child: Column(
                   children: [
-                    SizedBox(height: SizeConfig.size20),
                     _helpServiceCard(
                       AppIconAssets.languageIcon,
                       AppStrings.language,slugId: "Language",
@@ -141,7 +141,6 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
                         accountController.setTitle("Language");
                       },
                     ),
-                    SizedBox(height: SizeConfig.size20),
                     _helpServiceCard(
                       AppIconAssets.verifiedTickIcon,
                       AppStrings.verificationStatus,slugId:  "Verification Status",
@@ -150,15 +149,17 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
                         accountController.setTitle("Verification Status");
                       },
                     ),
-                    SizedBox(height: SizeConfig.size20),
-                    _helpServiceCard(
-                      AppIconAssets.walletIcon,
-                      AppStrings.manageSubscription,
-                      slugId: "Manage Subscription",
-                          () {
-                        accountController.setIndex("6");
-                        accountController.setTitle("Manage Subscription");
-                      },
+                    Padding(
+                      padding:  EdgeInsets.only(right: 5),
+                      child: _helpServiceCard(
+                        AppIconAssets.walletIcon,
+                        AppStrings.manageSubscription,
+                        slugId: "Manage Subscription",
+                            () {
+                          accountController.setIndex("6");
+                          accountController.setTitle("Manage Subscription");
+                        },
+                      ),
                     ),
                   ],
                 ),
@@ -210,85 +211,61 @@ Widget _helpServiceCard(
     onTap: onTap,
     child: Container(
       padding: EdgeInsets.symmetric(
-        vertical: SizeConfig.size4,
+        // vertical: SizeConfig.size4,
         horizontal: SizeConfig.size4,
       ),
       margin: EdgeInsets.symmetric(horizontal: 1),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(20)
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child:    Row(
         children: [
-          // Main row with icon and title
-          Row(
-            children: [
-              Container(
-                margin: EdgeInsets.all(SizeConfig.size10),
-                padding: EdgeInsets.all(SizeConfig.size10),
-                child: SvgPicture.asset(
-                  iconPath,
-                  color: Colors.black,
-                  height: 18,
-                  width: 18,
-                ),
-              ),
-              SizedBox(width: SizeConfig.size10),
-              Expanded(
-                child: CustomText(
-                  title,
-                  fontSize: SizeConfig.medium,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
-                ),
-              ),
-              if (slugId == "Language")
-                Padding(
-                  padding:  EdgeInsets.only(right: 8.0),
-                  child: CustomText(lang.selectedLang.toUpperCase()),
-                ),
-              if (slugId == "Verification Status")
-                Container(
-                  margin: EdgeInsets.all(SizeConfig.size5),
-                  padding: EdgeInsets.all(SizeConfig.size5),
-                  decoration: BoxDecoration(
-                      color: AppColors.green39,
-                      borderRadius: BorderRadius.circular(10)),
-                  child: CustomText(
-                    "Owner Verified",
-                    fontSize: SizeConfig.size10,
-                    fontWeight: FontWeight.w400,
-                    color: Colors.black87,
-                  ),
-                ),
-              if (slugId == "Manage Subscription")
-                CustomText(
-                  AppStrings.freePlan,
-                  fontSize: SizeConfig.medium,
-                  fontWeight: FontWeight.w400,
-                  color: AppColors.primaryColor,
-                ),
-            ],
+          Container(
+            margin: EdgeInsets.all(SizeConfig.size5),
+            padding: EdgeInsets.all(SizeConfig.size10),
+            child: SvgPicture.asset(
+              iconPath,
+              color: Colors.black,
+              height: 18,
+              width: 18,
+            ),
           ),
-
-          // Conditionally show additional setting
-          // if (showNotificationSettings)
-          //   Padding(
-          //     padding: EdgeInsets.only(
-          //       left: SizeConfig.size16,
-          //       right: SizeConfig.size16,
-          //       bottom: SizeConfig.size10,
-          //     ),
-          //     child: _buildSettingItem(
-          //       imagePath: ,
-          //       title: 'All Notification',
-          //       control: _buildToggleSwitch(
-          //         value: controller.allnotify,
-          //         onChanged: controller.toggleAllNotification,
-          //       ),
-          //     ),
-          //   ),
+          SizedBox(width: SizeConfig.size10),
+          Expanded(
+            child: CustomText(
+              title,
+              fontSize: SizeConfig.medium,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
+          ),
+          if (slugId == "Language")
+            Padding(
+              padding:  EdgeInsets.only(right: 8.0),
+              child: CustomText(lang.selectedLang.toUpperCase()),
+            ),
+          if (slugId == "Verification Status")
+            Container(
+              margin: EdgeInsets.all(SizeConfig.size5),
+              padding: EdgeInsets.all(SizeConfig.size5),
+              decoration: BoxDecoration(
+                  color: AppColors.green39,
+                  borderRadius: BorderRadius.circular(10)),
+              child: CustomText(
+                "Owner Verified",
+                fontSize: SizeConfig.size10,
+                fontWeight: FontWeight.w400,
+                color: Colors.black87,
+              ),
+            ),
+          if (slugId == "Manage Subscription")
+            CustomText(
+              AppStrings.freePlan,
+              fontSize: SizeConfig.medium,
+              fontWeight: FontWeight.w400,
+              color: AppColors.primaryColor,
+            ),
         ],
       ),
     ),
@@ -300,44 +277,41 @@ Widget buildSettingItem({
   required String title,
   required Widget control,
 }) {
-  return Padding(
-    padding: EdgeInsets.symmetric(vertical: SizeConfig.size12),
-    child: Row(
-      children: [
-        // Image Container
-        Container(
-          width: 40,
-          height: 40,
-          // decoration: BoxDecoration(
-          //   color: Colors.grey[100],
-          //   borderRadius: BorderRadius.circular(8),
-          // ),
-          child: Padding(
-            padding: EdgeInsets.all(8), // optional padding
-            child: LocalAssets(
-              imagePath:imagePath,
-              boxFix: BoxFit.contain,
-            ),
+  return Row(
+    children: [
+      // Image Container
+      Container(
+        width: 40,
+        // height: 40,
+        // decoration: BoxDecoration(
+        //   color: Colors.grey[100],
+        //   borderRadius: BorderRadius.circular(8),
+        // ),
+        child: Padding(
+          padding: EdgeInsets.all(0), // optional padding
+          child: LocalAssets(
+            imagePath:imagePath,
+            boxFix: BoxFit.contain,
           ),
         ),
-        SizedBox(width: SizeConfig.size12),
+      ),
+      SizedBox(width: SizeConfig.size12),
 
-        // Title
-        Expanded(
-          child: CustomText(
-            title,
-            fontSize: SizeConfig.medium,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
-          ),
+      // Title
+      Expanded(
+        child: CustomText(
+          title,
+          fontSize: SizeConfig.medium,
+          fontWeight: FontWeight.w600,
+          color: Colors.black87,
         ),
+      ),
 
-        SizedBox(width: SizeConfig.size12),
+      SizedBox(width: SizeConfig.size12),
 
-        // Control
-        control,
-      ],
-    ),
+      // Control
+      control,
+    ],
   );
 }
 

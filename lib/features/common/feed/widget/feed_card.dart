@@ -129,39 +129,42 @@ class _FeedCardState extends State<FeedCard> {
                 },
               )
             : MessagePostWidget(
-                horizontalPadding: widget.horizontalPadding,
-                bottomPadding: widget.bottomPadding,
-                post: _post,
-                isRepost: widget.isRepost,
-                isShowOnlyDetails: widget.isFromDetailsScreen,
-                authorSection: () => IgnorePointer(
-                  ignoring: widget.isRepost == true ? true : false,
-                  child: PostAuthorHeader(
-                    post: _post,
-                    isRepost: widget.isRepost,
-                    authorId: _post?.user?.id ?? '0',
-                    postType: widget.postFilteredType,
-                    onTapAvatar: _shouldShowProfileNavigation()
-                        ? () =>
-                            _navigateToProfile(authorId: _post?.user?.id ?? '0')
-                        : null,
-                  ),
+              horizontalPadding: widget.horizontalPadding,
+              bottomPadding: widget.bottomPadding,
+              post: _post,
+              isRepost: widget.isRepost,
+              isShowOnlyDetails: widget.isFromDetailsScreen,
+              authorSection: () => IgnorePointer(
+                ignoring: widget.isRepost == true ? true : false,
+                child: PostAuthorHeader(
+                  post: _post,
+                  isRepost: widget.isRepost,
+                  authorId: _post?.user?.id ?? '0',
+                  postType: widget.postFilteredType,
+                  onTapAvatar: _shouldShowProfileNavigation()
+                      ? () => _navigateToProfile(
+                          authorId: _post?.user?.id ?? '0')
+                      : null,
                 ),
-                commentView: () => _onCommentPressed(),
-                buildActions: SizedBox.shrink,
-                likeFeed: widget.likeFeed ??
-                    () {
-                      _onLikeDislikePressed();
-                    },
-                onShareButtonPressed: () {
-                  onShareButtonPressed(_post);
-                },
-              );
+              ),
+              commentView: () => _onCommentPressed(),
+              buildActions: SizedBox.shrink,
+              likeFeed: widget.likeFeed ??
+                  () {
+                    _onLikeDislikePressed();
+                  },
+              onShareButtonPressed: () {
+                onShareButtonPressed(_post);
+              },
+            );
 
       case FeedType.qaPost:
         return QaPostWidget(
           post: _post,
-          horizontalPaddingChannel:widget.postFilteredType == PostType.otherChannelPosts?0: widget.horizontalPadding,
+          horizontalPaddingChannel:
+              widget.postFilteredType == PostType.otherChannelPosts
+                  ? 0
+                  : widget.horizontalPadding,
           bottomPadding: widget.bottomPadding,
           postId: _post?.id ?? "0",
           poll: Poll(
@@ -220,7 +223,7 @@ class _FeedCardState extends State<FeedCard> {
           },
         );
 
- /*     case FeedType.shorts:
+      /*     case FeedType.shorts:
         List trendingShorts = [];
         List<String> postVideo = _post?.media ?? [];
         for (String media in postVideo) {
@@ -298,19 +301,20 @@ Future<void> onShareButtonPressed(Post? _post) async {
 
   try {
     _isSharing = true; // Set flag to prevent multiple calls
-
-    logs("linkShare====${_post!.id} and ${_post.media?.isNotEmpty}");
-
     XFile? xFile;
-    if (_post.media != null && _post.media!.isNotEmpty) {
+    if (_post?.media != null && (_post?.media?.isNotEmpty ?? false)) {
       // Safely handle first media
-      xFile = await urlToCachedXFile(_post.media!.first);
+      xFile = await urlToCachedXFile(_post?.media?.first ?? "");
     }
-    final shareUrl = postDeepLink(postId: _post.id.toString());
+
+    final shareUrl = postDeepLink(postId: _post?.id.toString());
     final combinedText = shareUrl;
 
     await SharePlus.instance.share(ShareParams(
-        text: combinedText, subject: _post.title, previewThumbnail: xFile));
+        text: combinedText,
+        title: _post?.title,
+        previewThumbnail: xFile,
+        files: [xFile ?? XFile("")]));
 
     if (xFile != null) {
       final file = File(xFile.path);
@@ -322,7 +326,8 @@ Future<void> onShareButtonPressed(Post? _post) async {
   } catch (e) {
     print("feed card share failed inside _onShareButtonPressed $e");
   } finally {
-    _isSharing = false; // Reset flag
+    _isSharing = false;
+// Reset flag
   }
 }
 

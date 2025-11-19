@@ -102,7 +102,6 @@ flutter:
   assets:
     - assets/images/
     - assets/svg/
-    - assets/jsons/
     - assets/icons/
     - assets/diwali_card/
     - assets/video/

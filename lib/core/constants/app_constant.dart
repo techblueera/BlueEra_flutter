@@ -1671,3 +1671,41 @@ final List<String> timeOptions = [
   '11:00 PM',
   '11:30 PM',
 ];
+String formatClaimedAt(String claimedAt) {
+  DateTime date = DateTime.parse(claimedAt).toLocal();
+  DateTime now = DateTime.now();
+
+  Duration diff = now.difference(date);
+  int diffHours = diff.inHours;
+
+  String formatTime(DateTime d) {
+    int hour = d.hour;
+    int minute = d.minute;
+    String period = hour >= 12 ? "pm" : "am"; // lowercase
+
+    hour = hour % 12;
+    if (hour == 0) hour = 12;
+
+    String minuteStr = minute.toString().padLeft(2, '0');
+
+    return "$hour:$minuteStr $period";
+  }
+
+  // Less than 24 hours → show time
+  if (diffHours < 24) {
+    return formatTime(date);
+  }
+
+  // Between 24 and 48 hours → Yesterday
+  if (diffHours >= 24 && diffHours < 48) {
+    return "Yesterday";
+  }
+
+  // More than 48 hours → dd/MM/yy
+  String day = date.day.toString().padLeft(2, '0');
+  String month = date.month.toString().padLeft(2, '0');
+  String year = date.year.toString().substring(2); // last 2 digits
+
+  return "$day/$month/$year"; // WhatsApp-like
+}
+

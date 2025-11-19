@@ -546,16 +546,6 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                 } else {
                                   widget.likeFeed();
                                 }
-                                // if ((_post.likesCount ?? 0) < 1) {
-                                //   return;
-                                // }
-
-                                // showDialog(
-                                //   context: context,
-                                //   builder: (context) => PostLikeUserListDialog(
-                                //     postId: widget.post?.id ?? '',
-                                //   ),
-                                // );
                               },
                               child: Padding(
                                 padding:

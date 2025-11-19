@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -172,7 +173,7 @@ Widget _buildImageContainer(
               context,
               ImageViewScreen(
                 subTitle: '',
-                appBarTitle: AppLocalizations.of(context)!.imageViewer,
+                appBarTitle: AppStrings.imageViewer,
                 imageUrls: allPhotos,
                 initialIndex: index,
               ),

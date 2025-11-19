@@ -1329,186 +1329,191 @@ class AppStrings {
   static const String errorSelectingImage = 'errorSelectingImage';
   static const String youCanOnlyUpload = 'youCanOnlyUpload';
 
-  static const String uploadImages                            = 'uploadImages';
-  static const String min1Max2                                = 'min1Max2';
-  static const String foodName                                = 'foodName';
-  static const String egPaneerButterMasala                    = 'egPaneerButterMasala';
-  static const String categoryTag                             = 'categoryTag';
-  static const String egMainCourse                              = 'egMainCourse';
-  static const String subCategory                               = 'subCategory';
-  static const String egVegNorthIndian                          = 'egVegNorthIndian';
-  static const String foodDescription                           = 'foodDescription';
-  static const String egFreshSpicyAndWellCooked                 = 'E.g. Fresh, spicy, and well-cooked…';
-  static const String addOnsTitle                               = 'addOnsTitle';
-  static const String addOns                                    = 'addOns';
-  static const String egButterNaan                              = 'egButterNaan';
-  static const String price                                     = 'price';
-  static const String singleProduct                             = 'singleProduct';
-  static const String multipleType                              = 'multipleType';
-  static const String egSmall                                   = 'egSmall';
-  static const String egRs300                                   = 'egRs300';
-  static const String egRs30                                    = 'egRs30';
-  static const String addSizePrice                              = 'addSizePrice';
-  static const String cookingMethod                             = 'cookingMethod';
-  static const String itemNature                                = 'itemNature';
-  static const String keyIngredients                            = 'keyIngredients';
-  static const String servingOptions                            = 'servingOptions';
-  static const String serves                                  = 'serves';
-  static const String accompaniments                            = 'accompaniments';
-  static const String nutritionalSummaryPer100g                 = 'nutritionalSummaryPer100g';
-  static const String caloriesKcal                              = 'caloriesKcal';
-  static const String proteinG                                  = 'proteinG';
-  static const String carbsG                                    = 'carbsG';
-  static const String fatG                                      = 'fatG';
-  static const String keyMinerals                               = 'keyMinerals';
-  static const String seoTags                                   = 'seoTags';
-  static const String discountOptional                          = 'discountOptional';
-  static const String discountCoupon                            = 'discountCoupon';
-  static const String addMoreCoupon                             = 'addMoreCoupon';
-  static const String postFood                                  = 'postFood';
-  static const String extraAdd                                  = 'extraAdd';
+  static const String uploadImages = 'uploadImages';
+  static const String min1Max2 = 'min1Max2';
+  static const String foodName = 'foodName';
+  static const String egPaneerButterMasala = 'egPaneerButterMasala';
+  static const String categoryTag = 'categoryTag';
+  static const String egMainCourse = 'egMainCourse';
+  static const String subCategory = 'subCategory';
+  static const String egVegNorthIndian = 'egVegNorthIndian';
+  static const String foodDescription = 'foodDescription';
+  static const String egFreshSpicyAndWellCooked =
+      'E.g. Fresh, spicy, and well-cooked…';
+  static const String addOnsTitle = 'addOnsTitle';
+  static const String addOns = 'addOns';
+  static const String egButterNaan = 'egButterNaan';
+  static const String price = 'price';
+  static const String singleProduct = 'singleProduct';
+  static const String multipleType = 'multipleType';
+  static const String egSmall = 'egSmall';
+  static const String egRs300 = 'egRs300';
+  static const String egRs30 = 'egRs30';
+  static const String addSizePrice = 'addSizePrice';
+  static const String cookingMethod = 'cookingMethod';
+  static const String itemNature = 'itemNature';
+  static const String keyIngredients = 'keyIngredients';
+  static const String servingOptions = 'servingOptions';
+  static const String serves = 'serves';
+  static const String accompaniments = 'accompaniments';
+  static const String nutritionalSummaryPer100g = 'nutritionalSummaryPer100g';
+  static const String caloriesKcal = 'caloriesKcal';
+  static const String proteinG = 'proteinG';
+  static const String carbsG = 'carbsG';
+  static const String fatG = 'fatG';
+  static const String keyMinerals = 'keyMinerals';
+  static const String seoTags = 'seoTags';
+  static const String discountOptional = 'discountOptional';
+  static const String discountCoupon = 'discountCoupon';
+  static const String addMoreCoupon = 'addMoreCoupon';
+  static const String postFood = 'postFood';
+  static const String extraAdd = 'extraAdd';
 
-  static const String shareCardToSocialMediaGrowBusiness = 'shareCardToSocialMediaGrowBusiness';
+  static const String shareCardToSocialMediaGrowBusiness =
+      'shareCardToSocialMediaGrowBusiness';
 
-  static const String noFoodServiceFound                    = 'noFoodServiceFound';
-  static const String areYouSureDeleteThisFoodService       = 'areYouSureDeleteThisFoodService';
-  static const String priceOptions            = 'priceOptions';
-  static const String businessLocation            = 'businessLocation';
-  static const String goBack                   = 'goBack';
+  static const String noFoodServiceFound = 'noFoodServiceFound';
+  static const String areYouSureDeleteThisFoodService =
+      'areYouSureDeleteThisFoodService';
+  static const String priceOptions = 'priceOptions';
+  static const String businessLocation = 'businessLocation';
+  static const String goBack = 'goBack';
 
-  static const String foodType1            = 'foodType1';
-  static const String foodType2            = 'foodType2';
-  static const String cityNameOptional     = 'cityNameOptional';
-  static const String egDurgapur              = 'egDurgapur';
-  static const String generate               = 'generate';
-  static const String pricePrefix      = 'pricePrefix';
+  static const String foodType1 = 'foodType1';
+  static const String foodType2 = 'foodType2';
+  static const String cityNameOptional = 'cityNameOptional';
+  static const String egDurgapur = 'egDurgapur';
+  static const String generate = 'generate';
+  static const String pricePrefix = 'pricePrefix';
   static const String foods = 'foods';
 
-  static const String energyPrefix     = 'energyPrefix';
-  static const String Cal100gm     = 'Cal100gm';
-  static const String veg      = 'veg';
+  static const String energyPrefix = 'energyPrefix';
+  static const String Cal100gm = 'Cal100gm';
+  static const String veg = 'veg';
   static const String kmAway = 'kmAway';
-  static const String foodAddedSuccess     = 'foodAddedSuccess';
+  static const String foodAddedSuccess = 'foodAddedSuccess';
 
   static const String max = "max";
-  static const String serviceName                = 'serviceName';
-  static const String hintServiceName            = 'hintServiceName';
-  static const String facility                   = 'facility';
-  static const String facilities                 = 'facilities';
-  static const String serviceDescription         = 'serviceDescription';
-  static const String hintServiceDescription     = 'hintServiceDescription';
-  static const String timing                     = 'timing';
-  static const String defaultTiming              = 'defaultTiming';
-  static const String specialTiming              = 'specialTiming';
-  static const String fixedPrice                 = 'fixedPrice';
-  static const String rangePrice                 = 'rangePrice';
-  static const String perUnit                    = 'perUnit';
-  static const String hintPerUnit                = 'hintPerUnit';
-  static const String discount                   = 'discount';
-  static const String couponName                 = 'couponName';
-  static const String egCouponName               = 'egCouponName';
-  static const String descriptionTerms           = 'descriptionTerms';
-  static const String hintDescriptionTerms           = 'hintDescriptionTerms';
-  static const String codeNameOptional           = 'codeNameOptional';
-  static const String totalOff                   = 'totalOff';
-  static const String inRupees                   = 'inRupees';
-  static const String inPercentage               = 'inPercentage';
-  static const String egPer10                    = 'egPer10';
-  static const String egSize                     = 'egSize';
-  static const String egWirelessEarbudsBox       = 'egDetails';
-  static const String addMoreDetails             = 'addMoreDetails';
-  static const String postService                = 'postService';
-  static const String minimumBookingAmount       = 'minimumBookingAmount';
-  static const String hintMinimumBooking         = 'hintMinimumBooking';
-  static const String cantAddMoreThanFive        = 'cantAddMoreThanFive';
-  static const String couponSaved                = 'couponSaved';
-  static const String limitReachedImages         = 'limitReachedImages';
-  static const String profession                 = 'profession';
-  static const String category                   = 'category';
-  static const String subcategory                = 'subcategory';
-  static const String yourProfessionDesignation  = 'yourProfessionDesignation';
-  static const String yourCategorySubcategory    = 'yourCategorySubcategory';
+  static const String serviceName = 'serviceName';
+  static const String hintServiceName = 'hintServiceName';
+  static const String facility = 'facility';
+  static const String facilities = 'facilities';
+  static const String serviceDescription = 'serviceDescription';
+  static const String hintServiceDescription = 'hintServiceDescription';
+  static const String timing = 'timing';
+  static const String defaultTiming = 'defaultTiming';
+  static const String specialTiming = 'specialTiming';
+  static const String fixedPrice = 'fixedPrice';
+  static const String rangePrice = 'rangePrice';
+  static const String perUnit = 'perUnit';
+  static const String hintPerUnit = 'hintPerUnit';
+  static const String discount = 'discount';
+  static const String couponName = 'couponName';
+  static const String egCouponName = 'egCouponName';
+  static const String descriptionTerms = 'descriptionTerms';
+  static const String hintDescriptionTerms = 'hintDescriptionTerms';
+  static const String codeNameOptional = 'codeNameOptional';
+  static const String totalOff = 'totalOff';
+  static const String inRupees = 'inRupees';
+  static const String inPercentage = 'inPercentage';
+  static const String egPer10 = 'egPer10';
+  static const String egSize = 'egSize';
+  static const String egWirelessEarbudsBox = 'egDetails';
+  static const String addMoreDetails = 'addMoreDetails';
+  static const String postService = 'postService';
+  static const String minimumBookingAmount = 'minimumBookingAmount';
+  static const String hintMinimumBooking = 'hintMinimumBooking';
+  static const String cantAddMoreThanFive = 'cantAddMoreThanFive';
+  static const String couponSaved = 'couponSaved';
+  static const String limitReachedImages = 'limitReachedImages';
+  static const String profession = 'profession';
+  static const String category = 'category';
+  static const String subcategory = 'subcategory';
+  static const String yourProfessionDesignation = 'yourProfessionDesignation';
+  static const String yourCategorySubcategory = 'yourCategorySubcategory';
 
-  static const String serviceDetails        = 'serviceDetails';
-  static const String service      = 'service';
-  static const String serviceTimings         = 'serviceTimings';
+  static const String serviceDetails = 'serviceDetails';
+  static const String service = 'service';
+  static const String serviceTimings = 'serviceTimings';
 
-  static const String kindlyAddServicesProfession   = 'kindlyAddServicesProfession';
-  static const String kindlyAddServicesCategory     = 'kindlyAddServicesCategory';
-  static const String shortDescription              = 'shortDescription';
-  static const String hintShortDescription          = 'hintShortDescription';
-  static const String serviceDescriptionRequired    = 'serviceDescriptionRequired';
-  static const String serviceDescriptionMinLength   = 'serviceDescriptionMinLength';
-  static const String open      = 'open';
-  static const String owner     = 'owner';
+  static const String kindlyAddServicesProfession =
+      'kindlyAddServicesProfession';
+  static const String kindlyAddServicesCategory = 'kindlyAddServicesCategory';
+  static const String shortDescription = 'shortDescription';
+  static const String hintShortDescription = 'hintShortDescription';
+  static const String serviceDescriptionRequired = 'serviceDescriptionRequired';
+  static const String serviceDescriptionMinLength =
+      'serviceDescriptionMinLength';
+  static const String open = 'open';
+  static const String owner = 'owner';
   static const String noServices = 'noServices';
   static const String off = 'Off';
 
-  static const String serviceNameRequired         = 'serviceNameRequired';
-  static const String serviceNameMinLength        = 'serviceNameMinLength';
-  static const String serviceDescRequired         = 'serviceDescRequired';
-  static const String serviceDescMinLength        = 'serviceDescMinLength';
-  static const String amountRequired              = 'amountRequired';
-  static const String enterValidNumber            = 'enterValidNumber';
-  static const String amountGreaterThanZero       = 'amountGreaterThanZero';
-  static const String minPriceRequired            = 'minPriceRequired';
-  static const String enterValidMinPrice          = 'enterValidMinPrice';
-  static const String minLessThanMax              = 'minLessThanMax';
-  static const String maxPriceRequired            = 'maxPriceRequired';
-  static const String enterValidMaxPrice          = 'enterValidMaxPrice';
-  static const String maxGreaterThanMin           = 'maxGreaterThanMin';
-  static const String serviceImage                = 'serviceImage';
-  static const String max10Facilities             = 'max10Facilities';
-  static const String minTwoImages                = 'minTwoImages';
-  static const String maxFiveImages               = 'maxFiveImages';
-  static const String addFacility                 = 'addFacility';
-  static const String startTimeRequired           = 'startTimeRequired';
-  static const String endTimeRequired             = 'endTimeRequired';
-  static const String startBeforeEnd              = 'startBeforeEnd';
-  static const String creatingService             = 'creatingService';
-  static const String serviceAddedSuccess         = 'serviceAddedSuccess';
-  static const String am            = 'am';
-  static const String pm            = 'pm';
+  static const String serviceNameRequired = 'serviceNameRequired';
+  static const String serviceNameMinLength = 'serviceNameMinLength';
+  static const String serviceDescRequired = 'serviceDescRequired';
+  static const String serviceDescMinLength = 'serviceDescMinLength';
+  static const String amountRequired = 'amountRequired';
+  static const String enterValidNumber = 'enterValidNumber';
+  static const String amountGreaterThanZero = 'amountGreaterThanZero';
+  static const String minPriceRequired = 'minPriceRequired';
+  static const String enterValidMinPrice = 'enterValidMinPrice';
+  static const String minLessThanMax = 'minLessThanMax';
+  static const String maxPriceRequired = 'maxPriceRequired';
+  static const String enterValidMaxPrice = 'enterValidMaxPrice';
+  static const String maxGreaterThanMin = 'maxGreaterThanMin';
+  static const String serviceImage = 'serviceImage';
+  static const String max10Facilities = 'max10Facilities';
+  static const String minTwoImages = 'minTwoImages';
+  static const String maxFiveImages = 'maxFiveImages';
+  static const String addFacility = 'addFacility';
+  static const String startTimeRequired = 'startTimeRequired';
+  static const String endTimeRequired = 'endTimeRequired';
+  static const String startBeforeEnd = 'startBeforeEnd';
+  static const String creatingService = 'creatingService';
+  static const String serviceAddedSuccess = 'serviceAddedSuccess';
+  static const String am = 'am';
+  static const String pm = 'pm';
 
-  static const String createOwn                     = 'createOwn';
-  static const String max10Products                 = 'max10Products';
-  static const String enterProductName              = 'enterProductName';
-  static const String findProductName               = 'findProductName';
-  static const String hintProductName               = 'hintProductName';
-  static const String productVariants               = 'productVariants';
-  static const String useListedPrices               = 'useListedPrices';
-  static const String useListedPricesMsg            = 'useListedPricesMsg';
-  static const String noProductHere                 = 'noProductHere';
-  static const String generateProductWithAI         = 'generateProductWithAI';
-  static const String openFullManualForm            = 'openFullManualForm';
-  static const String products                      = 'products';
-  static const String createOwnVariants             = 'createOwnVariants';
-  static const String publish                       = 'publish';
-  static const String sellingPrice                  = 'sellingPrice';
+  static const String createOwn = 'createOwn';
+  static const String max10Products = 'max10Products';
+  static const String enterProductName = 'enterProductName';
+  static const String findProductName = 'findProductName';
+  static const String hintProductName = 'hintProductName';
+  static const String productVariants = 'productVariants';
+  static const String useListedPrices = 'useListedPrices';
+  static const String useListedPricesMsg = 'useListedPricesMsg';
+  static const String noProductHere = 'noProductHere';
+  static const String generateProductWithAI = 'generateProductWithAI';
+  static const String openFullManualForm = 'openFullManualForm';
+  static const String products = 'products';
+  static const String createOwnVariants = 'createOwnVariants';
+  static const String publish = 'publish';
+  static const String sellingPrice = 'sellingPrice';
 
-  static const String addProductViaAI        = 'addProductViaAI';
-  static const String addProductWithin1Min   = 'addProductWithin1Min';
-  static const String uploadProductImages    = 'uploadProductImages';
-  static const String productNameBrand       = 'productNameBrand';
-  static const String egTShirtMobile        = 'egTShirtMobile';
-  static const String productDescSpec        = 'productDescSpec';
-  static const String hintProductDesc        = 'hintProductDesc';
+  static const String addProductViaAI = 'addProductViaAI';
+  static const String addProductWithin1Min = 'addProductWithin1Min';
+  static const String uploadProductImages = 'uploadProductImages';
+  static const String productNameBrand = 'productNameBrand';
+  static const String egTShirtMobile = 'egTShirtMobile';
+  static const String productDescSpec = 'productDescSpec';
+  static const String hintProductDesc = 'hintProductDesc';
 
-  static const String selectCategory         = 'selectCategory';
-  static const String hereIsYourProduct      = 'hereIsYourProduct';
-  static const String productDetails         = 'productDetails';
-  static const String productName            = 'productName';
-  static const String brand                  = 'brand';
-  static const String tagsKeywords           = 'tagsKeywords';
-  static const String productFeatures        = 'productFeatures';
-  static const String pricingWarranty        = 'pricingWarranty';
-  static const String mrp                    = 'mrp';
-  static const String productWarranty        = 'productWarranty';
-  static const String expiryTime             = 'expiryTime';
-  static const String userGuidance           = 'userGuidance';
-  static const String variant                = 'variant';
-  static const String color                  = 'color';
-  static const String postProduct            = 'postProduct';
+  static const String selectCategory = 'selectCategory';
+  static const String hereIsYourProduct = 'hereIsYourProduct';
+  static const String productDetails = 'productDetails';
+  static const String productName = 'productName';
+  static const String brand = 'brand';
+  static const String tagsKeywords = 'tagsKeywords';
+  static const String productFeatures = 'productFeatures';
+  static const String pricingWarranty = 'pricingWarranty';
+  static const String mrp = 'mrp';
+  static const String productWarranty = 'productWarranty';
+  static const String expiryTime = 'expiryTime';
+  static const String userGuidance = 'userGuidance';
+  static const String variant = 'variant';
+  static const String color = 'color';
+  static const String postProduct = 'postProduct';
 
   static const String createVariantCombination = 'createVariantCombination';
   static const String addMoreVariant = 'addMoreVariant';
@@ -1546,8 +1551,10 @@ class AppStrings {
   static const String draft = 'draft';
   static const String live = 'live';
   static const String outOfStock = 'outOfStock';
-  static const String pleaseTakeMinimumOneProductImage = 'pleaseTakeMinimumOneProductImage';
-  static const String uploadProductImagesOptional = 'uploadProductImagesOptional';
+  static const String pleaseTakeMinimumOneProductImage =
+      'pleaseTakeMinimumOneProductImage';
+  static const String uploadProductImagesOptional =
+      'uploadProductImagesOptional';
   static const String productMrp = 'productMrp';
   static const String exampleMrp = 'exampleMrp';
   static const String examplePrice = 'examplePrice';
@@ -1568,7 +1575,8 @@ class AppStrings {
   static const String addLinkReferenceWebsite = 'addLinkReferenceWebsite';
   static const String linkReferenceWebsite = 'linkReferenceWebsite';
   static const String httpsExampleCom = 'httpsExampleCom';
-  static const String youCantAddMoreThanFiveDetail = 'youCantAddMoreThanFiveDetail';
+  static const String youCantAddMoreThanFiveDetail =
+      'youCantAddMoreThanFiveDetail';
   static const String hintProductFeature = 'hintProductFeature';
 
   static const String brandIfAny = 'brandIfAny';
@@ -1580,29 +1588,29 @@ class AppStrings {
   static const String shareProduct = 'shareProduct';
   static const String selectColor = 'selectColor';
 
-  static const String searchCategories  = 'searchCategories';
-  static const String searching         = 'searching';
-  static const String select            = 'select';
+  static const String searchCategories = 'searchCategories';
+  static const String searching = 'searching';
+  static const String select = 'select';
   static const String pleaseSearchForCategory = 'pleaseSearchForCategory';
 
-  static const String addVariant               = 'addVariant';
-  static const String variantName              = 'variantName';
-  static const String variantNameHint          = 'variantNameHint';
-  static const String enterValue               = 'enterValue';
-  static const String attributeExists          = 'attributeExists';
-  static const String pickAtLeastOneColor      = 'pickAtLeastOneColor';
-  static const String duplicateAttribute       = 'duplicateAttribute';
-  static const String theAttribute    = 'theAttribute';
-  static const String alreadyExists    = 'alreadyExists';
-  static const String egTitle    = 'egTitle';
+  static const String addVariant = 'addVariant';
+  static const String variantName = 'variantName';
+  static const String variantNameHint = 'variantNameHint';
+  static const String enterValue = 'enterValue';
+  static const String attributeExists = 'attributeExists';
+  static const String pickAtLeastOneColor = 'pickAtLeastOneColor';
+  static const String duplicateAttribute = 'duplicateAttribute';
+  static const String theAttribute = 'theAttribute';
+  static const String alreadyExists = 'alreadyExists';
+  static const String egTitle = 'egTitle';
 
-  static const String goLive               = 'goLive';
-  static const String myOrder              = 'myOrder';
-  static const String businessCards        = 'businessCards';
-  static const String noProductFound       = 'noProductFound';
+  static const String goLive = 'goLive';
+  static const String myOrder = 'myOrder';
+  static const String businessCards = 'businessCards';
+  static const String noProductFound = 'noProductFound';
 
-  static const String professionChangeMsg   = 'professionChangeMsg';
-  static const String allStepsSubmitted     = 'allStepsSubmitted';
+  static const String professionChangeMsg = 'professionChangeMsg';
+  static const String allStepsSubmitted = 'allStepsSubmitted';
 
   ///BHAVESH START
   static const ownerDetail = "owner_detail";
@@ -1611,6 +1619,7 @@ class AppStrings {
   static const yourRole = "your_role";
   static const yourRoleHint = "your_role_hint";
   static const emailHint = "email_hint";
+
   // Validation
   static const validationNameRequired = "validation_name_required";
   static const validationRoleRequired = "validation_role_required";
@@ -1645,13 +1654,13 @@ class AppStrings {
   static const categoryOfBusinessService = "category_of_business_service";
   static const selectBusinessCategory = "select_business_category";
   static const selectSubCategory = "select_sub_category";
-  static const businessSpecializationOptional = "business_specialization_optional";
+  static const businessSpecializationOptional =
+      "business_specialization_optional";
   static const businessSpecializationHint = "business_specialization_hint";
   static const shopOpenTime = "shop_open_time";
   static const shopCloseTime = "shop_close_time";
   static const pleaseSelectCategory = "please_select_category";
   static const selectNatureOfBusiness = "select_nature_of_business";
-
 
   static const businessDescription = "business_description";
   static const descriptionEmpty = "description_empty";
@@ -1700,12 +1709,18 @@ class AppStrings {
 
   static const ownershipVerification = "ownership_verification";
   static const chooseWhatYouWantToVerify = "choose_what_you_want_to_verify";
-  static const verifyYourBusinessDetailsUsingGst = "verify_your_business_details_using_gst";
-  static const confirmsYourBusinessIsRegistered = "confirms_your_business_is_registered";
-  static const requiredGstOrLicenseCertificate = "required_gst_or_license_certificate";
-  static const verifyYouAreOwner = "verify_that_you_are_the_owner_of_the_business";
-  static const confirmsYourIdentityAsBusinessOwner = "confirms_your_identity_as_the_business_owner";
-  static const requiredAadhaarVoterIdOrSimilar = "required_aadhaar_voterid_or_similar";
+  static const verifyYourBusinessDetailsUsingGst =
+      "verify_your_business_details_using_gst";
+  static const confirmsYourBusinessIsRegistered =
+      "confirms_your_business_is_registered";
+  static const requiredGstOrLicenseCertificate =
+      "required_gst_or_license_certificate";
+  static const verifyYouAreOwner =
+      "verify_that_you_are_the_owner_of_the_business";
+  static const confirmsYourIdentityAsBusinessOwner =
+      "confirms_your_identity_as_the_business_owner";
+  static const requiredAadhaarVoterIdOrSimilar =
+      "required_aadhaar_voterid_or_similar";
 
   static const report = "report";
   static const reportThisProfile = "report_this_profile";
@@ -1715,7 +1730,7 @@ class AppStrings {
   static const imageProcessingFailed = "imageProcessingFailed";
   static const updatePictureFailed = "updatePictureFailed";
   static const verifiedProfile = "verifiedProfile";
-  static const uploadBusinessLogo  = "uploadBusinessLogo";
+  static const uploadBusinessLogo = "uploadBusinessLogo";
 
   static const pleaseEnterPinCode = "pleaseEnterPinCode";
   static const pleaseEnterAddress = "pleaseEnterAddress";
@@ -1743,13 +1758,15 @@ class AppStrings {
   static const shortlisted = "shortlisted";
   static const interview = "interview";
   static const hired = "hired";
-///CHAT ONLY....
+
+  ///CHAT ONLY....
   static const personal = "personal";
   static const business = "business";
   static const group = "group";
   static const orders = "orders";
   static const forward = "forward";
-  static const cantSelectPersonalAndBusinessBoth = "cantSelectPersonalAndBusinessBoth";
+  static const cantSelectPersonalAndBusinessBoth =
+      "cantSelectPersonalAndBusinessBoth";
   static const chatNow = "chatNow";
   static const callNow = "callNow";
   static const otp = "otp";
@@ -1772,6 +1789,16 @@ class AppStrings {
   static const sayNamaste = "sayNamaste";
   static const typeYourMessage = "typeYourMessage";
 
+  ///BHAVESH START
 
-///BHAVESH END
+  static const String clearAllNotifications = 'clearAllNotifications';
+  static const String clearNotification = 'clearNotification';
+  static const String clearAllDescription = 'clearAllDescription';
+  static const String clearDescription = 'clearDescription';
+  static const String allNotificationsDeleted = 'allNotificationsDeleted';
+  static const String notificationDeleted = 'notificationDeleted';
+  static const String noNotificationsFound = 'noNotificationsFound';
+  static const String tagsText = 'tagsText';
+
+  ///BHAVESH END
 }

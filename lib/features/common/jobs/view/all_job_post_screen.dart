@@ -169,7 +169,7 @@ class _AllJobPostScreenState extends State<AllJobPostScreen> {
                                   navigatePushTo(
                                     context,
                                     ImageViewScreen(
-                                      appBarTitle: AppLocalizations.of(context)!
+                                      appBarTitle:AppStrings
                                           .imageViewer,
                                       // imageUrls: [post?.author.profileImage ?? ''],
                                       imageUrls: [job?.jobPostImage ?? ""],
