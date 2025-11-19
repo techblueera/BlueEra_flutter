@@ -1455,7 +1455,7 @@ final List<ServiceItem> earnWithBlueEraServiceList = [
   ServiceItem(
     name: AppStrings.counsellingConsulting,
     slugId: AppConstants.COUNSELLING_CONSULTING_OPTION,
-    icon: AppIconAssets.consultingIcon,
+    icon: AppIconAssets.counsellingServiceIcon,
     bgColor: const Color(0xFFBCEEE2),
     labelColor: const Color(0xFF006950),
   ),

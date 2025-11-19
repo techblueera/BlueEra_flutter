@@ -8,9 +8,12 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/typedef_utils.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/jobs/controller/applied_job_controller.dart';
 import 'package:BlueEra/features/journey/repo/travel_repo.dart';
+import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/create_profile_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_settings_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
 import 'package:BlueEra/l10n/app_localizations.dart';
@@ -22,83 +25,86 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/post_via_dialog.dart';
+import 'package:BlueEra/widgets/update_live_photo_dialog.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../core/constants/shared_preference_utils.dart';
 import '../features/business/visiting_card/view/business_own_profile_screen.dart';
 
 class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const CommonBackAppBar({
-    super.key,
-    this.title,
-    this.isLeading = true,
-    this.isFilter = false,
-    this.isNotification = false,
-    this.bellIconNotEmpty = false,
-    this.onNotificationTap,
-    this.onBackTap,
-    this.appBarColor,
-    this.isTextButton = false,
-    this.actionText,
-    this.actionTextColor,
-    this.isShareButton,
-    this.isLogout,
-    this.isDownloadButton,
-    this.isChangeToEditMode = false,
-    this.isQrCodeButton,
-    this.onQrCodeTap,
-    this.onShareTap,
-    this.isLocation,
-    this.isMore,
-    this.isSearch,
-    this.controller,
-    this.onSearchTap,
-    this.onClearCallback,
-    this.searchHintText,
-    this.onLocationTap,
-    this.onMoreTap,
-    this.isTrimmedButton,
-    this.onTrimmedTap,
-    this.isSaveButton,
-    this.onSavedTap,
-    this.iClearButton,
-    this.onClearNotificationsTap,
-    this.isSettingButton,
-    this.isAddPlace,
-    this.onAddPlaceTap,
-    this.isEndJourney,
-    this.onEndJourneyTap,
-    this.titleColor,
-    this.isCancelButton,
-    this.onCancelTap,
-    this.isJobPopUpMenuButton,
-    this.isProfile,
-    this.isResumeCardButton,
-    this.isReloadContactButton,
-    this.onRefreshContact,
-    this.onProfileTap,
-    this.isPDFExport,
-    this.onPDFExportTap,
-    this.jobID,
-    this.jobStatus,
-    this.showRightTextButton = false,
-    this.rightTextButtonText,
-    this.rightTextButtonColor,
-    this.onRightTextButtonTap,
-    this.isShowCursor,
-    this.currentCity,
-    this.isGuestLogout,
-    this.buildCustomWidget,
-    // this.isAddProduct = false,
-    // this.isAddProductCategory = false,
-    this.bottomWidget,
-    this.isGoLiveWidget,
-    this.isFollowRefreshWidget,
-    this.isFollowRefresh = false,
-    this.showGoLiveWidget,
-    this.isGoLive = false,
-    this.isInventoryPopUpMenu = false,
-  });
+  const CommonBackAppBar(
+      {super.key,
+      this.title,
+      this.isLeading = true,
+      this.isFilter = false,
+      this.isNotification = false,
+      this.bellIconNotEmpty = false,
+      this.onNotificationTap,
+      this.onBackTap,
+      this.appBarColor,
+      this.isTextButton = false,
+      this.actionText,
+      this.actionTextColor,
+      this.isShareButton,
+      this.isLogout,
+      this.isDownloadButton,
+      this.isChangeToEditMode = false,
+      this.isQrCodeButton,
+      this.onQrCodeTap,
+      this.onShareTap,
+      this.isLocation,
+      this.isMore,
+      this.isSearch,
+      this.controller,
+      this.onSearchTap,
+      this.onClearCallback,
+      this.searchHintText,
+      this.onLocationTap,
+      this.onMoreTap,
+      this.isTrimmedButton,
+      this.onTrimmedTap,
+      this.isSaveButton,
+      this.onSavedTap,
+      this.iClearButton,
+      this.onClearNotificationsTap,
+      this.isSettingButton,
+      this.isAddPlace,
+      this.onAddPlaceTap,
+      this.isEndJourney,
+      this.onEndJourneyTap,
+      this.titleColor,
+      this.isCancelButton,
+      this.onCancelTap,
+      this.isJobPopUpMenuButton,
+      this.isProfile,
+      this.isResumeCardButton,
+      this.isReloadContactButton,
+      this.onRefreshContact,
+      this.onProfileTap,
+      this.isPDFExport,
+      this.onPDFExportTap,
+      this.jobID,
+      this.jobStatus,
+      this.showRightTextButton = false,
+      this.rightTextButtonText,
+      this.rightTextButtonColor,
+      this.onRightTextButtonTap,
+      this.isShowCursor,
+      this.currentCity,
+      this.isGuestLogout,
+      this.buildCustomWidget,
+      // this.isAddProduct = false,
+      // this.isAddProductCategory = false,
+      this.bottomWidget,
+      this.isGoLiveWidget,
+      this.isFollowRefreshWidget,
+      this.isFollowRefresh = false,
+      this.showGoLiveWidget,
+      this.isGoLive = false,
+      this.isInventoryPopUpMenu = false,
+      this.isStoreProfile,
+      this.isCartIconShow});
 
   // final AppBar? appBar;
   final String? title;
@@ -170,6 +176,8 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Widget? showGoLiveWidget;
   final Widget Function()? isGoLiveWidget;
   final bool? isInventoryPopUpMenu;
+  final bool? isStoreProfile;
+  final bool? isCartIconShow;
 
   @override
   Widget build(BuildContext context) {
@@ -236,6 +244,30 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                 },
               ),
 
+            if (isStoreProfile ?? false)
+              Builder(
+                builder: (BuildContext context) {
+                  return InkWell(
+                    onTap: () {
+                      if (isGuestUser()) {
+                        createProfileScreen();
+                      } else if (isIndividualUser()) {
+                        Get.to(() => PersonalProfileSetupNewScreen());
+                      } else if (isBusinessUser()) {
+                        navigatePushTo(context, BusinessOwnProfileScreen());
+                      }
+                    },
+                    child: Padding(
+                        padding: EdgeInsets.only(left: SizeConfig.size15),
+                        child: CachedAvatarWidget(
+                            imageUrl: userProfileGlobal,
+                            size: SizeConfig.size30,
+                            borderRadius: SizeConfig.size15,
+                            showProfileOnFullScreen: false)),
+                  );
+                },
+              ),
+
             if (title?.isNotEmpty ?? false)
               Flexible(
                 child: Padding(
@@ -267,7 +299,6 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                             controller: controller!,
                             isShowCursor: isShowCursor,
                             onSearchTap: onSearchTap ?? () {},
-
                             onClearCallback: onClearCallback,
                             hintText: searchHintText),
                       ),
@@ -580,7 +611,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
               PopupMenuItem(
                 value: AppConstants.exportPDF,
                 child: CustomText(
-                 AppStrings.excelPdf,
+                  AppStrings.excelPdf,
                 ),
               ),
               PopupMenuItem(
@@ -632,6 +663,41 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
         if (showGoLiveWidget != null)
           Builder(
             builder: (context) => showGoLiveWidget!,
+          ),
+        if(isCartIconShow ?? false)
+          Builder(
+            builder: (context) =>  InkWell(
+              onTap: () {
+                if(isBusinessUser()){
+                  final controller = Get.find<ViewBusinessDetailsController>();
+
+                  if((controller.businessProfileDetails?.data?.livePhotos ?? []).length < 3){
+                    showLivePhotoDialog(
+                      context: context,
+                    );
+                  }else{
+                    Get.toNamed(RouteHelper.getInventoryScreenRoute());
+
+                  }
+                }else{
+                  final controller = Get.find<ViewPersonalDetailsController>();
+
+                  if (controller
+                      .personalProfileDetails.value.isProfileCreated ==
+                      false) {
+                    Get.to(()=> CreateProfileScreen());
+                  } else {
+                    Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
+                  }
+                }
+              },
+              child: Padding(
+                padding: EdgeInsets.only(right: SizeConfig.size20),
+                child: LocalAssets(
+                  imagePath: AppIconAssets.cartIcon,
+                ),
+              ),
+            ),
           ),
       ],
       bottom: bottomWidget,

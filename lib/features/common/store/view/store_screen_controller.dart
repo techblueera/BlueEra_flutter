@@ -40,10 +40,13 @@ class StoreScreenController extends GetxController {
 
 
   // Scroll and Header Management
-  final GlobalKey headerKey = GlobalKey();
   final ScrollController scrollController = ScrollController();
+  final GlobalKey headerKey = GlobalKey();
   Function(bool isVisible)? onHeaderVisibilityChanged;
   final RxBool isHeaderVisible = true.obs;
+  final RxDouble headerOffset = 0.0.obs;
+  double headerHeight = 0;
+
   RxInt selectedStoreIndex = 0.obs;
   final List<String> storeTab = [
     "All",
@@ -52,7 +55,6 @@ class StoreScreenController extends GetxController {
     "Food",
     "Store"
   ];
-
 
   // Search Management
   final TextEditingController searchController = TextEditingController();

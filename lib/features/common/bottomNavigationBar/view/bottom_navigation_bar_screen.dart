@@ -14,7 +14,7 @@ import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/more/controller/more_cards_screen_controller.dart';
 import 'package:BlueEra/features/common/reel/models/channel_model.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
-import 'package:BlueEra/features/common/store/view/newstore_screen.dart';
+import 'package:BlueEra/features/common/store/view/latest_store_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
 import 'package:BlueEra/widgets/service_provider_dialoge.dart';
@@ -266,7 +266,11 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
           onHeaderVisibilityChanged: _toggleAppBar,
         );
       case 1:
-        return StoreFeedScreen(
+        // return StoreFeedScreen(
+        //   isHeaderVisible: isVisible,
+        //   onHeaderVisibilityChanged: _toggleAppBar,
+        // );
+        return LatestStoreScreen(
           isHeaderVisible: isVisible,
           onHeaderVisibilityChanged: _toggleAppBar,
         );

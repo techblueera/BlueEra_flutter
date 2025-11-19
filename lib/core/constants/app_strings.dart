@@ -1603,6 +1603,7 @@ class AppStrings {
 
   static const String professionChangeMsg   = 'professionChangeMsg';
   static const String allStepsSubmitted     = 'allStepsSubmitted';
+  static const searchAnything = "searchAnything";
 
   ///BHAVESH START
   static const ownerDetail = "owner_detail";
