@@ -15,6 +15,7 @@ import '../../../../../widgets/common_back_app_bar.dart';
 import '../../../../../widgets/common_box_shadow.dart';
 import '../../../../../widgets/common_document_picker.dart';
 import '../../../../../widgets/custom_text_cm.dart';
+import '../../../../common/auth/controller/auth_controller.dart';
 import '../../../../common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import '../../../auth/controller/view_business_details_controller.dart';
 
@@ -76,6 +77,7 @@ class _BusinessVerificationState extends State<BusinessVerification> {
         if (gstController.text.isEmpty) ApiKeys.document: imageByPart
       };
       viewBusinessDetailsController.postVerifyBusinessDocs(data);
+      commonSnackBar(message:"Verification of your business will take a few seconds.");
       Navigator.pop(context);
     } else {
       commonSnackBar(message:AppStrings.pleaseProvideRequiredInfo);
@@ -130,6 +132,10 @@ class _BusinessVerificationState extends State<BusinessVerification> {
       ///SET IMAGE PATH...
     }
   }
+  final authController = Get.find<AuthController>();
+  final gstRegExp = RegExp(
+    r'^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$',
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -168,6 +174,11 @@ class _BusinessVerificationState extends State<BusinessVerification> {
                 ),
                 SizedBox(height: 31),
                 CommonTextField(
+                  onChange: (val){
+                    setState(() {
+
+                    });
+                  },
                   textEditController: gstController,
                   inputLength: AppConstants.inputCharterLimit50,
                   keyBoardType: TextInputType.text,
@@ -175,6 +186,23 @@ class _BusinessVerificationState extends State<BusinessVerification> {
                   title: AppStrings.enterGstNumber,
                   hintText: AppStrings.enterGstNumber,
                   isValidate: false,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      authController.isValidate.value = false;
+                      return 'Please enter your GST number';
+                    }
+
+
+                    if (!gstRegExp.hasMatch(value)) {
+                      authController.isValidate.value = false;
+                      return 'Please enter a valid GST number';
+                    }
+
+
+                    authController.isValidate.value = true;
+                    return null;
+                  },
                 ),
                 // SizedBox(height: 16),
                 // Center(
@@ -228,7 +256,6 @@ class _BusinessVerificationState extends State<BusinessVerification> {
                       ],
                       onChanged: (value) {
                         setState(() {
-                          gstController.clear();
                           selectedDocType = value;
                         });
                       },
@@ -264,15 +291,16 @@ class _BusinessVerificationState extends State<BusinessVerification> {
                     ),
                     SizedBox(height: 19),
                     GestureDetector(
-                      onTap: isFormComplete()
+                      onTap: (isFormComplete()&&gstController.text.isNotEmpty&&gstRegExp.hasMatch(gstController.text)&&selectedImage!=null)
                           ? () {
+
                               verify();
                             }
                           : null,
                       child: Container(
                         height: 40,
                         decoration: BoxDecoration(
-                          color: isFormComplete()
+                          color: (isFormComplete()&&gstController.text.isNotEmpty&&gstRegExp.hasMatch(gstController.text)&&selectedImage!=null)
                               ? AppColors.primaryColor
                               : Color(0xFF7A7F83),
                           borderRadius: BorderRadius.circular(8),

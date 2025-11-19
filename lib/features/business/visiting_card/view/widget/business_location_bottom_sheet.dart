@@ -31,10 +31,13 @@ class _BusinessLocationBottomSheetState
   final fullBusinessAddressTextController = TextEditingController();
   final picCodeController = TextEditingController();
   final cityController = TextEditingController();
-
+  final RegExp pinRegex = RegExp(r'^[1-9][0-9]{5}$');
   final viewBusinessDetailsController =
   Get.find<ViewBusinessDetailsController>();
   final locationController = Get.put(LocationController());
+  bool isValidIndianPincode(String pin) {
+    return pinRegex.hasMatch(pin.trim());
+  }
 
   @override
   void initState() {
@@ -145,6 +148,15 @@ class _BusinessLocationBottomSheetState
               ),
               SizedBox(height: SizeConfig.size16),
               CommonTextField(
+                onChange: (val){
+                  setState(() {
+
+                  });
+                },
+                validator: (String? value) {
+                  if (value == null || value.trim().isEmpty) return 'Pincode required';
+                  return isValidIndianPincode(value) ? null : 'Enter a valid 6-digit pincode';
+                  },
                 textEditController: picCodeController,
                 title: AppStrings.pincodeTitle,
                 keyBoardType: TextInputType.number,
@@ -155,10 +167,10 @@ class _BusinessLocationBottomSheetState
                 title: AppStrings.save,
                 bgColor: AppColors.primaryColor,
                 radius: 10,
-                onTap: () {
+                onTap:() {
                   if ((viewBusinessDetailsController.addressLat?.value !=0.0) &&
                   (viewBusinessDetailsController.addressLong?.value !=0.0)) {
-                  if (picCodeController.text.isNotEmpty) {
+                  if (picCodeController.text.isNotEmpty&&pinRegex.hasMatch(picCodeController.text.trim())) {
                     Map<String, dynamic> params = {
                       ApiKeys.city_state_pincode: cityController.text,
                       ApiKeys.address: fullBusinessAddressTextController.text,
@@ -182,10 +194,13 @@ class _BusinessLocationBottomSheetState
                       );
                     }
 
-                  } else {
+                  } else if(!pinRegex.hasMatch(picCodeController.text.trim())) {
                   commonSnackBar(
-                     message:AppStrings.pleaseEnterPinCode);
-                   }
+                     message:'Please Enter Valid Pin code');
+                   }else{
+                    commonSnackBar(
+                        message:AppStrings.pleaseEnterPinCode);
+                  }
                   } else {
                     commonSnackBar(
                         message:AppStrings.pleaseEnterAddress);
