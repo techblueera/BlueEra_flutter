@@ -85,7 +85,7 @@ class BusinessProfileDetails {
     logo = json['logo'];
     coverimage = json['coverPicture'];
     categoryOfBusiness = json['category_Of_Business'];
-    natureOfBusiness = json['Nature_of_Business'];
+    natureOfBusiness = json['Nature_of_Business']=='false'?'':json['Nature_of_Business'];
     isActive = json['isActive'];
     businessIsVerified = json['business_isVerified'];
     livePhotos=json['live_photos'].cast<String>();

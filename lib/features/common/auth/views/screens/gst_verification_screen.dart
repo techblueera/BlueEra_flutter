@@ -95,7 +95,6 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
                                   authController.isValidate.value = false;
                                   return 'Please enter your GST number';
                                 }
-
                                 // ✅ Check format using GST regex
                                 final gstRegExp = RegExp(
                                   r'^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$',

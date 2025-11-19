@@ -376,6 +376,8 @@ class ViewBusinessDetailsController extends GetxController {
 
       if (responseModel.isSuccess) {
         getBusinessVerification();
+        viewBusinessProfile();
+
       } else {
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
