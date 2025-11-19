@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -14,6 +16,8 @@ import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../business/visit_business_profile/view/visit_business_profile_new.dart';
+import '../../../personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import '../model/get_food_details_model.dart';
 
 class FoodDetailsViewScreen extends StatelessWidget {
@@ -39,6 +43,21 @@ class FoodDetailsViewScreen extends StatelessWidget {
       isSelfService = data.serviceProvider?.id == userId;
     } else if(data.serviceProvider?.type?.toLowerCase() == ProductServiceProviderType.channel.name.toLowerCase()){
       isSelfService = data.serviceProvider?.id == channelId;
+    }
+    void _navigateToProfile({required String authorId, required String type}) {
+      if (type.toUpperCase() == AppConstants.business) {
+        Get.to(() =>
+            VisitBusinessProfileNew(
+              businessId: authorId,
+              screenName: AppConstants.chatScreen,
+            ));
+      } else if (type.toUpperCase() == AppConstants.individual) {
+        Get.to(() =>
+            NewVisitProfileScreen(
+              authorId: authorId,
+              screenFromName: AppConstants.chatScreen,
+            ));
+      }
     }
 
     return Scaffold(
@@ -101,29 +120,35 @@ class FoodDetailsViewScreen extends StatelessWidget {
                             : null,
                       ),
                       Expanded(
-                        child: Padding(
-                          padding: EdgeInsets.only(left: SizeConfig.size10),
-                          child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                CustomText(
-                                  item.business?.businessName
-                                          ?.capitalizeFirst ??
-                                      AppStrings.na,
-                                  fontSize: SizeConfig.large18,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.mainTextColor,
-                                  maxLines: 2,
-                                ),
-                                CustomText(
-                                  item.business?.categoryOfBusiness?.name ??
-                                      AppStrings.na,
-                                  fontSize: SizeConfig.large,
-                                  fontWeight: FontWeight.w500,
-                                  color: AppColors.mainTextColor,
-                                  maxLines: 1,
-                                ),
-                              ]),
+                        child: InkWell(
+                          onTap: (){
+                            log('fgdh${item.toJson()}');
+                            _navigateToProfile(authorId: business?.id??"", type: item.serviceProvider?.type??'');
+                          },
+                          child: Padding(
+                            padding: EdgeInsets.only(left: SizeConfig.size10),
+                            child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  CustomText(
+                                    item.business?.businessName
+                                            ?.capitalizeFirst ??
+                                        AppStrings.na,
+                                    fontSize: SizeConfig.large18,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.mainTextColor,
+                                    maxLines: 2,
+                                  ),
+                                  CustomText(
+                                    item.business?.categoryOfBusiness?.name ??
+                                        AppStrings.na,
+                                    fontSize: SizeConfig.large,
+                                    fontWeight: FontWeight.w500,
+                                    color: AppColors.mainTextColor,
+                                    maxLines: 1,
+                                  ),
+                                ]),
+                          ),
                         ),
                       ),
                       InkWell(
