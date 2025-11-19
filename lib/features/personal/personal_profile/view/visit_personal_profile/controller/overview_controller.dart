@@ -32,8 +32,8 @@ class OverviewController extends GetxController {
         _getTestimonials(userId),
         getRatingSummary(userId:userId),
         _getPosts(userId),
-        _getShorts( userId),
-        _getVideos(videoType, userId),
+        // _getShorts( userId),
+        // _getVideos(videoType, userId),
       ]);
     } catch (e) {
       errorMessage.value = e.toString();

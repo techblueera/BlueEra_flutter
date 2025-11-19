@@ -234,7 +234,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   final data = filteredNotifications[index];
                   final isLast = index == filteredNotifications.length - 1;
 
-                  final String imageUrl = data.user?.profileImage ?? '';
+                  final String imageUrl = data.senderProfile?.profileImage ?? '';
                   final String id = data.sId ?? "";
                   final String title = data.message ?? '';
                   final String status = data.status ?? '';

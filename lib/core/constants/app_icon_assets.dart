@@ -447,4 +447,10 @@ class AppIconAssets {
   static String fuelIcon = "${iconPath}fuel_icon.svg";
   static String rider_otp = "${iconPath}rider_otp.svg";
   static String rider_call_icon = "${iconPath}rider_call_icon.svg";
+  static String app_setting_language = "${iconPath}app_setting_language.svg";
+  static String  app_setting_verification= "${iconPath}app_setting_verification.svg";
+  static String app_setting_manage_subscription = "${iconPath}app_setting_manage_subscription.svg";
+  static String  app_setting_change_phone_number= "${iconPath}app_setting_change_phone_number.svg";
+  static String app_setting_change_notification = "${iconPath}app_setting_change_notification.svg";
+  static String  app_setting_edit_profile= "${iconPath}app_setting_edit_profile.svg";
 }

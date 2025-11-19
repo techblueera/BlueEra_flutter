@@ -11,6 +11,7 @@ import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/view/feed_shimmer_card.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/load_error_widget.dart';
 import 'package:BlueEra/widgets/setup_scroll_visibility_notification.dart';
@@ -61,14 +62,19 @@ class _FeedScreenState extends State<FeedScreen> {
       }
 
       /// forcefully we are calling api due to page is already loaded but we want to call api due to some new post is added by us
-      ever(Get.find<NavigationHelperController>().shouldRefreshBottomBar,
-          (shouldRefresh) {
-        if (shouldRefresh == true) {
-          fetchPostData(isInitialLoad: true, refresh: true, id: widget.id);
-          Get.find<NavigationHelperController>().shouldRefreshBottomBar.value =
+      ever(Get
+          .find<NavigationHelperController>()
+          .shouldRefreshBottomBar,
+              (shouldRefresh) {
+            if (shouldRefresh == true) {
+              fetchPostData(isInitialLoad: true, refresh: true, id: widget.id);
+              Get
+                  .find<NavigationHelperController>()
+                  .shouldRefreshBottomBar
+                  .value =
               false;
-        }
-      });
+            }
+          });
     });
   }
 
@@ -122,11 +128,10 @@ class _FeedScreenState extends State<FeedScreen> {
     }
   }
 
-  void fetchPostData(
-      {bool isInitialLoad = false,
-      bool refresh = false,
-      String? id,
-      String? query}) {
+  void fetchPostData({bool isInitialLoad = false,
+    bool refresh = false,
+    String? id,
+    String? query}) {
     feedController.getPostsByType(widget.postFilterType,
         isInitialLoad: isInitialLoad,
         refresh: refresh,
@@ -161,7 +166,8 @@ class _FeedScreenState extends State<FeedScreen> {
     // Loader at the end
     if (postIndex >= posts.length) {
       // Only show loader if pagination is in progress
-      return Obx(() => feedController.isTargetMoreDataLoading.value
+      return Obx(() =>
+      feedController.isTargetMoreDataLoading.value
           ? staggeredDotsWaveLoading()
           : const SizedBox.shrink());
     }
@@ -170,9 +176,7 @@ class _FeedScreenState extends State<FeedScreen> {
       key: Key('post_$index'),
       onVisibilityChanged: (visibilityInfo) {
         if (visibilityInfo.visibleFraction > 0.5) {
-          // Post is at least 50% visible
           trackPostView(posts[postIndex].id);
-          // _callViewApi(post.id); // 👈 Call your view API here
         }
       },
       child: FeedCard(
@@ -187,12 +191,13 @@ class _FeedScreenState extends State<FeedScreen> {
 
   @override
   Widget build(BuildContext context) {
+
     return Obx(() {
       if (feedController.isLoading.isFalse) {
         if (feedController.postsResponse.value.status == Status.COMPLETE ||
             widget.postFilterType == PostType.saved) {
           List<Post> posts =
-              feedController.getListByType(widget.postFilterType);
+          feedController.getListByType(widget.postFilterType);
 
           if (posts.isEmpty) {
             return Center(
@@ -207,13 +212,19 @@ class _FeedScreenState extends State<FeedScreen> {
           // 🔹 Only wrap with RefreshIndicator if headerOffset == 0
           final content = RefreshIndicator(
             notificationPredicate: (notification) {
-              return Get.find<HomeScreenController>().headerOffset.value ==
-                      0.0 &&
+              return Get
+                  .find<HomeScreenController>()
+                  .headerOffset
+                  .value ==
+                  0.0 &&
                   notification.metrics.pixels <=
                       notification.metrics.minScrollExtent;
             },
             onRefresh: () async {
-              if (Get.find<HomeScreenController>().headerOffset.value != 0.0) {
+              if (Get
+                  .find<HomeScreenController>()
+                  .headerOffset
+                  .value != 0.0) {
                 return;
               }
 
@@ -284,7 +295,7 @@ class _FeedScreenState extends State<FeedScreen> {
               );
             },
           );
-        }else{
+        } else {
           return const SizedBox();
         }
       } else {
@@ -295,37 +306,4 @@ class _FeedScreenState extends State<FeedScreen> {
     });
   }
 
-  ShortFeedItem getVideoData(Post video) {
-    return ShortFeedItem(
-        videoId: video.id,
-        author: Author(
-          name: video.user?.name,
-          username: video.user?.username,
-          designation: video.user?.designation,
-          profileImage: video.user?.profileImage,
-          accountType: video.user?.accountType,
-          id: video.user?.id,
-        ),
-        metadata: VideoItemMetadata(
-            addedAt: video.createdAt.toString(),
-            source: "personalized",
-            watchedBefore: false),
-        video: VideoData(
-            id: "",
-            userId: video.user?.id,
-            type: "long_video",
-            title: video.title,
-            description: video.message,
-            videoUrl: video.videoUrl,
-            coverUrl: video.thumbnail,
-            createdAt: video.createdAt.toString(),
-            duration: video.duration,
-            stats: Stats(
-                comments: video.commentsCount,
-                likes: video.likesCount,
-                shares: video.sharesCount,
-                views: video.viewsCount)),
-        interactions: Interactions(
-            isBookmarked: false, isFollowing: false, isLiked: false));
-  }
 }

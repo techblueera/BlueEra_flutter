@@ -272,9 +272,20 @@ class NewProfileHeaderWidget extends StatelessWidget {
                 //  _divider(),
                 InkWell(
                   onTap: () {
-                    Get.to(() =>
-                        FollowersFollowingPage(
-                            tabIndex: 0, userID: user?.id ?? ""));
+
+                    // Get.to(() =>
+                    //     FollowersFollowingPage(
+                    //         tabIndex: 0, userID: user?.id ?? ""));
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => FollowersFollowingPage(
+                          tabIndex: 0,
+                          userID: user?.id ?? "",
+                        ),
+                      ),
+                    );
+
                   },
                   child: statBlock(
                       AppStrings.following,
@@ -287,9 +298,20 @@ class NewProfileHeaderWidget extends StatelessWidget {
                 Obx(() {
                   return InkWell(
                     onTap: () {
-                      Get.to(() =>
-                          FollowersFollowingPage(
-                              tabIndex: 1, userID: user?.id ?? ""));
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => FollowersFollowingPage(
+                            tabIndex: 1,
+                            userID: user?.id ?? "",
+                          ),
+                        ),
+                      );
+
+
+                      // Get.to(() =>
+                      //     FollowersFollowingPage(
+                      //         tabIndex: 1, userID: user?.id ?? ""));
                     },
                     child: statBlock(
                         AppStrings.followers,

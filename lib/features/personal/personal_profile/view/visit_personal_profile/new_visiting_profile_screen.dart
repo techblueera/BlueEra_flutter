@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/model/tab_model.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/controller/overview_controller.dart';
@@ -38,7 +39,7 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
   int selectedIndex = 0;
 
   List<SortBy>? filters;
-  SortBy selectedFilter = SortBy.Latest;
+  // SortBy selectedFilter = SortBy.Latest;
   final ScrollController _scrollController = ScrollController();
   final OverviewController overViewController = Get.put(OverviewController());
   final FeedController feedController = Get.put(FeedController());
@@ -47,12 +48,8 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
 
   @override
   void initState() {
-    selectedFilter = SortBy.Latest;
-    setFilters();
-
-
-    setFilters();
-
+    // selectedFilter = SortBy.Latest;
+    // setFilters();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       overViewController.loadOverviewData(
         widget.authorId,

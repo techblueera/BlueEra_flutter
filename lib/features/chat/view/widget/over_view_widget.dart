@@ -9,6 +9,7 @@ import 'package:get/get.dart';
 
 class ChatProfileOverview extends StatefulWidget {
   final String userId;
+
   const ChatProfileOverview({super.key, required this.userId});
 
   @override
@@ -32,7 +33,6 @@ class _ChatProfileOverviewState extends State<ChatProfileOverview> {
     await visitController.getTestimonialController(userID: widget.userId);
   }
 
-
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -42,153 +42,159 @@ class _ChatProfileOverviewState extends State<ChatProfileOverview> {
         children: [
           /// ⭐ Rating Summary
           Card(
-  elevation: 0,
-  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-  child: Padding(
-    padding: const EdgeInsets.all(16),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        /// Header Row
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text("Rating Summary",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            IconButton(
-              icon: Icon(
-                _isExpanded
-                    ? Icons.keyboard_arrow_up
-                    : Icons.keyboard_arrow_down,
-              ),
-              onPressed: () {
-                setState(() {
-                  _isExpanded = !_isExpanded;
-                });
-              },
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
+            elevation: 0,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  /// Header Row
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text("Rating Summary",
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 16)),
+                      IconButton(
+                        icon: Icon(
+                          _isExpanded
+                              ? Icons.keyboard_arrow_up
+                              : Icons.keyboard_arrow_down,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _isExpanded = !_isExpanded;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
 
-        /// ⭐ Average + Count (always visible)
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: const Text("4.0",
-                  style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold)),
-            ),
-            const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: const [
-                    Icon(Icons.star, color: Colors.amber, size: 20),
-                    Icon(Icons.star, color: Colors.amber, size: 20),
-                    Icon(Icons.star, color: Colors.amber, size: 20),
-                    Icon(Icons.star, color: Colors.amber, size: 20),
-                    Icon(Icons.star_border, color: Colors.grey, size: 20),
+                  /// ⭐ Average + Count (always visible)
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: const Text("4.0",
+                            style: TextStyle(
+                                fontSize: 36, fontWeight: FontWeight.bold)),
+                      ),
+                      const SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: const [
+                              Icon(Icons.star, color: Colors.amber, size: 20),
+                              Icon(Icons.star, color: Colors.amber, size: 20),
+                              Icon(Icons.star, color: Colors.amber, size: 20),
+                              Icon(Icons.star, color: Colors.amber, size: 20),
+                              Icon(Icons.star_border,
+                                  color: Colors.grey, size: 20),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          const Text("5,455 Reviews",
+                              style:
+                                  TextStyle(color: Colors.grey, fontSize: 14)),
+                        ],
+                      ),
+                    ],
+                  ),
+
+                  if (_isExpanded) const SizedBox(height: 16),
+
+                  /// Expanded → Show detailed breakdown + Rate & Review UI
+                  if (_isExpanded) ...[
+                    /// Rating distribution bars
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildRatingRow(5, 0.9),
+                        _buildRatingRow(4, 0.7),
+                        _buildRatingRow(3, 0.5),
+                        _buildRatingRow(2, 0.3),
+                        _buildRatingRow(1, 0.1),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    /// Rate & Review form
+                    const Text("Rate And Review",
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 10),
+
+                    Center(
+                      child: RatingBar.builder(
+                        initialRating: _userRating,
+                        minRating: 1,
+                        direction: Axis.horizontal,
+                        allowHalfRating: false,
+                        itemCount: 5,
+                        itemSize: 36,
+                        unratedColor: Colors.grey.shade400,
+                        itemBuilder: (context, _) => const Icon(
+                          Icons.star,
+                          color: Colors.amber,
+                        ),
+                        onRatingUpdate: (rating) {
+                          setState(() {
+                            _userRating = rating;
+                          });
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    TextField(
+                      controller: _reviewController,
+                      maxLines: 3,
+                      decoration: InputDecoration(
+                        labelText: "Write Your Review (Optional)",
+                        hintText:
+                            'E.g. "Great service, quick response, highly recommended!"',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        OutlinedButton(
+                          onPressed: () {
+                            _reviewController.clear();
+                            setState(() => _userRating = 0);
+                          },
+                          child: const Text("Cancel"),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            if (_userRating > 0) {
+                              print(
+                                  "Rating: $_userRating, Review: ${_reviewController.text}");
+                              // TODO: Call API here
+                            } else {
+                              Get.snackbar("Rating required",
+                                  "Please select at least 1 star");
+                            }
+                          },
+                          child: const Text("Submit"),
+                        ),
+                      ],
+                    )
                   ],
-                ),
-                const SizedBox(height: 4),
-                const Text("5,455 Reviews",
-                    style: TextStyle(color: Colors.grey, fontSize: 14)),
-              ],
-            ),
-          ],
-        ),
-
-        if (_isExpanded) const SizedBox(height: 16),
-
-        /// Expanded → Show detailed breakdown + Rate & Review UI
-        if (_isExpanded) ...[
-          /// Rating distribution bars
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildRatingRow(5, 0.9),
-              _buildRatingRow(4, 0.7),
-              _buildRatingRow(3, 0.5),
-              _buildRatingRow(2, 0.3),
-              _buildRatingRow(1, 0.1),
-            ],
-          ),
-          const SizedBox(height: 20),
-
-          /// Rate & Review form
-          const Text("Rate And Review",
-              style: TextStyle(
-                  fontSize: 16, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 10),
-
-          Center(
-            child: RatingBar.builder(
-              initialRating: _userRating,
-              minRating: 1,
-              direction: Axis.horizontal,
-              allowHalfRating: false,
-              itemCount: 5,
-              itemSize: 36,
-              unratedColor: Colors.grey.shade400,
-              itemBuilder: (context, _) => const Icon(
-                Icons.star,
-                color: Colors.amber,
-              ),
-              onRatingUpdate: (rating) {
-                setState(() {
-                  _userRating = rating;
-                });
-              },
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          TextField(
-            controller: _reviewController,
-            maxLines: 3,
-            decoration: InputDecoration(
-              labelText: "Write Your Review (Optional)",
-              hintText:
-                  'E.g. "Great service, quick response, highly recommended!"',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
+                ],
               ),
             ),
           ),
-          const SizedBox(height: 16),
-
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              OutlinedButton(
-                onPressed: () {
-                  _reviewController.clear();
-                  setState(() => _userRating = 0);
-                },
-                child: const Text("Cancel"),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  if (_userRating > 0) {
-                    print("Rating: $_userRating, Review: ${_reviewController.text}");
-                    // TODO: Call API here
-                  } else {
-                    Get.snackbar("Rating required", "Please select at least 1 star");
-                  }
-                },
-                child: const Text("Submit"),
-              ),
-            ],
-          )
-        ],
-      ],
-    ),
-  ),
-),
-
 
           const SizedBox(height: 16),
 
@@ -197,7 +203,10 @@ class _ChatProfileOverviewState extends State<ChatProfileOverview> {
           //   'Testimonials',
           //   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
           // ),
-          TestimonialListingWidget(userId: widget.userId, callApi: false,),
+          TestimonialListingWidget(
+            userId: widget.userId,
+            callApi: false,
+          ),
 
           const SizedBox(height: 16),
 
@@ -217,17 +226,17 @@ class _ChatProfileOverviewState extends State<ChatProfileOverview> {
 
           const SizedBox(height: 16),
 
-          /// 🎬 Shorts
-          const Text("Shorts",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-          const SizedBox(height: 8),
-          ShortsChannelSection(
-            isOwnShorts: false,
-            channelId: '',
-            authorId: widget.userId,
-            showShortsInGrid: false,
-            postVia: PostVia.profile,
-          ),
+          // /// 🎬 Shorts
+          // const Text("Shorts",
+          //     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          // const SizedBox(height: 8),
+          // ShortsChannelSection(
+          //   isOwnShorts: false,
+          //   channelId: '',
+          //   authorId: widget.userId,
+          //   showShortsInGrid: false,
+          //   postVia: PostVia.profile,
+          // ),
 
           const SizedBox(height: 16),
 
@@ -251,8 +260,7 @@ class _ChatProfileOverviewState extends State<ChatProfileOverview> {
                       backgroundImage:
                           NetworkImage("https://via.placeholder.com/150")),
                   title: const Text("Trying MC’s Burger for the first time!"),
-                  subtitle:
-                      const Text("TeckSavvy • 3.8k Views • 12 days ago"),
+                  subtitle: const Text("TeckSavvy • 3.8k Views • 12 days ago"),
                   trailing: const Icon(Icons.more_vert),
                 ),
               ],
@@ -262,23 +270,24 @@ class _ChatProfileOverviewState extends State<ChatProfileOverview> {
       ),
     );
   }
+
   Widget _buildRatingRow(int stars, double percentage) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 2),
-    child: Row(
-      children: [
-        Text("$stars ★", style: const TextStyle(fontSize: 14)),
-        const SizedBox(width: 8),
-        Expanded(
-          child: LinearProgressIndicator(
-            value: percentage,
-            backgroundColor: Colors.grey.shade300,
-            color: Colors.blue,
-            minHeight: 6,
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        children: [
+          Text("$stars ★", style: const TextStyle(fontSize: 14)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: LinearProgressIndicator(
+              value: percentage,
+              backgroundColor: Colors.grey.shade300,
+              color: Colors.blue,
+              minHeight: 6,
+            ),
           ),
-        ),
-      ],
-    ),
-  );
-}
+        ],
+      ),
+    );
+  }
 }

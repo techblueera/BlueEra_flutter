@@ -3,6 +3,7 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile_new.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
@@ -168,18 +169,39 @@ class _FollowersFollowingPageState extends State<FollowersFollowingPage>
   Widget _buildUserTile(FollowingFollower? user, String? viewTag) {
     return InkWell(
       onTap: () {
-        if (user?.accountType?.toUpperCase() == AppConstants.business) {
-          Get.to(() => VisitBusinessProfileNew(
-                businessId: user?.id ?? "",
-                screenName: AppConstants.feedScreen,
-              ));
-        }
-        if (user?.accountType?.toUpperCase() == AppConstants.individual) {
-          Get.to(() => NewVisitProfileScreen(
-                authorId: user?.id ?? '',
-                screenFromName: AppConstants.feedScreen,
-              ));
-        }
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (user?.accountType?.toUpperCase() == AppConstants.business) {
+            Get.to(() => VisitBusinessProfileNew(
+                  businessId: user?.id ?? "",
+                  screenName: AppConstants.feedScreen,
+                ));
+          } else {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => NewVisitProfileScreen(
+                  authorId: user?.id ?? '',
+                  screenFromName: AppConstants.feedScreen,
+                ),
+              ),
+            );
+          }
+        });
+        // if (user?.accountType?.toUpperCase() == AppConstants.business) {
+        //   Get.to(() => VisitBusinessProfileNew(
+        //         businessId: user?.id ?? "",
+        //         screenName: AppConstants.feedScreen,
+        //       ));
+        // }
+        // if (user?.accountType?.toUpperCase() == AppConstants.individual) {
+        //   Get.to(() => NewVisitProfileScreen(
+        //     key: ValueKey(user?.id ?? ''),
+        //
+        //     authorId: user?.id ?? '',
+        //         screenFromName: AppConstants.feedScreen,
+        //       ));
+        //
+        // }
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),

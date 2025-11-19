@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class NotificationDataModel {
   bool? success;
   List<NotificationDataList>? data;
@@ -39,6 +41,8 @@ class NotificationDataList {
   String? updatedAt;
   String? message;
   User? user;
+  SenderProfile? senderProfile;
+
 
   NotificationDataList(
       {this.sId,
@@ -51,6 +55,7 @@ class NotificationDataList {
         this.createdAt,
         this.updatedAt,
         this.message,
+        this.senderProfile,
         this.user});
 
   NotificationDataList.fromJson(Map<String, dynamic> json) {
@@ -67,6 +72,8 @@ class NotificationDataList {
     updatedAt = json['updated_at'];
     message = json['message'];
     user = json['user'] != null ? new User.fromJson(json['user']) : null;
+    senderProfile = json['sender_profile'] != null ? SenderProfile.fromJson(json['sender_profile']) : null;
+
   }
 
   Map<String, dynamic> toJson() {
@@ -85,6 +92,9 @@ class NotificationDataList {
     data['message'] = this.message;
     if (this.user != null) {
       data['user'] = this.user!.toJson();
+    }
+    if (senderProfile != null) {
+      data['sender_profile'] = senderProfile?.toJson();
     }
     return data;
   }
@@ -129,4 +139,41 @@ class User {
     data['profile_image'] = this.profileImage;
     return data;
   }
+}
+
+
+
+SenderProfile senderProfileFromJson(String str) => SenderProfile.fromJson(json.decode(str));
+String senderProfileToJson(SenderProfile data) => json.encode(data.toJson());
+class SenderProfile {
+  SenderProfile({
+    this.id,
+    this.name,
+    this.profileImage,
+    this.username,
+    this.email,});
+
+  SenderProfile.fromJson(dynamic json) {
+    id = json['id'];
+    name = json['name'];
+    profileImage = json['profile_image'];
+    username = json['username'];
+    email = json['email'];
+  }
+  String? id;
+  String? name;
+  String? profileImage;
+  String? username;
+  String? email;
+
+  Map<String, dynamic> toJson() {
+    final map = <String, dynamic>{};
+    map['id'] = id;
+    map['name'] = name;
+    map['profile_image'] = profileImage;
+    map['username'] = username;
+    map['email'] = email;
+    return map;
+  }
+
 }
