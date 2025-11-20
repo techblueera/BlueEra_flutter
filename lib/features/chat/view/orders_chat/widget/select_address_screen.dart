@@ -215,7 +215,7 @@ class _AddressListScreenState extends State<AddressListScreen> {
                 Map<String, dynamic> params = {
                   ApiKeys.latitude: double.parse(orderController.lat.value),
                   ApiKeys.longitude: double.parse(orderController.long.value),
-                  ApiKeys.range_in_km: 5,
+                  ApiKeys.range_in_km: 10,
                 };
                 orderController.selectedIndex?.value = selectedIndex ?? 0;
                 final selectedAddress = orderController

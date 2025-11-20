@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/api/apiService/api_response.dart';
+import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/app_image_assets.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../../../core/services/notification_utils.dart';
@@ -95,7 +96,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     return WillPopScope(
       onWillPop: () async {
         chatViewController.emitEvent(
-            "ChatList", {ApiKeys.type: "group"}, true);
+            ChatEmitEvents.ChatList, {ApiKeys.type: "group"}, true);
         return true;
       },
       child: Obx(() {
@@ -353,7 +354,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                       };
                       bool value =await chatViewController.updateMessageApi(data);
                       if(value){
-                        chatViewController.emitEvent("messageReceived", {
+                        chatViewController.emitEvent(ChatEmitEvents.messageReceived, {
                           ApiKeys.conversation_id: widget.conversationId,
                           ApiKeys.page: 1,
                           ApiKeys.is_online_user: '',

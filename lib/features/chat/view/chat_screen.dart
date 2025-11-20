@@ -85,13 +85,13 @@ class _ChatMainScreenState extends State<ChatMainScreen>
         chatViewController.onSelectChatTab(index??0);
 
         if (index == 0) {
-          chatViewController.emitEvent("ChatList", {ApiKeys.type: "personal"});
+          chatViewController.emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: "personal"});
         } else if (index == 1) {
-          chatViewController.emitEvent("ChatList", {ApiKeys.type: "business"});
+          chatViewController.emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: "business"});
         } else if (index == 2) {
-          chatViewController.emitEvent("ChatList", {ApiKeys.type: "group"});
+          chatViewController.emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: "group"});
         } else if (index == 3) {
-          chatViewController.emitEvent("ChatList", {ApiKeys.type: "order"});
+          chatViewController.emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: "order"});
         }
       }
     });
@@ -446,8 +446,7 @@ class _ChatMainScreenState extends State<ChatMainScreen>
                               await chatViewController.forwardMessageApi(data);
 
                           if (value) {
-                            chatViewController.emitEvent(
-                                "ChatList", {ApiKeys.type: "personal"});
+                            chatViewController.emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: "personal"});
                             Navigator.pop(context);
                             Navigator.pop(context);
                           }

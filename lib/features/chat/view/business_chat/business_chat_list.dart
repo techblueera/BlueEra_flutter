@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/api/apiService/api_response.dart';
+import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/app_icon_assets.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../../../widgets/custom_text_cm.dart';
@@ -38,7 +39,7 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
         GetChatListModel? data = chatViewController.getBusinessChatListModel?.value;
         return RefreshIndicator(
           onRefresh: () async{
-            chatViewController.emitEvent("ChatList", {
+            chatViewController.emitEvent(ChatEmitEvents.ChatList, {
               ApiKeys.type:"business"
             });
           },

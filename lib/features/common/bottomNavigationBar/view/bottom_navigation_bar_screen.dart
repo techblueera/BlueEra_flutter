@@ -24,6 +24,8 @@ import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../../../core/api/apiService/api_keys.dart';
+import '../../../../core/constants/snackbar_helper.dart';
+import '../../../../core/routes/route_helper.dart';
 import '../../../chat/auth/controller/chat_theme_controller.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../chat/view/chat_screen.dart';
@@ -74,20 +76,56 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     _initializeControllers();
     _initializeUserData();
     _initializeSocketConnections();
-
+    checkByRiderCall();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _handlePostFrameInitialization();
       FlutterCallkitIncoming.onEvent.listen((CallEvent? event) {
-        log("sdjksjkldcslkdj ${event?.event} ${event?.body['extra']['orderId']} __ ${event?.event == Event.actionCallAccept}");
         if(event?.event == Event.actionCallAccept){
-          handleAcceptOrder(event?.body['extra']['orderId']??''.toString());
+          Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
+          FlutterCallkitIncoming.endAllCalls();
+          // handleAcceptOrder(event?.body['extra']['orderId']??''.toString());
         }else if(event?.event==Event.actionCallDecline){
-          handleRejectOrder(event?.body['extra']['orderId']??''.toString());
+          commonSnackBar(message: "Your Order Rejected by You");
+          Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
+          FlutterCallkitIncoming.endAllCalls();
+          // handleRejectOrder(event?.body['extra']['orderId']??''.toString());
         }
       });
     });
   }
+  Future<void> checkByRiderCall()async{
+    String? orderId=await getCurrentCall();
+    if(orderId!=null){
+      Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
+      FlutterCallkitIncoming.endAllCalls();
+    }
+  }
 
+  Future<String?> getCurrentCall() async {
+
+    var calls = await FlutterCallkitIncoming.activeCalls();
+    if (calls is List) {
+      if (calls.isNotEmpty) {
+
+        bool accepted=calls[0]['accepted'];
+
+        if(accepted){
+          return  calls[0]['extra']['orderId'].toString();
+        }else{
+          return 'rejected';
+        }
+
+
+
+      } else {
+
+        return null;
+      }
+    }else{
+      return null;
+    }
+
+  }
   Future<void> _checkAndFetchLocationData() async {
     await LocationService.fetchLocation();
     log('initially lat--> ${LocationService.lat}, initially lng--> ${LocationService.lng}');

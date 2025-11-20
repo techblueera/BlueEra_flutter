@@ -11,6 +11,7 @@ import 'package:timeago/timeago.dart' as timeago;
 import 'package:video_player/video_player.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/app_icon_assets.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../../../widgets/common_divider.dart';
@@ -264,7 +265,7 @@ class _GroupVideoCommentsPageState extends State<GroupVideoCommentsPage> {
     return Obx(() {
       return WillPopScope(
         onWillPop: () async {
-          chatViewController.emitEvent("messageReceived", {
+          chatViewController.emitEvent(ChatEmitEvents.messageReceived, {
             ApiKeys.conversation_id: widget.conversationId,
             ApiKeys.page: 1,
             ApiKeys.is_online_user: widget.userId,

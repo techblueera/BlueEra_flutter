@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/api/apiService/api_response.dart';
+import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/app_image_assets.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../../../core/services/notification_utils.dart';
@@ -78,7 +79,7 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
     return WillPopScope(
       onWillPop: () async {
         chatViewController.emitEvent(
-            "ChatList", {ApiKeys.type: "personal"}, true);
+            ChatEmitEvents.ChatList, {ApiKeys.type: "personal"}, true);
         chatViewController.emitEvent(
             "newMessageReceived", {ApiKeys.type: "personal"}, true);
 

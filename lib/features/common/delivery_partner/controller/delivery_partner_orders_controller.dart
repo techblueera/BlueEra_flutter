@@ -40,7 +40,7 @@ class DeliverPartnerOrdersController extends GetxController {
         ApiResponse.complete('');
     stream = await getOrderFromUserStream();
     subscription = stream.listen((event) {
-      log("kjncskjcns $event");
+
       if (event is List) {
         List<RiderOrdersDetailsModel> riderOrdersList = event
             .map((item) => RiderOrdersDetailsModel.fromJson(
@@ -72,9 +72,6 @@ class DeliverPartnerOrdersController extends GetxController {
                    || e.status == 'picked-up'
                      || e.status == 'accepted'|| e.status == 'confirmed'
                       || e.status == 'payment-pending').toList();
-    // completedOrders.value = list.where((e) => e.status == 'completed').toList();
-    // cancelledOrders.value = list.where((e) => e.status == 'cancelled').toList();
-    // rejectedOrders.value = list.where((e) => e.status == 'rejected').toList();
 
     ordersListResponse.value = ApiResponse.complete(riderOrdersList);
 
@@ -85,7 +82,7 @@ class DeliverPartnerOrdersController extends GetxController {
       ResponseModel? response = await MakeOrderRepo().updateOrderStatusFromPt(params,orderId);
       if (response.isSuccess ) {
         commonSnackBar(
-            message: response.message ?? "Order Status Updated Successfully");
+            message: response.message ?? "${params[ApiKeys.action]=='reject'?"Your Ride Order Rejected Successfully":"Your Ride Order Accepted Successfully" }");
       return true;
       } else {
         commonSnackBar(
@@ -141,7 +138,7 @@ class DeliverPartnerOrdersController extends GetxController {
       ordersListResponse.value = ApiResponse.initial('initial');
       ResponseModel? response = await MakeOrderRepo().getRiderRejectOrderList();
       if (response.isSuccess ) {
-        log("skdclksmclsc ${response.response?.data}");
+
         if (response.response?.data is List) {
           final parsedList = (response.response?.data as List)
               .map((item) => RiderOrdersDetailsModel.fromJson(
@@ -173,7 +170,6 @@ class DeliverPartnerOrdersController extends GetxController {
 
   Future<void> verifyDeliveredOtp(String orderId, String deliveredOtp) async {
     try {
-      // Start loader for this order
       verifyingOtpMap[orderId] = true;
       otpVerifiedMap[orderId] = false;
 
@@ -182,15 +178,15 @@ class DeliverPartnerOrdersController extends GetxController {
         params: {ApiKeys.deliveryOTP: deliveredOtp},
       );
 
-      // Stop loader
+
       verifyingOtpMap[orderId] = false;
 
       if (response.isSuccess) {
-        // OTP verified successfully
+
         otpVerifiedMap[orderId] = true;
         commonSnackBar(message: response.message ?? 'OTP successfully verified.');
       } else {
-        // OTP verification failed
+
         otpVerifiedMap[orderId] = false;
         verifyDeliveredOtpResponse.value = ApiResponse.error(
           response.message ?? AppStrings.somethingWentWrong,
@@ -198,7 +194,7 @@ class DeliverPartnerOrdersController extends GetxController {
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
-      // Stop loader even if exception
+
       verifyingOtpMap[orderId] = false;
       otpVerifiedMap[orderId] = false;
 

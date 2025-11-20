@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../../../../../core/api/apiService/api_keys.dart';
 import '../../../../../core/constants/app_colors.dart';
+import '../../../../../core/constants/app_constant.dart';
 import '../../../../../core/constants/snackbar_helper.dart';
 import '../../../../../core/routes/route_helper.dart';
 import '../../../../common/bottomNavigationBar/auth/controller/bottom_bar_controller.dart';
@@ -148,7 +149,7 @@ class _PorterPaymentSuccessScreenState extends State<PorterPaymentSuccessScreen>
                     ElevatedButton.icon(
                       onPressed: () async {
                         chatViewController.emitEvent(
-                            "ChatList", {ApiKeys.type: "order"}, true);
+                            ChatEmitEvents.ChatList, {ApiKeys.type: "order"}, true);
                         chatViewController.onSelectChatTab(3);
                         bottomBarController.onChangeIndex(4);
                         Navigator.popUntil(context, ModalRoute.withName(RouteHelper.getBottomNavigationBarScreenRoute()));

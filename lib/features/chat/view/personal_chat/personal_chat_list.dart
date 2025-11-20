@@ -36,7 +36,7 @@ class _PersonalChatsListState extends State<PersonalChatsList> {
         return RefreshIndicator(
           onRefresh: () async {
             chatViewController.emitEvent(
-                "ChatList", {ApiKeys.type: "personal"}, true);
+                ChatEmitEvents.ChatList, {ApiKeys.type: "personal"}, true);
           },
           child: Container(
             margin: EdgeInsets.only(bottom: SizeConfig.size70),

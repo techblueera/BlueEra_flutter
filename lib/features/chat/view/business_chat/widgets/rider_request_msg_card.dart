@@ -4,6 +4,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:get/get.dart';
 import '../../../../../core/api/apiService/api_keys.dart';
 import '../../../../../core/constants/app_colors.dart';
+import '../../../../../core/constants/app_constant.dart';
 import '../../../../../core/constants/size_config.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 import '../../../../common/delivery_partner/controller/delivery_partner_orders_controller.dart';
@@ -38,7 +39,7 @@ class _RiderRequestMsgCardState extends State<RiderRequestMsgCard> {
      };
      orderController.updateMessageOrderStatus(datadd);
      chatViewController.emitEvent(
-         "messageReceived",{
+         ChatEmitEvents.messageReceived,{
        ApiKeys.conversation_id: widget.message.conversationId??widget.message.sender?.id,
        ApiKeys.page: 1,
        ApiKeys.is_online_user: widget.message.sender?.id,
@@ -72,7 +73,7 @@ class _RiderRequestMsgCardState extends State<RiderRequestMsgCard> {
       };
       orderController.updateMessageOrderStatus(datadd);
       chatViewController.emitEvent(
-          "messageReceived", {
+         ChatEmitEvents.messageReceived, {
         ApiKeys.conversation_id: widget.message.conversationId ??
             widget.message.sender?.id,
         ApiKeys.page: 1,

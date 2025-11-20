@@ -39,7 +39,7 @@ class _OrdersTabViewState extends State<OrdersTabView> {
           return RefreshIndicator(
             onRefresh: () async {
               chatViewController.emitEvent(
-                  "ChatList", {ApiKeys.type: "order"});
+                  ChatEmitEvents.ChatList, {ApiKeys.type: "order"});
             },
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
