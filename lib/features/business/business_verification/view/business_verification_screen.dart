@@ -5,7 +5,6 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/business_verification/view/widget/custom_dropdown_widget.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_document_picker.dart';
@@ -138,11 +137,10 @@ class _BusinessVerificationScreenState extends State<BusinessVerificationScreen>
 
   ///SELECT IMAGE AND SHOW DIALOG...
   selectImage(BuildContext context) async {
-    final appLocalizations = AppLocalizations.of(context);
 
     imagePath = await SelectProfilePictureDialog.showLogoDialog(
         context,
-        appLocalizations!.uploadYourDocumentPhoto);
+        AppStrings.uploadYourDocumentPhoto);
     if (imagePath?.isNotEmpty ?? false) {
       ///SET IMAGE PATH...
       validateForm();

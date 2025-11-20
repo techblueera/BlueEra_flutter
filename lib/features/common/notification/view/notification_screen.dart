@@ -35,15 +35,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
   List<NotificationDataList> allNotifications = [];
   late List<NotificationDataList> filteredNotifications;
   bool isLoading = true;
-   List<TabItem> notificationFilters = [];
- /* final List<TabItem> notificationFilters = [
-    "All",
-    "Chats",
-    "Orders",
-    "Tags",
-    "Jobs",
-    "Posts"
-  ];*/
+  List<TabItem> notificationFilters = [];
+
   int selectedIndex = 0;
   Timer? _debounce;
 
@@ -51,7 +44,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
   void initState() {
     super.initState();
     fetchNotification();
-    // context.read<NotificationsBloc>().add(GetNotificationsEvent());
     filteredNotifications = [...allNotifications];
     searchController.addListener(() {
       _onSearchChanged(searchController.text);
@@ -115,8 +107,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
       if (response.isSuccess) {
         commonSnackBar(
-            message:
-                response.message ?? AppStrings.allNotificationsDeleted.tr);
+            message: response.message ?? AppStrings.allNotificationsDeleted.tr);
       } else {
         commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);
@@ -140,16 +131,16 @@ class _NotificationScreenState extends State<NotificationScreen> {
           .toList();
     });
   }
+
   @override
   Widget build(BuildContext context) {
-    notificationFilters=[
+    notificationFilters = [
       TabItem(id: 'All', title: AppStrings.all.tr),
       TabItem(id: 'Chats', title: AppStrings.chat.tr),
       TabItem(id: 'Orders', title: AppStrings.orders.tr),
       TabItem(id: 'Tags', title: AppStrings.tagsText.tr),
       TabItem(id: 'Jobs', title: AppStrings.jobs.tr),
       TabItem(id: 'Posts', title: AppStrings.posts.tr),
-
     ];
     return Scaffold(
       appBar: CommonBackAppBar(
@@ -234,7 +225,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   final data = filteredNotifications[index];
                   final isLast = index == filteredNotifications.length - 1;
 
-                  final String imageUrl = data.senderProfile?.profileImage ?? '';
+                  final String imageUrl =
+                      data.senderProfile?.profileImage ?? '';
                   final String id = data.sId ?? "";
                   final String title = data.message ?? '';
                   final String status = data.status ?? '';
@@ -249,120 +241,131 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   } catch (_) {
                     time = '';
                   }
-                  return Column(
-                    children: [
-                      Container(
-                        color: status == "UNREAD"
-                            ? AppColors.greenE0
-                            : Colors.transparent,
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(
-                              vertical: SizeConfig.size10,
-                              horizontal: SizeConfig.size15),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Center(
-                                  child: CircleAvatar(
-                                radius: 4,
-                                backgroundColor: (index == 0 || index == 1)
-                                    ? AppColors.primaryColor
-                                    : AppColors.transparent,
-                              )),
-                              Padding(
-                                padding:
-                                    EdgeInsets.only(left: SizeConfig.size5),
-                                child: InkWell(
-                                  onTap: () {
-                                    navigatePushTo(
-                                      context,
-                                      ImageViewScreen(
-                                        appBarTitle: title,
-                                        imageUrls: [imageUrl],
-                                        initialIndex: 0,
-                                      ),
-                                    );
-                                  },
-                                  child: Padding(
-                                    padding:
-                                        EdgeInsets.only(top: SizeConfig.size2),
-                                    child: CachedAvatarWidget(
-                                      imageUrl: imageUrl,
-                                      size: SizeConfig.size45,
-                                      borderRadius: SizeConfig.size30,
-                                      boxShadow: [
-                                        BoxShadow(
-                                            color: AppColors.black1F,
-                                            offset: Offset(0, 2))
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(width: SizeConfig.size10),
-                              Expanded(
-                                child: CustomText(
-                                  title,
-                                  maxLines: 2,
-                                  fontWeight: FontWeight.w600,
-                                  overflow: TextOverflow.ellipsis,
-                                  color: AppColors.mainTextColor,
-                                  fontSize: SizeConfig.small,
-                                ),
-                              ),
-                              Column(
-                                children: [
-                                  CustomText(time),
-                                  SizedBox(
-                                    height: SizeConfig.size2,
-                                  ),
-                                  PopupMenuButton<String>(padding: EdgeInsets.zero,
-                                    onSelected: (value) {
-                                      if (value == 'delete') {
-                                        clearAllNotifications(1, notifyId: id);
-                                      }
+                  return InkWell(
+                    onTap: (){
+                      final data = filteredNotifications[index];
+
+                      redirectToProfileScreen(
+                          accountType: data.senderProfile?.account_type??"",
+                          profileId: data.senderProfile?.id??"",
+                          );
+                    },
+                    child: Column(
+                      children: [
+                        Container(
+                          color: status == "UNREAD"
+                              ? AppColors.greenE0
+                              : Colors.transparent,
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(
+                                vertical: SizeConfig.size10,
+                                horizontal: SizeConfig.size15),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Center(
+                                    child: CircleAvatar(
+                                  radius: 4,
+                                  backgroundColor: (index == 0 || index == 1)
+                                      ? AppColors.primaryColor
+                                      : AppColors.transparent,
+                                )),
+                                Padding(
+                                  padding:
+                                      EdgeInsets.only(left: SizeConfig.size5),
+                                  child: InkWell(
+                                    onTap: () {
+                                      navigatePushTo(
+                                        context,
+                                        ImageViewScreen(
+                                          appBarTitle: title,
+                                          imageUrls: [imageUrl],
+                                          initialIndex: 0,
+                                        ),
+                                      );
                                     },
-                                    color: Colors.white,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
+                                    child: Padding(
+                                      padding:
+                                          EdgeInsets.only(top: SizeConfig.size2),
+                                      child: CachedAvatarWidget(
+                                        imageUrl: imageUrl,
+                                        size: SizeConfig.size45,
+                                        borderRadius: SizeConfig.size30,
+                                        boxShadow: [
+                                          BoxShadow(
+                                              color: AppColors.black1F,
+                                              offset: Offset(0, 2))
+                                        ],
+                                      ),
                                     ),
-                                    itemBuilder: (BuildContext context) => [
-                                      PopupMenuItem<String>(
-                                        value: 'delete',
-                                        padding: EdgeInsets.zero, // REMOVE EXTRA PADDING
-                                        height: 20,
-                                        // padding: EdgeInsets.symmetric(
-                                        //     horizontal: SizeConfig.size8),
-                                        child: Center(
-                                          child: CustomText(
-                                            AppStrings.delete.tr,
-                                            fontSize: SizeConfig.medium,
-                                            fontWeight: FontWeight.w400,
-                                            color: AppColors.mainTextColor,
+                                  ),
+                                ),
+                                SizedBox(width: SizeConfig.size10),
+                                Expanded(
+                                  child: CustomText(
+                                    title,
+                                    maxLines: 2,
+                                    fontWeight: FontWeight.w600,
+                                    overflow: TextOverflow.ellipsis,
+                                    color: AppColors.mainTextColor,
+                                    fontSize: SizeConfig.small,
+                                  ),
+                                ),
+                                Column(
+                                  children: [
+                                    CustomText(time),
+                                    SizedBox(
+                                      height: SizeConfig.size2,
+                                    ),
+                                    PopupMenuButton<String>(
+                                      padding: EdgeInsets.zero,
+                                      onSelected: (value) {
+                                        if (value == 'delete') {
+                                          clearAllNotifications(1, notifyId: id);
+                                        }
+                                      },
+                                      color: Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      itemBuilder: (BuildContext context) => [
+                                        PopupMenuItem<String>(
+                                          value: 'delete',
+                                          padding: EdgeInsets.zero,
+                                          // REMOVE EXTRA PADDING
+                                          height: 20,
+                                          // padding: EdgeInsets.symmetric(
+                                          //     horizontal: SizeConfig.size8),
+                                          child: Center(
+                                            child: CustomText(
+                                              AppStrings.delete.tr,
+                                              fontSize: SizeConfig.medium,
+                                              fontWeight: FontWeight.w400,
+                                              color: AppColors.mainTextColor,
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                    ],
-                                    child: Icon(
-                                        Icons.more_vert), // Your trigger widget
-                                  ),
-                                ],
-                              )
-                            ],
+                                      ],
+                                      child: Icon(
+                                          Icons.more_vert), // Your trigger widget
+                                    ),
+                                  ],
+                                )
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                      if (!isLast)
-                        CommonHorizontalDivider(
-                          color: AppColors.whiteE0,
-                        )
-                    ],
+                        if (!isLast)
+                          CommonHorizontalDivider(
+                            color: AppColors.whiteE0,
+                          )
+                      ],
+                    ),
                   );
                 },
               )
             : EmptyStateWidget(message: AppStrings.noNotificationsFound.tr));
   }
-
 
   Future<void> clearAllNotifications(int selected, {String? notifyId}) {
     return showDialog(
@@ -392,7 +395,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-
                     LocalAssets(
                         imagePath: AppIconAssets.goldenNotificationIcon),
                     SizedBox(width: SizeConfig.size5),
@@ -457,7 +459,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           Navigator.pop(context, false);
                           setState(() {});
                         },
-                        title: selected == 0 ?AppStrings.clearAll.tr : AppStrings.clear.tr,
+                        title: selected == 0
+                            ? AppStrings.clearAll.tr
+                            : AppStrings.clear.tr,
                         isValidate: true,
                         bgColor: AppColors.red02,
                         radius: 8.0,
@@ -491,7 +495,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
         if (response.isSuccess) {
           commonSnackBar(
               message:
-                  response.message ??AppStrings.allNotificationsDeleted.tr);
+                  response.message ?? AppStrings.allNotificationsDeleted.tr);
 
           setState(() {
             allNotifications.clear();
@@ -513,7 +517,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
         if (response.isSuccess) {
           commonSnackBar(
-              message: response.message ??AppStrings.notificationDeleted.tr);
+              message: response.message ?? AppStrings.notificationDeleted.tr);
 
           setState(() {
             allNotifications.removeWhere((item) => item.sId == notifyId);

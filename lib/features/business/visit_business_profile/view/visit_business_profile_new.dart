@@ -1,8 +1,10 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/model/tab_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/model/getAllProductDetailsModel.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/business_profile_header.dart';
@@ -29,9 +31,13 @@ import 'package:BlueEra/features/common/product_listing/view/standalone_product_
 class VisitBusinessProfileNew extends StatefulWidget {
   final String businessId;
   final String screenName;
+  final String? isScreenFrom;
 
   const VisitBusinessProfileNew(
-      {super.key, required this.businessId, required this.screenName});
+      {super.key,
+      required this.businessId,
+      required this.screenName,
+      this.isScreenFrom});
 
   @override
   State<VisitBusinessProfileNew> createState() =>
@@ -46,6 +52,7 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
   final chatViewController = Get.put(ChatViewController());
 
   late VisitProfileController visitProfileController;
+
   // List<String> tabs = [];
   List<SortBy>? filters;
   SortBy selectedFilter = SortBy.Latest;
@@ -73,312 +80,337 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
     SortBy.values.where((e) => e != SortBy.UnderProgress).toList();
   }
 
+  backPress() {
+    if (widget.isScreenFrom == AppConstants.deepLinkScreen) {
+      Get.offAllNamed(
+        RouteHelper.getBottomNavigationBarScreenRoute(),
+        arguments: {ApiKeys.initialIndex: 0},
+      );
+    } else {
+      Get.back();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CommonBackAppBar(),
-      body: GetBuilder<ViewBusinessDetailsController>(
-        init: controller,
-        builder: (controller) {
-          if (controller.isLoading.value) {
-            return const Center(child: CircularProgressIndicator());
+    return WillPopScope(
+      onWillPop: () async {
+        backPress();
+        return false;
+      },
+      child: Scaffold(
+        appBar: CommonBackAppBar(
+          onBackTap: (){
+            backPress();
           }
-          if ((controller.viewBusinessResponseNew.status == Status.COMPLETE)) {
-            final businessData = controller.visitedBusinessProfileDetails?.data;
+        ),
+        body: GetBuilder<ViewBusinessDetailsController>(
+          init: controller,
+          builder: (controller) {
+            if (controller.isLoading.value) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if ((controller.viewBusinessResponseNew.status ==
+                Status.COMPLETE)) {
+              final businessData =
+                  controller.visitedBusinessProfileDetails?.data;
 
-            // final List<String> tabs = [
-            //   'Overview',
-            //   'Posts',
-            //   if (isShowProduct
-            //       .contains(businessData?.typeOfBusiness?.toLowerCase()))
-            //     'Products',
-            //   if (isShowService
-            //       .contains(businessData?.typeOfBusiness?.toLowerCase()))
-            //     'Service',
-            //   if (isShowFood
-            //       .contains(businessData?.typeOfBusiness?.toLowerCase()))
-            //     'Foods'
-            // ];
-            List<TabItem> postTabs = [
-              TabItem(id: 'Overview', title: AppStrings.overview.tr),
-              TabItem(id: 'Posts', title: AppStrings.posts.tr),
-              if (isShowProduct
-                  .contains(businessData?.typeOfBusiness?.toLowerCase()))
-                TabItem(id: 'Products', title: AppStrings.tab_product.tr),
-              if (isShowService
-                  .contains(businessData?.typeOfBusiness?.toLowerCase()))
-                TabItem(id: 'Service', title: AppStrings.tab_service.tr),
-              if (isShowFood
-                  .contains(businessData?.typeOfBusiness?.toLowerCase()))
-                TabItem(id: 'Foods', title: AppStrings.food.tr),
-            ];
+              // final List<String> tabs = [
+              //   'Overview',
+              //   'Posts',
+              //   if (isShowProduct
+              //       .contains(businessData?.typeOfBusiness?.toLowerCase()))
+              //     'Products',
+              //   if (isShowService
+              //       .contains(businessData?.typeOfBusiness?.toLowerCase()))
+              //     'Service',
+              //   if (isShowFood
+              //       .contains(businessData?.typeOfBusiness?.toLowerCase()))
+              //     'Foods'
+              // ];
+              List<TabItem> postTabs = [
+                TabItem(id: 'Overview', title: AppStrings.overview.tr),
+                TabItem(id: 'Posts', title: AppStrings.posts.tr),
+                if (isShowProduct
+                    .contains(businessData?.typeOfBusiness?.toLowerCase()))
+                  TabItem(id: 'Products', title: AppStrings.tab_product.tr),
+                if (isShowService
+                    .contains(businessData?.typeOfBusiness?.toLowerCase()))
+                  TabItem(id: 'Service', title: AppStrings.tab_service.tr),
+                if (isShowFood
+                    .contains(businessData?.typeOfBusiness?.toLowerCase()))
+                  TabItem(id: 'Foods', title: AppStrings.food.tr),
+              ];
 
-            return DefaultTabController(
-              length: postTabs.length,
-              child: NestedScrollView(
-                headerSliverBuilder: (context, innerBoxIsScrolled) => [
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: BusinessProfileHeader(
-                        businessProfileDetails:
-                            businessData ?? BusinessProfileDetails(),
+              return DefaultTabController(
+                length: postTabs.length,
+                child: NestedScrollView(
+                  headerSliverBuilder: (context, innerBoxIsScrolled) => [
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: BusinessProfileHeader(
+                          businessProfileDetails:
+                              businessData ?? BusinessProfileDetails(),
+                        ),
                       ),
                     ),
-                  ),
-                  SliverPersistentHeader(
-                    pinned: true,
-                    delegate: _CustomTabBarDelegate(
-                      VisitPersonalProfileTabs(
-                        onTab: (index) {
-                          if (index == 2) {
-                            // controller.getParticularRatingApi(data);
-                          }
-                        },
-                        tabs: postTabs.map((e) => e.title).toList(),
-                        tabController: _tabController,
+                    SliverPersistentHeader(
+                      pinned: true,
+                      delegate: _CustomTabBarDelegate(
+                        VisitPersonalProfileTabs(
+                          onTab: (index) {
+                            if (index == 2) {
+                              // controller.getParticularRatingApi(data);
+                            }
+                          },
+                          tabs: postTabs.map((e) => e.title).toList(),
+                          tabController: _tabController,
+                        ),
                       ),
                     ),
-                  ),
-                ],
-                body: TabBarView(
-                  controller: _tabController,
-                  children: [
-                    // overview tab
-                    SingleChildScrollView(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(
-                            height: SizeConfig.size10,
-                          ),
-                          // controller.userData.value?.user
-
-                          RatingSummaryWidget(
-                            rating: businessData?.avg_rating?.toDouble() ?? 0.0,
-                            ratingPersonCount:
-                                businessData?.total_ratings?.toInt() ?? 0,
-                            userId: businessData?.id ?? "",
-                            screenFromName: widget.screenName,
-                            ratingForAccountName: AppConstants.business,
-                            businessId: businessData?.id ?? "",
-                          ),
-
-                          // buildRatingSummary(
-                          //     ratingsList: ratingDetailedCount,
-                          //     allowRate: false,
-                          //     rating:
-                          //         double.parse("${ratingData?.avgRating ?? 0}"),
-                          //     totalReviews: "${ratingData?.totalRatings ?? 0}"),
-                          // SizedBox(height: SizeConfig.size8),
-
-                          Card(
-                            margin: EdgeInsets.all(SizeConfig.size10),
-                            shape: RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.circular(SizeConfig.size8),
+                  ],
+                  body: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      // overview tab
+                      SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(
+                              height: SizeConfig.size10,
                             ),
-                            elevation: 0,
-                            color: AppColors.white,
-                            child: BusinessLivePhotos(
-                              livePhotos: businessData?.livePhotos ?? [],
+                            // controller.userData.value?.user
+
+                            RatingSummaryWidget(
+                              rating:
+                                  businessData?.avg_rating?.toDouble() ?? 0.0,
+                              ratingPersonCount:
+                                  businessData?.total_ratings?.toInt() ?? 0,
+                              userId: businessData?.id ?? "",
+                              screenFromName: widget.screenName,
+                              ratingForAccountName: AppConstants.business,
+                              businessId: businessData?.id ?? "",
                             ),
-                          ),
 
-                          if ((businessData?.businessLocation?.lat != null &&
-                                  businessData?.businessLocation?.lat != 0) &&
-                              (businessData?.businessLocation?.lon != null &&
-                                  businessData?.businessLocation?.lon !=
-                                      0)) ...[
-                            // s
+                            // buildRatingSummary(
+                            //     ratingsList: ratingDetailedCount,
+                            //     allowRate: false,
+                            //     rating:
+                            //         double.parse("${ratingData?.avgRating ?? 0}"),
+                            //     totalReviews: "${ratingData?.totalRatings ?? 0}"),
+                            // SizedBox(height: SizeConfig.size8),
 
-                            Container(
-                              margin: EdgeInsets.symmetric(horizontal: 10),
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10.0, vertical: 10),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(8),
-                                color: Colors.white,
+                            Card(
+                              margin: EdgeInsets.all(SizeConfig.size10),
+                              shape: RoundedRectangleBorder(
+                                borderRadius:
+                                    BorderRadius.circular(SizeConfig.size8),
                               ),
-                              child: Column(
-                                children: [
-                                  SizedBox(
-                                    height: SizeConfig.size6,
-                                  ),
-                                  Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      LocalAssets(
-                                        height: 30,
-                                        width: 30,
-                                        imagePath: AppIconAssets
-                                            .locationOutlineIconGreyIcon,
-                                        boxFix: BoxFit.cover,
-                                      ),
-                                      SizedBox(
-                                        width: SizeConfig.size4,
-                                      ),
-                                      Expanded(
-                                        child: CustomText(
-                                          businessData?.address ?? '',
-                                          fontSize: SizeConfig.size14,
-                                          color: AppColors.mainTextColor,
-                                          fontWeight: FontWeight.w400,
-                                          overflow: TextOverflow.ellipsis,
-                                          maxLines: 2,
+                              elevation: 0,
+                              color: AppColors.white,
+                              child: BusinessLivePhotos(
+                                livePhotos: businessData?.livePhotos ?? [],
+                              ),
+                            ),
+
+                            if ((businessData?.businessLocation?.lat != null &&
+                                    businessData?.businessLocation?.lat != 0) &&
+                                (businessData?.businessLocation?.lon != null &&
+                                    businessData?.businessLocation?.lon !=
+                                        0)) ...[
+                              // s
+
+                              Container(
+                                margin: EdgeInsets.symmetric(horizontal: 10),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10.0, vertical: 10),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8),
+                                  color: Colors.white,
+                                ),
+                                child: Column(
+                                  children: [
+                                    SizedBox(
+                                      height: SizeConfig.size6,
+                                    ),
+                                    Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        LocalAssets(
+                                          height: 30,
+                                          width: 30,
+                                          imagePath: AppIconAssets
+                                              .locationOutlineIconGreyIcon,
+                                          boxFix: BoxFit.cover,
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                  // Column(
-                                  //   children: [
-                                  //     Row(
-                                  //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  //       children: [
-                                  //         Expanded(
-                                  //           child: CustomText(
-                                  //             "Your business live location",
-                                  //             fontSize: SizeConfig.large,
-                                  //             fontWeight: FontWeight.bold,
-                                  //             overflow: TextOverflow.ellipsis,
-                                  //             color: AppColors.secondaryTextColor,
-                                  //           ),
-                                  //         ),
-                                  //       ],
-                                  //     ),
-                                  //     Align(
-                                  //       alignment: Alignment.centerLeft,
-                                  //       child: CustomText(
-                                  //         businessData?.address??'',
-                                  //         fontSize: SizeConfig.medium,
-                                  //         color: AppColors.secondaryTextColor,
-                                  //         fontWeight: FontWeight.w400,
-                                  //         overflow: TextOverflow.ellipsis,
-                                  //       ),
-                                  //     ),
-                                  //     // Align(
-                                  //     //   alignment: Alignment.centerLeft,
-                                  //     //   child: CustomText(
-                                  //     //     "Your store’s map location",
-                                  //     //     fontSize: SizeConfig.medium,
-                                  //     //     color: AppColors.secondaryTextColor,
-                                  //     //     fontWeight: FontWeight.w400,
-                                  //     //     overflow: TextOverflow.ellipsis,
-                                  //     //   ),
-                                  //     // ),
-                                  //   ],
-                                  // ),
+                                        SizedBox(
+                                          width: SizeConfig.size4,
+                                        ),
+                                        Expanded(
+                                          child: CustomText(
+                                            businessData?.address ?? '',
+                                            fontSize: SizeConfig.size14,
+                                            color: AppColors.mainTextColor,
+                                            fontWeight: FontWeight.w400,
+                                            overflow: TextOverflow.ellipsis,
+                                            maxLines: 2,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    // Column(
+                                    //   children: [
+                                    //     Row(
+                                    //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    //       children: [
+                                    //         Expanded(
+                                    //           child: CustomText(
+                                    //             "Your business live location",
+                                    //             fontSize: SizeConfig.large,
+                                    //             fontWeight: FontWeight.bold,
+                                    //             overflow: TextOverflow.ellipsis,
+                                    //             color: AppColors.secondaryTextColor,
+                                    //           ),
+                                    //         ),
+                                    //       ],
+                                    //     ),
+                                    //     Align(
+                                    //       alignment: Alignment.centerLeft,
+                                    //       child: CustomText(
+                                    //         businessData?.address??'',
+                                    //         fontSize: SizeConfig.medium,
+                                    //         color: AppColors.secondaryTextColor,
+                                    //         fontWeight: FontWeight.w400,
+                                    //         overflow: TextOverflow.ellipsis,
+                                    //       ),
+                                    //     ),
+                                    //     // Align(
+                                    //     //   alignment: Alignment.centerLeft,
+                                    //     //   child: CustomText(
+                                    //     //     "Your store’s map location",
+                                    //     //     fontSize: SizeConfig.medium,
+                                    //     //     color: AppColors.secondaryTextColor,
+                                    //     //     fontWeight: FontWeight.w400,
+                                    //     //     overflow: TextOverflow.ellipsis,
+                                    //     //   ),
+                                    //     // ),
+                                    //   ],
+                                    // ),
 
-                                  BusinessLocationWidget(
-                                      locationText: businessData?.address,
-                                      latitude: (businessData
-                                              ?.businessLocation?.lat
-                                              ?.toDouble() ??
-                                          0.0),
-                                      longitude: (businessData
-                                              ?.businessLocation?.lon
-                                              ?.toDouble() ??
-                                          0.0),
-                                      businessName:
-                                          businessData?.businessName ?? "",
-                                      padding: 0,
-                                      isTitleShow: false),
-                                ],
+                                    BusinessLocationWidget(
+                                        locationText: businessData?.address,
+                                        latitude: (businessData
+                                                ?.businessLocation?.lat
+                                                ?.toDouble() ??
+                                            0.0),
+                                        longitude: (businessData
+                                                ?.businessLocation?.lon
+                                                ?.toDouble() ??
+                                            0.0),
+                                        businessName:
+                                            businessData?.businessName ?? "",
+                                        padding: 0,
+                                        isTitleShow: false),
+                                  ],
+                                ),
                               ),
+                            ],
+                            // SizedBox(
+                            //   height: SizeConfig.size6,
+                            // ),
+                            StandaloneProductScreen(
+                              businessId: businessData?.id ?? "",
+                              isGrid: false,
+                              businessData: businessData,
                             ),
                           ],
-                          // SizedBox(
-                          //   height: SizeConfig.size6,
-                          // ),
-                          StandaloneProductScreen(
-                            businessId: businessData?.id ?? "",
-                            isGrid: false,
-                            businessData: businessData,
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    postsTab(data: businessData),
-                    // Container(
-                    //   height: 900,
-                    //   color: AppColors.red,
-                    // ),
-                    // jobsTab(),
-
-                    // Shorts tab
-                    // Column(
-                    //   children: [
-                    //     _filterButtons(),
-                    //     SizedBox(height: SizeConfig.size8),
-                    //     Expanded(
-                    //       child: ShortsChannelSection(
-                    //         // scrollController: _scrollController,
-                    //         isOwnShorts: false,
-                    //         showShortsInGrid: true,
-                    //         channelId: '',
-                    //         sortBy: selectedFilter,
-                    //         authorId: widget.businessId,
-                    //         postVia: PostVia.profile,
-                    //       ),
-                    //     ),
-                    //   ],
-                    // ),
-                    //
-                    // Column(
-                    //   children: [
-                    //     _filterButtons(),
-                    //     SizedBox(height: SizeConfig.size8),
-                    //     VideoChannelSection(
-                    //       isOwnVideos: false,
-                    //       channelId: '',
-                    //       authorId: widget.businessId,
-                    //       // isScroll: false,
-                    //       sortBy: selectedFilter,
-                    //       postVia: PostVia.profile,
-                    //     ),
-                    //   ],
-                    // ),
-
-                    if (isShowProduct
-                        .contains(businessData?.typeOfBusiness?.toLowerCase()))
-                      StandaloneProductScreen(
-                        businessId: businessData?.id ?? "",
-                        isGrid: true,
-                        businessData: businessData,
+                        ),
                       ),
 
-                    if (isShowService
-                        .contains(businessData?.typeOfBusiness?.toLowerCase()))
-                      StandaloneServiceScreen(
-                        businessId: businessData?.id ?? "",
-                        isGrid: true,
-                        businessData: businessData,
-                      ),
+                      postsTab(data: businessData),
+                      // Container(
+                      //   height: 900,
+                      //   color: AppColors.red,
+                      // ),
+                      // jobsTab(),
 
-                    if (isShowFood
-                        .contains(businessData?.typeOfBusiness?.toLowerCase()))
-                      StandaloneFoodScreen(
-                        businessId: businessData?.id ?? "",
-                        isGrid: true,
-                        businessData: businessData,
-                      ),
-                  ],
+                      // Shorts tab
+                      // Column(
+                      //   children: [
+                      //     _filterButtons(),
+                      //     SizedBox(height: SizeConfig.size8),
+                      //     Expanded(
+                      //       child: ShortsChannelSection(
+                      //         // scrollController: _scrollController,
+                      //         isOwnShorts: false,
+                      //         showShortsInGrid: true,
+                      //         channelId: '',
+                      //         sortBy: selectedFilter,
+                      //         authorId: widget.businessId,
+                      //         postVia: PostVia.profile,
+                      //       ),
+                      //     ),
+                      //   ],
+                      // ),
+                      //
+                      // Column(
+                      //   children: [
+                      //     _filterButtons(),
+                      //     SizedBox(height: SizeConfig.size8),
+                      //     VideoChannelSection(
+                      //       isOwnVideos: false,
+                      //       channelId: '',
+                      //       authorId: widget.businessId,
+                      //       // isScroll: false,
+                      //       sortBy: selectedFilter,
+                      //       postVia: PostVia.profile,
+                      //     ),
+                      //   ],
+                      // ),
+
+                      if (isShowProduct.contains(
+                          businessData?.typeOfBusiness?.toLowerCase()))
+                        StandaloneProductScreen(
+                          businessId: businessData?.id ?? "",
+                          isGrid: true,
+                          businessData: businessData,
+                        ),
+
+                      if (isShowService.contains(
+                          businessData?.typeOfBusiness?.toLowerCase()))
+                        StandaloneServiceScreen(
+                          businessId: businessData?.id ?? "",
+                          isGrid: true,
+                          businessData: businessData,
+                        ),
+
+                      if (isShowFood.contains(
+                          businessData?.typeOfBusiness?.toLowerCase()))
+                        StandaloneFoodScreen(
+                          businessId: businessData?.id ?? "",
+                          isGrid: true,
+                          businessData: businessData,
+                        ),
+                    ],
+                  ),
                 ),
-              ),
-            );
-          } else if (controller.viewBusinessResponse.status == Status.LOADING) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (controller.viewBusinessResponse.status == Status.ERROR) {
-            return Center(child: CustomText("No business found"));
-          } else {
-            return Center(
-              child: SizedBox(
-                  height: 24, width: 24, child: CircularProgressIndicator()),
-            );
-          }
-        },
+              );
+            } else if (controller.viewBusinessResponse.status ==
+                Status.LOADING) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (controller.viewBusinessResponse.status == Status.ERROR) {
+              return Center(child: CustomText("No business found"));
+            } else {
+              return Center(
+                child: SizedBox(
+                    height: 24, width: 24, child: CircularProgressIndicator()),
+              );
+            }
+          },
+        ),
       ),
     );
   }

@@ -20,11 +20,9 @@ import 'package:BlueEra/features/app_maintannace/app_maintenance_controller.dart
 import 'package:BlueEra/features/app_maintannace/maintenance_screen.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/onboarding/view/splash_screen.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/global_message_service.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:camera/camera.dart';
-import 'package:croppy/croppy.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -226,13 +224,13 @@ class _MyAppState extends State<MyApp> {
 
       locale: widget.initialLocale,
       fallbackLocale: const Locale('en'),
-      localizationsDelegates: [
-        AppLocalizations.delegate,
-        CroppyLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
+      // localizationsDelegates: [
+      //   AppLocalizations.delegate,
+      //   CroppyLocalizations.delegate,
+      //   GlobalMaterialLocalizations.delegate,
+      //   GlobalWidgetsLocalizations.delegate,
+      //   GlobalCupertinoLocalizations.delegate,
+      // ],
       builder: (context, child) {
         return Stack(
           children: [

@@ -21,7 +21,6 @@ import 'package:BlueEra/features/common/reel/models/social_input_fields_model.da
 import 'package:BlueEra/features/common/store/repo/store_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
-import 'package:BlueEra/l10n/app_localizations_en.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/foundation.dart';
@@ -91,6 +90,7 @@ class AppConstants {
   // static const String company = 'company';
   static const String recruiter = 'recruiter';
 
+  static const String deepLinkScreen = 'deepLinkScreen';
   static const String individual = 'INDIVIDUAL';
   static const String business = 'BUSINESS';
   static const String guest = 'GUEST';
@@ -282,26 +282,39 @@ class MakeOrderType {
 }
 
 redirectToProfileScreen(
-    {required String accountType, required String profileId}) {
+    {required String accountType,
+    required String profileId,
+    String? screenName}) {
   String? accountTypeData = accountType.toUpperCase();
-  // logs("user.accountType?=== ${user.accountType}");
-  if (accountType.toUpperCase() == AppConstants.individual) {
+
+  if (accountTypeData == AppConstants.individual) {
     if (userId == profileId) {
-      Get.to(() => PersonalProfileSetupNewScreen());
+      debugPrint("SEGMENTS==== IF");
+
+      Get.to(() => PersonalProfileSetupNewScreen(
+            isScreenName: screenName,
+          ));
     } else {
+      debugPrint("SEGMENTS==== ELSE");
+
       Get.to(() => NewVisitProfileScreen(
             authorId: profileId,
             screenFromName: AppConstants.feedScreen,
+            isScreenName: screenName,
           ));
     }
   }
   if (accountTypeData == AppConstants.business) {
     if (businessId == profileId) {
-      Get.to(BusinessOwnProfileScreen());
+      Get.to(BusinessOwnProfileScreen(
+        isScreenFrom: screenName,
+      ));
     } else {
       Get.to(() => VisitBusinessProfileNew(
             businessId: profileId,
             screenName: AppConstants.feedScreen,
+        isScreenFrom: screenName,
+
           ));
     }
   }
@@ -358,27 +371,29 @@ List<String> months = [
 List<String> years = ['YYYY'] +
     List.generate(30, (index) => (DateTime.now().year + index).toString());
 
-AppLocalizationsEn loc = AppLocalizationsEn();
+// AppLocalizationsEn loc = AppLocalizationsEn();
 
 List<OnboardingData> getOnboardingPages() => [
       OnboardingData(
-        title: loc.onBoarding1Title,
-        description: loc.onBoarding1SubTitle,
+        title: 'Shop from Verified Local Businesses',
+        description:
+            'Explore and buy products and services from Verified Local Businesses near you.',
         imageAsset: AppIconAssets.on_boarding1,
       ),
       OnboardingData(
-        title: loc.onBoarding2Title,
-        description: loc.onBoarding2SubTitle,
+        title: 'Monetize your Influence using Chat Feature',
+        description: 'Promote businesses and earn from your social reach.',
         imageAsset: AppIconAssets.on_boarding2,
       ),
       OnboardingData(
-        title: loc.onBoarding3Title,
-        description: loc.onBoarding3SubTitle,
+        title: 'Find Talent or Your Dream Job in Maps',
+        description:
+            'Recruiters can post jobs. Job seekers can apply with ease.',
         imageAsset: AppIconAssets.on_boarding3,
       ),
       OnboardingData(
-        title: loc.onBoarding4Title,
-        description: loc.onBoarding4SubTitle,
+        title: 'Earn via Reels and Videos',
+        description: 'Earn using Reels and Videos on your own using BlueEra.',
         imageAsset: AppIconAssets.on_boarding4,
       ),
     ];
@@ -387,15 +402,15 @@ List<AccountOption> getCreateAccountType() => [
       AccountOption(
         id: AppConstants.individual,
         title: AppStrings.individualAccount,
-        subtitle: loc.accountType1SubTitle,
-        description: loc.accountType1Description,
+        subtitle: 'Self employed, social worker, job seeker',
+        description: 'Build your presence. Connect. Get noticed!',
         iconPath: AppIconAssets.personal_account,
       ),
       AccountOption(
         id: AppConstants.business,
         title: AppStrings.businessListing,
-        subtitle: loc.accountType2SubTitle,
-        description: loc.accountType2Description,
+        subtitle: 'Store, Salon, Cafe, Hospitals, Manufacturing',
+        description: 'List your shop, office, or service and get discovered!',
         iconPath: AppIconAssets.business_account,
       ),
     ];
@@ -567,9 +582,21 @@ String formatMonthStringDate(String inputDate) {
 
 List<PopupMenuEntry<String>> popupMenuResumeCardItems() {
   final items = <Map<String, dynamic>>[
-    {"id": "EDIT", 'icon': AppIconAssets.tablerEditIcon, 'title': AppStrings.edit},
-    {"id": "SHARE", 'icon': AppIconAssets.uploadIcon, 'title': AppStrings.share},
-    {"id": "DOWNLOAD", 'icon': AppIconAssets.downloadIcon, 'title': AppStrings.download},
+    {
+      "id": "EDIT",
+      'icon': AppIconAssets.tablerEditIcon,
+      'title': AppStrings.edit
+    },
+    {
+      "id": "SHARE",
+      'icon': AppIconAssets.uploadIcon,
+      'title': AppStrings.share
+    },
+    {
+      "id": "DOWNLOAD",
+      'icon': AppIconAssets.downloadIcon,
+      'title': AppStrings.download
+    },
   ];
 
   final List<PopupMenuEntry<String>> entries = [];
@@ -758,7 +785,8 @@ String? businessType() {
   return controller.businessProfileDetails?.data?.typeOfBusiness?.toLowerCase();
 }
 
-List<PopupMenuEntry<InventoryMenuItem>> popupMenuInventoryItems(String businessType) {
+List<PopupMenuEntry<InventoryMenuItem>> popupMenuInventoryItems(
+    String businessType) {
   final items = <InventoryMenuItem>[
     if (isShowProduct.contains(businessType)) InventoryMenuItem.addProduct,
     if (isShowService.contains(businessType)) InventoryMenuItem.addService,
@@ -1671,6 +1699,7 @@ final List<String> timeOptions = [
   '11:00 PM',
   '11:30 PM',
 ];
+
 String formatClaimedAt(String claimedAt) {
   DateTime date = DateTime.parse(claimedAt).toLocal();
   DateTime now = DateTime.now();
@@ -1708,4 +1737,3 @@ String formatClaimedAt(String claimedAt) {
 
   return "$day/$month/$year"; // WhatsApp-like
 }
-

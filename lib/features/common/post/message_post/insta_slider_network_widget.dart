@@ -168,7 +168,7 @@ class _InstaSliderNetworkState extends State<InstaSliderNetwork> {
 //                         ImageViewScreen(
 //                           subTitle: widget.subTitle,
 //                           appBarTitle:
-//                               AppLocalizations.of(context)!.imageViewer,
+//                               AppStrings.imageViewer,
 //                           imageUrls: widget.mediaUrlList,
 //                           initialIndex: index,
 //                         ),

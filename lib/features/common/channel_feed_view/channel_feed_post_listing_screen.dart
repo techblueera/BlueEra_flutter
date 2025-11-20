@@ -10,7 +10,6 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_controllar.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_model.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
@@ -90,7 +89,7 @@ class _ChannelFeedPostListingScreenState
                                   navigatePushTo(
                                     context,
                                     ImageViewScreen(
-                                      appBarTitle: AppLocalizations.of(context)!
+                                      appBarTitle: AppStrings
                                           .imageViewer,
                                       // imageUrls: [post?.author.profileImage ?? ''],
                                       imageUrls: [

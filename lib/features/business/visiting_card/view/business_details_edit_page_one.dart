@@ -12,7 +12,6 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/controller/location_controller.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/contact_number_widget.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -544,7 +543,7 @@ class _BusinessDetailsEditPageOneState
                       ),
                       HttpsTextField(
                         controller: websiteController,
-                        hintText: AppLocalizations.of(context)!.websiteLinkHere,
+                        hintText: AppStrings.httpsExampleCom,
                       ),
                       SizedBox(
                         height: SizeConfig.size20,
@@ -840,7 +839,7 @@ class _BusinessDetailsEditPageOneState
       ApiKeys.address: fullBusinessAddressTextController.text,
       // ApiKeys.address: viewBusinessDetailsController.businessAddress.value,
 
-      "business_location": jsonEncode({
+      ApiKeys.business_location: jsonEncode({
         ApiKeys.lat: viewBusinessDetailsController.addressLat?.value.toString(),
         ApiKeys.lon:
         viewBusinessDetailsController.addressLong?.value.toString(),

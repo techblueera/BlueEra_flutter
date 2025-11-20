@@ -2,7 +2,6 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -16,40 +15,9 @@ class OnboardingSliderScreen extends StatefulWidget {
 class _OnboardingSliderScreenState extends State<OnboardingSliderScreen> {
   final PageController _pageController = PageController();
   int currentPage = 0;
-  // late Timer _onboardingTimer;
-
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   WidgetsBinding.instance.addPostFrameCallback((_) {
-  //     _onboardingTimer = Timer.periodic(Duration(seconds: 2), (Timer timer) {
-  //       if (currentPage < getOnboardingPages().length - 1) {
-  //         currentPage++;
-  //         _pageController.animateToPage(
-  //           currentPage,
-  //           duration: Duration(milliseconds: 300),
-  //           curve: Curves.easeInOut,
-  //         );
-  //       } else {
-  //         // Navigator.popUntil(context, (route) => route.isFirst);
-  //         // Navigator.pushReplacementNamed(context, RouteHelper.getOnboardingStartedScreenRoute());
-  //         timer.cancel();
-  //       }
-  //     });
-  //   });
-  // }
-
-  // @override
-  // void dispose() {
-  //   _onboardingTimer.cancel();
-  //   _pageController.dispose();
-  //   super.dispose();
-  // }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final appLocalizations = AppLocalizations.of(context);
     final onboardingPages = getOnboardingPages();
     return Scaffold(
       backgroundColor: AppColors.white,
@@ -73,7 +41,7 @@ class _OnboardingSliderScreenState extends State<OnboardingSliderScreen> {
                       children: [
                         SizedBox(height: SizeConfig.size60),
                         CustomText(
-                          "🇮🇳 ${appLocalizations?.madeInIndiaSuperApp}",
+                          "🇮🇳 Made in India Super App",
                           fontSize: SizeConfig.small,
                         ),
                         SizedBox(height: SizeConfig.size60),
@@ -105,26 +73,6 @@ class _OnboardingSliderScreenState extends State<OnboardingSliderScreen> {
               ),
             ),
 
-            ///Indicator
-            // Row(
-            //   mainAxisAlignment: MainAxisAlignment.center,
-            //   children: List.generate(
-            //     onboardingPages.length,
-            //     (index) => Container(
-            //       margin: EdgeInsets.all(SizeConfig.paddingXSmall),
-            //       width: SizeConfig.size10,
-            //       height: SizeConfig.size10,
-            //       decoration: BoxDecoration(
-            //         shape: BoxShape.circle,
-            //         color: currentPage == index ? Colors.black : Colors.transparent,
-            //         border: Border.all(
-            //           color: currentPage == index ? Colors.transparent : Colors.black,
-            //           width: SizeConfig.size1,
-            //         ),
-            //       ),
-            //     ),
-            //   ),
-            // ),
 
             ///SKIP AND NEXT BUTTON...
             Padding(
@@ -139,7 +87,7 @@ class _OnboardingSliderScreenState extends State<OnboardingSliderScreen> {
                             height: SizeConfig.size40,
                             width: SizeConfig.size290,
                             radius: 8,
-                            title: appLocalizations?.get_started,
+                            title: 'Get Started',
                             borderColor: AppColors.primaryColor,
                             bgColor: Colors.white,
                             textColor: AppColors.primaryColor,
@@ -152,7 +100,7 @@ class _OnboardingSliderScreenState extends State<OnboardingSliderScreen> {
                                   height: SizeConfig.size40,
                                   width: SizeConfig.size140,
                                   radius: 8,
-                                  title: appLocalizations?.previous,
+                                  title: "Previous",
                                   borderColor: AppColors.primaryColor,
                                   bgColor: Colors.white,
                                   textColor: AppColors.primaryColor,
@@ -162,7 +110,7 @@ class _OnboardingSliderScreenState extends State<OnboardingSliderScreen> {
                                   height: SizeConfig.size40,
                                   width: SizeConfig.size140,
                                   radius: 8,
-                                  title: appLocalizations?.skip,
+                                  title: "Skip",
                                   borderColor: AppColors.primaryColor,
                                   bgColor: Colors.white,
                                   textColor: AppColors.primaryColor,
@@ -172,7 +120,7 @@ class _OnboardingSliderScreenState extends State<OnboardingSliderScreen> {
                             height: SizeConfig.size40,
                             width: SizeConfig.size140,
                             radius: 8,
-                            title: appLocalizations?.next,
+                            title: "Next",
                             borderColor: AppColors.primaryColor,
                             bgColor: Colors.white,
                             textColor: AppColors.primaryColor,

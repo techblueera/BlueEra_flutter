@@ -8,7 +8,6 @@ import 'package:BlueEra/core/controller/location_controller.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -82,7 +81,6 @@ class _BusinessLocationBottomSheetState
 
   @override
   Widget build(BuildContext context) {
-    final appLocalizations = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
     return AnimatedPadding(
@@ -125,8 +123,8 @@ class _BusinessLocationBottomSheetState
                 readOnly: true,
                 maxLine: 3,
                 textEditController: fullBusinessAddressTextController,
-                title: appLocalizations?.fullBusinessAddress,
-                hintText: appLocalizations?.fullBusinessAddress,
+                title: AppStrings.fullBusinessAddress,
+                hintText: AppStrings.fullBusinessAddress,
               ),
               TextButton(
                 onPressed: () =>  updateAddressFromLocation(),
@@ -143,7 +141,7 @@ class _BusinessLocationBottomSheetState
               // SizedBox(height: SizeConfig.size16),
               CommonTextField(
                 textEditController: cityController,
-                title: appLocalizations?.city,
+                title: AppStrings.city,
                 readOnly: true,
               ),
               SizedBox(height: SizeConfig.size16),
@@ -154,8 +152,8 @@ class _BusinessLocationBottomSheetState
                   });
                 },
                 validator: (String? value) {
-                  if (value == null || value.trim().isEmpty) return 'Pincode required';
-                  return isValidIndianPincode(value) ? null : 'Enter a valid 6-digit pincode';
+                  if (value == null || value.trim().isEmpty) return AppStrings.pleaseEnterPinCode.tr;
+                  return isValidIndianPincode(value) ? null : AppStrings.enterValidIndianPincode.tr;
                   },
                 textEditController: picCodeController,
                 title: AppStrings.pincodeTitle,

@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -8,7 +7,6 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -38,7 +36,7 @@ Future<void> showLivePhotoDialog({
             mainAxisSize: MainAxisSize.min,
             children: [
               CustomText(
-                "Upload Your Live Photos",
+                AppStrings.uploadYourLivePhoto,
                 fontSize: SizeConfig.large,
                 fontWeight: FontWeight.w600,
                 color: AppColors.mainTextColor,
@@ -55,7 +53,6 @@ Future<void> showLivePhotoDialog({
                     id: 'livePhotos',
                     builder: (controller) {
                       final apiPhotos = controller.businessProfileDetails?.data?.livePhotos ?? [];
-                      log('Photo count --> ${apiPhotos.length}');
 
                       final totalCount = apiPhotos.length;
                       final emptySlots = (3 - totalCount).clamp(0, 3);
@@ -101,7 +98,7 @@ Future<void> showLivePhotoDialog({
                 children: [
                   Expanded(
                     child: CustomBtn(
-                      title: "Cancel",
+                      title: AppStrings.cancel,
                       bgColor: AppColors.white,
                       borderColor: AppColors.primaryColor,
                       textColor: AppColors.primaryColor,
@@ -111,12 +108,12 @@ Future<void> showLivePhotoDialog({
                   SizedBox(width: SizeConfig.size10),
                   Expanded(
                     child: PositiveCustomBtn(
-                      title: "Submit",
+                      title: AppStrings.submit,
                       onTap: () {
                         final apiPhotos = controller.businessProfileDetails?.data?.livePhotos ?? [];
 
                         if (apiPhotos.length < 3) {
-                          commonSnackBar(message: "Please upload all 3 live photos before submitting");
+                          commonSnackBar(message: AppStrings.upload_live_photos_message);
                           return;
                         }
 
@@ -153,8 +150,9 @@ Widget _buildImageContainer(
             // Pick and upload new image
             showCommonDialog(
               context: context,
-              header: "Store Live Photo",
-              text: 'Please upload all 3 live photos of your store.',
+              header: AppStrings.storeLivePhoto.tr,
+              text:AppStrings.upload3StorePictures.tr,
+              // text: 'Please upload all 3 live photos of your store.',
               confirmCallback: () async {
                 Get.back();
                 final imgStr = await SelectProfilePictureDialog.pickFromCamera(context);
@@ -164,8 +162,8 @@ Widget _buildImageContainer(
                 }
               },
               cancelCallback: () => Get.back(),
-              confirmText: 'Ok',
-              cancelText: 'Cancel',
+              confirmText: AppStrings.ok,
+              cancelText: AppStrings.cancel,
             );
           } else {
             // View full image
@@ -205,7 +203,7 @@ Widget _buildImageContainer(
                 LocalAssets(imagePath: AppIconAssets.profile_camera_pic),
                 SizedBox(height: 4),
                 CustomText(
-                  "Add Live\nStore Photo",
+                  AppStrings.addLiveStorePhoto,
                   textAlign: TextAlign.center,
                   fontSize: SizeConfig.extraSmall,
                   decoration: TextDecoration.underline,

@@ -229,12 +229,6 @@ class LocationService extends GetxService {
     return null; // same location → no need to update
   }
 
-  static bool _hasLocationChanged(Position oldPos, Position newPos) {
-    logs("oldPos= ${oldPos.latitude},${oldPos.longitude} NEW === ${newPos.latitude},${newPos.longitude}");
-    const double threshold = 0.0001; // ~10m difference
-    return (oldPos.latitude - newPos.latitude).abs() > threshold ||
-        (oldPos.longitude - newPos.longitude).abs() > threshold;
-  }
 
 
   static Future<void> askLocationPermission() async {

@@ -139,13 +139,7 @@ List<String> generateList(int startYear, int endYear) {
 
 ///GENERATE POST DEEPLINK
 String postDeepLink({String? postId}) {
-  // updatedURL
-  // return 'https://api.blueera.ai/api/post-service/app/post/${(postId ?? "")}';
-  // Updated to new host for deep linking and sharing (friendly path)
   return 'https://blueera.ai/app/post/${(postId ?? "")}';
-  // return '${baseUrl}${blueEraPostLink}/${encryptString(postId ?? "")}';
-  // return 'https://p3qw782za2.execute-api.ap-south-1.amazonaws.com/.well-known/${(postId ?? "")}';
-  // return '${baseUrl}${blueEraPostLink}/${encryptString(postId ?? "")}';
 }
 
 /// Generate deep link for a Video item
@@ -164,8 +158,8 @@ String jobDeepLink({String? jobId}) {
 }
 
 /// Generate deep link for a Profile
-String profileDeepLink({String? userId}) {
-  return 'https://blueera.ai/app/profile/${(userId ?? "")}';
+String profileDeepLink({String? userId,required String accountType}) {
+  return 'https://blueera.ai/app/profile/${(userId ?? "")}/${accountType}';
 }
 
 /// Generate deep link for a Product item

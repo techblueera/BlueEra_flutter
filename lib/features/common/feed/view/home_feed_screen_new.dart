@@ -25,7 +25,6 @@ import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/horizonatal_video_player.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -300,7 +299,7 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
                               ImageViewScreen(
                                 subTitle: imgPostData.subTitle,
                                 appBarTitle:
-                                    AppLocalizations.of(context)!.imageViewer,
+                                    AppStrings.imageViewer,
                                 imageUrls: imgPostData.media ?? [],
                                 initialIndex: postIndex,
                                 postData: imgPostData,

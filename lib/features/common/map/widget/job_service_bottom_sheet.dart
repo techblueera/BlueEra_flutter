@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/map/controller/getjob_list_controller.dart';
 import 'package:BlueEra/features/common/map/widget/circular_icon_button.dart';
@@ -10,7 +11,6 @@ import 'package:get/get.dart';
 import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/app_icon_assets.dart';
 import '../../../../core/services/open_googlemap_diraction.dart';
-import '../../../../l10n/app_localizations.dart';
 import '../../../../widgets/common_circular_profile_image.dart';
 import '../../../../widgets/common_horizontal_divider.dart';
 import '../../../../widgets/custom_btn.dart';
@@ -145,8 +145,7 @@ class _JobServiceBottomSheetState extends State<JobServiceBottomSheet> {
                                        navigatePushTo(
                                          context,
                                          ImageViewScreen(
-                                           appBarTitle: AppLocalizations.of(context)!
-                                               .imageViewer,
+                                           appBarTitle: AppStrings.imageViewer,
                                            // imageUrls: [post?.author.profileImage ?? ''],
                                            imageUrls: [job.jobPostImage ?? ""],
                                            initialIndex: 0,

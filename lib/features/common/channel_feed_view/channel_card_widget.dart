@@ -1,8 +1,8 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_model.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
@@ -18,7 +18,7 @@ class ChannelCardWidget extends StatelessWidget {
     return Card(
       elevation: 0,
       child: Padding(
-        padding: const EdgeInsets.all(10),
+        padding: const EdgeInsets.all(0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -29,7 +29,7 @@ class ChannelCardWidget extends StatelessWidget {
                   navigatePushTo(
                     context,
                     ImageViewScreen(
-                      appBarTitle: AppLocalizations.of(context)!.imageViewer,
+                      appBarTitle: AppStrings.imageViewer,
                       // imageUrls: [post?.author.profileImage ?? ''],
                       imageUrls: [channelModel.logoUrl ?? ""],
                       initialIndex: 0,

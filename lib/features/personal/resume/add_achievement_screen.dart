@@ -6,7 +6,6 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
@@ -298,10 +297,9 @@ class _AddAchievementScreenState extends State<AddAchievementScreen> {
   }
 
   selectImage(BuildContext context) async {
-    final appLocalizations = AppLocalizations.of(context);
     final selected = await SelectProfilePictureDialog.showLogoDialog(
       context,
-      appLocalizations!.uploadYourDocumentPhoto,
+      AppStrings.uploadYourDocumentPhoto,
     );
     if (selected?.isNotEmpty ?? false) {
       setState(() {

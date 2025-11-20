@@ -141,11 +141,10 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                 trimLines: 5,
                                 expandMode: ExpandMode.dialog,
                                 style: TextStyle(
-                                  color: AppColors.mainTextColor,
-                                  fontFamily: AppConstants.OpenSans,
-                                  fontWeight: FontWeight.w400,
-                                  fontSize: SizeConfig.size15
-                                ),
+                                    color: AppColors.mainTextColor,
+                                    fontFamily: AppConstants.OpenSans,
+                                    fontWeight: FontWeight.w400,
+                                    fontSize: SizeConfig.size15),
                               ),
                             ),
                           ),
@@ -216,7 +215,9 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                       )
                     ],
                     if (_post.media?.isNotEmpty ?? false) ...[
-                      if ((_post.media_types?.firstOrNull?.startsWith("video/") ?? false) ||
+                      if ((_post.media_types?.firstOrNull
+                                  ?.startsWith("video/") ??
+                              false) ||
                           isVideoUrl(_post.media?.firstOrNull)) ...[
                         Padding(
                           padding: EdgeInsets.only(
@@ -251,7 +252,9 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                           ),
                         ),
                       ],
-                      if ((_post.media_types?.firstOrNull?.startsWith("image/") ?? false) ||
+                      if ((_post.media_types?.firstOrNull
+                                  ?.startsWith("image/") ??
+                              false) ||
                           isImageUrl(_post.media?.firstOrNull))
                         Padding(
                           padding: EdgeInsets.only(
@@ -403,12 +406,26 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                                   child: Container(
                                                     color: Colors.black,
                                                     child: CachedNetworkImage(
-                                                      imageUrl: widget
-                                                              .post
-                                                              ?.children_post
-                                                              ?.media
-                                                              ?.first ??
-                                                          "",
+                                                      imageUrl: ((_post
+                                                                      .children_post?.media_types
+                                                                      ?.firstOrNull
+                                                                      ?.startsWith(
+                                                                          "video/") ??
+                                                                  false) ||
+                                                              isVideoUrl(_post.
+                                                                  children_post?.media
+                                                                  ?.firstOrNull))
+                                                          ? widget
+                                                                  .post
+                                                                  ?.children_post
+                                                                  ?.thumbnail ??
+                                                              ""
+                                                          : widget
+                                                                  .post
+                                                                  ?.children_post
+                                                                  ?.media
+                                                                  ?.first ??
+                                                              "",
                                                       width: 110,
                                                       height: 110,
                                                       fit: BoxFit.cover,
@@ -571,8 +588,7 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                     ),
                                   ],
                                 ),
-                              )
-                              ,
+                              ),
                             ),
                             if (widget.post?.type?.toLowerCase() ==
                                 "message_post")

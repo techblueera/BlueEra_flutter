@@ -13,7 +13,6 @@ import 'package:BlueEra/features/common/jobs/controller/applied_job_controller.d
 import 'package:BlueEra/features/journey/repo/travel_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_settings_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_button_with_icon.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
@@ -173,7 +172,6 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    // AppLocalizations.of(context);
     return AppBar(
       elevation: 4,
       shadowColor: Colors.black26,
@@ -393,8 +391,8 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                     onPressed: () async {
                       await showCommonDialog(
                           context: context,
-                          text: AppLocalizations.of(context)!
-                              .areYouSureYouWantToLogout,
+                          text: AppStrings
+                              .logoutConfirmationMessage,
                           confirmCallback: () async {
                             await SharedPreferenceUtils.clearPreference();
                             Navigator.of(context).pushNamedAndRemoveUntil(
@@ -404,8 +402,8 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                           cancelCallback: () {
                             Navigator.of(context).pop(); // Close the dialog
                           },
-                          confirmText: AppLocalizations.of(context)!.yes,
-                          cancelText: AppLocalizations.of(context)!.no);
+                          confirmText: AppStrings.yes,
+                          cancelText: AppStrings.no);
                     },
                     icon: LocalAssets(
                       imagePath: AppIconAssets.logout_new,
@@ -508,7 +506,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
               child: Padding(
                 padding: EdgeInsets.only(right: SizeConfig.size10),
                 child: CustomText(
-                  AppLocalizations.of(context)!.cancel,
+                  AppStrings.cancel,
                   fontSize: SizeConfig.medium,
                   color: AppColors.primaryColor,
                 ),

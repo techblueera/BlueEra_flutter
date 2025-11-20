@@ -1,7 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_horizontal_divider.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -375,7 +375,7 @@ class _SheetBodyState extends State<_SheetBody> {
                     images: storeController.allStore[0].livePhotos!,
                     imageHeight: SizeConfig.size130,
                     maxVisible: 4,
-                    appBarTitle: AppLocalizations.of(context)!.imageViewer,
+                    appBarTitle: AppStrings.imageViewer,
                   ),
                 ),
 
@@ -464,7 +464,7 @@ class _SheetBodyState extends State<_SheetBody> {
                     images: controller.allPlaces[0].photos,
                     imageHeight: SizeConfig.size130,
                     maxVisible: 4,
-                    appBarTitle: AppLocalizations.of(context)!.imageViewer,
+                    appBarTitle: AppStrings.imageViewer,
                   ),
                 ),
 

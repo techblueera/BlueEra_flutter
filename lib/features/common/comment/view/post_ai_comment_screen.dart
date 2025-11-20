@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/comment/controller/comment_controller.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -21,7 +22,7 @@ class PostAiCommentScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.white,
       appBar: CommonBackAppBar(
-        title: "Ai Generative Comment",onBackTap: (){
+        title:AppStrings.aiGenerativeComment,onBackTap: (){
           Navigator.of(context).pop();
       },
       ),
@@ -39,7 +40,7 @@ class PostAiCommentScreen extends StatelessWidget {
                   ),
 
                   /// Language Dropdown
-                  CustomText("Language"),
+                  CustomText(AppStrings.language),
                   SizedBox(
                     height: SizeConfig.size10,
                   ),
@@ -49,8 +50,8 @@ class PostAiCommentScreen extends StatelessWidget {
                         commentController.selectedLanguage.value.isEmpty
                             ? null
                             : commentController.selectedLanguage.value,
-                    title: "Select Language",
-                    hintText: "Eg. Gujarati, Hindi...",
+                    title: AppStrings.selectLanguage.tr,
+                    hintText: AppStrings.languageHint.tr,
                     displayValue: (value) => value,
                     onChanged: (value) {
                       commentController.selectedLanguage.value = value!;
@@ -62,7 +63,7 @@ class PostAiCommentScreen extends StatelessWidget {
                   ),
 
                   /// Emotion Dropdown
-                  CustomText("Emotion"),
+                  CustomText(AppStrings.emotion),
                   SizedBox(
                     height: SizeConfig.size10,
                   ),
@@ -74,8 +75,8 @@ class PostAiCommentScreen extends StatelessWidget {
                           (e) => e.name == commentController.selectedEmotion.value,
                       orElse: () => emotionList.first,
                     ),
-                    title: "Select Emotion",
-                    hintText: "Eg. Motivation, Anger...",
+                    title: AppStrings.selectEmotion.tr,
+                    hintText: AppStrings.emotionHint.tr,
                     displayValue: (value) => value.name, // <-- use the emotion name
                     onChanged: (value) {
                       commentController.selectedEmotion.value = value?.sludId??"";
@@ -86,7 +87,7 @@ class PostAiCommentScreen extends StatelessWidget {
                   SizedBox(
                     height: SizeConfig.size15,
                   ),
-                  CustomText("Comment Type"),
+                  CustomText(AppStrings.commentType),
                   SizedBox(
                     height: SizeConfig.size10,
                   ),
@@ -98,7 +99,7 @@ class PostAiCommentScreen extends StatelessWidget {
                           (e) => e.name == commentController.selectedCommentType.value,
                       orElse: () => commentTypes.first,
                     ),
-                    title: "Select Comment Type",
+                    title: AppStrings.selectCommentType,
                     hintText: "Eg. Shock...",
                     displayValue: (value) => value.name,
                     onChanged: (value) {
@@ -109,21 +110,6 @@ class PostAiCommentScreen extends StatelessWidget {
                     },
                   ),
 
-                  // CommonDropdownDialog<String>(
-                  //   items: commentController.commentType,
-                  //   selectedValue:
-                  //   commentController.selectedCommentType.value.isEmpty
-                  //       ? null
-                  //       : commentController.selectedCommentType.value,
-                  //   title: "Select Comment Type",
-                  //   hintText: "Eg. Shock...",
-                  //   displayValue: (value) => value,
-                  //   onChanged: (value) {
-                  //     commentController.selectedCommentType.value = value!;
-                  //     commentController.onSelectionChanged();
-                  //   },
-                  // ),
-
                   SizedBox(
                     height: SizeConfig.size30,
                   ),
@@ -132,7 +118,7 @@ class PostAiCommentScreen extends StatelessWidget {
 
                   Obx(
                     () => CustomBtn(
-                      title: "Generate Comment",
+                      title:AppStrings.generateComment,
                       isValidate: commentController.isFormValid,
                       onTap: commentController.isFormValid
                           ? () async {
@@ -160,7 +146,7 @@ class PostAiCommentScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         SizedBox(height: 16),
-                        CustomText("Suggestions:",
+                        CustomText("${AppStrings.suggestions.tr}:",
                             fontSize: 16, fontWeight: FontWeight.bold),
                         SizedBox(height: 10),
                         Column(
@@ -220,7 +206,7 @@ class PostAiCommentScreen extends StatelessWidget {
                               Expanded(
                                   child: PositiveCustomBtn(
                                 onTap: () => Get.back(),
-                                title: "Cancel",
+                                title: AppStrings.cancel,
                                 borderColor: AppColors.primaryColor,
                                 bgColor: AppColors.white,
                                 textColor: AppColors.primaryColor,
@@ -228,7 +214,7 @@ class PostAiCommentScreen extends StatelessWidget {
                               const SizedBox(width: 8),
                               Expanded(
                                 child: CustomBtn(
-                                  title: "Save",
+                                  title: AppStrings.save,
                                   isValidate: tempSelected.value.isNotEmpty,
                                   // Enable/Disable button
                                   onTap: tempSelected.value.isNotEmpty

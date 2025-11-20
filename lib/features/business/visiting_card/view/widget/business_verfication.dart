@@ -9,7 +9,6 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../../core/constants/app_constant.dart';
 import '../../../../../core/constants/size_config.dart';
 import '../../../../../core/constants/snackbar_helper.dart';
-import '../../../../../l10n/app_localizations.dart';
 import '../../../../../widgets/commom_textfield.dart';
 import '../../../../../widgets/common_back_app_bar.dart';
 import '../../../../../widgets/common_box_shadow.dart';
@@ -123,10 +122,9 @@ class _BusinessVerificationState extends State<BusinessVerification> {
   }
 
   selectImage(BuildContext context) async {
-    final appLocalizations = AppLocalizations.of(context);
 
     selectedImage = await SelectProfilePictureDialog.showLogoDialog(
-        context, appLocalizations!.uploadYourDocumentPhoto);
+        context, AppStrings.uploadDocumentPhoto);
     setState(() {});
     if (selectedImage?.isNotEmpty ?? false) {
       ///SET IMAGE PATH...
@@ -190,13 +188,13 @@ class _BusinessVerificationState extends State<BusinessVerification> {
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       authController.isValidate.value = false;
-                      return 'Please enter your GST number';
+                      return AppStrings.enterGstNumber.tr;
                     }
 
 
                     if (!gstRegExp.hasMatch(value)) {
                       authController.isValidate.value = false;
-                      return 'Please enter a valid GST number';
+                      return AppStrings.enterGstNumber.tr;
                     }
 
 

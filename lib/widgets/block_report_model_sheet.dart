@@ -1,6 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/block_user_dialog.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/report_dialog.dart';
@@ -36,7 +35,6 @@ class _BlockReportPostModalSheetState extends State<BlockReportPostModalSheet> {
 
   @override
   Widget build(BuildContext context) {
-    AppLocalizations.of(context);
 
     return Container(
         // width: 500,

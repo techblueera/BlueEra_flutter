@@ -4,10 +4,10 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/widget/video_player.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -239,7 +239,7 @@ class _FeedMediaCarouselWidgetState extends State<FeedMediaCarouselWidget>
                                 ImageViewScreen(
                                   subTitle: widget.subTitle,
                                   appBarTitle:
-                                      AppLocalizations.of(context)!.imageViewer,
+                                      AppStrings.imageViewer,
                                   imageUrls: widget.mediaUrls,
                                   initialIndex: index,
                                 ),

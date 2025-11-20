@@ -11,7 +11,6 @@ import 'package:get/get.dart';
 
 import '../../../../../../core/constants/snackbar_helper.dart';
 import '../../../../../../widgets/commom_textfield.dart';
-import '../../../../../../widgets/common_draggable_bottom_sheet.dart';
 import '../../../../../business/auth/controller/view_business_details_controller.dart';
 
 

@@ -2,9 +2,9 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/model/all_like_users_list_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
@@ -128,7 +128,7 @@ class _UserTile extends StatelessWidget {
                 navigatePushTo(
                   context,
                   ImageViewScreen(
-                    appBarTitle: AppLocalizations.of(context)!.imageViewer,
+                    appBarTitle: AppStrings.imageViewer,
                     // imageUrls: [post?.author.profileImage ?? ''],
                     imageUrls: [user.profileImage ?? ""],
                     initialIndex: 0,

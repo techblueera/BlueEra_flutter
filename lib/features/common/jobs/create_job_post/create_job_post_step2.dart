@@ -5,7 +5,6 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/jobs/controller/create_job_post_controller.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -149,7 +148,6 @@ class _CreateJobPostStep2State extends State<CreateJobPostStep2> {
 
   @override
   Widget build(BuildContext context) {
-    final appLocalizations = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: CommonBackAppBar(
@@ -240,7 +238,7 @@ class _CreateJobPostStep2State extends State<CreateJobPostStep2> {
 
                       // Gender
                       CustomText(
-                        "${appLocalizations?.selectGender} (${AppStrings.optional.tr})",
+                        "${AppStrings.selectGender.tr} (${AppStrings.optional.tr})",
                         fontSize: SizeConfig.medium,
                       ),
                       SizedBox(
@@ -249,7 +247,7 @@ class _CreateJobPostStep2State extends State<CreateJobPostStep2> {
                       CommonDropdown<GenderType>(
                         items: GenderType.values,
                         selectedValue: _selectedGender,
-                        hintText: appLocalizations?.selectGenderHint ?? '',
+                        hintText: AppStrings.selectGenderHint.tr,
                         displayValue: (value) => value.displayName,
                         onChanged: (value) {
                           setState(() {

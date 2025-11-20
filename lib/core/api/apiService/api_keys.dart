@@ -513,4 +513,5 @@ class ApiKeys {
   static const pickupOTP = 'pickupOTP';
   static const newContactNo = 'new_contact_no';
   static const argRentalData = 'argRentalData';
+  static const business_location = 'business_location';
 }

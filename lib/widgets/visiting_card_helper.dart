@@ -14,7 +14,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 class VisitingCardHelper {
-
   /// Builds the card off-screen, captures it, then shares the PNG.
   static Future<void> buildAndShareVisitingCard(BuildContext context) async {
     GlobalKey cardKey = GlobalKey();
@@ -36,7 +35,8 @@ class VisitingCardHelper {
     await Future.delayed(const Duration(milliseconds: 50));
 
     try {
-      await VisitingCardHelper().shareVisitingCard(cardKey, shareProfile: false);
+      await VisitingCardHelper()
+          .shareVisitingCard(cardKey, shareProfile: false);
     } finally {
       overlay.remove();
     }
@@ -46,10 +46,8 @@ class VisitingCardHelper {
 
   /// Builds the card off-screen, captures it, then shares the PNG.
   static Future<void> buildAndShareProductCard(
-      BuildContext context,
-      GetProductData ownProductData,
-      {required int index}
-      ) async {
+      BuildContext context, GetProductData ownProductData,
+      {required int index}) async {
     if (_isProductSharing) return;
     _isProductSharing = true;
 
@@ -94,31 +92,29 @@ class VisitingCardHelper {
     // await Future.delayed(const Duration(milliseconds: 50));
 
     try {
-      await VisitingCardHelper().shareVisitingCard(cardKey, productId: ownProductData.product.details?.id);
+      await VisitingCardHelper().shareVisitingCard(cardKey,
+          productId: ownProductData.product.details?.id);
     } finally {
       overlay.remove();
 
       // await NetworkImage(userProfileGlobal).evict();
       await AssetImage(bgAsset).evict();
       if (ownProductData.product.details!.media[index].isNotEmpty) {
-        await NetworkImage(ownProductData.product.details!.media[index]).evict();
+        await NetworkImage(ownProductData.product.details!.media[index])
+            .evict();
       }
 
       _isProductSharing = false;
-
     }
   }
 
-
   bool _isSharing = false;
 
-  Future<void> shareVisitingCard(
-      GlobalKey cardKey,
+  Future<void> shareVisitingCard(GlobalKey cardKey,
       {bool shareProfile = true,
-        String? productId,
-        String? serviceId,
-        String? foodServiceId
-      }) async {
+      String? productId,
+      String? serviceId,
+      String? foodServiceId}) async {
     print('sharing');
     if (_isSharing) return;
 
@@ -127,10 +123,11 @@ class VisitingCardHelper {
       print('sharing start');
       // Capture with RepaintBoundary (keeps your background image)
       RenderRepaintBoundary boundary =
-      cardKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+          cardKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
 
       ui.Image image = await boundary.toImage(pixelRatio: 3.0);
-      ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      ByteData? byteData =
+          await image.toByteData(format: ui.ImageByteFormat.png);
       Uint8List pngBytes = byteData!.buffer.asUint8List();
 
       // Save captured image
@@ -139,19 +136,20 @@ class VisitingCardHelper {
       await file.writeAsBytes(pngBytes);
 
       final String message;
-      if(productId!=null){
+      if (productId != null) {
         final link = productDeepLink(productId: productId);
         message = "Link to visit my store at BlueEra app:\n$link\n";
-      } else if(serviceId!=null){
+      } else if (serviceId != null) {
         final link = serviceDeepLink(serviceId: serviceId);
         message = "Link to visit my store at BlueEra app:\n$link\n";
-      } else if(foodServiceId!=null){
+      } else if (foodServiceId != null) {
         final link = foodServiceDeepLink(foodServiceId: foodServiceId);
         message = "Link to visit my store at BlueEra app:\n$link\n";
-      } else if(shareProfile){
-        final link = profileDeepLink(userId: userId);
+      } else if (shareProfile) {
+        final link =
+            profileDeepLink(userId: userId, accountType: AppConstants.business);
         message = "See my profile on BlueEra:\n$link\n";
-      }else{
+      } else {
         message = """
 Download our app now:
 👉 Play Store: ${AppConstants.androidPlayStoreUrl}
@@ -170,7 +168,6 @@ Download our app now:
         await file.delete();
         debugPrint("🗑️ Visiting card image deleted from cache.");
       }
-
     } catch (e) {
       debugPrint("❌ Error sharing card: $e");
     } finally {

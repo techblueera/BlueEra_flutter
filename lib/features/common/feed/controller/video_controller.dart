@@ -19,7 +19,6 @@ import 'package:BlueEra/features/common/feed/repo/feed_repo.dart';
 import 'package:BlueEra/features/common/reel/controller/reel_upload_details_controller.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/repo/user_repo.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/custom_success_sheet.dart';
 import 'package:BlueEra/widgets/uploading_progressing_dialog.dart';
 import 'package:flutter/material.dart';
@@ -810,9 +809,9 @@ class VideoController extends GetxController{
               child: Material(
                 color: Colors.transparent,
                 child: CustomSuccessSheet(
-                  buttonText: AppLocalizations.of(context)!.gotIt,
-                  title: AppLocalizations.of(context)!.youHaveReportedThisPost,
-                  subTitle: AppLocalizations.of(context)!.reportSuccessMessage,
+                  buttonText: 'Got it',
+                  title: 'You have reported this post',
+                  subTitle: 'Thank you for your feedback. We will review and take necessary actions.',
                   onPress: () {
                     Navigator.pop(context);
                   },

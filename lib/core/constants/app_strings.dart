@@ -1799,6 +1799,31 @@ class AppStrings {
   static const String notificationDeleted = 'notificationDeleted';
   static const String noNotificationsFound = 'noNotificationsFound';
   static const String tagsText = 'tagsText';
+  static const String upload_live_photos_message = 'upload_live_photos_message';
+  static const comments = "comments";
+  static const replies = "replies";
+  static const viewMoreReplies = "view_more_replies";
+  static const hideReplies = "hide_replies";
+  static const noCommentYet = "no_comment_yet";
+  static const deleteCommentConfirm = "delete_comment_confirm";
+  static const reply = "reply";
+  static const replyingTo = "replying_to";
+  static const createReplyAi = "create_reply_ai";
+  static const createCommentAi = "create_comment_ai";
+  static const writeComment = "write_comment";
+  static const aiGenerativeComment = "ai_generative_comment";
+  static const commentType = "comment_type";
+  static const selectCommentType = "select_comment_type";
+  static const generateComment = "generate_comment";
+
+  static const validationCommentRequired = "validation_comment_required";
+  static const validationCommentTypeRequired = "validation_comment_type_required";
+  static const pleaseEnterDescription = "please_enter_description";
+  static const uploadOneDocument = "upload_one_document";
+  static const nameShouldMatchPan = "name_should_match_pan";
+  static const nameOfDocument = "name_of_document";
+  static const pleaseSpecifyIfOther = "please_specify_if_other";
+  static const done = "done";
 
   ///BHAVESH END
 }

@@ -1,9 +1,8 @@
-import 'dart:developer';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -87,14 +86,7 @@ class _CustomDropdownForDocumentTypeState extends State<CustomDropdownForDocumen
 
     return OverlayEntry(
       builder: (context) {
-        final appLocalizations = AppLocalizations.of(context);
 
-        // final viewInsets = WidgetsBinding.instance.window.viewInsets.bottom;
-        // double keyboardHeight = viewInsets / WidgetsBinding.instance.window.devicePixelRatio;
-        // double adjustedTop = offset.dy;
-        // if (keyboardHeight > 0) {
-        //   adjustedTop = offset.dy - keyboardHeight / 2;
-        // }
 
         return Stack(
         children: [
@@ -180,7 +172,7 @@ class _CustomDropdownForDocumentTypeState extends State<CustomDropdownForDocumen
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   CustomText(
-                                    appLocalizations?.nameOfTheDocument,
+                                    AppStrings.nameOfDocument,
                                     fontSize: SizeConfig.extraSmall,
                                     fontWeight: FontWeight.w400,
                                   ),
@@ -194,7 +186,7 @@ class _CustomDropdownForDocumentTypeState extends State<CustomDropdownForDocumen
                                           // inputLength: AppConstants.inputCharterLimit50,
                                           keyBoardType: TextInputType.text,
                                           // regularExpression: RegularExpressionUtils.alphabetSpacePattern,
-                                          hintText: appLocalizations?.pleaseSpecifyIfOther,
+                                          hintText: AppStrings.pleaseSpecifyIfOther,
                                           isValidate: false,
                                           // onTap: (){
                                           //   Future.delayed(Duration(milliseconds: 300), () {
@@ -208,7 +200,7 @@ class _CustomDropdownForDocumentTypeState extends State<CustomDropdownForDocumen
                                       CustomBtn(
                                         height:  SizeConfig.size35,
                                         width: SizeConfig.size50,
-                                        title: appLocalizations?.done,
+                                        title: AppStrings.done,
                                         onTap: () {
                                           setState(() {
                                             _selectedItem = _otherController.text;

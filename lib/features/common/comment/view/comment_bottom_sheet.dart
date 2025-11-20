@@ -2,6 +2,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -12,7 +13,6 @@ import 'package:BlueEra/features/common/comment/view/post_ai_comment_screen.dart
 import 'package:BlueEra/features/common/reelsModule/widget/comment_shimmer_ui.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/common_draggable_bottom_sheet.dart';
@@ -101,29 +101,6 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                   ? CommentShimmerUi()
                   : Column(
                       children: [
-                        // /// Header
-                        // Padding(
-                        //   padding: EdgeInsets.only(
-                        //       right: SizeConfig.size10,
-                        //       // top: SizeConfig.size5,
-                        //       bottom: SizeConfig.size5),
-                        //   child: Align(
-                        //       alignment: Alignment.centerRight,
-                        //       child: Container(
-                        //         color: Colors.red,
-                        //         height: 18,
-                        //         width: 18,
-                        //         margin: EdgeInsets.only(right: SizeConfig.size15),
-                        //         child: IconButton(
-                        //
-                        //             onPressed: () {
-                        //               Get.back();
-                        //             },
-                        //             icon: Icon(Icons.close,
-                        //                 size: SizeConfig.size24)),
-                        //       )),
-                        // ),
-
                         Obx(() {
                           return Padding(
                             padding: EdgeInsets.symmetric(
@@ -133,7 +110,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 CustomText(
-                                  "${formatNumberLikePost(commentController.totalCommentCount.value)} Comments",
+                                  "${formatNumberLikePost(commentController.totalCommentCount.value)} ${AppStrings.comments.tr}",
                                   fontSize: SizeConfig.large,
                                   color: AppColors.black,
                                   fontWeight: FontWeight.w600,
@@ -170,12 +147,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
 
                         /// Input Field
                         _buildSendCommentField(),
-                        // SendCommentField(
-                        //   commentType: CommentType.video,
-                        //   onCommentAdded: () {
-                        //     print("Comment sent successfully!");
-                        //   },
-                        // )
+
                       ],
                     )),
             ),
@@ -223,7 +195,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                                             comment.sId!, totalReplies);
                                       },
                                       child: CustomText(
-                                        "View ${comment.repliesCount} replies",
+                                        "${AppStrings.view.tr} ${comment.repliesCount} ${AppStrings.replies.tr}",
                                         fontSize: SizeConfig.medium,
                                         color: AppColors.secondaryTextColor,
                                         fontWeight: FontWeight.w600,
@@ -252,8 +224,8 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                                               vertical: 4.0),
                                           child: CustomText(
                                             visibleCount < totalReplies
-                                                ? "View more replies"
-                                                : "Hide replies",
+                                                ? AppStrings.viewMoreReplies
+                                                :AppStrings.hideReplies,
                                             fontSize: SizeConfig.medium,
                                             color: AppColors.secondaryTextColor,
                                             fontWeight: FontWeight.w600,
@@ -274,7 +246,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
           )
         : Center(
             child: CustomText(
-              'No comment yet.',
+              AppStrings.noCommentYet,
               fontSize: SizeConfig.extraLarge22,
               color: AppColors.mainTextColor,
               fontWeight: FontWeight.w700,
@@ -335,7 +307,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
             (userId == reply?.createdBy?.sId))
           await showCommonDialog(
               context: context,
-              text: "Are you sure you want to delete this comment?",
+              text: AppStrings.deleteCommentConfirm.tr,
               confirmCallback: () async {
                 Get.back();
                 await commentController.commentPostDeleteController(
@@ -347,8 +319,8 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
               cancelCallback: () {
                 Navigator.of(context).pop(); // Close the dialog
               },
-              confirmText: AppLocalizations.of(context)!.yes,
-              cancelText: AppLocalizations.of(context)!.no);
+              confirmText: AppStrings.yes,
+              cancelText: AppStrings.no);
       },
       onTap: () {
         onProfileTap(
@@ -431,7 +403,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                               name: name, commentId: comment.sId ?? '0');
                         },
                         child: CustomText(
-                          'Reply',
+                          AppStrings.reply,
                           fontSize: SizeConfig.small,
                           color: AppColors.secondaryTextColor,
                           fontWeight: FontWeight.w600,
@@ -519,7 +491,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                     children: [
                       Expanded(
                         child: CustomText(
-                          "Replying to @$replyingTo",
+                          "${AppStrings.replyingTo.tr} @$replyingTo",
                           fontWeight: FontWeight.w500,
                           fontSize: SizeConfig.medium,
                           color: AppColors.mainTextColor,
@@ -581,8 +553,8 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                           },
                           child: CustomText(
                             (replyingTo != null)
-                                ? "Create Reply Via BlueEra AI"
-                                : "Create Comment Via BlueEra AI",
+                                ? AppStrings.createReplyAi
+                                : AppStrings.createCommentAi,
                             fontWeight: FontWeight.w600,
                             color: AppColors.primaryColor,
                             overflow: TextOverflow.ellipsis,
@@ -633,7 +605,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                                 maxLines: null,
                                 minLines: 1,
                                 decoration: InputDecoration(
-                                  hintText: "Write a comment...",
+                                  hintText: AppStrings.writeComment.tr,
                                   fillColor: Colors.transparent,
                                   filled: true,
                                   isDense: true,

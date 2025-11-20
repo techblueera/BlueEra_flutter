@@ -15,10 +15,8 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:flutter/gestures.dart';
 
 import '../../../../widgets/common_box_shadow.dart';
-import '../../../../widgets/highlight_text_widget.dart';
 
 class BusinessProfileHeader extends StatefulWidget {
   BusinessProfileHeader({super.key, required this.businessProfileDetails});
@@ -216,7 +214,7 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
                         onSelected: (value) async {
                           if (value.toUpperCase() == "SHARE") {
                             final link = profileDeepLink(
-                                userId: widget.businessProfileDetails.userId);
+                                userId: widget.businessProfileDetails.userId, accountType: AppConstants.business,);
                             final message = "See my profile on BlueEra:\n$link\n";
                             await SharePlus.instance.share(
                               ShareParams(

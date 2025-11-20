@@ -6,7 +6,6 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:croppy/croppy.dart';
@@ -140,7 +139,7 @@ class SelectProfilePictureDialog {
         required VoidCallback onPickFromCamera,
         required VoidCallback onPickFromGallery,
       }) async {
-    final appLocalizations = AppLocalizations.of(context);
+    // final appLocalizations = AppLocalizations.of(context);
 
     return showDialog(
       context: context,
@@ -165,14 +164,14 @@ class SelectProfilePictureDialog {
                         Expanded(
                           child: OptionButton(
                             iconPath: AppIconAssets.camera_sky,
-                            label: appLocalizations?.takeOne ?? "",
+                            label: AppStrings.takeFromCamera,
                             onTap: onPickFromCamera,
                           ),
                         ),
                         Expanded(
                           child: OptionButton(
                             iconPath: AppIconAssets.gallery_sky,
-                            label: appLocalizations?.selectFromGallery ?? "",
+                            label: AppStrings.selectFromGallery,
                             onTap: onPickFromGallery,
                           ),
                         ),

@@ -69,9 +69,10 @@ class _ViewAllJoinedChannelListScreenState extends State<ViewAllJoinedChannelLis
                             () => ChannelFeedPostListingScreen(
                             channelData: channelData),
                       ),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 0, vertical: 0),
+                      child:
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 4),
                         child: ChannelCardWidget(channelModel: channelData),
                       ),
                     );

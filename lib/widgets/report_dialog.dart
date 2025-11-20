@@ -3,7 +3,6 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -212,7 +211,7 @@ class _ReportDialogState extends State<ReportDialog> {
                   hintText:AppStrings.provideAdditionalDetails,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return AppLocalizations.of(context)!
+                      return AppStrings
                           .pleaseEnterDescription;
                     }
                     return null;

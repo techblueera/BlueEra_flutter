@@ -171,7 +171,7 @@ class NewProfileHeaderWidget extends StatelessWidget {
                       ),
                       onSelected: (value) async {
                         if (value.toUpperCase() == "SHARE") {
-                          final link = profileDeepLink(userId: user?.id);
+                          final link = profileDeepLink(userId: user?.id, accountType: AppConstants.individual);
                           final message = "See my profile on BlueEra:\n$link\n";
                           await SharePlus.instance.share(
                             ShareParams(text: message, subject: user?.name),
@@ -356,20 +356,18 @@ Widget statBlock(String label, String count) {
     children: [
       CustomText(
         formatNumberLikePost(int.tryParse(count) ?? 0),
-        fontSize: SizeConfig.size14,
         fontWeight: FontWeight.w700,
-        color: AppColors.mainTextColor,
+        color: AppColors.secondaryTextColor,
       ),
       const SizedBox(
         width: 4,
       ),
       CustomText(
         label,
-        color: AppColors.secondaryTextColor,
-        fontWeight: FontWeight.w700,
-        fontFamily: AppConstants.OpenSans,
         fontSize: SizeConfig.medium,
         overflow: TextOverflow.ellipsis,
+        color: AppColors.secondaryTextColor,
+        fontWeight: FontWeight.w700,
       ),
     ],
   );

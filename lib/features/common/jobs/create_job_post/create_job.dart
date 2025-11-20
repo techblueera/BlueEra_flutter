@@ -14,7 +14,6 @@ import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/common/jobs/controller/create_job_post_controller.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_drop_down.dart';
@@ -879,10 +878,9 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
   }
 
   Future<void> _selectImage(BuildContext context) async {
-    final loc = AppLocalizations.of(context)!;
     final String? selected = await SelectProfilePictureDialog.showLogoDialog(
       context,
-      loc.uploadProfilePicture,
+      AppStrings.uploadProfilePicture,
     );
 
     if (selected?.isNotEmpty ?? false) {

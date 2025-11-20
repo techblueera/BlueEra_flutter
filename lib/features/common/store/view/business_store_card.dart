@@ -1,19 +1,20 @@
-import 'dart:developer';
 
 import 'package:BlueEra/core/api/model/get_all_store_res_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile_new.dart';
+import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/business/widgets/business_ratings_bottom_sheet.dart';
 import 'package:BlueEra/features/business/widgets/rating_widget.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/common/store/view/store_screen_controller.dart';
 import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
@@ -27,11 +28,12 @@ import 'package:url_launcher/url_launcher.dart';
 class BusinessStoreCard extends StatelessWidget {
   final GetAllStoreResModel? getAllStoreResData;
   final double Function(double) ds;
-  const BusinessStoreCard({Key? key, required this.ds, this.getAllStoreResData}) : super(key: key);
+
+  const BusinessStoreCard({Key? key, required this.ds, this.getAllStoreResData})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    log('Store Data: ${ getAllStoreResData?.userId ?? ""}');
     return Container(
       padding: EdgeInsets.all(ds(10)),
       decoration: BoxDecoration(
@@ -50,11 +52,15 @@ class BusinessStoreCard extends StatelessWidget {
         children: [
           /// Store info row
           InkWell(
-            onTap: (){
-              Get.to(() => VisitBusinessProfileNew(
-                businessId: getAllStoreResData?.id ?? "",
-                screenName: AppConstants.storeFeedScreen,
-              ));
+            onTap: () {
+              if (businessId == getAllStoreResData?.id) {
+                Get.to(BusinessOwnProfileScreen());
+              } else {
+                Get.to(() => VisitBusinessProfileNew(
+                      businessId: getAllStoreResData?.id ?? "",
+                      screenName: AppConstants.storeFeedScreen,
+                    ));
+              }
             },
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -77,7 +83,7 @@ class BusinessStoreCard extends StatelessWidget {
                               children: [
                                 Flexible(
                                   child: CustomText(
-                                    getAllStoreResData?.businessName??'',
+                                    getAllStoreResData?.businessName ?? '',
                                     fontSize: ds(14),
                                     fontWeight: FontWeight.w700,
                                     color: AppColors.secondaryTextColor,
@@ -87,16 +93,19 @@ class BusinessStoreCard extends StatelessWidget {
                                 ),
                                 Container(
                                   margin: EdgeInsets.only(left: ds(8)),
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 4),
                                   decoration: BoxDecoration(
-                                    border: Border.all(color: AppColors.whiteF1),
+                                    border:
+                                        Border.all(color: AppColors.whiteF1),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: Center(
                                     child: CustomText(
-                                      getAllStoreResData?.dateOfIncorporation == null
+                                      getAllStoreResData?.dateOfIncorporation ==
+                                              null
                                           ? ""
-                                          : "Since ${getAllStoreResData?.dateOfIncorporation?.year ?? ""}",
+                                          : "${AppStrings.since.tr} ${getAllStoreResData?.dateOfIncorporation?.year ?? ""}",
                                       fontSize: 10,
                                       color: AppColors.secondaryTextColor,
                                     ),
@@ -105,54 +114,56 @@ class BusinessStoreCard extends StatelessWidget {
                               ],
                             ),
                           ),
-                          InkWell(
-                            onTap: () async {
-                              if (isGuestUser()) {
-                                createProfileScreen();
-                              } else {
-                                if (getAllStoreResData?.isFollowed ?? false) {
-                                  await Get.find<StoreScreenController>().unFollowBusinessUser(
-                                      businessId: getAllStoreResData?.userId,
-                                      store: getAllStoreResData ?? GetAllStoreResModel()
-                                  );
+                          if (businessId != getAllStoreResData?.id)
+                            InkWell(
+                              onTap: () async {
+                                if (isGuestUser()) {
+                                  createProfileScreen();
                                 } else {
-                                  await Get.find<StoreScreenController>().followBusinessUser(
-                                      businessId: getAllStoreResData?.userId,
-                                      store: getAllStoreResData ?? GetAllStoreResModel()
-                                  );
+                                  if (getAllStoreResData?.isFollowed ?? false) {
+                                    await Get.find<StoreScreenController>()
+                                        .unFollowBusinessUser(
+                                            businessId:
+                                                getAllStoreResData?.userId,
+                                            store: getAllStoreResData ??
+                                                GetAllStoreResModel());
+                                  } else {
+                                    await Get.find<StoreScreenController>()
+                                        .followBusinessUser(
+                                            businessId:
+                                                getAllStoreResData?.userId,
+                                            store: getAllStoreResData ??
+                                                GetAllStoreResModel());
+                                  }
                                 }
-                              }
-                            },
-                            child: Container(
-                              margin: EdgeInsets.only(left: ds(4)),
-                              padding: EdgeInsets.symmetric(horizontal: ds(8), vertical: ds(4)),
-                              decoration: BoxDecoration(
-                                color: Colors.blue,
-                                borderRadius: BorderRadius.circular(ds(20)),
-                              ),
-                              child: Text(
-                                (getAllStoreResData?.isFollowed ?? false) ? "Unfollow" : "Follow",
-                                style: TextStyle(
+                              },
+                              child: Container(
+                                margin: EdgeInsets.only(left: ds(4)),
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: ds(8), vertical: ds(4)),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue,
+                                  borderRadius: BorderRadius.circular(ds(20)),
+                                ),
+                                child: CustomText(
+                                  (getAllStoreResData?.isFollowed ?? false)
+                                      ? AppStrings.unfollow
+                                      : AppStrings.follow,
                                   color: Colors.white,
                                   fontSize: ds(11),
                                   fontWeight: FontWeight.w400,
                                 ),
                               ),
                             ),
-                          ),
                         ],
                       ),
                       SizedBox(height: ds(4)),
                       Row(
                         children: [
-                          Text(
-                            '${
-                              getAllStoreResData?.categoryOfBusiness?.name ??
-                                  getAllStoreResData?.natureOfBusiness ??
-                                  'OTHER'
-                            } ',
-                            style: TextStyle(color: Colors.grey, fontSize: ds(12)),
-                          ),
+                          CustomText(
+                            '${getAllStoreResData?.categoryOfBusiness?.name ?? getAllStoreResData?.natureOfBusiness ?? 'OTHER'} ',
+                          color: Colors.grey, fontSize: ds(12)),
+
                           Row(
                             children: [
                               LocalAssets(
@@ -160,19 +171,17 @@ class BusinessStoreCard extends StatelessWidget {
                                 height: 12,
                                 width: 12,
                               ),
-                              Text(
-                                ' ${
-                                    (getAllStoreResData?.avgRating ?? 0) > 0
-                                      ? "(${getAllStoreResData?.avgRating})"
-                                      : "No "
-                                }',
-                                style: TextStyle(color: AppColors.orangelite, fontSize: ds(12)),
+                              CustomText(
+                                ' ${(getAllStoreResData?.avgRating ?? 0) > 0 ? "(${getAllStoreResData?.avgRating})" : "No "}',
+                                color: AppColors.orangelite,
+                                fontSize: ds(12),
                               ),
                             ],
                           ),
-                          Text(
-                            " Rating",
-                            style: TextStyle(color: Colors.grey, fontSize: ds(12)),
+                          CustomText(
+                            " ${AppStrings.ratings.tr}",
+                            color: Colors.grey,
+                            fontSize: ds(12),
                           ),
                         ],
                       ),
@@ -182,7 +191,8 @@ class BusinessStoreCard extends StatelessWidget {
                         runSpacing: ds(4),
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
                               border: Border.all(color: AppColors.whiteF1),
                               borderRadius: BorderRadius.circular(10),
@@ -191,27 +201,31 @@ class BusinessStoreCard extends StatelessWidget {
                               '${calculateDistanceKm(
                                 LocationService.lat,
                                 LocationService.lng,
-                                getAllStoreResData?.businessLocation?.lat?.toDouble() ?? 0.0,
-                                getAllStoreResData?.businessLocation?.lon?.toDouble() ?? 0.0,
+                                getAllStoreResData?.businessLocation?.lat
+                                        ?.toDouble() ??
+                                    0.0,
+                                getAllStoreResData?.businessLocation?.lon
+                                        ?.toDouble() ??
+                                    0.0,
                               ).toStringAsFixed(2)} Km Away',
                               fontSize: 10,
                               color: AppColors.secondaryTextColor,
                             ),
                           ),
-
-                          if(getAllStoreResData?.address?.isNotEmpty??false)
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: AppColors.whiteF1),
-                              borderRadius: BorderRadius.circular(10),
+                          if (getAllStoreResData?.address?.isNotEmpty ?? false)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: AppColors.whiteF1),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: CustomText(
+                                getAllStoreResData?.address ?? '',
+                                fontSize: 10,
+                                color: AppColors.secondaryTextColor,
+                              ),
                             ),
-                            child: CustomText(
-                              getAllStoreResData?.address ?? '',
-                              fontSize: 10,
-                              color: AppColors.secondaryTextColor,
-                            ),
-                          ),
                         ],
                       ),
                     ],
@@ -222,43 +236,45 @@ class BusinessStoreCard extends StatelessWidget {
           ),
           SizedBox(height: ds(10)),
 
-          if(getAllStoreResData?.websiteUrl?.isNotEmpty??false)
-          Padding(
-            padding: EdgeInsets.only(bottom: ds(6)),
-            child: ExpandableText(
-              text: "${getAllStoreResData?.businessDescription ?? ''}",
-              trimLines: 3,
-              expandMode: ExpandMode.dialog,
-              style: TextStyle(
-                color: AppColors.mainTextColor,
-                fontFamily: AppConstants.OpenSans,
-                fontWeight: FontWeight.w400,
+          if (getAllStoreResData?.websiteUrl?.isNotEmpty ?? false)
+            Padding(
+              padding: EdgeInsets.only(bottom: ds(6)),
+              child: ExpandableText(
+                text: "${getAllStoreResData?.businessDescription ?? ''}",
+                trimLines: 3,
+                expandMode: ExpandMode.dialog,
+                style: TextStyle(
+                  color: AppColors.mainTextColor,
+                  fontFamily: AppConstants.OpenSans,
+                  fontWeight: FontWeight.w400,
+                ),
               ),
             ),
-          ),
 
-          if(getAllStoreResData?.websiteUrl?.isNotEmpty??false)
-          Padding(
-            padding: EdgeInsets.only(bottom: ds(12)),
-            child: InkWell(
-              onTap: () async {
-                final Uri url = Uri.parse(getAllStoreResData?.websiteUrl??'');
-                if (await canLaunchUrl(url)) {
-                await launchUrl(url, mode: LaunchMode.externalApplication);
-                }
-              },
-              child: CustomText(
-                getAllStoreResData?.websiteUrl ?? '',
-                color: AppColors.primaryColor,
-                fontSize: SizeConfig.small,
-                fontWeight: FontWeight.w600,
+          if (getAllStoreResData?.websiteUrl?.isNotEmpty ?? false)
+            Padding(
+              padding: EdgeInsets.only(bottom: ds(12)),
+              child: InkWell(
+                onTap: () async {
+                  final Uri url =
+                      Uri.parse(getAllStoreResData?.websiteUrl ?? '');
+                  if (await canLaunchUrl(url)) {
+                    await launchUrl(url, mode: LaunchMode.externalApplication);
+                  }
+                },
+                child: CustomText(
+                  getAllStoreResData?.websiteUrl ?? '',
+                  color: AppColors.primaryColor,
+                  fontSize: SizeConfig.small,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
-          ),
 
+          if (getAllStoreResData != null &&
+              (getAllStoreResData?.livePhotos?.isNotEmpty ?? false))
 
-          if(getAllStoreResData !=null && (getAllStoreResData?.livePhotos?.isNotEmpty ?? false))
-          /// Image grid
+            /// Image grid
             StoreLivePhotoWidget(
               livePhotos: getAllStoreResData?.livePhotos ?? [],
               natureOfBusiness: getAllStoreResData?.categoryOfBusiness?.name ??
@@ -286,10 +302,10 @@ class BusinessStoreCard extends StatelessWidget {
                   LocalAssets(imagePath: AppIconAssets.storeWatch),
                   SizedBox(width: ds(4)),
                   CustomText(
-                   timeAgo(
-                       (getAllStoreResData != null && getAllStoreResData?.createdAt != null)
-                       ? DateTime.parse(getAllStoreResData!.createdAt!)
-                       : DateTime.now()),
+                    timeAgo((getAllStoreResData != null &&
+                            getAllStoreResData?.createdAt != null)
+                        ? DateTime.parse(getAllStoreResData!.createdAt!)
+                        : DateTime.now()),
                     fontSize: SizeConfig.extraSmall,
                     color: AppColors.secondaryTextColor,
                   ),
@@ -305,11 +321,11 @@ class BusinessStoreCard extends StatelessWidget {
 
                   /// Business Followers
                   InkWell(
-                    onTap: (){
+                    onTap: () {
                       Get.to(() => FollowersFollowingPage(
-                        tabIndex: 1,
-                        userID: getAllStoreResData?.userId ?? "",
-                      ));
+                            tabIndex: 1,
+                            userID: getAllStoreResData?.userId ?? "",
+                          ));
                     },
                     child: Row(
                       children: [
@@ -328,23 +344,24 @@ class BusinessStoreCard extends StatelessWidget {
 
                   /// Business reviews
                   InkWell(
-                   onTap: (){
-                     showModalBottomSheet(
-                       context: context,
-                       isScrollControlled: true,
-                       backgroundColor: Colors.transparent,
-                       builder: (context) =>
-                           BusinessRatingsBottomSheet(
-                             businessId: getAllStoreResData?.id ?? "",
-                           ),
-                     );
-                   },
+                    onTap: () {
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        builder: (context) => BusinessRatingsBottomSheet(
+                          businessId: getAllStoreResData?.id ?? "",
+                        ),
+                      );
+                    },
                     child: Row(
                       children: [
                         LocalAssets(imagePath: AppIconAssets.comment_new),
                         SizedBox(width: ds(4)),
                         CustomText(
-                          ((int.parse(getAllStoreResData?.totalRatings ??" 0")) > 0)
+                          ((int.parse(getAllStoreResData?.totalRatings ??
+                                      " 0")) >
+                                  0)
                               ? "${getAllStoreResData?.totalRatings}"
                               : "0",
                           fontSize: SizeConfig.small,
@@ -353,65 +370,64 @@ class BusinessStoreCard extends StatelessWidget {
                       ],
                     ),
                   )
-
                 ],
               ),
-              Row(
-                children: [
-                  InkWell(
-                    onTap: () async {
-                      final success = await showDialog(
-                        context: context,
-                        builder: (_) => RatingFeedbackDialog(
-                          businessId: getAllStoreResData?.id??'',
-                          reviewFor: AppConstants.business
-                        )
-                      );
+              Padding(
+                padding:  EdgeInsets.only(top: 8.0),
+                child: Row(
+                  children: [
+                    InkWell(
+                      onTap: () async {
+                        final success = await showDialog(
+                            context: context,
+                            builder: (_) => RatingFeedbackDialog(
+                                businessId: getAllStoreResData?.id ?? '',
+                                reviewFor: AppConstants.business));
 
-                      if (success == true) {
-                        Get.find<StoreScreenController>().updateStoreRatings(getAllStoreResData?.id??'');
-                      }
-                    },
-                    child: Container(
-                      padding: EdgeInsets.all(5),
-                      decoration: BoxDecoration(
-                        border: Border.all(width: 1, color: AppColors.whiteF1),
-                        borderRadius: BorderRadius.circular(4),
+                        if (success == true) {
+                          Get.find<StoreScreenController>()
+                              .updateStoreRatings(getAllStoreResData?.id ?? '');
+                        }
+                      },
+                      child: Container(
+                        padding: EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          border: Border.all(width: 1, color: AppColors.whiteF1),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Center(
+                            child: Icon(Icons.star_border,
+                                size: ds(12), color: AppColors.primaryColor)),
                       ),
-                      child: Center(child: Icon(Icons.star_border, size: ds(12), color: AppColors.primaryColor)),
                     ),
-                  ),
-                  SizedBox(width: ds(6)),
-                  InkWell(
-                    onTap: () async {
-                      final link = profileDeepLink(
-                          userId:
-                          getAllStoreResData?.userId);
-                      final message =
-                          "See my profile on BlueEra:\n$link\n";
-                      await SharePlus.instance
-                          .share(ShareParams(
-                        text: message,
-                        subject: getAllStoreResData?.businessName,
-                      ));
-                    },
-                    child: Container(
-                      padding: EdgeInsets.all(5),
-                      decoration: BoxDecoration(
-                        border: Border.all(width: 1, color: AppColors.whiteF1),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Center(
-                        child: LocalAssets(
-                          imagePath: AppIconAssets.share_bold,
-                          width: ds(12),
-                          height: ds(12),
-                          imgColor: AppColors.primaryColor
+                    SizedBox(width: ds(6)),
+                    InkWell(
+                      onTap: () async {
+                        final link =
+                            profileDeepLink(userId: getAllStoreResData?.userId, accountType: AppConstants.business);
+                        final message = "See my profile on BlueEra:\n$link\n";
+                        await SharePlus.instance.share(ShareParams(
+                          text: message,
+                          subject: getAllStoreResData?.businessName,
+                        ));
+                      },
+                      child: Container(
+                        padding: EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          border: Border.all(width: 1, color: AppColors.whiteF1),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Center(
+                          child: LocalAssets(
+                              imagePath: AppIconAssets.share_bold,
+                              width: ds(12),
+                              height: ds(12),
+                              imgColor: AppColors.primaryColor),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),
@@ -421,13 +437,14 @@ class BusinessStoreCard extends StatelessWidget {
   }
 
   void viewImageOnFullScreen(
-      {required int index, required List<String> storeImage, required String natureOfBusiness}) {
+      {required int index,
+      required List<String> storeImage,
+      required String natureOfBusiness}) {
     navigatePushTo(
       Get.context!,
       ImageViewScreen(
         subTitle: natureOfBusiness,
-        appBarTitle:
-        AppLocalizations.of(Get.context!)!.imageViewer,
+        appBarTitle: AppStrings.imageViewer,
         imageUrls: storeImage,
         initialIndex: index,
       ),
