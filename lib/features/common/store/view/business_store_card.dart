@@ -4,6 +4,7 @@ import 'package:BlueEra/core/api/model/get_all_store_res_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -15,7 +16,6 @@ import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/common/store/view/store_screen_controller.dart';
 import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
@@ -396,7 +396,9 @@ class BusinessStoreCard extends StatelessWidget {
                     onTap: () async {
                       final link = profileDeepLink(
                           userId:
-                          getAllStoreResData?.userId);
+                          getAllStoreResData?.userId,
+                          accountType: AppConstants.business
+                      );
                       final message =
                           "See my profile on BlueEra:\n$link\n";
                       await SharePlus.instance
@@ -437,7 +439,8 @@ class BusinessStoreCard extends StatelessWidget {
       ImageViewScreen(
         subTitle: natureOfBusiness,
         appBarTitle:
-        AppLocalizations.of(Get.context!)!.imageViewer,
+        // AppLocalizations.of(Get.context!)!.imageViewer,
+        AppStrings.imageViewer,
         imageUrls: storeImage,
         initialIndex: index,
       ),
