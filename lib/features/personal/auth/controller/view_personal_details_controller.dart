@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
@@ -32,6 +33,10 @@ import 'package:get/get.dart';
 
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
+import '../../../../widgets/common_drop_down-dialoge.dart';
+import '../../../common/auth/model/personal_profession_model.dart';
+import '../../personal_profile/view/widget/ai_suggestion_field.dart';
+import '../../personal_profile/view/widget/update_personal_profession_dialog.dart';
 import '../repo/personal_profile_repo.dart';
 
 class _ProfileFieldStatus {
@@ -48,6 +53,8 @@ class _ProfileFieldStatus {
 
 
 class ViewPersonalDetailsController extends GetxController {
+  bool updateBtnLoading = false;
+
 
   @override
   void onInit() {
@@ -545,14 +552,21 @@ class ViewPersonalDetailsController extends GetxController {
   }
 
   void onFieldTap(_ProfileFieldStatus item) {
+    print("sdlkmslkdmfclsk ${item.id}");
     switch (item.id) {
       case 1:
         // Get.toNamed(RouteHelper.getProfileVideoScreenRoute());
         break;
       case 2:
+      //  if (!item.isCompleted) {
+          showBioUpdateDialog();
+      //  }
+
         // Get.toNamed(RouteHelper.getEditBioScreenRoute());
         break;
       case 3:
+        Get.find<AuthController>().getAllProfessionController();
+        showProfessionUpdateDialog();
         // Get.toNamed(RouteHelper.getEditDesignationScreenRoute());
         break;
       case 4:
@@ -653,4 +667,132 @@ class ViewPersonalDetailsController extends GetxController {
       },
     );
   }
+  void showBioUpdateDialog() {
+    final formKey = GlobalKey<FormState>();
+    final personalCreateProfileController =
+    Get.put(PersonalCreateProfileController());
+    final ViewPersonalDetailsController viewPersonalDetailsController =
+    Get.find<ViewPersonalDetailsController>();
+    final TextEditingController bioController = TextEditingController();
+    bioController.text =
+        viewPersonalDetailsController
+            .personalProfileDetails.value.user?.bio ??
+            '';
+
+    showDialog(
+      context: Get.context!,
+      barrierDismissible: false,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Form(
+              key: formKey,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomText(
+                    "Update Bio",
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                  const SizedBox(height: 12),
+
+                  AiSuggestionField(
+                    title: "About Me / Bio",
+                    apiType: "bio",
+                    textController: bioController,
+                    bodyRequest: {
+                      ApiKeys.profession:
+                      viewPersonalDetailsController
+                          .personalProfileDetails
+                          .value
+                          .user
+                          ?.profession,
+                      ApiKeys.designation:
+                      viewPersonalDetailsController
+                          .personalProfileDetails
+                          .value
+                          .user
+                          ?.designation,
+                      ApiKeys.date_of_birth_Obj: {
+                        ApiKeys.year: personalCreateProfileController
+                            .selectedYear
+                            ?.value,
+                        ApiKeys.month: personalCreateProfileController
+                            .selectedMonth
+                            ?.value,
+                        ApiKeys.date: personalCreateProfileController
+                            .selectedDay
+                            ?.value,
+                      },
+                      ApiKeys.gender: personalCreateProfileController
+                          .selectedGender
+                          .value
+                          ?.name,
+                    },
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const CustomText("Cancel"),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: CustomBtn(
+                          title: "Save",
+                          height: SizeConfig.size40,
+                          bgColor: AppColors.primaryColor,
+                          radius: 10.0,
+                          onTap: () {
+                            if (formKey.currentState!.validate()) {
+                              Navigator.pop(context);
+
+                              personalCreateProfileController
+                                  .updateUserProfileDetails(
+                                params: {
+                                  ApiKeys.bio: bioController.text.trim(),
+                                },
+                              );
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+  void showProfessionUpdateDialog() {
+
+    showDialog(
+      context: Get.context!,
+      barrierDismissible: false,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child:UpdatePersonalProfessionDialog() ,
+        );
+      },
+    );
+  }
+
 }
