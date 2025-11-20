@@ -497,7 +497,7 @@ class AuthController extends GetxController {
   Future<void> getAllProfessionController() async {
     try {
       isProfessionLoading.value = true;
-      professionTypeDataList.clear();
+      // professionTypeDataList.clear();
       subcategoriesFiledNameList.clear();
 
       ResponseModel responseModel = await AuthRepo().getAllProfessionsRepo();

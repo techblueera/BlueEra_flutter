@@ -97,6 +97,8 @@ class _IntroductionVideoWidgetState extends State<IntroductionVideoWidget> {
                           onTap: () async {
                             // Allow user to select a new video
                             await _pickVideo();
+                            await introVideoController.uploadIntroVideo(videoLink: '${introVideoController.selectedVideo.value?.path}');
+
                           },
                           title: AppStrings.change,
                           bgColor: AppColors.white,
@@ -120,7 +122,7 @@ class _IntroductionVideoWidgetState extends State<IntroductionVideoWidget> {
                       //
                       // } else {
                         await _pickVideo();
-                        await introVideoController.uploadIntroVideo(videoLink: '');
+                        await introVideoController.uploadIntroVideo(videoLink: '${introVideoController.selectedVideo.value?.path}');
                         // commonSnackBar(message: "Please select a video first");
                       // }
                     },
