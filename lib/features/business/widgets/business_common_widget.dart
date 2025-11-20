@@ -1,4 +1,6 @@
 
+import 'dart:developer';
+
 import 'package:BlueEra/core/api/model/type_of_business_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -339,7 +341,12 @@ void openBusinessDetailsEditSheet(BuildContext context) {
                                 SizedBox(height: SizeConfig.size10),
                                 CommonDropdownDialog<CategoryData>(
                                   items: viewBusinessDetailsController
-                                      .businessCategoriesList,
+                                      .businessCategoriesList.where((e) =>
+                                  e.type?.toLowerCase() ==
+                                      viewBusinessDetailsController
+                                          .selectedBusinessType
+                                          ?.value.name.toLowerCase())
+                                      .toList(),
                                   title: AppStrings.categoryOfBusiness,
                                   selectedValue:
                                   viewBusinessDetailsController

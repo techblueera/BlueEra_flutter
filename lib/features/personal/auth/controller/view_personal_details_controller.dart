@@ -768,6 +768,7 @@ class ViewPersonalDetailsController extends GetxController {
       },
     );
   }
+
   void showEducationUpdateDialog() {
     final formKey = GlobalKey<FormState>();
     final personalCreateProfileController =
