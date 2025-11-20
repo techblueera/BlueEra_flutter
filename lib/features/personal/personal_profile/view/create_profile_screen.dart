@@ -72,6 +72,9 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
         viewPersonalDetailsController.personalProfileDetails.value.user;
     bioController.clear();
     super.initState();
+    emailController.text=user?.email??"";
+    educationController.text=user?.highestEducation??"";
+    bioController.text=user?.bio??"";
     personalCreateProfileController.selectedGender.value =
         GenderTypeExtension.fromString((user?.gender?.isNotEmpty ?? false)
             ? user?.gender ?? "male"

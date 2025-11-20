@@ -12,6 +12,8 @@ import 'package:BlueEra/features/personal/auth/repo/personal_profile_repo.dart';
 import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
 
+import '../../auth/controller/view_personal_details_controller.dart';
+
 class IntroductionVideoController extends GetxController {
   final Rx<File?> selectedVideo = Rx<File?>(null);
   final RxBool isUploading = false.obs;
@@ -50,7 +52,7 @@ class IntroductionVideoController extends GetxController {
 
   void setSelectedVideo(File file) {
     selectedVideo.value = file;
-    // initializeVideoPlayer(file.path);
+    initializeVideoPlayer(file.path);
   }
 
   Future<void> initializeVideoPlayer(String videoPath) async {
@@ -58,7 +60,7 @@ class IntroductionVideoController extends GetxController {
 
     final controller = VideoPlayerController.file(File(videoPath));
     videoPlayerController.value = controller;
-
+    hasUploadedVideo.value=false;
     await controller.initialize();
     controller.setLooping(true);
     update();
@@ -197,9 +199,9 @@ class IntroductionVideoController extends GetxController {
             response.response!.data['data']['introVideo'] != null) {
           videoUrl.value = response.response!.data['data']['introVideo'];
           await initializeVideoPlayerFromNetwork(videoUrl.value);
-          logs(" videoUrl.value========== ${videoUrl.value}");
-        }
 
+        }
+        await Get.find<ViewPersonalDetailsController>().viewPersonalProfile();
         hasUploadedVideo.value = true;
         commonSnackBar(
             message: response.message ?? AppStrings.videoUploadedSuccessfully);

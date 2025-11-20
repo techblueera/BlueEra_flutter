@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -244,6 +245,10 @@ class _UpdatePersonalProfessionDialogState extends State<UpdatePersonalProfessio
     designationController.text = viewProfileController
         .personalProfileDetails.value.user?.designation ??
         "";
+    personalCreateProfileController.selectedProfessionObj.value =
+        ProfessionTypeData(
+            tagId: selectedProfession,
+            name: selectedProfession?.toLowerCase());
 setState(() {
 
 });
@@ -267,8 +272,7 @@ setState(() {
         SizedBox(height: SizeConfig.paddingXSL),
         GetBuilder<AuthController>(
             builder: (authController) {
-              print("lsdkcmlskmdc ${authController.professionTypeDataList}  _ ${selectedProfession}_ ${personalCreateProfileController
-                  .selectedProfession}");
+              print("lsdkcmlskmdc ${selectedProfession} ${selectedProfession==POLITICIAN} ${POLITICIAN}");
               final dataList = authController
                   .professionTypeDataList
                   .where((e) =>
@@ -303,11 +307,12 @@ setState(() {
                       .value = value?.tagId;
                   personalCreateProfileController
                       .selectedProfessionObj.value = value;
-                  selectedProfession = value?.name;
+                  selectedProfession = value?.name?.toUpperCase();
                   authController.subcategoriesFiledNameList
                       .addAll(value?.subcategoriesFiledName ??
                       []);
                   clearTextFiled();
+                  setState(() {});
                 },
               );
             }),
@@ -660,6 +665,7 @@ setState(() {
     };
 
     // Add only the required field based on profession type
+
     switch (selectedProf) {
       case SELF_EMPLOYED:
         params[ApiKeys.specilization] = specializationController.text.trim();
@@ -671,6 +677,11 @@ setState(() {
 
       case SKILLED_WORKER:
         params[ApiKeys.specilization] = _skillWorkerSpecificationTextController.text.trim();
+        break;
+    case POLITICIAN:
+        params[ApiKeys.political_party] = politicalPartyController
+        .text
+        .trim();
         break;
 
       case OTHERS:
@@ -701,6 +712,7 @@ setState(() {
         });
         break;
     }
+    log("sdkjncsjkldc ${params}");
 
     // Call update API
     await personalCreateProfileController.updateUserProfileDetails(

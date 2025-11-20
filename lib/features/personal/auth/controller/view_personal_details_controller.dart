@@ -1,4 +1,4 @@
-import 'dart:convert';
+
 import 'dart:developer';
 import 'dart:io';
 
@@ -33,9 +33,9 @@ import 'package:get/get.dart';
 
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
-import '../../../../widgets/common_drop_down-dialoge.dart';
-import '../../../common/auth/model/personal_profession_model.dart';
+
 import '../../personal_profile/view/widget/ai_suggestion_field.dart';
+import '../../personal_profile/view/widget/introduction_video_widget.dart';
 import '../../personal_profile/view/widget/update_personal_profession_dialog.dart';
 import '../repo/personal_profile_repo.dart';
 
@@ -221,18 +221,18 @@ class ViewPersonalDetailsController extends GetxController {
               title: AppStrings.designation,
               isCompleted: user.designation?.isNotEmpty ?? false,
             ),
+            // _ProfileFieldStatus(
+            //   id: 4,
+            //   title: AppStrings.phoneNumber,
+            //   isCompleted: user.contactNo?.isNotEmpty ?? false,
+            // ),
             _ProfileFieldStatus(
               id: 4,
-              title: AppStrings.phoneNumber,
-              isCompleted: user.contactNo?.isNotEmpty ?? false,
+              title: AppStrings.education,
+              isCompleted: user.highestEducation?.isNotEmpty ?? false,
             ),
             _ProfileFieldStatus(
               id: 5,
-              title: AppStrings.organization,
-              isCompleted: user.currentOrganisation?.isNotEmpty ?? false,
-            ),
-            _ProfileFieldStatus(
-              id: 6,
               title: (user.emailVerified == true)
                   ? AppStrings.emailVerified
                   : AppStrings.emailUnverified,
@@ -471,7 +471,6 @@ class ViewPersonalDetailsController extends GetxController {
   ///GET STATUS OF USER SERVICE...
   Future<void> getEarnServiceStatus() async {
     try {
-      log('is Earn Service created (local db check) --> $earnServiceCreatedStatusGlobal');
       if(earnServiceCreatedStatusGlobal == "true"){
         return;
       }
@@ -483,7 +482,6 @@ class ViewPersonalDetailsController extends GetxController {
         final statusData = responseModel.response?.data['exists'] != null
             ? responseModel.response!.data['exists'].toString()
             : 'false';
-        log('from api check is Earn Service created --> $statusData');
         await SharedPreferenceUtils.setSecureValue(
             SharedPreferenceUtils.earnServiceCreatedStatusKey, statusData);
         await getEarnServiceCreatedStatusUtils();
@@ -552,30 +550,21 @@ class ViewPersonalDetailsController extends GetxController {
   }
 
   void onFieldTap(_ProfileFieldStatus item) {
-    print("sdlkmslkdmfclsk ${item.id}");
+
     switch (item.id) {
       case 1:
-        // Get.toNamed(RouteHelper.getProfileVideoScreenRoute());
+        showIntroductionVideoDialog();
         break;
       case 2:
-      //  if (!item.isCompleted) {
           showBioUpdateDialog();
-      //  }
-
-        // Get.toNamed(RouteHelper.getEditBioScreenRoute());
         break;
       case 3:
-        Get.find<AuthController>().getAllProfessionController();
         showProfessionUpdateDialog();
-        // Get.toNamed(RouteHelper.getEditDesignationScreenRoute());
         break;
       case 4:
-        // Get.toNamed(RouteHelper.getEditPhoneNumberScreenRoute());
+        showEducationUpdateDialog();
         break;
       case 5:
-        // Get.toNamed(RouteHelper.getEditOrganizationScreenRoute());
-        break;
-      case 6:
         if (!item.isCompleted) {
           showEmailVerificationDialog();
         } else {
@@ -757,7 +746,7 @@ class ViewPersonalDetailsController extends GetxController {
                           radius: 10.0,
                           onTap: () {
                             if (formKey.currentState!.validate()) {
-                              Navigator.pop(context);
+
 
                               personalCreateProfileController
                                   .updateUserProfileDetails(
@@ -779,6 +768,155 @@ class ViewPersonalDetailsController extends GetxController {
       },
     );
   }
+  void showEducationUpdateDialog() {
+    final formKey = GlobalKey<FormState>();
+    final personalCreateProfileController =
+    Get.put(PersonalCreateProfileController());
+    final viewPersonalDetailsController =
+    Get.find<ViewPersonalDetailsController>();
+
+    final TextEditingController educationController = TextEditingController();
+
+    educationController.text =
+        viewPersonalDetailsController
+            .personalProfileDetails
+            .value
+            .user
+            ?.highestEducation ??
+            '';
+
+    showDialog(
+      context: Get.context!,
+      barrierDismissible: false,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Form(
+              key: formKey,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomText(
+                    "Update Education",
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                  const SizedBox(height: 12),
+
+                  CommonTextField(
+                    title: AppStrings.highestEducation,
+                    hintText: "eg. 12th, B.A, M.A, PhD",
+                    textEditController: educationController,
+                    maxLength: 16,
+                    onChange: (val) {},
+                    validator: (value) {
+                      if (value!.trim().length < 2) {
+                        return AppStrings.educationMinLength.tr;
+                      } else if (value.trim().length > 16) {
+                        return AppStrings.educationMaxLength.tr;
+                      }
+                      return null;
+                    },
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const CustomText("Cancel"),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: CustomBtn(
+                          title: "Save",
+                          height: SizeConfig.size40,
+                          bgColor: AppColors.primaryColor,
+                          radius: 10.0,
+                          onTap: () {
+                            if (formKey.currentState!.validate()) {
+
+                              personalCreateProfileController
+                                  .updateUserProfileDetails(
+                                params: {
+                                  ApiKeys.highest_education:
+                                  educationController.text.trim(),
+                                },
+                              );
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+  void showIntroductionVideoDialog() {
+    showDialog(
+      context: Get.context!,
+      barrierDismissible: false,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxHeight: 500,   // prevents overflow
+              minHeight: 200,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    /// Title Row
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        CustomText(
+                          AppStrings.uploadIntroductionVideo,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 12),
+                    const IntroductionVideoWidget(),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+
   void showProfessionUpdateDialog() {
 
     showDialog(
