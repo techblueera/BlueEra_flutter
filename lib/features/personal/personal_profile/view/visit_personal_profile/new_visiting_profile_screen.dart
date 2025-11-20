@@ -1,7 +1,10 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/model/tab_model.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/controller/overview_controller.dart';
@@ -19,6 +22,7 @@ import '../../controller/profile_controller.dart';
 class NewVisitProfileScreen extends StatefulWidget {
   final String authorId;
   final String screenFromName;
+  final String? isScreenName;
 
   // final String channelId;
 
@@ -26,6 +30,7 @@ class NewVisitProfileScreen extends StatefulWidget {
     super.key,
     required this.authorId,
     required this.screenFromName,
+    this.isScreenName,
     // required this.channelId
   });
 
@@ -39,17 +44,18 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
   int selectedIndex = 0;
 
   List<SortBy>? filters;
+
   // SortBy selectedFilter = SortBy.Latest;
   final ScrollController _scrollController = ScrollController();
   final OverviewController overViewController = Get.put(OverviewController());
   final FeedController feedController = Get.put(FeedController());
-   VisitProfileController visitController=Get.isRegistered<VisitProfileController>()?
-   Get.find<VisitProfileController>(): Get.put(VisitProfileController());
+  VisitProfileController visitController =
+      Get.isRegistered<VisitProfileController>()
+          ? Get.find<VisitProfileController>()
+          : Get.put(VisitProfileController());
 
   @override
   void initState() {
-    // selectedFilter = SortBy.Latest;
-    // setFilters();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       overViewController.loadOverviewData(
         widget.authorId,
@@ -65,11 +71,6 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
       visitController.fetchUserById(userId: widget.authorId);
       visitController.getUserChannelDetailsController(userId: widget.authorId);
 
-      // if (Get.isRegistered<VisitProfileController>()) {
-      //   visitController = Get.find<VisitProfileController>();
-      // } else {
-      //   visitController = Get.put(VisitProfileController());
-      // }
       apiCalling();
 
       _setupScrollListener();
@@ -121,65 +122,83 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
     super.dispose();
   }
 
+  onBackClick() {
+    if (widget.isScreenName == AppConstants.deepLinkScreen) {
+      Get.offAllNamed(
+        RouteHelper.getBottomNavigationBarScreenRoute(),
+        arguments: {ApiKeys.initialIndex: 0},
+      );
+    } else {
+      Navigator.of(context).pop();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CommonBackAppBar(),
-      body: Obx(() {
-        final user = visitController.userData.value?.user;
-        if (visitController.isProfileLoading.value) {
-          return Center(child: CircularProgressIndicator());
-        }
+    return WillPopScope(
+      onWillPop: () async {
+        onBackClick();
+        return false;
+      },
+      child: Scaffold(
+        appBar: CommonBackAppBar(
+          onBackTap: () async {
+            onBackClick();
+          },
+        ),
+        body: Obx(() {
+          final user = visitController.userData.value?.user;
+          if (visitController.isProfileLoading.value) {
+            return Center(child: CircularProgressIndicator());
+          }
 
-        postTab = [
-          TabItem(id: 'Posts', title: AppStrings.posts.tr),
-          TabItem(id: 'Testimonials', title: AppStrings.testimonials.tr),
-          TabItem(id: 'Channel', title: AppStrings.channel.tr),
-        ];
+          postTab = [
+            TabItem(id: 'Posts', title: AppStrings.posts.tr),
+            TabItem(id: 'Testimonials', title: AppStrings.testimonials.tr),
+            TabItem(id: 'Channel', title: AppStrings.channel.tr),
+          ];
 
-        return SingleChildScrollView(
-          controller: _scrollController,
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  NewProfileHeaderWidget(
-                    user: user,
-                    screenFromName: widget.screenFromName,
-                  ),
-                  SizedBox(
-                    height: SizeConfig.size10,
-                  ),
-                  Padding(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: SizeConfig.size16),
-                    child: HorizontalTabSelector(
-                      horizontalMargin: 0,
-                      tabs: postTab,
-                      selectedIndex: selectedIndex,
-                      onTabSelected: (index, value) {
-                        setState(() => selectedIndex = index);
-                      },
-                      labelBuilder: (label) => label.title,
+          return SingleChildScrollView(
+            controller: _scrollController,
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    NewProfileHeaderWidget(
+                      user: user,
+                      screenFromName: widget.screenFromName,
                     ),
-                  ),
-                  SizedBox(height: SizeConfig.size16),
-
-                  _buildTabContent(selectedIndex)
-                ],
+                    SizedBox(
+                      height: SizeConfig.size10,
+                    ),
+                    Padding(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: SizeConfig.size16),
+                      child: HorizontalTabSelector(
+                        horizontalMargin: 0,
+                        tabs: postTab,
+                        selectedIndex: selectedIndex,
+                        onTabSelected: (index, value) {
+                          setState(() => selectedIndex = index);
+                        },
+                        labelBuilder: (label) => label.title,
+                      ),
+                    ),
+                    SizedBox(height: SizeConfig.size16),
+                    _buildTabContent(selectedIndex)
+                  ],
+                ),
               ),
             ),
-          ),
-        );
-      }),
+          );
+        }),
+      ),
     );
   }
 
-
   Widget _buildTabContent(int index) {
-
     switch (postTab[index].id) {
       case 'Posts':
         return FeedScreen(

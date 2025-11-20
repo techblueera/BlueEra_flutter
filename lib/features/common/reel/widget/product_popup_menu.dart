@@ -1,9 +1,9 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/store/controller/channel_product_controller.dart';
 import 'package:BlueEra/features/common/store/models/get_channel_product_model.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -45,8 +45,8 @@ class ProductPopUpMenu extends StatelessWidget {
                 cancelCallback: () {
                   Navigator.of(context).pop(); // Close the dialog
                 },
-                confirmText: AppLocalizations.of(context)!.yes,
-                cancelText: AppLocalizations.of(context)!.no);
+                confirmText: AppStrings.yes,
+                cancelText: AppStrings.no);
           }
         },
         icon: Icon(Icons.more_vert, color: AppColors.white),

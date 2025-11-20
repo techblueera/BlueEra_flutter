@@ -1,4 +1,3 @@
-
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -48,11 +47,9 @@ import '../../../../widgets/common_back_app_bar.dart';
 import '../../../common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import '../../auth/controller/view_personal_details_controller.dart';
 
-
-
 class PostTabModel {
-  final String id;        // For internal logic
-  final String nameKey;   // For localization lookup
+  final String id; // For internal logic
+  final String nameKey; // For localization lookup
 
   const PostTabModel({required this.id, required this.nameKey});
 }
@@ -86,13 +83,13 @@ class PostTabs {
   ];
 }
 
-
 class PersonalProfileSetupNewScreen extends StatefulWidget {
   final int? selectedIndex;
   final SortBy? sortBy;
+  final String? isScreenName;
 
   const PersonalProfileSetupNewScreen(
-      {super.key, this.selectedIndex, this.sortBy});
+      {super.key, this.selectedIndex, this.sortBy, this.isScreenName});
 
   @override
   State<PersonalProfileSetupNewScreen> createState() =>
@@ -118,6 +115,7 @@ class _PersonalProfileSetupNewScreenState
 
   final introVideoController = Get.put(IntroductionVideoController());
   final youtubeController = TextEditingController();
+
   // List<String> postTab = [];
   int selectedIndex = 0;
   List<SortBy>? filters;
@@ -158,7 +156,8 @@ class _PersonalProfileSetupNewScreenState
 
   Future<void> _loadInitialData() async {
     await viewProfileController.viewPersonalProfile();
-    if(userProfileGlobal == SELF_EMPLOYED && earnServiceCreatedStatusGlobal == 'false'){
+    if (userProfileGlobal == SELF_EMPLOYED &&
+        earnServiceCreatedStatusGlobal == 'false') {
       viewProfileController.partiallyForceToCreateService();
     }
     await viewProfileController.UserFollowersAndPostsCount(userId);
@@ -193,18 +192,8 @@ class _PersonalProfileSetupNewScreenState
   }
 
   void _initializeTabController() {
-    // postTab = [
-    //   AppStrings.aboutMe,
-    //   AppStrings.posts,
-    //   AppStrings.testimonials,
-    //   AppStrings.myStore,
-    //   // 'About Me',
-    //   // 'Posts',
-    //   // 'Testimonials',
-    //   // 'My Store'
-    // ];
-
-    if (_tabController == null || _tabController!.length != PostTabs.postTab.length) {
+    if (_tabController == null ||
+        _tabController!.length != PostTabs.postTab.length) {
       // Dispose old controller if exists
       _tabController?.removeListener(_onTabChanged);
       _tabController?.dispose();
@@ -252,78 +241,92 @@ class _PersonalProfileSetupNewScreenState
         (viewProfileController.youtube.value.isNotEmpty);
   }
 
+  backPressTrigger() async {
+    if (widget.isScreenName == AppConstants.deepLinkScreen) {
+      Get.offAllNamed(
+        RouteHelper.getBottomNavigationBarScreenRoute(),
+        arguments: {ApiKeys.initialIndex: 0},
+      );
+      await Get.delete<IntroductionVideoController>();
+      await Get.delete<ViewPersonalDetailsController>();
+    } else {
+      await Get.delete<IntroductionVideoController>();
+      await Get.delete<ViewPersonalDetailsController>();
+      Get.back();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.whiteF3,
-      appBar: CommonBackAppBar(
-        isLeading: true,
-        title: '',
-        isLogout: true,
-        onShareTap: () {},
-        onQrCodeTap: () {},
-        onBackTap: () async {
-          await Get.delete<IntroductionVideoController>();
-          await Get.delete<ViewPersonalDetailsController>();
-          Get.back();
-        },
-      ),
-      // floatingActionButton: FloatingActionButton(onPressed: (){
-      //   Get.to(()=>AddAccountScreen());
-      //
-      // }),
-      body: isGuestUser()
-          ? PositiveCustomBtn(onTap: () {}, title: "Logout")
-          : Obx(() {
-              if (viewProfileController.viewPersonalResponse.value.status ==
-                  Status.COMPLETE) {
-                // Initialize TabController after data is loaded
-                _initializeTabController();
+    return WillPopScope(
+      onWillPop: () async {
+        backPressTrigger();
+        return false;
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.whiteF3,
+        appBar: CommonBackAppBar(
+          isLeading: true,
+          title: '',
+          isLogout: true,
+          onShareTap: () {},
+          onQrCodeTap: () {},
+          onBackTap: () async {
+            backPressTrigger();
+          },
+        ),
+        body: isGuestUser()
+            ? PositiveCustomBtn(onTap: () {}, title: "Logout")
+            : Obx(() {
+                if (viewProfileController.viewPersonalResponse.value.status ==
+                    Status.COMPLETE) {
+                  // Initialize TabController after data is loaded
+                  _initializeTabController();
 
-                // If TabController is still null, show loading
-                if (_tabController == null) {
-                  return Center(child: CircularProgressIndicator());
-                }
+                  // If TabController is still null, show loading
+                  if (_tabController == null) {
+                    return Center(child: CircularProgressIndicator());
+                  }
 
-                return SafeArea(
-                  child: DefaultTabController(
-                    length: PostTabs.postTab.length,
-                    child: NestedScrollView(
-                      headerSliverBuilder: (context, innerBoxIsScrolled) => [
-                        SliverToBoxAdapter(
-                          child: _buildHeaderSection(),
+                  return SafeArea(
+                    child: DefaultTabController(
+                      length: PostTabs.postTab.length,
+                      child: NestedScrollView(
+                        headerSliverBuilder: (context, innerBoxIsScrolled) => [
+                          SliverToBoxAdapter(
+                            child: _buildHeaderSection(),
+                          ),
+                          SliverPersistentHeader(
+                            pinned: true,
+                            delegate: _CustomTabBarDelegate(_buildTabButtons(),
+                                hasFilters: filters != null),
+                          ),
+                        ],
+                        body: TabBarView(
+                          controller: _tabController,
+                          children: PostTabs.postTab.map((tab) {
+                            final index = PostTabs.postTab.indexOf(tab);
+                            return Padding(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: SizeConfig.size10),
+                              child: _buildTabContent(index),
+                            );
+                          }).toList(),
                         ),
-                        SliverPersistentHeader(
-                          pinned: true,
-                          delegate: _CustomTabBarDelegate(
-                              _buildTabButtons(),
-                              hasFilters: filters != null),
-                        ),
-                      ],
-                      body: TabBarView(
-                        controller: _tabController,
-                        children: PostTabs.postTab.map((tab) {
-                          final index = PostTabs.postTab.indexOf(tab);
-                          return Padding(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: SizeConfig.size10),
-                            child: _buildTabContent(index),
-                          );
-                        }).toList(),
                       ),
                     ),
-                  ),
-                );
-              } else {
-                return Center(
-                  child: SizedBox(
-                    height: 30,
-                    width: 30,
-                    child: CircularProgressIndicator(),
-                  ),
-                );
-              }
-            }),
+                  );
+                } else {
+                  return Center(
+                    child: SizedBox(
+                      height: 30,
+                      width: 30,
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+                }
+              }),
+      ),
     );
   }
 
@@ -434,7 +437,6 @@ class _PersonalProfileSetupNewScreenState
                       children: [
                         _buildCircleIcon(AppIconAssets.link),
                         SizedBox(width: SizeConfig.size6),
-
                         _buildTitleWidget(AppStrings.links),
                       ],
                     ),
@@ -445,13 +447,11 @@ class _PersonalProfileSetupNewScreenState
                         controller: youtubeController,
                         isYoutubeValidation: true,
                         hintText: "e.g. https://addlinkhere.com",
-
                         onChange: (value) {
                           viewProfileController.isYoutubeEdit.value = value;
                         },
                       ),
                     ),
-
                     SizedBox(height: SizeConfig.size10),
                     CustomBtn(
                       isValidate:
@@ -482,7 +482,6 @@ class _PersonalProfileSetupNewScreenState
                 ),
               );
             }
-
 
             return SizedBox();
           }),
@@ -708,22 +707,25 @@ class _PersonalProfileSetupNewScreenState
                         ),
                       ),
                       child: Obx(() {
-                        final banner =
-                            personalCreateProfileController.coverImagePath?.value ??
-                                '';
+                        final banner = personalCreateProfileController
+                                .coverImagePath?.value ??
+                            '';
                         return banner.isNotEmpty
                             ? Image.network(banner, fit: BoxFit.cover)
-                            :  CachedNetworkImage(
-                          imageUrl: personalCreateProfileController.imagePath?.value??'',
-                          fit: BoxFit.cover,
-                          placeholder: (context, url) => Container(
-                            width: SizeConfig.size32,
-                            height: SizeConfig.size32,
-                            color: Colors.grey[300],
-                          ),
-                          errorWidget: (context, url, error) =>
-                              Icon(Icons.person, size: SizeConfig.size32 / 2),
-                        );
+                            : CachedNetworkImage(
+                                imageUrl: personalCreateProfileController
+                                        .imagePath?.value ??
+                                    '',
+                                fit: BoxFit.cover,
+                                placeholder: (context, url) => Container(
+                                  width: SizeConfig.size32,
+                                  height: SizeConfig.size32,
+                                  color: Colors.grey[300],
+                                ),
+                                errorWidget: (context, url, error) => Icon(
+                                    Icons.person,
+                                    size: SizeConfig.size32 / 2),
+                              );
                       }),
                     ),
                   ),
@@ -760,7 +762,6 @@ class _PersonalProfileSetupNewScreenState
                     top: 140,
                     child: Row(
                       children: [
-
                         GestureDetector(
                           onTap: () {
                             if (viewProfileController.personalProfileDetails
@@ -788,7 +789,7 @@ class _PersonalProfileSetupNewScreenState
                                 border: Border.all(
                                   color: AppColors.primaryColor,
                                 )),
-                            child:  CustomText(
+                            child: CustomText(
                               AppStrings.editProfile,
                               color: AppColors.primaryColor,
                               fontSize: 10,
@@ -801,15 +802,24 @@ class _PersonalProfileSetupNewScreenState
                           onTap: () async {
                             try {
                               // 🧩 Generate deep link for this profile
-                              final link = profileDeepLink(userId: userId);
+                              final link = profileDeepLink(
+                                  userId: userId,
+                                  accountType: AppConstants.individual);
 
                               // 🧩 Message to share
-                              final message = "See my profile on BlueEra:\n$link\n";
+                              final message =
+                                  "See my profile on BlueEra:\n$link\n";
 
                               // 🧩 Use SharePlus to share link
                               await SharePlus.instance.share(
-                                ShareParams(text: message, subject: viewProfileController
-                                    .personalProfileDetails.value.user?.name ??""),
+                                ShareParams(
+                                    text: message,
+                                    subject: viewProfileController
+                                            .personalProfileDetails
+                                            .value
+                                            .user
+                                            ?.name ??
+                                        ""),
                               );
                             } catch (e) {
                               debugPrint("Error while sharing profile: $e");
@@ -830,32 +840,33 @@ class _PersonalProfileSetupNewScreenState
                           onTap: () async {
                             final String? newPath =
                                 await SelectProfilePictureDialog.showLogoDialog(
-                              context,
-                             AppStrings.editCoverPicture,
-                              cropAspectRatio: CropAspectRatio(width: 3, height: 1)
-                              // cropAspectRatio: CropAspectRatio(width: 16, height: 9)
-                            );
+                                    context, AppStrings.editCoverPicture,
+                                    cropAspectRatio:
+                                        CropAspectRatio(width: 3, height: 1)
+                                    // cropAspectRatio: CropAspectRatio(width: 16, height: 9)
+                                    );
 
                             if (newPath == null || newPath.isEmpty) {
                               return;
                             }
 
-                              dynamic dataImage =
-                              await multiPartImage(imagePath: newPath);
-                              var reqProfile = {ApiKeys.coverpicture: dataImage};
-                              await personalCreateProfileController
-                                  .updateUserProfileDetails(
-                                  params: reqProfile,
-                                  isFromProfileOnly: true);
-                              // personalCreateProfileController.imagePath?.value = image;
-                              // dynamic dataImage = await multiPartImage(imagePath: image);
-                              // var reqProfile = {ApiKeys.profile_image: dataImage};
-                              // await personalCreateProfileController.updateUserProfileDetails(
-                              //     params: reqProfile, isFromProfileOnly: true);
+                            dynamic dataImage =
+                                await multiPartImage(imagePath: newPath);
+                            var reqProfile = {ApiKeys.coverpicture: dataImage};
+                            await personalCreateProfileController
+                                .updateUserProfileDetails(
+                                    params: reqProfile,
+                                    isFromProfileOnly: true);
+                            // personalCreateProfileController.imagePath?.value = image;
+                            // dynamic dataImage = await multiPartImage(imagePath: image);
+                            // var reqProfile = {ApiKeys.profile_image: dataImage};
+                            // await personalCreateProfileController.updateUserProfileDetails(
+                            //     params: reqProfile, isFromProfileOnly: true);
                           },
                           child: CircleAvatar(
                             backgroundColor: AppColors.black.withOpacity(0.3),
-                            child: LocalAssets(imagePath: 'assets/diwali_card/image.png'),
+                            child: LocalAssets(
+                                imagePath: 'assets/diwali_card/image.png'),
                           )))
                 ],
               ),
@@ -871,13 +882,14 @@ class _PersonalProfileSetupNewScreenState
                 children: [
                   CustomText(
                     _capitalizeFirstLetter(
-                      viewProfileController.personalProfileDetails.value.user?.name ?? '',
+                      viewProfileController
+                              .personalProfileDetails.value.user?.name ??
+                          '',
                     ),
                     fontSize: SizeConfig.size24,
                     fontWeight: FontWeight.w700,
                     color: AppColors.mainTextColor,
                   ),
-
                   const SizedBox(height: 8),
                   Row(
                     children: [
@@ -939,9 +951,10 @@ class _PersonalProfileSetupNewScreenState
                 child: Row(
                   // mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    StatBlock(callback: (){
-                      _tabController?.animateTo(1);
-                    },
+                    StatBlock(
+                      callback: () {
+                        _tabController?.animateTo(1);
+                      },
                       count: viewProfileController.postsCount.value.toString(),
                       label: AppStrings.post,
                     ),
@@ -991,23 +1004,25 @@ class _PersonalProfileSetupNewScreenState
                   wordSpacing: 0.4,
                   letterSpacing: 0.2,
                   fontWeight: FontWeight.w400,
-                  height: 1.5, // 👈 increases vertical gap between lines (default is ~1.0)
+                  height:
+                      1.5, // 👈 increases vertical gap between lines (default is ~1.0)
                 ),
                 expandMode: ExpandMode.dialog,
                 dialogTitle: AppStrings.bio,
               ),
             ),
 
-        //
             //
             //
-              const SizedBox(height: 12),
+            //
+            const SizedBox(height: 12),
 
             // === Buttons Row ===
             Padding(
               padding: EdgeInsets.only(
-                  left: SizeConfig.size15,  right: SizeConfig.size15,
-                  bottom:  SizeConfig.size12),
+                  left: SizeConfig.size15,
+                  right: SizeConfig.size15,
+                  bottom: SizeConfig.size12),
               child: Row(
                 children: [
                   Expanded(
@@ -1127,6 +1142,7 @@ class _PersonalProfileSetupNewScreenState
       ),
     );
   }
+
   Widget _buildTabButtons() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1159,11 +1175,14 @@ class _PersonalProfileSetupNewScreenState
                             : AppColors.secondaryTextColor,
                       ),
                     ),
-                    padding: EdgeInsets.only(left: 8,right: 8),
-                   // minimumSize: Size(SizeConfig.size80, SizeConfig.size34),
-                   // maximumSize: Size(SizeConfig.size90, SizeConfig.size34),
+                    padding: EdgeInsets.only(left: 8, right: 8),
+                    // minimumSize: Size(SizeConfig.size80, SizeConfig.size34),
+                    // maximumSize: Size(SizeConfig.size90, SizeConfig.size34),
                   ),
-                  child: CustomText('${PostTabs.postTab[index].nameKey}',color: isSelected?AppColors.white:AppColors.black,),
+                  child: CustomText(
+                    '${PostTabs.postTab[index].nameKey}',
+                    color: isSelected ? AppColors.white : AppColors.black,
+                  ),
                 ),
               );
             },
@@ -1332,7 +1351,7 @@ class _PersonalProfileSetupNewScreenState
           title: AppStrings.letsStartEarningNow,
           onTap: () {
             if (viewProfileController
-                .personalProfileDetails.value.isProfileCreated ==
+                    .personalProfileDetails.value.isProfileCreated ==
                 false) {
               Navigator.push(
                   context,
@@ -1366,8 +1385,7 @@ class _PersonalProfileSetupNewScreenState
           ),
           SizedBox(width: SizeConfig.size6),
           InkWell(
-            onTap: () {
-            },
+            onTap: () {},
             child: LocalAssets(
               height: 18,
               imagePath: AppIconAssets.pen_line,
@@ -2081,4 +2099,3 @@ class _CustomTabBarDelegate extends SliverPersistentHeaderDelegate {
   @override
   bool shouldRebuild(_CustomTabBarDelegate oldDelegate) => true;
 }
-

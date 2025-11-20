@@ -6,6 +6,7 @@ import 'package:BlueEra/core/common_singleton_class/user_session.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -13,7 +14,6 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/controller/location_controller.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_drop_down-dialoge.dart';
@@ -102,7 +102,7 @@ bool crBtnLoading=false;
 
   @override
   Widget build(BuildContext context) {
-    final appLocalizations = AppLocalizations.of(context);
+    // final appLocalizations = AppLocalizations.of(context);
     return Scaffold(
       appBar: CommonBackAppBar(
         isLeading: true,
@@ -243,7 +243,7 @@ bool crBtnLoading=false;
                     items: authController.professionTypeDataList,
                     selectedValue: selectedProfessionObj,
                     hintText:'eg.Manager',
-                    title: appLocalizations?.selectYourProfession ?? "Select",
+                    title: "Select Your Profession",
                     displayValue: (profession) => profession.name ?? "",
                     onChanged: (value) {
                       _selectedSelfEmploymentObj = null;
@@ -546,7 +546,7 @@ bool crBtnLoading=false;
                     regularExpression:
                         RegularExpressionUtils.alphabetSpacePattern,
                     titleColor: Colors.black,
-                    hintText: appLocalizations?.pleaseSpecifyIfOther,
+                    hintText: 'Please specify (if other)',
                     // autovalidateMode: _autoValidate,
                     // validator: (value) {
                     //   if (value == null || value.isEmpty) {
@@ -807,8 +807,8 @@ bool crBtnLoading=false;
                             keyBoardType: TextInputType.text,
                             regularExpression:
                                 RegularExpressionUtils.alphanumericPattern,
-                            title: appLocalizations?.referralCode,
-                            hintText: appLocalizations?.enterReferralCode,
+                            title: "Referral Code",
+                            hintText: "Enter Referral Code",
                             // autovalidateMode: _autoValidate,
                             // validator: (value) {
                             //   if (value == null || value.isEmpty) {
@@ -824,7 +824,7 @@ bool crBtnLoading=false;
                               onTap: () =>
                                   setState(() => _referralCodeEnable = true),
                               child: CustomText(
-                                appLocalizations?.youHaveReferCode,
+                                'Do you have refer code?',
                                 color: AppColors.primaryColor,
                                 decoration: TextDecoration.underline,
                                 fontSize: SizeConfig.medium,
@@ -861,7 +861,7 @@ bool crBtnLoading=false;
           child: CustomBtn(
             isLoading: crBtnLoading,
             onTap: () => _onSubmitPressed(),
-            title: appLocalizations?.submit,
+            title: AppStrings.submit,
             isValidate: true,
             radius: SizeConfig.size8,
           ),

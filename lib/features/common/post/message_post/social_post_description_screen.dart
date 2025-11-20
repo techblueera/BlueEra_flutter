@@ -72,7 +72,7 @@ class SocialPostDescriptionScreen extends StatelessWidget {
                     selectedValue: messageController.selectedEmotion.value.isEmpty
                         ? null
                         : emotionList.firstWhere(
-                          (e) => e.name == messageController.selectedEmotion.value,
+                          (e) => e.sludId == messageController.selectedEmotion.value,
                       orElse: () => emotionList.first,
                     ),
                     title: AppStrings.selectEmotion,

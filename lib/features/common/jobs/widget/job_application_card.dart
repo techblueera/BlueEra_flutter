@@ -3,7 +3,6 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
@@ -252,7 +251,7 @@ class JobApplicationCard extends StatelessWidget {
             navigatePushTo(
               context,
               ImageViewScreen(
-                appBarTitle: AppLocalizations.of(context)!.imageViewer,
+                appBarTitle: AppStrings.imageViewer,
                 // imageUrls: [post?.author.profileImage ?? ''],
                 imageUrls: [jobPostImage],
                 initialIndex: 0,

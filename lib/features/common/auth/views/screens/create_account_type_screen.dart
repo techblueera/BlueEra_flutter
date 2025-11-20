@@ -6,12 +6,12 @@ import 'package:BlueEra/core/common_singleton_class/user_session.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -258,10 +258,9 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
   }
 
   Future<void> _selectImage(BuildContext context) async {
-    final loc = AppLocalizations.of(context)!;
     final String? selected = await SelectProfilePictureDialog.showLogoDialog(
       context,
-      loc.uploadProfilePicture,
+      AppStrings.uploadProfilePicture,
     );
 
     if (selected?.isNotEmpty ?? false) {
@@ -282,7 +281,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
 
   void _navigateToCreateAccount() {
     if (_selectedIndex == null) {
-      commonSnackBar(message: AppLocalizations.of(context)!.selectAccountType);
+      commonSnackBar(message:"Select Account Type");
       return;
     }
     final accountType =

@@ -104,7 +104,6 @@ class _PostFeedAutoPlayVideoCardState extends State<PostFeedAutoPlayVideoCard>
   @override
   Widget build(BuildContext context) {
     // 👇 only the video section
-logs("ValueKey(widget.videoItem.videoId),= ${widget.videoItem.videoId}");
     /// 🧩 Helper: Image Builder
     final mainContent = VisibilityDetector(
       key: ValueKey(widget.videoItem.videoId),

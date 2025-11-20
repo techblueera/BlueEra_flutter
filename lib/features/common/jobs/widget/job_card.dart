@@ -12,7 +12,6 @@ import 'package:BlueEra/features/common/auth/model/get_all_jobs_model.dart';
 import 'package:BlueEra/features/common/jobs/controller/job_screen_controller.dart';
 import 'package:BlueEra/features/common/jobs/view/job_applications.dart';
 import 'package:BlueEra/features/common/jobs/view/job_details_screen.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/common_horizontal_divider.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -70,7 +69,7 @@ class JobCard extends StatelessWidget {
                   navigatePushTo(
                     context,
                     ImageViewScreen(
-                      appBarTitle: AppLocalizations.of(context)!.imageViewer,
+                      appBarTitle: AppStrings.imageViewer,
                       imageUrls: [job?.jobPostImage ?? ""],
                       initialIndex: 0,
                     ),

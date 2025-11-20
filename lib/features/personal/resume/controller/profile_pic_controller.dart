@@ -69,7 +69,7 @@ class ProfilePicController extends GetxController {
         commonSnackBar(message: AppStrings.somethingWentWrong);
         getSelfResumeResponse.value = ApiResponse.error('error');
       }
-    } catch (e, st) {
+    } catch (e) {
       print("Error fetching resume: $e");
       getSelfResumeResponse.value = ApiResponse.error('error');
     }

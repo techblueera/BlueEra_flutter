@@ -12,7 +12,6 @@ import 'package:BlueEra/features/business/auth/controller/view_business_details_
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/common/service/controller/service_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
@@ -70,7 +69,6 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
 
   @override
   Widget build(BuildContext context) {
-    AppLocalizations.of(context);
 
     return Scaffold(
       appBar: CommonBackAppBar(

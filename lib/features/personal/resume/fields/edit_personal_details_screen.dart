@@ -11,7 +11,6 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/constants/app_enum.dart';
-import '../../../../core/constants/common_methods.dart' as ValidationMethod;
 
 class EditPersonalDetailsScreen extends StatefulWidget {
   const EditPersonalDetailsScreen({Key? key}) : super(key: key);
@@ -108,7 +107,7 @@ class _EditPersonalDetailsScreenState extends State<EditPersonalDetailsScreen> {
                         validationType: ValidationTypeEnum.email,
                         onChange: (email){
                           final emailRegex = RegExp(r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$');
-                          if(emailRegex.hasMatch(email??'')){
+                          if(emailRegex.hasMatch(email)){
                             isValid=true;
                           }else{
                             isValid=false;

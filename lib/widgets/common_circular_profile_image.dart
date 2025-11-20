@@ -5,7 +5,6 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/network_assets.dart';
@@ -100,7 +99,6 @@ class _CommonProfileImageState extends State<CommonProfileImage> {
 
   ///SELECT IMAGE AND SHOW DIALOG...
   selectImage(BuildContext context,String titleOfDialog) async {
-    AppLocalizations.of(context);
 
     widget.imagePath = await SelectProfilePictureDialog.showLogoDialog(
         context, titleOfDialog);

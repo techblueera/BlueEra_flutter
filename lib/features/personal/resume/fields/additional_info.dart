@@ -4,7 +4,6 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/personal/resume/controller/additional_info_controller.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
@@ -204,13 +203,12 @@ class _AdditionalInfoScreenState extends State<AdditionalInfoScreen> {
                                     setState(() {}); // update picker UI
                                   },
                                   onSelect: (context) async {
-                                    final locale = AppLocalizations.of(context);
                                     controller.selectedImagePath =
                                         await SelectProfilePictureDialog
                                             .showLogoDialog(
                                                 context,
-                                                locale!
-                                                    .uploadYourDocumentPhoto);
+                                            AppStrings
+                                                    .uploadYourDocumentPhoto.tr);
                                     setState(() {}); // update picker UI
                                   },
                                 ),

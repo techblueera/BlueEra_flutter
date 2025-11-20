@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -103,16 +104,6 @@ class _SplashScreenState extends State<SplashScreen> {
     // Handle links when app is already running
   }
 
-  // void _handleDeepLink(Uri uri) {
-  //   debugPrint(
-  //       "=====================================Deep link received:========================= $uri");
-  //   try {
-  //     Get.to(() => PostDeatilPage(),
-  //         arguments: {"postId": (uri.toString().split("/").last)});
-  //   } on Exception catch (e) {
-  //     print(e.toString());
-  //   }
-  // }
   void _handleDeepLink(Uri uri) async {
     debugPrint(
         "=====================================Deep link received:========================= $uri");
@@ -126,13 +117,22 @@ class _SplashScreenState extends State<SplashScreen> {
             Get.to(() => PostDeatilPage(), arguments: {"postId": id});
             break;
           case 'product':
-            logs('Deep link -> job id: $id');
             Get.to(() => ShareProductScreen(productId: id));
+            break;
+          case 'profile':
+            final type = segments[3];
+            final id = segments[2];
+            redirectToProfileScreen(
+                accountType: type,
+                profileId: id,
+                screenName: AppConstants.deepLinkScreen);
             break;
           default:
             logs('Unknown deep link type: $type');
         }
       } else {
+        debugPrint("SEGMENTS==== ELSE");
+
         // Fallback: try last segment as id (legacy)
         final last = uri.pathSegments.isNotEmpty ? uri.pathSegments.last : '';
         if (last.isNotEmpty) {
@@ -143,9 +143,6 @@ class _SplashScreenState extends State<SplashScreen> {
       print(e.toString());
     }
   }
-
-
-  // 69059707a091ab27258f1e47
 
   @override
   Widget build(BuildContext context) {
@@ -179,47 +176,5 @@ class _SplashScreenState extends State<SplashScreen> {
         ],
       ),
     );
-    //
-    // return FutureBuilder(
-    //   future: Future.wait([
-    //     Future.value(OneSignal.User.pushSubscription.optedIn),
-    //     Future.value(OneSignal.User.pushSubscription.id),
-    //     Future.value(OneSignal.User.pushSubscription.token),
-    //   ]),
-    //   builder: (context, snapshot) {
-    //     if (!snapshot.hasData) return CircularProgressIndicator();
-    //
-    //     return Material(
-    //       color: AppColors.white,
-    //       child: Column(
-    //         mainAxisSize: MainAxisSize.max,
-    //         mainAxisAlignment: MainAxisAlignment.start,
-    //         crossAxisAlignment: CrossAxisAlignment.center,
-    //         children: [
-    //           Spacer(flex: 3),
-    //           CustomText(
-    //             "🇮🇳  MADE IN INDIA",
-    //             fontSize: SizeConfig.medium,
-    //             fontWeight: FontWeight.w600,
-    //           ),
-    //           Spacer(flex: 10),
-    //           LocalAssets(
-    //             imagePath: AppIconAssets.blueEraIcon,
-    //             height: SizeConfig.size100,
-    //           ),
-    //           Spacer(flex: 10),
-    //           Padding(
-    //             padding: EdgeInsets.symmetric(horizontal: SizeConfig.size40),
-    //             child: LocalAssets(
-    //               imagePath: AppImageAssets.splashBgImage,
-    //               height: SizeConfig.size70,
-    //             ),
-    //           ),
-    //           Spacer(flex: 1),
-    //         ],
-    //       ),
-    //     );
-    //   },
-    // );
   }
 }

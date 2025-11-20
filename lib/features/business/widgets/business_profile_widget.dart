@@ -16,7 +16,6 @@ import 'package:BlueEra/features/business/visiting_card/view/widget/business_loc
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/business/widgets/description_preview_widget.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
@@ -24,15 +23,12 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:BlueEra/widgets/visiting_card_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
-import '../../../widgets/highlight_text_widget.dart';
 
 // import 'package:lottie/lottie.dart';
-import 'package:flutter/gestures.dart';
 
 class BusinessProfileWidget extends StatefulWidget {
   BusinessProfileWidget({
@@ -1086,7 +1082,7 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                 context,
                 ImageViewScreen(
                   subTitle: '',
-                  appBarTitle: AppLocalizations.of(context)!.imageViewer,
+                  appBarTitle: AppStrings.imageViewer,
                   imageUrls: controller.imgLocalL3,
                   initialIndex: index,
                 ),
@@ -1176,7 +1172,7 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                 context,
                 ImageViewScreen(
                   subTitle: '',
-                  appBarTitle: AppLocalizations.of(context)!.imageViewer,
+                  appBarTitle: AppStrings.imageViewer,
                   imageUrls: [imagePath],
                   initialIndex: index,
                 ),

@@ -6,7 +6,6 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
@@ -79,7 +78,6 @@ class _CertificateScreenState extends State<CertificateScreen> {
 
   @override
   Widget build(BuildContext context) {
-    AppLocalizations.of(context);
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
@@ -273,10 +271,9 @@ class _CertificateScreenState extends State<CertificateScreen> {
   }
 
   selectImage(BuildContext context) async {
-    final appLocalizations = AppLocalizations.of(context);
 
     imagePath = await SelectProfilePictureDialog.showLogoDialog(
-        context, appLocalizations!.uploadYourDocumentPhoto);
+        context, AppStrings.uploadDocumentPhoto);
     if (imagePath?.isNotEmpty ?? false) {
       final file = File(imagePath!);
       certificationsController.setAttachment(file);

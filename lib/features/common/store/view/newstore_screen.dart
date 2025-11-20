@@ -4,6 +4,7 @@ import 'package:BlueEra/core/api/model/get_all_store_res_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
@@ -48,13 +49,15 @@ class StoreFeedScreen extends StatefulWidget {
   State<StoreFeedScreen> createState() => _StoreFeedScreenState();
 }
 
-class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProviderStateMixin{
+class _StoreFeedScreenState extends State<StoreFeedScreen>
+    with SingleTickerProviderStateMixin {
   final StoreScreenController controller = Get.put(StoreScreenController());
   final viewBusinessDetailsController =
-  Get.put(ViewBusinessDetailsController());
+      Get.put(ViewBusinessDetailsController());
   final ViewPersonalDetailsController viewPersonalDetailsController =
-  Get.isRegistered<ViewPersonalDetailsController>() ?
-  Get.find<ViewPersonalDetailsController>() : Get.put(ViewPersonalDetailsController());
+      Get.isRegistered<ViewPersonalDetailsController>()
+          ? Get.find<ViewPersonalDetailsController>()
+          : Get.put(ViewPersonalDetailsController());
   double headerHeight = 0.0;
   late TabController _tabController;
 
@@ -71,7 +74,7 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProv
   void _onSearchChanged() {
     controller.debounce?.cancel();
     controller.debounce = Timer(const Duration(milliseconds: 600), () {
-      if(controller.searchController.text.length >= 3){
+      if (controller.searchController.text.length >= 3) {
         controller.getAllStoreProductNearBy(
           query: controller.searchController.text.trim(),
         );
@@ -104,8 +107,7 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProv
   Widget build(BuildContext context) {
     final width = SizeConfig.screenWidth;
 
-    double dynamicSize(double base) =>
-        base * (width / 390);
+    double dynamicSize(double base) => base * (width / 390);
 
     return SafeArea(
       child: Scaffold(
@@ -148,9 +150,9 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProv
         children: [
           Expanded(
             child: InkWell(
-              onTap: ()=> isIndividual()
-                  ? Get.to(()=> PersonalProfileSetupNewScreen())
-                  : Get.to(()=> BusinessOwnProfileScreen()),
+              onTap: () => isIndividual()
+                  ? Get.to(() => PersonalProfileSetupNewScreen())
+                  : Get.to(() => BusinessOwnProfileScreen()),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
@@ -170,9 +172,7 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProv
                           Icon(Icons.person, size: SizeConfig.size32 / 2),
                     ),
                   ),
-
                   SizedBox(width: SizeConfig.size8),
-
                   CustomText(
                     isBusiness() ? businessNameGlobal : userNameGlobal,
                     fontSize: SizeConfig.large,
@@ -187,72 +187,72 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProv
           SizedBox(width: SizeConfig.size8),
 
           CustomBtn(
-               height: SizeConfig.size30,
-               width: SizeConfig.size110,
-               onTap: () {
-                 if(isBusinessUser()){
-                   final controller = Get.find<ViewBusinessDetailsController>();
+            height: SizeConfig.size30,
+            width: SizeConfig.size110,
+            onTap: () {
+              if (isBusinessUser()) {
+                final controller = Get.find<ViewBusinessDetailsController>();
 
-                   if((controller.businessProfileDetails?.data?.livePhotos ?? []).length < 3){
-                     showLivePhotoDialog(
-                       context: context,
-                     );
-                   }else{
-                     Get.toNamed(RouteHelper.getInventoryScreenRoute());
+                if ((controller.businessProfileDetails?.data?.livePhotos ?? [])
+                        .length <
+                    3) {
+                  showLivePhotoDialog(
+                    context: context,
+                  );
+                } else {
+                  Get.toNamed(RouteHelper.getInventoryScreenRoute());
+                }
+              } else {
+                if (viewPersonalDetailsController
+                        .personalProfileDetails.value.isProfileCreated ==
+                    false) {
+                  Get.to(() => CreateProfileScreen());
+                } else {
+                  Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
+                }
+              }
+            },
+            title: AppStrings.myStore.tr,
+            borderColor: AppColors.primaryColor,
+            textColor: AppColors.primaryColor,
+            bgColor: Colors.transparent,
+            radius: SizeConfig.size10,
+          ),
 
-                   }
-                 }else{
-                   if (viewPersonalDetailsController
-                       .personalProfileDetails.value.isProfileCreated ==
-                       false) {
-                     Get.to(()=> CreateProfileScreen());
-                   } else {
-                     Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
-                   }
-                 }
-               },
-               title: "My Store",
-               borderColor: AppColors.primaryColor,
-               textColor: AppColors.primaryColor,
-               bgColor: Colors.transparent,
-               radius: SizeConfig.size10,
-              ),
-
-           // PopupMenuButton<String>(
-           //   padding: EdgeInsets.zero,
-           //   offset: const Offset(-6, 36),
-           //   color: AppColors.white,
-           //   elevation: 8,
-           //   shape: RoundedRectangleBorder(
-           //       borderRadius: BorderRadius.circular(10)),
-           //   onSelected: (value) async {
-           //     if (isGuestUser()) {
-           //       createProfileScreen();
-           //     } else if (value.toUpperCase() == "ADD PRODUCT") {
-           //       Get.toNamed(
-           //         RouteHelper.getAddProductScreenRoute(),
-           //         arguments: {
-           //           ApiKeys.id: businessId,
-           //           ApiKeys.providerType: ProductServiceProviderType.business
-           //         }
-           //       );
-           //     } else if (value.toUpperCase() == "ADD SERVICE") {
-           //       Get.toNamed(
-           //           RouteHelper.getAddServicesScreenRoute(),
-           //           arguments: {
-           //             ApiKeys.providerType: ProductServiceProviderType.business,
-           //           }
-           //       );
-           //     } else if (value.toUpperCase() == "ADD FOOD") {
-           //       Get.to(() => FoodUploadScreen(
-           //         providerType: ProductServiceProviderType.business
-           //       ));
-           //     }
-           //   },
-           //   icon: LocalAssets(imagePath: AppIconAssets.addOutlinedIcon),
-           //   itemBuilder: (context) => popupMenuInventoryItems(),
-           // )
-
+          // PopupMenuButton<String>(
+          //   padding: EdgeInsets.zero,
+          //   offset: const Offset(-6, 36),
+          //   color: AppColors.white,
+          //   elevation: 8,
+          //   shape: RoundedRectangleBorder(
+          //       borderRadius: BorderRadius.circular(10)),
+          //   onSelected: (value) async {
+          //     if (isGuestUser()) {
+          //       createProfileScreen();
+          //     } else if (value.toUpperCase() == "ADD PRODUCT") {
+          //       Get.toNamed(
+          //         RouteHelper.getAddProductScreenRoute(),
+          //         arguments: {
+          //           ApiKeys.id: businessId,
+          //           ApiKeys.providerType: ProductServiceProviderType.business
+          //         }
+          //       );
+          //     } else if (value.toUpperCase() == "ADD SERVICE") {
+          //       Get.toNamed(
+          //           RouteHelper.getAddServicesScreenRoute(),
+          //           arguments: {
+          //             ApiKeys.providerType: ProductServiceProviderType.business,
+          //           }
+          //       );
+          //     } else if (value.toUpperCase() == "ADD FOOD") {
+          //       Get.to(() => FoodUploadScreen(
+          //         providerType: ProductServiceProviderType.business
+          //       ));
+          //     }
+          //   },
+          //   icon: LocalAssets(imagePath: AppIconAssets.addOutlinedIcon),
+          //   itemBuilder: (context) => popupMenuInventoryItems(),
+          // )
         ],
       ),
     );
@@ -302,49 +302,48 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProv
     final groupedStoreFeed = controller.groupedStoreFeed;
 
     if (groupedStoreFeed.isEmpty) {
-        return const SliverToBoxAdapter(
-          child: Padding(
-            padding: EdgeInsets.symmetric(vertical: 20),
-            child: EmptyStateWidget(message: 'No store found'),
-          ),
-        );
-      }
-
-    return SliverPadding(
-        padding: EdgeInsets.symmetric(
-            horizontal: SizeConfig.size15, vertical: ds(10)),
-        sliver: SliverList(
-          delegate: SliverChildBuilderDelegate(
-                (context, index) {
-
-               if (index == groupedStoreFeed.length) {
-                return controller.isAllStoreFeedLoadingMore.value
-                    ? const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 20),
-                  child: Center(child: CircularProgressIndicator()),
-                )
-                    : const SizedBox.shrink();
-              }
-
-              final block = groupedStoreFeed[index];
-              if (block.isEmpty) return const SizedBox.shrink();
-
-              final first = block.first;
-              final type = StoreTypeExtension.fromString(first.type);
-
-              return _buildStoreBlock(context, type, block, first, ds);
-            },
-            childCount:
-            groupedStoreFeed.length + (controller.isAllStoreFeedLoadingMore.value ? 1 : 0),
-          ),
+      return const SliverToBoxAdapter(
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 20),
+          child: EmptyStateWidget(message: 'No store found'),
         ),
       );
+    }
 
+    return SliverPadding(
+      padding:
+          EdgeInsets.symmetric(horizontal: SizeConfig.size15, vertical: ds(10)),
+      sliver: SliverList(
+        delegate: SliverChildBuilderDelegate(
+          (context, index) {
+            if (index == groupedStoreFeed.length) {
+              return controller.isAllStoreFeedLoadingMore.value
+                  ? const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 20),
+                      child: Center(child: CircularProgressIndicator()),
+                    )
+                  : const SizedBox.shrink();
+            }
+
+            final block = groupedStoreFeed[index];
+            if (block.isEmpty) return const SizedBox.shrink();
+
+            final first = block.first;
+            final type = StoreTypeExtension.fromString(first.type);
+
+            return _buildStoreBlock(context, type, block, first, ds);
+          },
+          childCount: groupedStoreFeed.length +
+              (controller.isAllStoreFeedLoadingMore.value ? 1 : 0),
+        ),
+      ),
+    );
   }
 
 // Case 1: Products
   Widget _buildProductsSliverList(double Function(double) ds) {
-    final productList = List<GetProductData>.from(controller.storeProductDataList);
+    final productList =
+        List<GetProductData>.from(controller.storeProductDataList);
 
     if (controller.isStoreProductDataFirstLoading.value) {
       return const SliverToBoxAdapter(
@@ -367,10 +366,11 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProv
     }
 
     return SliverPadding(
-      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15, vertical: ds(10)),
+      padding:
+          EdgeInsets.symmetric(horizontal: SizeConfig.size15, vertical: ds(10)),
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate(
-              (context, index) {
+          (context, index) {
             if (index >= productList.length) {
               return const Padding(
                 padding: EdgeInsets.symmetric(vertical: 20),
@@ -417,10 +417,11 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProv
     }
 
     return SliverPadding(
-      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15, vertical: ds(10)),
+      padding:
+          EdgeInsets.symmetric(horizontal: SizeConfig.size15, vertical: ds(10)),
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate(
-              (context, index) {
+          (context, index) {
             if (index >= serviceList.length) {
               return const Padding(
                 padding: EdgeInsets.symmetric(vertical: 20),
@@ -465,10 +466,11 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProv
     }
 
     return SliverPadding(
-      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15, vertical: ds(10)),
+      padding:
+          EdgeInsets.symmetric(horizontal: SizeConfig.size15, vertical: ds(10)),
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate(
-              (context, index) {
+          (context, index) {
             if (index >= foodList.length) {
               return const Padding(
                 padding: EdgeInsets.symmetric(vertical: 20),
@@ -517,10 +519,11 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProv
     }
 
     return SliverPadding(
-      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15, vertical: ds(10)),
+      padding:
+          EdgeInsets.symmetric(horizontal: SizeConfig.size15, vertical: ds(10)),
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate(
-              (context, index) {
+          (context, index) {
             if (index >= storeList.length) {
               return const Padding(
                 padding: EdgeInsets.symmetric(vertical: 20),
@@ -559,8 +562,7 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProv
       StoreType type,
       List<AllStoresFeedData> block,
       AllStoresFeedData first,
-      double Function(double) ds
-      ) {
+      double Function(double) ds) {
     final padding = EdgeInsets.only(bottom: ds(10));
 
     switch (type) {
@@ -571,7 +573,9 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProv
             builder: (context, constraints) {
               final crossAxisCount = block.length;
               final crossSpacing = 10.0;
-              final itemWidth = (constraints.maxWidth - ((crossAxisCount - 1) * crossSpacing)) / crossAxisCount;
+              final itemWidth = (constraints.maxWidth -
+                      ((crossAxisCount - 1) * crossSpacing)) /
+                  crossAxisCount;
 
               return Row(
                 children: [
@@ -579,7 +583,8 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProv
                     SizedBox(
                       width: itemWidth,
                       child: StoreFoodServiceCard(
-                        foodDetailsData: block[i].foodData ?? GetFoodDetailsModel(),
+                        foodDetailsData:
+                            block[i].foodData ?? GetFoodDetailsModel(),
                         isShowVerticalUi: true,
                       ),
                     ),
@@ -634,8 +639,7 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProv
             productStore: first.inventoryData?.product ?? ProductStore(),
           ),
         );
-
-      }
+    }
   }
 
   // Widget _buildTabButtons() {
@@ -651,18 +655,17 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProv
   // }
 
   Widget _buildTabButtons(double Function(double) ds) {
-    return
-        Container(
-          width: SizeConfig.screenWidth,
-          margin: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
-          // decoration: const BoxDecoration(
-          //   color: AppColors.whiteF1,
-          //   borderRadius: BorderRadius.only(
-          //     topLeft: Radius.circular(20),
-          //     topRight: Radius.circular(20),
-          //   ),
-          // ),
-              child: Column(
+    return Container(
+      width: SizeConfig.screenWidth,
+      margin: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
+      // decoration: const BoxDecoration(
+      //   color: AppColors.whiteF1,
+      //   borderRadius: BorderRadius.only(
+      //     topLeft: Radius.circular(20),
+      //     topRight: Radius.circular(20),
+      //   ),
+      // ),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(height: ds(5)),
@@ -686,7 +689,8 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProv
                           vertical: SizeConfig.size5,
                         ),
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(SizeConfig.size10),
+                          borderRadius:
+                              BorderRadius.circular(SizeConfig.size10),
                           color: controller.selectedStoreIndex.value == index
                               ? AppColors.primaryColor
                               : Colors.transparent,
@@ -705,8 +709,7 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProv
                               : AppColors.secondaryTextColor,
                         ),
                       ),
-                    )
-                );
+                    ));
               },
             ),
           ),
@@ -719,10 +722,9 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProv
   Widget _buildHeaderSection(double Function(double) ds) {
     return Column(
       children: [
-        if (!isGuestUser())
-          ...[
-            _buildStoreHeader(),
-          ],
+        if (!isGuestUser()) ...[
+          _buildStoreHeader(),
+        ],
 
         // Background Image
         Container(
@@ -730,26 +732,28 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProv
           height: ds(280),
           decoration: BoxDecoration(
             image: DecorationImage(
-              image: AssetImage(
-                  AppImageAssets.storeNewBackground),
+              image: AssetImage(AppImageAssets.storeNewBackground),
               fit: BoxFit.cover,
             ),
           ),
           child: Stack(
             alignment: Alignment.center,
             children: [
-              Obx(()=> LocationService.userCurrentAddress.isNotEmpty
+              Obx(() => LocationService.userCurrentAddress.isNotEmpty
                   ? Padding(
-                    padding: controller.selectedStoreIndex.value == 1
-                        ? const EdgeInsets.only(bottom: 20.0) : EdgeInsets.zero,
-                    child: CustomText(
-                                    'Find Anything\n in ' + LocationService.userCurrentAddress[2],
-                                    fontSize: SizeConfig.extraLarge22,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.white,
-                                    textAlign: TextAlign.center,
-                                  ),
-                  ) : SizedBox()),
+                      padding: controller.selectedStoreIndex.value == 1
+                          ? const EdgeInsets.only(bottom: 20.0)
+                          : EdgeInsets.zero,
+                      child: CustomText(
+                        'Find Anything\n in ' +
+                            LocationService.userCurrentAddress[2],
+                        fontSize: SizeConfig.extraLarge22,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.white,
+                        textAlign: TextAlign.center,
+                      ),
+                    )
+                  : SizedBox()),
 
               // Obx(()=> (controller.selectedStoreIndex.value == 1)
               //     ? Positioned(
@@ -776,19 +780,16 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProv
                   top: ds(12),
                   right: ds(15),
                   child: InkWell(
-                    onTap: ()=> LocationService.fetchLocation(),
+                    onTap: () => LocationService.fetchLocation(),
                     child: Container(
                       padding: EdgeInsets.all(ds(5)),
                       decoration: BoxDecoration(
-                          color: AppColors.white,
-                          shape: BoxShape.circle
-                      ),
+                          color: AppColors.white, shape: BoxShape.circle),
                       child: LocalAssets(
                         imagePath: AppIconAssets.currentLocationIcon,
                       ),
                     ),
-                  )
-              ),
+                  )),
 
               ///  Move your tab up using Positioned or Transform
               Positioned(
@@ -815,7 +816,7 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProv
                             width: 60,
                             color: AppColors.secondaryTextColor,
                           ),
-                        SizedBox(height: ds(5)),
+                          SizedBox(height: ds(5)),
                         ],
                       ),
                       // SizedBox(height: ds(16)),
@@ -829,7 +830,6 @@ class _StoreFeedScreenState extends State<StoreFeedScreen> with SingleTickerProv
       ],
     );
   }
-
 }
 
 class _CustomTabBarDelegate extends SliverPersistentHeaderDelegate {
@@ -856,4 +856,3 @@ class _CustomTabBarDelegate extends SliverPersistentHeaderDelegate {
   @override
   bool shouldRebuild(_CustomTabBarDelegate oldDelegate) => true;
 }
-

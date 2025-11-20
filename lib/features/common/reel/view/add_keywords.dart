@@ -1,7 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/reelsModule/controller/reels_controller.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -182,7 +182,7 @@ class _KeyWordInputWidgetState extends State<KeyWordInputWidget> {
                           child: PositiveCustomBtn(
                             bgColor: Colors.transparent,
                             borderColor: AppColors.primaryColor,
-                            title: AppLocalizations.of(context)!.cancel,
+                            title: AppStrings.cancel,
                             onTap: () {
                               Navigator.pop(context);
                             },
@@ -193,9 +193,7 @@ class _KeyWordInputWidgetState extends State<KeyWordInputWidget> {
                         ),
                         Expanded(
                           child: PositiveCustomBtn(
-                            title: /*selectedSkills.isNotEmpty
-                                ? AppLocalizations.of(context)!.update
-                                : */AppLocalizations.of(context)!.save,
+                            title:AppStrings.save,
                             onTap: selectedSkills.isNotEmpty
                                 ? () {
                                     List<String> finalList = selectedSkills

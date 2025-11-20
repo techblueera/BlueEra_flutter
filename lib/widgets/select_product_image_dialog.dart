@@ -4,10 +4,10 @@ import 'dart:ui' as ui;
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:croppy/croppy.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -29,7 +29,6 @@ class SelectProductImageDialog {
     int? maxImages,
     CropAspectRatio? cropAspectRatio,
   }) async {
-    final appLocalizations = AppLocalizations.of(context);
 
     return showDialog<List<String>>(
       context: context,
@@ -56,7 +55,7 @@ class SelectProductImageDialog {
                           Expanded(
                             child: OptionButton(
                               iconPath: AppIconAssets.camera_sky,
-                              label: appLocalizations?.takeOne ?? "",
+                              label: AppStrings.takeFromCamera,
                               onTap: () async {
                                 final paths = await pickFromCamera(
                                   context,
@@ -70,7 +69,7 @@ class SelectProductImageDialog {
                           Expanded(
                             child: OptionButton(
                               iconPath: AppIconAssets.gallery_sky,
-                              label: appLocalizations?.selectFromGallery ?? "",
+                              label: AppStrings.selectFromGallery,
                               onTap: () async {
                                 final paths = await pickFromGallery(
                                   context,

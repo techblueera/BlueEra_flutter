@@ -8,9 +8,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/business/visiting_card/visiting_cardlist_screen.dart';
 import 'package:BlueEra/features/business/widgets/blinking_verify_button.dart';
 import 'package:BlueEra/features/business/widgets/business_common_widget.dart';
-import 'package:BlueEra/features/business/widgets/business_profile_widget.dart';
 import 'package:BlueEra/features/business/widgets/visiting_card_preview_widget.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:croppy/croppy.dart';
@@ -54,9 +52,9 @@ class BusinessProfileHeader extends StatelessWidget {
     bool _isBottomSheetOpen = false;
     String ownerName = cleanValue(details!.ownerDetails?.first.name);
     String ownerRole =
-    cleanValue(details?.ownerDetails?.first.role_in_business);
+        cleanValue(details?.ownerDetails?.first.role_in_business);
     String finalText =
-    ownerRole.isNotEmpty ? "$ownerName ($ownerRole)" : ownerName;
+        ownerRole.isNotEmpty ? "$ownerName ($ownerRole)" : ownerName;
     String _getCoverImage(controller) {
       final cover = controller.coverImage?.value;
       final profile =
@@ -143,16 +141,17 @@ class BusinessProfileHeader extends StatelessWidget {
                         onTap: () async {
                           try {
                             final newPath =
-                            await SelectProfilePictureDialog.showLogoDialog(
-                                context, AppStrings.editCoverPicture.tr,
-                                cropAspectRatio:
-                                CropAspectRatio(width: 3, height: 1)
-                              // cropAspectRatio: CropAspectRatio(width: 16, height: 9)
-                            )
-                                .catchError((_) => null);
+                                await SelectProfilePictureDialog.showLogoDialog(
+                                        context, AppStrings.editCoverPicture.tr,
+                                        cropAspectRatio:
+                                            CropAspectRatio(width: 3, height: 1)
+                                        // cropAspectRatio: CropAspectRatio(width: 16, height: 9)
+                                        )
+                                    .catchError((_) => null);
 
                             if (newPath == null || newPath.isEmpty) {
-                              commonSnackBar(message:AppStrings.noImageSelected);
+                              commonSnackBar(
+                                  message: AppStrings.noImageSelected);
                               return;
                             }
 
@@ -161,7 +160,7 @@ class BusinessProfileHeader extends StatelessWidget {
                             // Compress before upload
                             final file = File(newPath);
                             final compressed =
-                            await FlutterImageCompress.compressAndGetFile(
+                                await FlutterImageCompress.compressAndGetFile(
                               file.absolute.path,
                               "${file.path}_compressed.jpg",
                               quality: 75,
@@ -173,7 +172,7 @@ class BusinessProfileHeader extends StatelessWidget {
 
                             if (dataImage == null) {
                               commonSnackBar(
-                                  message:AppStrings.imageProcessingFailed);
+                                  message: AppStrings.imageProcessingFailed);
                               return;
                             }
 
@@ -184,10 +183,9 @@ class BusinessProfileHeader extends StatelessWidget {
                             };
                             await controller
                                 .updateBusinessProfileDetails(reqProfile);
-                          } catch (e, s) {
+                          } catch (e) {
                             commonSnackBar(
-                                message:
-                                AppStrings.updatePictureFailed);
+                                message: AppStrings.updatePictureFailed);
                           }
                         },
                         child: Image.asset('assets/diwali_card/camera.png'))),
@@ -205,30 +203,30 @@ class BusinessProfileHeader extends StatelessWidget {
                       children: [
                         (details?.businessIsVerified ?? false)
                             ? Flexible(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 13, vertical: 5),
-                            decoration: BoxDecoration(
-                              color: Color(0xffC5FFC9),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: CustomText(
-                              AppStrings.verifiedProfile,
-                              color: AppColors.secondaryTextColor,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        )
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 13, vertical: 5),
+                                  decoration: BoxDecoration(
+                                    color: Color(0xffC5FFC9),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: CustomText(
+                                    AppStrings.verifiedProfile,
+                                    color: AppColors.secondaryTextColor,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              )
                             : Flexible(
-                          child: BlinkingVerifyButton(
-                            onTap: () {
-                              Get.to(BusinessVerification());
+                                child: BlinkingVerifyButton(
+                                  onTap: () {
+                                    Get.to(BusinessVerification());
 
-                              //commonSnackBar(message: "Coming soon....");
-                            },
-                          ),
-                        ),
+                                    //commonSnackBar(message: "Coming soon....");
+                                  },
+                                ),
+                              ),
                         SizedBox(
                           width: SizeConfig.size10,
                         ),
@@ -239,8 +237,8 @@ class BusinessProfileHeader extends StatelessWidget {
                                 MaterialPageRoute(
                                   builder: (context) =>
                                       BusinessDetailsEditPageOne(
-                                        prevBusinessDetails: details,
-                                      ),
+                                    prevBusinessDetails: details,
+                                  ),
                                 ));
                           },
                           child: Container(
@@ -337,18 +335,18 @@ class BusinessProfileHeader extends StatelessWidget {
                         }
 
                         TextEditingController ownerNameCtrl =
-                        TextEditingController(
+                            TextEditingController(
                           text: cleanValue(details!.ownerDetails?.first.name),
                         );
 
                         TextEditingController ownerRoleCtrl =
-                        TextEditingController(
+                            TextEditingController(
                           text: cleanValue(
                               details?.ownerDetails?.first.role_in_business),
                         );
 
                         TextEditingController ownerEmailCtrl =
-                        TextEditingController(
+                            TextEditingController(
                           text: cleanValue(details?.ownerDetails?.first.email),
                         );
 
@@ -387,7 +385,7 @@ class BusinessProfileHeader extends StatelessWidget {
                           color: AppColors.white,
                           borderRadius: BorderRadius.circular(12),
                           border:
-                          Border.all(color: AppColors.secondaryTextColor),
+                              Border.all(color: AppColors.secondaryTextColor),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -431,9 +429,9 @@ class BusinessProfileHeader extends StatelessWidget {
                         ),
                         onPressed: () {
                           if ((controller.businessProfileDetails?.data
-                              ?.livePhotos ??
-                              [])
-                              .length <
+                                          ?.livePhotos ??
+                                      [])
+                                  .length <
                               3) {
                             showLivePhotoDialog(context: context);
                           } else {
@@ -501,7 +499,7 @@ class BusinessProfileHeader extends StatelessWidget {
                         scrollDirection: Axis.horizontal,
                         child: ConstrainedBox(
                           constraints:
-                          BoxConstraints(minWidth: constraints.maxWidth),
+                              BoxConstraints(minWidth: constraints.maxWidth),
                           child: IntrinsicWidth(
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -510,7 +508,7 @@ class BusinessProfileHeader extends StatelessWidget {
                                   flex: 2,
                                   child: Column(
                                     crossAxisAlignment:
-                                    CrossAxisAlignment.start,
+                                        CrossAxisAlignment.start,
                                     children: [
                                       buildInfo("${AppStrings.ratings.tr}",
                                           "★ ${(details?.rating ?? 0).toStringAsFixed(1)}"),
@@ -532,17 +530,17 @@ class BusinessProfileHeader extends StatelessWidget {
                                   flex: 2,
                                   child: Column(
                                     crossAxisAlignment:
-                                    CrossAxisAlignment.start,
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      buildInfo(
-                                          "${AppStrings.inquiries.tr}", formatIndianNumber(0)),
+                                      buildInfo("${AppStrings.inquiries.tr}",
+                                          formatIndianNumber(0)),
                                       SizedBox(height: SizeConfig.size12),
                                       InkWell(
                                         onTap: () {
                                           Get.to(() => FollowersFollowingPage(
-                                            tabIndex: 1,
-                                            userID: details?.userId ?? "",
-                                          ));
+                                                tabIndex: 1,
+                                                userID: details?.userId ?? "",
+                                              ));
                                         },
                                         child: buildInfo(
                                           AppStrings.followers.tr,

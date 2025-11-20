@@ -14,7 +14,6 @@ import 'package:BlueEra/features/common/jobs/controller/job_screen_controller.da
 import 'package:BlueEra/features/common/jobs/view/all_job_post_screen.dart';
 import 'package:BlueEra/features/common/jobs/view/job_applications.dart';
 import 'package:BlueEra/features/common/jobs/view/job_details_screen.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/common_horizontal_divider.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -145,8 +144,7 @@ class _AllSavedJobPostScreenState extends State<AllSavedJobPostScreen> {
                                       context,
                                       ImageViewScreen(
                                         appBarTitle:
-                                            AppLocalizations.of(context)!
-                                                .imageViewer,
+                                        AppStrings.imageViewer,
                                         imageUrls: [job?.jobPostImage ?? ""],
                                         initialIndex: 0,
                                       ),

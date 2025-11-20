@@ -4,12 +4,12 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/common/feed/controller/shorts_controller.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/reel/view/channel/reel_upload_details_screen.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
@@ -62,8 +62,8 @@ class ReelShortPopUpMenu extends StatelessWidget {
               cancelCallback: () {
                 Navigator.of(context).pop(); // Close the dialog
               },
-              confirmText: AppLocalizations.of(context)!.yes,
-              cancelText: AppLocalizations.of(context)!.no);
+              confirmText: AppStrings.yes,
+              cancelText: AppStrings.no);
         }else if(value == 'Change Thumbnail'){
           pickImageFromGallery(context);
         }
@@ -106,8 +106,8 @@ class ReelShortPopUpMenu extends StatelessWidget {
     //             cancelCallback: () {
     //               Navigator.of(context).pop(); // Close the dialog
     //             },
-    //             confirmText: AppLocalizations.of(context)!.yes,
-    //             cancelText: AppLocalizations.of(context)!.no);
+    //             confirmText: AppStrings.yes,
+    //             cancelText: AppStrings.no);
     //       }else if(value == 'Change Thumbnail'){
     //         pickImageFromGallery(context);
     //       }

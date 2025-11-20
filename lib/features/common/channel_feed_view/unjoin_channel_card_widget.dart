@@ -8,7 +8,6 @@ import 'package:BlueEra/features/common/channel_feed_view/channel_feed_model.dar
 import 'package:BlueEra/features/common/channel_feed_view/channel_joined_user_screen.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/widget/new_profile_header_widget.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
@@ -46,7 +45,7 @@ class UnjoinChannelCardWidget extends StatelessWidget {
                     navigatePushTo(
                       context,
                       ImageViewScreen(
-                        appBarTitle: AppLocalizations.of(context)!.imageViewer,
+                        appBarTitle: AppStrings.imageViewer,
                         imageUrls: [channelModel.logoUrl ?? ""],
                         initialIndex: 0,
                       ),
@@ -66,10 +65,10 @@ class UnjoinChannelCardWidget extends StatelessWidget {
                     children: [
                       CustomText(
                         '${channelModel.name}',
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w700,
                         fontSize: SizeConfig.large,
                         maxLines: 1,
-                        color: AppColors.secondaryTextColor,
+                        color: AppColors.black,
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 4),
@@ -80,9 +79,10 @@ class UnjoinChannelCardWidget extends StatelessWidget {
                             displayUsername(channelModel.username ?? ""),
                             color: AppColors.secondaryTextColor,
                             fontWeight: FontWeight.w700,
-                            fontFamily: AppConstants.OpenSans,
                             fontSize: SizeConfig.medium,
                             overflow: TextOverflow.ellipsis,
+
+                            maxLines: 2,
                           ),
                           const SizedBox(width: 20),
 

@@ -151,6 +151,7 @@ class SenderProfile {
     this.name,
     this.profileImage,
     this.username,
+    this.account_type,
     this.email,});
 
   SenderProfile.fromJson(dynamic json) {
@@ -159,12 +160,14 @@ class SenderProfile {
     profileImage = json['profile_image'];
     username = json['username'];
     email = json['email'];
+    account_type = json['account_type'];
   }
   String? id;
   String? name;
   String? profileImage;
   String? username;
   String? email;
+  String? account_type;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -173,6 +176,7 @@ class SenderProfile {
     map['profile_image'] = profileImage;
     map['username'] = username;
     map['email'] = email;
+    map['account_type'] = account_type;
     return map;
   }
 

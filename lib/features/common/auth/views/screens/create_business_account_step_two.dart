@@ -17,7 +17,6 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/business_description/business_description_controller.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/contact_number_widget.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -196,7 +195,7 @@ class _CreateBusinessAccountStepTwoState
                   ),
                   HttpsTextField(
                     controller: websiteController,
-                    hintText: AppLocalizations.of(context)!.websiteLinkHere,
+                    hintText: "https://shop.com",
                   ),
                   SizedBox(
                     height: SizeConfig.size20,

@@ -4,7 +4,6 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/l10n/app_localizations.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_document_picker.dart';
 import 'package:BlueEra/widgets/common_drop_down.dart';
@@ -77,7 +76,7 @@ class _OwnershipVerificationScreenState extends State<OwnershipVerificationScree
   }
   @override
   Widget build(BuildContext context) {
-    final appLocalizations = AppLocalizations.of(context);
+    // final appLocalizations = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: CommonBackAppBar(
@@ -99,7 +98,7 @@ class _OwnershipVerificationScreenState extends State<OwnershipVerificationScree
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     CustomText(
-                      appLocalizations?.uploadOneDocumentToVerifyYourIdentityAsTheBusinessOwner,
+                      AppStrings.uploadOneDocument,
                       fontSize: SizeConfig.large,
                       color: Colors.black,
                       fontWeight: FontWeight.w700,
@@ -108,7 +107,7 @@ class _OwnershipVerificationScreenState extends State<OwnershipVerificationScree
                       height: SizeConfig.size20,
                     ),
                     CustomText(color: Colors.black,
-                      appLocalizations?.theNameOnTheDocumentShouldMatchYourPanName,
+                      AppStrings.nameShouldMatchPan,
                       fontSize: SizeConfig.small,
                       fontStyle: FontStyle.italic,
                     ),
@@ -116,7 +115,7 @@ class _OwnershipVerificationScreenState extends State<OwnershipVerificationScree
                       height: SizeConfig.size20,
                     ),
                     CustomText(color: Colors.black,
-                      appLocalizations?.chooseDocumentType,
+                      AppStrings.chooseDocumentType,
                       fontSize: SizeConfig.size14,
                     ),
                     SizedBox(
@@ -163,7 +162,7 @@ class _OwnershipVerificationScreenState extends State<OwnershipVerificationScree
                         onTap: () {
                           verify();
                         },
-                        title: appLocalizations?.verifyNow,
+                        title: AppStrings.verifyNow,
                         isValidate: validate
                     ),
                   ],
@@ -195,11 +194,10 @@ class _OwnershipVerificationScreenState extends State<OwnershipVerificationScree
 
   ///SELECT IMAGE AND SHOW DIALOG...
   selectImage(BuildContext context) async {
-    final appLocalizations = AppLocalizations.of(context);
 
     imagePath = await SelectProfilePictureDialog.showLogoDialog(
         context,
-        appLocalizations!.uploadYourDocumentPhoto);
+        AppStrings.uploadDocumentPhoto);
     imagePathUrl=null;
     if (imagePath?.isNotEmpty ?? false) {
       ///SET IMAGE PATH...
