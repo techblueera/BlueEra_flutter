@@ -80,6 +80,12 @@
     <array>
         <string>arm64</string>
     </array>
+    <key>UIBackgroundModes</key>
+    <array>
+        <string>voip</string>
+        <string>remote-notification</string>
+        <string>processing</string>
+    </array>
     <key>NSPhotoLibraryAddUsageDescription</key>
     <string>Blue Era needs access to your camera to allow you to take photos for profile pictures, service documentation, or uploading images.</string>
     <key>NSPhotoLibraryUsageDescription</key>
