@@ -169,7 +169,7 @@ class OwnProductCard extends StatelessWidget {
                           const SizedBox(width: 8),
                           if (discountProduct > 0)
                           CustomText(
-                            "${discountProduct}% ${AppStrings.off}",
+                            "${discountProduct}% ${AppStrings.off.tr}",
                             fontSize: SizeConfig.small11,
                             color: Colors.green[600],
                             fontWeight: FontWeight.w400,
@@ -321,7 +321,7 @@ class OwnProductCard extends StatelessWidget {
                             const SizedBox(width: 6),
                             if (discountProduct > 0) ...[
                               CustomText(
-                                  "${discountProduct}% ${AppStrings.off}",
+                                  "${discountProduct}% ${AppStrings.off.tr}",
                                   fontSize: SizeConfig.small,
                                   fontWeight: FontWeight.w400,
                                   color: Colors.green.shade600

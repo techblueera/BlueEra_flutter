@@ -66,8 +66,8 @@ class _AddHighlightsWidgetState extends State<AddHighlightsWidget> {
 
     if (highlights.length > 10) {
       Get.snackbar(
-        AppStrings.limitExceeded,
-        AppStrings.highlightLimitMessage,
+        AppStrings.limitExceeded.tr,
+        AppStrings.highlightLimitMessage.tr,
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red.withValues(alpha: 0.8),
         colorText: Colors.white,

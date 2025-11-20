@@ -146,8 +146,8 @@ class _ServiceCardBusinessState extends State<ServiceCardBusiness> {
                   color: Colors.green, borderRadius: BorderRadius.circular(30)),
               child: CustomText(
                 (maxDiscount?.amountOff != null)
-                    ? "${maxDiscount?.amountOff.toString()}% ${AppStrings.off}"
-                    : "0% ${AppStrings.off}",
+                    ? "${maxDiscount?.amountOff.toString()}% ${AppStrings.off.tr}"
+                    : "0% ${AppStrings.off.tr}",
                 fontSize: SizeConfig.size10,
                 color: Colors.white,
                 maxLines: 1,

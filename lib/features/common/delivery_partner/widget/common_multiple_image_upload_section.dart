@@ -49,7 +49,7 @@ class CommonMultipleImageUploadSection extends StatelessWidget {
                 Padding(
                   padding: EdgeInsets.only(left: SizeConfig.size8),
                   child: CustomText(
-                      "${AppStrings.min} $minImages ${AppStrings.images}",
+                      "${AppStrings.min.tr} $minImages ${AppStrings.images.tr}",
                       // "Min-$minImages Images/Max-${maxImages}Images",
                       fontSize: SizeConfig.medium,
                       color: AppColors.mainTextColor,
@@ -173,7 +173,7 @@ class CommonMultipleImageSectionController extends GetxController{
     final newFiles = selectedImages.map((e) => File(e)).toList();
     final remaining = maxUploadImages - imageList.length;
     if (remaining <= 0) {
-      commonSnackBar(message: '${AppStrings.youCanOnlyUpload} $maxUploadImages ${AppStrings.images}');
+      commonSnackBar(message: '${AppStrings.youCanOnlyUpload.tr} $maxUploadImages ${AppStrings.images.tr}');
       return;
     }
 

@@ -1,3 +1,4 @@
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -71,9 +72,9 @@ class _ProgressContentState extends State<_ProgressContent> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
+          CustomText(
             widget.title ?? "Uploading...",
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+            fontSize: 14, fontWeight: FontWeight.w600,
           ),
           const SizedBox(height: 12),
           LinearProgressIndicator(

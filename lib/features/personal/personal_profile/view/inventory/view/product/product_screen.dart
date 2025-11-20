@@ -117,7 +117,7 @@ class _ProductScreenState extends State<ProductScreen> {
             );
           },
         ),
-      ) : Center(child: EmptyStateWidget(message: '${AppStrings.productIsEmpty}\n${AppStrings.createYourOwnProduct}')),
+      ) : Center(child: EmptyStateWidget(message: '${AppStrings.productIsEmpty.tr}\n${AppStrings.createYourOwnProduct.tr}')),
     );
 
   }

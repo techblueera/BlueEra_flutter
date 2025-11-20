@@ -186,7 +186,7 @@ class _AddVariantDialogState extends State<AddVariantDialog> {
                             child: TextField(
                               controller: detailController,
                               decoration: InputDecoration(
-                                hintText: AppStrings.enterValue,
+                                hintText: AppStrings.enterValue.tr,
                                 hintStyle: TextStyle(
                                   color: AppColors.grey9B,
                                   fontSize: 14,
@@ -254,8 +254,8 @@ class _AddVariantDialogState extends State<AddVariantDialog> {
 
                     if (widget.controller.dynamicAttributes.containsKey(title)) {
                       Get.snackbar(
-                        AppStrings.error,
-                        AppStrings.attributeExists,
+                        AppStrings.error.tr,
+                        AppStrings.attributeExists.tr,
                         snackPosition: SnackPosition.TOP,
                         backgroundColor: Colors.redAccent,
                         colorText: Colors.white,
@@ -266,8 +266,8 @@ class _AddVariantDialogState extends State<AddVariantDialog> {
                     if (isColor) {
                       if (localSelectedColors.isEmpty) {
                         Get.snackbar(
-                          AppStrings.error,
-                          AppStrings.pickAtLeastOneColor,
+                          AppStrings.error.tr,
+                          AppStrings.pickAtLeastOneColor.tr,
                           snackPosition: SnackPosition.TOP,
                           backgroundColor: Colors.redAccent,
                           colorText: Colors.white,
@@ -304,7 +304,7 @@ class _AddVariantDialogState extends State<AddVariantDialog> {
                       if (widget.controller.dynamicAttributes.containsKey(title)) {
                         Get.snackbar(
                           AppStrings.duplicateAttribute,
-                          '${AppStrings.theAttribute} "$title" ${AppStrings.alreadyExists}',
+                          '${AppStrings.theAttribute.tr} "$title" ${AppStrings.alreadyExists.tr}',
                           snackPosition: SnackPosition.TOP,
                         );
                         return;

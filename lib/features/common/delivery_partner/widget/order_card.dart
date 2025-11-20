@@ -208,7 +208,7 @@ class OrderCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         CustomText(
-          '${AppStrings.orderNo} - ${order.orderNo}',
+          '${AppStrings.orderNo.tr} - ${order.orderNo}',
           fontSize: SizeConfig.large,
           fontWeight: FontWeight.w600,
           color: AppColors.mainTextColor,
@@ -610,7 +610,7 @@ class OrderCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(10.0),
       ),
       child: CustomText(
-        '${AppStrings.fare} ₹ ${order.fare}',
+        '${AppStrings.fare.tr} ₹ ${order.fare}',
         fontSize: SizeConfig.small,
         fontWeight: FontWeight.w600,
         color: AppColors.secondaryTextColor,
@@ -721,7 +721,7 @@ class OrderCard extends StatelessWidget {
     if (contactNo?.isNotEmpty ?? false) {
       openDialer(contactNo ?? '');
     } else {
-      commonSnackBar(message: AppStrings.contactNumberNotFound);
+      commonSnackBar(message: AppStrings.contactNumberNotFound.tr);
     }
   }
 
@@ -749,7 +749,7 @@ class OrderCard extends StatelessWidget {
       if (pin == order.deliveryOTP) {
         controller.verifyDeliveredOtp(orderId, pin);
       } else {
-        commonSnackBar(message: AppStrings.otpIsNotCorrect);
+        commonSnackBar(message: AppStrings.otpIsNotCorrect.tr);
       }
     }
   }

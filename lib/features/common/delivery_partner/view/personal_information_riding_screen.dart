@@ -85,7 +85,7 @@ class _PersonalInformationRidingScreenState extends State<PersonalInformationRid
               padding: const EdgeInsets.only(right: 16),
               child: Center(
                 child: Text(
-                  "${AppStrings.stepLabel}1/6",
+                  "${AppStrings.stepLabel.tr}1/6",
                   style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
               ),
@@ -109,11 +109,11 @@ class _PersonalInformationRidingScreenState extends State<PersonalInformationRid
                       inputLength: AppConstants.inputCharterLimit30,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return AppStrings.pleaseEnterYourName;
+                          return AppStrings.pleaseEnterYourName.tr;
                         } else if (value.trim().length < 6) {
-                          return AppStrings.nameMustBeAtLeast6Chars;
+                          return AppStrings.nameMustBeAtLeast6Chars.tr;
                         } else if (value.trim().length > 30) {
-                          return AppStrings.nameMustNotExceed30Chars;
+                          return AppStrings.nameMustNotExceed30Chars.tr;
                         }
                         return null;
                       },
@@ -229,7 +229,7 @@ class _PersonalInformationRidingScreenState extends State<PersonalInformationRid
                             onTapOutsideTrue: false,
                             validator: (value) {
                               if (value?.length != 10) {
-                                return AppStrings.pleaseEnterValidMobileNo;
+                                return AppStrings.pleaseEnterValidMobileNo.tr;
                               }
                               return null;
                             },

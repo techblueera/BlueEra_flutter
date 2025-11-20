@@ -108,8 +108,8 @@ class _SkipVariantDialogState extends State<SkipVariantDialog> {
                 Obx(() =>
                     CustomText(
                       discountPercent.value > 0
-                          ? "${AppStrings.discount}: ${discountPercent.value.toStringAsFixed(2)}%"
-                          : "${AppStrings.discount}: 0%",
+                          ? "${AppStrings.discount.tr}: ${discountPercent.value.toStringAsFixed(2)}%"
+                          : "${AppStrings.discount.tr}: 0%",
                       fontSize: SizeConfig.medium,
                       fontWeight: FontWeight.w500,
                       color: AppColors.primaryColor,

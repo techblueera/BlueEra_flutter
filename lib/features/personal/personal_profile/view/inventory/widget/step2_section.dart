@@ -281,7 +281,7 @@ class _Step2SectionState extends State<Step2Section> {
                   children: [
                     Expanded(
                       child: CommonTextField(
-                        title: '${AppStrings.feature} ${i + 1}',
+                        title: '${AppStrings.feature.tr} ${i + 1}',
                         hintText: AppStrings.hintProductFeature,
                         textEditController: controller.featureControllers[i],
                         maxLine: 2,
@@ -553,7 +553,7 @@ class _Step2SectionState extends State<Step2Section> {
 
   Future<void> showAddMoreDetailsDialog(BuildContext context) async {
     if(widget.controller.detailsList.length==5){
-      commonSnackBar(message: AppStrings.youCantAddMoreThanFiveDetail);
+      commonSnackBar(message: AppStrings.youCantAddMoreThanFiveDetail.tr);
       return;
     }
 

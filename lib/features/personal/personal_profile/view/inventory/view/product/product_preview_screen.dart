@@ -547,7 +547,7 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             CustomText(
-              '${AppStrings.tagsKeywords}: ',
+              '${AppStrings.tagsKeywords.tr}: ',
               fontSize: SizeConfig.medium,
               fontWeight: FontWeight.w600,
               color: AppColors.secondaryTextColor,
@@ -724,7 +724,7 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
             child: Row(
               children: [
                 CustomText(
-                  '${AppStrings.productWarranty}: ',
+                  '${AppStrings.productWarranty.tr}: ',
                   fontSize: SizeConfig.medium,
                   fontWeight: FontWeight.w600,
                   color: AppColors.secondaryTextColor,
@@ -748,7 +748,7 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
             child: Row(
               children: [
                 CustomText(
-                  '${AppStrings.expiryTime}: ',
+                  '${AppStrings.expiryTime.tr}: ',
                   fontSize: SizeConfig.medium,
                   fontWeight: FontWeight.w600,
                   color: AppColors.secondaryTextColor,
@@ -773,7 +773,7 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomText(
-                  '${AppStrings.userGuidance}: ',
+                  '${AppStrings.userGuidance.tr}: ',
                   fontSize: SizeConfig.medium,
                   fontWeight: FontWeight.w600,
                   color: AppColors.secondaryTextColor,
@@ -828,7 +828,7 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
         if(controller.selectedColors.isNotEmpty)
           ...[
             CustomText(
-              '${AppStrings.color}: ',
+              '${AppStrings.color.tr}: ',
               fontSize: SizeConfig.medium,
               fontWeight: FontWeight.w600,
               color: AppColors.secondaryTextColor,
@@ -1307,7 +1307,7 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
                           decoration: TextDecoration.lineThrough,
                         ),
                         CustomText(
-                          ' ${product.discount}% ${AppStrings.off}',
+                          ' ${product.discount}% ${AppStrings.off.tr}',
                           fontSize: SizeConfig.small11,
                           color: Colors.green[600],
                           fontWeight: FontWeight.w400,
@@ -1373,12 +1373,11 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
                 Row(
                   children: [
                     Expanded(
-                      child: const Text(
+                      child: const CustomText(
                         AppStrings.selectedVariants,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+
                       ),
                     ),
                     SizedBox(width: SizeConfig.size5),

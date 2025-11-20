@@ -111,7 +111,6 @@ class _BusinessLocationBottomSheetState
                 children: [
                   CustomText(
                     AppStrings.businessLocation,
-
                   ),
                   IconButton(
                     icon: const Icon(Icons.close),

@@ -54,9 +54,9 @@ class _InventoryScreenState extends State<InventoryScreen>
     _businessType = business;
     _tabs = [];
 
-    if (isShowProduct.contains(business)) _tabs.add(const Tab(text: AppStrings.myProducts));
-    if (isShowService.contains(business)) _tabs.add(const Tab(text: AppStrings.myServices));
-    if (isShowFood.contains(business)) _tabs.add(const Tab(text: AppStrings.foodAndGrocery));
+    if (isShowProduct.contains(business)) _tabs.add(Tab(text: AppStrings.myProducts.tr));
+    if (isShowService.contains(business)) _tabs.add(Tab(text: AppStrings.myServices.tr));
+    if (isShowFood.contains(business)) _tabs.add(Tab(text: AppStrings.foodAndGrocery.tr));
 
     _tabController = TabController(length: _tabs.length, vsync: this);
     if (_tabs.isEmpty) {
@@ -126,11 +126,11 @@ class _InventoryScreenState extends State<InventoryScreen>
             labelStyle: TextStyle(fontWeight: FontWeight.w600),
             tabs: [
               if (isShowProduct.contains(_businessType))
-                const Tab(text: AppStrings.myProducts),
+                 Tab(text: AppStrings.myProducts.tr),
               if (isShowService.contains(_businessType))
-                const Tab(text: AppStrings.myServices),
+                 Tab(text: AppStrings.myServices.tr),
               if (isShowFood.contains(_businessType))
-                const Tab(text: AppStrings.foodAndGrocery),
+                 Tab(text: AppStrings.foodAndGrocery.tr),
             ],
           ),
         ),

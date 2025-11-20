@@ -173,7 +173,7 @@ void _onDeliveryPartnerOnClick() {
   final allCompleted = stepStatus.values.every((status) => status == true);
 
   if (allCompleted) {
-    commonSnackBar(message: AppStrings.allStepsSubmitted);
+    commonSnackBar(message: AppStrings.allStepsSubmitted.tr);
     return;
   }
 

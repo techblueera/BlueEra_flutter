@@ -121,7 +121,7 @@ class _FoodAndGroceryScreenState extends State<FoodAndGroceryScreen>
             ],
           );
         }else{
-          return Center(child: Text(AppStrings.noFoodServiceFound, style: TextStyle(fontSize: 18)));
+          return Center(child: CustomText(AppStrings.noFoodServiceFound, fontSize: 18));
         }
       }),
     );
@@ -321,14 +321,14 @@ class FoodItemCard extends StatelessWidget {
                             fit: BoxFit.scaleDown,
                             child: (foodData.priceType == "single")
                                 ? CustomText(
-                              "${AppStrings.pricePrefix}₹ ${foodData.singlePrice ?? "0"}",
+                              "${AppStrings.pricePrefix.tr}₹ ${foodData.singlePrice ?? "0"}",
                               fontSize: SizeConfig.small,
                               overflow: TextOverflow.ellipsis,
                               maxLines: 1,
                               color: AppColors.primaryColor,
                             )
                                 : CustomText(
-                              "${AppStrings.pricePrefix}₹${priceText}",
+                              "${AppStrings.pricePrefix.tr}₹${priceText}",
                               fontWeight: FontWeight.w600,
                               overflow: TextOverflow.ellipsis,
                               color: AppColors.primaryColor,

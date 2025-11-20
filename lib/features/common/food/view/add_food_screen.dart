@@ -319,10 +319,10 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: const [
-                            Text(AppStrings.uploadImages,
-                                style: TextStyle(fontWeight: FontWeight.w500)),
-                            Text(AppStrings.min1Max2,
-                                style: TextStyle(color: Colors.grey)),
+                            CustomText(AppStrings.uploadImages,
+                                fontWeight: FontWeight.w500),
+                            CustomText(AppStrings.min1Max2,
+                                color: Colors.grey),
                           ],
                         ),
 
@@ -481,7 +481,7 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
                           child: ListTile(
                             contentPadding: EdgeInsets.zero,
                             leading: const Icon(Icons.add_circle_outline),
-                            title: const Text(AppStrings.addOns),
+                            title: const CustomText(AppStrings.addOns),
                             trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                             onTap: () async {
                               final result = await Navigator.push(
@@ -1148,14 +1148,14 @@ class _AddOnsPageState extends State<AddOnsPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Extra Add field
-                const Text(
+                const CustomText(
                     AppStrings.extraAdd,
-                    style: TextStyle(fontWeight: FontWeight.w500)),
+                    fontWeight: FontWeight.w500),
                 const SizedBox(height: 6),
                 TextField(
                   controller: extraCtrl,
                   decoration: InputDecoration(
-                    hintText: AppStrings.egButterNaan,
+                    hintText: AppStrings.egButterNaan.tr,
                     filled: true,
                     fillColor: Colors.grey.shade100,
                     contentPadding: const EdgeInsets.symmetric(
@@ -1169,14 +1169,14 @@ class _AddOnsPageState extends State<AddOnsPage> {
                 const SizedBox(height: 16),
 
                 // Price field
-                const Text(
-                    AppStrings.price, style: TextStyle(fontWeight: FontWeight.w500)),
+                const CustomText(
+                    AppStrings.price, fontWeight: FontWeight.w500),
                 const SizedBox(height: 6),
                 TextField(
                   controller: priceCtrl,
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
-                    hintText: AppStrings.egRs300,
+                    hintText: AppStrings.egRs300.tr,
                     filled: true,
                     fillColor: Colors.grey.shade100,
                     contentPadding: const EdgeInsets.symmetric(

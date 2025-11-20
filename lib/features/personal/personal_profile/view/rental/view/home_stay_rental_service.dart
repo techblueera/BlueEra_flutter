@@ -75,7 +75,7 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
                 padding: const EdgeInsets.only(right: 16),
                 child: Center(
                   child: Text(
-                    "${AppStrings.stepLabel}${controller.currentStep.value + 1}/${controller.totalSteps}",
+                    "${AppStrings.stepLabel.tr}${controller.currentStep.value + 1}/${controller.totalSteps}",
                     style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
                 ),
@@ -191,7 +191,7 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
                       onTapOutsideTrue: false,
                       validator: (value) {
                         if (value?.length != 10) {
-                          return AppStrings.pleaseEnterValidMobileNo;
+                          return AppStrings.pleaseEnterValidMobileNo.tr;
                         }
                         return null;
                       },
@@ -450,7 +450,7 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
                             },
                             validator: (value){
                                 if(value==null){
-                                  return AppStrings.selectChargesTypeError;
+                                  return AppStrings.selectChargesTypeError.tr;
                                 }
                                 return null;
                               }

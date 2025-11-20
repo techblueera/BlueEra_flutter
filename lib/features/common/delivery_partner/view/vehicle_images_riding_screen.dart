@@ -30,7 +30,7 @@ class _VehicleImagesRidingScreenState extends State<VehicleImagesRidingScreen> {
           padding: const EdgeInsets.only(right: 16),
           child: Center(
             child: Text(
-              "${AppStrings.stepLabel}5/6",
+              "${AppStrings.stepLabel.tr}5/6",
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ),

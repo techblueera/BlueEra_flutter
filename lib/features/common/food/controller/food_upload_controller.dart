@@ -325,7 +325,7 @@ class FoodUploadController extends GetxController {
            await uploadAllImages(images);
          }
          UploadProgressDialog.close();
-         commonSnackBar(message: AppStrings.foodAddedSuccess);
+         commonSnackBar(message: AppStrings.foodAddedSuccess.tr);
          // Map<String, dynamic> params = {
          //   ApiKeys.all: false,
          //   ApiKeys.type: "food",

@@ -125,8 +125,8 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                             }
                                 : () {
                               Get.snackbar(
-                                AppStrings.error,
-                                AppStrings.selectVariantPrompt,
+                                AppStrings.error.tr,
+                                AppStrings.selectVariantPrompt.tr,
                               );
                             },
                           ),
@@ -411,13 +411,11 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                       size: 16,
                     ),
                     SizedBox(width: 4),
-                    Text(
+                    CustomText(
                       AppStrings.addMoreTitle,
-                      style: TextStyle(
-                        color: AppColors.primaryColor,
-                        fontSize: SizeConfig.small,
-                        fontWeight: FontWeight.w500,
-                      ),
+                      color: AppColors.primaryColor,
+                      fontSize: SizeConfig.small,
+                      fontWeight: FontWeight.w500,
                     ),
                   ],
                 ),
@@ -545,13 +543,11 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                       size: 16,
                     ),
                     SizedBox(width: 4),
-                    Text(
+                    CustomText(
                       AppStrings.addMoreTitle,
-                      style: TextStyle(
-                        color: AppColors.primaryColor,
-                        fontSize: SizeConfig.small,
-                        fontWeight: FontWeight.w500,
-                      ),
+                      color: AppColors.primaryColor,
+                      fontSize: SizeConfig.small,
+                      fontWeight: FontWeight.w500,
                     ),
                   ],
                 ),
@@ -908,7 +904,7 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                                 ),
                               )
                                   : SizedBox.shrink(
-                                  key: ValueKey("${AppStrings.empty}_$attributeKey")),
+                                  key: ValueKey("${AppStrings.empty.tr}_$attributeKey")),
                             ),
                           ],
                         ),

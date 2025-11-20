@@ -54,7 +54,7 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
 
   Future<void> showAddMoreDetailsDialog(BuildContext context) async {
     if(controller.arrMoreDetails.length==5){
-      commonSnackBar(message: AppStrings.maxDetailsReached);
+      commonSnackBar(message: AppStrings.maxDetailsReached.tr);
       return;
     }
 
@@ -88,7 +88,7 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
               padding: const EdgeInsets.only(right: 16),
               child: Center(
                 child: Text(
-                  "${AppStrings.stepLabel}${controller.currentStep.value + 1}/2",
+                  "${AppStrings.stepLabel.tr}${controller.currentStep.value + 1}/2",
                   style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
               ),
@@ -293,7 +293,7 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
                           onTapOutsideTrue: false,
                           validator: (value) {
                             if (value?.length != 10) {
-                              return AppStrings.pleaseEnterValidMobileNo;
+                              return AppStrings.pleaseEnterValidMobileNo.tr;
                             }
                             return null;
                           },
@@ -327,7 +327,7 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
                           },
                             validator: (value){
                               if(value==null){
-                                return AppStrings.selectChargesTypeError;
+                                return AppStrings.selectChargesTypeError.tr;
                               }
                               return null;
                             }

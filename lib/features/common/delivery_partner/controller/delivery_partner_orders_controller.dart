@@ -85,15 +85,15 @@ class DeliverPartnerOrdersController extends GetxController {
       ResponseModel? response = await MakeOrderRepo().updateOrderStatusFromPt(params,orderId);
       if (response.isSuccess ) {
         commonSnackBar(
-            message: response.message ?? AppStrings.orderStatusUpdatedSuccessfully);
+            message: response.message ?? AppStrings.orderStatusUpdatedSuccessfully.tr);
       return true;
       } else {
         commonSnackBar(
-            message: response.message ?? AppStrings.somethingWentWrong);
+            message: response.message ?? AppStrings.somethingWentWrong.tr);
         return false;
       }
     } catch (e) {
-      commonSnackBar(message: AppStrings.somethingWentWrong);
+      commonSnackBar(message: AppStrings.somethingWentWrong.tr);
       return false;
     }
   }
@@ -188,7 +188,7 @@ class DeliverPartnerOrdersController extends GetxController {
       if (response.isSuccess) {
         // OTP verified successfully
         otpVerifiedMap[orderId] = true;
-        commonSnackBar(message: response.message ?? AppStrings.otpSuccessfullyVerified);
+        commonSnackBar(message: response.message ?? AppStrings.otpSuccessfullyVerified.tr);
       } else {
         // OTP verification failed
         otpVerifiedMap[orderId] = false;
@@ -213,13 +213,13 @@ class DeliverPartnerOrdersController extends GetxController {
       ResponseModel? response = await MakeOrderRepo().updateOrderStatusFromAdminRepo(params, orderId);
       if (response.isSuccess ) {
         commonSnackBar(
-            message: response.message ??  AppStrings.orderStatusUpdatedSuccessfully);
+            message: response.message ??  AppStrings.orderStatusUpdatedSuccessfully.tr);
       } else {
         commonSnackBar(
-            message: response.message ?? AppStrings.somethingWentWrong);
+            message: response.message ?? AppStrings.somethingWentWrong.tr);
       }
     } catch (e) {
-      commonSnackBar(message: AppStrings.somethingWentWrong);
+      commonSnackBar(message: AppStrings.somethingWentWrong.tr);
     }
   }
 

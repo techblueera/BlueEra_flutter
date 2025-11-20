@@ -62,43 +62,43 @@ class AddServiceController extends GetxController {
 
   // Validation method
   String? validateServiceName(String? value) {
-    if (value == null || value.isEmpty) return AppStrings.serviceNameRequired;
-    if (value.length < 3) return AppStrings.serviceNameMinLength;
+    if (value == null || value.isEmpty) return AppStrings.serviceNameRequired.tr;
+    if (value.length < 3) return AppStrings.serviceNameMinLength.tr;
     return null;
   }
 
   String? validateServiceDescription(String? value) {
     if (value == null || value.isEmpty)
-      return AppStrings.serviceDescRequired;
+      return AppStrings.serviceDescRequired.tr;
     if (value.length < 15)
-      return AppStrings.serviceDescMinLength;
+      return AppStrings.serviceDescMinLength.tr;
     return null;
   }
 
   String? validateAmount(String? value) {
-    if (value == null || value.isEmpty) return AppStrings.amountRequired;
+    if (value == null || value.isEmpty) return AppStrings.amountRequired.tr;
 
     // Try parsing the value to a number
     final amount = double.tryParse(value);
-    if (amount == null) return  AppStrings.enterValidNumber;
-    if (amount <= 0) return AppStrings.amountGreaterThanZero;
+    if (amount == null) return  AppStrings.enterValidNumber.tr;
+    if (amount <= 0) return AppStrings.amountGreaterThanZero.tr;
 
     return null;
   }
 
   String? validateMinPrice(String? value, TextEditingController maxPriceCtrl) {
     if (value == null || value.trim().isEmpty) {
-      return AppStrings.minPriceRequired;
+      return AppStrings.minPriceRequired.tr;
     }
 
     final min = int.tryParse(value);
     if (min == null || min <= 0) {
-      return  AppStrings.enterValidMinPrice;
+      return  AppStrings.enterValidMinPrice.tr;
     }
 
     final max = int.tryParse(maxPriceCtrl.text);
     if (max != null && min >= max) {
-      return AppStrings.minLessThanMax;
+      return AppStrings.minLessThanMax.tr;
     }
 
     return null;
@@ -106,17 +106,17 @@ class AddServiceController extends GetxController {
 
   String? validateMaxPrice(String? value, TextEditingController minPriceCtrl) {
     if (value == null || value.trim().isEmpty) {
-      return AppStrings.maxPriceRequired;
+      return AppStrings.maxPriceRequired.tr;
     }
 
     final max = int.tryParse(value);
     if (max == null || max <= 0) {
-      return AppStrings.enterValidMaxPrice;
+      return AppStrings.enterValidMaxPrice.tr;
     }
 
     final min = int.tryParse(minPriceCtrl.text);
     if (min != null && max <= min) {
-      return AppStrings.maxGreaterThanMin;
+      return AppStrings.maxGreaterThanMin.tr;
     }
 
     return null;
@@ -150,7 +150,7 @@ class AddServiceController extends GetxController {
 
   void addFacility() {
     if (facilities.length == 10) {
-      commonSnackBar(message: AppStrings.max10Facilities);
+      commonSnackBar(message: AppStrings.max10Facilities.tr);
       return;
     }
 
@@ -186,7 +186,7 @@ class AddServiceController extends GetxController {
     final parts = time24.split(":");
     int hour = int.parse(parts[0]);
     final minute = parts[1];
-    final suffix = hour >= 12 ? AppStrings.pm : AppStrings.am;
+    final suffix = hour >= 12 ? AppStrings.pm.tr : AppStrings.am.tr;
     if (hour == 0) hour = 12;
     if (hour > 12) hour -= 12;
     return "${hour.toString().padLeft(2, '0')}:$minute $suffix";
@@ -208,23 +208,23 @@ class AddServiceController extends GetxController {
     if (imageLocalPaths.length < 1 || imageLocalPaths.length > 5) {
       commonSnackBar(
           message: (imageLocalPaths.length < 1)
-              ? AppStrings.minTwoImages
-              : AppStrings.maxFiveImages);
+              ? AppStrings.minTwoImages.tr
+              : AppStrings.maxFiveImages.tr);
       return false;
     }
 
     if (facilities.isEmpty) {
-      commonSnackBar(message: AppStrings.addFacility);
+      commonSnackBar(message: AppStrings.addFacility.tr);
       return false;
     }
 
     if (startTime.value.isEmpty) {
-      commonSnackBar(message: AppStrings.startTimeRequired);
+      commonSnackBar(message: AppStrings.startTimeRequired.tr);
       return false;
     }
 
     if (endTime.value.isEmpty) {
-      commonSnackBar(message: AppStrings.endTimeRequired);
+      commonSnackBar(message: AppStrings.endTimeRequired.tr);
       return false;
     }
 
@@ -232,7 +232,7 @@ class AddServiceController extends GetxController {
     final endIndex = timeSlots.indexOf(endTime.value);
 
     if (startIndex >= endIndex) {
-      commonSnackBar(message: AppStrings.startBeforeEnd);
+      commonSnackBar(message: AppStrings.startBeforeEnd.tr);
       return false;
     }
 
@@ -332,7 +332,7 @@ class AddServiceController extends GetxController {
 
         // ✅ Close dialog once and navigate back
         UploadProgressDialog.close();
-        commonSnackBar(message: AppStrings.serviceAddedSuccess);
+        commonSnackBar(message: AppStrings.serviceAddedSuccess.tr);
         Get.close(2);
         // Get.back();
         // Get.back();

@@ -441,7 +441,7 @@ class _CreateBusinessAccountStepTwoState
                                     if (mobileController.length != 10) {
                                       commonSnackBar(
                                           message:
-                                          AppStrings.pleaseEnterValidMobileNo);
+                                          AppStrings.pleaseEnterValidMobileNo.tr);
                                       return;
                                     }
                                   }
@@ -449,7 +449,7 @@ class _CreateBusinessAccountStepTwoState
                                   if (selectedType == ContactType.Landline) {
                                     if (landlineNumberController.text.length < 6 ||
                                         landlineNumberController.text.length > 8) {
-                                      commonSnackBar(message:AppStrings.pleaseEnterValidLandline);
+                                      commonSnackBar(message:AppStrings.pleaseEnterValidLandline.tr);
                                       return;
                                     }
 

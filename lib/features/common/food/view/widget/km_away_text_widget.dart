@@ -7,6 +7,7 @@ import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class KmAwayTextWidget extends StatefulWidget {
   final String lat, long;
@@ -53,7 +54,7 @@ class _KmAwayTextWidgetState extends State<KmAwayTextWidget> {
                 width: SizeConfig.size5,
               ),
               CustomText(
-                "${kmAway.toStringAsFixed(0)} ${AppStrings.kmAway}",
+                "${kmAway.toStringAsFixed(0)} ${AppStrings.kmAway.tr}",
                 fontSize: SizeConfig.size8,
                 maxLines: 1,
                 color: AppColors.primaryColor,

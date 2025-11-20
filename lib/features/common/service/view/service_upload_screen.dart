@@ -191,7 +191,7 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     CustomText(
-                                      '${AppStrings.category} : ',
+                                      '${AppStrings.category.tr} : ',
                                       fontWeight: FontWeight.bold,
                                       color: Colors.blue.shade800,
                                     ),
@@ -430,9 +430,9 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
 
   String? validateServiceDescription(String? value) {
     if (value == null || value.isEmpty)
-      return AppStrings.serviceDescriptionRequired;
+      return AppStrings.serviceDescriptionRequired.tr;
     if (value.length < 15)
-      return AppStrings.serviceDescriptionMinLength;
+      return AppStrings.serviceDescriptionMinLength.tr;
     return null;
   }
 }

@@ -37,7 +37,7 @@ class _VehicleInformationRidingScreenState extends State<VehicleInformationRidin
           padding: const EdgeInsets.only(right: 16),
           child: Center(
             child: Text(
-              "${AppStrings.stepLabel}6/6",
+              "${AppStrings.stepLabel.tr}6/6",
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
@@ -188,9 +188,9 @@ class _VehicleInformationRidingScreenState extends State<VehicleInformationRidin
                                 fontFamily: AppConstants.OpenSans,
                               ),
                               children: [
-                                const TextSpan(text: AppStrings.acceptAll),
+                                TextSpan(text: AppStrings.acceptAll.tr),
                                 TextSpan(
-                                  text: AppStrings.termsConditions,
+                                  text: AppStrings.termsConditions.tr,
                                   style: const TextStyle(color: AppColors.primaryColor),
                                   recognizer: TapGestureRecognizer()
                                     ..onTap = () {
@@ -200,9 +200,9 @@ class _VehicleInformationRidingScreenState extends State<VehicleInformationRidin
                                       ));
                                     },
                                 ),
-                                const TextSpan(text: ' ${AppStrings.and}\n'),
+                                TextSpan(text: ' ${AppStrings.and.tr}\n'),
                                 TextSpan(
-                                  text: AppStrings.privacyPolicy,
+                                  text: AppStrings.privacyPolicy.tr,
                                   style: const TextStyle(color: AppColors.primaryColor),
                                   recognizer: TapGestureRecognizer()
                                     ..onTap = () {

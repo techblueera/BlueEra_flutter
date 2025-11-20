@@ -82,22 +82,22 @@ class HomeStayRentalServiceController extends GetxController{
       if(arrHighlights.isNotEmpty){
         nextStep();
       }else{
-        commonSnackBar(message: AppStrings.highlightsIsRequired);
+        commonSnackBar(message: AppStrings.highlightsIsRequired.tr);
       }
     }
   }
 
   void validateStepThree(){
       if (roomImages.length < 4) {
-        commonSnackBar(message: AppStrings.uploadAtLeast4Room);
+        commonSnackBar(message: AppStrings.uploadAtLeast4Room.tr);
         return;
       }
       if (kitchenImages.length < 2) {
-        commonSnackBar(message: AppStrings.uploadAtLeast2Kitchen);
+        commonSnackBar(message: AppStrings.uploadAtLeast2Kitchen.tr);
         return;
       }
       if (bathroomImages.length < 2) {
-        commonSnackBar(message: AppStrings.uploadAtLeast2Bathroom);
+        commonSnackBar(message: AppStrings.uploadAtLeast2Bathroom.tr);
         return;
       }
 
@@ -107,7 +107,7 @@ class HomeStayRentalServiceController extends GetxController{
 
   void validateStepFour(){
     if (roadSideImages.length < 2) {
-      commonSnackBar(message: AppStrings.uploadAtLeast2RoadSide);
+      commonSnackBar(message: AppStrings.uploadAtLeast2RoadSide.tr);
        return;
     }
 
@@ -241,7 +241,7 @@ class HomeStayRentalServiceController extends GetxController{
 
   Future<void> generateHomeDescriptionApi() async {
     if(bedsCountCtrl.text.isEmpty || arrHighlights.isEmpty){
-      commonSnackBar(message: AppStrings.enterBedCountAndHighlights);
+      commonSnackBar(message: AppStrings.enterBedCountAndHighlights.tr);
       return;
     }
 
@@ -272,7 +272,7 @@ class HomeStayRentalServiceController extends GetxController{
 
           await showHomeDescriptionSuggestionsDialog();
         } else {
-          commonSnackBar(message: AppStrings.homeDescriptionSuggestionsNotFound);
+          commonSnackBar(message: AppStrings.homeDescriptionSuggestionsNotFound.tr);
         }
       }
     } catch (e) {

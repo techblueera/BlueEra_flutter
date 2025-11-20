@@ -170,7 +170,7 @@ class _FoodCardBusinessState extends State<FoodCardBusiness> {
             Padding(
               padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
               child: CustomText(
-                "${AppStrings.energyPrefix}${serviceData?.nutritionalSummaryPer100g?.caloriesKcal ?? AppStrings.na} ${AppStrings.Cal100gm}",
+                "${AppStrings.energyPrefix.tr}${serviceData?.nutritionalSummaryPer100g?.caloriesKcal ?? AppStrings.na.tr} ${AppStrings.Cal100gm.tr}",
                 fontSize: SizeConfig.small,
                 fontWeight: FontWeight.w500,
                 overflow: TextOverflow.ellipsis,
@@ -183,7 +183,7 @@ class _FoodCardBusinessState extends State<FoodCardBusiness> {
                     padding:
                         EdgeInsets.symmetric(horizontal: SizeConfig.size10),
                     child: CustomText(
-                      "${AppStrings.pricePrefix}₹ ${serviceData?.singlePrice ?? "0"}",
+                      "${AppStrings.pricePrefix.tr}₹ ${serviceData?.singlePrice ?? "0"}",
                       fontSize: SizeConfig.small,
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
@@ -194,7 +194,7 @@ class _FoodCardBusinessState extends State<FoodCardBusiness> {
                     padding:
                         EdgeInsets.symmetric(horizontal: SizeConfig.size10),
                     child: CustomText(
-                      "${AppStrings.pricePrefix}₹ ${priceText}",
+                      "${AppStrings.pricePrefix.tr}₹ ${priceText}",
                       fontWeight: FontWeight.w600,
                       overflow: TextOverflow.ellipsis,
                       color: AppColors.primaryColor,

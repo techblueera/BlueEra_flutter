@@ -49,20 +49,20 @@ class _InventoryBusinessCardsScreenState extends State<InventoryBusinessCardsScr
     _tabTypes = [];
 
     if (isShowProduct.contains(business)) {
-      _tabs.add(const Tab(text: AppStrings.myProducts));
+      _tabs.add(Tab(text: AppStrings.myProducts.tr));
       _tabTypes.add('product');
     }
     if (isShowService.contains(business)) {
-      _tabs.add(const Tab(text: AppStrings.myServices));
+      _tabs.add(Tab(text: AppStrings.myServices.tr));
       _tabTypes.add('service');
     }
     if (isShowFood.contains(business)) {
-      _tabs.add(const Tab(text: AppStrings.foodAndGrocery));
+      _tabs.add(Tab(text: AppStrings.foodAndGrocery.tr));
       _tabTypes.add('food');
     }
 
     if (_tabs.isEmpty) {
-      debugPrint(" ${AppStrings.noMatchingTabsFound} $business");
+      debugPrint(" ${AppStrings.noMatchingTabsFound.tr} $business");
       setState(() => _isLoading = false);
       return;
     }
@@ -171,7 +171,7 @@ class _InventoryBusinessCardsScreenState extends State<InventoryBusinessCardsScr
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (serviceController.serviceDataList.isEmpty) {
-                  return const Center(child: Text(AppStrings.noServicesFound));
+                  return const Center(child: CustomText(AppStrings.noServicesFound));
                 }
                 return Padding(
                   padding: const EdgeInsets.only(bottom: kBottomNavigationBarHeight),
@@ -186,7 +186,7 @@ class _InventoryBusinessCardsScreenState extends State<InventoryBusinessCardsScr
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (foodUploadController.foodDataList.isEmpty) {
-                  return const Center(child: Text(AppStrings.noFoodItemsFound));
+                  return const Center(child: CustomText(AppStrings.noFoodItemsFound));
                 }
                 return Padding(
                   padding: const EdgeInsets.only(bottom: kBottomNavigationBarHeight),

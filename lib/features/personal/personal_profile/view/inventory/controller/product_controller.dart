@@ -375,7 +375,7 @@ class ProductController extends GetxController{
 
   bool _validate() {
     if(step1Images.length < 1) {
-      commonSnackBar(message: AppStrings.pleaseTakeMinimumOneProductImage);
+      commonSnackBar(message: AppStrings.pleaseTakeMinimumOneProductImage.tr);
       return false;
     }
 

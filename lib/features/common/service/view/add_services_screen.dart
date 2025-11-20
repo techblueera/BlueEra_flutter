@@ -199,7 +199,7 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 CustomText(
-                                  '${AppStrings.category} : ',
+                                  '${AppStrings.category.tr} : ',
                                   fontWeight: FontWeight.bold,
                                   color: Colors.blue.shade800,
                                 ),
@@ -270,7 +270,7 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
                                     5) {
                                   commonSnackBar(
                                     message:
-                                        AppStrings.limitReachedImages,
+                                        AppStrings.limitReachedImages.tr,
                                   );
                                 } else {
                                   addServiceController.pickImages(context);
@@ -381,8 +381,8 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
                                 controller: addServiceController.facilitiesCtrl,
                                 onChanged: (_) =>
                                     addServiceController.update(["addIcon"]),
-                                decoration: const InputDecoration(
-                                  hintText: AppStrings.facility,
+                                decoration: InputDecoration(
+                                  hintText: AppStrings.facility.tr,
                                   hintStyle: TextStyle(
                                     color: AppColors.grey9B,
                                     fontSize: 14,
@@ -860,7 +860,7 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
                       child: CommonTextField(
                         contentPadding:
                             EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-                        hintText: "${AppStrings.max} - ₹800",
+                        hintText: "${AppStrings.max.tr} - ₹800",
                         textEditController: addServiceController.maxPriceCtrl,
                         keyBoardType: TextInputType.number,
                         validator: (value) => ValidationMethod()
@@ -1110,7 +1110,7 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
 
   Future<void> showAddMoreDetailsDialog(BuildContext context) async {
     if (addServiceController.detailsList.length == 5) {
-      commonSnackBar(message: AppStrings.cantAddMoreThanFive);
+      commonSnackBar(message: AppStrings.cantAddMoreThanFive.tr);
       return;
     }
 
@@ -1416,7 +1416,7 @@ void showDiscountCouponDialog(BuildContext context) {
                                   .addCoupon(coupon);
 
                               Get.back();
-                              Get.snackbar(AppStrings.success, AppStrings.couponSaved);
+                              Get.snackbar(AppStrings.success, AppStrings.couponSaved.tr);
 
                             }
                           },

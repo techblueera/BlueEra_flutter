@@ -84,17 +84,17 @@ class VehicleRentalServiceController extends GetxController{
   void validateStepTwo(){
     if(formKeyStep2.currentState!.validate()){
       if (selectedVehicleRegistrationType.value == null) {
-        commonSnackBar(message: AppStrings.pleaseSelectVehicleRegType);
+        commonSnackBar(message: AppStrings.pleaseSelectVehicleRegType.tr);
         return;
       }
 
       if (selectedVehicleType.value == null) {
-        commonSnackBar(message: AppStrings.pleaseSelectVehicleType);
+        commonSnackBar(message: AppStrings.pleaseSelectVehicleType.tr);
         return;
       }
 
       if (selectedFuelType.value == null) {
-        commonSnackBar(message: AppStrings.pleaseSelectFuelType);
+        commonSnackBar(message: AppStrings.pleaseSelectFuelType.tr);
         return;
       }
 
@@ -106,23 +106,23 @@ class VehicleRentalServiceController extends GetxController{
   void validateStepThree(){
     if(formKeyStep1.currentState!.validate()){
       if (rcFrontImage.value == null) {
-        commonSnackBar(message: AppStrings.pleaseSelectRcFrontImage);
+        commonSnackBar(message: AppStrings.pleaseSelectRcFrontImage.tr);
         return;
       }
       if (rcBackImage.value == null) {
-        commonSnackBar(message: AppStrings.pleaseSelectRcBackImage);
+        commonSnackBar(message: AppStrings.pleaseSelectRcBackImage.tr);
         return;
       }
       if (insuranceImage.value == null) {
-        commonSnackBar(message: AppStrings.pleaseSelectInsuranceImage);
+        commonSnackBar(message: AppStrings.pleaseSelectInsuranceImage.tr);
         return;
       }
       if (pucImage.value == null) {
-        commonSnackBar(message: AppStrings.pleaseSelectPucImage);
+        commonSnackBar(message: AppStrings.pleaseSelectPucImage.tr);
         return;
       }
       if (vehicleFitnessCertificateImage.value == null) {
-        commonSnackBar(message: AppStrings.pleaseSelectFitnessCertImage);
+        commonSnackBar(message: AppStrings.pleaseSelectFitnessCertImage.tr);
         return;
       }
 
@@ -134,7 +134,7 @@ class VehicleRentalServiceController extends GetxController{
   void validateStepFour(){
     if(formKeyStep1.currentState!.validate()){
       if (selectedChargesTypes.value == null) {
-        commonSnackBar(message: AppStrings.pleaseChooseChargesType);
+        commonSnackBar(message: AppStrings.pleaseChooseChargesType.tr);
         return;
       }
 
@@ -144,33 +144,33 @@ class VehicleRentalServiceController extends GetxController{
 
   void validateStepFive() {
     if (vehicleNumberPlateImages.isEmpty) {
-      commonSnackBar(message: AppStrings.pleaseSelectNumberPlateImage);
+      commonSnackBar(message: AppStrings.pleaseSelectNumberPlateImage.tr);
       return;
     }
 
     if (vehicleRightSideImages.isEmpty) {
-      commonSnackBar(message: AppStrings.pleaseSelectRightSideImages);
+      commonSnackBar(message: AppStrings.pleaseSelectRightSideImages.tr);
       return;
     } else if (vehicleRightSideImages.length < 2) {
-      commonSnackBar(message: AppStrings.pleaseSelectAtLeastTwoRight);
+      commonSnackBar(message: AppStrings.pleaseSelectAtLeastTwoRight.tr);
       return;
     }
 
     if (vehicleLeftSideImages.isEmpty) {
-      commonSnackBar(message: AppStrings.pleaseSelectLeftSideImages);
+      commonSnackBar(message: AppStrings.pleaseSelectLeftSideImages.tr);
       return;
     } else if (vehicleLeftSideImages.length < 2) {
-      commonSnackBar(message: AppStrings.pleaseSelectAtLeastTwoLeft);
+      commonSnackBar(message: AppStrings.pleaseSelectAtLeastTwoLeft.tr);
       return;
     }
 
     if (vehicleFrontImages.isEmpty) {
-      commonSnackBar(message: AppStrings.pleaseSelectFrontImage);
+      commonSnackBar(message: AppStrings.pleaseSelectFrontImage.tr);
       return;
     }
 
     if (vehicleBackImages.isEmpty) {
-      commonSnackBar(message: AppStrings.pleaseSelectBackImage);
+      commonSnackBar(message: AppStrings.pleaseSelectBackImage.tr);
       return;
     }
 
@@ -179,7 +179,7 @@ class VehicleRentalServiceController extends GetxController{
 
   void nextStep() {
     if(arrHighlights.isEmpty){
-      commonSnackBar(message: AppStrings.highlightsIsRequired);
+      commonSnackBar(message: AppStrings.highlightsIsRequired.tr);
       return;
     }
 

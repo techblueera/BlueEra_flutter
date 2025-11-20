@@ -35,7 +35,7 @@ class _PersonalIdentificationRidingScreenState extends State<PersonalIdentificat
           padding: const EdgeInsets.only(right: 16),
           child: Center(
             child: Text(
-              "${AppStrings.stepLabel}3/6",
+              "${AppStrings.stepLabel.tr}3/6",
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
@@ -68,7 +68,7 @@ class _PersonalIdentificationRidingScreenState extends State<PersonalIdentificat
                             Padding(
                               padding: EdgeInsets.only(left: SizeConfig.size8),
                               child: CustomText(
-                                  '${AppStrings.minLabel}${controller.maxLiveUploadImages} ${AppStrings.images}',
+                                  '${AppStrings.minLabel.tr}${controller.maxLiveUploadImages} ${AppStrings.images.tr}',
                                   // "Min-$minImages Images/Max-${maxImages}Images",
                                   fontSize: SizeConfig.medium,
                                   color: AppColors.mainTextColor,

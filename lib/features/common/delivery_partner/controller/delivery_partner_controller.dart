@@ -282,19 +282,19 @@ class DeliveryPartnerController extends GetxController{
     if(formKeyStep3.currentState!.validate()){
       // ---------- 1️⃣ VALIDATION ----------
       if (livePhoto.isEmpty) {
-        commonSnackBar(message: AppStrings.pleaseSelectYourPhoto);
+        commonSnackBar(message: AppStrings.pleaseSelectYourPhoto.tr);
         return;
       }
       if (aadharFrontImage.value == null) {
-        commonSnackBar(message: AppStrings.pleaseSelectAadharFrontImage);
+        commonSnackBar(message: AppStrings.pleaseSelectAadharFrontImage.tr);
         return;
       }
       if (aadharBackImage.value == null) {
-        commonSnackBar(message: AppStrings.pleaseSelectAadharBackImage);
+        commonSnackBar(message: AppStrings.pleaseSelectAadharBackImage.tr);
         return;
       }
       if (panCardImage.value == null) {
-        commonSnackBar(message: AppStrings.pleaseSelectPanCardImage);
+        commonSnackBar(message: AppStrings.pleaseSelectPanCardImage.tr);
         return;
       }
 
@@ -372,19 +372,19 @@ class DeliveryPartnerController extends GetxController{
     if(formKeyStep3.currentState!.validate()) {
       // ---------- 1️⃣ VALIDATION ----------
       if (rcFrontImage.value == null) {
-        commonSnackBar(message: AppStrings.pleaseSelectRcFrontImage);
+        commonSnackBar(message: AppStrings.pleaseSelectRcFrontImage.tr);
         return;
       }
       if (rcBackImage.value == null) {
-        commonSnackBar(message: AppStrings.pleaseSelectRcBackImage);
+        commonSnackBar(message: AppStrings.pleaseSelectRcBackImage.tr);
         return;
       }
       if (drivingLicenseFrontImage.value == null) {
-        commonSnackBar(message: AppStrings.pleaseSelectDlFrontImage);
+        commonSnackBar(message: AppStrings.pleaseSelectDlFrontImage.tr);
         return;
       }
       if (drivingLicenseBackImage.value == null) {
-        commonSnackBar(message: AppStrings.pleaseSelectDlBackImage);
+        commonSnackBar(message: AppStrings.pleaseSelectDlBackImage.tr);
         return;
       }
 
@@ -452,34 +452,34 @@ class DeliveryPartnerController extends GetxController{
   Future<void> ridersOnboardingVehicleImagesApi() async {
     // ---------- 1️⃣ VALIDATION ----------
     if (vehicleNumberPlateImages.isEmpty) {
-      commonSnackBar(message: AppStrings.pleaseSelectNumberPlateImage);
+      commonSnackBar(message: AppStrings.pleaseSelectNumberPlateImage.tr);
       return;
     }
 
     if (vehicleRightSideImages.isEmpty) {
-      commonSnackBar(message: AppStrings.pleaseSelectRightSideImages);
+      commonSnackBar(message: AppStrings.pleaseSelectRightSideImages.tr);
       return;
     } else if (vehicleRightSideImages.length < 2) {
-      commonSnackBar(message: AppStrings.pleaseSelectAtLeastTwoRight);
+      commonSnackBar(message: AppStrings.pleaseSelectAtLeastTwoRight.tr);
       return;
     }
 
     if (vehicleLeftSideImages.isEmpty) {
-      commonSnackBar(message: AppStrings.pleaseSelectLeftSideImages);
+      commonSnackBar(message: AppStrings.pleaseSelectLeftSideImages.tr);
       return;
     } else if (vehicleLeftSideImages.length < 2) {
-      commonSnackBar(message: AppStrings.pleaseSelectAtLeastTwoLeft);
+      commonSnackBar(message: AppStrings.pleaseSelectAtLeastTwoLeft.tr);
       return;
     }
 
 
     if (vehicleFrontImages.isEmpty) {
-      commonSnackBar(message: AppStrings.pleaseSelectFrontImage);
+      commonSnackBar(message: AppStrings.pleaseSelectFrontImage.tr);
       return;
     }
 
     if (vehicleBackImages.isEmpty) {
-      commonSnackBar(message: AppStrings.pleaseSelectBackImage);
+      commonSnackBar(message: AppStrings.pleaseSelectBackImage.tr);
       return;
     }
 
@@ -574,22 +574,22 @@ class DeliveryPartnerController extends GetxController{
   Future<void>  ridersOnboardingVehicleInformationApi() async {
     if(formKeyStep6.currentState!.validate()){
       if (selectedVehicleRegistrationType.value == null) {
-        commonSnackBar(message: AppStrings.pleaseSelectVehicleRegType);
+        commonSnackBar(message: AppStrings.pleaseSelectVehicleRegType.tr);
         return;
       }
 
       if (selectedVehicleType.value == null) {
-        commonSnackBar(message: AppStrings.pleaseSelectVehicleType);
+        commonSnackBar(message: AppStrings.pleaseSelectVehicleType.tr);
         return;
       }
 
       if (selectedFuelType.value == null) {
-        commonSnackBar(message: AppStrings.pleaseSelectFuelType);
+        commonSnackBar(message: AppStrings.pleaseSelectFuelType.tr);
         return;
       }
 
       if (!isTermsAccepted.value) {
-        commonSnackBar(message: AppStrings.pleaseAcceptTermsAndConditions);
+        commonSnackBar(message: AppStrings.pleaseAcceptTermsAndConditions.tr);
         return;
       }
 

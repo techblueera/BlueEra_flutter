@@ -221,7 +221,7 @@ class _ViewServiceListState extends State<ViewServiceList> {
                                           Row(
                                             children: [
                                               CustomText(
-                                                "${AppStrings.open} :",
+                                                "${AppStrings.open.tr} :",
                                                 fontSize: 12,
                                                 fontWeight: FontWeight.w400,
                                                 overflow: TextOverflow.ellipsis,
@@ -288,7 +288,7 @@ class _ViewServiceListState extends State<ViewServiceList> {
         );
       }
       else{
-        return Center(child: Text(AppStrings.noServices, style: TextStyle(fontSize: 18)));
+        return Center(child: CustomText(AppStrings.noServices, fontSize: 18));
       }
 
     });

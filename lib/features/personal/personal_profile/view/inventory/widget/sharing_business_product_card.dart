@@ -248,7 +248,7 @@ class SharingBusinessProductCard extends StatelessWidget {
                       Stack(
                         children: [
                           Text(
-                            AppStrings.offCaps,
+                            AppStrings.offCaps.tr,
                             style: TextStyle(
                               fontWeight: FontWeight.w700,
                               fontSize: 15 * scaleFactor,
@@ -259,7 +259,7 @@ class SharingBusinessProductCard extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            AppStrings.offCaps,
+                            AppStrings.offCaps.tr,
                             style: TextStyle(
                               color: AppColors.secondaryTextColor,
                               fontWeight: FontWeight.w700,
@@ -321,7 +321,7 @@ class SharingBusinessProductCard extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                             ),
                             CustomText(
-                              "$businessOwnerNameGlobal (${AppStrings.owner})",
+                              "$businessOwnerNameGlobal (${AppStrings.owner.tr})",
                               color: AppColors.secondaryTextColor,
                               fontSize: 11 * scaleFactor,
                               maxLines: 1,

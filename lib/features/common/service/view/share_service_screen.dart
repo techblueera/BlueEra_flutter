@@ -135,7 +135,7 @@ class _ShareServiceScreenState extends State<ShareServiceScreen> {
                           Row(
                             children: [
                               CustomText(
-                               '${AppStrings.open} : ',
+                               '${AppStrings.open.tr} : ',
                                 fontSize: 12,
                                 fontWeight: FontWeight.w400,
                                 overflow: TextOverflow.ellipsis,

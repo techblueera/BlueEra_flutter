@@ -70,11 +70,11 @@ class AddFlatRentalServiceController extends GetxController {
     if (formKeyStep1.currentState?.validate() ?? false) {
       // Validate charges type
       if (selectedChargesTypes.value == null) {
-        commonSnackBar(message: AppStrings.pleaseChooseChargesType);
+        commonSnackBar(message: AppStrings.pleaseChooseChargesType.tr);
         return;
       }
       if(arrHighlights.isEmpty){
-        commonSnackBar(message: AppStrings.highlightsIsRequired);
+        commonSnackBar(message: AppStrings.highlightsIsRequired.tr);
         return;
       }
 
@@ -83,7 +83,7 @@ class AddFlatRentalServiceController extends GetxController {
         currentStep.value++;
       }
     } else {
-      commonSnackBar(message: AppStrings.pleaseFillAllFieldsCorrectly);
+      commonSnackBar(message: AppStrings.pleaseFillAllFieldsCorrectly.tr);
     }
   }
 
@@ -131,7 +131,7 @@ class AddFlatRentalServiceController extends GetxController {
 
     if (errors.isNotEmpty) {
       // Show first missing requirement as a toast/snackbar
-      commonSnackBar(message: errors.first);
+      commonSnackBar(message: errors.first.tr);
       return false;
     }
 

@@ -175,14 +175,14 @@ class _ShareFoodScreenState extends State<ShareFoodScreen> {
                         fit: BoxFit.scaleDown,
                         child: (singleFoodData?.priceType == "single")
                             ? CustomText(
-                          "${AppStrings.pricePrefix}₹ ${singleFoodData?.singlePrice ?? "0"}",
+                          "${AppStrings.pricePrefix.tr}₹ ${singleFoodData?.singlePrice ?? "0"}",
                           fontSize: SizeConfig.small,
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
                           color: AppColors.primaryColor,
                         )
                             : CustomText(
-                          "${AppStrings.pricePrefix}₹${priceText}",
+                          "${AppStrings.pricePrefix.tr}₹${priceText}",
                           fontWeight: FontWeight.w600,
                           overflow: TextOverflow.ellipsis,
                           color: AppColors.primaryColor,

@@ -114,7 +114,7 @@ class _RentalServiceScreenState extends State<RentalServiceScreen> {
     if (list.isEmpty) {
       return Center(
         child: EmptyStateWidget(
-          message: "${rentalServiceTab.label} ${AppStrings.servicesAreEmpty}\n${AppStrings.createYourService}",
+          message: "${rentalServiceTab.label} ${AppStrings.servicesAreEmpty.tr}\n${AppStrings.createYourService.tr}",
         ),
       );
     }

@@ -343,8 +343,8 @@ class _Step1SectionState extends State<Step1Section> {
                 child: TextField(
                   controller: controller.tagsController,
                   onChanged: (_) => controller.update(["addIcon"]),
-                  decoration: const InputDecoration(
-                    hintText: AppStrings.tagKeyword,
+                  decoration: InputDecoration(
+                    hintText: AppStrings.tagKeyword.tr,
                     hintStyle: TextStyle(
                       color: AppColors.grey9B,
                       fontSize: 14,

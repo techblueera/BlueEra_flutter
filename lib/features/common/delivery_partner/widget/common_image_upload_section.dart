@@ -120,7 +120,7 @@ class CommonImageUploadTile extends StatelessWidget {
         return null;
       }
     } catch (e) {
-        commonSnackBar(message: "${AppStrings.errorSelectingImage} $e");
+        commonSnackBar(message: "${AppStrings.errorSelectingImage.tr} $e");
       return null;
     }
   }

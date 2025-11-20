@@ -203,14 +203,14 @@ class SharingBusinessFoodServiceCard extends StatelessWidget {
                         fit: BoxFit.scaleDown,
                         child: (foodServiceData.priceType == "single")
                             ? CustomText(
-                          "${AppStrings.pricePrefix}₹ ${foodServiceData.singlePrice ?? "0"}",
+                          "${AppStrings.pricePrefix.tr}₹ ${foodServiceData.singlePrice ?? "0"}",
                           fontSize: SizeConfig.small,
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
                           color: AppColors.primaryColor,
                         )
                             : CustomText(
-                          "${AppStrings.pricePrefix}₹ ${priceText}",
+                          "${AppStrings.pricePrefix.tr}₹ ${priceText}",
                           fontWeight: FontWeight.w600,
                           overflow: TextOverflow.ellipsis,
                           color: AppColors.primaryColor,

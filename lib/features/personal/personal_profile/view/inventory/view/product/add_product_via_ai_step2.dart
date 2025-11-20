@@ -464,7 +464,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
           Row(
             children: [
               CustomText(
-                '${AppStrings.productName}: ',
+                '${AppStrings.productName.tr}: ',
                 fontSize: SizeConfig.medium,
                 fontWeight: FontWeight.w600,
                 color: AppColors.secondaryTextColor,
@@ -486,7 +486,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CustomText(
-                '${AppStrings.brand}: ',
+                '${AppStrings.brand.tr}: ',
                 fontSize: SizeConfig.medium,
                 fontWeight: FontWeight.w600,
                 color: AppColors.secondaryTextColor,
@@ -530,7 +530,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CustomText(
-                '${AppStrings.tagsKeywords}: ',
+                '${AppStrings.tagsKeywords.tr}: ',
                 fontSize: SizeConfig.medium,
                 fontWeight: FontWeight.w600,
                 color: AppColors.secondaryTextColor,
@@ -767,7 +767,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
               child: Row(
                 children: [
                   CustomText(
-                    '${AppStrings.productWarranty}: ',
+                    '${AppStrings.productWarranty.tr}: ',
                     fontSize: SizeConfig.medium,
                     fontWeight: FontWeight.w600,
                     color: AppColors.secondaryTextColor,
@@ -791,7 +791,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
               child: Row(
                 children: [
                   CustomText(
-                    '${AppStrings.expiryTime}: ',
+                    '${AppStrings.expiryTime.tr}: ',
                     fontSize: SizeConfig.medium,
                     fontWeight: FontWeight.w600,
                     color: AppColors.secondaryTextColor,
@@ -816,7 +816,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CustomText(
-                    '${AppStrings.userGuidance}: ',
+                    '${AppStrings.userGuidance.tr}: ',
                     fontSize: SizeConfig.medium,
                     fontWeight: FontWeight.w600,
                     color: AppColors.secondaryTextColor,
@@ -907,7 +907,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
           if(controller.selectedColors.isNotEmpty)
             ...[
               CustomText(
-                '${AppStrings.color}: ',
+                '${AppStrings.color.tr}: ',
                 fontSize: SizeConfig.medium,
                 fontWeight: FontWeight.w600,
                 color: AppColors.secondaryTextColor,

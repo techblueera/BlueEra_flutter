@@ -33,7 +33,7 @@ class _DrivingVerificationRidingScreenState extends State<DrivingVerificationRid
           padding: const EdgeInsets.only(right: 16),
           child: Center(
             child: Text(
-              "${AppStrings.stepLabel}4/6",
+              "${AppStrings.stepLabel.tr}4/6",
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ),

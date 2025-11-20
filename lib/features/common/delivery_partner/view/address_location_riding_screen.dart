@@ -37,7 +37,7 @@ class _AddressLocationRidingScreenState extends State<AddressLocationRidingScree
           padding: const EdgeInsets.only(right: 16),
           child: Center(
             child: Text(
-              "${AppStrings.stepLabel}2/6",
+              "${AppStrings.stepLabel.tr}2/6",
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
