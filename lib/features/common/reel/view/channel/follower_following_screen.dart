@@ -171,7 +171,7 @@ class _FollowersFollowingPageState extends State<FollowersFollowingPage>
       onTap: () {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (user?.accountType?.toUpperCase() == AppConstants.business) {
-            Get.to(() => VisitBusinessProfileNew(
+            Get.off(() => VisitBusinessProfileNew(
                   businessId: user?.id ?? "",
                   screenName: AppConstants.feedScreen,
                 ));
