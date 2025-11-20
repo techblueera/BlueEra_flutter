@@ -743,7 +743,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
             child: Row(
               children: [
                 CustomText(
-                  '${AppStrings.mrp}: ',
+                  '${AppStrings.mrp.tr}: ',
                   fontSize: SizeConfig.medium,
                   fontWeight: FontWeight.w600,
                   color: AppColors.secondaryTextColor,

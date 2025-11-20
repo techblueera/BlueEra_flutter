@@ -5,8 +5,10 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile_new.dart';
+import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/business/widgets/business_ratings_bottom_sheet.dart';
 import 'package:BlueEra/features/business/widgets/rating_widget.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
@@ -31,7 +33,9 @@ class BusinessStoreCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    log('Store Data: ${ getAllStoreResData?.userId ?? ""}');
+    log('Store Data: ${getAllStoreResData?.userId ?? ""}');
+    bool selfBusiness = getAllStoreResData?.userId == userId;
+
     return Container(
       padding: EdgeInsets.all(ds(10)),
       decoration: BoxDecoration(
@@ -51,10 +55,14 @@ class BusinessStoreCard extends StatelessWidget {
           /// Store info row
           InkWell(
             onTap: (){
-              Get.to(() => VisitBusinessProfileNew(
-                businessId: getAllStoreResData?.id ?? "",
-                screenName: AppConstants.storeFeedScreen,
-              ));
+              if(!selfBusiness){
+                Get.to(() => VisitBusinessProfileNew(
+                  businessId: getAllStoreResData?.id ?? "",
+                  screenName: AppConstants.storeFeedScreen,
+                ));
+              }else{
+                Get.to(() =>  BusinessOwnProfileScreen());
+              }
             },
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -105,6 +113,8 @@ class BusinessStoreCard extends StatelessWidget {
                               ],
                             ),
                           ),
+
+                          if(!selfBusiness)
                           InkWell(
                             onTap: () async {
                               if (isGuestUser()) {

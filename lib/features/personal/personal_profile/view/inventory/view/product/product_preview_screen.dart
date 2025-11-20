@@ -700,7 +700,7 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
           child: Row(
             children: [
               CustomText(
-                '${AppStrings.mrp}: ',
+                '${AppStrings.mrp.tr}: ',
                 fontSize: SizeConfig.medium,
                 fontWeight: FontWeight.w600,
                 color: AppColors.secondaryTextColor,

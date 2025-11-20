@@ -9,6 +9,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class SharingBusinessProductCard extends StatelessWidget {
   final GlobalKey cardKey;
@@ -157,7 +158,7 @@ class SharingBusinessProductCard extends StatelessWidget {
                     children: [
 
                       CustomText(
-                        "${AppStrings.mrp}: ",
+                        "${AppStrings.mrp.tr}: ",
                         color: AppColors.secondaryTextColor,
                         fontSize: 13 * scaleFactor,
                         fontWeight: FontWeight.w700

@@ -132,8 +132,8 @@ Future<void> showProfessionChangeDialog({
                                   viewPersonalDetailsController.getEarnServiceStatus();
                                 }
                               },
-                              title:
-                              isLoading ? AppStrings.updating : AppStrings.update,
+                              title: AppStrings.updating,
+                              // isLoading ? AppStrings.updating : AppStrings.update,
                             ),
                           ),
                           SizedBox(width: SizeConfig.size10),

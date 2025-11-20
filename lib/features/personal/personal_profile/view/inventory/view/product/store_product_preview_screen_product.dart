@@ -81,7 +81,7 @@ class _StoreProductPreviewScreenProductState
         );
       }).toList();
       controller.mrpController.text =
-          widget.productStore?.details?.name ?? '';
+          widget.productStore?.details?.mrpPerUnit.toString() ?? '0.0';
       controller.productWarrantyController.text =
           widget.productStore?.details?.productWarranty ?? '';
       // controller.productExpiryDurationController.text = widget.productData?.product.details?.produ??'';
@@ -743,16 +743,19 @@ class _StoreProductPreviewScreenProductState
                 child: Row(
                   children: [
                     CustomText(
-                      '${AppStrings.mrp}: ',
+                      '${AppStrings.mrp.tr}: ',
                       fontSize: SizeConfig.medium,
                       fontWeight: FontWeight.w600,
                       color: AppColors.secondaryTextColor,
                     ),
                     Expanded(
                       child: CustomText(
-                        "${controller.mrpController.text}",
-                        fontSize: SizeConfig.large,
-                        fontWeight: FontWeight.w700,
+                        "₹${controller.mrpController.text}",
+                        // fontSize: SizeConfig.large,
+                        // fontWeight: FontWeight.w700,
+                        // color: AppColors.secondaryTextColor,
+                        fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w400,
                         color: AppColors.secondaryTextColor,
                       ),
                     ),

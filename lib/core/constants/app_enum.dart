@@ -910,10 +910,10 @@ extension FuelTypeExtension on FuelType {
 }
 
 enum DeliveryPartnerOrdersTab {
-  pickUp("Pick-Up"),
-  grocery("Grocery"),
-  parcel("Parcel"),
-  income("Income");
+  pickUp(AppStrings.pickUp),
+  grocery(AppStrings.grocery),
+  parcel(AppStrings.parcel),
+  income(AppStrings.income);
 
   final String label;
 
@@ -921,11 +921,11 @@ enum DeliveryPartnerOrdersTab {
 }
 
 enum PickUpTab {
-  newOrder("New"),
-  onGoing("On-Going"),
-  completed("Completed"),
-  cancel("Cancel"),
-  rejected("Rejected");
+  newOrder(AppStrings.newOrder),
+  onGoing(AppStrings.onGoing),
+  completed(AppStrings.completed),
+  cancel(AppStrings.cancel),
+  rejected(AppStrings.rejected);
 
   final String label;
 

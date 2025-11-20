@@ -142,9 +142,9 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> wit
             indicatorWeight: 2,
             labelStyle: TextStyle(fontWeight: FontWeight.w600),
             tabs: [
-              Tab(text: AppStrings.myOrder),
-              Tab(text: AppStrings.myStore),
-              Tab(text: AppStrings.businessCards),
+              Tab(text: AppStrings.myOrder.tr),
+              Tab(text: AppStrings.myStore.tr),
+              Tab(text: AppStrings.businessCards.tr),
             ],
           ),
         ),

@@ -28,7 +28,7 @@ class StatBlock extends StatelessWidget {
             fontSize: SizeConfig.medium,
             fontFamily: AppConstants.OpenSans,
           ),
-          const SizedBox(width: 4,),
+          const SizedBox(width: 4),
           CustomText(
             label,
             color: AppColors.secondaryTextColor,

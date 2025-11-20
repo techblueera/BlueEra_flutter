@@ -1612,6 +1612,12 @@ class AppStrings {
   static const String professionChangeMsg = 'professionChangeMsg';
   static const String allStepsSubmitted = 'allStepsSubmitted';
 
+  static const String grocery = 'grocery';
+  static const String parcel  = 'parcel';
+  static const String income  = 'income';
+  static const String newOrder   = 'newOrder';
+  static const String onGoing    = 'onGoing';
+
   ///BHAVESH START
   static const ownerDetail = "owner_detail";
   static const yourName = "your_name";
