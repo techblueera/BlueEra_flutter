@@ -19,6 +19,7 @@ import 'package:BlueEra/features/chat/contacts/view/contact_list_page.dart';
 import 'package:BlueEra/features/common/post/repo/post_repo.dart';
 import 'package:BlueEra/features/common/reel/models/social_input_fields_model.dart';
 import 'package:BlueEra/features/common/store/repo/store_repo.dart';
+import 'package:BlueEra/features/common/store/widget/StoreCategory.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/l10n/app_localizations_en.dart';
@@ -195,6 +196,62 @@ class AppConstants {
   static const HOME_STAY = "HOME STAY";
   static const Flat_ROOM = "Flat/Room";
   static const VEHICLE = "Vehicle";
+
+
+  /// Services Category
+  static const consulting = "Consulting Services";
+  static const automotive = "Automotive Services";
+  static const itCommunication = "IT & Communication";
+  static const homeUtility = "Home Services & Utility";
+  static const mediaCreative = "Media, Publicity & Creative";
+  static const educationTraining = "Education & Training Services";
+  static const tourTravel = "Tour, Travel & Tourism";
+  static const beautyCare = "Beauty & Personal Care";
+  static const serviceCenter = "Service Center & Essential Utility";
+  static const logistics = "Logistics & Transportation";
+  static const celebrationEvent = "Celebration & Event Services";
+  static const financial = "Financial Services";
+
+  /// Store(Products) Category
+  static const furnitureHomeDecor = "Furniture & Home Decor Store";
+  static const sportsFitness = "Sports & Fitness Store";
+  static const jewelleryLuxury = "Jewelry & Luxury Store";
+  static const automotiveStore = "Automotive Store";
+  static const booksStationaryGifts = "Books, Stationery & Gifts Store";
+  static const pharmacyMedical = "Pharmacy & Medical Store";
+  static const petSupplies = "Pet Supplies Store";
+  static const toysBabyProducts = "Toys & Baby Products Store";
+  static const electronicsAppliances = "Electronics & Appliances Store";
+  static const constructionHomeEssentials = "Construction & Home Essentials";
+  static const fashionLifestyle = "Fashion & Lifestyle";
+
+  /// Food Category
+  static const String fastFoodQuickService = "Fast Food & Quick Service (QSR)";
+  static const String multiCuisineRestaurants = "Multi-Cuisine Restaurants";
+  static const String groceryVegetablesDairy = "Grocery / Vegetables & Dairy";
+  static const String nonVegRestaurants = "Non-Veg Restaurants";
+  static const String vegRestaurants = "Veg Restaurants";
+  static const String sweetsBakeryDrinks = "Sweets / Bakery & Drinks";
+  static const String otherRestaurantsDhaba = "Other Restaurants / Dhaba";
+  static const String otherFoodServices = "Other Food Services";
+
+  static const grocery = "Grocery";
+  static const store = "Store";
+  static const products = "Products";
+  static const stay = "Stay";
+  static const rental = "Rental";
+  static const booking = "Booking";
+  static const others = "Others";
+
+  static const electrician = "Electrician";
+  static const taxiDriver = "Taxi-Car Driver";
+  static const rider = "Rider";
+  static const beautyServices = "Beauty Services";
+  static const tuition = "Tuition";
+  static const counselling = "Counselling";
+  static const doctors = "Doctors";
+  static const hospital = "Hospital";
+
 }
 
 ///IS GUEST USER...
@@ -1190,6 +1247,7 @@ const String STUDENT = "STUDENT";
 const String OTHERS = "OTHERS"; // keep Others last
 
 int kmRadius1000 = 1000;
+int kmRadius1500 = 1500;
 
 double calculateDistanceKm(double lat1, double lon1, double lat2, double lon2) {
   const R = 6371; // Radius of Earth in kilometers
@@ -1621,6 +1679,7 @@ final List<ServiceItem> rentalServicesList = [
   //   labelColor: const Color(0xFF36444D),
   // ),
 ];
+
 final List<String> timeOptions = [
   '12:00 AM',
   '12:30 AM',
@@ -1671,3 +1730,150 @@ final List<String> timeOptions = [
   '11:00 PM',
   '11:30 PM',
 ];
+
+final List<StoreFeedCategory> mainCategories = [
+  StoreFeedCategory(
+    name: "Grocery",
+    slugId: AppConstants.grocery,
+    icon: AppIconAssets.groceryIcon,
+    type: AppConstants.service,
+  ),
+  StoreFeedCategory(
+    name: "Food",
+    slugId: AppConstants.food,
+    icon: AppIconAssets.foodIcon,
+    type: AppConstants.service,
+  ),
+  StoreFeedCategory(
+    name: "Store",
+    slugId: AppConstants.store,
+    icon: AppIconAssets.storeIcon,
+    type: AppConstants.service,
+  ),
+  StoreFeedCategory(
+    name: "Products",
+    slugId: AppConstants.products,
+    icon: AppIconAssets.productIcon,
+    type: AppConstants.service,
+  ),
+  StoreFeedCategory(
+    name: "Stay",
+    slugId: AppConstants.stay,
+    icon: AppIconAssets.homeStayIcon,
+    type: AppConstants.service,
+  ),
+  StoreFeedCategory(
+    name: "Rental",
+    slugId: AppConstants.rental,
+    icon: AppIconAssets.rentKeyIcon,
+    type: AppConstants.service,
+  ),
+  StoreFeedCategory(
+    name: "Booking",
+    slugId: AppConstants.booking,
+    icon: AppIconAssets.bookingEnquiries,
+    type: AppConstants.service,
+  ),
+  StoreFeedCategory(
+    name: "Others",
+    slugId: AppConstants.others,
+    icon: AppIconAssets.staggeredIcon,
+    type: AppConstants.service,
+  ),
+];
+
+final List<StoreFeedCategory> providerCategories = [
+  StoreFeedCategory(
+    name: "Electrician",
+    slugId: AppConstants.electrician,
+    icon: AppIconAssets.electricianIcon,
+    type: AppConstants.service,
+  ),
+  StoreFeedCategory(
+    name: "Taxi-Car Driver",
+    slugId: AppConstants.taxiDriver,
+    icon: AppIconAssets.taxiDriverIcon,
+    type: AppConstants.service,
+  ),
+  StoreFeedCategory(
+    name: "Rider",
+    slugId: AppConstants.rider,
+    icon: AppIconAssets.riderIcon,
+    type: AppConstants.service,
+  ),
+  StoreFeedCategory(
+    name: "Beauty Services",
+    slugId: AppConstants.beautyServices,
+    icon: AppIconAssets.beautyServiceIcon,
+    type: AppConstants.service,
+  ),
+  StoreFeedCategory(
+    name: "Tuition",
+    slugId: AppConstants.tuition,
+    icon: AppIconAssets.teachingIcon,
+    type: AppConstants.service,
+  ),
+  StoreFeedCategory(
+    name: "Counselling",
+    slugId: AppConstants.counselling,
+    icon: AppIconAssets.counsellingServiceIcon,
+    type: AppConstants.service,
+  ),
+  StoreFeedCategory(
+    name: "Doctors",
+    slugId: AppConstants.doctors,
+    icon: AppIconAssets.doctorsIcon,
+    type: AppConstants.service,
+  ),
+  StoreFeedCategory(
+    name: "Hospital",
+    slugId: AppConstants.hospital,
+    icon: AppIconAssets.hospitalIcon,
+    type: AppConstants.service,
+  ),
+];
+
+final List<StoreFeedCategory> serviceCategories = [
+  StoreFeedCategory(name: AppConstants.consulting,          slugId: '68ce990deac48e6b0d497298', icon: AppIconAssets.consultingServiceIcon,       type: AppConstants.service),
+  StoreFeedCategory(name: AppConstants.automotive,          slugId: '68ce990beac48e6b0d49724f', icon: AppIconAssets.automativeServiceIcon,       type: AppConstants.service),
+  StoreFeedCategory(name: AppConstants.itCommunication,             slugId: '68ce9914eac48e6b0d497366', icon: AppIconAssets.itCommunicationIcon,         type: AppConstants.service),
+  StoreFeedCategory(name: AppConstants.homeUtility,         slugId: '68ce9912eac48e6b0d497328', icon: AppIconAssets.homeServiceUtilityIcon,      type: AppConstants.service),
+  StoreFeedCategory(name: AppConstants.mediaCreative,      slugId: '68ce9915eac48e6b0d497382', icon: AppIconAssets.mediaPublicityIcon,          type: AppConstants.service),
+  StoreFeedCategory(name: AppConstants.educationTraining,           slugId: '68ce990eeac48e6b0d4972ad', icon: AppIconAssets.educationTrainingIcon,       type: AppConstants.service),
+  StoreFeedCategory(name: AppConstants.tourTravel,           slugId: '68ce9916eac48e6b0d4973aa', icon: AppIconAssets.tourTravelIcon,              type: AppConstants.service),
+  StoreFeedCategory(name: AppConstants.beautyCare,          slugId: '68ce990beac48e6b0d497260', icon: AppIconAssets.beautyPersonalCareIcon,      type: AppConstants.service),
+  StoreFeedCategory(name: AppConstants.serviceCenter,      slugId: '68ce9915eac48e6b0d497397', icon: AppIconAssets.serviceCenterIcon,           type: AppConstants.service),
+  StoreFeedCategory(name: AppConstants.logistics,     slugId: '68ce9914eac48e6b0d497375', icon: AppIconAssets.logisticTransportationIcon,  type: AppConstants.service),
+  StoreFeedCategory(name: AppConstants.celebrationEvent,    slugId: '68ce990ceac48e6b0d49727f', icon: AppIconAssets.celebrationEventIcon,        type: AppConstants.service),
+  StoreFeedCategory(name: AppConstants.financial,           slugId: '68ce990feac48e6b0d4972dc', icon: AppIconAssets.financialIcon,               type: AppConstants.service),
+  // StoreFeedCategory(name: AppConstants.healthcareMedicalServices,   slugId: '68ce9910eac48e6b0d4972ed', icon: AppIconAssets.pharmacyMedicalStoreIcon,   type: AppConstants.service),
+  // StoreFeedCategory(name: AppConstants.hostelsStayService,          slugId: '68ce9912eac48e6b0d497341', icon: AppIconAssets.staggeredIcon,               type: AppConstants.service),
+];
+
+final List<StoreFeedCategory> productCategories = [
+  StoreFeedCategory(name: AppConstants.furnitureHomeDecor,     slugId: '68ce9907eac48e6b0d4971f7', icon: AppIconAssets.furnitureHomeDecorIcon,      type: AppConstants.product),
+  StoreFeedCategory(name: AppConstants.sportsFitness,          slugId: '68ce990aeac48e6b0d497235', icon: AppIconAssets.sportsFitnessStoreIcon,      type: AppConstants.product),
+  StoreFeedCategory(name: AppConstants.jewelleryLuxury,          slugId: '68ce9908eac48e6b0d497204', icon: AppIconAssets.jewelleryLuxuryStoreIcon,    type: AppConstants.product),
+  StoreFeedCategory(name: AppConstants.automotiveStore,             slugId: '68ce9904eac48e6b0d497192', icon: AppIconAssets.automotiveStoreIcon,         type: AppConstants.product),
+  StoreFeedCategory(name: AppConstants.booksStationaryGifts,   slugId: '68ce9905eac48e6b0d4971a5', icon: AppIconAssets.booksStationaryGiftsIcon,    type: AppConstants.product),
+  StoreFeedCategory(name: AppConstants.pharmacyMedical,        slugId: '68ce9909eac48e6b0d497217', icon: AppIconAssets.pharmacyMedicalStoreIcon,   type: AppConstants.product),
+  StoreFeedCategory(name: AppConstants.petSupplies,            slugId: '68ce9909eac48e6b0d497217', icon: AppIconAssets.petSuppliesStoreIcon,        type: AppConstants.product),
+  StoreFeedCategory(name: AppConstants.toysBabyProducts,       slugId: '68ce990aeac48e6b0d497244', icon: AppIconAssets.babyToysProductStoreIcon,   type: AppConstants.product),
+  StoreFeedCategory(name: AppConstants.electronicsAppliances,  slugId: '68ce9906eac48e6b0d4971c5', icon: AppIconAssets.electronicsApplianceStoreIcon,type: AppConstants.product),
+  StoreFeedCategory(name: AppConstants.constructionHomeEssentials,  slugId: '68ce9905eac48e6b0d4971b0', icon: AppIconAssets.constructionHomeEsseIcon,      type: AppConstants.product),
+  StoreFeedCategory(name: AppConstants.fashionLifestyle,            slugId: '68ce9907eac48e6b0d4971dc', icon: AppIconAssets.fashionLifestyleIcon,        type: AppConstants.product),
+];
+
+
+final List<StoreFeedCategory> foodCategories = [
+  StoreFeedCategory(name: AppConstants.fastFoodQuickService,        slugId: '68ce9917eac48e6b0d4973cc', icon: AppIconAssets.fastFoodQuickServiceIcon,    type: AppConstants.food),
+  StoreFeedCategory(name: AppConstants.multiCuisineRestaurants,     slugId: '68ce9919eac48e6b0d49740a', icon: AppIconAssets.multiCuisineRestroIcon,      type: AppConstants.food),
+  StoreFeedCategory(name: AppConstants.groceryVegetablesDairy,      slugId: '68ce9917eac48e6b0d4973bf', icon: AppIconAssets.groceryVegetableDairyIcon,   type: AppConstants.food),
+  StoreFeedCategory(name: AppConstants.nonVegRestaurants,           slugId: '68ce9919eac48e6b0d4973e8', icon: AppIconAssets.nonVegRestaurantIcon,        type: AppConstants.food),
+  StoreFeedCategory(name: AppConstants.vegRestaurants,              slugId: '68ce9918eac48e6b0d4973d9', icon: AppIconAssets.vegRestaurantIcon,           type: AppConstants.food),
+  StoreFeedCategory(name: AppConstants.otherRestaurantsDhaba,       slugId: '68ce991aeac48e6b0d497417', icon: AppIconAssets.restaurantIcon,              type: AppConstants.food),
+  StoreFeedCategory(name: AppConstants.sweetsBakeryDrinks,          slugId: '68ce9918eac48e6b0d4973d9', icon: AppIconAssets.sweetBakeryDrinkIcon,        type: AppConstants.food),
+  StoreFeedCategory(name: AppConstants.otherFoodServices,           slugId: '68ce991aeac48e6b0d497428', icon: AppIconAssets.staggeredIcon,               type: AppConstants.food),
+];
+
+

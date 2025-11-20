@@ -1,6 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -8,7 +7,9 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/features/common/store/view/store_screen_controller.dart';
+import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
+import 'package:BlueEra/features/common/store/view/new_store/business_store_screen.dart';
+import 'package:BlueEra/features/common/store/widget/StoreCategory.dart';
 import 'package:BlueEra/features/common/store/widget/icon_grid_item.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_search_bar.dart';
@@ -19,21 +20,21 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mappls_gl/mappls_gl.dart';
 
-class LatestStoreScreen extends StatefulWidget {
+class NewStoreScreen2 extends StatefulWidget {
   final bool isHeaderVisible;
   final Function(bool isVisible)? onHeaderVisibilityChanged;
-  const LatestStoreScreen({
+  const NewStoreScreen2({
     super.key,
     required this.isHeaderVisible,
     this.onHeaderVisibilityChanged
   });
 
   @override
-  State<LatestStoreScreen> createState() => _LatestStoreScreenState();
+  State<NewStoreScreen2> createState() => _NewStoreScreen2State();
 }
 
-class _LatestStoreScreenState extends State<LatestStoreScreen> {
-  final StoreScreenController controller = Get.put(StoreScreenController());
+class _NewStoreScreen2State extends State<NewStoreScreen2> {
+  final NewStoreController controller = Get.put(NewStoreController());
   late MapplsMapController mapController;
   late final double userLat;
   late final double userLng;
@@ -58,7 +59,7 @@ class _LatestStoreScreenState extends State<LatestStoreScreen> {
 
   
   @override
-  void didUpdateWidget(covariant LatestStoreScreen oldWidget) {
+  void didUpdateWidget(covariant NewStoreScreen2 oldWidget) {
     if (oldWidget.isHeaderVisible != widget.isHeaderVisible) {
       controller.isHeaderVisible.value = widget.isHeaderVisible;
       super.didUpdateWidget(oldWidget);
@@ -157,7 +158,7 @@ class _LatestStoreScreenState extends State<LatestStoreScreen> {
                         borderRadius: BorderRadius.circular(10),
                         child: SizedBox(
                           width: double.infinity,
-                          height: SizeConfig.size200,
+                          height: SizeConfig.size160,
                           child: Stack(
                             children: [
                               MapplsMap(
@@ -182,7 +183,7 @@ class _LatestStoreScreenState extends State<LatestStoreScreen> {
                                     openGoogleMaps(latitude: userLat, longitude: userLng);
                                   },
                                   child: Container(
-                                    padding: EdgeInsets.all(SizeConfig.size12),
+                                    padding: EdgeInsets.all(SizeConfig.size8),
                                     decoration: BoxDecoration(
                                       color: AppColors.white,
                                       shape: BoxShape.circle,
@@ -194,7 +195,7 @@ class _LatestStoreScreenState extends State<LatestStoreScreen> {
                                       child: const Icon(
                                         Icons.send_outlined,
                                         color: AppColors.skyBlueDF,
-                                        size: 28,
+                                        size: 20,
                                       ),
                                     ),
                                   ),
@@ -220,17 +221,7 @@ class _LatestStoreScreenState extends State<LatestStoreScreen> {
                                 seeMoreTap: () {}
                             ),
                             SizedBox(height: SizeConfig.size15),
-                            _iconGrid([
-                              ("Grocery", AppIconAssets.groceryIcon),
-                              ("Food", AppIconAssets.foodIcon),
-                              ("Store", AppIconAssets.storeIcon),
-                              ("Products", AppIconAssets.productIcon),
-                              ("Stay", AppIconAssets.homeStayIcon),
-                              ("Rental", AppIconAssets.rentKeyIcon),
-                              ("Booking", AppIconAssets.bookingEnquiries),
-                              ("Others", AppIconAssets.staggeredIcon),
-                            ]),
-      
+                            _iconGrid(mainCategories)
                           ],
                         )
                     ),
@@ -253,16 +244,7 @@ class _LatestStoreScreenState extends State<LatestStoreScreen> {
                                 seeMoreTap: () {}
                             ),
                             SizedBox(height: SizeConfig.size15),
-                            _iconGrid([
-                              ("Electrician", AppIconAssets.electricianIcon),
-                              ("Taxi-Car Driver", AppIconAssets.taxiDriverIcon),
-                              ("Rider", AppIconAssets.riderIcon),
-                              ("Beauty Services", AppIconAssets.beautyServiceIcon),
-                              ("Tuition", AppIconAssets.teachingIcon),
-                              ("Counselling", AppIconAssets.counsellingServiceIcon),
-                              ("Doctors", AppIconAssets.doctorsIcon),
-                              ("Hospital", AppIconAssets.hospitalIcon),
-                            ]),
+                            _iconGrid(providerCategories)
       
                           ],
                         )
@@ -286,20 +268,18 @@ class _LatestStoreScreenState extends State<LatestStoreScreen> {
                                 seeMoreTap: () {}
                             ),
                             SizedBox(height: SizeConfig.size15),
-                            _iconGrid([
-                              ("Consulting Service", AppIconAssets.consultingServiceIcon),
-                              ("Automotive Services", AppIconAssets.automativeServiceIcon),
-                              ("IT & Communication", AppIconAssets.itCommunicationIcon),
-                              ("Home Services & Utility", AppIconAssets.homeServiceUtilityIcon),
-                              ("Media, Publicity & Creative", AppIconAssets.mediaPublicityIcon),
-                              ("Education & Training", AppIconAssets.educationTrainingIcon),
-                              ("Tour, Travel & Tourism", AppIconAssets.tourTravelIcon),
-                              ("Beauty & Personal Care", AppIconAssets.beautyPersonalCareIcon),
-                              ("Service Center & Essential Utility", AppIconAssets.serviceCenterIcon),
-                              ("Logistics & Transportation", AppIconAssets.logisticTransportationIcon),
-                              ("Celebration & Event Services", AppIconAssets.celebrationEventIcon),
-                              ("Financial Services", AppIconAssets.financialIcon),
-                            ]),
+                            _iconGrid(
+                                serviceCategories,
+                              onTap: (category) {
+                                print("You tapped → ${category.slugId}");
+                                print("You tapped category name → ${category.name}");
+                                Get.to(()=> BusinessStoreScreen(
+                                    typeOfBusiness: AppConstants.service,
+                                    selectedStoreCategoryId: category.slugId,
+                                    selectedStoreCategoryName: category.name,
+                                ));
+                              },
+                            )
       
                           ],
                         )
@@ -323,21 +303,18 @@ class _LatestStoreScreenState extends State<LatestStoreScreen> {
                                 seeMoreTap: () {}
                             ),
                             SizedBox(height: SizeConfig.size15),
-                            _iconGrid([
-                              ("Furniture & Home Decor", AppIconAssets.furnitureHomeDecorIcon),
-                              ("Sports & Fitness Store", AppIconAssets.sportsFitnessStoreIcon),
-                              ("Jewellery & Luxury Store", AppIconAssets.jewelleryLuxuryStoreIcon),
-                              ("Automotive Store", AppIconAssets.automotiveStoreIcon),
-                              ("Books, Stationery & Gifts Store", AppIconAssets.booksStationaryGiftsIcon),
-                              ("Pharmacy & Medical Store", AppIconAssets.pharmacyMedicalStoreIcon),
-                              ("Pet Supplies Store", AppIconAssets.petSuppliesStoreIcon),
-                              ("Toys & Baby Products Store", AppIconAssets.babyToysProductStoreIcon),
-                              ("Electronics & Appliances Store", AppIconAssets.electronicsApplianceStoreIcon),
-                              ("Construction & Home Essentials", AppIconAssets.constructionHomeEsseIcon),
-                              ("Fashion & Lifestyle", AppIconAssets.fashionLifestyleIcon),
-                              ("Others", AppIconAssets.staggeredIcon),
-                            ]),
-      
+                            _iconGrid(
+                                productCategories,
+                              onTap: (category) {
+                                print("You tapped → ${category.slugId}");
+                                print("You tapped category name → ${category.name}");
+                                Get.to(()=> BusinessStoreScreen(
+                                    typeOfBusiness: AppConstants.product,
+                                    selectedStoreCategoryId: category.slugId,
+                                  selectedStoreCategoryName: category.name,
+                                ));
+                              },
+                            )
                           ],
                         )
                     ),
@@ -360,16 +337,18 @@ class _LatestStoreScreenState extends State<LatestStoreScreen> {
                                 seeMoreTap: () {}
                             ),
                             SizedBox(height: SizeConfig.size15),
-                            _iconGrid([
-                              ("Fast Food & Quick Service", AppIconAssets.fastFoodQuickServiceIcon),
-                              ("Multi-Cuisine Restaurants", AppIconAssets.multiCuisineRestroIcon),
-                              ("Grocery / Vegetables & Dairy", AppIconAssets.groceryVegetableDairyIcon),
-                              ("Non-Veg Restaurants", AppIconAssets.nonVegRestaurantIcon),
-                              ("Veg Restaurants", AppIconAssets.vegRestaurantIcon),
-                              ("Sweets / Bakery & Drinks", AppIconAssets.sweetBakeryDrinkIcon),
-                              ("Other Restaurants / Dhaba", AppIconAssets.restaurantIcon),
-                              ("Other Food Services", AppIconAssets.staggeredIcon),
-                            ]),
+                            _iconGrid(
+                                foodCategories,
+                              onTap: (category) {
+                                print("You tapped → ${category.slugId}");
+                                print("You tapped category name → ${category.name}");
+                                Get.to(()=> BusinessStoreScreen(
+                                    typeOfBusiness: AppConstants.food,
+                                    selectedStoreCategoryId: category.slugId,
+                                  selectedStoreCategoryName: category.name,
+                                ));
+                              },
+                            )
       
                           ],
                         )
@@ -431,13 +410,16 @@ class _LatestStoreScreenState extends State<LatestStoreScreen> {
     );
   }
 
-  // ---------------- REUSABLE ICON GRID ---------------- //
-  Widget _iconGrid(List<(String, String)> items) {
+// ---------------- REUSABLE ICON GRID ---------------- //
+  Widget _iconGrid(
+      List<StoreFeedCategory> items, {
+        void Function(StoreFeedCategory category)? onTap,
+      }) {
     const crossAxisCount = 4;
     const mainAxisSpacing = 16.0;
 
     // Split into rows of 4
-    final rows = <List<(String, String)>>[];
+    final rows = <List<StoreFeedCategory>>[];
 
     for (int i = 0; i < items.length; i += crossAxisCount) {
       rows.add(
@@ -456,21 +438,32 @@ class _LatestStoreScreenState extends State<LatestStoreScreen> {
         return Padding(
           padding: EdgeInsets.only(bottom: isLastRow ? 0 : mainAxisSpacing),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: List.generate(crossAxisCount, (i) {
-              if (i < rowItems.length) {
-                final (label, icon) = rowItems[i];
+            children: List.generate(crossAxisCount * 2 - 1, (i) {
+              // Even index → actual item
+              // Odd index → spacing
+              if (i.isEven) {
+                final itemIndex = i ~/ 2;
 
-                return Expanded(
-                  child: IconGridItem(
-                    label: label,
-                    icon: icon,
-                    onTap: () => print("Tapped: $label"),
-                  ),
-                );
+                if (itemIndex < rowItems.length) {
+                  final category = rowItems[itemIndex];
+
+                  return Expanded(
+                    child: IconGridItem(
+                      label: category.name,
+                      icon: category.icon,
+                      onTap: () {
+                        if (onTap != null) onTap(category);
+                        print("Tapped: ${category.slugId}");
+                      },
+                    ),
+                  );
+                } else {
+                  return const Expanded(child: SizedBox());
+                }
               } else {
-                return const Expanded(child: SizedBox());
+                // spacing between items
+                return SizedBox(width: SizeConfig.size8);
               }
             }),
           ),

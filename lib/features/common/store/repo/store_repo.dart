@@ -142,4 +142,17 @@ class StoreRepo extends BaseService {
     return response;
   }
 
+  ///GET SPECIFIC STORES......
+  Future<ResponseModel> getSpecificStores({required Map<String, dynamic> queryParams}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      getStoreListing,
+      showProgress: false,
+      params: queryParams,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+
 }

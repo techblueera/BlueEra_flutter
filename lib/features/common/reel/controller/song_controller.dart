@@ -93,7 +93,6 @@ class SongController extends GetxController{
     }
   }
 
-
   /// ADD SONG TO FAVOURITES (no isAllSongs flag)
   Future<void> addSongInFavourite({required String songId}) async {
     try {
