@@ -93,6 +93,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
 
   @override
   void initState() {
+
     apiCalling();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       isProfileCreateStatus =
