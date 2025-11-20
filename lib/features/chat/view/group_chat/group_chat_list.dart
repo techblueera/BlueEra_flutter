@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
+import '../../../../core/constants/app_constant.dart';
 import '../../auth/model/GetChatListModel.dart';
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/api/apiService/api_response.dart';
@@ -42,7 +43,7 @@ class _GroupChatListTabPageState extends State<GroupChatListTabPage> {
 
         return RefreshIndicator(
           onRefresh: () async{
-            groupChatViewController.emitEvent("ChatList", {
+            groupChatViewController.emitEvent(ChatEmitEvents.ChatList, {
               ApiKeys.type:"group"
             });
           },
@@ -56,7 +57,7 @@ class _GroupChatListTabPageState extends State<GroupChatListTabPage> {
 
                   return  InkWell(
                     onTap: () async{
-                      groupChatViewController.emitEvent("messageReceived", {
+                      groupChatViewController.emitEvent(ChatEmitEvents.messageReceived, {
                         ApiKeys.conversation_id: chat?.conversationId,
                         ApiKeys.page: 1,
                         ApiKeys.per_page_message: 30,

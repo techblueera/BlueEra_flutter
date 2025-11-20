@@ -14,6 +14,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/foundation.dart'; // for compute
 
 import '../../../../core/api/apiService/api_response.dart';
+import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
 import '../../../../core/constants/snackbar_helper.dart';
 import '../../../../widgets/custom_btn.dart';
@@ -232,14 +233,14 @@ class _ContactsPageState extends State<ContactsPage> {
 
     return WillPopScope(
       onWillPop: () async {
-        chatViewController.emitEvent("ChatList", {ApiKeys.type: "personal"});
+        chatViewController.emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: "personal"});
         return true;
       },
       child: Scaffold(
         appBar: CommonBackAppBar(
           onBackTap: () {
             chatViewController
-                .emitEvent("ChatList", {ApiKeys.type: "personal"});
+                .emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: "personal"});
             Navigator.pop(context);
           },
           title: "My Contacts",

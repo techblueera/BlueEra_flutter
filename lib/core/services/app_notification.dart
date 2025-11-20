@@ -1,5 +1,6 @@
 // ignore_for_file: avoid_print, unnecessary_null_comparison, unnecessary_new, unrelated_type_equality_checks, unused_local_variable
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -26,6 +27,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as httpPkg;
 import 'package:permission_handler/permission_handler.dart';
 
+import '../../features/chat/view/orders_chat/widget/order_call_alert_page.dart';
 import '../routes/route_helper.dart';
 import 'notifications/ride_notification_data_model.dart';
 
@@ -160,19 +162,28 @@ class AppNotificationHandler {
   }
 
   ///show notification msg
-  void showMsg(RemoteMessage message) {
+  Future<void> showMsg(RemoteMessage message)async {
     // callUnreadCount();
 
 
       if(message.data["operation"]=='RIDE_ORDER_RECEIVED'){
-
         NotificationData rideNotification=NotificationData.fromJson(message.data);
-
-        callShow(orderId: '${rideNotification.metadata?.orderId}',lng: double.parse(rideNotification.deliveryLong.toString()),lat: double.parse(rideNotification.deliveryLat.toString()) );
+        showFullCallScreen(rideNotification);
+        // callShow(orderId: '${rideNotification.metadata?.orderId}',lng: double.parse(rideNotification.deliveryLong.toString()),lat: double.parse(rideNotification.deliveryLat.toString()) );
       }
     ///FOR GROUND....
 
     showNotification(message);
+  }
+  Future<void> showFullCallScreen(NotificationData rideNotification )async{
+    String? pickupLocation=await getAddressFromLatLngAsString(lat:double.parse(rideNotification.deliveryLat.toString()),lng:double.parse(rideNotification.deliveryLong.toString()));
+    String? dropLocation=await getAddressFromLatLngAsString(lat:double.parse(rideNotification.metadata?.dropAddress?.lat.toString()??''),lng:double.parse(rideNotification.metadata?.dropAddress?.long.toString()??''));
+    Get.to(()=> NewDeliveryRequestScreen(notificationData: rideNotification,
+      orderId: '${rideNotification.metadata?.orderId}',
+      customerImage: ''
+      , distance: '${rideNotification.deliveryLong}',
+      pickupAddress: '$pickupLocation', amount: '${rideNotification.metadata?.ridefare}', dropAddress: '$dropLocation',));
+
   }
 
   Future<String?> getAddressFromLatLngAsString({required double lat ,required double lng}) async {
@@ -198,7 +209,7 @@ class AppNotificationHandler {
       return "View Order you get address";
     }
   }
-  void callShow({required String orderId,required double lat,required double lng })async{
+  Future<void>  callShow({required String orderId,required double lat,required double lng })async{
     CallKitParams callKitParams = CallKitParams(
       id: "_currentUuid",
       nameCaller: 'New Delivery Order',
@@ -206,7 +217,7 @@ class AppNotificationHandler {
       avatar: '',
       handle: "Drop Location : ${await getAddressFromLatLngAsString(lat:lat,lng:lng)}",
       type: 0,
-      textAccept: 'Accept',
+      textAccept: 'View',
       textDecline: 'Reject',
       missedCallNotification: NotificationParams(
         showNotification: true,

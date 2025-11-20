@@ -904,7 +904,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
       onTap: () {
         if (chatViewController.canPopBusiness.value) {
           chatViewController.emitEvent(
-              "ChatList", {ApiKeys.type: "$socketType"}, true);
+              ChatEmitEvents.ChatList, {ApiKeys.type: "$socketType"}, true);
           bottomBarController.onChangeIndex(4);
           Navigator.popUntil(context, ModalRoute.withName(
               RouteHelper.getBottomNavigationBarScreenRoute()));
@@ -912,7 +912,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
         } else {
           Get.back();
           chatViewController.emitEvent(
-              "ChatList", {ApiKeys.type: "$socketType"}, true);
+              ChatEmitEvents.ChatList, {ApiKeys.type: "$socketType"}, true);
         }
       },
       child: Padding(
@@ -1416,7 +1416,7 @@ void showMessageEditDialog(String userId,
                     bool value =
                     await chatViewController.updateMessageApi(data);
                     if (value) {
-                      chatViewController.emitEvent("messageReceived", {
+                      chatViewController.emitEvent(ChatEmitEvents.messageReceived, {
                         ApiKeys.conversation_id: conversationId,
                         ApiKeys.page: 1,
                         ApiKeys.is_online_user: userId,

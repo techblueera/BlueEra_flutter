@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/api/apiService/api_response.dart';
+import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/app_image_assets.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../../../core/routes/route_helper.dart';
@@ -99,13 +100,13 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
       onWillPop: () async {
         if(chatViewController.canPopBusiness.value){
           chatViewController.emitEvent(
-              "ChatList", {ApiKeys.type: "business"}, true);
+              ChatEmitEvents.ChatList, {ApiKeys.type: "business"}, true);
           chatViewController.onSelectChatTab(1);
           bottomBarController.onChangeIndex(4);
           Navigator.popUntil(context, ModalRoute.withName(RouteHelper.getBottomNavigationBarScreenRoute()));
         }else{
           chatViewController.emitEvent(
-              "ChatList", {ApiKeys.type: "business"}, true);
+              ChatEmitEvents.ChatList, {ApiKeys.type: "business"}, true);
         }
         return true;
       },
@@ -377,7 +378,7 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
                       bool value =
                       await chatViewController.updateMessageApi(data);
                       if (value) {
-                        chatViewController.emitEvent("messageReceived", {
+                        chatViewController.emitEvent(ChatEmitEvents.messageReceived, {
                           ApiKeys.conversation_id: widget.conversationId,
                           ApiKeys.page: 1,
                           ApiKeys.is_online_user: widget.userId,

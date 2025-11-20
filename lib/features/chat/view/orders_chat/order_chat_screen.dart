@@ -7,6 +7,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/api/apiService/api_response.dart';
+import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/app_icon_assets.dart';
 import '../../../../core/constants/app_image_assets.dart';
 import '../../../../core/constants/size_config.dart';
@@ -83,7 +84,7 @@ class _OrderChatScreenState extends State<OrderChatScreen> {
     return WillPopScope(
       onWillPop: () async {
         chatViewController.emitEvent(
-            "ChatList", {ApiKeys.type: "personal"}, true);
+            ChatEmitEvents.ChatList, {ApiKeys.type: "personal"}, true);
         chatViewController.emitEvent(
             "newMessageReceived", {ApiKeys.type: "personal"}, true);
 

@@ -263,7 +263,7 @@ class OrderNowController extends GetxController {
       if (response.isSuccess) {
         commonSnackBar(
             message:
-            "Wait Our Rider Will Accept Your Order Soon ");
+            response.message??"Wait Our Rider Will Accept Your Order Soon ");
       } else {
         commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);
@@ -458,7 +458,7 @@ class OrderNowController extends GetxController {
           ApiKeys.order_status : true
         };
         await  updateOrderStatus(datadd);
-        chatViewController. emitEvent("messageReceived", {
+        chatViewController. emitEvent(ChatEmitEvents.messageReceived, {
           ApiKeys.conversation_id: openedMessage?.conversationId??openedMessage?.sender?.id,
           ApiKeys.page: 1,
           ApiKeys.is_online_user: businessId,
@@ -493,7 +493,7 @@ class OrderNowController extends GetxController {
             ApiKeys.order_status : true
           };
           await updateOrderStatus(datadd);
-          chatViewController.emitEvent("messageReceived", {
+          chatViewController.emitEvent(ChatEmitEvents.messageReceived, {
             ApiKeys.conversation_id: conversationId??userId,
             ApiKeys.page: 1,
             ApiKeys.is_online_user: businessId,
@@ -522,7 +522,7 @@ class OrderNowController extends GetxController {
           //   ApiKeys.order_status : true
           // };
           // await updateOrderStatus(datadd);
-          chatViewController.emitEvent("messageReceived", {
+          chatViewController.emitEvent(ChatEmitEvents.messageReceived, {
             ApiKeys.conversation_id: conversationId??userId,
             ApiKeys.page: 1,
             ApiKeys.is_online_user: businessId,
@@ -539,7 +539,7 @@ class OrderNowController extends GetxController {
         commonSnackBar(message: "Order Deleted Successfully");
         final chatViewController = Get.find<ChatViewController>();
 
-        chatViewController. emitEvent("messageReceived", {
+        chatViewController. emitEvent(ChatEmitEvents.messageReceived, {
           ApiKeys.conversation_id: conversationId,
           ApiKeys.page: 1,
           ApiKeys.is_online_user: businessId,

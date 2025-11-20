@@ -93,16 +93,18 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
   _subscription = _stream.listen((event) {
     log('event is --> $event');
     if (event is List) {
+      log('status-->JJJaskncxk  ${event.isEmpty}');
       if(event.isEmpty){
         if(paymentDialogShow==true){
           Get.back();
         }
       }else{
+        log('status--> ${event.length}');
         for (final item in event) {
           final status = item['status'];
-
+          log('status--> $status');
           if (status == 'payment-pending') {
-            log('status--> $status');
+
             log('paymentDialogShow--> $paymentDialogShow');
 
             // if(paymentDialogShow==false){
@@ -115,7 +117,7 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
               paymentDialogShow = true;
             // }
             break; // stop after first match
-          }else if(status == 'cancelled'){
+          }else if(status == 'rejected'){
             if(paymentDialogShow==true){
               Get.back();
             }

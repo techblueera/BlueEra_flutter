@@ -138,18 +138,46 @@ class NotificationData {
 }
 
 // ----------------------------------------------------------------------
+class DropAddress {
+  String? addressId;
+  String? address;
+  String? lat;
+  String? long;
+  String? details;
 
+  DropAddress({
+    this.addressId,
+    this.address,
+    this.lat,
+    this.long,
+    this.details,
+  });
+
+  factory DropAddress.fromJson(Map<String, dynamic> json) {
+    return DropAddress(
+      addressId: json['Addressid'],
+      address: json['Address'],
+      lat: json['lat'].toString(),
+      long: json['long'].toString(),
+      details: json['details'],
+    );
+  }
+}
 class MetaData {
   String? orderId;
   RiderDetails? riderDetails;
   DeliveredAddress? deliveredAddress;
+  DropAddress? dropAddress;
   OwnerDetails? ownerDetails;
+  String? ridefare;
 
   MetaData({
     this.orderId,
     this.riderDetails,
     this.deliveredAddress,
+    this.dropAddress,
     this.ownerDetails,
+    this.ridefare,
   });
 
   factory MetaData.fromJson(Map<String, dynamic> json) {
@@ -161,12 +189,17 @@ class MetaData {
       deliveredAddress: json['Delivered address'] != null
           ? DeliveredAddress.fromJson(json['Delivered address'])
           : null,
+      dropAddress: json['Drop address'] != null
+          ? DropAddress.fromJson(json['Drop address'])
+          : null,
       ownerDetails: json['owner details'] != null
           ? OwnerDetails.fromJson(json['owner details'])
           : null,
+      ridefare: json['ridefare']?.toString(),
     );
   }
 }
+
 
 // ----------------------------------------------------------------------
 

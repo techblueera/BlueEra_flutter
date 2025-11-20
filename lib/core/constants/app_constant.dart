@@ -1649,6 +1649,11 @@ final List<ServiceItem> rentalServicesList = [
   //   labelColor: const Color(0xFF36444D),
   // ),
 ];
+class ChatEmitEvents{
+  static const ChatList = "ChatList";
+  static const screenRoom = "screenRoom";
+  static const messageReceived = "messageReceived";
+}
 final List<String> timeOptions = [
   '12:00 AM',
   '12:30 AM',

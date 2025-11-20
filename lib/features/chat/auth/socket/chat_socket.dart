@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 import '../../../../core/api/apiService/api_keys.dart';
+import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
 import '../../../../environment_config.dart';
 
@@ -32,8 +33,8 @@ class ChatSocketService {
       _socket.connect();
       _socket.onConnect((_) {
         _isConnected = true;
-        _socket.emit("screenRoom", {ApiKeys.conversation_id: "online"});
-        _socket.emit("ChatList", {ApiKeys.type: "personal"});
+        _socket.emit(ChatEmitEvents.screenRoom, {ApiKeys.conversation_id: "online"});
+        _socket.emit(ChatEmitEvents.ChatList, {ApiKeys.type: "personal"});
           print("Socket connected!");
 
       });

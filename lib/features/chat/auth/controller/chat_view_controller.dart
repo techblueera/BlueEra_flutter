@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/api/apiService/api_response.dart';
+import '../../../../core/constants/app_constant.dart';
 import '../../../../core/services/local_strorage_helper.dart';
 import '../../../../core/services/notification_utils.dart';
 import '../../view/business_chat/business_chat_screen_updated.dart';
@@ -180,7 +181,7 @@ class ChatViewController extends GetxController {
     //   await loadChatListFromLocal("personal");
     // }
 
-    chatSocket.listenEvent('ChatList', (data) async {
+    chatSocket.listenEvent(ChatEmitEvents.ChatList, (data) async {
       final parsedData = GetChatListModel.fromJson(data);
       loadChatListWithType(chatListModel: parsedData);
       getPersonalFilteredChatListModel?.value = parsedData;
@@ -241,9 +242,9 @@ class ChatViewController extends GetxController {
       }
 
       if (message?.conversation?.type == "personal") {
-        emitEvent("ChatList", {ApiKeys.type: "personal"}, true);
+        emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: "personal"}, true);
       } else {
-        emitEvent("ChatList", {ApiKeys.type: "business"}, true);
+        emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: "business"}, true);
       }
       String chekedConversationId = userOpenConversationId.value;
       if (chekedConversationId == message?.conversationId) {
@@ -269,7 +270,7 @@ class ChatViewController extends GetxController {
       }
     });
     chatSocket.listenEvent("update_data", (data) {
-      emitEvent("messageReceived", {
+      emitEvent(ChatEmitEvents.messageReceived, {
         ApiKeys.conversation_id: data[ApiKeys.conversation_id],
         ApiKeys.page: 1,
         ApiKeys.is_online_user: userOpenUserId.value,
@@ -378,7 +379,7 @@ class ChatViewController extends GetxController {
       {required String conversationId, required String userId}) {
     userOpenConversationId.value = conversationId;
     userOpenUserId.value = userId;
-    emitEvent("screenRoom", {ApiKeys.conversation_id: "${conversationId}"});
+    emitEvent(ChatEmitEvents.screenRoom, {ApiKeys.conversation_id: "${conversationId}"});
     addConversationOnce(conversationId);
   }
 
@@ -541,7 +542,7 @@ class ChatViewController extends GetxController {
     // }
     // else {
     emitEvent(
-        "messageReceived",
+        ChatEmitEvents.messageReceived,
         (otherUserId != null)
             ? {
                 ApiKeys.other_user_id: otherUserId,
@@ -583,16 +584,16 @@ class ChatViewController extends GetxController {
     //   }
     // }
 
-    if (event == "messageReceived" &&
+    if (event == ChatEmitEvents.messageReceived &&
         (conversationId ?? "") != userOpenConversationId) {
       getListOfMessageResponse.value = ApiResponse.initial('Initial');
     }
 
-    if (event == "ChatList") {
+    if (event == ChatEmitEvents.ChatList) {
       Map<String, dynamic> dataParams = {
         ApiKeys.type: data[ApiKeys.type]
       };
-      chatSocket.emitEvent("screenRoom", {ApiKeys.conversation_id: "online"});
+      chatSocket.emitEvent(ChatEmitEvents.screenRoom, {ApiKeys.conversation_id: "online"});
       chatSocket.emitEvent(event, dataParams);
     } else {
       chatSocket.emitEvent(event, data);
@@ -756,7 +757,7 @@ class ChatViewController extends GetxController {
       ResponseModel responseModel =
           await ChatViewRepo().acceptOrDeclineRequest(params);
       if (responseModel.isSuccess) {
-        chatSocket.emitEvent("ChatList", {ApiKeys.type: "personal"});
+        chatSocket.emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: "personal"});
         getChatRequestList();
         chatMessageRequestResponse.value = ApiResponse.complete(responseModel);
         commonSnackBar(
@@ -951,7 +952,7 @@ class ChatViewController extends GetxController {
       ResponseModel responseModelCreas =
       await ChatViewRepo().createNewGroupApi(params);
       if (responseModelCreas.isSuccess) {
-        emitEvent("ChatList", {ApiKeys.type: "group"});
+        emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: "group"});
         return true;
       } else {
         commonSnackBar(
@@ -963,7 +964,7 @@ class ChatViewController extends GetxController {
       await ChatViewRepo().createNewGroupApi(params);
 
       if (responseModel.isSuccess) {
-        emitEvent("ChatList", {ApiKeys.type: "group"});
+        emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: "group"});
         return true;
       } else {
         commonSnackBar(
@@ -1060,7 +1061,7 @@ class ChatViewController extends GetxController {
         }
         scrollDown();
         saveSingleMessageToLocal(message.conversationId ?? '', message, params);
-        emitEvent("ChatList", {ApiKeys.type: "personal"}, true);
+        emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: "personal"}, true);
         clearMessageControllerCommon();
       } else {
         clearMessageControllerCommon();
@@ -1093,7 +1094,7 @@ class ChatViewController extends GetxController {
       clearMessageControllerCommon();
 
       if (responseModel.isSuccess) {
-        emitEvent("messageReceived", {
+        emitEvent(ChatEmitEvents.messageReceived, {
           ApiKeys.conversation_id: conversationId,
           ApiKeys.page: 1,
           ApiKeys.is_online_user: userId,

@@ -34,6 +34,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:mappls_gl/mappls_gl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'core/services/home_cache_service.dart';
+import 'core/services/notifications/ride_notification_data_model.dart';
 import 'features/personal/personal_profile/controller/languge_list_controller.dart';
 
 
@@ -42,10 +43,17 @@ final AudioPlayer audioPlayer = AudioPlayer();
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   ///INIT FIREBASE NOTIFICATION...
+
   await firebaseInitializeApp();
   if (message.notification != null) {
     await AppNotificationHandler().playCustomSound(message);
   }
+
+  if(message.data["operation"]=='RIDE_ORDER_RECEIVED'){
+    NotificationData rideNotification=NotificationData.fromJson(message.data);
+    AppNotificationHandler().callShow(orderId: '${rideNotification.metadata?.orderId}',lng: double.parse(rideNotification.deliveryLong.toString()),lat: double.parse(rideNotification.deliveryLat.toString()) );
+  }
+
 }
 
 Future<void> main() async {
