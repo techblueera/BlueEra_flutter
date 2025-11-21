@@ -13,17 +13,17 @@ import 'package:BlueEra/widgets/visiting_card_helper.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 
-class BusinessProductCard extends StatefulWidget {
+class BusinessAllProductCard extends StatefulWidget {
   final List<GetProductData> allProducts;
   final bool showHorizontal;
 
-  const BusinessProductCard({super.key, required this.allProducts, this.showHorizontal = true});
+  const BusinessAllProductCard({super.key, required this.allProducts, this.showHorizontal = true});
 
   @override
-  State<BusinessProductCard> createState() => _BusinessProductCardState();
+  State<BusinessAllProductCard> createState() => _BusinessAllProductCardState();
 }
 
-class _BusinessProductCardState extends State<BusinessProductCard> {
+class _BusinessAllProductCardState extends State<BusinessAllProductCard> {
   final CarouselSliderController _carouselController = CarouselSliderController();
   int _currentIndex = 0;
 
@@ -229,7 +229,7 @@ class _BusinessProductCardState extends State<BusinessProductCard> {
 
              return Container(
                padding: const EdgeInsets.all(10.0),
-               margin: const EdgeInsets.only(bottom: 10.0),
+               margin: EdgeInsets.only(bottom: index != widget.allProducts.length -1 ? 10.0 : kBottomNavigationBarHeight + SizeConfig.size40),
                decoration: BoxDecoration(
                    color: AppColors.white,
                    borderRadius: BorderRadius.circular(10.0),
