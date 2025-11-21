@@ -86,7 +86,7 @@ class BottomNavigationBarWidget extends StatelessWidget {
                 index: 1,
                 iconPath: AppIconAssets.finderIcon,
                 isSelected: currentIndex == 1,
-                label: AppStrings.finder,
+                label: AppStrings.discover,
               ),
               _buildNavItem(
                 index: 2,
