@@ -175,7 +175,7 @@ class PublicationsController extends GetxController {
   }
 
   /// DELETE PUBLICATION
-  Future<void> deletePublicationApi(String id) async {
+  Future<void> deletePublicationApi(String id,int index) async {
     try {
       isLoading.value = true;
       final response = await _repo.deletePublication(id: id);
@@ -184,6 +184,7 @@ class PublicationsController extends GetxController {
         commonSnackBar(
             message: response.response?.data['message'] ??
                 AppStrings.publicationDeleted);
+        publications.removeAt(index);
         // await getAllPublicationsApi();
        await getResumeController.getMyResume();
       } else {

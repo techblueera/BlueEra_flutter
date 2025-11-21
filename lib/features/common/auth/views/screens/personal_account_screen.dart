@@ -114,7 +114,7 @@ bool crBtnLoading=false;
             left: SizeConfig.size15,
             right: SizeConfig.size15,
             top: SizeConfig.size15,
-            bottom: SizeConfig.size100,
+            bottom: SizeConfig.size10,
           ),
           padding: EdgeInsets.all(SizeConfig.size15),
           decoration: BoxDecoration(
@@ -141,6 +141,7 @@ bool crBtnLoading=false;
                   color: AppColors.black,
                 ),
                 SizedBox(height: SizeConfig.size10),
+
 
                 ///ENTER NAME...
                 CommonTextField(

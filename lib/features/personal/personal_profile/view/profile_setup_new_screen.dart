@@ -923,7 +923,8 @@ class _PersonalProfileSetupNewScreenState
                       const SizedBox(
                         width: 6,
                       ),
-                      Container(
+                      viewProfileController.personalProfileDetails.value
+                          .user?.profession?.isNotEmpty??false?Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 14, vertical: 4),
                         decoration: BoxDecoration(
@@ -940,7 +941,7 @@ class _PersonalProfileSetupNewScreenState
                           fontSize: SizeConfig.small,
                           fontWeight: FontWeight.w400,
                         ),
-                      ),
+                      ):SizedBox(),
                     ],
                   ),
                 ],
@@ -996,7 +997,8 @@ class _PersonalProfileSetupNewScreenState
 
             // === Bio Section ===
             // if (_shouldShowBioSection())
-            Padding(
+            viewProfileController
+                .personalProfileDetails.value.user?.bio?.isNotEmpty??false?Padding(
               padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
               child: ExpandableText(
                 text: viewProfileController
@@ -1015,7 +1017,7 @@ class _PersonalProfileSetupNewScreenState
                 expandMode: ExpandMode.dialog,
                 dialogTitle: AppStrings.bio,
               ),
-            ),
+            ):SizedBox(),
 
             //
             //

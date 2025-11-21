@@ -566,7 +566,7 @@ class _AboutMeSectionState extends State<AboutMeSection> {
               if (id == null) return;
               showConfirmDeleteDialog(context, () async {
                 Navigator.of(context).pop();
-                await achievementsController.deleteAchievement(id);
+                await achievementsController.deleteAchievement(id,index);
               });
             },
             titleColor: AppColors.black28,
@@ -607,7 +607,7 @@ class _AboutMeSectionState extends State<AboutMeSection> {
               if (id == null) return;
               showConfirmDeleteDialog(context, () async {
                 Navigator.of(context).pop();
-                await certificationsController.deleteCertification(id);
+                await certificationsController.deleteCertification(id,index);
               });
             },
             titleColor: AppColors.black28,
@@ -657,7 +657,7 @@ class _AboutMeSectionState extends State<AboutMeSection> {
               showConfirmDeleteDialog(context, () async {
                 Navigator.of(context).pop();
                 await publicationsController
-                    .deletePublicationApi(publications[index]['_id']);
+                    .deletePublicationApi(publications[index]['_id'],index);
                 await getResumeController.getMyResume();
                 commonSnackBar(message: AppStrings.publicationDeleted);
               });
