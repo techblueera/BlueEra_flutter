@@ -36,6 +36,7 @@ class _CommonProfileImageState extends State<CommonProfileImage> {
 
   @override
   Widget build(BuildContext context) {
+
     return InkWell(
       onTap: (widget.isOwnProfile) ? () => selectImage(context,widget.dialogTitle??"Upload Picture") : null,
       child: Stack(

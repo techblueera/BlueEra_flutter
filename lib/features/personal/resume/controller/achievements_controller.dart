@@ -99,7 +99,7 @@ class AchievementsController extends GetxController {
     }
   }
 
-  Future<void> deleteAchievement(String id) async {
+  Future<void> deleteAchievement(String id,int index) async {
     isLoading.value = true;
     try {
       final res = await _repo.deleteAchievement(id: id);
@@ -107,6 +107,8 @@ class AchievementsController extends GetxController {
         commonSnackBar(
             message: res.response?.data['message'] ?? AppStrings.achievementDeleteSuccess.tr);
         // await fetchAchievements();
+        achievementsList.removeAt(index);
+
       } else {
         commonSnackBar(message: res.message ?? AppStrings.achievementDeleteFailed.tr);
       }

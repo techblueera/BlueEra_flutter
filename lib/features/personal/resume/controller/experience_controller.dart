@@ -141,9 +141,12 @@ class ExperienceController extends GetxController {
 
     // Set final form validation flag
     final formIsValid = basicFieldsValid && validDateOrder && validStartDate;
-    if(validDateOrder==false){
-      commonSnackBar(message: "End Data Must After Start Date");
+    if(basicFieldsValid==true){
+      if(validDateOrder==false){
+        commonSnackBar(message: "End Data Must After Start Date");
+      }
     }
+
     if (isFormValid.value != formIsValid) {
       isFormValid.value = formIsValid;
     }

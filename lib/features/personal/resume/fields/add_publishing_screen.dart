@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../../widgets/new_common_date_selection_dropdown.dart';
+import '../../../../core/constants/snackbar_helper.dart';
 import '../controller/publications_controller.dart';
 
 class AddPublishingScreen extends StatefulWidget {
@@ -133,6 +134,15 @@ class _AddPublishingScreenState extends State<AddPublishingScreen> {
                         fontWeight: FontWeight.w400,
                         hintText: AppStrings.urlHint,
                         isValidate: true,
+                        validator: (value){
+                          bool testIsUrl = GetUtils.isURL(controller.linkController.text??'');
+                          if(value!.isEmpty){
+                            return "Required";
+                          }else if(!testIsUrl){
+                            return "Enter Valid Url";
+                          }
+
+                        },
                         onChange: (value) => _validateForm(),
                       ),
 
@@ -220,12 +230,13 @@ class _AddPublishingScreenState extends State<AddPublishingScreen> {
   bool _validateForm() {
     final titleNotEmpty = controller.titleController.text.trim().isNotEmpty;
     final linkNotEmpty = controller.linkController.text.trim().isNotEmpty;
+    bool testIsUrl = GetUtils.isURL(controller.linkController.text.trim());
     final descriptionNotEmpty =
         controller.descriptionController.text.trim().isNotEmpty;
     final isDateValid = _areDatesValid();
 
     final isValid =
-        titleNotEmpty && linkNotEmpty && descriptionNotEmpty && isDateValid;
+        titleNotEmpty && linkNotEmpty && testIsUrl && descriptionNotEmpty && isDateValid;
 
     setState(() {
       validate = isValid;
@@ -235,6 +246,7 @@ class _AddPublishingScreenState extends State<AddPublishingScreen> {
   }
 
   Future<void> _handleSave() async {
+
     if (!_validateForm()) return;
 
     if (widget.publicationData != null) {

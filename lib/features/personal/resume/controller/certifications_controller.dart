@@ -77,10 +77,11 @@ class CertificationsController extends GetxController {
     }
   }
 
-  Future<void> deleteCertification(String id) async {
+  Future<void> deleteCertification(String id,int index) async {
     final res = await _repo.deleteCertification(id: id);
     if (res.isSuccess) {
       commonSnackBar(message: AppStrings.certificationDeleted);
+      certificationsList.removeAt(index);
       // await getAllCertifications();
     } else {
       commonSnackBar(message: res.message ?? AppStrings.certificationDeleteFailed);
