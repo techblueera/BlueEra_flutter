@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -7,7 +8,10 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
+import 'package:BlueEra/features/common/map/view/customize_map_screen.dart';
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
+import 'package:BlueEra/features/common/store/view/new_store/all_food_store_screen.dart';
+import 'package:BlueEra/features/common/store/view/new_store/all_product_store_screen.dart';
 import 'package:BlueEra/features/common/store/view/new_store/business_store_screen.dart';
 import 'package:BlueEra/features/common/store/widget/StoreCategory.dart';
 import 'package:BlueEra/features/common/store/widget/icon_grid_item.dart';
@@ -218,10 +222,15 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                           children: [
                             _sectionHeader(
                                 title: "Near Me",
-                                seeMoreTap: () {}
+                                seeMoreTap: () {
+
+                                }
                             ),
                             SizedBox(height: SizeConfig.size15),
-                            _iconGrid(mainCategories)
+                            _iconGrid(
+                                mainCategories,
+                                onTap: (category) => _handleNearMeCategoryTap(category)
+                            )
                           ],
                         )
                     ),
@@ -244,7 +253,16 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                                 seeMoreTap: () {}
                             ),
                             SizedBox(height: SizeConfig.size15),
-                            _iconGrid(providerCategories)
+                            _iconGrid(
+                                providerCategories,
+                                onTap: (category){
+                                  print("You tapped → ${category.slugId}");
+                                  print("You tapped category name → ${category.name}");
+                                  Get.to(()=> CustomizeMapScreen(
+                                    selectedMapCategoryType: MapServiceCategory.services.label,
+                                  ));
+                                }
+                            )
       
                           ],
                         )
@@ -311,7 +329,7 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                                 Get.to(()=> BusinessStoreScreen(
                                     typeOfBusiness: AppConstants.product,
                                     selectedStoreCategoryId: category.slugId,
-                                  selectedStoreCategoryName: category.name,
+                                    selectedStoreCategoryName: category.name,
                                 ));
                               },
                             )
@@ -486,5 +504,56 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
       ),
     );
   }
+
+  void _handleNearMeCategoryTap(StoreFeedCategory category) {
+    print("You tapped → ${category.slugId}");
+    print("You tapped category name → ${category.name}");
+
+    switch (category.name) {
+      case AppConstants.storeServices:
+        Get.to(() => BusinessStoreScreen(
+          selectedStoreCategoryName: category.name,
+        ));
+        break;
+
+      case AppConstants.foodServices:
+        Get.to(() => AllFoodStoreScreen(
+            isShowInGrid: true
+        ));
+        break;
+
+      case AppConstants.productsServices:
+        Get.to(() => AllProductStoreScreen(
+            isShowInGrid: true
+        ));
+        break;
+
+      case AppConstants.groceryVegetablesDairy:
+        Get.to(() => BusinessStoreScreen(
+          typeOfBusiness: AppConstants.food,
+          selectedStoreCategoryId: category.slugId,
+          selectedStoreCategoryName: category.name,
+        ));
+        break;
+
+      case AppConstants.rentalServices:
+        Get.to(() => CustomizeMapScreen(
+          selectedMapCategoryType: MapServiceCategory.rental.label,
+        ));
+        break;
+
+      case AppConstants.homeServices:
+        Get.to(() => CustomizeMapScreen(
+          selectedMapCategoryType: MapServiceCategory.homeService.label,
+        ));
+        break;
+      case AppConstants.riderServices:
+        break;
+
+      default:
+        print("⚠ Unknown category tapped: ${category.name}");
+    }
+  }
+
 
 }

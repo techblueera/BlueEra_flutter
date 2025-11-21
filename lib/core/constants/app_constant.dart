@@ -235,17 +235,19 @@ class AppConstants {
   static const String otherRestaurantsDhaba = "Other Restaurants / Dhaba";
   static const String otherFoodServices = "Other Food Services";
 
-  static const grocery = "Grocery";
-  static const store = "Store";
-  static const products = "Products";
-  static const stay = "Stay";
-  static const rental = "Rental";
-  static const booking = "Booking";
-  static const others = "Others";
+  static const groceryServices = "Grocery";
+  static const foodServices = "Food";
+  static const storeServices = "Store";
+  static const productsServices = "Products";
+  static const stayServices = "Stay";
+  static const taxiDriverServices = "Taxi-Car Driver";
+  static const riderServices = "Rider";
+  static const rentalServices = "Rental";
+  static const bookingServices = "Booking";
+  static const homeServices = "Home Services";
 
   static const electrician = "Electrician";
   static const taxiDriver = "Taxi-Car Driver";
-  static const rider = "Rider";
   static const beautyServices = "Beauty Services";
   static const tuition = "Tuition";
   static const counselling = "Counselling";
@@ -1639,6 +1641,7 @@ final List<ServiceItem> selfWorkServiceList = [
     labelColor: const Color(0xFF36444D),
   ),
 ];
+
 final List<ServiceItem> homeServicesList = [
   ServiceItem(
     name: 'Beauty Services',
@@ -1803,102 +1806,108 @@ String formatClaimedAt(String claimedAt) {
 
 final List<StoreFeedCategory> mainCategories = [
   StoreFeedCategory(
-    name: "Grocery",
-    slugId: AppConstants.grocery,
+    name: AppConstants.groceryVegetablesDairy,
+    slugId: '68ce9917eac48e6b0d4973bf',
     icon: AppIconAssets.groceryIcon,
     type: AppConstants.service,
   ),
   StoreFeedCategory(
-    name: "Food",
-    slugId: AppConstants.food,
+    name: AppConstants.foodServices,
+    slugId: '',
     icon: AppIconAssets.foodIcon,
     type: AppConstants.service,
   ),
   StoreFeedCategory(
-    name: "Store",
-    slugId: AppConstants.store,
+    name: AppConstants.storeServices,
+    slugId: '',
     icon: AppIconAssets.storeIcon,
     type: AppConstants.service,
   ),
   StoreFeedCategory(
-    name: "Products",
-    slugId: AppConstants.products,
+    name: AppConstants.productsServices,
+    slugId: '',
     icon: AppIconAssets.productIcon,
     type: AppConstants.service,
   ),
   StoreFeedCategory(
-    name: "Stay",
-    slugId: AppConstants.stay,
-    icon: AppIconAssets.homeStayIcon,
+    name: AppConstants.riderServices,
+    slugId: '',
+    icon: AppIconAssets.riderIcon,
     type: AppConstants.service,
   ),
   StoreFeedCategory(
-    name: "Rental",
-    slugId: AppConstants.rental,
+    name: AppConstants.taxiDriverServices,
+    slugId: '',
+    icon: AppIconAssets.taxiDriverIcon,
+    type: AppConstants.service,
+  ),
+  StoreFeedCategory(
+    name: AppConstants.rentalServices,
+    slugId: '',
     icon: AppIconAssets.rentKeyIcon,
     type: AppConstants.service,
   ),
+  // StoreFeedCategory(
+  //   name: "Booking",
+  //   slugId: AppConstants.booking,
+  //   icon: AppIconAssets.bookingEnquiries,
+  //   type: AppConstants.service,
+  // ),
   StoreFeedCategory(
-    name: "Booking",
-    slugId: AppConstants.booking,
-    icon: AppIconAssets.bookingEnquiries,
-    type: AppConstants.service,
-  ),
-  StoreFeedCategory(
-    name: "Others",
-    slugId: AppConstants.others,
-    icon: AppIconAssets.staggeredIcon,
+    name: AppConstants.homeServices,
+    slugId: '',
+    icon: AppIconAssets.homeServiceIcon,
     type: AppConstants.service,
   ),
 ];
 
 final List<StoreFeedCategory> providerCategories = [
   StoreFeedCategory(
-    name: "Electrician",
-    slugId: AppConstants.electrician,
+    name: AppConstants.ELECTRICIAN,
+    slugId: AppConstants.ELECTRICIAN,
     icon: AppIconAssets.electricianIcon,
     type: AppConstants.service,
   ),
   StoreFeedCategory(
-    name: "Taxi-Car Driver",
-    slugId: AppConstants.taxiDriver,
-    icon: AppIconAssets.taxiDriverIcon,
+    name: AppConstants.PLUMBER,
+    slugId: AppConstants.PLUMBER,
+    icon: AppIconAssets.plumberIcon,
     type: AppConstants.service,
   ),
   StoreFeedCategory(
-    name: "Rider",
-    slugId: AppConstants.rider,
-    icon: AppIconAssets.riderIcon,
+    name: AppConstants.TECHNICIAN,
+    slugId: AppConstants.TECHNICIAN,
+    icon: AppIconAssets.technicianIcon,
     type: AppConstants.service,
   ),
   StoreFeedCategory(
-    name: "Beauty Services",
-    slugId: AppConstants.beautyServices,
-    icon: AppIconAssets.beautyServiceIcon,
+    name: AppConstants.MAID_CLEANER,
+    slugId: AppConstants.MAID_CLEANER,
+    icon: AppIconAssets.mainCleanerIcon,
     type: AppConstants.service,
   ),
   StoreFeedCategory(
-    name: "Tuition",
-    slugId: AppConstants.tuition,
-    icon: AppIconAssets.teachingIcon,
+    name: AppConstants.CARPENTER,
+    slugId: AppConstants.CARPENTER,
+    icon: AppIconAssets.carpenterIcon,
     type: AppConstants.service,
   ),
   StoreFeedCategory(
-    name: "Counselling",
-    slugId: AppConstants.counselling,
-    icon: AppIconAssets.counsellingServiceIcon,
+    name: AppConstants.PAINTER,
+    slugId: AppConstants.PAINTER,
+    icon: AppIconAssets.painterIcon,
     type: AppConstants.service,
   ),
   StoreFeedCategory(
-    name: "Doctors",
-    slugId: AppConstants.doctors,
-    icon: AppIconAssets.doctorsIcon,
+    name: AppConstants.MECHANIC,
+    slugId: AppConstants.MECHANIC,
+    icon: AppIconAssets.mechanicIcon,
     type: AppConstants.service,
   ),
   StoreFeedCategory(
-    name: "Hospital",
-    slugId: AppConstants.hospital,
-    icon: AppIconAssets.hospitalIcon,
+    name: AppConstants.HOME_RENOVATION,
+    slugId: AppConstants.HOME_RENOVATION,
+    icon: AppIconAssets.mistryIcon,
     type: AppConstants.service,
   ),
 ];

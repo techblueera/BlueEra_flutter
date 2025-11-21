@@ -190,7 +190,9 @@ class _StoreFeedScreenState extends State<StoreFeedScreen>
             height: SizeConfig.size30,
             width: SizeConfig.size110,
             onTap: () {
-              if (isBusinessUser()) {
+              if (isGuestUser()) {
+                createProfileScreen();
+              } else if (isBusinessUser()) {
                 final controller = Get.find<ViewBusinessDetailsController>();
 
                 if ((controller.businessProfileDetails?.data?.livePhotos ?? [])
@@ -382,7 +384,10 @@ class _StoreFeedScreenState extends State<StoreFeedScreen>
             log('loggggg 2--> ${productData.product.business_name}');
             return Padding(
               padding: EdgeInsets.only(bottom: ds(10)),
-              child: StoreProductCard(productStore: productData.product),
+              child: StoreProductCard(
+                  productStore: productData.product,
+                  isShowInGrid: false
+              ),
             );
           },
           childCount: productList.length +
@@ -411,7 +416,7 @@ class _StoreFeedScreenState extends State<StoreFeedScreen>
       return const SliverToBoxAdapter(
         child: Padding(
           padding: EdgeInsets.symmetric(vertical: 20),
-          child: EmptyStateWidget(message: 'No services found'),
+          child: EmptyStateWidget(message: AppStrings.notFoundAnyService),
         ),
       );
     }
@@ -483,7 +488,7 @@ class _StoreFeedScreenState extends State<StoreFeedScreen>
               padding: EdgeInsets.only(bottom: ds(10)),
               child: StoreFoodServiceCard(
                 foodDetailsData: foodItem,
-                isShowVerticalUi: false,
+                isShowInGrid: false,
               ),
             );
           },
@@ -585,7 +590,7 @@ class _StoreFeedScreenState extends State<StoreFeedScreen>
                       child: StoreFoodServiceCard(
                         foodDetailsData:
                             block[i].foodData ?? GetFoodDetailsModel(),
-                        isShowVerticalUi: true,
+                        isShowInGrid: true,
                       ),
                     ),
                     if (i != block.length - 1) SizedBox(width: crossSpacing),
@@ -637,6 +642,7 @@ class _StoreFeedScreenState extends State<StoreFeedScreen>
           padding: padding,
           child: StoreProductCard(
             productStore: first.inventoryData?.product ?? ProductStore(),
+              isShowInGrid: false
           ),
         );
     }

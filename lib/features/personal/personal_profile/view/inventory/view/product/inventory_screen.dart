@@ -21,7 +21,8 @@ import '../../controller/inventory_controller.dart';
 import '../../../../../../common/food/view/food_and_grocery_screen.dart';
 
 class InventoryScreen extends StatefulWidget {
-  const InventoryScreen({super.key});
+  final bool fromBottomNavBar;
+  const InventoryScreen({super.key, this.fromBottomNavBar = false});
 
   @override
   State<InventoryScreen> createState() => _InventoryScreenState();
@@ -112,6 +113,7 @@ class _InventoryScreenState extends State<InventoryScreen>
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(kToolbarHeight + 50),
         child: CommonBackAppBar(
+          isLeading: !(widget.fromBottomNavBar),
           controller: searchController,
           searchHintText:
               AppStrings.searchHintText,
