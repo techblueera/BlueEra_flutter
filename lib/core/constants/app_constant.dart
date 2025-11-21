@@ -517,7 +517,7 @@ List<PopupMenuEntry<PostCreationMenu>> popupMenuItems() {
 
 List<PopupMenuEntry<String>> inventoryPopupMenuItems() {
   final items = <Map<String, dynamic>>[
-    {"id": "BUSINESS CARD", 'title': AppStrings.myBusinessCard}
+    {"id": "BUSINESS CARDS", 'title': AppStrings.myBusinessCard}
   ];
 
   final List<PopupMenuEntry<String>> entries = [];
@@ -528,7 +528,7 @@ List<PopupMenuEntry<String>> inventoryPopupMenuItems() {
         height: SizeConfig.size35,
         value: items[i]['id'],
         onTap: () {
-          if (items[i]['id'] == "BUSINESS CARD") {
+          if (items[i]['id'] == "BUSINESS CARDS") {
             Get.toNamed(RouteHelper.getInventoryBusinessCardsScreenRoute());
           }
         },

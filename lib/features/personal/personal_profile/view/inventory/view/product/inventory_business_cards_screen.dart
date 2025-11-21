@@ -1,8 +1,10 @@
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/service/controller/service_controller.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart' show CommonBackAppBar;
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -11,9 +13,9 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/common/food/controller/food_upload_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/business_product_card.dart';
-import 'package:BlueEra/features/common/service/view/business_service_card.dart';
-import 'package:BlueEra/features/common/food/view/business_food_service_card.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/business_all_product_card.dart';
+import 'package:BlueEra/features/common/service/view/business_all_service_card.dart';
+import 'package:BlueEra/features/common/food/view/business_all_food_service_card.dart';
 
 class InventoryBusinessCardsScreen extends StatefulWidget {
   final bool showBackAppBar;
@@ -35,6 +37,8 @@ class _InventoryBusinessCardsScreenState extends State<InventoryBusinessCardsScr
   late List<String> _tabTypes = [];
 
   bool _isLoading = true;
+  int _localSelectedIndex = 0;
+
 
   @override
   void initState() {
@@ -50,15 +54,15 @@ class _InventoryBusinessCardsScreenState extends State<InventoryBusinessCardsScr
 
     if (isShowProduct.contains(business)) {
       _tabs.add(Tab(text: AppStrings.myProducts.tr));
-      _tabTypes.add('product');
+      _tabTypes.add(AppConstants.product);
     }
     if (isShowService.contains(business)) {
       _tabs.add(Tab(text: AppStrings.myServices.tr));
-      _tabTypes.add('service');
+      _tabTypes.add(AppConstants.service);
     }
     if (isShowFood.contains(business)) {
       _tabs.add(Tab(text: AppStrings.foodAndGrocery.tr));
-      _tabTypes.add('food');
+      _tabTypes.add(AppConstants.food);
     }
 
     if (_tabs.isEmpty) {
@@ -84,28 +88,28 @@ class _InventoryBusinessCardsScreenState extends State<InventoryBusinessCardsScr
 
   Future<void> _fetchTabData(String type) async {
     switch (type) {
-      case 'product':
+      case AppConstants.product:
         if (inventoryController.allProducts.isEmpty) {
           inventoryController.fetchProducts();
         }
         break;
 
-      case 'service':
+      case AppConstants.service:
         if (serviceController.serviceDataList.isEmpty) {
           final queryParams = {
             ApiKeys.all: false,
-            ApiKeys.type: "service",
+            ApiKeys.type: AppConstants.service,
             ApiKeys.providerType: ProductServiceProviderType.business.title,
           };
           serviceController.getServices(queryParams);
         }
         break;
 
-      case 'food':
+      case AppConstants.food:
         if (foodUploadController.foodDataList.isEmpty) {
           final queryParams = {
             ApiKeys.all: false,
-            ApiKeys.type: "food",
+            ApiKeys.type: AppConstants.food,
             ApiKeys.providerType: ProductServiceProviderType.business.title,
           };
           foodUploadController.getFoodService(queryParams);
@@ -124,7 +128,7 @@ class _InventoryBusinessCardsScreenState extends State<InventoryBusinessCardsScr
 
     return Scaffold(
       backgroundColor: AppColors.whiteF3,
-      appBar: PreferredSize(
+      appBar:  widget.showBackAppBar ? PreferredSize(
         preferredSize: Size.fromHeight(widget.showBackAppBar
             ? kToolbarHeight + 50
             : 50
@@ -142,63 +146,86 @@ class _InventoryBusinessCardsScreenState extends State<InventoryBusinessCardsScr
             tabs: _tabs,
           ),
         ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: List.generate(_tabs.length, (index) {
-          final type = _tabTypes[index];
-          switch (type) {
-            case 'product':
-              return Obx(() {
-                if (inventoryController.isLoading.value) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (inventoryController.allProducts.isEmpty) {
-                  return const Center(child: CustomText(AppStrings.noProductsFound));
-                }
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: kBottomNavigationBarHeight),
-                  child: BusinessProductCard(
-                    allProducts: inventoryController.allProducts,
-                    showHorizontal: false,
-                  ),
-                );
-              });
+      ) : null,
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: EdgeInsets.only(
+                left: SizeConfig.size15,
+                right: SizeConfig.size15,
+                top: SizeConfig.size15,
+            ),
+            child: HorizontalTabSelector(
+              tabs:  _tabs.map((t) => t.text ?? "").toList(),
+              selectedIndex:  _localSelectedIndex,
+              horizontalMargin: 0.0,
+              onTabSelected: (index, value) {
+                _localSelectedIndex = index;
+                _tabController.animateTo(index);
+                setState(() {});
+              },
+              labelBuilder: (label) => label,
+            ),
+          ),
 
-            case 'service':
-              return Obx(() {
-                if (serviceController.isLoading.value) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (serviceController.serviceDataList.isEmpty) {
-                  return const Center(child: CustomText(AppStrings.noServicesFound));
-                }
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: kBottomNavigationBarHeight),
-                  child: BusinessServiceCard(
-                      allServices: serviceController.serviceDataList),
-                );
-              });
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: List.generate(_tabs.length, (index) {
+                final type = _tabTypes[index];
+                switch (type) {
+                  case AppConstants.product:
+                    return Obx(() {
+                      if (inventoryController.isLoading.value) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      if (inventoryController.allProducts.isEmpty) {
+                        return const Center(child: CustomText(AppStrings.noProductsFound));
+                      }
+                      return BusinessAllProductCard(
+                        allProducts: inventoryController.allProducts,
+                        showHorizontal: false,
+                      );
+                    });
 
-            case 'food':
-              return Obx(() {
-                if (foodUploadController.isLoading.value) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (foodUploadController.foodDataList.isEmpty) {
-                  return const Center(child: CustomText(AppStrings.noFoodItemsFound));
-                }
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: kBottomNavigationBarHeight),
-                  child: BusinessFoodServiceCard(
-                      allFoodServices: foodUploadController.foodDataList),
-                );
-              });
+                  case AppConstants.service:
+                    return Obx(() {
+                      if (serviceController.isLoading.value) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      if (serviceController.serviceDataList.isEmpty) {
+                        return const Center(child: CustomText(AppStrings.noServicesFound));
+                      }
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: kBottomNavigationBarHeight),
+                        child: BusinessAllServiceCard(
+                            allServices: serviceController.serviceDataList),
+                      );
+                    });
 
-            default:
-              return const SizedBox.shrink();
-          }
-        }),
+                  case AppConstants.food:
+                    return Obx(() {
+                      if (foodUploadController.isLoading.value) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      if (foodUploadController.foodDataList.isEmpty) {
+                        return const Center(child: CustomText(AppStrings.noFoodItemsFound));
+                      }
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: kBottomNavigationBarHeight),
+                        child: BusinessAllFoodServiceCard(
+                            allFoodServices: foodUploadController.foodDataList),
+                      );
+                    });
+
+                  default:
+                    return const SizedBox.shrink();
+                }
+              }),
+            ),
+          ),
+        ],
       ),
     );
   }

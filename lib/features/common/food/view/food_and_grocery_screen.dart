@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -7,9 +8,11 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/food/view/food_details_view_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
+import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../widgets/custom_text_cm.dart';
@@ -19,8 +22,14 @@ import '../model/get_food_details_model.dart';
 class FoodAndGroceryScreen extends StatefulWidget {
   final ProductServiceProviderType providerType;
   final EarnWithBlueEraServiceTypes? serviceSubType;
+  final bool isShowGrid;
 
-  const FoodAndGroceryScreen({super.key, required this.providerType, this.serviceSubType});
+  const FoodAndGroceryScreen({
+    super.key,
+    required this.providerType,
+    this.serviceSubType,
+    this.isShowGrid = true
+  });
 
   @override
   State<FoodAndGroceryScreen> createState() => _FoodAndGroceryScreenState();
@@ -40,7 +49,7 @@ class _FoodAndGroceryScreenState extends State<FoodAndGroceryScreen>
 
     queryParams = {
       ApiKeys.all: false,
-      ApiKeys.type: "food",
+      ApiKeys.type: AppConstants.food,
       ApiKeys.providerType: widget.providerType.title,
     };
 
@@ -99,15 +108,49 @@ class _FoodAndGroceryScreenState extends State<FoodAndGroceryScreen>
         if(controller.foodDataList.isNotEmpty) {
           return Column(
             children: [
-              Expanded(
-                child: ListView.builder(
+
+               Expanded(
+                child: widget.isShowGrid
+                    ? Padding(
+                  padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8, vertical: 8),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final crossAxisCount = 2;
+                      final crossSpacing = 10.0;
+                      final mainSpacing = 10.0;
+
+                      final itemWidth =
+                          (constraints.maxWidth - ((crossAxisCount - 1) * crossSpacing)) /
+                              crossAxisCount;
+
+                      return MasonryGridView.count(
+                        crossAxisCount: crossAxisCount,
+                        crossAxisSpacing: crossSpacing,
+                        mainAxisSpacing: mainSpacing,
+                        itemCount: controller.foodDataList.length,
+                        padding: EdgeInsets.only(bottom: kBottomNavigationBarHeight + 40),
+                        itemBuilder: (context, index) {
+                          final food = controller.foodDataList[index];
+                          return FoodItemCard(
+                              controller: controller,
+                              foodData: food,
+                              isFromEarnWithBlueEra: isFromEarnWithBlueEra,
+                              isGridShow: true,
+                          );
+                        },
+                      );
+                    },
+                  ),
+                )
+                    : ListView.builder(
                   itemCount: controller.foodDataList.length,
                   itemBuilder: (context, index) {
                     final food = controller.foodDataList[index];
                     return FoodItemCard(
                       controller: controller,
                       foodData: food,
-                      isFromEarnWithBlueEra: isFromEarnWithBlueEra
+                      isFromEarnWithBlueEra: isFromEarnWithBlueEra,
+                      isGridShow: false,
                     ); // dynamic card
                   },
                 ),
@@ -129,11 +172,20 @@ class _FoodAndGroceryScreenState extends State<FoodAndGroceryScreen>
 }
 
 class FoodItemCard extends StatelessWidget {
-  const FoodItemCard({super.key, required this.controller, required this.foodData, required this.isFromEarnWithBlueEra});
+  const FoodItemCard({
+    super.key,
+    required this.controller,
+    required this.foodData,
+    required this.isFromEarnWithBlueEra,
+    required this.isGridShow,
+    this.width,
+  });
 
   final GetFoodDetailsModel foodData;
   final FoodUploadController controller;
   final bool isFromEarnWithBlueEra;
+  final bool isGridShow;
+  final double? width;
 
   @override
   Widget build(BuildContext context) {
@@ -162,9 +214,164 @@ class FoodItemCard extends StatelessWidget {
             data: foodData,
           ));
         },
-        child: Card(
+        child: (isGridShow) ? Container(
+          width: width,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            color: Colors.transparent,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+
+              // Food Image
+              SizedBox(
+                height: SizeConfig.size150,
+                child: Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: (foodData.photos?.isNotEmpty??false)
+                          ?  CustomImageSlideshow(
+                        isLoading: false,
+                        width: double.infinity,
+                        height: SizeConfig.size150,
+                        imagePaths: foodData.photos ?? [],
+                        borderRadius: BorderRadius.zero,
+                      ): LocalAssets(
+                        imagePath:
+                        AppIconAssets.place_holder_image,
+                        boxFix: BoxFit.fill,
+                      ),
+                    ),
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: _buildIconBox(
+                        onTap: () async {
+                          await showCommonDialog(
+                          context: context,
+                          text: AppStrings.areYouSureDeleteThisFoodService,
+                          confirmText: AppStrings.delete,
+                          cancelText: AppStrings.cancel,
+                          confirmCallback: () {
+                            controller.deleteFoodService(
+                                serviceId: foodData.id ?? '',
+                                isFromEarnWithBlueEra: isFromEarnWithBlueEra
+                            );
+                          },
+                          cancelCallback: () {
+                            Get.back();
+                          },
+                          );
+                        },
+                        Icon(Icons.more_vert, color: Colors.white, size: 16),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Food Details
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: SizeConfig.size10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Food Name
+                    CustomText(
+                      foodData.title ?? AppStrings.na,
+                      fontWeight: FontWeight.w600,
+                      fontSize: SizeConfig.medium,
+                      color: AppColors.mainTextColor,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+
+                    SizedBox(height: SizeConfig.size5),
+
+                    // Veg label + category
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: controller.getFoodTypeColor(foodData.vegType),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            foodData.vegType ?? "",
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          foodData.category ?? "",
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    SizedBox(height: SizeConfig.size5),
+
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CustomText(
+                          "Energy : ",
+                          fontSize: SizeConfig.small,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.secondaryTextColor,
+                        ),
+                        Expanded(
+                          child: CustomText(
+                            "${foodData.nutritionalSummaryPer100g?.caloriesKcal ?? "N/A"} Cal/100gm",
+                            fontSize: SizeConfig.small,
+                            fontWeight: FontWeight.w500,
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 2,
+                            color: AppColors.secondaryTextColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: SizeConfig.size5),
+
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: (foodData.priceType == "single")
+                          ? CustomText(
+                        "₹ ${foodData.singlePrice ?? "0"}",
+                        fontSize: SizeConfig.small,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primaryColor,
+                      )
+                          : CustomText(
+                        "₹${priceText}",
+                        overflow: TextOverflow.ellipsis,
+                        color: AppColors.primaryColor,
+                        maxLines: 1,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ) : Card(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(10.0),
           ),
           elevation: 2,
           clipBehavior: Clip.antiAlias,
@@ -396,4 +603,22 @@ class FoodItemCard extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildIconBox(Widget child, {VoidCallback? onTap}) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        height: 25,
+        width: 25,
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.5),
+          shape: BoxShape.circle,
+          boxShadow: [AppShadows.textFieldShadow],
+        ),
+        alignment: Alignment.center,
+        child: child,
+      ),
+    );
+  }
+
 }

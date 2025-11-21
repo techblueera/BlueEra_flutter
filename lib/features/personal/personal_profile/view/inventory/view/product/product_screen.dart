@@ -42,8 +42,8 @@ class _ProductScreenState extends State<ProductScreen> {
         SizedBox(height: SizeConfig.size8),
 
         Obx(()=> Padding(
-          padding: EdgeInsets.all(
-              SizeConfig.size8
+          padding: EdgeInsets.symmetric(
+              vertical: SizeConfig.size8
           ),
           child: HorizontalTabSelector(
             tabs: inventoryController.productTab,
@@ -86,12 +86,12 @@ class _ProductScreenState extends State<ProductScreen> {
     ) :
     Expanded(
       child: inventoryController.allProducts.isNotEmpty ? Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8, vertical: 8),
         child: LayoutBuilder(
           builder: (context, constraints) {
             final crossAxisCount = 2;
-            final crossSpacing = 6.0;
-            final mainSpacing = 6.0;
+            final crossSpacing = 10.0;
+            final mainSpacing = 10.0;
 
             final itemWidth =
                 (constraints.maxWidth - ((crossAxisCount - 1) * crossSpacing)) /
@@ -112,6 +112,7 @@ class _ProductScreenState extends State<ProductScreen> {
                   },
                   width: itemWidth,
                   product: product,
+                  isGridShow: true
                 );
               },
             );
@@ -131,7 +132,7 @@ class _ProductScreenState extends State<ProductScreen> {
     ) :
     Expanded(
       child: inventoryController.liveProducts.isNotEmpty ? Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8, vertical: 8),
         child: LayoutBuilder(
           builder: (context, constraints) {
             // Two columns
@@ -155,7 +156,8 @@ class _ProductScreenState extends State<ProductScreen> {
                       inventoryController.deleteProduct();
                   },
                   product: product,
-                  width: itemWidth
+                  width: itemWidth,
+                    isGridShow: true
                 );
               },
             );
@@ -176,7 +178,7 @@ class _ProductScreenState extends State<ProductScreen> {
     Expanded(
       child: inventoryController.draftProducts.isNotEmpty ?
       Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8, vertical: 8),
         child: LayoutBuilder(
           builder: (context, constraints) {
             // Two columns
@@ -200,7 +202,8 @@ class _ProductScreenState extends State<ProductScreen> {
                     inventoryController.deleteProduct();
                   },
                   product: product,
-                  width: itemWidth
+                  width: itemWidth,
+                  isGridShow: true
                 );
               },
             );

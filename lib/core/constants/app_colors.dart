@@ -121,4 +121,6 @@ class AppColors {
   static const  green1A = Color(0xFF1AA260);
   static const  yellowPro = Color(0xFFFECC2F);
   static const  green4F = Color(0xff6DAE4F);
+  static const  redB4 = Color(0xFFB40000);
+  static const  green00 = Color(0xFF008000);
 }

@@ -4,29 +4,29 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/common/food/model/get_food_details_model.dart';
-import 'package:BlueEra/features/common/food/view/sharing_business_food_service_card.dart';
+import 'package:BlueEra/features/common/service/model/get_service_model.dart';
+import 'package:BlueEra/features/common/service/view/sharing_business_service_card.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/visiting_card_helper.dart';
 import 'package:flutter/material.dart';
 
-class BusinessFoodServiceCard extends StatefulWidget {
-  final List<GetFoodDetailsModel> allFoodServices;
+class BusinessAllServiceCard extends StatefulWidget {
+  final List<GetServiceModel> allServices;
 
-  const BusinessFoodServiceCard({super.key, required this.allFoodServices});
+  const BusinessAllServiceCard({super.key, required this.allServices});
 
   @override
-  State<BusinessFoodServiceCard> createState() => _BusinessFoodServiceCardState();
+  State<BusinessAllServiceCard> createState() => _BusinessAllServiceCardState();
 }
 
-class _BusinessFoodServiceCardState extends State<BusinessFoodServiceCard> {
+class _BusinessAllServiceCardState extends State<BusinessAllServiceCard> {
   late final List<GlobalKey> _cardKey;
 
   @override
   void initState() {
     super.initState();
-    _cardKey = List.generate(widget.allFoodServices.length, (_) => GlobalKey());
+    _cardKey = List.generate(widget.allServices.length, (_) => GlobalKey());
   }
 
   @override
@@ -37,19 +37,18 @@ class _BusinessFoodServiceCardState extends State<BusinessFoodServiceCard> {
     const double maxCardSize = 400.0;
     final double cardSize = screenWidth > maxCardSize ? maxCardSize : screenWidth * 0.9;
 
-
     return ListView.builder(
-      itemCount: widget.allFoodServices.length,
+      itemCount: widget.allServices.length,
       scrollDirection: Axis.vertical,
       padding: EdgeInsets.all(SizeConfig.size15),
       itemBuilder: (context, index) {
-        final foodServiceData = widget.allFoodServices[index];
+        final serviceData = widget.allServices[index];
         final int randomIndex = Random().nextInt(bgAssetsForServices.length);
         final String bgAsset = bgAssetsForServices[randomIndex];
 
         return Container(
           padding: const EdgeInsets.all(10.0),
-          margin: const EdgeInsets.only(bottom: 10.0),
+          margin: EdgeInsets.only(bottom: index != widget.allServices.length -1 ? 10.0 : kBottomNavigationBarHeight + SizeConfig.size40),
           decoration: BoxDecoration(
               color: AppColors.white,
               borderRadius: BorderRadius.circular(12.0),
@@ -64,12 +63,13 @@ class _BusinessFoodServiceCardState extends State<BusinessFoodServiceCard> {
             children: [
               SizedBox(
                 height: cardSize,
-                child: SharingBusinessFoodServiceCard(
+                child: SharingBusinessServiceCard(
                   cardKey: _cardKey[index],
-                  foodServiceData: foodServiceData,
+                  serviceData: serviceData,
                   backgroundAsset: bgAsset,
                 ),
               ),
+
               const SizedBox(height: 12),
 
               Row(
@@ -86,10 +86,10 @@ class _BusinessFoodServiceCardState extends State<BusinessFoodServiceCard> {
                     alignment: Alignment.topRight,
                     child: InkWell(
                       onTap: () async {
-                        final currentFoodServices = widget.allFoodServices[index];
+                        final currentService = widget.allServices[index];
                         await VisitingCardHelper().shareVisitingCard(
                             _cardKey[index],
-                            serviceId: currentFoodServices.id
+                            serviceId: currentService.id
                         );
                       },
                       child: Container(
@@ -100,6 +100,7 @@ class _BusinessFoodServiceCardState extends State<BusinessFoodServiceCard> {
                   ),
                 ],
               ),
+
             ],
           ),
         );

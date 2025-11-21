@@ -27,7 +27,7 @@ class CustomImageSlideshow extends StatefulWidget {
       this.width = 100,
       this.isLocal = false,
       this.dotColor = AppColors.primaryColor,
-      this.dotInactiveColor = Colors.grey,
+      this.dotInactiveColor = AppColors.whiteFE,
       this.autoPlayInterval = const Duration(seconds: 3),
       this.borderRadius,
       this.onPhotoIndex})
