@@ -414,6 +414,9 @@ abstract class BaseService {
   String clearNotificationWithId(String notifyId) =>
       '/notification-service/notifications/$notifyId';
   final String clearAllNotification = '/notification-service/notifications/all';
+  final String notificationRead = 'notification-service/notifications/';
+  // https://be.blueera.ai/api/notification-service/notifications/6916f0b3bac49d8da4f347a4/read
+
   final String individualProfessions = 'user-service/individual-professions';
   final String deletePostCommentById = 'post-service/post/delete-comment/';
   final String deleteVideoServiceCommentById = 'video-service/comments/';

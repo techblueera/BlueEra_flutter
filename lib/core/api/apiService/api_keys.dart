@@ -514,4 +514,5 @@ class ApiKeys {
   static const argRentalData = 'argRentalData';
   static const political_party = 'political_party';
   static const business_location = 'business_location';
+  static const notificationId = 'notificationId';
 }

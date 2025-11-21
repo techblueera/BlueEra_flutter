@@ -43,8 +43,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
   @override
   void initState() {
     super.initState();
-    fetchNotification();
     filteredNotifications = [...allNotifications];
+    fetchNotification(filterType: "all");
+
     searchController.addListener(() {
       _onSearchChanged(searchController.text);
     }); // To show/hide clear icon
@@ -56,10 +57,13 @@ class _NotificationScreenState extends State<NotificationScreen> {
     super.dispose();
   }
 
-  Future<void> fetchNotification() async {
+  Future<void> fetchNotification({required String filterType}) async {
     try {
+      filteredNotifications.clear();
+      allNotifications.clear();
       isLoading = true;
-      final response = await NotificationListRepo().fetchNotification();
+      final response = await NotificationListRepo()
+          .fetchNotificationRepo(filterType: filterType);
       if (response.isSuccess) {
         final data = response.response!.data;
 
@@ -175,8 +179,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   String? getTypeFromTabLabel(String label) {
     switch (label) {
-      case "Chats":
-        return "CHATS";
+      case "Chat":
+        return "CHAT";
       case "Orders":
         return "ORDERS";
       case "Tags":
@@ -199,14 +203,17 @@ class _NotificationScreenState extends State<NotificationScreen> {
             selectedIndex = index;
 
             final String? selectedType = getTypeFromTabLabel(value);
-            if (selectedType == null) {
-              // Show all
-              filteredNotifications = allNotifications;
-            } else {
-              filteredNotifications = allNotifications
-                  .where((notification) => notification.type == selectedType)
-                  .toList();
-            }
+
+            fetchNotification(filterType: selectedType?.toLowerCase() ?? "all");
+
+            // if (selectedType == null) {
+            //   // Show all
+            //   filteredNotifications = allNotifications;
+            // } else {
+            //   filteredNotifications = allNotifications
+            //       .where((notification) => notification.type == selectedType)
+            //       .toList();
+            // }
           });
         },
         labelBuilder: (TabItem label) => label.title);
@@ -242,13 +249,17 @@ class _NotificationScreenState extends State<NotificationScreen> {
                     time = '';
                   }
                   return InkWell(
-                    onTap: (){
+                    onTap: () {
                       final data = filteredNotifications[index];
+                      if (data.status == "UNREAD") {
+                        NotificationListRepo().notificationReadRepo(
+                            notificationId: data.sId ?? "");
+                      }
 
                       redirectToProfileScreen(
-                          accountType: data.senderProfile?.account_type??"",
-                          profileId: data.senderProfile?.id??"",
-                          );
+                        accountType: data.senderProfile?.account_type ?? "",
+                        profileId: data.senderProfile?.id ?? "",
+                      );
                     },
                     child: Column(
                       children: [
@@ -266,7 +277,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                 Center(
                                     child: CircleAvatar(
                                   radius: 4,
-                                  backgroundColor: (index == 0 || index == 1)
+                                  backgroundColor: status == "UNREAD"
                                       ? AppColors.primaryColor
                                       : AppColors.transparent,
                                 )),
@@ -285,8 +296,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                       );
                                     },
                                     child: Padding(
-                                      padding:
-                                          EdgeInsets.only(top: SizeConfig.size2),
+                                      padding: EdgeInsets.only(
+                                          top: SizeConfig.size2),
                                       child: CachedAvatarWidget(
                                         imageUrl: imageUrl,
                                         size: SizeConfig.size45,
@@ -321,7 +332,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                       padding: EdgeInsets.zero,
                                       onSelected: (value) {
                                         if (value == 'delete') {
-                                          clearAllNotifications(1, notifyId: id);
+                                          clearAllNotifications(1,
+                                              notifyId: id);
                                         }
                                       },
                                       color: Colors.white,
@@ -346,8 +358,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                           ),
                                         ),
                                       ],
-                                      child: Icon(
-                                          Icons.more_vert), // Your trigger widget
+                                      child: Icon(Icons
+                                          .more_vert), // Your trigger widget
                                     ),
                                   ],
                                 )
