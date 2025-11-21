@@ -84,15 +84,17 @@ class BottomNavigationBarWidget extends StatelessWidget {
               ),
               _buildNavItem(
                 index: 1,
-                iconPath: AppIconAssets.shop,
+                iconPath: AppIconAssets.finderIcon,
                 isSelected: currentIndex == 1,
-                label: AppStrings.store,
+                label: AppStrings.finder,
               ),
               _buildNavItem(
                 index: 2,
-                iconPath: AppIconAssets.gpsIcon,
+                iconPath: AppIconAssets.shop,
                 isSelected: currentIndex == 2,
-                isCenter: true, // 👈 center icon
+                label: AppStrings.store,
+                // isCenter: true, // 👈 center icon
+
               ),
               _buildNavItem(
                 index: 3,
@@ -138,11 +140,16 @@ class BottomNavigationBarWidget extends StatelessWidget {
                   width: isCenter ? 40 : 24,
                   child: LocalAssets(
                     imagePath: iconPath,
-                    imgColor: index != 2
+                    imgColor: !isCenter
                         ? isSelected
-                            ? AppColors.primaryColor
-                            : AppColors.black
+                        ? AppColors.primaryColor
+                        : AppColors.black
                         : null,
+                    // imgColor: index != 2
+                    //     ? isSelected
+                    //         ? AppColors.primaryColor
+                    //         : AppColors.black
+                    //     : null,
                   ),
                 ),
                 if (showBadge)

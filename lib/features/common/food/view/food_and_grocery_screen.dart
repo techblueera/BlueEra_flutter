@@ -238,7 +238,7 @@ class FoodItemCard extends StatelessWidget {
                         height: SizeConfig.size150,
                         imagePaths: foodData.photos ?? [],
                         borderRadius: BorderRadius.zero,
-                      ): LocalAssets(
+                      ) : LocalAssets(
                         imagePath:
                         AppIconAssets.place_holder_image,
                         boxFix: BoxFit.fill,
@@ -299,22 +299,18 @@ class FoodItemCard extends StatelessWidget {
                             color: controller.getFoodTypeColor(foodData.vegType),
                             borderRadius: BorderRadius.circular(6),
                           ),
-                          child: Text(
+                          child: CustomText(
                             foodData.vegType ?? "",
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
+                            color: Colors.white,
+                            fontSize: SizeConfig.small,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Text(
+                        CustomText(
                           foodData.category ?? "",
-                          style: TextStyle(
-                            color: Colors.grey.shade600,
-                            fontSize: 12,
-                          ),
+                          color: Colors.grey.shade600,
+                          fontSize:  SizeConfig.small,
                         ),
                       ],
                     ),
@@ -350,17 +346,18 @@ class FoodItemCard extends StatelessWidget {
                           ? CustomText(
                         "₹ ${foodData.singlePrice ?? "0"}",
                         fontSize: SizeConfig.small,
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
                         fontWeight: FontWeight.w700,
                         color: AppColors.primaryColor,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
                       )
                           : CustomText(
-                        "₹${priceText}",
-                        overflow: TextOverflow.ellipsis,
-                        color: AppColors.primaryColor,
-                        maxLines: 1,
+                        "₹ ${priceText}",
+                        fontSize: SizeConfig.small,
                         fontWeight: FontWeight.w700,
+                        color: AppColors.primaryColor,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
                       ),
                     ),
 

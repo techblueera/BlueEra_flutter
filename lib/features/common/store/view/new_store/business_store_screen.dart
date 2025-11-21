@@ -12,14 +12,15 @@ import 'package:get/get.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
 class BusinessStoreScreen extends StatefulWidget {
-  final String typeOfBusiness;
-  final String selectedStoreCategoryId;
-  final String selectedStoreCategoryName;
+  final String? typeOfBusiness;
+  final String? selectedStoreCategoryId;
+  final String? selectedStoreCategoryName;
+
   const BusinessStoreScreen({
     super.key,
-    required this.typeOfBusiness,
-    required this.selectedStoreCategoryId,
-    required this.selectedStoreCategoryName,
+    this.typeOfBusiness,
+    this.selectedStoreCategoryId,
+     this.selectedStoreCategoryName,
     });
 
   @override

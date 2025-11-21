@@ -150,7 +150,7 @@ class OwnProductCard extends StatelessWidget {
                   SizedBox(height: SizeConfig.size5),
 
                   // Price Row
-                  if (variants.isNotEmpty) ...[
+                  if (variants.isNotEmpty)
                     Row(
                       children: [
                         CustomText(
@@ -182,7 +182,6 @@ class OwnProductCard extends StatelessWidget {
                           ),
                       ],
                     ),
-                  ],
 
                   // // Category and Variants count
                   // Row(

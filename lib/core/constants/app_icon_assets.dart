@@ -495,5 +495,5 @@ class AppIconAssets {
   static String sweetBakeryDrinkIcon = "${iconPath}sweet_bakery_drink_icon.svg";
   static String restaurantIcon = "${iconPath}restaurant_icon.svg";
   static String cartIcon = "${iconPath}cart_icon.svg";
-
+  static String finderIcon = "${iconPath}finder_icon.svg";
 }

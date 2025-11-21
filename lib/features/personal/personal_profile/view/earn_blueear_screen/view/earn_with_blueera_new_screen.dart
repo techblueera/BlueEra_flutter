@@ -41,7 +41,8 @@ enum EarnWithBlueEraServiceTypes {
 
 
 class EarnWithBlueEraNewScreen extends StatefulWidget {
-  const EarnWithBlueEraNewScreen({super.key});
+  final bool fromBottomNavBar;
+  const EarnWithBlueEraNewScreen({super.key, this.fromBottomNavBar = false});
 
   @override
   State<EarnWithBlueEraNewScreen> createState() => _EarnWithBlueEraNewScreenState();
@@ -101,6 +102,7 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> wit
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(kToolbarHeight + 50),
         child: CommonBackAppBar(
+          isLeading: !(widget.fromBottomNavBar),
           showGoLiveWidget: Container(
             margin: EdgeInsets.only(right: SizeConfig.size20),
             padding: EdgeInsets.symmetric(
