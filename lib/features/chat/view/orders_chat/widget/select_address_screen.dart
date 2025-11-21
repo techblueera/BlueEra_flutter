@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/chat/view/orders_chat/widget/porter_vehicle_option_page.dart';
 import 'package:BlueEra/features/chat/view/orders_chat/widget/select_blueera_pilot.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -70,77 +71,200 @@ class _AddressListScreenState extends State<AddressListScreen> {
                             ),
                           )
                         : ListView.builder(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 10),
-                            itemCount: addresses.length,
-                            itemBuilder: (context, index) {
-                              final isSelected = selectedIndex == index;
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      itemCount: addresses.length,
+                      itemBuilder: (context, index) {
+                        final address = addresses[index];
+                        final isSelected = selectedIndex == index;
+                        final isDefault = address.isDefault ?? false;
 
-                              return GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    selectedIndex = index;
-                                  });
-                                },
-                                child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 200),
-                                  margin:
-                                      const EdgeInsets.symmetric(vertical: 6),
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                      color: isSelected
-                                          ? Colors.blue
-                                          : Colors.transparent,
-                                      width: 2,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.grey.withOpacity(0.1),
-                                        blurRadius: 3,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      const Icon(Icons.location_on,
-                                          color: Colors.blue),
-                                      const SizedBox(width: 10),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            CustomText(
-                                              addresses[index].name,
-                                              color: AppColors.black,
-                                              fontWeight: FontWeight.w800,
-                                              fontSize: 15,
-                                            ),
-                                            CustomText(
-                                              addresses[index].phone,
-                                              color: AppColors.black,
-                                              fontWeight: FontWeight.w400,
-                                              fontSize: 14,
-                                            ),
-                                            CustomText(
-                                              "${addresses[index].houseNo} ${addresses[index].street}, ${addresses[index].city}, ${addresses[index].state}, ${addresses[index].zipCode}",
-                                              fontSize: 14,
+                        return GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              selectedIndex = index;
+                            });
+                          },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 250),
+                            margin: const EdgeInsets.symmetric(vertical: 6),
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: isSelected ? Colors.blue : Colors.grey.shade300,
+                                width: isSelected ? 2.5 : 1.2,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.1),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 3),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // 🔹 First Row - Icon + Default Tag + Name
+                                Row(
+                                  children: [
+                                    const Icon(Icons.location_on, color: Colors.blue),
+                                    const SizedBox(width: 10),
+
+                                    Expanded(
+                                      child: Row(
+                                        children: [
+                                          CustomText(
+                                            address.name ?? "",
+                                            color: AppColors.black,
+                                            fontWeight: FontWeight.w700,
+                                            fontSize: 16,
+                                          ),
+
+                                          if (isDefault) ...[
+                                            const SizedBox(width: 6),
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(
+                                                  horizontal: 8, vertical: 3),
+                                              decoration: BoxDecoration(
+                                                color: Colors.blue.shade50,
+                                                borderRadius: BorderRadius.circular(8),
+                                                border: Border.all(color: Colors.blue),
+                                              ),
+                                              child: const Text(
+                                                "Default",
+                                                style: TextStyle(
+                                                    color: Colors.blue,
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w600),
+                                              ),
                                             ),
                                           ],
-                                        ),
+                                        ],
                                       ),
-                                    ],
-                                  ),
+                                    )
+                                  ],
                                 ),
-                              );
-                            },
+
+                                const SizedBox(height: 6),
+
+                                // 🔹 Phone
+                                CustomText(
+                                  address.phone ?? "",
+                                  color: AppColors.black,
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 14,
+                                ),
+
+                                 SizedBox(height: SizeConfig.size4),
+
+                                // 🔹 Full Address
+                                CustomText(
+                                  "${address.houseNo ?? ''} ${address.street ?? ''}, "
+                                      "${address.city ?? ''}, ${address.state ?? ''} - ${address.zipCode ?? ''}",
+                                  fontSize: 14,
+                                  color: Colors.grey.shade700,
+                                ),
+
+                                 SizedBox(height: SizeConfig.size10),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    // EDIT
+                                    InkWell(
+                                      onTap: () {
+                                        String? getAddress;
+                                        double? getLat;
+                                        double? getLong;
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => SearchLocationScreen(
+                                              onPlaceSelected: (lat, long, address) {
+                                                getLat = lat;
+                                                getLong = long;
+                                                getAddress = address;
+                                              },
+                                              fromScreen: '',
+                                            ),
+                                          ),
+                                        ).then((value) {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => AddAddressScreen(
+                                                message: widget.message,
+                                                address: getAddress,
+                                                addressModel: address,
+                                                lat: getLat,
+                                                long: getLong,
+                                              ),
+                                            ),
+                                          );
+                                        });
+                                      },
+                                      child: Row(
+                                        children: const [
+                                          Icon(Icons.edit, color: Colors.green, size: 18),
+                                          SizedBox(width: 4),
+                                          Text(
+                                            "Edit",
+                                            style: TextStyle(
+                                                color: Colors.green,
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 13),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+
+                                    const SizedBox(width: 20),
+
+                                    // DELETE
+                                    InkWell(
+                                      onTap: () {
+                                        showDialog(
+                                          context: context,
+                                          builder: (_) => AlertDialog(
+                                            title:  CustomText("Delete Address"),
+                                            content:  CustomText("Are you sure you want to delete this address?"),
+                                            actions: [
+                                              TextButton(
+                                                  onPressed: () => Get.back(),
+                                                  child:  CustomText("Cancel")),
+                                              TextButton(
+                                                  onPressed: () {
+                                                    orderController.deleteAddress(address.id??'');
+                                                  },
+                                                  child:  CustomText("Delete", color: Colors.red)),
+                                            ],
+                                          ),
+                                        );
+                                      },
+                                      child: Row(
+                                        children: const [
+                                          Icon(Icons.delete, color: Colors.red, size: 18),
+                                          SizedBox(width: 4),
+                                          CustomText(
+                                            "Delete",
+
+                                                color: Colors.red,
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 13
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              ],
+                            ),
                           ),
+                        );
+                      },
+                    )
+                    ,
                   );
                 } else {
                   return const SizedBox();

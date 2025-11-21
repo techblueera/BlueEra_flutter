@@ -473,6 +473,7 @@ abstract class BaseService {
   String businessServicesById(String serviceId) => 'services-service/services/$serviceId';
   final String aiSocialPostGenerate = "ai-service/api/ai-social-post/generate";
   final String getAddressApi = "user-service/addresses";
+  String updateExistingAddress(String addressId)  => "user-service/addresses/$addressId";
   final String userFeedServiceVideo = "userfeed-service/feed/videos?";
   String videoCategories = "post-service/nature-of-posts";
   String businessViews(String businessId) => "user-service//business/$businessId/view";

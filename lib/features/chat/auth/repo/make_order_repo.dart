@@ -45,6 +45,21 @@ class MakeOrderRepo extends BaseService {
      onError: (error) {}, onSuccess: (data) {});
     return response;
   }
+  Future<ResponseModel> updateAddress(Map<String,dynamic> params,String AddressId) async {
+    final response = await ApiBaseHelper().putHTTP(
+        updateExistingAddress(AddressId),
+        showProgress: true,
+     params: params,
+     onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+  Future<ResponseModel> deleteAddress(String AddressId) async {
+    final response = await ApiBaseHelper().deleteHTTP(
+        updateExistingAddress(AddressId),
+        showProgress: true,
+     onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
   Future<ResponseModel> sendOrderRequestToRider(Map<String,dynamic> params) async {
     final response = await ApiBaseHelper().postHTTP(
         sendOrderReqToRider,
