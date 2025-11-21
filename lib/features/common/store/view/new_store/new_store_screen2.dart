@@ -235,7 +235,7 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                         )
                     ),
                     SizedBox(height: SizeConfig.size10),
-                    _bannerWidget(),
+                    _bannerWidget(AppImageAssets. sampleStoreImage1),
                     SizedBox(height: SizeConfig.size10),
       
                     /// Professionals
@@ -268,7 +268,7 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                         )
                     ),
                     SizedBox(height: SizeConfig.size10),
-                    _bannerWidget(),
+                    _bannerWidget(AppImageAssets.sampleStoreImage2),
                     SizedBox(height: SizeConfig.size10),
       
                     /// Services
@@ -303,7 +303,7 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                         )
                     ),
                     SizedBox(height: SizeConfig.size10),
-                    _bannerWidget(),
+                    _bannerWidget(AppImageAssets.sampleStoreImage3),
                     SizedBox(height: SizeConfig.size10),
       
                     /// Store Near Me
@@ -337,7 +337,7 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                         )
                     ),
                     SizedBox(height: SizeConfig.size10),
-                    _bannerWidget(),
+                    _bannerWidget(AppImageAssets.sampleStoreImage4),
                     SizedBox(height: SizeConfig.size10),
       
                     /// Food & Restaurant
@@ -491,14 +491,14 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
   }
 
   // ---------------- REUSABLE BANNER WIDGET ---------------- //
-  Widget _bannerWidget(){
+  Widget _bannerWidget(String bannerImage){
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
       child: Container(
         height: SizeConfig.size160,
         width: SizeConfig.screenWidth,
         child: LocalAssets(
-          imagePath: AppImageAssets.sampleProductImage,
+          imagePath: bannerImage,
           boxFix: BoxFit.cover,
         ),
       ),
