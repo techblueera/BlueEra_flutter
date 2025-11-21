@@ -53,15 +53,6 @@ class VisitProfileController extends GetxController {
         personalProfileDetails.overView.value =
             userData.value?.user?.objective ?? "";
 
-        ///SET PROJECT...
-        personalProfileDetails.projectsList?.clear();
-        personalProfileDetails.projectsList
-            ?.addAll(userData.value?.user?.projects ?? []);
-
-        ///SET PROJECT...
-        personalProfileDetails.experiencesList?.clear();
-        personalProfileDetails.experiencesList
-            ?.addAll(userData.value?.user?.experiences ?? []);
         print("useralldata:${personalProfileDetails}");
         userProfileResponse.value = ApiResponse.complete(response);
       } else {

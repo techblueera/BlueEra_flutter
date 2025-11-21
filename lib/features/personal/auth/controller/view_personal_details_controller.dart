@@ -170,8 +170,8 @@ class ViewPersonalDetailsController extends GetxController {
   // RxBool isLoading = false.obs;
   RxString introVideoUrl = ''.obs;
 
-  RxList<Projects>? projectsList = <Projects>[].obs;
-  RxList<Experiences>? experiencesList = <Experiences>[].obs;
+  // RxList<Projects>? projectsList = <Projects>[].obs;
+  // RxList<Experiences>? experiencesList = <Experiences>[].obs;
 
   // RxList<Projects>? projectsList=<Projects>[].obs;
   RxString overView = ''.obs;
@@ -270,14 +270,7 @@ class ViewPersonalDetailsController extends GetxController {
         ///SET OVERVIEW
         overView.value = personalProfileDetails.value.user?.objective ?? "";
 
-        ///SET PROJECT...
-        projectsList?.clear();
-        projectsList?.addAll(personalProfileDetails.value.user?.projects ?? []);
 
-        ///SET PROJECT...
-        experiencesList?.clear();
-        experiencesList
-            ?.addAll(personalProfileDetails.value.user?.experiences ?? []);
         Get.find<AuthController>().imgPath.value =
             personalProfileDetails.value.user?.profileImage ?? "";
         // await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.userProfile, personalProfileDetails.value.user?.profileImage??"");
@@ -355,17 +348,7 @@ class ViewPersonalDetailsController extends GetxController {
       ///SET OVERVIEW
       overView.value = personalProfileDetails.value.user?.objective ?? "";
 
-      ///SET PROJECT...
-      projectsList?.clear();
-      projectsList?.addAll(personalProfileDetails.value.user?.projects ?? []);
 
-      ///SET PROJECT...
-      experiencesList?.clear();
-      experiencesList
-          ?.addAll(personalProfileDetails.value.user?.experiences ?? []);
-      // followersCount.value = personalProfileDetails.value.followersCount??0  ;
-      // followingCount.value =personalProfileDetails.value.followingCount??0  ;
-      // postsCount.value = personalProfileDetails.value.totalPosts??0  ;
       viewPersonalResponse.value = ApiResponse.complete(responseModel);
     } else {
       commonSnackBar(

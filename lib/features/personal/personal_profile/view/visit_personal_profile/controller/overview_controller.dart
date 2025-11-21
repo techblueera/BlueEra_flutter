@@ -30,7 +30,6 @@ class OverviewController extends GetxController {
       // Run APIs in parallel
       await Future.wait([
         _getTestimonials(userId),
-        getRatingSummary(userId:userId),
         _getPosts(userId),
         // _getShorts( userId),
         // _getVideos(videoType, userId),
@@ -115,20 +114,5 @@ class OverviewController extends GetxController {
     }
   }
 
-  //  ratting Summary Api
-  Rx<RatingDetailsData?> ratingDetails =
-  Rxn<RatingDetailsData>();
-  Future<void> getRatingSummary({required String userId}) async {
-    try {
-      ResponseModel response =
-      await UserRepo().getRattingDetailsById(userId: userId);
-      if (response.isSuccess) {
-        RatingDetailsResModel  ratingDetailsData =
-            RatingDetailsResModel.fromJson(response.data);
-        ratingDetails.value=ratingDetailsData.data;
-        // update();
-      }
-    } catch (e) {}
-  }
 
 }
