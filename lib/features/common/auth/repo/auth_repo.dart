@@ -1,4 +1,3 @@
-
 import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/base_service.dart';
@@ -104,19 +103,6 @@ class AuthRepo extends BaseService {
     return response;
   }
 
-
-  Future<ResponseModel> callForceUpdateApi(
-      {required Map<String, dynamic> params}) async {
-    final response = await ApiBaseHelper().postHTTP(
-      versionControl,
-      params: params,
-      showProgress: false,
-      onError: (error) {},
-      onSuccess: (data) {},
-    );
-    return response;
-  }
-
   ///BLOCK USER...
   Future<ResponseModel> blockUser(
       {required Map<String, dynamic> params}) async {
@@ -133,8 +119,7 @@ class AuthRepo extends BaseService {
   /// Get All Categories REPO...
   Future<ResponseModel> getAllProfessionsRepo() async {
     final response = await ApiBaseHelper().getHTTP(individualProfessions,
-        showProgress: false,
-        onError: (error) {}, onSuccess: (data) {});
+        showProgress: false, onError: (error) {}, onSuccess: (data) {});
     return response;
   }
 
@@ -185,8 +170,6 @@ class AuthRepo extends BaseService {
     return response;
   }
 
-
-
   // GET PROVIDER STATUS Patch All(product, service and booking )
   Future<ResponseModel> getServiceExistenceStatusRepo() async {
     final response = await ApiBaseHelper().getHTTP(
@@ -222,5 +205,4 @@ class AuthRepo extends BaseService {
     );
     return response;
   }
-
 }

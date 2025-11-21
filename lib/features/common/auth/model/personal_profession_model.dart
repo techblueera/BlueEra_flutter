@@ -1,10 +1,16 @@
 import 'dart:convert';
-PersonalProfessionModel personalProfessionModelFromJson(String str) => PersonalProfessionModel.fromJson(json.decode(str));
-String personalProfessionModelToJson(PersonalProfessionModel data) => json.encode(data.toJson());
+
+PersonalProfessionModel personalProfessionModelFromJson(String str) =>
+    PersonalProfessionModel.fromJson(json.decode(str));
+
+String personalProfessionModelToJson(PersonalProfessionModel data) =>
+    json.encode(data.toJson());
+
 class PersonalProfessionModel {
   PersonalProfessionModel({
-      this.data, 
-      this.status,});
+    this.data,
+    this.status,
+  });
 
   PersonalProfessionModel.fromJson(dynamic json) {
     if (json['data'] != null) {
@@ -15,6 +21,7 @@ class PersonalProfessionModel {
     }
     status = json['status'];
   }
+
   List<ProfessionTypeData>? data;
   bool? status;
 
@@ -26,84 +33,72 @@ class PersonalProfessionModel {
     map['status'] = status;
     return map;
   }
-
 }
 
-ProfessionTypeData dataFromJson(String str) => ProfessionTypeData.fromJson(json.decode(str));
+ProfessionTypeData dataFromJson(String str) =>
+    ProfessionTypeData.fromJson(json.decode(str));
+
 String dataToJson(ProfessionTypeData data) => json.encode(data.toJson());
+
 class ProfessionTypeData {
   ProfessionTypeData({
-      this.id, 
-      this.name, 
-      this.tagId, 
-      this.isActive, 
-      this.deletedAt, 
-      this.deletedBy, 
-      this.subcategoriesFiledName, 
-      this.createdAt, 
-      this.updatedAt, 
-      this.v,});
+    this.id,
+    this.name,
+    this.tagId,
+    this.subcategoriesFiledName,
+  });
 
   ProfessionTypeData.fromJson(dynamic json) {
     id = json['_id'];
     name = json['name'];
     tagId = json['tag_id'];
-    isActive = json['isActive'];
-    deletedAt = json['deletedAt'];
-    deletedBy = json['deletedBy'];
+
     if (json['subcategories_filedName'] != null) {
       subcategoriesFiledName = [];
       json['subcategories_filedName'].forEach((v) {
         subcategoriesFiledName?.add(SubcategoriesFiledName.fromJson(v));
       });
     }
-    createdAt = json['createdAt'];
-    updatedAt = json['updatedAt'];
-    v = json['__v'];
   }
+
   String? id;
   String? name;
   String? tagId;
-  bool? isActive;
-  dynamic deletedAt;
-  dynamic deletedBy;
   List<SubcategoriesFiledName>? subcategoriesFiledName;
-  String? createdAt;
-  String? updatedAt;
-  int? v;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
     map['_id'] = id;
     map['name'] = name;
     map['tag_id'] = tagId;
-    map['isActive'] = isActive;
-    map['deletedAt'] = deletedAt;
-    map['deletedBy'] = deletedBy;
+
     if (subcategoriesFiledName != null) {
-      map['subcategories_filedName'] = subcategoriesFiledName?.map((v) => v.toJson()).toList();
+      map['subcategories_filedName'] =
+          subcategoriesFiledName?.map((v) => v.toJson()).toList();
     }
-    map['createdAt'] = createdAt;
-    map['updatedAt'] = updatedAt;
-    map['__v'] = v;
     return map;
   }
-
 }
 
-SubcategoriesFiledName subcategoriesFiledNameFromJson(String str) => SubcategoriesFiledName.fromJson(json.decode(str));
-String subcategoriesFiledNameToJson(SubcategoriesFiledName data) => json.encode(data.toJson());
+SubcategoriesFiledName subcategoriesFiledNameFromJson(String str) =>
+    SubcategoriesFiledName.fromJson(json.decode(str));
+
+String subcategoriesFiledNameToJson(SubcategoriesFiledName data) =>
+    json.encode(data.toJson());
+
 class SubcategoriesFiledName {
   SubcategoriesFiledName({
-      this.name, 
-      this.tagId, 
-      this.id,});
+    this.name,
+    this.tagId,
+    this.id,
+  });
 
   SubcategoriesFiledName.fromJson(dynamic json) {
     name = json['name'];
     tagId = json['tag_id'];
     id = json['_id'];
   }
+
   String? name;
   String? tagId;
   String? id;
@@ -115,5 +110,4 @@ class SubcategoriesFiledName {
     map['_id'] = id;
     return map;
   }
-
 }

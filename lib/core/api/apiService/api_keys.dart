@@ -310,7 +310,6 @@ class ApiKeys {
   static const artType = 'artType';
   static const headerHeight = 'headerHeight';
   static const radius = 'radius';
-  static const version = 'version';
   static const conversation_users = 'conversation_users';
   static const public_group = 'public_group';
   static const group_name = 'group_name';

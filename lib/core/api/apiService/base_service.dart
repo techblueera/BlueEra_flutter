@@ -406,7 +406,6 @@ abstract class BaseService {
   final String WalletTransctionApi =
       "/wallet-service/wallet/transactions?";
 
-  final String versionControl = 'user-service/version-control/check-version';
 
 
   // Notification
