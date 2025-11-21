@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -289,29 +291,31 @@ class _PersonalProfileSetupNewScreenState
                   }
 
                   return SafeArea(
-                    child: DefaultTabController(
-                      length: PostTabs.postTab.length,
-                      child: NestedScrollView(
-                        headerSliverBuilder: (context, innerBoxIsScrolled) => [
-                          SliverToBoxAdapter(
-                            child: _buildHeaderSection(),
+                    child: Container(
+                      child: DefaultTabController(
+                        length: PostTabs.postTab.length,
+                        child: NestedScrollView(
+                          headerSliverBuilder: (context, innerBoxIsScrolled) => [
+                            SliverToBoxAdapter(
+                              child: _buildHeaderSection(),
+                            ),
+                            SliverPersistentHeader(
+                              pinned: true,
+                              delegate: _CustomTabBarDelegate(_buildTabButtons(),
+                                  hasFilters: filters != null),
+                            ),
+                          ],
+                          body: TabBarView(
+                            controller: _tabController,
+                            children: PostTabs.postTab.map((tab) {
+                              final index = PostTabs.postTab.indexOf(tab);
+                              return Padding(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: SizeConfig.size10,vertical: 10),
+                                child: _buildTabContent(index),
+                              );
+                            }).toList(),
                           ),
-                          SliverPersistentHeader(
-                            pinned: true,
-                            delegate: _CustomTabBarDelegate(_buildTabButtons(),
-                                hasFilters: filters != null),
-                          ),
-                        ],
-                        body: TabBarView(
-                          controller: _tabController,
-                          children: PostTabs.postTab.map((tab) {
-                            final index = PostTabs.postTab.indexOf(tab);
-                            return Padding(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: SizeConfig.size10),
-                              child: _buildTabContent(index),
-                            );
-                          }).toList(),
                         ),
                       ),
                     ),
@@ -396,9 +400,10 @@ class _PersonalProfileSetupNewScreenState
 
           // SizedBox(height: SizeConfig.size10),
           // _buildBookingAndaAvailabilityWidget(),
-
-          SizedBox(height: SizeConfig.size10),
-          _buildPaymentAccountWidget(),
+          if (Platform.isAndroid) ...[
+            SizedBox(height: SizeConfig.size10),
+            _buildPaymentAccountWidget(),
+          ],
 
           SizedBox(height: SizeConfig.size10),
           _buildMyDocumentWidget(),
@@ -1148,15 +1153,37 @@ class _PersonalProfileSetupNewScreenState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
-          height: SizeConfig.size34,
+          height: SizeConfig.size40,
           child: ListView.builder(
             itemCount: PostTabs.postTab.length,
             scrollDirection: Axis.horizontal,
             itemBuilder: (context, index) {
               final isSelected = _tabController?.index == index;
+              // return  InkWell(
+              //   onTap: (){
+              //     _tabController?.animateTo(index);
+              //
+              //   },
+              //   child: Container(
+              //       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              //       margin: EdgeInsets.only(right: SizeConfig.size8),
+              //       decoration: BoxDecoration(
+              //          color: isSelected ? AppColors.primaryColor : Colors.white,                    borderRadius: BorderRadius.circular(10),
+              //           border: Border.all(
+              //             color: isSelected
+              //                 ? AppColors.primaryColor
+              //                 : AppColors.secondaryTextColor,)),
+              //       child: CustomText(
+              //         '${PostTabs.postTab[index].nameKey}',                  color: isSelected ? AppColors.white : AppColors.black,
+              //         fontSize: SizeConfig.size10,
+              //         fontWeight: FontWeight.w700,
+              //       ),
+              //     ),
+              // );
               return Padding(
                 padding: const EdgeInsets.only(right: 8),
                 child: ElevatedButton(
+
                   onPressed: () {
                     _tabController?.animateTo(index);
                   },
@@ -1168,7 +1195,7 @@ class _PersonalProfileSetupNewScreenState
                     backgroundColor:
                         isSelected ? AppColors.primaryColor : Colors.white,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(SizeConfig.size10),
+                      borderRadius: BorderRadius.circular(10),
                       side: BorderSide(
                         color: isSelected
                             ? AppColors.primaryColor
@@ -1188,9 +1215,7 @@ class _PersonalProfileSetupNewScreenState
             },
           ),
         ),
-        if (filters != null) ...[
-          _filterButtons(),
-        ]
+
       ],
     );
   }
@@ -1509,11 +1534,12 @@ class _PersonalProfileSetupNewScreenState
                 Get.toNamed(RouteHelper.getAddDocumentScreenRoute());
               },
               title: AppStrings.addDocument,
+              padding: EdgeInsets.symmetric(horizontal: 3),
               textColor: AppColors.primaryColor,
               fontSize: SizeConfig.small,
               iconPath: AppIconAssets.add,
               iconColor: AppColors.primaryColor,
-              width: SizeConfig.size110,
+              width: SizeConfig.size120,
               height: SizeConfig.size30,
               bgColor: Colors.transparent,
               borderColor: AppColors.primaryColor,
@@ -2080,17 +2106,18 @@ class _CustomTabBarDelegate extends SliverPersistentHeaderDelegate {
   _CustomTabBarDelegate(this.tabBar, {this.hasFilters = false});
 
   @override
-  double get minExtent => hasFilters ? 90.0 : 50.0;
+  double get minExtent =>74;
 
   @override
-  double get maxExtent => hasFilters ? 90.0 : 50.0;
+  double get maxExtent => 74;
+  // double get maxExtent => hasFilters ? 90.0 : 50.0;
 
   @override
   Widget build(
       BuildContext context, double shrinkOffset, bool overlapsContent) {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 12),
-      padding: EdgeInsets.only(top: 8),
+      padding: EdgeInsets.only(top: 0),
       color: AppColors.appBackgroundColor,
       child: tabBar,
     );

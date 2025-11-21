@@ -129,14 +129,16 @@ class _AllSavedJobPostScreenState extends State<AllSavedJobPostScreen> {
                             }
                           },
                           child: Container(
-                            height: isBusiness()
-                                ? SizeConfig.size200 - 15
-                                : SizeConfig.size200 + 6,
+                            // height: isBusiness()
+                            //     ? SizeConfig.size200 - 15
+                            //     : SizeConfig.size200 + 6,
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(10.0),
                               color: AppColors.white,
                             ),
-                            child: Row(
+                            child:IntrinsicHeight(
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
                                 InkWell(
                                   onTap: () {
@@ -161,7 +163,7 @@ class _AllSavedJobPostScreenState extends State<AllSavedJobPostScreen> {
                                         // <-- Replace with your image URL from API
                                         fit: BoxFit.cover,
                                         width: double.infinity,
-                                        height: double.infinity,
+                                        // height: double.infinity,
                                         errorWidget: (context, url, error) =>
                                             Container(
                                           width: SizeConfig.screenWidth,
@@ -511,7 +513,7 @@ class _AllSavedJobPostScreenState extends State<AllSavedJobPostScreen> {
                             ),
                           ),
                         ),
-                      );
+                      ));
                     }
                     return CustomText(AppStrings.noSavedJobsYet);
                   },

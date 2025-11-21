@@ -296,8 +296,6 @@ class _JobsScreenState extends State<JobsScreen> {
   }
 
   Widget _getBusinessTabContent() {
-    logs("jobBusinessCategory[selectedIndex].label==== ${jobBusinessCategory[selectedIndex].label}");
-    logs("jobBusinessCategory[selectedIndex].labelId==== ${jobBusinessCategory[selectedIndex].labelId}");
     switch (jobBusinessCategory[selectedIndex].labelId) {
       case "My Posts":
         return AllJobPostScreen(

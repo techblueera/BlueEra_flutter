@@ -97,9 +97,9 @@
     <key>NSAppleMusicUsageDescription</key>
     <string>Blue Era would like access to your music library to enhance your experience with music-related features.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-    <string>Blue Era needs your location while using the app to provide accurate nearby services and improve your experience.</string>
+    <string>Blue Era requires your location while using the app to help you find products available near you and to provide real-time tracking of riders delivering your orders.</string>
     <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-    <string>Blue Era needs your location while using the app to provide accurate nearby services and improve your experience.</string>
+    <string>Blue Era requires your location while using the app to help you find products available near you and to provide real-time tracking of riders delivering your orders.</string>
     <key>NSContactsUsageDescription</key>
     <string>Blue Era needs access to your contacts to help you connect with friends, share services, or autofill contact details.</string>
     <key>NSFaceIDUsageDescription</key>

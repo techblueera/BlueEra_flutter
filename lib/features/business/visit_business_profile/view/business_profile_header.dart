@@ -33,7 +33,7 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
   final chatViewController = Get.find<ChatViewController>();
 
   final viewBusinessDetailsController =
-  Get.find<ViewBusinessDetailsController>();
+      Get.find<ViewBusinessDetailsController>();
 
   @override
   void initState() {
@@ -42,6 +42,7 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
         widget.businessProfileDetails.total_followers ?? 0;
     super.initState();
   }
+
   bool isBusinessOpen(String open, String close) {
     DateTime now = DateTime.now();
 
@@ -62,7 +63,6 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
 
     return now.isAfter(openTime) && now.isBefore(closeTime);
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -92,9 +92,11 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
                   color: Colors.grey.shade200,
                   child: Image.network(
                     (widget.businessProfileDetails.coverimage != null &&
-                        widget.businessProfileDetails.coverimage!.isNotEmpty)
+                            widget
+                                .businessProfileDetails.coverimage!.isNotEmpty)
                         ? widget.businessProfileDetails.coverimage!
-                        : (widget.businessProfileDetails.logo ?? ''),                    fit: BoxFit.cover,
+                        : (widget.businessProfileDetails.logo ?? ''),
+                    fit: BoxFit.cover,
                     // errorWidget: (_, __, ___) => Container(
                     //   color: Colors.grey.shade300,
                     //   alignment: Alignment.center,
@@ -113,8 +115,8 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
                   backgroundColor: Colors.white,
                   child: CircleAvatar(
                     radius: 43,
-                    backgroundImage: NetworkImage(
-                        widget.businessProfileDetails.logo ?? ''),
+                    backgroundImage:
+                        NetworkImage(widget.businessProfileDetails.logo ?? ''),
                     backgroundColor: Colors.grey.shade300,
                   ),
                 ),
@@ -128,77 +130,71 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
           Padding(
             padding: const EdgeInsets.only(top: 14.0, right: 14),
             child: Obx(() {
-
-
-              return Row(mainAxisAlignment: MainAxisAlignment.end,
-
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-
                   _buildActionButton(AppStrings.chat.tr, AppColors.white,
-                      AppColors.primaryColor,
-                          true,
+                      AppColors.primaryColor, true, () {
+                    if (isGuestUser()) {
+                      createProfileScreen();
 
-                          () {
-                        if (isGuestUser()) {
-                          createProfileScreen();
-
-                          return;
-                        }
-                        chatViewController
-                            .openAnyOneChatFunction(
-                          profileImage: widget.businessProfileDetails.logo,
-                          otherUserId: (viewBusinessDetailsController
-                              .conversationId.value == '')
-                              ? viewBusinessDetailsController
-                              .otherUserId?.value
+                      return;
+                    }
+                    chatViewController.openAnyOneChatFunction(
+                      profileImage: widget.businessProfileDetails.logo,
+                      otherUserId:
+                          (viewBusinessDetailsController.conversationId.value ==
+                                  '')
+                              ? viewBusinessDetailsController.otherUserId?.value
                               : null,
-                          businessId: widget.businessProfileDetails.id,
-                          type: "business",
-                          isInitialMessage: (viewBusinessDetailsController
-                              .conversationId.value == '') ? true : false,
-                          userId: widget.businessProfileDetails.userId,
-                          conversationId:
-                          viewBusinessDetailsController
-                              .conversationId.value,
-                          contactName: widget.businessProfileDetails
-                              .businessName,
-                          contactNo: widget.businessProfileDetails
-                              .businessNumber
-                              ?.officeMobNo
-                              ?.number
-                              .toString(),
-                        );
-                      }),
+                      businessId: widget.businessProfileDetails.id,
+                      type: "business",
+                      isInitialMessage:
+                          (viewBusinessDetailsController.conversationId.value ==
+                                  '')
+                              ? true
+                              : false,
+                      userId: widget.businessProfileDetails.userId,
+                      conversationId:
+                          viewBusinessDetailsController.conversationId.value,
+                      contactName: widget.businessProfileDetails.businessName,
+                      contactNo: widget.businessProfileDetails.businessNumber
+                          ?.officeMobNo?.number
+                          .toString(),
+                    );
+                  }),
                   const SizedBox(width: 6),
-                  _buildActionButton(controllerVisit.isFollow.value
-                      ? AppStrings.unfollow.tr
-                      : AppStrings.follow.tr,
-                      controllerVisit.isFollow.value?  AppColors.greylite:AppColors.primaryColor,
-                      controllerVisit.isFollow.value? AppColors.secondaryTextColor:AppColors.white,
-                          false,
-                          () async {
-                        if (isGuestUser()) {
-                          createProfileScreen();
-                        } else {
-                          if (controllerVisit.isFollow.value) {
-                            await controllerVisit.unFollowUserController(
-                                candidateResumeId:
+                  _buildActionButton(
+                      controllerVisit.isFollow.value
+                          ? AppStrings.unfollow.tr
+                          : AppStrings.follow.tr,
+                      controllerVisit.isFollow.value
+                          ? AppColors.greylite
+                          : AppColors.primaryColor,
+                      controllerVisit.isFollow.value
+                          ? AppColors.secondaryTextColor
+                          : AppColors.white,
+                      false, () async {
+                    if (isGuestUser()) {
+                      createProfileScreen();
+                    } else {
+                      if (controllerVisit.isFollow.value) {
+                        await controllerVisit.unFollowUserController(
+                            candidateResumeId:
                                 widget.businessProfileDetails.userId);
-                          } else {
-                            await controllerVisit.followUserController(
-                                candidateResumeId:
+                      } else {
+                        await controllerVisit.followUserController(
+                            candidateResumeId:
                                 widget.businessProfileDetails.userId);
-                          }
-                        }
-                      }),
-
+                      }
+                    }
+                  }),
                   Material(
                     color: Colors.transparent,
                     child: SizedBox(
                       height: 28,
                       width: 28,
                       child: PopupMenuButton<String>(
-
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(
                           minWidth: 0,
@@ -208,19 +204,22 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        icon: LocalAssets(imagePath: AppIconAssets
-                            .more_vertical),
+                        icon:
+                            LocalAssets(imagePath: AppIconAssets.more_vertical),
                         itemBuilder: (context) => popupMenuVisitProfileItemss(),
                         onSelected: (value) async {
                           if (value.toUpperCase() == "SHARE") {
                             final link = profileDeepLink(
-                                userId: widget.businessProfileDetails.userId, accountType: AppConstants.business,);
-                            final message = "See my profile on BlueEra:\n$link\n";
+                              userId: widget.businessProfileDetails.userId,
+                              accountType: AppConstants.business,
+                            );
+                            final message =
+                                "See my profile on BlueEra:\n$link\n";
                             await SharePlus.instance.share(
                               ShareParams(
                                 text: message,
-                                subject: widget.businessProfileDetails
-                                    .businessName,
+                                subject:
+                                    widget.businessProfileDetails.businessName,
                               ),
                             );
                           } else if (value.toUpperCase() == "REPORT") {
@@ -228,38 +227,39 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
                             // e.g. open a dialog, send API call, etc.
                             showDialog(
                               context: context,
-                              builder: (_) =>
-                                  AlertDialog(
-                                    title: const CustomText(AppStrings.report),
-                                    content: const CustomText(AppStrings.reportThisProfile),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () => Navigator.pop(context),
-                                        child: const CustomText(AppStrings.cancel),
-                                      ),
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.pop(context);
-                                          // Perform report action
-                                        },
-                                        child: const CustomText(AppStrings.report),
-                                      ),
-                                    ],
+                              builder: (_) => AlertDialog(
+                                title: const CustomText(AppStrings.report),
+                                content: const CustomText(
+                                    AppStrings.reportThisProfile),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: const CustomText(AppStrings.cancel),
                                   ),
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                      // Perform report action
+                                    },
+                                    child: const CustomText(AppStrings.report),
+                                  ),
+                                ],
+                              ),
                             );
                           }
                         },
                       ),
                     ),
                   )
-
-                ],);
+                ],
+              );
             }),
           ),
 
           // === NAME, BUTTONS ===
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10,vertical: 10),
+            padding: EdgeInsets.symmetric(
+                horizontal: SizeConfig.size10, vertical: 10),
             child: Row(
               children: [
                 Expanded(
@@ -272,12 +272,11 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-
               ],
             ),
           ),
 
-         // const SizedBox(height: 6),
+          // const SizedBox(height: 6),
 
           // === TAGS (Shop / Close) ===
           Padding(
@@ -287,15 +286,14 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
                 _buildTag(
                     widget.businessProfileDetails.categoryDetails?.name ?? '',
                     bgColor: AppColors.white,
-                    textColor: AppColors.blackLite
-                ),
+                    textColor: AppColors.blackLite),
                 const SizedBox(width: 8),
                 _buildTag(
                   isOpenNow ? AppStrings.open.tr : AppStrings.close.tr,
                   bgColor: AppColors.white,
-                  textColor: isOpenNow ? AppColors.greenShade : AppColors.redLite,
+                  textColor:
+                      isOpenNow ? AppColors.greenShade : AppColors.redLite,
                 ),
-
               ],
             ),
           ),
@@ -313,9 +311,9 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
               ),
             ),
 
-
           if (widget.businessProfileDetails.businessDescription?.isNotEmpty ??
-              false)  const SizedBox(height: 12),
+              false)
+            const SizedBox(height: 12),
 
           // === STATS CONTAINER ===
           Container(
@@ -344,15 +342,12 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       buildInfo(AppStrings.ratings.tr,
-                          "★ ${(widget.businessProfileDetails.rating ?? 0)
-                              .toStringAsFixed(1)}"),
+                          "★ ${(widget.businessProfileDetails.rating ?? 0).toStringAsFixed(1)}"),
                       SizedBox(
                         height: SizeConfig.size12,
                       ),
                       buildInfo(AppStrings.view.tr,
-                          "${formatIndianNumber(
-                              widget.businessProfileDetails.total_views ??
-                                  0)}"),
+                          "${formatIndianNumber(widget.businessProfileDetails.total_views ?? 0)}"),
                     ],
                   ),
                 ),
@@ -383,23 +378,22 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-                          buildInfo(AppStrings.inquiries.tr, formatIndianNumber(0)),
+                          buildInfo(
+                              AppStrings.inquiries.tr, formatIndianNumber(0)),
                           SizedBox(
                             height: SizeConfig.size12,
                           ),
-
                           InkWell(
                               onTap: () {
-                                Get.to(() =>
-                                    FollowersFollowingPage(
+                                Get.to(() => FollowersFollowingPage(
                                       tabIndex: 1,
-                                      userID: widget.businessProfileDetails
-                                          .userId ?? "",
+                                      userID: widget
+                                              .businessProfileDetails.userId ??
+                                          "",
                                     ));
                               },
                               child: buildInfo(AppStrings.followers.tr,
-                                  "${formatIndianNumber(
-                                      controllerVisit.followerCount.value)}")),
+                                  "${formatIndianNumber(controllerVisit.followerCount.value)}")),
                         ],
                       ),
                     ),
@@ -437,7 +431,6 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
                       maxLines: 1,
                       fontWeight: FontWeight.w400,
                     ),
-
                     SizedBox(height: SizeConfig.size10),
                   ],
                 )
@@ -473,8 +466,7 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
   }
 
   /// vertical divider
-  Widget _divider() =>
-      Container(
+  Widget _divider() => Container(
         height: 30,
         width: 1,
         color: const Color(0xFFE5E5E5),
@@ -487,9 +479,9 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
       decoration: BoxDecoration(
           color: bgColor ?? Colors.grey.shade200,
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: textColor ?? AppColors.black,)
-
-      ),
+          border: Border.all(
+            color: textColor ?? AppColors.black,
+          )),
       child: CustomText(
         text,
         fontSize: SizeConfig.size12,
@@ -500,11 +492,8 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
   }
 
   /// reusable action buttons (Chat / Follow)
-  Widget _buildActionButton(String label,
-      Color bg,
-      Color textColor,
-      bool border,
-      VoidCallback onTap) {
+  Widget _buildActionButton(String label, Color bg, Color textColor,
+      bool border, VoidCallback onTap) {
     return InkWell(
       borderRadius: BorderRadius.circular(6),
       onTap: onTap,
@@ -513,8 +502,8 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
         decoration: BoxDecoration(
             color: bg,
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: border?AppColors.primaryColor:Colors.transparent)
-        ),
+            border: Border.all(
+                color: border ? AppColors.primaryColor : Colors.transparent)),
         child: CustomText(
           label,
           color: textColor,
@@ -540,8 +529,7 @@ List<PopupMenuEntry<String>> popupMenuVisitProfileItemss() {
           const SizedBox(width: 8),
           CustomText(
             AppStrings.share,
-
-              fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w500,
           ),
         ],
       ),
@@ -563,13 +551,11 @@ List<PopupMenuEntry<String>> popupMenuVisitProfileItemss() {
       value: 'Report',
       child: Row(
         children: [
-
           const Icon(Icons.block_outlined, color: Colors.black54, size: 20),
           const SizedBox(width: 8),
           CustomText(
             AppStrings.report,
-
-              fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w500,
           ),
         ],
       ),
