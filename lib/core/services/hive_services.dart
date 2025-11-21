@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'package:BlueEra/core/api/model/get_all_store_res_model.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/food/model/get_food_details_model.dart';
@@ -18,6 +19,7 @@ class HiveServices{
   static const String _savedAllNearByStoreProduct = 'savedAllNearByStoreProduct';
   static const String _savedAllNearByStoreService = 'savedAllNearByStoreService';
   static const String _savedAllNearByStoresFoodServices = 'savedAllNearByStoresFoodServices';
+  static const String _savedBusinessCategoryBox = 'business_categories_box';
 
   /// Initialize Hive boxes
   static Future<void> init() async {
@@ -28,6 +30,7 @@ class HiveServices{
     await Hive.openBox(_savedAllNearByStoreProduct);
     await Hive.openBox(_savedAllNearByStoreService);
     await Hive.openBox(_savedAllNearByStoresFoodServices);
+    await Hive.openBox(_savedBusinessCategoryBox);
   }
 
   bool isPostSaved(String id) {
@@ -420,5 +423,49 @@ class HiveServices{
         return null;
       }
     }
+
+
+  /// Save list of categories
+  Future<void> saveCategoryList(List<CategoryData> categories) async {
+    final box = Hive.box(_savedBusinessCategoryBox);
+
+    final String key = 'category';
+
+    final List<Map<String, dynamic>> jsonList = categories.map((item) => item.toJson()).toList();
+
+    await box.put(key, jsonList);
+  }
+
+  /// Get all saved categories
+  List<CategoryData>? getAllCategories() {
+    try {
+
+      final box = Hive.box(_savedBusinessCategoryBox);
+      final String key = 'category';
+      final data = box.get(key);
+
+      if (data == null) {
+        print('No cached category found');
+        return null;
+      }
+
+      if (data is! List) {
+        print('Invalid data type in Hive: ${data.runtimeType}');
+        return null;
+      }
+
+      final List<CategoryData> businessCategoryList = data
+          .map((json) => CategoryData.fromJson(jsonDecode(jsonEncode(json)) as Map<String, dynamic>))
+          .toList();
+
+      print('Loaded ${businessCategoryList.length} business categories');
+
+      return businessCategoryList;
+
+    }catch (e) {
+      print('Error loading business categories: $e');
+      return null;
+    }
+  }
 
 }

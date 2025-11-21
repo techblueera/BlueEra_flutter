@@ -2,6 +2,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -15,6 +16,8 @@ class CommonSearchBar extends StatelessWidget {
   final String? hintText;
   final double? borderRadius;
   final bool? isShowCursor;
+  final BoxBorder? boxBorder;
+  final double? height;
 
   const CommonSearchBar({
     super.key,
@@ -26,18 +29,20 @@ class CommonSearchBar extends StatelessWidget {
     this.hintText,
     this.borderRadius,
     this.isShowCursor,
+    this.boxBorder,
+    this.height
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: SizeConfig.size40,
-      // width: SizeConfig.screenWidth,
-      // margin: EdgeInsets.only(left: SizeConfig.size15),
+      height: height ?? SizeConfig.size40,
       padding: controller.text.isEmpty ? null : EdgeInsets.only(left: SizeConfig.size15),
       decoration: BoxDecoration(
         color: backgroundColor ?? AppColors.greyD3,
         borderRadius: BorderRadius.circular(borderRadius ?? 10.0),
+        border: boxBorder,
+        boxShadow: [AppShadows.textFieldShadow]
       ),
       alignment: Alignment.center,
       child: TextFormField(

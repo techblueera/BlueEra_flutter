@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_widget.dart';
 import 'package:BlueEra/features/common/home/view/home_screen.dart';
@@ -14,7 +15,7 @@ import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/more/controller/more_cards_screen_controller.dart';
 import 'package:BlueEra/features/common/reel/models/channel_model.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
-import 'package:BlueEra/features/common/store/view/newstore_screen.dart';
+import 'package:BlueEra/features/common/store/view/new_store/new_store_screen2.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
 import 'package:BlueEra/widgets/service_provider_dialoge.dart';
@@ -56,6 +57,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   final orderController = Get.isRegistered<DeliverPartnerOrdersController>()
       ? Get.find<DeliverPartnerOrdersController>()
       : Get.put(DeliverPartnerOrdersController());
+
   void handleRejectOrder( String orderId) {
     orderController.updateOrderStatusFromPialot(
       {ApiKeys.action: "reject"},
@@ -73,6 +75,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   void initState() {
     super.initState();
      _checkAndFetchLocationData();
+    _getAllBusinessCategories();
     _initializeControllers();
     _initializeUserData();
     _initializeSocketConnections();
@@ -131,6 +134,9 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     log('initially lat--> ${LocationService.lat}, initially lng--> ${LocationService.lng}');
   }
 
+  void _getAllBusinessCategories() {
+    bottomBarController.getAllCategories();
+  }
 
   void _initializeControllers() {
     if (!isGuestUser()) {
@@ -304,7 +310,11 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
           onHeaderVisibilityChanged: _toggleAppBar,
         );
       case 1:
-        return StoreFeedScreen(
+        // return StoreFeedScreen(
+        //   isHeaderVisible: isVisible,
+        //   onHeaderVisibilityChanged: _toggleAppBar,
+        // );
+        return NewStoreScreen2(
           isHeaderVisible: isVisible,
           onHeaderVisibilityChanged: _toggleAppBar,
         );
@@ -332,4 +342,5 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       bottomBarVisibleNotifier.value = visible;
     }
   }
+
 }

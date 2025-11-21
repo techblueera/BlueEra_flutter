@@ -1609,8 +1609,9 @@ class AppStrings {
   static const String businessCards = 'businessCards';
   static const String noProductFound = 'noProductFound';
 
-  static const String professionChangeMsg = 'professionChangeMsg';
-  static const String allStepsSubmitted = 'allStepsSubmitted';
+  static const String professionChangeMsg   = 'professionChangeMsg';
+  static const String allStepsSubmitted     = 'allStepsSubmitted';
+  static const searchAnything = "searchAnything";
 
   static const String grocery = 'grocery';
   static const String parcel  = 'parcel';
