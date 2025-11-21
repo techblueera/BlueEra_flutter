@@ -603,6 +603,70 @@ class OrderNowController extends GetxController {
     }
   }
 
+  Future<void> updateAddressApi(double? lat,double? long,String addressId) async {
+    try {
+      final addressData = {
+        "name": nameController.value.text.trim(),
+        "phone": phoneController.value.text.trim(),
+        "house_no": houseNoController.value.text.trim(),
+        "street": streetController.value.text.trim(),
+        "landmark": landmarkController.value.text.trim(),
+        "city": cityController.value.text.trim(),
+        "state": stateController.value.text.trim(),
+        "zip_code": zipController.value.text.trim(),
+        "note": noteController.value.text.trim(),
+        "country": "India",
+        "type": "Home",
+        "is_default": isDefault.value,
+
+        "lat": lat,
+        "lng": long,
+      };
+      ResponseModel? response = await MakeOrderRepo().updateAddress(addressData,addressId);
+      if (response.isSuccess) {
+        nameController.value.clear();
+        phoneController.value.clear();
+        fullAddress.value.clear();
+        houseNoController.value.clear();
+        streetController.value.clear();
+        landmarkController.value.clear();
+        cityController.value.clear();
+        stateController.value.clear();
+        zipController.value.clear();
+        noteController.value.clear();
+        typeController.value.clear();
+
+        commonSnackBar(
+            message: response.message);
+        Get.back();
+        getAddressApi();
+      } else {
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+  }
+
+  Future<void> deleteAddress(String addressId) async {
+    try {
+
+      ResponseModel? response = await MakeOrderRepo().deleteAddress(addressId);
+      if (response.isSuccess) {
+        commonSnackBar(
+            message: response.message);
+        Get.back();
+        getAddressApi();
+      } else {
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+  }
+
 }
 
 

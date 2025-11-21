@@ -1,14 +1,19 @@
+import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../../core/constants/regular_expression.dart';
 import '../../../../../widgets/commom_textfield.dart';
 import '../../../auth/controller/order_controllar.dart';
 import '../../../auth/model/GetListOfMessageData.dart';
+import '../../../auth/model/get_adress_details_model.dart';
 
 class AddAddressScreen extends StatefulWidget {
-  const AddAddressScreen({super.key, this.address, this.lat, this.long, required this.message});
+  const AddAddressScreen({super.key, this.address, this.lat, this.long,
+    required this.message, this.addressModel});
   final Messages message;
   final String? address;
+  final AddressDetails? addressModel;
   final double? lat;
   final double? long;
 
@@ -26,25 +31,40 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
   @override
   void initState() {
     super.initState();
-    debugPrint("Longitude: ${widget.long}");
+
     orderController.fullAddress.value.text=widget.address??"";
     orderController.nameController.value.text=widget.message.buyer?.name??"";
     orderController.phoneController.value.text=widget.message.buyer?.contact??"";
+    if (widget.addressModel != null) {
+      // EDIT MODE
+      final a = widget.addressModel!;
+
+      orderController.nameController.value.text = a.name ?? "";
+      orderController.phoneController.value.text = a.phone ?? "";
+      orderController.fullAddress.value.text = "${a.houseNo}, ${a.street}, ${a.city}";
+      orderController.houseNoController.value.text = a.houseNo ?? "";
+      orderController.streetController.value.text = a.street ?? "";
+      orderController.landmarkController.value.text = a.landmark ?? "";
+      orderController.cityController.value.text = a.city ?? "";
+      orderController.stateController.value.text = a.state ?? "";
+      orderController.zipController.value.text = a.zipCode ?? "";
+      orderController.noteController.value.text = a.note ?? "";
+
+      // Default switch
+      orderController.isDefault.value = a.isDefault ?? false;
+
+      // Lat/Lng
+      // orderController.editLat.value = a.lat?.toDouble() ?? 0.0;
+      // orderController.editLng.value = a.lng?.toDouble() ?? 0.0;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
-      appBar: AppBar(
-        title: const Text(
-          "Add Address",
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.white,
-        elevation: 1,
-        foregroundColor: Colors.black,
+      appBar:CommonBackAppBar(
+        title: (widget.addressModel==null)?"Add Address":"Update Address",
       ),
 
       body: SingleChildScrollView(
@@ -152,9 +172,9 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                   CustomText(
                     "Set as default address",
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+                   fontSize: 15, fontWeight: FontWeight.w500,
                   ),
                   Obx(() {
                     return Switch(
@@ -185,25 +205,30 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
             child: ElevatedButton(
               onPressed: () {
                 if (_formKey.currentState!.validate()) {
-                  // ✅ If all fields valid
-                  print("dlaskcmlksdcm ${widget.lat} ,, ${widget.long}");
-                  orderController.addAddressApi(widget.lat, widget.long);
-                } else {
-                  debugPrint("⚠️ Validation failed!");
+                  if (widget.addressModel == null) {
+                    // ADD NEW ADDRESS
+                    orderController.addAddressApi(widget.lat, widget.long);
+                  } else {
+                    // UPDATE EXISTING ADDRESS
+                    orderController.updateAddressApi(
+                        widget.lat, widget.long,widget.addressModel?.id??''
+                    );
+                  }
                 }
               },
+
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
               ),
-              child: const Text(
-                "Save Address",
-                style: TextStyle(
+              child:  CustomText(
+                widget.addressModel == null?"Save Address":"Update Address",
+
                   color: Colors.white,
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                ),
+
               ),
             ),
           ),
