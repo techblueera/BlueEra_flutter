@@ -72,7 +72,7 @@ class PostAiCommentScreen extends StatelessWidget {
                     selectedValue: commentController.selectedEmotion.value.isEmpty
                         ? null
                         : emotionList.firstWhere(
-                          (e) => e.name == commentController.selectedEmotion.value,
+                          (e) => e.sludId == commentController.selectedEmotion.value,
                       orElse: () => emotionList.first,
                     ),
                     title: AppStrings.selectEmotion.tr,
@@ -96,7 +96,7 @@ class PostAiCommentScreen extends StatelessWidget {
                     selectedValue: commentController.selectedCommentType.value.isEmpty
                         ? null
                         : commentTypes.firstWhere(
-                          (e) => e.name == commentController.selectedCommentType.value,
+                          (e) => e.sludId == commentController.selectedCommentType.value,
                       orElse: () => commentTypes.first,
                     ),
                     title: AppStrings.selectCommentType,

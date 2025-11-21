@@ -30,7 +30,6 @@ class AllLikeUsersListModel {
 class LikeUserData {
   String? sId;
   String? accountType;
-  String? username;
   String? profileImage;
   String? name;
   String? business_name;
@@ -43,7 +42,6 @@ class LikeUserData {
       {this.sId,
         this.accountType,
         this.business_id,
-        this.username,
         this.profileImage,
         this.business_name,
         this.name,
@@ -55,7 +53,6 @@ class LikeUserData {
     sId = json['_id'];
     business_id = json['business_id'];
     accountType = json['account_type'];
-    username = json['username'];
     profileImage = json['profile_image'];
     business_name = json['business_name'];
     name = json['name'];
@@ -69,7 +66,6 @@ class LikeUserData {
     data['_id'] = this.sId;
     data['business_id'] = this.business_id;
     data['account_type'] = this.accountType;
-    data['username'] = this.username;
     data['profile_image'] = this.profileImage;
     data['business_name'] = this.business_name;
     data['name'] = this.name;

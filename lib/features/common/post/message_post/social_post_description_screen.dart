@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/post/controller/message_post_controller.dart';
 import 'package:BlueEra/features/common/reel/controller/reel_upload_details_controller.dart';
@@ -79,6 +80,7 @@ class SocialPostDescriptionScreen extends StatelessWidget {
                     hintText: AppStrings.emotionHint,
                     displayValue: (value) => value.name,
                     onChanged: (value) {
+
                       messageController.selectedEmotion.value = value?.sludId??"";
                       messageController.onSelectionChanged();
                     },

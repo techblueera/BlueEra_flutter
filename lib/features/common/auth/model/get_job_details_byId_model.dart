@@ -347,40 +347,6 @@ class Location {
   }
 }
 
-class CustomQuestions {
-  String? question;
-  String? answerType;
-  List<String>? options;
-  bool? isMandatory;
-  String? sId;
-
-  CustomQuestions(
-      {this.question,
-        this.answerType,
-        this.options,
-        this.isMandatory,
-        this.sId});
-
-  CustomQuestions.fromJson(Map<String, dynamic> json) {
-    question = json['question'] != null && json['question'] != "string" 
-        ? json['question'] 
-        : null;
-    answerType = json['answerType'];
-    options = json['options'] != null ? List<String>.from(json['options'].map((e) => e?.toString() ?? '')) : null;
-    isMandatory = json['isMandatory'];
-    sId = json['_id'];
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['question'] = this.question;
-    data['answerType'] = this.answerType;
-    data['options'] = this.options;
-    data['isMandatory'] = this.isMandatory;
-    data['_id'] = this.sId;
-    return data;
-  }
-}
 
 class BusinessDetails {
   String? businessDescription;
@@ -433,6 +399,49 @@ class DateOfIncorporation {
     data['date'] = this.date;
     data['month'] = this.month;
     data['year'] = this.year;
+    return data;
+  }
+}
+class CustomQuestions {
+  String? question;
+  String? answerType;
+  List<String>? options;
+  bool? isMandatory;
+  String? sId;
+
+  CustomQuestions(
+      {this.question,
+        this.answerType,
+        this.options,
+        this.isMandatory,
+        this.sId});
+
+  CustomQuestions.fromJson(Map<String, dynamic> json) {
+    question = json['question'];
+    answerType = json['answerType'];
+
+    // Handle options safely
+    if (json['options'] != null) {
+      try {
+        options = List<String>.from(json['options']);
+      } catch (e) {
+        options = null;
+      }
+    } else {
+      options = null;
+    }
+
+    isMandatory = json['isMandatory'];
+    sId = json['_id'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['question'] = this.question;
+    data['answerType'] = this.answerType;
+    data['options'] = this.options;
+    data['isMandatory'] = this.isMandatory;
+    data['_id'] = this.sId;
     return data;
   }
 }

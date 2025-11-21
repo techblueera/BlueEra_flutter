@@ -39,33 +39,22 @@ class Data {
       this.id, 
       this.name, 
       this.contactNo, 
-      this.referralCode, 
-      this.username, 
-      this.accountType,});
+  });
 
   Data.fromJson(dynamic json) {
     id = json['_id'];
     name = json['name'];
     contactNo = json['contact_no'];
-    referralCode = json['referral_code'];
-    username = json['username'];
-    accountType = json['account_type'];
   }
   String? id;
   String? name;
   String? contactNo;
-  String? referralCode;
-  String? username;
-  String? accountType;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
     map['_id'] = id;
     map['name'] = name;
     map['contact_no'] = contactNo;
-    map['referral_code'] = referralCode;
-    map['username'] = username;
-    map['account_type'] = accountType;
     return map;
   }
 

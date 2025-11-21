@@ -17,7 +17,6 @@ import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/auth/model/guest_res_model.dart';
 import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
 import 'package:BlueEra/features/common/auth/model/username_res_model.dart';
-import 'package:BlueEra/features/common/auth/model/version_control_model.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
 import 'package:BlueEra/features/common/auth/views/screens/create_business_account_step_two.dart';
 import 'package:BlueEra/features/common/feed/models/block_user_response.dart';
@@ -35,7 +34,6 @@ class AuthController extends GetxController {
   Rx<ApiResponse> getUserNameCheckResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> deleteUserAccountResponse =
       ApiResponse.initial('Initial').obs;
-  ApiResponse versionControlResponse = ApiResponse.initial('Initial');
   ApiResponse blockUserResponse = ApiResponse.initial('Initial');
   final mobileNumberEditController = TextEditingController(text: '');
   final referralCodeController = TextEditingController();
@@ -67,22 +65,14 @@ class AuthController extends GetxController {
         );
         mobileNoOtpSendResponse = ApiResponse.complete(responseModel);
       } else {
-        // commonSnackBar(message: "Something went wrong try after sometimes ELSE");
-
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
       mobileNoOtpSendResponse = ApiResponse.error('error');
       commonSnackBar(message: e.toString());
-      // commonSnackBar(message: AppStrings.somethingWentWrong);
     }
   }
-
-  /// dummy response
-  /// {"success":true,"message":"Login successful","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOnsiX2lkIjoiNjhiMmRhN2VjODEyYzExNDM0OTYwZGI5IiwiYWNjb3VudF90eXBlIjoiQlVTSU5FU1MiLCJjb250YWN0X25vIjoiMTMwMDAwMDAwNSIsImJ1c2luZXNzX2lkIjoiNjhiMmRhN2VjODEyYzExNDM0OTYwZGJiIn0sImlhdCI6MTc1NzE0MDMwMywiZXhwIjoxNzcyNjkyMzAzfQ.c1xZ_-gADtDAlLz_dslvhWaC99rIHg-qxJIVblB2yx8","data":{"_id":"68b2da7ec812c11434960db9","account_type":"BUSINESS","contact_no":"1300000005","business":"68b2da7ec812c11434960dbb"},"user":true,"isBlocked":false,"blockedType":null}
-  ///  68b04d58e194411532d5707e
-
   ///VERIFY OTP...
   Future<void> verifyOTP({required String? otp}) async {
     String? token;
@@ -430,35 +420,7 @@ class AuthController extends GetxController {
     subCategorySpecializationTextController.clear();
   }
 
-  /// Force Update
-  Future<VersionControlModel?> forceUpdateApi(
-      {required String platform, required String currentVersion}) async {
-    try {
-      Map<String, dynamic> params = {
-        ApiKeys.platform: platform,
-        ApiKeys.version: currentVersion
-      };
 
-      ResponseModel response =
-          await AuthRepo().callForceUpdateApi(params: params);
-
-      if (response.isSuccess) {
-        versionControlResponse = ApiResponse.complete(response);
-        final data = response.response?.data;
-        VersionControlModel versionControlModel =
-            VersionControlModel.fromJson(data);
-        return versionControlModel;
-      } else {
-        versionControlResponse = ApiResponse.error('error');
-        // commonSnackBar(
-        //     message: response.message ?? AppStrings.somethingWentWrong);
-        return null;
-      }
-    } catch (e) {
-      versionControlResponse = ApiResponse.error('error');
-      return null;
-    }
-  }
 
   ///USER BLOCK(PARTIAL AND FULL)...
   Future<void> userBlocked(

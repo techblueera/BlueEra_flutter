@@ -1,6 +1,5 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
-import 'package:BlueEra/core/api/model/rating_details_res_model.dart';
 import 'package:BlueEra/core/api/model/user_testimonial_model.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
@@ -30,7 +29,6 @@ class OverviewController extends GetxController {
       // Run APIs in parallel
       await Future.wait([
         _getTestimonials(userId),
-        getRatingSummary(userId:userId),
         _getPosts(userId),
         // _getShorts( userId),
         // _getVideos(videoType, userId),
@@ -115,20 +113,5 @@ class OverviewController extends GetxController {
     }
   }
 
-  //  ratting Summary Api
-  Rx<RatingDetailsData?> ratingDetails =
-  Rxn<RatingDetailsData>();
-  Future<void> getRatingSummary({required String userId}) async {
-    try {
-      ResponseModel response =
-      await UserRepo().getRattingDetailsById(userId: userId);
-      if (response.isSuccess) {
-        RatingDetailsResModel  ratingDetailsData =
-            RatingDetailsResModel.fromJson(response.data);
-        ratingDetails.value=ratingDetailsData.data;
-        // update();
-      }
-    } catch (e) {}
-  }
 
 }

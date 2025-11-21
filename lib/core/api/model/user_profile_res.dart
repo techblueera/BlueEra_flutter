@@ -81,9 +81,7 @@ class User {
       this.skills, 
       this.emailVerified, 
       this.objective, 
-      this.projects, 
-      this.experiences, 
-      this.createdAt, 
+      this.createdAt,
       this.updatedAt, 
       this.v, 
       this.email, 
@@ -116,18 +114,7 @@ class User {
     skills = json['skills'] != null ? json['skills'].cast<String>() : [];
     emailVerified = json['emailVerified'];
     objective = json['objective'];
-    if (json['projects'] != null) {
-      projects = [];
-      json['projects'].forEach((v) {
-        projects?.add(Projects.fromJson(v));
-      });
-    }
-    if (json['experiences'] != null) {
-      experiences = [];
-      json['experiences'].forEach((v) {
-        experiences?.add(Experiences.fromJson(v));
-      });
-    }
+
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];
     v = json['__v'];
@@ -160,8 +147,6 @@ class User {
   List<String>? skills;
   bool? emailVerified;
   String? objective;
-  List<Projects>? projects;
-  List<Experiences>? experiences;
   String? createdAt;
   String? updatedAt;
   int? v;
@@ -202,12 +187,7 @@ class User {
     map['skills'] = skills;
     map['emailVerified'] = emailVerified;
     map['objective'] = objective;
-    if (projects != null) {
-      map['projects'] = projects?.map((v) => v.toJson()).toList();
-    }
-    if (experiences != null) {
-      map['experiences'] = experiences?.map((v) => v.toJson()).toList();
-    }
+
     map['created_at'] = createdAt;
     map['updated_at'] = updatedAt;
     map['__v'] = v;

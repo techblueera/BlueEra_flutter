@@ -29,7 +29,6 @@ import 'package:BlueEra/features/personal/personal_profile/view/widget/circular_
 import 'package:BlueEra/features/personal/personal_profile/view/widget/count_clock_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/horizonatal_video_player.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/introduction_video_widget.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/widget/portfolio_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/update_profile_view.dart';
 import 'package:BlueEra/features/subscription/view/subscription_screen.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -295,13 +294,15 @@ class _PersonalProfileSetupNewScreenState
                       child: DefaultTabController(
                         length: PostTabs.postTab.length,
                         child: NestedScrollView(
-                          headerSliverBuilder: (context, innerBoxIsScrolled) => [
+                          headerSliverBuilder: (context, innerBoxIsScrolled) =>
+                              [
                             SliverToBoxAdapter(
                               child: _buildHeaderSection(),
                             ),
                             SliverPersistentHeader(
                               pinned: true,
-                              delegate: _CustomTabBarDelegate(_buildTabButtons(),
+                              delegate: _CustomTabBarDelegate(
+                                  _buildTabButtons(),
                                   hasFilters: filters != null),
                             ),
                           ],
@@ -311,7 +312,8 @@ class _PersonalProfileSetupNewScreenState
                               final index = PostTabs.postTab.indexOf(tab);
                               return Padding(
                                 padding: EdgeInsets.symmetric(
-                                    horizontal: SizeConfig.size10,vertical: 10),
+                                    horizontal: SizeConfig.size10,
+                                    vertical: 10),
                                 child: _buildTabContent(index),
                               );
                             }).toList(),
@@ -337,7 +339,7 @@ class _PersonalProfileSetupNewScreenState
   Widget _buildTabContent(int index) {
     switch (PostTabs.postTab[index].id) {
       case "myStore":
-        return PortfolioWidget(isSelfPortfolio: true);
+        return CustomText("Coming soon...");
 
       case "aboutMe":
         return AboutMeWidget();
@@ -1183,7 +1185,6 @@ class _PersonalProfileSetupNewScreenState
               return Padding(
                 padding: const EdgeInsets.only(right: 8),
                 child: ElevatedButton(
-
                   onPressed: () {
                     _tabController?.animateTo(index);
                   },
@@ -1215,7 +1216,6 @@ class _PersonalProfileSetupNewScreenState
             },
           ),
         ),
-
       ],
     );
   }
@@ -2106,10 +2106,11 @@ class _CustomTabBarDelegate extends SliverPersistentHeaderDelegate {
   _CustomTabBarDelegate(this.tabBar, {this.hasFilters = false});
 
   @override
-  double get minExtent =>74;
+  double get minExtent => 74;
 
   @override
   double get maxExtent => 74;
+
   // double get maxExtent => hasFilters ? 90.0 : 50.0;
 
   @override
