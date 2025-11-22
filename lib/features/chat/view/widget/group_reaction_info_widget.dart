@@ -11,6 +11,7 @@ import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetListOfMessageData.dart';
 import '../chat_screen.dart';
+import '../chat_screen_new.dart';
 import 'component_widgets.dart';
 class GroupReactionInfoWidget extends StatefulWidget {
   const GroupReactionInfoWidget({super.key,required this.time,required this.userId,required this.conversation, required this.message});
@@ -57,7 +58,7 @@ class _GroupReactionInfoWidgetState extends State<GroupReactionInfoWidget> {
               InkWell(
                   onTap: (){
                     chatThemeController.selectedId.add(widget.message.id??'');
-                    Navigator.push(context, MaterialPageRoute(builder: (context)=>ChatMainScreen(isForwardUI: true,message: widget.message,forwardId: widget.message.id??'',)));
+                    Navigator.push(context, MaterialPageRoute(builder: (context)=>NewChatMainScreen(isForwardUI: true,message: widget.message,forwardId: widget.message.id??'',)));
                   },
                   child: _iconText(widget.userId,widget.conversation,AppIconAssets.chat_share_icon, "${(widget.message.forwards_count=="null")?"0":widget.message.forwards_count??0}",context,chatThemeController)),
             ],

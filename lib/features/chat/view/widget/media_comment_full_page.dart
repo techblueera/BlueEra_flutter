@@ -22,6 +22,7 @@ import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetListOfMessageData.dart';
 import '../../auth/model/getMediaMsgCommentsModel.dart';
 import '../chat_screen.dart';
+import '../chat_screen_new.dart';
 import 'component_widgets.dart';
 import 'media_message_full_view.dart';
 class VideoCommentsPage extends StatefulWidget {
@@ -151,7 +152,7 @@ class _VideoCommentsPageState extends State<VideoCommentsPage> {
             text: "${widget.message.forwards_count=='null'?'0':widget.message.forwards_count??'0'}",
             onTap: () {
               chatThemeController.selectedId.add(widget.message.id??'');
-              Navigator.push(context, MaterialPageRoute(builder: (context)=>ChatMainScreen(isForwardUI:true,message: widget.message,forwardId: widget.message.id??'',)));
+              Navigator.push(context, MaterialPageRoute(builder: (context)=>NewChatMainScreen(isForwardUI:true,message: widget.message,forwardId: widget.message.id??'',)));
             },
           ),
         ],

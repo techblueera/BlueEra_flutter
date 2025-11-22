@@ -85,7 +85,13 @@ class ChatViewController extends GetxController {
   RxInt selectedChatTabIndex = 0.obs;
   TabController? chatMainTabController;
   final localStorageHelper = LocalStorageHelper();
+  RxInt businessTabIndexSelected = 0.obs;
 
+  final List<String> tabs = ['Chat','Products', 'Services','Post','Reviews','Others'];
+
+  void changeBusinessInsideTab(int index) {
+    businessTabIndexSelected.value = index;
+  }
   void setReplyMessage(Messages? message) {
     replyMessage?.value = message;
   }

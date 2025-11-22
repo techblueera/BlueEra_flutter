@@ -30,6 +30,7 @@ import '../../../../core/routes/route_helper.dart';
 import '../../../chat/auth/controller/chat_theme_controller.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../chat/view/chat_screen.dart';
+import '../../../chat/view/chat_screen_new.dart';
 import '../../delivery_partner/controller/delivery_partner_orders_controller.dart';
 import '../../map/view/customize_map_screen.dart';
 import '../auth/controller/bottom_bar_controller.dart';
@@ -330,7 +331,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       default:
         return isGuestUser()
             ? GuestDashBoardScreen()
-            : ChatMainScreen(
+            : NewChatMainScreen(
                 onHeaderVisibilityChanged: _toggleAppBar,
               );
     }

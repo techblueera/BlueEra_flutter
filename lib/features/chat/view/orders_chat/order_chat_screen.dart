@@ -15,6 +15,7 @@ import '../../../../core/services/notification_utils.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../chat_screen.dart';
+import '../chat_screen_new.dart';
 import '../widget/component_widgets.dart';
 import '../widget/message_card.dart';
 class OrderChatScreen extends StatefulWidget {
@@ -319,7 +320,7 @@ class _ReactionInfoWidgetState extends State<ReactionInfoWidget> {
               InkWell(
                   onTap: (){
                     chatThemeController.selectedId.add(widget.message.id??'');
-                    Navigator.push(context, MaterialPageRoute(builder: (context)=>ChatMainScreen(isForwardUI: true,message: widget.message,forwardId: widget.message.id??'',)));
+                    Navigator.push(context, MaterialPageRoute(builder: (context)=>NewChatMainScreen(isForwardUI: true,message: widget.message,forwardId: widget.message.id??'',)));
                   },
                   child: _iconText(widget.userId,widget.conversation,AppIconAssets.chat_share_icon, "${(widget.message.forwards_count=="null")?"0":widget.message.forwards_count??0}",context,chatThemeController)),
             ],

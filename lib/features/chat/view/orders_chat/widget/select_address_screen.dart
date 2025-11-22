@@ -149,17 +149,13 @@ class _AddressListScreenState extends State<AddressListScreen> {
 
                                 const SizedBox(height: 6),
 
-                                // 🔹 Phone
                                 CustomText(
                                   address.phone ?? "",
                                   color: AppColors.black,
                                   fontWeight: FontWeight.w500,
                                   fontSize: 14,
                                 ),
-
                                  SizedBox(height: SizeConfig.size4),
-
-                                // 🔹 Full Address
                                 CustomText(
                                   "${address.houseNo ?? ''} ${address.street ?? ''}, "
                                       "${address.city ?? ''}, ${address.state ?? ''} - ${address.zipCode ?? ''}",
@@ -171,7 +167,6 @@ class _AddressListScreenState extends State<AddressListScreen> {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.end,
                                   children: [
-                                    // EDIT
                                     InkWell(
                                       onTap: () {
                                         String? getAddress;

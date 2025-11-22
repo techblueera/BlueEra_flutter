@@ -1,4 +1,3 @@
-
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -21,15 +20,14 @@ import '../widget/component_widgets.dart';
 import '../widget/message_card.dart';
 
 class BusinessChatScreenUpdated extends StatefulWidget {
-  BusinessChatScreenUpdated(
-      {required this.conversationId,
-        required this.userId,
-        required this.businessId,
-        this.profileImage,
-        required this.type,
-        this.name,
-        this.contactNo,
-        required this.isInitialMessage});
+  BusinessChatScreenUpdated({required this.conversationId,
+    required this.userId,
+    required this.businessId,
+    this.profileImage,
+    required this.type,
+    this.name,
+    this.contactNo,
+    required this.isInitialMessage});
 
   final String? conversationId;
   final String? userId;
@@ -39,8 +37,10 @@ class BusinessChatScreenUpdated extends StatefulWidget {
   final String? type;
   final bool isInitialMessage;
   final String? contactNo;
+
   @override
-  State<BusinessChatScreenUpdated> createState() => _BusinessChatScreenUpdatedState();
+  State<BusinessChatScreenUpdated> createState() =>
+      _BusinessChatScreenUpdatedState();
 }
 
 class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
@@ -55,7 +55,6 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
 
   @override
   void initState() {
-
     chatViewController.isChatFromBusinessProfile(true);
     chatViewController.sendMessageController.value.clear();
     chatViewController.isTextFieldEmpty.value = false;
@@ -92,19 +91,19 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
   }
 
 
-
   @override
   Widget build(BuildContext context) {
     Theme.of(context);
     return WillPopScope(
       onWillPop: () async {
-        if(chatViewController.canPopBusiness.value){
+        if (chatViewController.canPopBusiness.value) {
           chatViewController.emitEvent(
               ChatEmitEvents.ChatList, {ApiKeys.type: "business"}, true);
           chatViewController.onSelectChatTab(1);
           bottomBarController.onChangeIndex(4);
-          Navigator.popUntil(context, ModalRoute.withName(RouteHelper.getBottomNavigationBarScreenRoute()));
-        }else{
+          Navigator.popUntil(context, ModalRoute.withName(
+              RouteHelper.getBottomNavigationBarScreenRoute()));
+        } else {
           chatViewController.emitEvent(
               ChatEmitEvents.ChatList, {ApiKeys.type: "business"}, true);
         }
@@ -113,29 +112,31 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
       child: Obx(() {
         return Scaffold(
           backgroundColor: backgroundColor,
-          appBar: (chatThemeController.isMessageSelectionActive.value&&widget.type!="Admin")
-              ?getChatOptionsAppBar(
-              context,
-              profileImage: widget.profileImage,
-              editingController: editingController,
-              conversationId: widget.conversationId,
-              userId: widget.userId,
-              type: widget.type,
-              name: widget.name,
-              contactNo: widget.contactNo,
+          appBar: (chatThemeController.isMessageSelectionActive.value &&
+              widget.type != "Admin")
+              ? getChatOptionsAppBar(
+            context,
+            profileImage: widget.profileImage,
+            editingController: editingController,
+            conversationId: widget.conversationId,
+            userId: widget.userId,
+            type: widget.type,
+            name: widget.name,
+            contactNo: widget.contactNo,
           )
-              : getChatTitleAppBar(socketType:"business",
-              context,
-              userId: widget.userId,
-              // userId: widget.userId,
-              type: widget.type,
-              name: widget.name,
-              contactNo: widget.contactNo,businessId: widget.businessId,
-            profileImage: widget.profileImage, conversationId: widget.conversationId,
+              : getChatTitleAppBar(socketType: "business",
+            context,
+            userId: widget.userId,
+            // userId: widget.userId,
+            type: widget.type,
+            name: widget.name,
+            contactNo: widget.contactNo,
+            businessId: widget.businessId,
+            profileImage: widget.profileImage,
+            conversationId: widget.conversationId,
           ),
 
           body: Obx(() {
-            //  print("sjdnckjsdckjsdc ${chatViewController.getListOfMessageData!}");
             if (chatViewController.getListOfMessageResponse.value.status ==
                 Status.COMPLETE) {
               List<Messages> messages =
@@ -155,14 +156,67 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    Image.asset(
-                      AppImageAssets.chating_bg,
-                      fit: BoxFit.cover,
-                      width: SizeConfig.screenWidth,
-                      height: SizeConfig.screenHeight,
+                    Positioned.fill(
+                      child: Image.asset(
+                        AppImageAssets.chating_bg,
+                        fit: BoxFit.cover,
+                        width: SizeConfig.screenWidth,
+                        height: SizeConfig.screenHeight,
+                      ),
                     ),
+
+
                     Column(
                       children: [
+                        Container(
+                          height: 40,
+                          padding: EdgeInsets.only(left: 10, right: 6),
+                          margin: EdgeInsets.only(top: 8),
+                          child: ListView.separated(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: chatViewController.tabs.length,
+                            separatorBuilder: (_, __) => SizedBox(width: 6),
+                            itemBuilder: (context, index) {
+                              return Obx(() {
+                                final selected = index ==
+                                    chatViewController.businessTabIndexSelected
+                                        .value;
+                                return InkWell(
+                                  onTap: () {
+                                    chatViewController.changeBusinessInsideTab(
+                                        index);
+                                  },
+                                  child: Container(
+                                    margin: EdgeInsets.symmetric(
+                                        horizontal: 0, vertical: 3),
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 12,),
+                                    decoration: BoxDecoration(
+                                      color: selected
+                                          ? AppColors.primaryColor
+                                          : AppColors.white,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: selected ? null : Border.all(
+                                          color: AppColors.borderBox
+                                              .withOpacity(0.75)),
+                                    ),
+                                    child: Center(
+                                      child: CustomText(
+                                        chatViewController.tabs[index],
+                                        color: selected
+                                            ? AppColors.white
+                                            : AppColors.grayText,
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 14,
+
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              });
+                            },
+                          ),
+                        ),
                         Expanded(
                           child: (messages.isEmpty)
                               ? Center(
@@ -180,7 +234,8 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 15, vertical: 10),
                                 decoration: BoxDecoration(
-                                  color: Colors.grey.withValues(alpha: 0.5), // light color with 0.5 opacity
+                                  color: Colors.grey.withValues(alpha: 0.5),
+                                  // light color with 0.5 opacity
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: RichText(
@@ -260,6 +315,7 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
                         const SizedBox(height: 14),
                       ],
                     ),
+
                   ],
                 ),
               );
@@ -291,12 +347,12 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
   }
 
 
-
   void showMessageEditDialog() {
     Get.dialog(
       AlertDialog(
         insetPadding:
-        EdgeInsets.symmetric(vertical: 12), // Reduced outer spacing
+        EdgeInsets.symmetric(vertical: 12),
+        // Reduced outer spacing
         contentPadding: const EdgeInsets.only(bottom: 10),
         backgroundColor: AppColors.appBackgroundColor,
         shape: RoundedRectangleBorder(
@@ -371,14 +427,16 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
                       ApiKeys;
                       Map<String, dynamic> data = {
                         ApiKeys.id:
-                        "${chatThemeController.selectedFirstMessage?.value?.id}",
+                        "${chatThemeController.selectedFirstMessage?.value
+                            ?.id}",
                         ApiKeys.type: "message",
                         ApiKeys.message: "${editingController.text}"
                       };
                       bool value =
                       await chatViewController.updateMessageApi(data);
                       if (value) {
-                        chatViewController.emitEvent(ChatEmitEvents.messageReceived, {
+                        chatViewController.emitEvent(
+                            ChatEmitEvents.messageReceived, {
                           ApiKeys.conversation_id: widget.conversationId,
                           ApiKeys.page: 1,
                           ApiKeys.is_online_user: widget.userId,

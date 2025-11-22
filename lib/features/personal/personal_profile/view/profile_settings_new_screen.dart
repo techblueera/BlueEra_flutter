@@ -20,6 +20,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../chat/auth/controller/chat_view_controller.dart';
+import '../../../common/referral/view/referral_page.dart';
 
 class ProfileSettingsNewScreen extends StatelessWidget {
   const ProfileSettingsNewScreen({super.key});
@@ -48,6 +49,11 @@ class ProfileSettingsNewScreen extends StatelessWidget {
                            AppIconAssets.accountSetting,
                            AppStrings.accountSettings,
                            onTap: () => Get.to(() => AccountSettingScreen())
+                       ),
+                       _buildTile(
+                           AppIconAssets.referral,
+                           "Referral",
+                           onTap: () => Get.to(() => ReferralPage())
                        ),
                        _buildTile(
                          AppIconAssets.helpSupport,

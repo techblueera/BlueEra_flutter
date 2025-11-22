@@ -27,6 +27,7 @@ import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/controller/order_controllar.dart';
 import '../../auth/model/GetChatListModel.dart';
 import '../chat_screen.dart';
+import '../chat_screen_new.dart';
 import '../group_chat/view_group_members.dart';
 
 Widget timeAndReadInfoWidget({required Messages message,
@@ -1279,7 +1280,7 @@ PreferredSize getChatOptionsAppBar(BuildContext context, {
                   context,
                   MaterialPageRoute(
                       builder: (context) =>
-                          ChatMainScreen(
+                          NewChatMainScreen(
                             isForwardUI: true,
                             message:
                             chatThemeController.selectedFirstMessage?.value,
