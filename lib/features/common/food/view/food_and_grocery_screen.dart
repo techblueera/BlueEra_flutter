@@ -12,7 +12,6 @@ import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../widgets/custom_text_cm.dart';
@@ -119,16 +118,29 @@ class _FoodAndGroceryScreenState extends State<FoodAndGroceryScreen>
                       final crossSpacing = 10.0;
                       final mainSpacing = 10.0;
 
-                      final itemWidth =
-                          (constraints.maxWidth - ((crossAxisCount - 1) * crossSpacing)) /
-                              crossAxisCount;
+                      final totalHorizontalSpacing = (crossAxisCount - 1) * crossSpacing;
+                      final itemWidth = (constraints.maxWidth - totalHorizontalSpacing) / crossAxisCount;
 
-                      return MasonryGridView.count(
-                        crossAxisCount: crossAxisCount,
-                        crossAxisSpacing: crossSpacing,
-                        mainAxisSpacing: mainSpacing,
+                      final approximateItemHeight = SizeConfig.size280;
+
+                      final childAspectRatio = itemWidth / approximateItemHeight;
+
+
+                      return GridView.builder(
+                        // controller: storesScrollController,
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: crossAxisCount,
+                          crossAxisSpacing: crossSpacing,
+                          mainAxisSpacing: mainSpacing,
+                          childAspectRatio: childAspectRatio,
+                        ),
+                        padding: EdgeInsets.only(
+                            bottom: kBottomNavigationBarHeight + 40,
+                          left: SizeConfig.size8,
+                          right: SizeConfig.size8,
+                          top: SizeConfig.size8,
+                        ),
                         itemCount: controller.foodDataList.length,
-                        padding: EdgeInsets.only(bottom: kBottomNavigationBarHeight + 40),
                         itemBuilder: (context, index) {
                           final food = controller.foodDataList[index];
                           return FoodItemCard(
@@ -203,402 +215,397 @@ class FoodItemCard extends StatelessWidget {
       }
     }
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 2.0, left: 8, right: 8),
-      child: InkWell(
-        onTap: (){
-          Get.to(()=> FoodDetailsViewScreen(
-            productPriceFormat:(foodData.priceType == "single")
-                ? "${foodData.singlePrice ?? "0"}"
-                : "$priceText",
-            data: foodData,
-          ));
-        },
-        child: (isGridShow) ? Container(
-          width: width,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-            color: Colors.transparent,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+    return InkWell(
+      onTap: (){
+        Get.to(()=> FoodDetailsViewScreen(
+          productPriceFormat:(foodData.priceType == "single")
+              ? "${foodData.singlePrice ?? "0"}"
+              : "$priceText",
+          data: foodData,
+        ));
+      },
+      child: (isGridShow) ? Container(
+        width: width,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          color: AppColors.white,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
 
-              // Food Image
-              SizedBox(
-                height: SizeConfig.size150,
-                child: Stack(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: (foodData.photos?.isNotEmpty??false)
-                          ?  CustomImageSlideshow(
-                        isLoading: false,
-                        width: double.infinity,
-                        height: SizeConfig.size150,
-                        imagePaths: foodData.photos ?? [],
-                        borderRadius: BorderRadius.zero,
-                      ): LocalAssets(
-                        imagePath:
-                        AppIconAssets.place_holder_image,
-                        boxFix: BoxFit.fill,
-                      ),
+            // Food Image
+            SizedBox(
+              height: SizeConfig.size150,
+              child: Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: (foodData.photos?.isNotEmpty??false)
+                        ?  CustomImageSlideshow(
+                      isLoading: false,
+                      width: double.infinity,
+                      height: SizeConfig.size150,
+                      imagePaths: foodData.photos ?? [],
+                      borderRadius: BorderRadius.zero,
+                    ) : LocalAssets(
+                      imagePath:
+                      AppIconAssets.place_holder_image,
+                      boxFix: BoxFit.fill,
                     ),
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: _buildIconBox(
-                        onTap: () async {
-                          await showCommonDialog(
-                          context: context,
-                          text: AppStrings.areYouSureDeleteThisFoodService,
-                          confirmText: AppStrings.delete,
-                          cancelText: AppStrings.cancel,
-                          confirmCallback: () {
-                            controller.deleteFoodService(
-                                serviceId: foodData.id ?? '',
-                                isFromEarnWithBlueEra: isFromEarnWithBlueEra
-                            );
-                          },
-                          cancelCallback: () {
-                            Get.back();
-                          },
+                  ),
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: _buildIconBox(
+                      onTap: () async {
+                        await showCommonDialog(
+                        context: context,
+                        text: AppStrings.areYouSureDeleteThisFoodService,
+                        confirmText: AppStrings.delete,
+                        cancelText: AppStrings.cancel,
+                        confirmCallback: () {
+                          controller.deleteFoodService(
+                              serviceId: foodData.id ?? '',
+                              isFromEarnWithBlueEra: isFromEarnWithBlueEra
                           );
                         },
-                        Icon(Icons.more_vert, color: Colors.white, size: 16),
-                      ),
+                        cancelCallback: () {
+                          Get.back();
+                        },
+                        );
+                      },
+                      Icon(Icons.more_vert, color: Colors.white, size: 16),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
+            ),
 
-              // Food Details
-              Padding(
-                padding: EdgeInsets.symmetric(vertical: SizeConfig.size10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Food Name
-                    CustomText(
-                      foodData.title ?? AppStrings.na,
-                      fontWeight: FontWeight.w600,
-                      fontSize: SizeConfig.medium,
-                      color: AppColors.mainTextColor,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+            // Food Details
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: SizeConfig.size10, horizontal: SizeConfig.size8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Food Name
+                  CustomText(
+                    foodData.title ?? AppStrings.na,
+                    fontWeight: FontWeight.w600,
+                    fontSize: SizeConfig.medium,
+                    color: AppColors.mainTextColor,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
 
-                    SizedBox(height: SizeConfig.size5),
+                  SizedBox(height: SizeConfig.size5),
 
-                    // Veg label + category
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: controller.getFoodTypeColor(foodData.vegType),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            foodData.vegType ?? "",
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+                  // Veg label + category
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: controller.getFoodTypeColor(foodData.vegType),
+                          borderRadius: BorderRadius.circular(6),
                         ),
-                        const SizedBox(width: 8),
-                        Text(
-                          foodData.category ?? "",
-                          style: TextStyle(
-                            color: Colors.grey.shade600,
-                            fontSize: 12,
-                          ),
+                        child: CustomText(
+                          foodData.vegType ?? "",
+                          color: Colors.white,
+                          fontSize: SizeConfig.small,
+                          fontWeight: FontWeight.w600,
                         ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(width: 8),
+                      CustomText(
+                        foodData.category ?? "",
+                        color: Colors.grey.shade600,
+                        fontSize:  SizeConfig.small,
+                      ),
+                    ],
+                  ),
 
-                    SizedBox(height: SizeConfig.size5),
+                  SizedBox(height: SizeConfig.size5),
 
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CustomText(
-                          "Energy : ",
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomText(
+                        "Energy : ",
+                        fontSize: SizeConfig.small,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.secondaryTextColor,
+                      ),
+                      Expanded(
+                        child: CustomText(
+                          "${foodData.nutritionalSummaryPer100g?.caloriesKcal ?? "N/A"} Cal/100gm",
                           fontSize: SizeConfig.small,
                           fontWeight: FontWeight.w500,
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 2,
                           color: AppColors.secondaryTextColor,
                         ),
-                        Expanded(
-                          child: CustomText(
-                            "${foodData.nutritionalSummaryPer100g?.caloriesKcal ?? "N/A"} Cal/100gm",
-                            fontSize: SizeConfig.small,
-                            fontWeight: FontWeight.w500,
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 2,
-                            color: AppColors.secondaryTextColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: SizeConfig.size5),
-
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: (foodData.priceType == "single")
-                          ? CustomText(
-                        "₹ ${foodData.singlePrice ?? "0"}",
-                        fontSize: SizeConfig.small,
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primaryColor,
-                      )
-                          : CustomText(
-                        "₹${priceText}",
-                        overflow: TextOverflow.ellipsis,
-                        color: AppColors.primaryColor,
-                        maxLines: 1,
-                        fontWeight: FontWeight.w700,
                       ),
-                    ),
+                    ],
+                  ),
+                  SizedBox(height: SizeConfig.size5),
 
-                  ],
-                ),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: (foodData.priceType == "single")
+                        ? CustomText(
+                      "₹${foodData.singlePrice ?? "0"}",
+                      fontSize: SizeConfig.small,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primaryColor,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    )
+                        : CustomText(
+                      "₹${priceText}",
+                      fontSize: SizeConfig.small,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primaryColor,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                  ),
+
+                ],
               ),
-            ],
-          ),
-        ) : Card(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10.0),
-          ),
-          elevation: 2,
-          clipBehavior: Clip.antiAlias,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // IMAGE SECTION
-              SizedBox(
-                width: 140, // fixed width for image column
-                height: 200, // fixed height (adjust as needed)
-                child: ClipRRect(
+            ),
+          ],
+        ),
+      ) : Card(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        elevation: 2,
+        clipBehavior: Clip.antiAlias,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // IMAGE SECTION
+            SizedBox(
+              width: 140, // fixed width for image column
+              height: 200, // fixed height (adjust as needed)
+              child: ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(12),
+                  bottomLeft: Radius.circular(12),
+                ),
+                child: (foodData.photos?.isNotEmpty??false)
+                    ? CustomImageSlideshow(
+                  isLoading: false,
+                  width: 140, // fixed width for image column
+                  height: 200, // fixed height (adjust as needed)
+                  imagePaths: foodData.photos ?? [],
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(12),
                     bottomLeft: Radius.circular(12),
                   ),
-                  child: (foodData.photos?.isNotEmpty??false)
-                      ? CustomImageSlideshow(
-                    isLoading: false,
-                    width: 140, // fixed width for image column
-                    height: 200, // fixed height (adjust as needed)
-                    imagePaths: foodData.photos ?? [],
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(12),
-                      bottomLeft: Radius.circular(12),
+                  onPhotoIndex: (index) {
+                    // productPhotoIndex = index;
+                  },
+                ) : LocalAssets(
+                  imagePath:
+                  AppIconAssets.place_holder_image,
+                  boxFix: BoxFit.fill,
+                ),
+
+                // CachedNetworkImage(
+                //   imageUrl: foodData.photos?.first ?? "",
+                //   fit: BoxFit.cover, // fills entire box
+                //   placeholder: (context, url) =>  LocalAssets(
+                //     imagePath:
+                //     AppIconAssets.place_holder_image,
+                //     boxFix: BoxFit.fill,
+                //   ),
+                //   errorWidget: (context, url, error) =>
+                //       LocalAssets(
+                //         imagePath:
+                //         AppIconAssets.place_holder_image,
+                //         boxFix: BoxFit.fill,
+                //       ),
+                // ) : LocalAssets(
+                //   imagePath:
+                //   AppIconAssets.place_holder_image,
+                //   boxFix: BoxFit.fill,
+                // ),
+              ),
+            ),
+
+            // CONTENT SECTION
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Title + menu button
+                  Padding(
+                    padding: const EdgeInsets.only(
+                        left: 10.0,
+                        ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: CustomText(
+                            foodData.title ?? AppStrings.na,
+                            fontSize: SizeConfig.medium,
+                            fontWeight: FontWeight.bold,
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 2,
+                            color: AppColors.mainTextColor,
+                          ),
+                        ),
+
+                        IconButton(
+                            onPressed: () async {
+                              await showCommonDialog(
+                              context: context,
+                              text: AppStrings.areYouSureDeleteThisFoodService,
+                              confirmText: AppStrings.delete,
+                              cancelText: AppStrings.cancel,
+                              confirmCallback: () {
+                                controller.deleteFoodService(
+                                    serviceId: foodData.id ?? '',
+                                    isFromEarnWithBlueEra: isFromEarnWithBlueEra
+                                );
+                              },
+                              cancelCallback: () {
+                                Get.back();
+                              },
+                              );
+                            }, icon: Icon(
+                          Icons.more_vert, color: Colors.black, size: 20,
+                        ))
+                      ],
                     ),
-                    onPhotoIndex: (index) {
-                      // productPhotoIndex = index;
-                    },
-                  ) : LocalAssets(
-                    imagePath:
-                    AppIconAssets.place_holder_image,
-                    boxFix: BoxFit.fill,
                   ),
 
-                  // CachedNetworkImage(
-                  //   imageUrl: foodData.photos?.first ?? "",
-                  //   fit: BoxFit.cover, // fills entire box
-                  //   placeholder: (context, url) =>  LocalAssets(
-                  //     imagePath:
-                  //     AppIconAssets.place_holder_image,
-                  //     boxFix: BoxFit.fill,
-                  //   ),
-                  //   errorWidget: (context, url, error) =>
-                  //       LocalAssets(
-                  //         imagePath:
-                  //         AppIconAssets.place_holder_image,
-                  //         boxFix: BoxFit.fill,
-                  //       ),
-                  // ) : LocalAssets(
-                  //   imagePath:
-                  //   AppIconAssets.place_holder_image,
-                  //   boxFix: BoxFit.fill,
-                  // ),
-                ),
-              ),
-
-              // CONTENT SECTION
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Title + menu button
-                    Padding(
-                      padding: const EdgeInsets.only(
-                          left: 10.0,
-                          ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: CustomText(
-                              foodData.title ?? AppStrings.na,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 2,
-                            ),
-                          ),
-
-                          IconButton(
-                              onPressed: () async {
-                                await showCommonDialog(
-                                context: context,
-                                text: AppStrings.areYouSureDeleteThisFoodService,
-                                confirmText: AppStrings.delete,
-                                cancelText: AppStrings.cancel,
-                                confirmCallback: () {
-                                  controller.deleteFoodService(
-                                      serviceId: foodData.id ?? '',
-                                      isFromEarnWithBlueEra: isFromEarnWithBlueEra
-                                  );
-                                },
-                                cancelCallback: () {
-                                  Get.back();
-                                },
-                                );
-                              }, icon: Icon(
-                            Icons.more_vert, color: Colors.black, size: 20,
-                          ))
-                        ],
-                      ),
-                    ),
-
-                    Padding(
-                      padding: const EdgeInsets.all(10),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          // Veg label + category
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: controller.getFoodTypeColor(foodData.vegType),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Text(
-                                  foodData.vegType ?? "",
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
+                  Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        // Veg label + category
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: controller.getFoodTypeColor(foodData.vegType),
+                                borderRadius: BorderRadius.circular(6),
                               ),
-                              const SizedBox(width: 8),
-                              Text(
-                                foodData.category ?? "",
-                                style: TextStyle(
-                                  color: Colors.grey.shade600,
+                              child: Text(
+                                foodData.vegType ?? "",
+                                style: const TextStyle(
+                                  color: Colors.white,
                                   fontSize: 12,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 6),
-
-                          // Description
-                          Text(
-                            foodData.description ?? "",
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey.shade700,
                             ),
-                          ),
-                          const SizedBox(height: 6),
-
-                          FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: (foodData.priceType == "single")
-                                ? CustomText(
-                              "${AppStrings.pricePrefix.tr}₹ ${foodData.singlePrice ?? "0"}",
-                              fontSize: SizeConfig.small,
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 1,
-                              color: AppColors.primaryColor,
-                            )
-                                : CustomText(
-                              "${AppStrings.pricePrefix.tr}₹${priceText}",
-                              fontWeight: FontWeight.w600,
-                              overflow: TextOverflow.ellipsis,
-                              color: AppColors.primaryColor,
-                              maxLines: 1,
-                            ),
-                          ),
-                          // Row(
-                          //   children: [
-                          //     Text("Small: ₹299",
-                          //         style: TextStyle(fontWeight: FontWeight.w600)),
-                          //     const SizedBox(width: 8),
-                          //     Text("Medium: ₹499",
-                          //         style: TextStyle(fontWeight: FontWeight.w600)),
-                          //     const SizedBox(width: 8),
-                          //     Text("Large: ₹799",
-                          //         style: TextStyle(fontWeight: FontWeight.w600)),
-                          //   ],
-                          // ),
-                          const SizedBox(height: 4),
-
-                          // Discount
-                          if (foodData.discounts != null &&
-                              foodData.discounts!.isNotEmpty)
+                            const SizedBox(width: 8),
                             Text(
-                              foodData.discounts!.first,
-                              style: const TextStyle(
-                                color: Colors.redAccent,
+                              foodData.category ?? "",
+                              style: TextStyle(
+                                color: Colors.grey.shade600,
                                 fontSize: 12,
-                                fontWeight: FontWeight.w600,
                               ),
                             ),
+                          ],
+                        ),
 
-                          const SizedBox(height: 6),
+                        const SizedBox(height: 6),
 
-                          // Add-ons
-                          if (foodData.addOns != null
-                              && foodData.addOns!.isNotEmpty)
-                            Wrap(
-                              spacing: 12,
-                              runSpacing: 4,
-                              children: foodData.addOns!
-                                  .map((addon) => InkWell(
-                                onTap: () {},
-                                child: Text(
-                                  addon,
-                                  style: const TextStyle(
-                                    color: Colors.blue,
-                                    fontSize: 13,
-                                    decoration: TextDecoration.underline,
-                                  ),
+                        // Description
+                        Text(
+                          foodData.description ?? "",
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade700,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: (foodData.priceType == "single")
+                              ? CustomText(
+                            "${AppStrings.pricePrefix.tr}₹ ${foodData.singlePrice ?? "0"}",
+                            fontSize: SizeConfig.small,
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                            color: AppColors.primaryColor,
+                          )
+                              : CustomText(
+                            "${AppStrings.pricePrefix.tr}₹${priceText}",
+                            fontWeight: FontWeight.w600,
+                            overflow: TextOverflow.ellipsis,
+                            color: AppColors.primaryColor,
+                            maxLines: 1,
+                          ),
+                        ),
+                        // Row(
+                        //   children: [
+                        //     Text("Small: ₹299",
+                        //         style: TextStyle(fontWeight: FontWeight.w600)),
+                        //     const SizedBox(width: 8),
+                        //     Text("Medium: ₹499",
+                        //         style: TextStyle(fontWeight: FontWeight.w600)),
+                        //     const SizedBox(width: 8),
+                        //     Text("Large: ₹799",
+                        //         style: TextStyle(fontWeight: FontWeight.w600)),
+                        //   ],
+                        // ),
+                        const SizedBox(height: 4),
+
+                        // Discount
+                        if (foodData.discounts != null &&
+                            foodData.discounts!.isNotEmpty)
+                          Text(
+                            foodData.discounts!.first,
+                            style: const TextStyle(
+                              color: Colors.redAccent,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+
+                        const SizedBox(height: 6),
+
+                        // Add-ons
+                        if (foodData.addOns != null
+                            && foodData.addOns!.isNotEmpty)
+                          Wrap(
+                            spacing: 12,
+                            runSpacing: 4,
+                            children: foodData.addOns!
+                                .map((addon) => InkWell(
+                              onTap: () {},
+                              child: Text(
+                                addon,
+                                style: const TextStyle(
+                                  color: Colors.blue,
+                                  fontSize: 13,
+                                  decoration: TextDecoration.underline,
                                 ),
-                              ))
-                                  .toList(),
-                            )
-                        ],
-                      ),
-                    )
+                              ),
+                            ))
+                                .toList(),
+                          )
+                      ],
+                    ),
+                  )
 
-                  ],
-                ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

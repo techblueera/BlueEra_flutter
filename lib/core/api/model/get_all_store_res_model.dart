@@ -25,6 +25,7 @@ class GetAllStoreResModel {
   String? followerCount;
   bool? isFollowed;
   CategoryOfBusiness? categoryOfBusiness;
+  SubCategoryOfBusiness? subCategoryOfBusiness;
 
   GetAllStoreResModel({
     this.livePhotos,
@@ -45,6 +46,7 @@ class GetAllStoreResModel {
     this.followerCount,
     this.isFollowed,
     this.categoryOfBusiness,
+    this.subCategoryOfBusiness,
   });
 
   factory GetAllStoreResModel.fromJson(Map<String, dynamic> json) {
@@ -75,6 +77,9 @@ class GetAllStoreResModel {
       categoryOfBusiness: json['category_of_business'] != null
           ? CategoryOfBusiness.fromJson(json['category_of_business'])
           : null,
+      subCategoryOfBusiness: json['sub_category_of_business'] != null
+          ? SubCategoryOfBusiness.fromJson(json['sub_category_of_business'])
+          : null,
     );
   }
 
@@ -98,6 +103,7 @@ class GetAllStoreResModel {
     map['follower_count'] = followerCount;
     map['is_followed'] = isFollowed;
     map['category_of_business'] = categoryOfBusiness?.toJson();
+    map['sub_category_of_business'] = subCategoryOfBusiness?.toJson();
     return map;
   }
 
@@ -109,7 +115,6 @@ class GetAllStoreResModel {
     DateOfIncorporation? dateOfIncorporation,
     String? typeOfBusiness,
     String? logo,
-    String? subCategoryOfBusiness,
     String? businessDescription,
     dynamic businessNumber,
     String? natureOfBusiness,
@@ -128,6 +133,7 @@ class GetAllStoreResModel {
     bool? isFollowed,
     num? distance,
     CategoryOfBusiness? categoryOfBusiness,
+    SubCategoryOfBusiness? subCategoryOfBusiness
   }) {
     return GetAllStoreResModel(
       livePhotos: livePhotos ?? this.livePhotos,
@@ -148,6 +154,7 @@ class GetAllStoreResModel {
       followerCount: followerCount ?? this.followerCount,
       isFollowed: isFollowed ?? this.isFollowed,
       categoryOfBusiness: categoryOfBusiness ?? this.categoryOfBusiness,
+      subCategoryOfBusiness: subCategoryOfBusiness ?? this.subCategoryOfBusiness,
     );
   }
 }
@@ -248,6 +255,55 @@ class CategoryOfBusiness {
     data['updated_by'] = this.updatedBy;
     data['active'] = this.active;
     data['image_url'] = this.imageUrl;
+    return data;
+  }
+}
+
+class SubCategoryOfBusiness {
+  String? id;
+  String? name;
+  String? createdAt;
+  String? updatedAt;
+  String? deletedAt;
+  String? createdBy;
+  String? updatedBy;
+  bool? active;
+  String? categoryId;
+
+  SubCategoryOfBusiness(
+      {this.id,
+        this.name,
+        this.createdAt,
+        this.updatedAt,
+        this.deletedAt,
+        this.createdBy,
+        this.updatedBy,
+        this.active,
+        this.categoryId});
+
+  SubCategoryOfBusiness.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    name = json['name'];
+    createdAt = json['created_at'];
+    updatedAt = json['updated_at'];
+    deletedAt = json['deleted_at'];
+    createdBy = json['created_by'];
+    updatedBy = json['updated_by'];
+    active = json['active'];
+    categoryId = json['category_id'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['id'] = this.id;
+    data['name'] = this.name;
+    data['created_at'] = this.createdAt;
+    data['updated_at'] = this.updatedAt;
+    data['deleted_at'] = this.deletedAt;
+    data['created_by'] = this.createdBy;
+    data['updated_by'] = this.updatedBy;
+    data['active'] = this.active;
+    data['category_id'] = this.categoryId;
     return data;
   }
 }

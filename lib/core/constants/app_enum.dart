@@ -272,7 +272,7 @@ enum OwnChannelMenuAction {
 }
 
 /// Map Category
-enum MapCategory {
+enum MapServiceCategory {
   services('Services'),
   homeService('Home Service'),
   foods('Foods'),
@@ -286,12 +286,25 @@ enum MapCategory {
 
   final String label;
 
-  const MapCategory(this.label);
+  const MapServiceCategory(this.label);
+
+  static (MapServiceCategory category, int index) fromStringWithIndex(String value) {
+    final idx = MapServiceCategory.values.indexWhere(
+          (e) => e.label.toLowerCase() == value.toLowerCase(),
+    );
+
+    if (idx == -1) {
+      return (MapServiceCategory.services, 0); // default fallback
+    }
+
+    return (MapServiceCategory.values[idx], idx);
+  }
+
 }
 
 extension MapCategoryExtension on String {
-  MapCategory? toMapCategory() {
-    return MapCategory.values.firstWhere(
+  MapServiceCategory? toMapCategory() {
+    return MapServiceCategory.values.firstWhere(
       (e) => e.label.toLowerCase() == this.toLowerCase(),
       // orElse: () => null,
     );

@@ -42,7 +42,7 @@ class CommonSearchBar extends StatelessWidget {
         color: backgroundColor ?? AppColors.greyD3,
         borderRadius: BorderRadius.circular(borderRadius ?? 10.0),
         border: boxBorder,
-        boxShadow: [AppShadows.textFieldShadow]
+        // boxShadow: [AppShadows.textFieldShadow]
       ),
       alignment: Alignment.center,
       child: TextFormField(
@@ -54,7 +54,7 @@ class CommonSearchBar extends StatelessWidget {
         onTap: onSearchTap ?? () {},
         textAlignVertical: TextAlignVertical.center,
         decoration: InputDecoration(
-          hintText: hintText ?? AppStrings.searchHere.tr,
+          hintText: hintText?.tr ?? AppStrings.searchHere.tr,
           hintStyle: TextStyle(fontSize: SizeConfig.medium, color: AppColors.secondaryTextColor),
           border: InputBorder.none,
           enabledBorder: InputBorder.none,

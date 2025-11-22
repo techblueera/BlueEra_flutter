@@ -3,6 +3,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -19,7 +20,8 @@ import 'package:get/get.dart';
 
 class StoreProductCard extends StatelessWidget {
   final ProductStore? productStore;
-  const StoreProductCard({Key? key, this.productStore}) : super(key: key);
+  final bool isShowInGrid;
+  const StoreProductCard({Key? key, this.productStore, required this.isShowInGrid}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -96,7 +98,102 @@ class StoreProductCard extends StatelessWidget {
        );
 
      },
-      child: Container(
+      child: (isShowInGrid)
+          ? Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            color: AppColors.white,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              /// Product Image
+              SizedBox(
+                height: SizeConfig.size150,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: CustomImageSlideshow(
+                    isLoading: false,
+                    width: double.infinity,
+                    height: SizeConfig.size150,
+                    imagePaths: details.media,
+                    borderRadius: BorderRadius.zero,
+                  ),
+                ),
+              ),
+
+              SizedBox(height: SizeConfig.size5),
+
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Title
+                    CustomText(
+                      details.name,
+                      fontWeight: FontWeight.w600,
+                      fontSize: SizeConfig.medium,
+                      color: AppColors.mainTextColor,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: SizeConfig.size5),
+
+                    // Price Row
+                    // if (variants.isNotEmpty)
+                    Row(
+                        children: [
+                          CustomText(
+                            '₹${variants[0].sellingPrice}',
+                            fontWeight: FontWeight.w700,
+                            fontSize: SizeConfig.medium,
+                            color: AppColors.primaryColor,
+                            fontFamily: AppConstants.OpenSans,
+                          ),
+                          SizedBox(width: SizeConfig.size6),
+                          CustomText(
+                            ' ₹${variants[0].mrp}',
+                            fontSize: SizeConfig.small,
+                            color: AppColors.secondaryTextColor,
+                            fontWeight: FontWeight.w400,
+                            decoration: TextDecoration.lineThrough,
+                            fontFamily: AppConstants.OpenSans,
+                          ),
+                          if (discountProduct > 0)
+                            Padding(
+                              padding: EdgeInsets.only(left: SizeConfig.size6),
+                              child: CustomText(
+                                "${discountProduct}% ${AppStrings.off.tr}",
+                                fontSize: SizeConfig.small,
+                                color: AppColors.greenShade,
+                                fontWeight: FontWeight.w400,
+                                fontFamily: AppConstants.OpenSans,
+                              ),
+                            ),
+                        ],
+                      ),
+
+                    SizedBox(height: SizeConfig.size5),
+                    AttributeRows(attributeMap: uniqueAttributes),
+
+                    SizedBox(height: SizeConfig.size8),
+
+                    StoreKmAwayTextWidget(
+                      lat: sellerClassification?.businessLocation?.latitude?.toDouble() ?? 0.0,
+                      long: sellerClassification?.businessLocation?.longitude?.toDouble() ?? 0.0,
+                      isUnderlineShow: false,
+                      isPadding: 4.0,
+                    ),
+
+                  ],
+                ),
+              )
+
+            ],
+          )
+      )
+          :  Container(
         height: SizeConfig.size200,
         decoration: BoxDecoration(
           color: AppColors.whiteFE,
@@ -116,7 +213,7 @@ class StoreProductCard extends StatelessWidget {
             CustomImageSlideshow(
               isLoading: false,
               height: SizeConfig.size200,
-              width: 140,
+              width: SizeConfig.size150,
               imagePaths: details.media,
               borderRadius: BorderRadius.horizontal(left: Radius.circular(10.0)),
               // fit: BoxFit.cover,

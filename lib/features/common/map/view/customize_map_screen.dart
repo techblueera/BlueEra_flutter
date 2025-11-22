@@ -28,8 +28,9 @@ import '../controller/getplace_list_controller.dart';
 
 class CustomizeMapScreen extends StatefulWidget {
   final int? isShowCount;
+  final String? selectedMapCategoryType;
 
-  const CustomizeMapScreen({super.key, this.isShowCount});
+  const CustomizeMapScreen({super.key, this.isShowCount, this.selectedMapCategoryType});
 
   @override
   State<CustomizeMapScreen> createState() => _CustomizeMapScreenState();
@@ -46,7 +47,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
   LatLng _currentPosition =
       const LatLng(20.5937, 78.9629); // Default: India center
   double _zoom = 14.0;
-  final List<MapCategory> categories = MapCategory.values.where((category) {
+  final List<MapServiceCategory> categories = MapServiceCategory.values.where((category) {
     // if (isBusiness()) {
     //   return category != MapCategory.jobs;
     // }
@@ -58,7 +59,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
   int selectedServiceCategoryIndex = 0;
   int selectedStoresCategoryIndex = 0;
   int selectedFoodCategoryIndex = 0;
-  MapCategory? mapCategoryType = MapCategory.services;
+  MapServiceCategory? mapServiceCategoryType = MapServiceCategory.services;
   ServiceCategory? serviceCategoryType = ServiceCategory.homeServices;
   StoresCategory? storesCategoryType = StoresCategory.clothing;
   FoodCategory? selectedFoodCategoryType = FoodCategory.tiffin;
@@ -79,6 +80,12 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
   @override
   void initState() {
     super.initState();
+    if(widget.selectedMapCategoryType!=null) {
+      final (category, index) = MapServiceCategory.fromStringWithIndex(widget.selectedMapCategoryType!);
+      log('category--- $category -----  index --- $index');
+      mapServiceCategoryType = category;
+      selectedIndex = index;
+    }
 
     WidgetsBinding.instance.addObserver(this);
     searchController.addListener(() {
@@ -332,9 +339,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
         onTap: () => unFocus(),
         child: Scaffold(
           appBar: CommonBackAppBar(
-            onBackTap: () {},
             isSearch: true,
-            isLeading: false,
             controller: searchController,
             onSearchTap: () {
               searchLocationShow = true;
@@ -411,12 +416,12 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
                         onTabSelected: (index, value) {
                           setState(() {
                             selectedIndex = index;
-                            mapCategoryType =
-                                value.toMapCategory() ?? MapCategory.services;
+                            mapServiceCategoryType =
+                                value.toMapCategory() ?? MapServiceCategory.services;
                           });
                           searchController.clear();
                         },
-                        labelBuilder: (MapCategory mapCategory) {
+                        labelBuilder: (MapServiceCategory mapCategory) {
                           return mapCategory.label;
                         },
                         unSelectedBackgroundColor: AppColors.white,
@@ -527,8 +532,8 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
   }
 
   Widget buildSubCategory() {
-    switch (mapCategoryType) {
-      case MapCategory.services:
+    switch (mapServiceCategoryType) {
+      case MapServiceCategory.services:
         return HorizontalTabSelector(
           tabs: serviceCategory,
           selectedIndex: selectedServiceCategoryIndex,
@@ -552,7 +557,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
                 offset: Offset(0, 2))
           ],
         );
-      case MapCategory.foods:
+      case MapServiceCategory.foods:
         return HorizontalTabSelector(
           tabs: serviceCategory,
           selectedIndex: selectedServiceCategoryIndex,
@@ -610,7 +615,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
 
   Widget buildBottomSheet() {
     /// Service Category
-    if (mapCategoryType == MapCategory.services) {
+    if (mapServiceCategoryType == MapServiceCategory.services) {
       return HomeServicesBottomSheet(
         key: const ValueKey("services"),
         lat: _lat,
@@ -624,7 +629,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
         category: "service",
         subType: EarnWithBlueEraServiceTypes.selfWork.label,
       );
-    } else if (mapCategoryType == MapCategory.homeService) {
+    } else if (mapServiceCategoryType == MapServiceCategory.homeService) {
       return HomeServicesBottomSheet(
         key: const ValueKey("home_services"),
         lat: _lat,
@@ -638,7 +643,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
         category: "service",
         subType: EarnWithBlueEraServiceTypes.homeService.label,
       );
-    } else if (mapCategoryType == MapCategory.foods) {
+    } else if (mapServiceCategoryType == MapServiceCategory.foods) {
       return FoodServicesBottomSheet(
         key: const ValueKey("foods"),
         lat: _lat,
@@ -653,7 +658,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
         subType: EarnWithBlueEraServiceTypes.homeMadeFood.label,
       );
     }
-    else if (mapCategoryType == MapCategory.rental) {
+    else if (mapServiceCategoryType == MapServiceCategory.rental) {
       return RentalServicesBottomSheet(
         key: const ValueKey("rental_service"),
         lat: _lat,

@@ -5,6 +5,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/upload_s3_image_model.dart';
+import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -137,15 +138,15 @@ class FoodUploadController extends GetxController {
   Color getFoodTypeColor(String? type) {
     switch (type?.toLowerCase()) {
       case 'veg':
-        return Colors.green;
+        return Color(0xFF296E01);
       case 'non-veg':
-        return Colors.red;
+        return Color(0xFFA62C2B);
       case 'vigan': // assuming this means Vegan
-        return Colors.orange;
+        return Color(0xFFA8A9AD);
       case 'dairy/sweet':
-        return Colors.purple;
+        return Color(0xFF6B4A3A);
       default:
-        return Colors.grey;
+        return Color(0xFFA8A9AD);
     }
   }
 

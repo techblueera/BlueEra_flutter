@@ -6,7 +6,6 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_widget.dart';
 import 'package:BlueEra/features/common/home/view/home_screen.dart';
@@ -17,7 +16,9 @@ import 'package:BlueEra/features/common/reel/models/channel_model.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/common/store/view/new_store/new_store_screen2.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/inventory_screen.dart';
 import 'package:BlueEra/widgets/service_provider_dialoge.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_callkit_incoming/entities/call_event.dart';
@@ -32,7 +33,6 @@ import '../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../chat/view/chat_screen.dart';
 import '../../../chat/view/chat_screen_new.dart';
 import '../../delivery_partner/controller/delivery_partner_orders_controller.dart';
-import '../../map/view/customize_map_screen.dart';
 import '../auth/controller/bottom_bar_controller.dart';
 
 class BottomNavigationBarScreen extends StatefulWidget {
@@ -320,7 +320,15 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
           onHeaderVisibilityChanged: _toggleAppBar,
         );
       case 2:
-        return CustomizeMapScreen();
+        return isGuestUser()
+            ? GuestDashBoardScreen()
+             : (isBusinessUser())
+                 ? InventoryScreen(
+                      fromBottomNavBar: true
+                  )
+                 : EarnWithBlueEraNewScreen(
+                      fromBottomNavBar: true
+                  );
       case 3:
         return isGuestUser()
             ? GuestDashBoardScreen()

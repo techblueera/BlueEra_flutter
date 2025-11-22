@@ -112,14 +112,28 @@ class _ViewServiceListState extends State<ViewServiceList> {
             final crossSpacing = 10.0;
             final mainSpacing = 10.0;
 
-            final itemWidth =
-                (constraints.maxWidth - ((crossAxisCount - 1) * crossSpacing)) /
-                    crossAxisCount;
+            // final itemWidth =
+            //     (constraints.maxWidth - ((crossAxisCount - 1) * crossSpacing)) /
+            //         crossAxisCount;
 
-            return MasonryGridView.count(
-              crossAxisCount: crossAxisCount,
-              crossAxisSpacing: crossSpacing,
-              mainAxisSpacing: mainSpacing,
+            final totalHorizontalSpacing = (crossAxisCount - 1) * crossSpacing;
+            final itemWidth = (constraints.maxWidth - totalHorizontalSpacing) / crossAxisCount;
+
+            final approximateItemHeight = SizeConfig.size240;
+
+            final childAspectRatio = itemWidth / approximateItemHeight;
+
+            return GridView.builder(
+              // crossAxisCount: crossAxisCount,
+              // crossAxisSpacing: crossSpacing,
+              // mainAxisSpacing: mainSpacing,
+              // controller: storesScrollController,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: crossAxisCount,
+                crossAxisSpacing: crossSpacing,
+                mainAxisSpacing: mainSpacing,
+                childAspectRatio: childAspectRatio,
+              ),
               itemCount: serviceController.serviceDataList.length,
               padding: EdgeInsets.only(
                   left: SizeConfig.size8,
@@ -144,7 +158,7 @@ class _ViewServiceListState extends State<ViewServiceList> {
                     width: itemWidth,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(10),
-                      color: Colors.transparent,
+                      color: AppColors.white,
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -191,7 +205,10 @@ class _ViewServiceListState extends State<ViewServiceList> {
                           ),
                         ),
                         Padding(
-                          padding: EdgeInsets.symmetric(vertical: SizeConfig.size10),
+                          padding: EdgeInsets.symmetric(
+                              vertical: SizeConfig.size10,
+                              horizontal: SizeConfig.size8,
+                          ),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -199,10 +216,11 @@ class _ViewServiceListState extends State<ViewServiceList> {
                               // Title & price
                               CustomText(
                               serviceData.title ?? AppStrings.na,
-                                fontSize: 16,
+                                fontSize: SizeConfig.medium,
                                 fontWeight: FontWeight.bold,
                                 overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
+                                maxLines: 2,
+                                color: AppColors.mainTextColor,
                               ),
 
                               SizedBox(height: SizeConfig.size5),

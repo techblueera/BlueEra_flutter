@@ -69,13 +69,13 @@ class AttributeRows extends StatelessWidget {
         ...mainItems.map((value) {
           if (key.toLowerCase() == 'color' && value is Map<String, dynamic>) {
             return Container(
-              width: SizeConfig.size16,
-              height: SizeConfig.size16,
+              width: SizeConfig.size15,
+              height: SizeConfig.size15,
               margin: const EdgeInsets.only(right: 4.0),
               decoration: BoxDecoration(
                 color: hexToColor(value["color_code"]),
                 borderRadius: BorderRadius.circular(2.0),
-                border: Border.all(color: Colors.grey, width: 1),
+                border: Border.all(color: Colors.grey.shade500, width: 1),
               ),
             );
           } else {
@@ -131,18 +131,25 @@ class AttributeRows extends StatelessWidget {
     final firstKey = keys[0];
     final firstValues = attributeMap[firstKey]!;
 
-    // final secondKey = keys.length > 1 ? keys[1] : null;
-    // final secondValues = secondKey != null ? attributeMap[secondKey]! : [];
+    final secondKey = keys.length > 1 ? keys[1] : null;
+    final secondValues = secondKey != null ? attributeMap[secondKey]! : [];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(height: SizeConfig.size5),
-        _buildRow(context, firstKey, firstValues),
-        // if (secondKey != null) ...[
-        //   const SizedBox(height: 6),
-        //   _buildRow(context, secondKey, secondValues),
-        // ],
+        Padding(
+          padding: const EdgeInsets.only(top: 4.0),
+          child: Row(
+            children: [
+              _buildRow(context, firstKey, firstValues),
+              if (secondKey != null) ...[
+                const SizedBox(width: 6),
+                _buildRow(context, secondKey, secondValues),
+              ],
+            ],
+          ),
+        )
+
       ],
     );
   }

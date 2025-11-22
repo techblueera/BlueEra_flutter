@@ -374,6 +374,9 @@ class AppStrings {
   static const home = "home";
   static const store = "store";
   static const jobs = "jobs";
+  static const finder = "finder";
+  static const discover = "discover";
+  static const me = "Me";
 
   ///POST VIA...
   static const postVia = "postVia";
@@ -474,7 +477,6 @@ class AppStrings {
   static const editPhoto = "edit_photo";
   static const addMusic = "add_music";
   static const searchMusic = "search_music";
-  static const discover = "discover";
   static const favorites = "favorites";
   static const noSongsFound = "no_songs_found";
   static const allPosts = "all_posts";
@@ -1618,6 +1620,12 @@ class AppStrings {
   static const String income  = 'income';
   static const String newOrder   = 'newOrder';
   static const String onGoing    = 'onGoing';
+
+  static const String notFoundAnyProduct    = 'notFoundAnyProduct';
+  static const String notFoundAnyService    = 'notFoundAnyService';
+  static const String found    = 'found';
+  static const String product    = 'Product';
+  static const String notFoundAnyFoodItem    = 'notFoundAnyFoodItem';
 
   ///BHAVESH START
   static const ownerDetail = "owner_detail";

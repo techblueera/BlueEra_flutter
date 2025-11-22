@@ -1,5 +1,7 @@
 import 'dart:developer';
 
+import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
 import 'package:BlueEra/features/common/store/repo/store_repo.dart';
@@ -12,14 +14,15 @@ import 'package:get/get.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
 class BusinessStoreScreen extends StatefulWidget {
-  final String typeOfBusiness;
-  final String selectedStoreCategoryId;
-  final String selectedStoreCategoryName;
+  final String? typeOfBusiness;
+  final String? selectedStoreCategoryId;
+  final String? selectedStoreCategoryName;
+
   const BusinessStoreScreen({
     super.key,
-    required this.typeOfBusiness,
-    required this.selectedStoreCategoryId,
-    required this.selectedStoreCategoryName,
+    this.typeOfBusiness,
+    this.selectedStoreCategoryId,
+     this.selectedStoreCategoryName,
     });
 
   @override
@@ -39,14 +42,15 @@ class _BusinessStoreScreenState extends State<BusinessStoreScreen> {
       controller.typeOfBusiness = widget.typeOfBusiness;
       controller.businessCategoryId = widget.selectedStoreCategoryId;
       controller.getAllStoreNearBy();
+      storesScrollController.addListener(_onLoadMore);
       super.initState();
+    }
 
-      storesScrollController.addListener(() {
-        if (storesScrollController.position.pixels >=
-            storesScrollController.position.maxScrollExtent - 200) {
-          controller.getAllStoreNearBy(isLoadMore: true);
-        }
-      });
+    void _onLoadMore(){
+      if (storesScrollController.position.pixels >=
+          storesScrollController.position.maxScrollExtent - 200) {
+        controller.getAllStoreNearBy(isLoadMore: true);
+      }
     }
 
   @override
@@ -75,9 +79,11 @@ class _BusinessStoreScreenState extends State<BusinessStoreScreen> {
          // Empty state
          if (controller.allStore.isEmpty) {
            return Center(
-             child: Padding(
-               padding: EdgeInsets.all(20),
-               child: CustomText("No ${widget.selectedStoreCategoryName} found"),
+             child: CustomText(
+                 "${AppStrings.no.tr} ${widget.selectedStoreCategoryName} ${AppStrings.found.tr}.",
+                 fontSize: SizeConfig.large,
+                 color: AppColors.mainTextColor,
+                 fontWeight: FontWeight.w700
              ),
            );
          }
@@ -88,6 +94,7 @@ class _BusinessStoreScreenState extends State<BusinessStoreScreen> {
            itemCount: controller.allStore.length +
                (controller.isAllStoreLoadingMore.value ? 1 : 0),
            itemBuilder: (context, index) {
+
              // Pagination Loader
              if (index >= controller.allStore.length) {
                return const Padding(

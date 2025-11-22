@@ -96,7 +96,7 @@ class OwnProductCard extends StatelessWidget {
         width: width,
         decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
-          color: Colors.transparent,
+          color: AppColors.white,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -133,7 +133,10 @@ class OwnProductCard extends StatelessWidget {
 
             // Product Details
             Padding(
-              padding: EdgeInsets.symmetric(vertical: SizeConfig.size10),
+              padding: EdgeInsets.symmetric(
+                  vertical: SizeConfig.size10,
+                  horizontal: SizeConfig.size8
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -150,7 +153,7 @@ class OwnProductCard extends StatelessWidget {
                   SizedBox(height: SizeConfig.size5),
 
                   // Price Row
-                  if (variants.isNotEmpty) ...[
+                  if (variants.isNotEmpty)
                     Row(
                       children: [
                         CustomText(
@@ -182,7 +185,6 @@ class OwnProductCard extends StatelessWidget {
                           ),
                       ],
                     ),
-                  ],
 
                   // // Category and Variants count
                   // Row(

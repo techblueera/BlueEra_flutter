@@ -497,4 +497,6 @@ class AppIconAssets {
   static String cartIcon = "${iconPath}cart_icon.svg";
   static String referral = "${iconPath}referral.svg";
 
+  static String finderIcon = "${iconPath}finder_icon.svg";
+  static String menIcon = "${iconPath}men_icon.svg";
 }
