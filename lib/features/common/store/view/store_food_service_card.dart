@@ -44,7 +44,7 @@ class StoreFoodServiceCard extends StatelessWidget {
       child: (isShowInGrid)  ? Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
-          color: Colors.transparent,
+          color: AppColors.white,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -81,7 +81,7 @@ class StoreFoodServiceCard extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                     fontSize: SizeConfig.medium,
                     color: AppColors.mainTextColor,
-                    maxLines: 1,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                   SizedBox(height: SizeConfig.size5),

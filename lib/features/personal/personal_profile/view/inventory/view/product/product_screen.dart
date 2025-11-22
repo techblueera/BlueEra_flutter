@@ -93,17 +93,35 @@ class _ProductScreenState extends State<ProductScreen> {
             final crossSpacing = 10.0;
             final mainSpacing = 10.0;
 
-            final itemWidth =
-                (constraints.maxWidth - ((crossAxisCount - 1) * crossSpacing)) /
-                    crossAxisCount;
+            // final itemWidth =
+            //     (constraints.maxWidth - ((crossAxisCount - 1) * crossSpacing)) /
+            //         crossAxisCount;
 
-            return MasonryGridView.count(
-              crossAxisCount: crossAxisCount,
-              crossAxisSpacing: crossSpacing,
-              mainAxisSpacing: mainSpacing,
+            final totalHorizontalSpacing = (crossAxisCount - 1) * crossSpacing;
+            final itemWidth = (constraints.maxWidth - totalHorizontalSpacing) / crossAxisCount;
+
+            final approximateItemHeight = SizeConfig.size240;
+
+            final childAspectRatio = itemWidth / approximateItemHeight;
+
+
+            return GridView.builder(
+              // crossAxisCount: crossAxisCount,
+              // crossAxisSpacing: crossSpacing,
+              // mainAxisSpacing: mainSpacing,
               itemCount: inventoryController.allProducts.length,
-              // reverse: true,
-              padding: EdgeInsets.only(bottom: kBottomNavigationBarHeight + 40),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: crossAxisCount,
+                crossAxisSpacing: crossSpacing,
+                mainAxisSpacing: mainSpacing,
+                childAspectRatio: childAspectRatio,
+              ),
+              padding: EdgeInsets.only(
+                bottom: kBottomNavigationBarHeight + 40,
+                left: SizeConfig.size8,
+                right: SizeConfig.size8,
+                top: SizeConfig.size8,
+              ),
               itemBuilder: (context, index) {
                 final product = inventoryController.allProducts[index];
                 return OwnProductCard(
@@ -137,18 +155,30 @@ class _ProductScreenState extends State<ProductScreen> {
           builder: (context, constraints) {
             // Two columns
             final crossAxisCount = 2;
-            final crossSpacing = 6.0;
-            final mainSpacing = 6.0;
+            final crossSpacing = 10.0;
+            final mainSpacing = 10.0;
 
-            final itemWidth = (constraints.maxWidth - ((crossAxisCount - 1) * crossSpacing))
-                / crossAxisCount;
+            final totalHorizontalSpacing = (crossAxisCount - 1) * crossSpacing;
+            final itemWidth = (constraints.maxWidth - totalHorizontalSpacing) / crossAxisCount;
 
-            return MasonryGridView.count(
+            final approximateItemHeight = SizeConfig.size240;
+
+            final childAspectRatio = itemWidth / approximateItemHeight;
+
+            return GridView.builder(
               itemCount: inventoryController.liveProducts.length,
-              crossAxisCount: crossAxisCount,
-              crossAxisSpacing: crossSpacing,
-              mainAxisSpacing: mainSpacing,
-              padding: EdgeInsets.only(bottom: kBottomNavigationBarHeight + 40),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: crossAxisCount,
+                crossAxisSpacing: crossSpacing,
+                mainAxisSpacing: mainSpacing,
+                childAspectRatio: childAspectRatio,
+              ),
+              padding: EdgeInsets.only(
+                bottom: kBottomNavigationBarHeight + 40,
+                left: SizeConfig.size8,
+                right: SizeConfig.size8,
+                top: SizeConfig.size8,
+              ),
               itemBuilder: (context, index) {
                 final product = inventoryController.liveProducts[index];
                 return OwnProductCard(
@@ -183,18 +213,31 @@ class _ProductScreenState extends State<ProductScreen> {
           builder: (context, constraints) {
             // Two columns
             final crossAxisCount = 2;
-            final crossSpacing = 6.0;
-            final mainSpacing = 6.0;
+            final crossSpacing = 10.0;
+            final mainSpacing = 10.0;
 
-            final itemWidth = (constraints.maxWidth - ((crossAxisCount - 1) * crossSpacing))
-                / crossAxisCount;
+            final totalHorizontalSpacing = (crossAxisCount - 1) * crossSpacing;
+            final itemWidth = (constraints.maxWidth - totalHorizontalSpacing) / crossAxisCount;
 
-            return MasonryGridView.count(
+            final approximateItemHeight = SizeConfig.size240;
+
+            final childAspectRatio = itemWidth / approximateItemHeight;
+
+
+            return GridView.builder(
               itemCount: inventoryController.filteredProducts.length,
-              crossAxisCount: crossAxisCount,
-              crossAxisSpacing: crossSpacing,
-              mainAxisSpacing: mainSpacing,
-              padding: EdgeInsets.only(bottom: kBottomNavigationBarHeight + 40),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: crossAxisCount,
+                crossAxisSpacing: crossSpacing,
+                mainAxisSpacing: mainSpacing,
+                childAspectRatio: childAspectRatio,
+              ),
+              padding: EdgeInsets.only(
+                bottom: kBottomNavigationBarHeight + 40,
+                left: SizeConfig.size8,
+                right: SizeConfig.size8,
+                top: SizeConfig.size8,
+              ),
               itemBuilder: (context, index) {
                 final product = inventoryController.draftProducts[index];
                 return OwnProductCard(

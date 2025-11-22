@@ -376,6 +376,7 @@ class AppStrings {
   static const jobs = "jobs";
   static const finder = "finder";
   static const discover = "discover";
+  static const me = "Me";
 
   ///POST VIA...
   static const postVia = "postVia";
@@ -1622,6 +1623,9 @@ class AppStrings {
 
   static const String notFoundAnyProduct    = 'notFoundAnyProduct';
   static const String notFoundAnyService    = 'notFoundAnyService';
+  static const String found    = 'found';
+  static const String product    = 'Product';
+  static const String notFoundAnyFoodItem    = 'notFoundAnyFoodItem';
 
   ///BHAVESH START
   static const ownerDetail = "owner_detail";

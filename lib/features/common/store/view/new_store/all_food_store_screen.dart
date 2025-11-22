@@ -1,3 +1,5 @@
+import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/food/model/get_food_details_model.dart';
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
@@ -5,7 +7,6 @@ import 'package:BlueEra/features/common/store/view/store_food_service_card.dart'
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
 class AllFoodStoreScreen extends StatefulWidget {
@@ -55,7 +56,7 @@ class _AllFoodStoreScreenState extends State<AllFoodStoreScreen> {
 
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: 'Food',
+        title: AppStrings.food,
       ),
 
       body: SafeArea(
@@ -70,10 +71,12 @@ class _AllFoodStoreScreenState extends State<AllFoodStoreScreen> {
           // Empty state
           if (foodList.isEmpty) {
             return Center(
-              child: Padding(
-                padding: EdgeInsets.all(20),
-                child: CustomText("Not found any food item."),
-              ),
+              child: CustomText(
+                  AppStrings.notFoundAnyFoodItem,
+                  fontSize: SizeConfig.large,
+                  color: AppColors.mainTextColor,
+                  fontWeight: FontWeight.w700
+                  ),
             );
           }
 
@@ -88,9 +91,14 @@ class _AllFoodStoreScreenState extends State<AllFoodStoreScreen> {
               builder: (context, constraints) {
                 final crossAxisCount = 2;
                 final crossSpacing = 10.0;
-                final mainSpacing = 15.0;
+                final mainSpacing = 10.0;
 
-                final childAspectRatio = 0.73; // Adjust as needed
+                final totalHorizontalSpacing = (crossAxisCount - 1) * crossSpacing;
+                final itemWidth = (constraints.maxWidth - totalHorizontalSpacing) / crossAxisCount;
+
+                final approximateItemHeight = SizeConfig.size300;
+
+                final childAspectRatio = itemWidth / approximateItemHeight;
 
                 return GridView.builder(
                   controller: storesScrollController,

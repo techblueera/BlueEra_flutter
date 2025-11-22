@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:BlueEra/core/api/model/get_all_store_res_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -33,7 +31,6 @@ class BusinessStoreCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    log('Store Data: ${getAllStoreResData?.userId ?? ""}');
     bool selfBusiness = getAllStoreResData?.userId == userId;
 
     return Container(
@@ -140,13 +137,11 @@ class BusinessStoreCard extends StatelessWidget {
                                 color: Colors.blue,
                                 borderRadius: BorderRadius.circular(ds(20)),
                               ),
-                              child: Text(
-                                (getAllStoreResData?.isFollowed ?? false) ? "Unfollow" : "Follow",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: ds(11),
-                                  fontWeight: FontWeight.w400,
-                                ),
+                              child: CustomText(
+                                (getAllStoreResData?.isFollowed ?? false) ? AppStrings.unfollow : AppStrings.follow,
+                                color: Colors.white,
+                                fontSize: ds(11),
+                                fontWeight: FontWeight.w400,
                               ),
                             ),
                           ),
@@ -155,13 +150,13 @@ class BusinessStoreCard extends StatelessWidget {
                       SizedBox(height: ds(4)),
                       Row(
                         children: [
-                          Text(
+                          CustomText(
                             '${
-                              getAllStoreResData?.categoryOfBusiness?.name ??
+                              getAllStoreResData?.subCategoryOfBusiness?.name ??
                                   getAllStoreResData?.natureOfBusiness ??
                                   'OTHER'
                             } ',
-                            style: TextStyle(color: Colors.grey, fontSize: ds(12)),
+                              color: Colors.grey, fontSize: ds(12)
                           ),
                           Row(
                             children: [
@@ -170,19 +165,19 @@ class BusinessStoreCard extends StatelessWidget {
                                 height: 12,
                                 width: 12,
                               ),
-                              Text(
+                              CustomText(
                                 ' ${
                                     (getAllStoreResData?.avgRating ?? 0) > 0
                                       ? "(${getAllStoreResData?.avgRating})"
-                                      : "No "
+                                      : "${AppStrings.no.tr} "
                                 }',
-                                style: TextStyle(color: AppColors.orangelite, fontSize: ds(12)),
+                                color: AppColors.orangelite, fontSize: ds(12)
                               ),
                             ],
                           ),
-                          Text(
-                            " Rating",
-                            style: TextStyle(color: Colors.grey, fontSize: ds(12)),
+                          CustomText(
+                            AppStrings.ratings,
+                              color: Colors.grey, fontSize: ds(12)
                           ),
                         ],
                       ),

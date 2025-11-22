@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
@@ -62,7 +63,7 @@ class _AllProductStoreScreenState extends State<AllProductStoreScreen> {
 
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: 'Product'
+        title: AppStrings.product
       ),
 
       body: SafeArea(
@@ -77,9 +78,11 @@ class _AllProductStoreScreenState extends State<AllProductStoreScreen> {
           // Empty state
           if (productList.isEmpty) {
             return Center(
-              child: Padding(
-                padding: EdgeInsets.all(20),
-                child: CustomText(AppStrings.notFoundAnyProduct),
+              child: CustomText(
+                  AppStrings.notFoundAnyProduct,
+                  fontSize: SizeConfig.large,
+                  color: AppColors.mainTextColor,
+                  fontWeight: FontWeight.w700
               ),
             );
           }
@@ -89,9 +92,14 @@ class _AllProductStoreScreenState extends State<AllProductStoreScreen> {
             builder: (context, constraints) {
               final crossAxisCount = 2;
               final crossSpacing = 10.0;
-              final mainSpacing = 15.0;
+              final mainSpacing = 10.0;
 
-              final childAspectRatio = 0.8; // Adjust this value as needed
+              final totalHorizontalSpacing = (crossAxisCount - 1) * crossSpacing;
+              final itemWidth = (constraints.maxWidth - totalHorizontalSpacing) / crossAxisCount;
+
+              final approximateItemHeight = SizeConfig.size265;
+
+              final childAspectRatio = itemWidth / approximateItemHeight;
 
               return GridView.builder(
                 controller: storesScrollController,

@@ -22,6 +22,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/create_profile_s
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/all_stores_feed_response_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
+import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/setup_scroll_visibility_notification.dart';
@@ -156,22 +157,11 @@ class _StoreFeedScreenState extends State<StoreFeedScreen>
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(SizeConfig.size16),
-                    child: CachedNetworkImage(
+                  CachedAvatarWidget(
                       imageUrl: userProfileGlobal,
-                      width: SizeConfig.size32,
-                      height: SizeConfig.size32,
-                      fit: BoxFit.cover,
-                      placeholder: (context, url) => Container(
-                        width: SizeConfig.size32,
-                        height: SizeConfig.size32,
-                        color: Colors.grey[300],
-                      ),
-                      errorWidget: (context, url, error) =>
-                          Icon(Icons.person, size: SizeConfig.size32 / 2),
-                    ),
-                  ),
+                      size: SizeConfig.size30,
+                      borderRadius: SizeConfig.size15,
+                      showProfileOnFullScreen: false),
                   SizedBox(width: SizeConfig.size8),
                   CustomText(
                     isBusiness() ? businessNameGlobal : userNameGlobal,

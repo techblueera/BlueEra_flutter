@@ -90,11 +90,10 @@ class BottomNavigationBarWidget extends StatelessWidget {
               ),
               _buildNavItem(
                 index: 2,
-                iconPath: AppIconAssets.shop,
+                iconPath: AppIconAssets.menIcon,
                 isSelected: currentIndex == 2,
-                label: AppStrings.store,
+                label: AppStrings.me,
                 // isCenter: true, // 👈 center icon
-
               ),
               _buildNavItem(
                 index: 3,

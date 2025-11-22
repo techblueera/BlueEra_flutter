@@ -102,7 +102,7 @@ class StoreProductCard extends StatelessWidget {
           ? Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
-            color: Colors.transparent,
+            color: AppColors.white,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

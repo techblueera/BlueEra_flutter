@@ -63,7 +63,6 @@ class NewStoreController extends GetxController{
   int storeProductDataPage = 1;
   bool storeProductDataHasMore = true;
 
-
   /// All Food service data
   RxList<GetFoodDetailsModel> foodDataList = <GetFoodDetailsModel>[].obs;
   RxBool isFoodDataLoadingMore = false.obs;
@@ -73,7 +72,7 @@ class NewStoreController extends GetxController{
 
 
   ///GET STORES ONLY....
-  Future<void> getAllStoreNearBy({bool isLoadMore = false}) async {
+  Future<void>  getAllStoreNearBy({bool isLoadMore = false}) async {
     // if(typeOfBusiness == null || businessCategoryId == null){
     //   commonSnackBar(message: 'Business Category id not found');
     //   return;
@@ -84,17 +83,17 @@ class NewStoreController extends GetxController{
       isAllStoreLoadingMore.value = true;
     } else {
       isAllStoreFirstLoading.value = true;
+      allStore.clear();
+      allStorePage = 1;
+      allStoreHasMore = true;
+
       if(typeOfBusiness == null && businessCategoryId == null){
         final cachedFood = await HiveServices().getAllStore(userId);
         if (cachedFood != null && cachedFood.isNotEmpty) {
           allStore.assignAll(cachedFood);
           isAllStoreFirstLoading.value = false; // show instantly
-        } else {
-          allStore.clear();
         }
       }
-      allStorePage = 1;
-      allStoreHasMore = true;
     }
 
     try {
@@ -130,6 +129,8 @@ class NewStoreController extends GetxController{
               .toList();
         }
 
+        log("Loaded ${newStores.length} stores");
+
         newStores = newStores
             .where((store) =>
         (store.livePhotos != null &&
@@ -152,15 +153,15 @@ class NewStoreController extends GetxController{
           allStoreHasMore = false;
         }
 
-        print("Loaded ${newStores.length} stores | Total: ${allStore.length}");
+        log("Total: ${allStore.length}");
       } else {
 
         getAllStoreResponse.value = ApiResponse.error('error');
 
-        print("API failed with status: ${response.statusCode}");
+        log("API failed with status: ${response.statusCode}");
       }
     } catch (e) {
-      print("Error: $e");
+      log("Error: $e");
       getAllStoreResponse.value = ApiResponse.error('error');
     }finally{
       if (isLoadMore) {
@@ -297,7 +298,7 @@ class NewStoreController extends GetxController{
               .map((e) => GetFoodDetailsModel.fromJson(e))
               .toList();
         } else {
-          print("Unexpected API response: $data");
+          log("Unexpected API response: $data");
         }
 
         if (newItems.isNotEmpty) {
@@ -313,7 +314,7 @@ class NewStoreController extends GetxController{
           foodDataHasMore = false;
         }
 
-        print("Loaded ${newItems.length} items | Total: ${foodDataList.length}");
+        log("Loaded ${newItems.length} items | Total: ${foodDataList.length}");
       } else {
         getAllFoodServiceResponse.value = ApiResponse.error('error');
       }
