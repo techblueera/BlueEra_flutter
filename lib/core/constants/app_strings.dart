@@ -1626,6 +1626,9 @@ class AppStrings {
   static const String found    = 'found';
   static const String product    = 'Product';
   static const String notFoundAnyFoodItem    = 'notFoundAnyFoodItem';
+  static const String typeAtLeastThreeCharForSearchProducts    = 'typeAtLeastThreeCharForSearchProducts';
+  static const String suggestedProducts    = 'suggestedProducts';
+  static const String cannotSelectMoreThanTenVariants    = 'cannotSelectMoreThanTenVariants';
 
   ///BHAVESH START
   static const ownerDetail = "owner_detail";

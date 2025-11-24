@@ -414,7 +414,7 @@ class ProductController extends GetxController{
       params[ApiKeys.images] = imageByPart;
 
       // call repo
-      final responseModel = await InventoryRepo().generateAiProductContent(params: params);
+      final responseModel = await InventoryRepo().generateAiProductContentRepo(params: params);
 
       if (responseModel.isSuccess) {
         generateAiProductContentResponse.value = ApiResponse.complete(responseModel);
@@ -692,22 +692,11 @@ class ProductController extends GetxController{
       if (responseModel.isSuccess) {
         addProductToInventoryResponse.value = ApiResponse.complete(responseModel);
         if(providerType == ProductServiceProviderType.business){
-          bool navigated = false;
-          Get.until((route) {
-            if (route.settings.name == RouteHelper.getInventoryScreenRoute()) {
-              navigated = true;
-            }
-            return navigated;
-          });
-
-          if (!navigated) {
-            Get.until((route) => Get.currentRoute == RouteHelper.getBottomNavigationBarScreenRoute());
-            Get.toNamed(RouteHelper.getInventoryScreenRoute());
-          }
+          navigateToInventorySectionAfterAddProduct();
         }else if(providerType == ProductServiceProviderType.user){
-          Get.until((route) => Get.currentRoute == RouteHelper.getEarnWithBlueEraNewScreenRoute());
+          navigateToEarnWithBlueEraSectionAfterAddProduct();
         }else if(providerType == ProductServiceProviderType.channel){
-          Get.until((route) => Get.currentRoute == RouteHelper.getChannelScreenRoute());
+          navigateToChannelSectionAfterAddProduct();
         }
 
       } else {
@@ -720,6 +709,29 @@ class ProductController extends GetxController{
     } finally {
       isAddProductToInventoryLoading.value = false;
     }
+  }
+
+  void navigateToInventorySectionAfterAddProduct() {
+    bool navigated = false;
+    Get.until((route) {
+      if (route.settings.name == RouteHelper.getInventoryScreenRoute()) {
+        navigated = true;
+      }
+      return navigated;
+    });
+
+    if (!navigated) {
+      Get.until((route) => Get.currentRoute == RouteHelper.getBottomNavigationBarScreenRoute());
+      Get.toNamed(RouteHelper.getInventoryScreenRoute());
+    }
+  }
+
+  void navigateToEarnWithBlueEraSectionAfterAddProduct(){
+    Get.until((route) => Get.currentRoute == RouteHelper.getEarnWithBlueEraNewScreenRoute());
+  }
+
+  void navigateToChannelSectionAfterAddProduct(){
+    Get.until((route) => Get.currentRoute == RouteHelper.getChannelScreenRoute());
   }
 
   RxMap<String, dynamic> selectedVariantValues = <String, dynamic>{}.obs;

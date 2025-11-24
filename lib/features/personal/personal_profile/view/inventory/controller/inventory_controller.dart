@@ -2,11 +2,14 @@ import 'dart:async';
 import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/core/services/location/location_service.dart';
+import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/categoryinventory_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/inventory_based_search_product_response.dart';
@@ -20,6 +23,7 @@ class InventoryController extends GetxController {
   Rx<ApiResponse> searchProductResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> cloneVariantProductResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> deleteProductVariantResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> suggestedProductResponse = ApiResponse.initial('Initial').obs;
 
   final TextEditingController searchController = TextEditingController();
   
@@ -65,6 +69,10 @@ class InventoryController extends GetxController {
   final variantSelection = <String, bool>{}.obs;
   final variantSellingPrice = <String, String>{}.obs;
 
+  final viewProfileController = Get.isRegistered<ViewBusinessDetailsController>()
+      ? Get.find<ViewBusinessDetailsController>()
+      : Get.put(ViewBusinessDetailsController());
+
   bool isVariantSelected(String id) => variantSelection[id] ?? false;
   String? getUpdatedPrice(String id) => variantSellingPrice[id];
   bool hasAnySelected() {
@@ -94,13 +102,47 @@ class InventoryController extends GetxController {
     refresh();
   }
 
+
+  int suggestedProductPage = 1;
+  RxBool isSuggestedProductFirstLoading = false.obs;
+  RxBool isSuggestedProductLoadingLoadingMore = false.obs;
+  bool suggestedProductHasMoreData = true;
+  RxList<VariantData> suggestedProductList = <VariantData>[].obs;
+
+  // final suggestedProductVariantSelection = <String, bool>{}.obs;
+  // final suggestedProductVariantSellingPrice = <String, String>{}.obs;
+
+  // bool isSuggestedProductVariantSelected(String id) => suggestedProductVariantSelection[id] ?? false;
+  // String? getSuggestedProductUpdatedPrice(String id) => suggestedProductVariantSellingPrice[id];
+  // bool hasAnySelectedSuggestedProduct() {
+  //   return suggestedProductVariantSelection.values.any((isSelected) => isSelected);
+  // }
+  //
+  // void toggleSuggestedProductVariant(String id) {
+  //   final currentlySelected = suggestedProductVariantSelection.entries
+  //       .where((e) => e.value == true)
+  //       .length;
+  //
+  //   final isSelected = suggestedProductVariantSelection[id] ?? false;
+  //
+  //   if (!isSelected && currentlySelected >= maxSelectionLimit) {
+  //     log("Cannot select more than 10 variants");
+  //     commonSnackBar(message: AppStrings.cannotSelectMoreThanTenVariants);
+  //     return;
+  //   }
+  //
+  //   suggestedProductVariantSelection[id] = !isSelected;
+  //   log('id-- $id  selected=${suggestedProductVariantSelection[id]}');
+  // }
+  //
+  // void updateSuggestedProductSellingPrice(String id, String value) {
+  //   suggestedProductVariantSellingPrice[id] = value;
+  //   refresh();
+  // }
+
   @override
   void onInit() {
     super.onInit();
-    // loadProducts();
-    loadCategories();
-    searchController.addListener(_filterData);
-    // Ensure search field doesn't auto-focus
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FocusScope.of(Get.context!).unfocus();
     });
@@ -158,7 +200,7 @@ class InventoryController extends GetxController {
         queryParams['DRAFT'] = isDraftProduct;
       }
 
-      final response = await InventoryRepo().fetchOwnDraftedAndPublicProductsApi(queryParams: queryParams);
+      final response = await InventoryRepo().fetchOwnDraftedAndPublicProductsRepo(queryParams: queryParams);
       if (response.isSuccess) {
         ownDraftAndPublicProductResponse.value = ApiResponse.complete(response);
         final getOwnProductModel = GetProductModel.fromJson(response.response!.data);
@@ -199,7 +241,10 @@ class InventoryController extends GetxController {
   void onSearchChanged(String query) {
     if (_searchDebounce?.isActive ?? false) _searchDebounce!.cancel();
 
-    _searchDebounce = Timer(const Duration(milliseconds: 300), () {
+    _searchDebounce = Timer(const Duration(milliseconds: 500), () {
+      variantSelection.clear();
+      variantSellingPrice.clear();
+      showErrorBanner.value = false;
       if (query.trim().isEmpty) {
         clearSearch();
       } else {
@@ -233,7 +278,7 @@ class InventoryController extends GetxController {
         ApiKeys.limit: limit,
       };
 
-      final responseModel = await InventoryRepo().fetchInventoryBasedSearchProductApi(queryParams: params);
+      final responseModel = await InventoryRepo().fetchInventoryBasedSearchProductRepo(queryParams: params);
 
       if (responseModel.isSuccess) {
         searchProductResponse.value = ApiResponse.complete(responseModel);
@@ -315,8 +360,7 @@ class InventoryController extends GetxController {
     return missingPriceIds;
   }
 
-  void fillMissingSellingPricesWithDefaults(
-      List<VariantData> allVariants, List<String> missingPriceIds) {
+  void fillMissingSellingPricesWithDefaults(List<VariantData> allVariants, List<String> missingPriceIds) {
     for (final variantId in missingPriceIds) {
       final variantData = allVariants.firstWhere(
             (v) => v.finalVariant.id == variantId,
@@ -326,18 +370,117 @@ class InventoryController extends GetxController {
      updateSellingPrice(variantId, variantData.finalVariant.sellingPrice.toString());
 
     }
+  }
 
-    // refresh();
+  /// Fetch suggested product of similar stores
+  Future<void> fetchListOfSuggestedProductApi({bool isLoadMore = false}) async {
 
+
+    try {
+
+      if(isSuggestedProductLoadingLoadingMore.isTrue) return;
+
+      if (!isLoadMore) {
+        suggestedProductPage = 1;
+        suggestedProductHasMoreData = true;
+        isSuggestedProductFirstLoading.value = true;
+        suggestedProductList.clear();
+      } else {
+        isSuggestedProductLoadingLoadingMore.value = true;
+        log('loading more -- $isLoadMore');
+      }
+
+
+      double businessLat = viewProfileController.businessProfileDetails?.data?.businessLocation?.lat ?? LocationService.lat;
+      double businessLng = viewProfileController.businessProfileDetails?.data?.businessLocation?.lon ?? LocationService.lng ;
+      String categoryId = viewProfileController.businessProfileDetails?.data?.categoryDetails?.id
+                           ?? viewProfileController.businessProfileDetails?.data?.subCategoryDetails?.id ?? '';
+
+      Map<String, dynamic> params = {
+        ApiKeys.lat: businessLat,
+        ApiKeys.lng: businessLng,
+        ApiKeys.radius: kmRadius1500,
+        ApiKeys.categoryId: categoryId,
+        ApiKeys.page: suggestedProductPage,
+        ApiKeys.limit: 20,
+      };
+
+      final responseModel = await InventoryRepo().fetchSuggestedProductRepo(queryParams: params);
+
+      if (responseModel.isSuccess) {
+        suggestedProductResponse.value = ApiResponse.complete(responseModel);
+
+        final inventoryBasedSearchProductResponse = InventoryBasedSearchProductResponse.fromJson(
+          responseModel.response?.data,
+        );
+
+        final List<VariantData> newProducts = List<VariantData>.from(inventoryBasedSearchProductResponse.data);
+
+        // Maintain a map for uniqueness
+        final Map<String, VariantData> uniqueById = {
+          for (var item in suggestedProductList)
+            item.finalVariant.id: item, // keep old data
+        };
+
+        if (!isLoadMore) {
+          // For first load → clear existing
+          uniqueById.clear();
+        }
+
+        for (final item in newProducts) {
+          final id = item.finalVariant.id;
+
+          if (!uniqueById.containsKey(id)) {
+            uniqueById[id] = item; // first occurrence only
+          }
+        }
+
+        suggestedProductList.assignAll(uniqueById.values.toList());
+
+        // if (!isLoadMore) {
+        //   suggestedProductList.assignAll(newProducts);
+        // } else {
+        //   suggestedProductList.addAll(newProducts);
+        // }
+
+        log('total length-- ${suggestedProductList.length}');
+
+        if (newProducts.length < limit) {
+          suggestedProductHasMoreData = false;
+        } else {
+          suggestedProductPage++;
+        }
+
+      } else {
+        suggestedProductResponse.value = ApiResponse.error('error');
+      }
+
+    } catch (e, s) {
+      print("stack trace: $s");
+      suggestedProductResponse.value = ApiResponse.error('error');
+    } finally{
+      if (isLoadMore) {
+        isSuggestedProductLoadingLoadingMore.value = false;
+      } else {
+        isSuggestedProductFirstLoading.value = false;
+      }
+    }
   }
 
   Future<void> cloneProductVariantApi(
       { required String ownerID,
-        required ProductServiceProviderType providerType}
+        required ProductServiceProviderType providerType,
+       required bool cloneProductVariantFromSearch
+      }
       ) async {
     cloneProductVariantLoading.value = true;
     try {
-      final clones = _buildSelectedVariantsPayload(searchProductVariantsList);
+      final clones;
+      if(cloneProductVariantFromSearch){
+        clones = _buildSelectedVariantsPayload(searchProductVariantsList);
+      }else{
+        clones = _buildSelectedVariantsPayload(suggestedProductList);
+      }
 
       if (clones.isEmpty) {
         print("No variants selected — skipping API call");
@@ -356,16 +499,12 @@ class InventoryController extends GetxController {
 
       print("Final Clone Payload: $body");
 
-      final responseModel = await InventoryRepo().cloneProductVariantApi(params: body);
+      final responseModel = await InventoryRepo().cloneProductVariantRepo(params: body);
 
       if (responseModel.isSuccess) {
         cloneVariantProductResponse.value = ApiResponse.complete(responseModel);
         if((providerType==ProductServiceProviderType.business)){
-          Get.until(
-                (route) =>
-            route.settings.name ==
-                RouteHelper.getInventoryScreenRoute(),
-          );
+          navigateToInventory();
         }else{
           Get.until(
                 (route) =>
@@ -387,6 +526,21 @@ class InventoryController extends GetxController {
     }
   }
 
+  bool navigateToInventory() {
+    bool reached = false;
+
+    Get.until((route) {
+      if (route.settings.name == RouteHelper.getInventoryScreenRoute()) {
+        log('reached');
+        reached = true;
+      }
+      return reached;
+    });
+
+    log('reached at -- $reached');
+    return reached;
+  }
+
     List<Map<String, dynamic>> _buildSelectedVariantsPayload(
         List<VariantData> allVariants) {
       final payload = <Map<String, dynamic>>[];
@@ -403,6 +557,17 @@ class InventoryController extends GetxController {
           final sellingPrice = double.tryParse(sellingPriceStr ?? '') ??
               variantData.finalVariant.sellingPrice;
 
+          print("----------------------------");
+          print("Selected Variant Debug Info");
+          print("Variant ID     : $variantId");
+          print("Product ID     : ${variantData.productInformation.id}");
+          print("Default Price  : ${variantData.finalVariant.sellingPrice}");
+          print("Updated Price  : $sellingPrice");
+          print("Product Name   : ${variantData.productInformation.name}");
+          print("Brand          : ${variantData.productInformation.brand}");
+          print("Media Count    : ${variantData.productInformation.media.length}");
+          print("----------------------------");
+
           payload.add({
             "product_id": variantData.productInformation.id,
             "variantId": variantId,
@@ -413,93 +578,6 @@ class InventoryController extends GetxController {
 
       return payload;
     }
-
-  void loadCategories() {
-    // Simulate API call for categories
-    Future.delayed(const Duration(seconds: 1), () {
-      categories.value = [
-        CategoryInventoryModel(
-          id: '1',
-          name: 'Electronics',
-          description: 'Yorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis.',
-          productCount: 15,
-          imageUrl: 'assets/images/shoes.png',
-          status: 'Active',
-          createdAt: DateTime.now().subtract(const Duration(days: 5)),
-        ),
-        CategoryInventoryModel(
-          id: '2',
-          name: 'Electronics',
-          description: 'Yorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis.',
-          productCount: 12,
-          imageUrl: 'assets/images/shoes.png',
-          status: 'Active', createdAt: DateTime.now().subtract(const Duration(days: 3)),
-        ),
-        CategoryInventoryModel(
-          id: '3',
-          name: 'Electronics',
-          description: 'Yorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis.',
-          productCount: 8,
-          imageUrl: 'assets/images/shoes.png',
-          status: 'Draft',
-          createdAt: DateTime.now().subtract(const Duration(days: 1)),
-        ),
-        CategoryInventoryModel(
-          id: '4',
-          name: 'Electronics',
-          description: 'Yorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis.',
-          productCount: 10,
-          imageUrl: 'assets/images/shoes.png',
-          status: 'Active',
-          createdAt: DateTime.now().subtract(const Duration(days: 7)),
-        ),
-        CategoryInventoryModel(
-          id: '5',
-          name: 'Electronics',
-          description: 'Yorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis.',
-          productCount: 18,
-          imageUrl: 'assets/images/shoes.png',
-          status: 'Active',
-          createdAt: DateTime.now().subtract(const Duration(days: 10)),
-        ),
-      ];
-      filteredCategories.value = categories;
-    });
-  }
-
-  void _filterData() {
-    final searchQuery = searchController.text.toLowerCase();
-    
-    if (searchQuery.isEmpty) {
-      // Show all items when no search query
-      filteredProducts.value = products;
-      filteredCategories.value = categories;
-    } else {
-      // Filter by search query only
-      filteredProducts.value = products.where((product) => 
-        product.name.toLowerCase().contains(searchQuery)
-      ).toList();
-      filteredCategories.value = categories.where((category) => 
-        category.name.toLowerCase().contains(searchQuery)
-      ).toList();
-    }
-  }
-
-  void changeFilter(String filter) {
-    selectedFilter.value = filter;
-    // Only apply status filter if no search query is active
-    if (searchController.text.isEmpty) {
-      if (filter == 'Draft') {
-        filteredProducts.value = products.where((product) => product.status == 'Draft').toList();
-        filteredCategories.value = categories.where((category) => category.status == 'Draft').toList();
-      } else {
-        // Show all items for other filters
-        filteredProducts.value = products;
-        filteredCategories.value = categories;
-      }
-    }
-    // If there's a search query, let _filterData handle it
-  }
 
   void dismissErrorBanner() {
     showErrorBanner.value = false;

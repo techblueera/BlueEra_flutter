@@ -27,7 +27,7 @@ class InventoryScreen extends StatefulWidget {
 }
 
 class _InventoryScreenState extends State<InventoryScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, RouteAware {
   final FocusNode _searchFocusNode = FocusNode();
   final TextEditingController searchController = TextEditingController();
   TabController? _tabController;
@@ -87,11 +87,27 @@ class _InventoryScreenState extends State<InventoryScreen>
     setState(() => _isLoading = false);
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route is PageRoute) {
+      RouteHelper.routeObserver.subscribe(this, route);
+    }
+  }
+
+
+  @override
+  void didPopNext() {
+    // Called when coming back to this screen
+    print("Returned to InventoryScreen from: ${Get.previousRoute}");
+  }
 
   @override
   void dispose() {
     // Get.delete<ProductController>();
     // Get.delete<InventoryController>();
+    RouteHelper.routeObserver.unsubscribe(this);
     _tabController?.dispose();
     _searchFocusNode.dispose();
     super.dispose();
@@ -142,23 +158,30 @@ class _InventoryScreenState extends State<InventoryScreen>
           ),
         ),
         floatingActionButton: Builder(builder: (context) {
-          return FloatingActionButton(
-            onPressed: () => showPopUpMenu(context, inventoryController),
-            backgroundColor: AppColors.primaryColor,
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
+          return Padding(
+            padding: EdgeInsets.only(
+                bottom: widget.fromBottomNavBar
+                    ? kBottomNavigationBarHeight + SizeConfig.size20
+                    : 0.0
             ),
-            child: AnimatedRotation(
-              turns: inventoryController.isMenuOpen.value ? 0.25 : 0,
-              duration: const Duration(milliseconds: 500),
-              curve: Curves.easeInOut,
-              child: Obx(() => Icon(
-                    inventoryController.isMenuOpen.value ? Icons.close : Icons.add,
-                    key: ValueKey(inventoryController.isMenuOpen.value),
-                    // important for AnimatedSwitcher
-                    size: SizeConfig.size36,
-                  )),
+            child: FloatingActionButton(
+              onPressed: () => showPopUpMenu(context, inventoryController),
+              backgroundColor: AppColors.primaryColor,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: AnimatedRotation(
+                turns: inventoryController.isMenuOpen.value ? 0.25 : 0,
+                duration: const Duration(milliseconds: 500),
+                curve: Curves.easeInOut,
+                child: Obx(() => Icon(
+                      inventoryController.isMenuOpen.value ? Icons.close : Icons.add,
+                      key: ValueKey(inventoryController.isMenuOpen.value),
+                      // important for AnimatedSwitcher
+                      size: SizeConfig.size36,
+                    )),
+              ),
             ),
           );
         }),
@@ -229,6 +252,21 @@ class _InventoryScreenState extends State<InventoryScreen>
             }
         );
         controller.callApi(forceRefresh: true);
+
+        // bool isApiCall = await Get.toNamed(
+        //   RouteHelper.getAddProductScreenRoute(),
+        //   arguments: {
+        //     ApiKeys.id: businessId,
+        //     ApiKeys.providerType: ProductServiceProviderType.business,
+        //   },
+        // );
+        //
+        // log('need api calling--> $isApiCall');
+        //
+        // if (isApiCall) {
+        //   controller.callApi(forceRefresh: true);
+        // }
+
       } else if (result == InventoryMenuItem.addService) {
         Get.toNamed(
             RouteHelper.getAddServicesScreenRoute(),

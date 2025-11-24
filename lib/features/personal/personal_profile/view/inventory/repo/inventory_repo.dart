@@ -4,10 +4,8 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 
 class InventoryRepo extends BaseService {
 
-
-
-  ///Add Product...
-  Future<ResponseModel> generateAiProductContent({required Map<String, dynamic> params}) async {
+  /// Generate Ai Product...
+  Future<ResponseModel> generateAiProductContentRepo({required Map<String, dynamic> params}) async {
     final response = await ApiBaseHelper().postHTTP(
       generateAiContent,
       params: params,
@@ -20,8 +18,7 @@ class InventoryRepo extends BaseService {
   }
 
   ///Get Own Products...
-  Future<ResponseModel> fetchOwnDraftedAndPublicProductsApi({required Map<String, dynamic> queryParams}) async {
-
+  Future<ResponseModel> fetchOwnDraftedAndPublicProductsRepo({required Map<String, dynamic> queryParams}) async {
     final response = await ApiBaseHelper().getHTTP(
       getOwnDraftedAndPublicProducts,
       params: queryParams,
@@ -33,7 +30,7 @@ class InventoryRepo extends BaseService {
   }
 
   ///Fetch InventoryBasedSearchProduct...
-  Future<ResponseModel> fetchInventoryBasedSearchProductApi({required Map<String, dynamic> queryParams}) async {
+  Future<ResponseModel> fetchInventoryBasedSearchProductRepo({required Map<String, dynamic> queryParams}) async {
     final response = await ApiBaseHelper().getHTTP(
       getInventoryBasedSearchProduct,
       params: queryParams,
@@ -45,7 +42,7 @@ class InventoryRepo extends BaseService {
   }
 
   ///Clone Product Variant...
-  Future<ResponseModel> cloneProductVariantApi({required Map<String, dynamic> params}) async {
+  Future<ResponseModel> cloneProductVariantRepo({required Map<String, dynamic> params}) async {
     final response = await ApiBaseHelper().postHTTP(
       cloneProductInventory,
       params: params,
@@ -56,5 +53,16 @@ class InventoryRepo extends BaseService {
     return response;
   }
 
+  ///Fetch Suggested Products...
+  Future<ResponseModel> fetchSuggestedProductRepo({required Map<String, dynamic> queryParams}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      storesByCategory,
+      params: queryParams,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 
 }

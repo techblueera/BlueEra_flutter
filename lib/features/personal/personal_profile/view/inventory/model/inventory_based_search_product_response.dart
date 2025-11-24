@@ -53,8 +53,8 @@ class FinalVariant {
   double sellingPrice;
   double mrp;
   bool varientIsActive;
-  // DateTime createdAt;
-  // DateTime updatedAt;
+  String createdAt;
+  String updatedAt;
   Map<String, dynamic> attributes;
 
   FinalVariant({
@@ -72,8 +72,8 @@ class FinalVariant {
     required this.sellingPrice,
     required this.mrp,
     required this.varientIsActive,
-    // required this.createdAt,
-    // required this.updatedAt,
+    required this.createdAt,
+    required this.updatedAt,
     required this.attributes,
   });
 
@@ -93,8 +93,8 @@ class FinalVariant {
       sellingPrice: (json['sellingPrice'] ?? 0).toDouble(),
       mrp: (json['mrp'] ?? 0).toDouble(),
       varientIsActive: json['varientIsActive'] ?? true,
-      // createdAt: DateTime.parse(json['createdAt']),
-      // updatedAt: DateTime.parse(json['updatedAt']),
+      createdAt: json['createdAt'],
+      updatedAt: json['updatedAt'],
       attributes: Map<String, dynamic>.from(json['attributes'] ?? {}),
     );
   }
@@ -157,8 +157,8 @@ class ProductInformation {
   List<ProductVariant> variants;
   String approvalStatus;
   OptionsWrapper? options;
-  DateTime createdAt;
-  DateTime updatedAt;
+  String? createdAt;
+  String? updatedAt;
   bool addedByAdmin;
 
   ProductInformation({
@@ -218,8 +218,8 @@ class ProductInformation {
           [],
       approvalStatus: json['approval_status'] ?? '',
       options: json['options'] != null ? OptionsWrapper.fromJson(json['options']) : null,
-      createdAt: DateTime.parse(json['createdAt']),
-      updatedAt: DateTime.parse(json['updatedAt']),
+      createdAt: json['createdAt'] ?? '',
+      updatedAt: json['updatedAt'] ?? '',
       addedByAdmin: json['addedByAdmin'] ?? false,
     );
   }
@@ -280,8 +280,8 @@ class ProductVariant {
   List<String> mediaRelatedToVarient;
   bool varientIsActive;
   String id;
-  DateTime createdAt;
-  DateTime updatedAt;
+  String createdAt;
+  String updatedAt;
 
   ProductVariant({
     required this.attributes,
@@ -300,8 +300,8 @@ class ProductVariant {
       mediaRelatedToVarient: List<String>.from(json['media_related_to_varient'] ?? []),
       varientIsActive: json['varientIsActive'] ?? true,
       id: json['_id'] ?? '',
-      createdAt: DateTime.parse(json['createdAt']),
-      updatedAt: DateTime.parse(json['updatedAt']),
+      createdAt: json['createdAt'],
+      updatedAt: json['updatedAt'],
     );
   }
 }

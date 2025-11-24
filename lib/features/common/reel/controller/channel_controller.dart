@@ -311,7 +311,7 @@ class ChannelController extends GetxController{
       };
 
 
-      final response = await InventoryRepo().fetchOwnDraftedAndPublicProductsApi(queryParams: queryParams);
+      final response = await InventoryRepo().fetchOwnDraftedAndPublicProductsRepo(queryParams: queryParams);
       if (response.isSuccess) {
         ownChannelProductsResponse.value = ApiResponse.complete(response);
         final getProductModel =
