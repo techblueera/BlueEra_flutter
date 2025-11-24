@@ -205,7 +205,7 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
 
           if (!navigated) {
             Get.until((route) => Get.currentRoute == RouteHelper.getBottomNavigationBarScreenRoute());
-            Get.toNamed(RouteHelper.getInventoryScreenRoute());
+            // Get.toNamed(RouteHelper.getInventoryScreenRoute());
           }
         }else if(widget.providerType == ProductServiceProviderType.user){
           Get.until((route) => Get.currentRoute == RouteHelper.getEarnWithBlueEraNewScreenRoute());
