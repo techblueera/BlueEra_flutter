@@ -63,7 +63,7 @@ class EarnWithBlueEraController extends GetxController{
       };
 
 
-      final response = await InventoryRepo().fetchOwnDraftedAndPublicProductsApi(queryParams: queryParams);
+      final response = await InventoryRepo().fetchOwnDraftedAndPublicProductsRepo(queryParams: queryParams);
       if (response.isSuccess) {
         ownProductsResponse.value = ApiResponse.complete(response);
         final getProductModel =

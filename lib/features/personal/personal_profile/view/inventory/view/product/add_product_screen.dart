@@ -1,4 +1,5 @@
-import 'dart:math';
+import 'dart:developer';
+import 'dart:math' hide log;
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -39,6 +40,13 @@ class _AddProductScreenState extends State<AddProductScreen> {
   final controller = Get.put(InventoryController());
 
   @override
+  void initState() {
+    controller.fetchListOfSuggestedProductApi();
+    super.initState();
+  }
+
+
+  @override
   void dispose() {
     Get.delete<InventoryController>();
     super.dispose();
@@ -51,53 +59,73 @@ class _AddProductScreenState extends State<AddProductScreen> {
           backgroundColor: AppColors.appBackgroundColor,
           appBar: CommonBackAppBar(
               title: AppStrings.addProduct,
-              buildCustomWidget: (controller.searchProduct.isNotEmpty) ?
-              ()=> GestureDetector(
-                onTap: () =>
-                    Get.toNamed(
-                        RouteHelper.getAddProductViaAiStep1Route(),
-                        arguments: {
-                          ApiKeys.id: widget.id,
-                          ApiKeys.providerType: widget.providerType
-                        }
-                    ),
-                child: Container(
-                  height: SizeConfig.size30,
-                  margin: EdgeInsets.only(right: SizeConfig.size20),
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AppColors.primaryColor)),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.add,
-                        color: AppColors.primaryColor,
-                        size: 16,
-                      ),
-                      const SizedBox(width: 4),
-                      CustomText(
-                        AppStrings.createOwn,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.primaryColor,
-                      ),
-                    ],
-                  ),
+              buildCustomWidget: ()=> (controller.searchProduct.isNotEmpty) ?
+               controller.searchProductVariantsList.isEmpty
+                  ? createOwnProductWidget() : Padding(
+                padding: EdgeInsets.only(right: SizeConfig.size20),
+                child: CustomBtn(
+                    onTap: controller.hasAnySelected()
+                        ? () => handleCloneProductVariant(context: context, cloneProductVariantFromSearch: true)
+                        : null,
+                    title: controller.cloneProductVariantLoading.value
+                        ? null // hide text
+                        : AppStrings.publish,
+                    height: SizeConfig.size30,
+                    width: SizeConfig.size80,
+                    bgColor: controller.hasAnySelected()
+                        ? AppColors.primaryColor
+                        : Colors.grey,
+                    borderColor: controller.hasAnySelected()
+                        ? AppColors.primaryColor
+                        : Colors.grey,
+                    radius: 10.0,
+                    isLoading: controller.cloneProductVariantLoading.value
                 ),
-              ) : null,
+              )
+                  : controller.suggestedProductList.isEmpty ?
+              createOwnProductWidget() : Padding(
+                padding: EdgeInsets.only(right: SizeConfig.size20),
+                child: CustomBtn(
+                    onTap: controller.hasAnySelected()
+                        ? () => handleCloneProductVariant(context: context, cloneProductVariantFromSearch: false)
+                        : null,
+                    title: controller.cloneProductVariantLoading.value
+                        ? null // hide text
+                        : AppStrings.publish,
+                    height: SizeConfig.size30,
+                    width: SizeConfig.size80,
+                    bgColor: controller.hasAnySelected()
+                        ? AppColors.primaryColor
+                        : Colors.grey,
+                    borderColor: controller.hasAnySelected()
+                        ? AppColors.primaryColor
+                        : Colors.grey,
+                    radius: 10.0,
+                    isLoading: controller.cloneProductVariantLoading.value
+                ),
+              ),
+            onBackTap: ()=> Get.back(result: false),
           ),
-          resizeToAvoidBottomInset: true,
           body: SafeArea(
             child: NotificationListener<ScrollNotification>(
               onNotification: (ScrollNotification scrollInfo) {
                 if (scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent) {
-                  if (controller.hasMoreData && !controller.isLoadingMore) {
-                    controller.fetchListOfSearchProductApi(
-                        controller.searchProduct.value,
-                        isLoadMore: true
-                    );
+                  if(controller.searchProduct.isNotEmpty){
+                    /// Pagination for fetching search products
+                    if (controller.hasMoreData && !controller.isLoadingMore) {
+                      controller.fetchListOfSearchProductApi(
+                          controller.searchProduct.value,
+                          isLoadMore: true
+                      );
+                    }
+                  }else{
+                    /// Pagination for fetching suggested products
+                    if (controller.suggestedProductHasMoreData && !controller.isSuggestedProductLoadingLoadingMore.value) {
+                      log('caaled pagination');
+                      controller.fetchListOfSuggestedProductApi(
+                          isLoadMore: true
+                      );
+                    }
                   }
                 }
                 return false;
@@ -154,8 +182,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
                       ),
                     )
                         : const SizedBox.shrink(),
-              
-                    // Form Content
+
+                    /// Search product variant and add product
                     CustomFormCard(
                       padding: EdgeInsets.all(SizeConfig.size16),
                       borderRadius: BorderRadius.circular(10.0),
@@ -169,7 +197,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                 AppStrings.enterProductName,
                                 fontSize: SizeConfig.large,
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.black,
+                                color: AppColors.mainTextColor,
                               ),
                               SizedBox(height: SizeConfig.size8),
                               CustomText(
@@ -182,7 +210,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                   textEditController: controller.searchController,
                                   onChange: (value) =>
                                       controller.onSearchChanged(value),
-                                  hintText:  AppStrings.hintProductName,
+                                  hintText:  AppStrings.typeAtLeastThreeCharForSearchProducts ,
                                   showClearIcon: controller.searchProduct
                                       .isNotEmpty,
                                   onClearTap: () {
@@ -193,15 +221,15 @@ class _AddProductScreenState extends State<AddProductScreen> {
                               ),
                             ],
                           ),
-              
+
                           if(controller.searchProduct.isNotEmpty)
-                            ...[
+                          ...[
                               controller.ProductSearchLoading.isTrue ?
                               Padding(
                                 padding: const EdgeInsets.all(30.0),
                                 child: CircularProgressIndicator(),
                               )
-                                : Column(
+                              : Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   // Products Variants
@@ -210,8 +238,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                       : Padding(
                                     padding: EdgeInsets.only(top: SizeConfig.size20),
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment
-                                          .start,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         CustomText(
                                           AppStrings.productVariants,
@@ -228,8 +255,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                           shrinkWrap: true,
                                           itemBuilder: (context, index) {
                                             final productVariants =
-                                            controller
-                                                .searchProductVariantsList[index];
+                                            controller.searchProductVariantsList[index];
                                             return _buildProductVariantItem(
                                                 controller,
                                                 productVariants
@@ -244,66 +270,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                         ),
                                         CustomBtn(
                                             onTap: controller.hasAnySelected()
-                                                ? () async {
-                                              final missingPriceIds = controller.validateSelectedVariants(
-                                                controller.searchProductVariantsList,
-                                              );
-
-                                              if (missingPriceIds.isNotEmpty) {
-                                                // Ask confirmation
-                                                final proceed = await showDialog<bool>(
-                                                  context: Get.context!,
-                                                  barrierDismissible: false,
-                                                  builder: (context) {
-                                                    return AlertDialog(
-                                                      shape: RoundedRectangleBorder(
-                                                        borderRadius: BorderRadius.circular(12),
-                                                      ),
-                                                      title: const CustomText(
-                                                        AppStrings.useListedPrices,
-                                                        fontWeight: FontWeight.bold
-                                                      ),
-                                                      content: const CustomText(
-                                                        AppStrings.useListedPricesMsg,
-                                                      ),
-                                                      actions: [
-                                                        TextButton(
-                                                          onPressed: () => Navigator.of(context).pop(false),
-                                                          child: const CustomText(AppStrings.cancel),
-                                                        ),
-                                                        ElevatedButton(
-                                                          style: ElevatedButton.styleFrom(
-                                                            backgroundColor: AppColors.primaryColor,
-                                                            shape: RoundedRectangleBorder(
-                                                              borderRadius: BorderRadius.circular(8),
-                                                            ),
-                                                          ),
-                                                          onPressed: () => Navigator.of(context).pop(true),
-                                                          child: const CustomText(
-                                                              AppStrings.continueText,
-                                                              color: AppColors.white
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    );
-                                                  },
-                                                );
-
-                                                if (proceed != true) return;
-
-                                                // Fill missing prices with default (listed) ones
-                                                controller.fillMissingSellingPricesWithDefaults(
-                                                  controller.searchProductVariantsList,
-                                                  missingPriceIds,
-                                                );
-                                              }
-
-                                              // Now all variants have prices, safe to proceed
-                                              controller.cloneProductVariantApi(
-                                                  ownerID: widget.id,
-                                                  providerType: widget.providerType
-                                              );
-                                            }
+                                                ? () => handleCloneProductVariant(context: context, cloneProductVariantFromSearch: true)
                                                 : null,
                                           title: controller.cloneProductVariantLoading.value
                                               ? null // hide text
@@ -316,12 +283,12 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                               ? AppColors.primaryColor
                                               : Colors.grey,
                                           radius: 10.0,
-                                            isLoading: controller.cloneProductVariantLoading.value
+                                          isLoading: controller.cloneProductVariantLoading.value
                                         )
                                       ],
                                     ),
                                   ),
-              
+
                                   // Products
                                   // controller.searchProductsList.isEmpty
                                   //     ? Padding(
@@ -384,6 +351,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                   //   ),
                                   // ),
 
+                                  /// manual add product tab
                                   controller.searchProductsList.isEmpty
                                       ? Padding(
                                     padding: EdgeInsets.only(
@@ -529,13 +497,103 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
                                 ],
                               )
-
                             ]
 
                         ],
                       ),
                     ),
 
+                    /// show suggested product list based on category
+                    if(controller.searchProduct.isEmpty)
+                    CustomFormCard(
+                        padding: EdgeInsets.all(SizeConfig.size15),
+                        margin: EdgeInsets.only(top: SizeConfig.size15),
+                        borderRadius: BorderRadius.circular(10.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            CustomText(
+                              AppStrings.suggestedProducts,
+                              fontSize: SizeConfig.large,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.mainTextColor,
+                            ),
+
+                            controller.isSuggestedProductFirstLoading.isTrue ?
+                            Padding(
+                              padding: const EdgeInsets.all(30.0),
+                              child: Align(
+                                  alignment: Alignment.center,
+                                  child: CircularProgressIndicator()
+                              ),
+                            ) : controller.suggestedProductList.isEmpty
+                                ? SizedBox.shrink()
+                                : Padding(
+                              padding: EdgeInsets.only(top: SizeConfig.size20),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  ListView.separated(
+                                    itemCount: controller
+                                        .suggestedProductList.length,
+                                    padding: EdgeInsets.only(
+                                        bottom: SizeConfig.size10),
+                                    physics: NeverScrollableScrollPhysics(),
+                                    shrinkWrap: true,
+                                    itemBuilder: (context, index) {
+                                      final productVariants =
+                                      controller.suggestedProductList[index];
+                                      return _buildProductVariantItem(
+                                          controller,
+                                          productVariants
+                                      );
+                                    },
+                                    separatorBuilder: (BuildContext context,
+                                        int index) {
+                                      return CommonHorizontalDivider(
+                                        color: AppColors.whiteE5,
+                                      );
+                                    },
+                                  ),
+
+                                  controller.isSuggestedProductLoadingLoadingMore.isTrue
+                                      ? Padding(
+                                    padding: const EdgeInsets.all(16.0),
+                                    child: Center(
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor: AlwaysStoppedAnimation<Color>(
+                                          AppColors.primaryColor,
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                      : SizedBox.shrink(),
+
+                                  CustomBtn(
+                                      onTap: controller.hasAnySelected()
+                                          ? () => handleCloneProductVariant(context: context, cloneProductVariantFromSearch: false)
+                                          : null,
+                                      title: controller.cloneProductVariantLoading.value
+                                          ? null // hide text
+                                          : AppStrings.publish,
+                                      height: SizeConfig.size35,
+                                      bgColor: controller.hasAnySelected()
+                                          ? AppColors.primaryColor
+                                          : Colors.grey,
+                                      borderColor: controller.hasAnySelected()
+                                          ? AppColors.primaryColor
+                                          : Colors.grey,
+                                      radius: 10.0,
+                                      isLoading: controller.cloneProductVariantLoading.value
+                                  )
+                                ],
+                              ),
+                            ),
+
+                          ],
+                        )
+                    )
                   ],
                 ),
               ),
@@ -544,8 +602,46 @@ class _AddProductScreenState extends State<AddProductScreen> {
         ));
   }
 
+  Widget createOwnProductWidget(){
+    return GestureDetector(
+      onTap: () =>
+          Get.toNamed(
+              RouteHelper.getAddProductViaAiStep1Route(),
+              arguments: {
+                ApiKeys.id: widget.id,
+                ApiKeys.providerType: widget.providerType
+              }
+          ),
+      child: Container(
+        height: SizeConfig.size30,
+        margin: EdgeInsets.only(right: SizeConfig.size20),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: AppColors.primaryColor)),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.add,
+              color: AppColors.primaryColor,
+              size: 16,
+            ),
+            const SizedBox(width: 4),
+            CustomText(
+              AppStrings.createOwn,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: AppColors.primaryColor,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildProductVariantItem(InventoryController controller,
-      VariantData productVariants,) {
+      VariantData productVariants) {
     return Obx(() {
       final isSelected = controller.isVariantSelected(
           productVariants.finalVariant.id);
@@ -796,7 +892,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
         }
       }
     }
-
 
     return Container(
       margin: EdgeInsets.symmetric(vertical: SizeConfig.size16),
@@ -1075,6 +1170,87 @@ class _AddProductScreenState extends State<AddProductScreen> {
     dynamicAttributes: dynamicAttributes,
     );
   }
+
+
+  Future<void> handleCloneProductVariant({
+    required BuildContext context,
+    required bool cloneProductVariantFromSearch
+  }) async {
+    if (!controller.hasAnySelected()) return;
+
+    final missingPriceIds;
+    if(cloneProductVariantFromSearch){
+      missingPriceIds = controller.validateSelectedVariants(controller.searchProductVariantsList);
+    }else{
+      missingPriceIds = controller.validateSelectedVariants(controller.suggestedProductList);
+
+    }
+
+    if (missingPriceIds.isNotEmpty) {
+      // Ask for confirmation
+      final proceed = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            title: const CustomText(
+              AppStrings.useListedPrices,
+              fontWeight: FontWeight.bold,
+            ),
+            content: const CustomText(
+              AppStrings.useListedPricesMsg,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const CustomText(AppStrings.cancel),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryColor,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const CustomText(
+                  AppStrings.continueText,
+                  color: AppColors.white,
+                ),
+              ),
+            ],
+          );
+        },
+      );
+
+      if (proceed != true) return;
+
+      // Fill missing selling prices with defaults
+      if(cloneProductVariantFromSearch){
+        controller.fillMissingSellingPricesWithDefaults(
+          controller.searchProductVariantsList,
+          missingPriceIds,
+        );
+      }else{
+        controller.fillMissingSellingPricesWithDefaults(
+          controller.suggestedProductList,
+          missingPriceIds,
+        );
+      }
+
+    }
+
+    // Safe to call API - all prices verified
+    controller.cloneProductVariantApi(
+      ownerID: widget.id,
+      providerType: widget.providerType,
+      cloneProductVariantFromSearch: cloneProductVariantFromSearch
+    );
+  }
+
 
 
 }

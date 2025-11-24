@@ -519,5 +519,6 @@ abstract class BaseService {
   final String checkAnyEarnServiceCreated = 'earn-service/services/any/check';
   final String requestMobileUpdateOtp = 'user-service/user/request-mobile-update-otp';
   final String verifyMobileUpdateOtp = 'user-service/user/verify-mobile-update-otp';
+  final String storesByCategory = 'map-service/api/stores/inventory/category';
 
 }
