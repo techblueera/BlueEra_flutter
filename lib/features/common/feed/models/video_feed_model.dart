@@ -179,6 +179,7 @@ class ShortFeedItem {
       interactions: interactions ?? this.interactions,
       metadata: metadata ?? this.metadata,
       likesCount: likesCount ?? this.likesCount,
+      commentsCount: commentsCount ?? this.commentsCount,
     );
   }
 }

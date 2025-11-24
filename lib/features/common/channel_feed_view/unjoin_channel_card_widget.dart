@@ -86,9 +86,6 @@ class UnjoinChannelCardWidget extends StatelessWidget {
                           ),
                           const SizedBox(width: 20),
 
-                          statBlock(
-                              AppStrings.post, channelModel.posts.toString()),
-                          const SizedBox(width: 20),
 
                           //  _divider(),
                           InkWell(

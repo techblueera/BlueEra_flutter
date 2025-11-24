@@ -14,7 +14,8 @@ class HomeFeedRepo extends BaseService {
     );
     return response;
   }
-///REPOST MESSAGE/POLL POST.....
+
+  ///REPOST MESSAGE/POLL POST.....
   Future<ResponseModel> postRepostRepo({required String postID}) async {
     final response = await ApiBaseHelper().postHTTP(
       postRepost,
@@ -26,10 +27,12 @@ class HomeFeedRepo extends BaseService {
     return response;
   }
 
-
-  Future<ResponseModel> userFeedServiceVideoRepo({required int pageNo}) async {
+  Future<ResponseModel> userFeedServiceVideoRepo(
+      {required int pageNo, required String feedID}) async {
     final response = await ApiBaseHelper().getHTTP(
-      "${userFeedServiceVideo}page=$pageNo&limit=20",
+      feedID.isNotEmpty
+          ? "${userFeedServiceVideo}page=$pageNo&limit=20&id=$feedID"
+          : "${userFeedServiceVideo}page=$pageNo&limit=20",
       showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},

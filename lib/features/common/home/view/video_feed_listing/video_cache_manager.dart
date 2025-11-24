@@ -2,79 +2,115 @@
 import 'package:video_player/video_player.dart';
 import 'package:flutter/material.dart';
 
-// class VideoCacheManager {
-//   static final VideoCacheManager _instance = VideoCacheManager._internal();
-//   factory VideoCacheManager() => _instance;
-//   VideoCacheManager._internal();
-//
-//   final Map<String, _CachedController> _cache = {};
-//
-//   Future<VideoPlayerController> getController(String url) async {
-//     if (_cache.containsKey(url)) {
-//       _cache[url]!.refCount++;
-//       return _cache[url]!.controller;
-//     }
-//
-//     final controller = VideoPlayerController.networkUrl(Uri.parse(url));
-//     await controller.initialize();
-//     controller.setLooping(true);
-//     _cache[url] = _CachedController(controller);
-//     return controller;
-//   }
-//
-//   void releaseController(String url) {
-//     final cached = _cache[url];
-//     if (cached == null) return;
-//     cached.refCount--;
-//     if (cached.refCount <= 0) {
-//       cached.controller.dispose();
-//       _cache.remove(url);
-//     }
-//   }
-// }
-//
-// class _CachedController {
-//   final VideoPlayerController controller;
-//   int refCount;
-//   _CachedController(this.controller) : refCount = 1;
-// }
-
-/*
+import 'package:flutter/foundation.dart';
+import 'package:video_player/video_player.dart';
 
 class VideoCacheManager {
   static final VideoCacheManager _instance = VideoCacheManager._internal();
   factory VideoCacheManager() => _instance;
   VideoCacheManager._internal();
 
-  final Map<String, VideoPlayerController> _cache = {};
+  final Map<String, VideoPlayerController> _controllers = {};
+  final Map<String, int> _refCounts = {};
+  final Map<String, Future<VideoPlayerController>?> _initializing = {};
 
+  /// Get cached or new controller
   Future<VideoPlayerController> getController(String url) async {
-    if (_cache.containsKey(url)) {
-      return _cache[url]!;
+    // Increase reference count
+    _refCounts[url] = (_refCounts[url] ?? 0) + 1;
+
+    // Already created?
+    if (_controllers.containsKey(url)) {
+      final controller = _controllers[url]!;
+
+      // Ensure healthy
+      if (!controller.value.isInitialized || controller.value.hasError) {
+        debugPrint("🔁 Reinitializing broken controller: $url");
+        await _reinitialize(url);
+      }
+
+      return controller;
     }
 
-    final controller = VideoPlayerController.networkUrl(Uri.parse(url));
-    await controller.initialize();
-    controller.setLooping(true);
-    _cache[url] = controller;
-    return controller;
+    return _initialize(url);
   }
 
-  void disposeController(String url) {
-    _cache[url]?.dispose();
-    _cache.remove(url);
+  Future<VideoPlayerController> _initialize(String url) async {
+    if (_initializing[url] != null) {
+      return _initializing[url]!;
+    }
+
+    final future = Future(() async {
+      debugPrint("🎬 Initializing new controller: $url");
+
+      final controller = VideoPlayerController.networkUrl(
+        Uri.parse(url),
+        videoPlayerOptions:  VideoPlayerOptions(
+          allowBackgroundPlayback: true,
+          mixWithOthers: true,
+        ),
+      );
+
+      try {
+        await controller.initialize();
+      } catch (e) {
+        debugPrint("❌ Initialization failed for $url → $e");
+        controller.dispose();
+        _initializing[url] = null;
+        rethrow;
+      }
+
+      controller.setLooping(true);
+      _controllers[url] = controller;
+      _initializing[url] = null;
+
+      return controller;
+    });
+
+    _initializing[url] = future;
+    return future;
   }
 
+  Future<void> _reinitialize(String url) async {
+    if (!_controllers.containsKey(url)) return;
+
+    final old = _controllers[url];
+    old?.dispose();
+    _controllers.remove(url);
+
+    await _initialize(url);
+  }
+
+  /// Release controller only when no active references
+  void releaseController(String url) {
+    if (!_refCounts.containsKey(url)) return;
+
+    _refCounts[url] = (_refCounts[url]! - 1).clamp(0, 9999);
+
+    if (_refCounts[url] == 0) {
+      debugPrint("🗑 Disposing unused controller: $url");
+      _controllers[url]?.dispose();
+      _controllers.remove(url);
+      _refCounts.remove(url);
+    }
+  }
+
+  /// Cleanup whole cache (e.g., when exiting page)
   void disposeAll() {
-    for (final c in _cache.values) {
-      c.dispose();
+    debugPrint("🧹 Disposing ALL video controllers");
+
+    for (var controller in _controllers.values) {
+      controller.dispose();
     }
-    _cache.clear();
+
+    _controllers.clear();
+    _refCounts.clear();
+    _initializing.clear();
   }
 }
-*/
 
 
+/*
 class VideoCacheManager {
   static final VideoCacheManager _instance = VideoCacheManager._internal();
   factory VideoCacheManager() => _instance;
@@ -146,4 +182,4 @@ class VideoCacheManager {
     _controllers.clear();
     _refCounts.clear();
   }
-}
+}*/

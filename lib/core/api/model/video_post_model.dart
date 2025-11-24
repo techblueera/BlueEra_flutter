@@ -13,11 +13,11 @@ class VideoPost {
   final String account_type;
   final String type;
   final int views_count;
-  final int comments_count;
-  final int likes_count;
+   int comments_count;
+   int likes_count;
   final int repost_count;
   final String createdAt;
-  final bool isLiked;
+   bool isLiked;
 
   VideoPost({
     required this.id,

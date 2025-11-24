@@ -249,6 +249,7 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                         params: params);
                                   });
                             },
+
                           ),
                         ),
                       ],
@@ -407,13 +408,15 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                                     color: Colors.black,
                                                     child: CachedNetworkImage(
                                                       imageUrl: ((_post
-                                                                      .children_post?.media_types
+                                                                      .children_post
+                                                                      ?.media_types
                                                                       ?.firstOrNull
                                                                       ?.startsWith(
                                                                           "video/") ??
                                                                   false) ||
-                                                              isVideoUrl(_post.
-                                                                  children_post?.media
+                                                              isVideoUrl(_post
+                                                                  .children_post
+                                                                  ?.media
                                                                   ?.firstOrNull))
                                                           ? widget
                                                                   .post

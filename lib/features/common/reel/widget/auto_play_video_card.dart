@@ -240,7 +240,7 @@ class _PostFeedAutoPlayVideoCardState extends State<PostFeedAutoPlayVideoCard>
 
           // Option A (recommended): Reuse shared controller in fullscreen.
           // Pass an identifier and let fullscreen UI use the same manager/controller.
-          await Get.to(() => VideoFeedScreenNew(
+          await Get.to(() => VideoFeedScreen(
                 videoData: VideoPost(
                   id: '${widget.videoItem.video?.id}',
                   title: '${widget.videoItem.video?.title}',
