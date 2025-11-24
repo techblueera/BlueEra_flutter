@@ -692,7 +692,18 @@ class ProductController extends GetxController{
       if (responseModel.isSuccess) {
         addProductToInventoryResponse.value = ApiResponse.complete(responseModel);
         if(providerType == ProductServiceProviderType.business){
-          navigateToInventorySectionAfterAddProduct();
+          bool navigated = false;
+          Get.until((route) {
+            if (route.settings.name == RouteHelper.getInventoryScreenRoute()) {
+              navigated = true;
+            }
+            return navigated;
+          });
+
+          if (!navigated) {
+            Get.until((route) => Get.currentRoute == RouteHelper.getBottomNavigationBarScreenRoute());
+            Get.toNamed(RouteHelper.getInventoryScreenRoute());
+          }
         }else if(providerType == ProductServiceProviderType.user){
           navigateToEarnWithBlueEraSectionAfterAddProduct();
         }else if(providerType == ProductServiceProviderType.channel){
