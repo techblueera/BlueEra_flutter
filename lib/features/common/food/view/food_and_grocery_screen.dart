@@ -301,43 +301,47 @@ class FoodItemCard extends StatelessWidget {
                   SizedBox(height: SizeConfig.size5),
 
                   // Veg label + category
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: controller.getFoodTypeColor(foodData.vegType),
-                          borderRadius: BorderRadius.circular(6),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: controller.getFoodTypeColor(foodData.vegType),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: CustomText(
+                            foodData.vegType ?? "",
+                            color: Colors.white,
+                            fontSize: SizeConfig.small,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                        child: CustomText(
-                          foodData.vegType ?? "",
-                          color: Colors.white,
-                          fontSize: SizeConfig.small,
-                          fontWeight: FontWeight.w600,
+                        const SizedBox(width: 8),
+                        CustomText(
+                          foodData.category ?? "",
+                          color: Colors.grey.shade600,
+                          fontSize:  SizeConfig.small,
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      CustomText(
-                        foodData.category ?? "",
-                        color: Colors.grey.shade600,
-                        fontSize:  SizeConfig.small,
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
 
                   SizedBox(height: SizeConfig.size5),
 
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CustomText(
-                        "Energy : ",
-                        fontSize: SizeConfig.small,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.secondaryTextColor,
-                      ),
-                      Expanded(
-                        child: CustomText(
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CustomText(
+                          "Energy : ",
+                          fontSize: SizeConfig.small,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.secondaryTextColor,
+                        ),
+                        CustomText(
                           "${foodData.nutritionalSummaryPer100g?.caloriesKcal ?? "N/A"} Cal/100gm",
                           fontSize: SizeConfig.small,
                           fontWeight: FontWeight.w500,
@@ -345,8 +349,8 @@ class FoodItemCard extends StatelessWidget {
                           maxLines: 2,
                           color: AppColors.secondaryTextColor,
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                   SizedBox(height: SizeConfig.size5),
 

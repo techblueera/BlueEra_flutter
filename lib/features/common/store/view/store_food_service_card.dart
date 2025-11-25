@@ -87,37 +87,37 @@ class StoreFoodServiceCard extends StatelessWidget {
                   SizedBox(height: SizeConfig.size5),
 
                  // Veg label + category
-                  Row(
-                    children: [
-                      (foodDetailsData?.vegType == null)
-                          ? SizedBox()
-                          : Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: controller.getFoodTypeColor(foodDetailsData?.vegType),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: CustomText(
-                            "${foodDetailsData?.vegType ?? AppStrings.veg}",
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600),
-                      ),
-                      (foodDetailsData?.vegType == null)
-                          ? SizedBox()
-                          : const SizedBox(
-                        width: 6,
-                      ),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.food_bank_outlined,
-                            size: 19,
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Row(
+                      children: [
+                        (foodDetailsData?.vegType == null)
+                            ? SizedBox()
+                            : Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: controller.getFoodTypeColor(foodDetailsData?.vegType),
+                            borderRadius: BorderRadius.circular(4),
                           ),
-                          FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: CustomText(
+                          child: CustomText(
+                              "${foodDetailsData?.vegType ?? AppStrings.veg}",
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600),
+                        ),
+                        (foodDetailsData?.vegType == null)
+                            ? SizedBox()
+                            : const SizedBox(
+                          width: 6,
+                        ),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.food_bank_outlined,
+                              size: 19,
+                            ),
+                            CustomText(
                               foodDetailsData?.subCategory ?? "",
                               fontSize: SizeConfig.small,
                               fontWeight: FontWeight.w500,
@@ -125,24 +125,25 @@ class StoreFoodServiceCard extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                               maxLines: 1,
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                   SizedBox(height: SizeConfig.size5),
 
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CustomText(
-                        "Energy : ",
-                        fontSize: SizeConfig.small,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.secondaryTextColor,
-                      ),
-                      Expanded(
-                        child: CustomText(
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CustomText(
+                          "Energy : ",
+                          fontSize: SizeConfig.small,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.secondaryTextColor,
+                        ),
+                        CustomText(
                           "${foodDetailsData?.nutritionalSummaryPer100g?.caloriesKcal ?? "N/A"} Cal/100gm",
                           fontSize: SizeConfig.small,
                           fontWeight: FontWeight.w500,
@@ -150,8 +151,8 @@ class StoreFoodServiceCard extends StatelessWidget {
                           maxLines: 2,
                           color: AppColors.secondaryTextColor,
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                   SizedBox(height: SizeConfig.size5),
 
