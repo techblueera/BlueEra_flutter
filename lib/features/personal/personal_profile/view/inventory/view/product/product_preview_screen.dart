@@ -195,16 +195,22 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
         Navigator.of(context).pop(); // Close dialog first
 
         if(widget.providerType == ProductServiceProviderType.business){
-          bool navigated = false;
-          Get.until((route) {
-            if (route.settings.name == RouteHelper.getInventoryScreenRoute()) {
-              navigated = true;
+          bool isInventoryInStack = false;
+
+          // First check entire stack WITHOUT popping it
+          Get.routeTree.routes.forEach((route) {
+            if (route.name == RouteHelper.getInventoryScreenRoute()) {
+              isInventoryInStack = true;
             }
-            return navigated;
           });
 
-          if (!navigated) {
-            Get.until((route) => Get.currentRoute == RouteHelper.getBottomNavigationBarScreenRoute());
+          // Case 1: Inventory exists → pop until inventory
+          if (isInventoryInStack) {
+            Get.until((route) => route.settings.name == RouteHelper.getInventoryScreenRoute());
+          }
+          // Case 2: Inventory not in stack → go to bottom tab, then push inventory
+          else {
+            Get.until((route) => route.settings.name == RouteHelper.getBottomNavigationBarScreenRoute());
             // Get.toNamed(RouteHelper.getInventoryScreenRoute());
           }
         }else if(widget.providerType == ProductServiceProviderType.user){

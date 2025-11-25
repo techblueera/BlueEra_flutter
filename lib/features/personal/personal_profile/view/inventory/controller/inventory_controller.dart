@@ -526,19 +526,25 @@ class InventoryController extends GetxController {
     }
   }
 
-  bool navigateToInventory() {
-    bool reached = false;
+  void navigateToInventory() {
+    bool isInventoryInStack = false;
 
-    Get.until((route) {
-      if (route.settings.name == RouteHelper.getInventoryScreenRoute()) {
-        log('reached');
-        reached = true;
+    // First check entire stack WITHOUT popping it
+    Get.routeTree.routes.forEach((route) {
+      if (route.name == RouteHelper.getInventoryScreenRoute()) {
+        isInventoryInStack = true;
       }
-      return reached;
     });
 
-    log('reached at -- $reached');
-    return reached;
+    // Case 1: Inventory exists → pop until inventory
+    if (isInventoryInStack) {
+      Get.until((route) => route.settings.name == RouteHelper.getInventoryScreenRoute());
+    }
+    // Case 2: Inventory not in stack → go to bottom tab, then push inventory
+    else {
+      Get.until((route) => route.settings.name == RouteHelper.getBottomNavigationBarScreenRoute());
+      // Get.toNamed(RouteHelper.getInventoryScreenRoute());
+    }
   }
 
     List<Map<String, dynamic>> _buildSelectedVariantsPayload(
