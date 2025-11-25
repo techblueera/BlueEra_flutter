@@ -287,13 +287,14 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                             ),
                             SizedBox(height: SizeConfig.size15),
                             _iconGrid(
-                                serviceCategories,
+                                businessServicesCategories,
                               onTap: (category) {
                                 print("You tapped → ${category.slugId}");
                                 print("You tapped category name → ${category.name}");
+                                print("You tapped category data → ${category.categoryData}");
                                 Get.to(()=> BusinessStoreScreen(
                                     typeOfBusiness: AppConstants.service,
-                                    selectedStoreCategoryId: category.slugId,
+                                    selectedStoreCategoryId: category.categoryData?.id,
                                     selectedStoreCategoryName: category.name,
                                 ));
                               },
@@ -322,13 +323,14 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                             ),
                             SizedBox(height: SizeConfig.size15),
                             _iconGrid(
-                                productCategories,
+                                businessProductsCategories,
                               onTap: (category) {
                                 print("You tapped → ${category.slugId}");
                                 print("You tapped category name → ${category.name}");
+                                print("You tapped category data → ${category.categoryData}");
                                 Get.to(()=> BusinessStoreScreen(
                                     typeOfBusiness: AppConstants.product,
-                                    selectedStoreCategoryId: category.slugId,
+                                    selectedStoreCategoryId: category.categoryData?.id,
                                     selectedStoreCategoryName: category.name,
                                 ));
                               },
@@ -356,13 +358,14 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                             ),
                             SizedBox(height: SizeConfig.size15),
                             _iconGrid(
-                                foodCategories,
+                                businessFoodsCategories,
                               onTap: (category) {
                                 print("You tapped → ${category.slugId}");
+                                print("You tapped category data → ${category.categoryData}");
                                 print("You tapped category name → ${category.name}");
                                 Get.to(()=> BusinessStoreScreen(
                                     typeOfBusiness: AppConstants.food,
-                                    selectedStoreCategoryId: category.slugId,
+                                    selectedStoreCategoryId: category.categoryData?.id,
                                   selectedStoreCategoryName: category.name,
                                 ));
                               },
@@ -375,8 +378,8 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
       
                   ],
                 ),
-                          ),
               ),
+            ),
       
               /// Header stays same
               AnimatedPositioned(
@@ -430,14 +433,14 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
 
 // ---------------- REUSABLE ICON GRID ---------------- //
   Widget _iconGrid(
-      List<StoreFeedCategory> items, {
-        void Function(StoreFeedCategory category)? onTap,
+      List<ProfileCategory> items, {
+        void Function(ProfileCategory category)? onTap,
       }) {
     const crossAxisCount = 4;
     const mainAxisSpacing = 16.0;
 
     // Split into rows of 4
-    final rows = <List<StoreFeedCategory>>[];
+    final rows = <List<ProfileCategory>>[];
 
     for (int i = 0; i < items.length; i += crossAxisCount) {
       rows.add(
@@ -505,11 +508,12 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
     );
   }
 
-  void _handleNearMeCategoryTap(StoreFeedCategory category) {
-    print("You tapped → ${category.slugId}");
+  void _handleNearMeCategoryTap(ProfileCategory category) {
+    print("You tapped slug Id→ ${category.slugId}");
     print("You tapped category name → ${category.name}");
+    print("You tapped category data → ${category.categoryData}");
 
-    switch (category.name) {
+    switch (category.slugId) {
       case AppConstants.storeServices:
         Get.to(() => BusinessStoreScreen(
           selectedStoreCategoryName: category.name,
@@ -531,7 +535,8 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
       case AppConstants.groceryVegetablesDairy:
         Get.to(() => BusinessStoreScreen(
           typeOfBusiness: AppConstants.food,
-          selectedStoreCategoryId: category.slugId,
+          selectedStoreCategoryId: '68ce9917eac48e6b0d4973bf',
+          // selectedStoreCategoryId: category.categoryData?.id,
           selectedStoreCategoryName: category.name,
         ));
         break;

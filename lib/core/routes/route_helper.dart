@@ -5,8 +5,11 @@ import 'package:BlueEra/features/business/business_verification/view/business_ve
 import 'package:BlueEra/features/business/business_verification/view/ownership_verification_screen.dart';
 import 'package:BlueEra/features/business/business_verification/view/select_company_verification_screen.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
+import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
+import 'package:BlueEra/features/common/auth/views/screens/business/business_account_new_screen.dart';
 import 'package:BlueEra/features/common/auth/views/screens/business_account_screen.dart';
 import 'package:BlueEra/features/common/auth/views/screens/create_account_type_screen.dart';
+import 'package:BlueEra/features/common/auth/views/screens/create_new_account_screen.dart';
 import 'package:BlueEra/features/common/auth/views/screens/create_user_account.dart';
 import 'package:BlueEra/features/common/auth/views/screens/mobile_number_screen.dart';
 import 'package:BlueEra/features/common/auth/views/screens/otp_page_screen.dart';
@@ -211,25 +214,32 @@ class RouteHelper {
   static String getCreateJobPostStep5Route() =>
       RouteConstant.CreateJobPostStep5;
 
-  static String getTagPeopleScreenRoute() => RouteConstant.tagPeopleScreen;
+  static String getTagPeopleScreenRoute() =>
+      RouteConstant.tagPeopleScreen;
 
   static String getVideoReelRecorderScreenRoute() =>
       RouteConstant.videoRecorderScreen;
 
-  static String getFullVideoPreviewRoute() => RouteConstant.fullVideoPreview;
+  static String getFullVideoPreviewRoute() =>
+      RouteConstant.fullVideoPreview;
 
-  static String getVideoTrimScreenRoute() => RouteConstant.videoTrimScreen;
+  static String getVideoTrimScreenRoute() =>
+      RouteConstant.videoTrimScreen;
 
-  static String getAllSongsScreenRoute() => RouteConstant.allSongsScreen;
+  static String getAllSongsScreenRoute() =>
+      RouteConstant.allSongsScreen;
 
   static String getCreateMessagePostScreenRoute() =>
       RouteConstant.CreateMessagePostScreen;
 
-  static String getPollInputScreenRoute() => RouteConstant.PollInputScreen;
+  static String getPollInputScreenRoute() =>
+      RouteConstant.PollInputScreen;
 
-  static String getPollReviewScreenRoute() => RouteConstant.PollReviewScreen;
+  static String getPollReviewScreenRoute() =>
+      RouteConstant.PollReviewScreen;
 
-  static String getPhotoPostScreenRoute() => RouteConstant.PhotoPostScreen;
+  static String getPhotoPostScreenRoute() =>
+      RouteConstant.PhotoPostScreen;
 
   static String getPhotoPostPreviewScreenRoute() =>
       RouteConstant.PhotoPostPreviewScreen;
@@ -237,7 +247,8 @@ class RouteHelper {
   static String getPhotoPostReviewScreenRoute() =>
       RouteConstant.PhotoPostReviewScreen;
 
-  static String getVideoPlayerScreenRoute() => RouteConstant.videoPlayerScreen;
+  static String getVideoPlayerScreenRoute() =>
+      RouteConstant.videoPlayerScreen;
 
   // In route_helper.dart
   static String getJourneyPlanningScreenRoute() =>
@@ -259,7 +270,8 @@ class RouteHelper {
   static String getProductListingScreenRoute() =>
       RouteConstant.ProductListingScreen;
 
-  static String getMyBookingScreenRoute() => RouteConstant.MyBookingScreen;
+  static String getMyBookingScreenRoute() =>
+      RouteConstant.MyBookingScreen;
 
   static String getReceivedBookingScreenRoute() =>
       RouteConstant.ReceivedBookingScreen;
@@ -384,6 +396,13 @@ class RouteHelper {
   static String getRentalServiceFullDetailsScreenRoute() =>
       RouteConstant.rentalServiceFullDetailsScreen;
 
+  static String getCreateNewAccountScreenRoute() =>
+      RouteConstant.createNewAccountScreen;
+
+  static String getBusinessAccountNewScreenRoute() =>
+      RouteConstant.businessAccountNewScreen;
+
+
   ///REDIRECT ROUTING SETUP.....
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -441,10 +460,14 @@ class RouteHelper {
       case RouteConstant.CreateUserAccount:
         final args = settings.arguments as Map<String, dynamic>;
         final accountType = args[ApiKeys.argAccountType] as String;
+        final categoryData = args[ApiKeys.argCategoryData] as CategoryData?;
+        final subCategory = args[ApiKeys.argSubCategory] as SubCategories?;
 
         return MaterialPageRoute(
           builder: (_) => CreateUserAccount(
             accountType: accountType,
+            categoryData: categoryData,
+            subCategory: subCategory,
           ),
         );
       case RouteConstant.BusinessAccount:
@@ -1112,6 +1135,17 @@ class RouteHelper {
                 rentalServiceData: rentalServiceData
             ),
             settings: RouteSettings(name: getRentalServiceFullDetailsScreenRoute()));
+      case RouteConstant.createNewAccountScreen:
+        // final args = settings.arguments as Map<String, dynamic>;
+        return MaterialPageRoute(
+            builder: (_) => CreateNewAccountScreen(),
+           settings: RouteSettings(name: getCreateNewAccountScreenRoute())
+          );
+      case RouteConstant.businessAccountNewScreen:
+        return MaterialPageRoute(
+            builder: (_) => BusinessAccountNewScreen(),
+            settings: RouteSettings(name: getBusinessAccountNewScreenRoute())
+        );
       default:
         return MaterialPageRoute(
           builder: (_) => const Scaffold(

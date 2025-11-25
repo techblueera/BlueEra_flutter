@@ -1,7 +1,10 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
+import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -10,6 +13,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class GstNumberScreen extends StatefulWidget {
+  final CategoryData? categoryData;
+  final SubCategories? subCategory;
+
+  GstNumberScreen({super.key,  this.categoryData, this.subCategory});
+
   @override
   State<GstNumberScreen> createState() => _GstNumberScreenState();
 }
@@ -19,6 +27,17 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
   final authController = Get.find<AuthController>();
 
   final TextEditingController _gstController = TextEditingController();
+
+  @override
+  initState(){
+    super.initState();
+    if(widget.categoryData!=null && widget.subCategory!=null){
+      authController.categoryData = widget.categoryData;
+      authController.subCategoryData = widget.subCategory;
+      log('category --- ${authController.categoryData?.name}');
+      log('sub category --- ${authController.subCategoryData?.name}');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -222,7 +241,8 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
   Future<void> _skip() async {
     authController.isHaveGstApprove.value = false;
 
-    Navigator.pushNamed(context, RouteHelper.getBusinessAccountRoute());
+    Get.toNamed(RouteHelper.getBusinessAccountNewScreenRoute());
+    // Navigator.pushNamed(context, RouteHelper.getBusinessAccountRoute());
   }
 
   Future<void> _addBusinessWithGST() async {
@@ -231,7 +251,8 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
           .getGstVerify(gstNumber: _gstController.text);
     } else {
       authController.hasGstNumber.value = false;
-      Get.toNamed(RouteHelper.getBusinessAccountRoute());
+      Get.toNamed(RouteHelper.getBusinessAccountNewScreenRoute());
+      // Get.toNamed(RouteHelper.getBusinessAccountRoute());
     }
   }
 }

@@ -1,32 +1,26 @@
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 
-class ProfileCategory {
-  final String slugId;
+class CustomCategoryModel {
   final String name;
   final String icon;
-  final String type;
   final CategoryData? categoryData;
 
-  ProfileCategory({
-    required this.slugId,
+  CustomCategoryModel({
     required this.name,
     required this.icon,
-    required this.type,
     this.categoryData,
   });
 
-  ProfileCategory copyWith({
+  CustomCategoryModel copyWith({
     String? slugId,
     String? name,
     String? icon,
     String? type,
-    CategoryData? categoryData,
+    String? categoryId,
   }) {
-    return ProfileCategory(
-      slugId: slugId ?? this.slugId,
+    return CustomCategoryModel(
       name: name ?? this.name,
       icon: icon ?? this.icon,
-      type: type ?? this.type,
       categoryData: categoryData ?? this.categoryData,
     );
   }

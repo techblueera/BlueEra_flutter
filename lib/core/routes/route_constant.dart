@@ -109,4 +109,9 @@ class RouteConstant {
   static const String vehicleRentalService = "/VehicleRentalService";
   static const String rentalServiceScreen = "/RentalServiceScreen";
   static const String rentalServiceFullDetailsScreen = "/RentalServiceFullDetailsScreen";
+
+
+  static const String createNewAccountScreen = "/CreateNewAccountScreen";
+  static const String businessAccountNewScreen = "/BusinessAccountNewScreen";
+
 }

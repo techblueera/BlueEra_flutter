@@ -184,6 +184,7 @@ class AppConstants {
   static const HOME_RENOVATION = "Home Renovator";
   static const PAINTER = "Painter";
   static const GARDENER = "Gardener";
+  static const Rider = "Rider";
   static const SECURITY = "Security Person";
   static const INTERIOR_DESIGNER = "Interior Designer";
   static const DIGITAL_MARKETING = "Digital Marketing";
@@ -211,6 +212,8 @@ class AppConstants {
   static const logistics = "Logistics & Transportation";
   static const celebrationEvent = "Celebration & Event Services";
   static const financial = "Financial Services";
+  static const healthcareMedicalServices = "Healthcare & Medical Services";
+  static const hostelsStayService = "Hostels & Stay Service";
 
   /// Store(Products) Category
   static const furnitureHomeDecor = "Furniture & Home Decor Store";
@@ -391,9 +394,13 @@ String getInitials(String? name) {
 }
 
 void createProfileScreen() {
+  // Get.toNamed(
+  //   RouteHelper.getSelectAccountScreenRoute(),
+  //   arguments: {ApiKeys.argMobileNumber: userMobileGlobal},
+  // );
   Get.toNamed(
-    RouteHelper.getSelectAccountScreenRoute(),
-    arguments: {ApiKeys.argMobileNumber: userMobileGlobal},
+    RouteHelper.getCreateNewAccountScreenRoute(),
+    // arguments: {ApiKeys.argMobileNumber: userMobileGlobal},
   );
 }
 
@@ -1257,6 +1264,8 @@ final List<SocialInputFieldsModel> selectedInputFieldsPersonalProfile = [
     linkController: TextEditingController(),
   ),
 ];
+
+
 // Constants
 const String SELF_EMPLOYED = "SELF_EMPLOYED";
 const String PRIVATE_JOB = "PRIVATE_JOB";
@@ -1555,6 +1564,7 @@ final List<ServiceItem> earnWithBlueEraServiceList = [
     labelColor: const Color(0xFF8B0077),
   ),
 ];
+
 final List<ServiceItem> selfWorkServiceList = [
   ServiceItem(
     name: AppStrings.electrician,
@@ -1710,11 +1720,13 @@ final List<ServiceItem> rentalServicesList = [
   //   labelColor: const Color(0xFF36444D),
   // ),
 ];
+
 class ChatEmitEvents{
   static const ChatList = "ChatList";
   static const screenRoom = "screenRoom";
   static const messageReceived = "messageReceived";
 }
+
 final List<String> timeOptions = [
   '12:00 AM',
   '12:30 AM',
@@ -1804,46 +1816,47 @@ String formatClaimedAt(String claimedAt) {
   return "$day/$month/$year"; // WhatsApp-like
 }
 
-final List<StoreFeedCategory> mainCategories = [
-  StoreFeedCategory(
+final List<ProfileCategory> mainCategories = [
+  ProfileCategory(
     name: AppConstants.groceryVegetablesDairy,
-    slugId: '68ce9917eac48e6b0d4973bf',
+    slugId: AppConstants.groceryVegetablesDairy,
+    // categoryId: '68ce9917eac48e6b0d4973bf',
     icon: AppIconAssets.groceryIcon,
     type: AppConstants.service,
   ),
-  StoreFeedCategory(
+  ProfileCategory(
     name: AppConstants.foodServices,
-    slugId: '',
+    slugId: AppConstants.foodServices,
     icon: AppIconAssets.foodIcon,
     type: AppConstants.service,
   ),
-  StoreFeedCategory(
+  ProfileCategory(
     name: AppConstants.storeServices,
-    slugId: '',
+    slugId: AppConstants.storeServices,
     icon: AppIconAssets.storeIcon,
     type: AppConstants.service,
   ),
-  StoreFeedCategory(
+  ProfileCategory(
     name: AppConstants.productsServices,
-    slugId: '',
+    slugId: AppConstants.productsServices,
     icon: AppIconAssets.productIcon,
     type: AppConstants.service,
   ),
-  StoreFeedCategory(
+  ProfileCategory(
     name: AppConstants.riderServices,
-    slugId: '',
+    slugId: AppConstants.riderServices,
     icon: AppIconAssets.riderIcon,
     type: AppConstants.service,
   ),
-  StoreFeedCategory(
+  ProfileCategory(
     name: AppConstants.taxiDriverServices,
-    slugId: '',
+    slugId: AppConstants.taxiDriverServices,
     icon: AppIconAssets.taxiDriverIcon,
     type: AppConstants.service,
   ),
-  StoreFeedCategory(
+  ProfileCategory(
     name: AppConstants.rentalServices,
-    slugId: '',
+    slugId: AppConstants.rentalServices,
     icon: AppIconAssets.rentKeyIcon,
     type: AppConstants.service,
   ),
@@ -1853,58 +1866,58 @@ final List<StoreFeedCategory> mainCategories = [
   //   icon: AppIconAssets.bookingEnquiries,
   //   type: AppConstants.service,
   // ),
-  StoreFeedCategory(
+  ProfileCategory(
     name: AppConstants.homeServices,
-    slugId: '',
+    slugId: AppConstants.homeServices,
     icon: AppIconAssets.homeServiceIcon,
     type: AppConstants.service,
   ),
 ];
 
-final List<StoreFeedCategory> providerCategories = [
-  StoreFeedCategory(
+final List<ProfileCategory> providerCategories = [
+  ProfileCategory(
     name: AppConstants.ELECTRICIAN,
     slugId: AppConstants.ELECTRICIAN,
     icon: AppIconAssets.electricianIcon,
     type: AppConstants.service,
   ),
-  StoreFeedCategory(
+  ProfileCategory(
     name: AppConstants.PLUMBER,
     slugId: AppConstants.PLUMBER,
     icon: AppIconAssets.plumberIcon,
     type: AppConstants.service,
   ),
-  StoreFeedCategory(
+  ProfileCategory(
     name: AppConstants.TECHNICIAN,
     slugId: AppConstants.TECHNICIAN,
     icon: AppIconAssets.technicianIcon,
     type: AppConstants.service,
   ),
-  StoreFeedCategory(
+  ProfileCategory(
     name: AppConstants.MAID_CLEANER,
     slugId: AppConstants.MAID_CLEANER,
     icon: AppIconAssets.mainCleanerIcon,
     type: AppConstants.service,
   ),
-  StoreFeedCategory(
+  ProfileCategory(
     name: AppConstants.CARPENTER,
     slugId: AppConstants.CARPENTER,
     icon: AppIconAssets.carpenterIcon,
     type: AppConstants.service,
   ),
-  StoreFeedCategory(
+  ProfileCategory(
     name: AppConstants.PAINTER,
     slugId: AppConstants.PAINTER,
     icon: AppIconAssets.painterIcon,
     type: AppConstants.service,
   ),
-  StoreFeedCategory(
+  ProfileCategory(
     name: AppConstants.MECHANIC,
     slugId: AppConstants.MECHANIC,
     icon: AppIconAssets.mechanicIcon,
     type: AppConstants.service,
   ),
-  StoreFeedCategory(
+  ProfileCategory(
     name: AppConstants.HOME_RENOVATION,
     slugId: AppConstants.HOME_RENOVATION,
     icon: AppIconAssets.mistryIcon,
@@ -1912,47 +1925,373 @@ final List<StoreFeedCategory> providerCategories = [
   ),
 ];
 
-final List<StoreFeedCategory> serviceCategories = [
-  StoreFeedCategory(name: AppConstants.consulting,          slugId: '68ce990deac48e6b0d497298', icon: AppIconAssets.consultingServiceIcon,       type: AppConstants.service),
-  StoreFeedCategory(name: AppConstants.automotive,          slugId: '68ce990beac48e6b0d49724f', icon: AppIconAssets.automativeServiceIcon,       type: AppConstants.service),
-  StoreFeedCategory(name: AppConstants.itCommunication,             slugId: '68ce9914eac48e6b0d497366', icon: AppIconAssets.itCommunicationIcon,         type: AppConstants.service),
-  StoreFeedCategory(name: AppConstants.homeUtility,         slugId: '68ce9912eac48e6b0d497328', icon: AppIconAssets.homeServiceUtilityIcon,      type: AppConstants.service),
-  StoreFeedCategory(name: AppConstants.mediaCreative,      slugId: '68ce9915eac48e6b0d497382', icon: AppIconAssets.mediaPublicityIcon,          type: AppConstants.service),
-  StoreFeedCategory(name: AppConstants.educationTraining,           slugId: '68ce990eeac48e6b0d4972ad', icon: AppIconAssets.educationTrainingIcon,       type: AppConstants.service),
-  StoreFeedCategory(name: AppConstants.tourTravel,           slugId: '68ce9916eac48e6b0d4973aa', icon: AppIconAssets.tourTravelIcon,              type: AppConstants.service),
-  StoreFeedCategory(name: AppConstants.beautyCare,          slugId: '68ce990beac48e6b0d497260', icon: AppIconAssets.beautyPersonalCareIcon,      type: AppConstants.service),
-  StoreFeedCategory(name: AppConstants.serviceCenter,      slugId: '68ce9915eac48e6b0d497397', icon: AppIconAssets.serviceCenterIcon,           type: AppConstants.service),
-  StoreFeedCategory(name: AppConstants.logistics,     slugId: '68ce9914eac48e6b0d497375', icon: AppIconAssets.logisticTransportationIcon,  type: AppConstants.service),
-  StoreFeedCategory(name: AppConstants.celebrationEvent,    slugId: '68ce990ceac48e6b0d49727f', icon: AppIconAssets.celebrationEventIcon,        type: AppConstants.service),
-  StoreFeedCategory(name: AppConstants.financial,           slugId: '68ce990feac48e6b0d4972dc', icon: AppIconAssets.financialIcon,               type: AppConstants.service),
-  // StoreFeedCategory(name: AppConstants.healthcareMedicalServices,   slugId: '68ce9910eac48e6b0d4972ed', icon: AppIconAssets.pharmacyMedicalStoreIcon,   type: AppConstants.service),
-  // StoreFeedCategory(name: AppConstants.hostelsStayService,          slugId: '68ce9912eac48e6b0d497341', icon: AppIconAssets.staggeredIcon,               type: AppConstants.service),
+
+/// Business Categories
+final List<ProfileCategory> businessServicesCategories = [
+  ProfileCategory(
+      name: AppStrings.consulting,
+      slugId: AppConstants.consulting,
+      // categoryId: '68ce990deac48e6b0d497298',
+      icon: AppIconAssets.consultingServiceIcon,
+      type: AppConstants.service),
+  ProfileCategory(
+      name: AppStrings.automotive,
+      slugId: AppConstants.automotive,
+      // categoryId: '68ce990beac48e6b0d49724f',
+      icon: AppIconAssets.automativeServiceIcon,
+      type: AppConstants.service),
+  ProfileCategory(
+      name: AppStrings.itCommunication,
+      slugId: AppConstants.itCommunication,
+      // categoryId: '68ce9914eac48e6b0d497366',
+      icon: AppIconAssets.itCommunicationIcon,
+      type: AppConstants.service),
+  ProfileCategory(
+      name: AppStrings.homeUtility,
+      slugId: AppConstants.homeUtility,
+      // categoryId: '68ce9912eac48e6b0d497328',
+      icon: AppIconAssets.homeServiceUtilityIcon,
+      type: AppConstants.service),
+  ProfileCategory(
+      name: AppStrings.mediaCreative,
+      slugId: AppConstants.mediaCreative,
+      // categoryId: '68ce9915eac48e6b0d497382',
+      icon: AppIconAssets.mediaPublicityIcon,
+      type: AppConstants.service),
+  ProfileCategory(
+      name: AppStrings.educationTraining,
+      slugId: AppConstants.educationTraining,
+      // categoryId: '68ce990eeac48e6b0d4972ad',
+      icon: AppIconAssets.educationTrainingIcon,
+      type: AppConstants.service),
+  ProfileCategory(
+      name: AppStrings.tourTravel,
+      slugId: AppConstants.tourTravel,
+      // categoryId: '68ce9916eac48e6b0d4973aa',
+      icon: AppIconAssets.tourTravelIcon,
+      type: AppConstants.service),
+  ProfileCategory(
+      name: AppStrings.beautyCare,
+      slugId: AppConstants.beautyCare,
+      // categoryId: '68ce990beac48e6b0d497260',
+      icon: AppIconAssets.beautyPersonalCareIcon,
+      type: AppConstants.service),
+  ProfileCategory(
+      name: AppStrings.serviceCenter,
+      slugId: AppConstants.serviceCenter,
+      // categoryId: '68ce9915eac48e6b0d497397',
+      icon: AppIconAssets.serviceCenterIcon,
+      type: AppConstants.service),
+  ProfileCategory(
+      name: AppStrings.logistics,
+      slugId: AppConstants.logistics,
+      // categoryId: '68ce9914eac48e6b0d497375',
+      icon: AppIconAssets.logisticTransportationIcon,
+      type: AppConstants.service),
+  ProfileCategory(
+      name: AppStrings.celebrationEvent,
+      slugId: AppConstants.celebrationEvent,
+      // categoryId: '68ce990ceac48e6b0d49727f',
+      icon: AppIconAssets.celebrationEventIcon,
+      type: AppConstants.service),
+  ProfileCategory(
+      name: AppStrings.financial,
+      slugId: AppConstants.financial,
+      // categoryId: '68ce990feac48e6b0d4972dc',
+      icon: AppIconAssets.financialIcon,
+      type: AppConstants.service),
+  ProfileCategory(
+      name: AppStrings.healthcareMedicalServices,
+      slugId: AppConstants.healthcareMedicalServices,
+      // categoryId: '68ce9910eac48e6b0d4972ed',
+      icon: AppIconAssets.pharmacyMedicalStoreIcon,
+      type: AppConstants.service),
+  ProfileCategory(
+      name: AppStrings.hostelsStayService,
+      slugId: AppConstants.hostelsStayService,
+      // categoryId: '68ce9912eac48e6b0d497341',
+      icon: AppIconAssets.staggeredIcon,
+      type: AppConstants.service),
 ];
 
-final List<StoreFeedCategory> productCategories = [
-  StoreFeedCategory(name: AppConstants.furnitureHomeDecor,     slugId: '68ce9907eac48e6b0d4971f7', icon: AppIconAssets.furnitureHomeDecorIcon,      type: AppConstants.product),
-  StoreFeedCategory(name: AppConstants.sportsFitness,          slugId: '68ce990aeac48e6b0d497235', icon: AppIconAssets.sportsFitnessStoreIcon,      type: AppConstants.product),
-  StoreFeedCategory(name: AppConstants.jewelleryLuxury,          slugId: '68ce9908eac48e6b0d497204', icon: AppIconAssets.jewelleryLuxuryStoreIcon,    type: AppConstants.product),
-  StoreFeedCategory(name: AppConstants.automotiveStore,             slugId: '68ce9904eac48e6b0d497192', icon: AppIconAssets.automotiveStoreIcon,         type: AppConstants.product),
-  StoreFeedCategory(name: AppConstants.booksStationaryGifts,   slugId: '68ce9905eac48e6b0d4971a5', icon: AppIconAssets.booksStationaryGiftsIcon,    type: AppConstants.product),
-  StoreFeedCategory(name: AppConstants.pharmacyMedical,        slugId: '68ce9909eac48e6b0d497217', icon: AppIconAssets.pharmacyMedicalStoreIcon,   type: AppConstants.product),
-  StoreFeedCategory(name: AppConstants.petSupplies,            slugId: '68ce9909eac48e6b0d497217', icon: AppIconAssets.petSuppliesStoreIcon,        type: AppConstants.product),
-  StoreFeedCategory(name: AppConstants.toysBabyProducts,       slugId: '68ce990aeac48e6b0d497244', icon: AppIconAssets.babyToysProductStoreIcon,   type: AppConstants.product),
-  StoreFeedCategory(name: AppConstants.electronicsAppliances,  slugId: '68ce9906eac48e6b0d4971c5', icon: AppIconAssets.electronicsApplianceStoreIcon,type: AppConstants.product),
-  StoreFeedCategory(name: AppConstants.constructionHomeEssentials,  slugId: '68ce9905eac48e6b0d4971b0', icon: AppIconAssets.constructionHomeEsseIcon,      type: AppConstants.product),
-  StoreFeedCategory(name: AppConstants.fashionLifestyle,            slugId: '68ce9907eac48e6b0d4971dc', icon: AppIconAssets.fashionLifestyleIcon,        type: AppConstants.product),
+final List<ProfileCategory> businessProductsCategories = [
+  ProfileCategory(
+      name: AppStrings.furnitureHomeDecor,
+      slugId: AppConstants.furnitureHomeDecor,
+      // categoryId: '68ce9907eac48e6b0d4971f7',
+      icon: AppIconAssets.furnitureHomeDecorIcon,
+      type: AppConstants.product),
+  ProfileCategory(
+      name: AppStrings.sportsFitness,
+      slugId: AppConstants.sportsFitness,
+      // categoryId: '68ce990aeac48e6b0d497235',
+      icon: AppIconAssets.sportsFitnessStoreIcon,
+      type: AppConstants.product),
+  ProfileCategory(
+      name: AppStrings.jewelleryLuxury,
+      slugId: AppConstants.jewelleryLuxury,
+      // categoryId: '68ce9908eac48e6b0d497204',
+      icon: AppIconAssets.jewelleryLuxuryStoreIcon,
+      type: AppConstants.product),
+  ProfileCategory(
+      name: AppStrings.automotiveStore,
+      slugId: AppConstants.automotiveStore,
+      // categoryId: '68ce9904eac48e6b0d497192',
+      icon: AppIconAssets.automotiveStoreIcon,
+      type: AppConstants.product),
+  ProfileCategory(
+      name: AppStrings.booksStationaryGifts,
+      slugId: AppConstants.booksStationaryGifts,
+      // categoryId: '68ce9905eac48e6b0d4971a5',
+      icon: AppIconAssets.booksStationaryGiftsIcon,
+      type: AppConstants.product),
+  ProfileCategory(
+      name: AppStrings.pharmacyMedical,
+      slugId: AppConstants.pharmacyMedical,
+      // categoryId: '68ce9909eac48e6b0d497217',
+      icon: AppIconAssets.pharmacyMedicalStoreIcon,
+      type: AppConstants.product),
+  ProfileCategory(
+      name: AppStrings.petSupplies,
+      slugId: AppConstants.petSupplies,
+      // categoryId: '68ce9909eac48e6b0d497217',
+      icon: AppIconAssets.petSuppliesStoreIcon,
+      type: AppConstants.product),
+  ProfileCategory(
+      name: AppStrings.toysBabyProducts,
+      slugId: AppConstants.toysBabyProducts,
+      // categoryId: '68ce990aeac48e6b0d497244',
+      icon: AppIconAssets.babyToysProductStoreIcon,
+      type: AppConstants.product),
+  ProfileCategory(
+      name: AppStrings.electronicsAppliances,
+      slugId: AppConstants.electronicsAppliances,
+      // categoryId: '68ce9906eac48e6b0d4971c5',
+      icon: AppIconAssets.electronicsApplianceStoreIcon,
+      type: AppConstants.product),
+  ProfileCategory(
+      name: AppStrings.constructionHomeEssentials,
+      slugId: AppConstants.constructionHomeEssentials,
+      // categoryId: '68ce9905eac48e6b0d4971b0',
+      icon: AppIconAssets.constructionHomeEsseIcon,
+      type: AppConstants.product),
+  ProfileCategory(
+      name: AppStrings.fashionLifestyle,
+      slugId: AppConstants.fashionLifestyle,
+      // categoryId: '68ce9907eac48e6b0d4971dc',
+      icon: AppIconAssets.fashionLifestyleIcon,
+      type: AppConstants.product
+  ),
 ];
 
+final List<ProfileCategory> businessFoodsCategories = [
+  ProfileCategory(
+      name: AppStrings.fastFoodQuickService,
+      slugId: AppConstants.fastFoodQuickService,
+      // categoryId: '68ce9917eac48e6b0d4973cc',
+      icon: AppIconAssets.fastFoodQuickServiceIcon,
+      type: AppConstants.food
+  ),
+  ProfileCategory(
+      name: AppStrings.multiCuisineRestaurants,
+      slugId: AppConstants.multiCuisineRestaurants,
+      // categoryId: '68ce9919eac48e6b0d49740a',
+      icon: AppIconAssets.multiCuisineRestroIcon,
+      type: AppConstants.food
+  ),
+  ProfileCategory(
+      name: AppStrings.groceryVegetablesDairy,
+      slugId: AppConstants.groceryVegetablesDairy,
+      // categoryId: '68ce9917eac48e6b0d4973bf',
+      icon: AppIconAssets.groceryVegetableDairyIcon,
+      type: AppConstants.food
+  ),
+  ProfileCategory(
+      name: AppStrings.nonVegRestaurants,
+      slugId: AppConstants.nonVegRestaurants,
+      // categoryId: '68ce9919eac48e6b0d4973e8',
+      icon: AppIconAssets.nonVegRestaurantIcon,
+      type: AppConstants.food
+  ),
+  ProfileCategory(
+      name: AppStrings.vegRestaurants,
+      slugId: AppConstants.vegRestaurants,
+      // categoryId: '68ce9918eac48e6b0d4973d9',
+      icon: AppIconAssets.vegRestaurantIcon,
+      type: AppConstants.food
+  ),
+  ProfileCategory(
+      name: AppStrings.otherRestaurantsDhaba,
+      slugId: AppConstants.otherRestaurantsDhaba,
+      // categoryId: '68ce991aeac48e6b0d497417',
+      icon: AppIconAssets.restaurantIcon,
+      type: AppConstants.food
+  ),
+  ProfileCategory(
+      name: AppStrings.sweetsBakeryDrinks,
+      slugId: AppConstants.sweetsBakeryDrinks,
+      // categoryId: '68ce9918eac48e6b0d4973d9',
+      icon: AppIconAssets.sweetBakeryDrinkIcon,
+      type: AppConstants.food
+  ),
+  ProfileCategory(
+      name: AppStrings.otherFoodServices,
+      slugId: AppConstants.otherFoodServices,
+      // categoryId: '68ce991aeac48e6b0d497428',
+      icon: AppIconAssets.staggeredIcon,
+      type: AppConstants.food
+  ),
+];
 
-final List<StoreFeedCategory> foodCategories = [
-  StoreFeedCategory(name: AppConstants.fastFoodQuickService,        slugId: '68ce9917eac48e6b0d4973cc', icon: AppIconAssets.fastFoodQuickServiceIcon,    type: AppConstants.food),
-  StoreFeedCategory(name: AppConstants.multiCuisineRestaurants,     slugId: '68ce9919eac48e6b0d49740a', icon: AppIconAssets.multiCuisineRestroIcon,      type: AppConstants.food),
-  StoreFeedCategory(name: AppConstants.groceryVegetablesDairy,      slugId: '68ce9917eac48e6b0d4973bf', icon: AppIconAssets.groceryVegetableDairyIcon,   type: AppConstants.food),
-  StoreFeedCategory(name: AppConstants.nonVegRestaurants,           slugId: '68ce9919eac48e6b0d4973e8', icon: AppIconAssets.nonVegRestaurantIcon,        type: AppConstants.food),
-  StoreFeedCategory(name: AppConstants.vegRestaurants,              slugId: '68ce9918eac48e6b0d4973d9', icon: AppIconAssets.vegRestaurantIcon,           type: AppConstants.food),
-  StoreFeedCategory(name: AppConstants.otherRestaurantsDhaba,       slugId: '68ce991aeac48e6b0d497417', icon: AppIconAssets.restaurantIcon,              type: AppConstants.food),
-  StoreFeedCategory(name: AppConstants.sweetsBakeryDrinks,          slugId: '68ce9918eac48e6b0d4973d9', icon: AppIconAssets.sweetBakeryDrinkIcon,        type: AppConstants.food),
-  StoreFeedCategory(name: AppConstants.otherFoodServices,           slugId: '68ce991aeac48e6b0d497428', icon: AppIconAssets.staggeredIcon,               type: AppConstants.food),
+/// Individual Categories
+final List<ProfileCategory> individualSocialProfileList = [
+  ProfileCategory(
+    name: AppStrings.politician,
+    slugId: POLITICIAN,
+    icon: AppIconAssets.politicianIcon,
+    type: AppConstants.individual
+  ),
+  ProfileCategory(
+    name: AppStrings.socialist,
+    slugId: SOCIALIST,
+    icon: AppIconAssets.socialistIcon,
+    type: AppConstants.individual
+  ),
+  ProfileCategory(
+    name: AppStrings.journalist,
+    slugId: MEDIA,
+    icon: AppIconAssets.journalistIcon,
+      type: AppConstants.individual
+  ),
+  ProfileCategory(
+    name: AppStrings.artist,
+    slugId: ARTIST,
+    icon: AppIconAssets.artistIcon,
+    type: AppConstants.individual
+  ),
+  ProfileCategory(
+    name: AppStrings.industrialist,
+    slugId: INDUSTRIALIST,
+    icon: AppIconAssets.industrialistIcon,
+    type: AppConstants.individual
+  ),
+  ProfileCategory(
+    name: AppStrings.seniorCitizen,
+    slugId: SENIOR_CITIZEN_RETIRED,
+    icon: AppIconAssets.seniorCitizenIcon,
+    type: AppConstants.individual
+  ),
+  ProfileCategory(
+    name: AppStrings.govtEmployee,
+    slugId: GOVERNMENT_JOB,
+    icon: AppIconAssets.govtEmpIcon,
+    type: AppConstants.individual
+  ),
+  ProfileCategory(
+    name: AppStrings.pvtEmployee,
+    slugId: PRIVATE_JOB,
+    icon: AppIconAssets.pvtEmpIcon,
+    type: AppConstants.individual
+  ),
+  ProfileCategory(
+    name: AppStrings.ngoSociety,
+    slugId: REG_UNION, //NGO
+    icon: AppIconAssets.ngoSocietyIcon,
+    type: AppConstants.individual
+  ),
+  ProfileCategory(
+    name: AppStrings.govtDepartment,
+    slugId: GOVTPSU,
+    icon: AppIconAssets.govtDeptIcon,
+    type: AppConstants.individual
+  ),
+  ProfileCategory(
+    name: AppStrings.contentCreator,
+    slugId: CONTENT_CREATOR,
+    icon: AppIconAssets.contentCreaterIcon,
+    type: AppConstants.individual
+  ),
+  ProfileCategory(
+    name: AppStrings.other,
+    slugId: OTHERS,
+    icon: AppIconAssets.staggeredIcon,
+    type: AppConstants.individual
+  ),
+];
+
+final List<ProfileCategory> individualSelfEmployedList = [
+  ProfileCategory(
+      name: AppStrings.rider,
+      slugId: AppConstants.Rider,
+      icon: AppIconAssets.riderIcon,
+      type: AppConstants.individual
+  ),
+  ProfileCategory(
+    name: AppStrings.electrician,
+    slugId: AppConstants.ELECTRICIAN,
+    icon: AppIconAssets.electricianIcon,
+    type: AppConstants.individual
+  ),
+  ProfileCategory(
+    name: AppStrings.plumber,
+    slugId: AppConstants.PLUMBER,
+    icon: AppIconAssets.plumberIcon,
+    type: AppConstants.individual
+  ),
+  ProfileCategory(
+    name: AppStrings.technician,
+    slugId: AppConstants.TECHNICIAN,
+    icon: AppIconAssets.technicianIcon,
+    type: AppConstants.individual
+  ),
+  ProfileCategory(
+    name: AppStrings.maidCleaner,
+    slugId: AppConstants.MAID_CLEANER,
+    icon: AppIconAssets.mainCleanerIcon,
+    type: AppConstants.individual
+  ),
+  ProfileCategory(
+    name: AppStrings.carpenter,
+    slugId: AppConstants.CARPENTER,
+    icon: AppIconAssets.carpenterIcon,
+    type: AppConstants.individual
+  ),
+  ProfileCategory(
+    name: AppStrings.taxiCarDriver,
+    slugId: AppConstants.CAR_DRIVER_TAXI,
+    icon: AppIconAssets.taxiDriverIcon,
+    type: AppConstants.individual
+  ),
+  ProfileCategory(
+    name: AppStrings.mechanic,
+    slugId: AppConstants.MECHANIC,
+    icon: AppIconAssets.mechanicIcon,
+    type: AppConstants.individual
+  ),
+  ProfileCategory(
+    name: AppStrings.homeRenovator,
+    slugId: AppConstants.HOME_RENOVATION,
+    icon: AppIconAssets.mistryIcon,
+    type: AppConstants.individual
+  ),
+  ProfileCategory(
+    name: AppStrings.painter,
+    slugId: AppConstants.PAINTER,
+    icon: AppIconAssets.painterIcon,
+    type: AppConstants.individual
+  ),
+  ProfileCategory(
+    name: AppStrings.gardener,
+    slugId: AppConstants.GARDENER,
+    icon: AppIconAssets.gardenerIcon,
+    type: AppConstants.individual
+  ),
+  ProfileCategory(
+    name: AppStrings.securityPerson,
+    slugId: AppConstants.SECURITY,
+    icon: AppIconAssets.securityPersonIcon,
+    type: AppConstants.individual
+  )
 ];
 
 

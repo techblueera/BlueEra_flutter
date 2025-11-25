@@ -20,6 +20,7 @@ import 'package:BlueEra/features/common/auth/model/username_res_model.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
 import 'package:BlueEra/features/common/auth/views/screens/create_business_account_step_two.dart';
 import 'package:BlueEra/features/common/feed/models/block_user_response.dart';
+import 'package:BlueEra/features/common/store/widget/StoreCategory.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -322,7 +323,10 @@ class AuthController extends GetxController {
             gstVerifyModel?.value.data?.tradeName ?? "";
         businessName.value =
             gstVerifyModel?.value.data?.tradeName ?? "";
-        Get.toNamed(RouteHelper.getBusinessAccountRoute());
+        // Get.toNamed(RouteHelper.getBusinessAccountRoute());
+
+        Get.toNamed(RouteHelper.getBusinessAccountNewScreenRoute());
+
         gstVerifyResponse.value = ApiResponse.complete(responseModel);
       } else {
         isHaveGstApprove.value = false;
@@ -530,6 +534,72 @@ clearSubCategoryData()
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
   }
+
+
+  RxBool isCategoryLoading = false.obs;
+  CategoryData? categoryData;
+  SubCategories? subCategoryData;
+
+  Future<void> getAllNewCategories() async {
+    try {
+      isCategoryLoading.value = true;
+
+      final response = await AuthRepo().getBusinessCategoriesRepo();
+
+      if (!response.isSuccess) {
+        commonSnackBar(
+          message: response.message ?? AppStrings.somethingWentWrong,
+        );
+        return;
+      }
+
+      final jsonData = response.response?.data;
+      businessCategories = CategoryModel.fromJson(jsonData).data ?? [];
+
+      final Map<String, List<CategoryData>> typeMap = {
+        AppConstants.service: [],
+        AppConstants.food: [],
+        AppConstants.product: [],
+      };
+
+      for (final c in businessCategories) {
+        if (typeMap.containsKey(c.type)) {
+          typeMap[c.type]!.add(c);
+        }
+      }
+      // Update lists by matching SLUG with API NAME
+      _updateListWithApi(businessServicesCategories, typeMap[AppConstants.service]!);
+      _updateListWithApi(businessFoodsCategories, typeMap[AppConstants.food]!);
+      _updateListWithApi(businessProductsCategories, typeMap[AppConstants.product]!);
+
+      businessCategoryResponse = ApiResponse.complete(response);
+      update();
+    } catch (e) {
+      businessCategoryResponse = ApiResponse.error('error');
+      update();
+    }finally{
+      isCategoryLoading.value = false;
+    }
+  }
+
+  void _updateListWithApi(List<ProfileCategory> list, List<CategoryData> apiList) {
+    for (int i = 0; i < list.length; i++) {
+      final predefined = list[i];
+
+      final match = apiList.firstWhere(
+            (cat) =>
+        predefined.slugId.toLowerCase() ==
+            (cat.name ?? "").toLowerCase(),
+        orElse: () => CategoryData(), // no match
+      );
+
+      // Assign only if found (CategoryData has id)
+      if (match.id != null) {
+        list[i] = predefined.copyWith(categoryData: match);
+      }
+    }
+  }
+
 
 
 

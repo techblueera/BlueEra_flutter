@@ -499,4 +499,16 @@ class AppIconAssets {
 
   static String finderIcon = "${iconPath}finder_icon.svg";
   static String menIcon = "${iconPath}men_icon.svg";
+
+  static String politicianIcon = "${iconPath}politician_icon.svg";
+  static String socialistIcon = "${iconPath}socialist_icon.svg";
+  static String journalistIcon = "${iconPath}journalist_icon.svg";
+  static String artistIcon = "${iconPath}artist_icon.svg";
+  static String industrialistIcon = "${iconPath}industrialist_icon.svg";
+  static String seniorCitizenIcon = "${iconPath}senior_citizen_icon.svg";
+  static String govtEmpIcon = "${iconPath}govt_emp_icon.svg";
+  static String pvtEmpIcon = "${iconPath}pvt_emp_icon.svg";
+  static String ngoSocietyIcon = "${iconPath}ngo_society_icon.svg";
+  static String govtDeptIcon = "${iconPath}govt_dept_icon.svg";
+  static String contentCreaterIcon = "${iconPath}content_creater_icon.svg";
 }
