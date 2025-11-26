@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:hive/hive.dart';
@@ -125,8 +126,9 @@ class LocalStorageHelper {
     final jsonString = box.get('${type}_chat_list'); // <- separate key
 
     if (jsonString == null) return [];
-
     final decoded = jsonDecode(jsonString) as List<dynamic>;
+    log(";asjdlaskdfmlskd ==  ${type}==> ${decoded}");
+
     return decoded.map((e) => ChatList.fromJson(e)).toList();
   }
 
