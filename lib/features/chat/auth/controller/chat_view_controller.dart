@@ -473,6 +473,7 @@ class ChatViewController extends GetxController {
       required bool isInitialMessage,
       String? businessId,
       bool? isFromContactList}) async {
+    businessTabIndexSelected.value=0;
     if (isWithProductSend == true) {
      await sendProductMessages(shareProductParams ?? {});
     }
