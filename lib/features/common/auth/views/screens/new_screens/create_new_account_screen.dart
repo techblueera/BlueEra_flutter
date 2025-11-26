@@ -1,25 +1,24 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
-import 'package:BlueEra/core/common_singleton_class/user_session.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/common/store/widget/StoreCategory.dart';
 import 'package:BlueEra/features/common/store/widget/icon_grid_item.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../../personal/personal_profile/controller/languge_list_controller.dart';
 
 class CreateNewAccountScreen extends StatefulWidget {
   @override
@@ -27,9 +26,6 @@ class CreateNewAccountScreen extends StatefulWidget {
 }
 
 class _CreateNewAccountScreenState extends State<CreateNewAccountScreen> {
-  int? _selectedIndex;
-  String? _imagePath;
-  late LanguageListController langController;
   final authController = Get.isRegistered<AuthController>()
                  ? Get.find<AuthController>()
                  : Get.put(AuthController());
@@ -37,7 +33,6 @@ class _CreateNewAccountScreenState extends State<CreateNewAccountScreen> {
   @override
   void initState() {
     super.initState();
-    langController = Get.find<LanguageListController>();
     /// individual Categories
     authController.getAllProfessionController();
 
@@ -55,7 +50,7 @@ class _CreateNewAccountScreenState extends State<CreateNewAccountScreen> {
         if (!isGuestUser()) {
           commonConformationDialog(
             context: context,
-            text: "Are you sure you want to exit the app?", // not in JSON yet
+            text: AppStrings.areYouSureYouWantToExitTheApp, // not in JSON yet
             confirmCallback: () async {
               await SharedPreferenceUtils.clearPreference();
               Navigator.of(context).pushNamedAndRemoveUntil(
@@ -80,7 +75,7 @@ class _CreateNewAccountScreenState extends State<CreateNewAccountScreen> {
             if (!isGuestUser()) {
               commonConformationDialog(
                 context: context,
-                text: "Are you sure you want to exit the app?", // not in JSON yet
+                text: AppStrings.areYouSureYouWantToExitTheApp, // not in JSON yet
                 confirmCallback: () async {
                   await SharedPreferenceUtils.clearPreference();
                   Navigator.of(context).pushNamedAndRemoveUntil(
@@ -192,7 +187,8 @@ class _CreateNewAccountScreenState extends State<CreateNewAccountScreen> {
                                   print("You tapped category name → ${category.name}");
                                   print("You tapped category id → ${category.categoryData}");
                                   _showDropdownDialog(
-                                      category.categoryData
+                                    businessType: BusinessType.Food,
+                                    categoryData: category.categoryData,
                                   );
                                 },
                               )
@@ -218,9 +214,9 @@ class _CreateNewAccountScreenState extends State<CreateNewAccountScreen> {
                                 businessProductsCategories,
                                 onTap: (category) {
                                   _showDropdownDialog(
-                                      category.categoryData
+                                      businessType: BusinessType.Product,
+                                      categoryData: category.categoryData
                                   );
-
                                 },
                               )
                             ],
@@ -247,7 +243,8 @@ class _CreateNewAccountScreenState extends State<CreateNewAccountScreen> {
                                   print("You tapped category id → ${category.categoryData}");
                                   print("You tapped category name → ${category.name}");
                                   _showDropdownDialog(
-                                      category.categoryData
+                                      businessType: BusinessType.Service,
+                                      categoryData: category.categoryData
                                   );
                                 },
                               )
@@ -256,6 +253,95 @@ class _CreateNewAccountScreenState extends State<CreateNewAccountScreen> {
                           )
                       ),
                     ],
+                  ),
+
+                  SizedBox(height: SizeConfig.size10),
+                  CustomFormCard(
+                      padding: EdgeInsets.all(
+                        SizeConfig.size10,
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          LocalAssets(
+                            imagePath: AppIconAssets.otherBusinessRelatedIcon,
+                            height: SizeConfig.size30,
+                            width: SizeConfig.size30,
+                          ),
+                          SizedBox(width: SizeConfig.size10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                CustomText(
+                                    AppStrings.othersManufacturingUnitIndustryFactory,
+                                    fontSize: SizeConfig.small,
+                                    color: AppColors.mainTextColor,
+                                    fontWeight: FontWeight.w600
+                                ),
+                                SizedBox(height: SizeConfig.size6),
+                                CustomText(
+                                    AppStrings.manufacturingRelatedBusinessInfo,
+                                    fontSize: SizeConfig.extraSmall,
+                                    color: AppColors.secondaryTextColor,
+                                    fontWeight: FontWeight.w400
+                                ),
+                              ],
+                            ),
+                          )
+
+                        ],
+                      )
+                  ),
+
+                  SizedBox(height: SizeConfig.size10),
+                  InkWell(
+                    onTap: ()=> Get.toNamed(
+                      RouteHelper.getCreateUserAccountRoute(),
+                      arguments: {
+                        ApiKeys.argAccountType: AppConstants.business,
+                        ApiKeys.argBusinessType: BusinessType.Both
+                      },
+                    ),
+                    child: CustomFormCard(
+                      padding: EdgeInsets.all(
+                        SizeConfig.size10,
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                           Container(
+                             width: SizeConfig.size25,
+                             height: SizeConfig.size25,
+                             decoration: BoxDecoration(
+                               border: Border.all(
+                                 color: AppColors.primaryColor,
+                                 width: 2.0
+                               ),
+                               shape: BoxShape.circle,
+                             ),
+                             alignment: Alignment.center,
+                             child: Icon(
+                               Icons.question_mark_outlined,
+                               size: SizeConfig.size16,
+                               color: AppColors.primaryColor
+                             ),
+                           ),
+
+                          SizedBox(width: SizeConfig.size10),
+
+                          Expanded(
+                            child: CustomText(
+                                AppStrings.needHelp,
+                                fontSize: SizeConfig.small,
+                                color: AppColors.primaryColor,
+                                fontWeight: FontWeight.w600
+                            ),
+                          )
+
+                        ],
+                      )
+                    ),
                   ),
 
                   SizedBox(height: kToolbarHeight),
@@ -339,55 +425,88 @@ class _CreateNewAccountScreenState extends State<CreateNewAccountScreen> {
     );
   }
 
-  Future<void> _showDropdownDialog(CategoryData? categoryData) async {
-    if (categoryData == null || categoryData.subCategories == null || (categoryData.subCategories?.isEmpty ?? false)) return;
+  Future<void> _showDropdownDialog({required BusinessType businessType, CategoryData? categoryData}) async {
+    if (categoryData == null
+        || categoryData.subCategories == null
+        || (categoryData.subCategories?.isEmpty ?? false)) return;
+
+    SubCategories? selectedSubCat;
 
     final selected = await showDialog<SubCategories>(
       context: context,
       builder: (context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Container(
-            padding: EdgeInsets.all(SizeConfig.size16),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              color: Theme.of(context).dialogBackgroundColor,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CustomText(
-                  'Select Sub Category',
-                  color: AppColors.secondaryTextColor,
-                  fontWeight: FontWeight.w700,
-                  fontSize: SizeConfig.size16,
+        return StatefulBuilder(
+          builder: (BuildContext context, void Function(void Function()) setState) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Container(
+                padding: EdgeInsets.all(SizeConfig.size16),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  color: DialogThemeData().backgroundColor,
                 ),
-                SizedBox(height: SizeConfig.size12),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CustomText(
+                      AppStrings.selectSubCategory,
+                      color: AppColors.secondaryTextColor,
+                      fontWeight: FontWeight.w700,
+                      fontSize: SizeConfig.size16,
+                    ),
+                    SizedBox(height: SizeConfig.size12),
 
-                /// Safe ListView
-                Flexible(
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: categoryData.subCategories?.length,
-                    itemBuilder: (context, index) {
-                      final item = categoryData.subCategories?[index];
+                    /// Safe ListView
+                    Flexible(
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: categoryData.subCategories?.length,
+                        itemBuilder: (context, index) {
+                          final item = categoryData.subCategories?[index];
+                          final isSelected = selectedSubCat?.sId == item?.sId;
 
-                      return ListTile(
-                        title: CustomText(
-                          item?.name ?? 'Unknown',
-                          fontWeight: FontWeight.w400,
-                          fontSize: SizeConfig.size15,
-                        ),
-                        onTap: () => Navigator.of(context).pop(item),
-                      );
-                    },
-                  ),
+                          return Container(
+                            color: isSelected ? AppColors.primaryColor.withValues(alpha: 0.1) : Colors.transparent,
+                            child: ListTile(
+                              title: CustomText(
+                                item?.name ?? AppStrings.unknown,
+                                fontWeight: FontWeight.w400,
+                                fontSize: SizeConfig.size15,
+                              ),
+                              onTap: () {
+                                setState(() {
+                                  selectedSubCat = item;
+                                });
+                              },
+                              trailing: isSelected
+                                  ? Icon(Icons.check_circle, color: Colors.green, size: 22)
+                                  : null,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+
+                    SizedBox(height: SizeConfig.size12),
+
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: CustomBtn(
+                          onTap: ()=> Navigator.of(context).pop(selectedSubCat),
+                          title: AppStrings.next,
+                          height: SizeConfig.size30,
+                          width: SizeConfig.size60,
+                          bgColor: AppColors.primaryColor
+                      ),
+                    )
+
+                  ],
                 ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         );
       },
     );
@@ -399,6 +518,7 @@ class _CreateNewAccountScreenState extends State<CreateNewAccountScreen> {
         RouteHelper.getCreateUserAccountRoute(),
         arguments: {
           ApiKeys.argAccountType: AppConstants.business,
+          ApiKeys.argBusinessType: businessType,
           ApiKeys.argCategoryData: categoryData,
           ApiKeys.argSubCategory: selected,
         },
@@ -406,43 +526,4 @@ class _CreateNewAccountScreenState extends State<CreateNewAccountScreen> {
     }
   }
 
-
-  Future<void> _selectImage(BuildContext context) async {
-    final String? selected = await SelectProfilePictureDialog.showLogoDialog(
-      context,
-      AppStrings.uploadProfilePicture,
-    );
-
-    if (selected?.isNotEmpty ?? false) {
-      _imagePath = selected;
-      UserSession().imagePath = selected;
-      setState(() {});
-      if (_selectedIndex != null) _navigateToCreateAccount();
-    }
-  }
-
-  void _onGetStartedPressed() {
-    if (_imagePath?.isEmpty ?? true) {
-      _selectImage(context);
-      return;
-    }
-    _navigateToCreateAccount();
-  }
-
-  void _navigateToCreateAccount() {
-    if (_selectedIndex == null) {
-      commonSnackBar(message:"Select Account Type");
-      return;
-    }
-    final accountType =
-    _selectedIndex == 0 ? AppConstants.individual : AppConstants.business;
-    UserSession().userType = accountType;
-    // SharedPreferenceUtils.setSecureValue(
-    //     SharedPreferenceUtils.accountType, accountType);
-    Navigator.pushNamed(
-      context,
-      RouteHelper.getCreateUserAccountRoute(),
-      arguments: {ApiKeys.argAccountType: accountType},
-    );
-  }
 }

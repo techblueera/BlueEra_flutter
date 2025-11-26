@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/auth/views/screens/gst_verification_screen.dart';
 import 'package:BlueEra/features/common/auth/views/screens/personal_account_screen.dart';
@@ -9,10 +10,12 @@ class CreateUserAccount extends StatefulWidget {
   const CreateUserAccount({
     super.key,
     required this.accountType,
+    this.businessType,
     this.categoryData,
     this.subCategory});
 
   final String accountType;
+  final BusinessType? businessType;
   final CategoryData? categoryData;
   final SubCategories? subCategory;
 
@@ -29,6 +32,7 @@ class _CreateUserAccountState extends State<CreateUserAccount> {
           ? PersonalAccountScreen()
           :  (widget.accountType == AppConstants.business)
                   ? GstNumberScreen(
+                        businessType: widget.businessType,
                         categoryData: widget.categoryData,
                         subCategory: widget.subCategory,
                    )

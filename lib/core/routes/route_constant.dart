@@ -113,5 +113,8 @@ class RouteConstant {
 
   static const String createNewAccountScreen = "/CreateNewAccountScreen";
   static const String businessAccountNewScreen = "/BusinessAccountNewScreen";
+  static const String createBusinessAccountNewStepTwo = "/CreateBusinessAccountNewStepTwo";
+  static const String createBusinessAccountNewStepThree = "/CreateBusinessAccountNewStepThree";
+  static const String addBusinessLivePhoto = "/AddBusinessLivePhoto";
 
 }

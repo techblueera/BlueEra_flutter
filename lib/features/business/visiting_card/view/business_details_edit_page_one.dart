@@ -61,17 +61,17 @@ class _BusinessDetailsEditPageOneState
   Get.find<ViewBusinessDetailsController>();
 
   bool validate = false;
-  SizeOfBusiness? selectedBusiness;
+  NatureOfBusiness? selectedBusiness;
   final _formKey = GlobalKey<FormState>();
 
   final locationController = Get.put(LocationController());
 
-  SizeOfBusiness? getBusinessFromString(String? input) {
+  NatureOfBusiness? getBusinessFromString(String? input) {
     if (input == null) return null;
 
-    return SizeOfBusiness.values.firstWhere(
+    return NatureOfBusiness.values.firstWhere(
           (e) => e.displayName.toLowerCase() == input.toLowerCase(),
-      orElse: () => SizeOfBusiness.OTHERS,
+      orElse: () => NatureOfBusiness.OTHERS,
     );
   }
 
@@ -832,7 +832,7 @@ class _BusinessDetailsEditPageOneState
         },
       if (landlineNumberController.text.isNotEmpty)
         ApiKeys.office_landline_no_number: landlineNumberController.text,
-      ApiKeys.Nature_of_Business: selectedBusiness == SizeOfBusiness.OTHERS
+      ApiKeys.Nature_of_Business: selectedBusiness == NatureOfBusiness.OTHERS
           ? othersCatController.text
           : selectedBusiness?.displayName ?? '',
       ApiKeys.city_state_pincode: cityController.text,

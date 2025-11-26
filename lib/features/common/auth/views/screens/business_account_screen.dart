@@ -39,7 +39,7 @@ class _BusinessAccountScreenState extends State<BusinessAccountScreen> {
   AutovalidateMode _autoValidate = AutovalidateMode.disabled;
 
   BusinessType? _typeOfBusiness;
-  SizeOfBusiness? _selectedNatureOfBusiness;
+  NatureOfBusiness? _selectedNatureOfBusiness;
   CategoryData? _selectedCategoryOfBusiness;
   SubCategories? _selectedSubCategoryOfBusiness;
   BusinessCategory? selectedTypeOfBusiness;
@@ -420,8 +420,8 @@ class _BusinessAccountScreenState extends State<BusinessAccountScreen> {
                   SizedBox(
                     height: SizeConfig.size10,
                   ),
-                  CommonDropdownDialog<SizeOfBusiness>(
-                    items: SizeOfBusiness.values,
+                  CommonDropdownDialog<NatureOfBusiness>(
+                    items: NatureOfBusiness.values,
                     selectedValue: _selectedNatureOfBusiness,
                     hintText: AppStrings.selectNatureOfBusiness,
                     displayValue: (profession) => profession.displayName,
@@ -433,7 +433,7 @@ class _BusinessAccountScreenState extends State<BusinessAccountScreen> {
                       });
                     },
                   ),
-                  if (_selectedNatureOfBusiness == SizeOfBusiness.OTHERS) ...[
+                  if (_selectedNatureOfBusiness == NatureOfBusiness.OTHERS) ...[
                     SizedBox(height: SizeConfig.size20),
                     CommonTextField(
                       textEditController:

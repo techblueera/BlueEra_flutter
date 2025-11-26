@@ -517,4 +517,5 @@ class ApiKeys {
   static const notificationId = 'notificationId';
   static const argCategoryData = 'argCategoryData';
   static const argSubCategory = 'argSubCategory';
+  static const argBusinessType = 'argBusinessType';
 }

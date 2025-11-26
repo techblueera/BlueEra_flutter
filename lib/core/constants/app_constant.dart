@@ -2004,13 +2004,13 @@ final List<ProfileCategory> businessServicesCategories = [
       name: AppStrings.healthcareMedicalServices,
       slugId: AppConstants.healthcareMedicalServices,
       // categoryId: '68ce9910eac48e6b0d4972ed',
-      icon: AppIconAssets.pharmacyMedicalStoreIcon,
+      icon: AppIconAssets.healthCareIcon,
       type: AppConstants.service),
   ProfileCategory(
       name: AppStrings.hostelsStayService,
       slugId: AppConstants.hostelsStayService,
       // categoryId: '68ce9912eac48e6b0d497341',
-      icon: AppIconAssets.staggeredIcon,
+      icon: AppIconAssets.hostelIcon,
       type: AppConstants.service),
 ];
 

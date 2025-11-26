@@ -255,7 +255,10 @@ class AuthController extends GetxController {
           final viewProfileController =
               Get.put(ViewBusinessDetailsController());
           await viewProfileController.viewBusinessProfile();
-          Get.offAll(CreateBusinessAccountStepTwo());
+
+          // Get.offAll(CreateBusinessAccountStepTwo());
+
+          Get.toNamed(RouteHelper.getCreateBusinessAccountNewStepTwoRoute());
 
           clearAllData();
           addUserResponse = ApiResponse.complete(response);
@@ -537,8 +540,10 @@ clearSubCategoryData()
 
 
   RxBool isCategoryLoading = false.obs;
-  CategoryData? categoryData;
-  SubCategories? subCategoryData;
+  CategoryData? selectedCategoryData;
+  SubCategories? selectedSubCategoryData;
+  BusinessType? selectedTypeOfBusiness;
+  NatureOfBusiness? selectedNatureOfBusiness;
 
   Future<void> getAllNewCategories() async {
     try {

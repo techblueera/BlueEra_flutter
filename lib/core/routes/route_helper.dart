@@ -3,13 +3,15 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/features/business/business_verification/view/business_verification_screen.dart';
 import 'package:BlueEra/features/business/business_verification/view/ownership_verification_screen.dart';
-import 'package:BlueEra/features/business/business_verification/view/select_company_verification_screen.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
-import 'package:BlueEra/features/common/auth/views/screens/business/business_account_new_screen.dart';
 import 'package:BlueEra/features/common/auth/views/screens/business_account_screen.dart';
 import 'package:BlueEra/features/common/auth/views/screens/create_account_type_screen.dart';
-import 'package:BlueEra/features/common/auth/views/screens/create_new_account_screen.dart';
+import 'package:BlueEra/features/common/auth/views/screens/new_screens/business/add_business_live_photo.dart';
+import 'package:BlueEra/features/common/auth/views/screens/new_screens/business/business_account_new_screen.dart';
+import 'package:BlueEra/features/common/auth/views/screens/new_screens/business/create_business_account_new_step_three.dart';
+import 'package:BlueEra/features/common/auth/views/screens/new_screens/business/create_business_account_new_step_two.dart';
+import 'package:BlueEra/features/common/auth/views/screens/new_screens/create_new_account_screen.dart';
 import 'package:BlueEra/features/common/auth/views/screens/create_user_account.dart';
 import 'package:BlueEra/features/common/auth/views/screens/mobile_number_screen.dart';
 import 'package:BlueEra/features/common/auth/views/screens/otp_page_screen.dart';
@@ -119,21 +121,29 @@ class RouteHelper {
 
   // static String getOnboardingStartedScreenRoute() => RouteConstant.OnboardingStartedScreen;
 
-  static String getOtpPageScreenRoute() => RouteConstant.OtpPageScreen;
+  static String getOtpPageScreenRoute() =>
+      RouteConstant.OtpPageScreen;
 
   static String getSelectAccountScreenRoute() =>
       RouteConstant.SelectAccountScreen;
 
-  static String getCreateUserAccountRoute() => RouteConstant.CreateUserAccount;
+  static String getCreateUserAccountRoute() =>
+      RouteConstant.CreateUserAccount;
 
-  static String getHomeScreenRoute() => RouteConstant.HomeScreen;
+  static String getHomeScreenRoute() =>
+      RouteConstant.HomeScreen;
 
-  static String getSplashScreenRoute() => RouteConstant.SplashScreen;
-  static String getPermissionScreenRoute() => RouteConstant.PermissionScreen;
+  static String getSplashScreenRoute() =>
+      RouteConstant.SplashScreen;
 
-  static String getAudioCallScreenRoute() => RouteConstant.AudioCallScreen;
+  static String getPermissionScreenRoute() =>
+      RouteConstant.PermissionScreen;
 
-  static String getBusinessAccountRoute() => RouteConstant.BusinessAccount;
+  static String getAudioCallScreenRoute() =>
+      RouteConstant.AudioCallScreen;
+
+  static String getBusinessAccountRoute() =>
+      RouteConstant.BusinessAccount;
 
   // static String getAddEditVisitingCardScreenRoute() =>
   //     RouteConstant.AddEditVisitingCardScreen;
@@ -402,6 +412,14 @@ class RouteHelper {
   static String getBusinessAccountNewScreenRoute() =>
       RouteConstant.businessAccountNewScreen;
 
+  static String getCreateBusinessAccountNewStepTwoRoute() =>
+      RouteConstant.createBusinessAccountNewStepTwo;
+
+  static String getCreateBusinessAccountNewStepThreeRoute() =>
+      RouteConstant.createBusinessAccountNewStepThree;
+
+  static String getAddBusinessLivePhotoRoute() =>
+      RouteConstant.addBusinessLivePhoto;
 
   ///REDIRECT ROUTING SETUP.....
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -460,12 +478,14 @@ class RouteHelper {
       case RouteConstant.CreateUserAccount:
         final args = settings.arguments as Map<String, dynamic>;
         final accountType = args[ApiKeys.argAccountType] as String;
+        final businessType = args[ApiKeys.argBusinessType] as BusinessType?;
         final categoryData = args[ApiKeys.argCategoryData] as CategoryData?;
         final subCategory = args[ApiKeys.argSubCategory] as SubCategories?;
 
         return MaterialPageRoute(
           builder: (_) => CreateUserAccount(
             accountType: accountType,
+            businessType: businessType,
             categoryData: categoryData,
             subCategory: subCategory,
           ),
@@ -1146,6 +1166,27 @@ class RouteHelper {
             builder: (_) => BusinessAccountNewScreen(),
             settings: RouteSettings(name: getBusinessAccountNewScreenRoute())
         );
+      case RouteConstant.createBusinessAccountNewStepTwo:
+        return MaterialPageRoute(
+            builder: (_) => CreateBusinessAccountNewStepTwo(),
+            settings: RouteSettings(name: getCreateBusinessAccountNewStepTwoRoute())
+        );
+      case RouteConstant.createBusinessAccountNewStepThree:
+        final args = settings.arguments as Map<String, dynamic>;
+        final String? city = args[ApiKeys.city] as String?;
+        return MaterialPageRoute(
+            builder: (_) => CreateBusinessAccountNewStepThree(
+                city: city
+            ),
+            settings: RouteSettings(name: getCreateBusinessAccountNewStepThreeRoute())
+        );
+      case RouteConstant.addBusinessLivePhoto:
+        return MaterialPageRoute(
+            builder: (_) => AddBusinessLivePhoto(),
+            settings: RouteSettings(name: getAddBusinessLivePhotoRoute())
+        );
+
+
       default:
         return MaterialPageRoute(
           builder: (_) => const Scaffold(

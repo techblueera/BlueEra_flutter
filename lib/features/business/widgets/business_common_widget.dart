@@ -136,13 +136,13 @@ void openBusinessDetailsEditSheet(BuildContext context) {
         .businessProfileDetails?.data?.specification ??
         '',
   );
-  SizeOfBusiness? selectedBusiness;
-  SizeOfBusiness? getBusinessFromString(String? input) {
+  NatureOfBusiness? selectedBusiness;
+  NatureOfBusiness? getBusinessFromString(String? input) {
     if (input == null) return null;
 
-    return SizeOfBusiness.values.firstWhere(
+    return NatureOfBusiness.values.firstWhere(
           (e) => e.displayName.toLowerCase() == input.toLowerCase(),
-      orElse: () => SizeOfBusiness.OTHERS,
+      orElse: () => NatureOfBusiness.OTHERS,
     );
   }
 

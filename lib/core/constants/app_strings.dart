@@ -1687,6 +1687,36 @@ class AppStrings {
   static const String sweetsBakeryDrinks      = 'sweetsBakeryDrinks';
   static const String otherFoodServices      = 'otherFoodServices';
 
+  static const String areYouSureYouWantToExitTheApp = 'areYouSureYouWantToExitTheApp';
+  static const String othersManufacturingUnitIndustryFactory = 'othersManufacturingUnitIndustryFactory';
+  static const String manufacturingRelatedBusinessInfo = 'manufacturingRelatedBusinessInfo';
+  static const String needHelp = 'needHelp';
+  static const String unknown = 'Unknown';
+
+  static const String uploadYourPhotoLogo = 'uploadYourPhotoLogo';
+  static const String categoryAndSubcategory = 'categoryAndSubcategory';
+  static const String businessDetailsTitle = 'businessDetailsTitle';
+  static const String enterBusinessName = 'enterBusinessName';
+  static const String minFiveCharactersRequired = 'minCharactersRequired';
+  static const String natureOfBusiness = 'natureOfBusiness';
+  static const String enterOtherNatureOfBusiness = 'enterOtherNatureOfBusiness';
+  static const String referralCode = 'referralCode';
+  static const String enterReferralCode = 'enterReferralCode';
+  static const String pleaseEnterReferralCode = 'pleaseEnterReferralCode';
+  static const String doYouHaveReferralCode = 'doYouHaveReferralCode';
+  static const String enableLocationPermission = 'enableLocationPermission';
+  static const String specialCharactersNotAllowed = 'specialCharactersNotAllowed';
+  static const String pleaseEnterBusinessSpecialization = 'pleaseEnterBusinessSpecialization';
+  static const String min8CharactersRequired = 'min8CharactersRequired';
+  static const String max24CharactersAllowed = 'max24CharactersAllowed';
+
+  static const String previous = 'Previous';
+  static const String websiteHint = '"https://shop.com"';
+  static const String refresh = 'Refresh';
+
+  static const String minimumThreeImages = 'Minimum 3 images';
+
+
 
   ///BHAVESH START
   static const ownerDetail = "owner_detail";

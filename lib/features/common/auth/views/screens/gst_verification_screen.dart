@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
@@ -13,10 +14,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class GstNumberScreen extends StatefulWidget {
+  final BusinessType? businessType;
   final CategoryData? categoryData;
   final SubCategories? subCategory;
 
-  GstNumberScreen({super.key,  this.categoryData, this.subCategory});
+  GstNumberScreen({super.key, this.businessType, this.categoryData, this.subCategory});
 
   @override
   State<GstNumberScreen> createState() => _GstNumberScreenState();
@@ -31,11 +33,12 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
   @override
   initState(){
     super.initState();
+    authController.selectedTypeOfBusiness = widget.businessType;
     if(widget.categoryData!=null && widget.subCategory!=null){
-      authController.categoryData = widget.categoryData;
-      authController.subCategoryData = widget.subCategory;
-      log('category --- ${authController.categoryData?.name}');
-      log('sub category --- ${authController.subCategoryData?.name}');
+      authController.selectedCategoryData = widget.categoryData;
+      authController.selectedSubCategoryData = widget.subCategory;
+      log('category --- ${authController.selectedCategoryData?.name}');
+      log('sub category --- ${authController.selectedSubCategoryData?.name}');
     }
   }
 

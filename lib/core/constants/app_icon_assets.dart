@@ -511,4 +511,9 @@ class AppIconAssets {
   static String ngoSocietyIcon = "${iconPath}ngo_society_icon.svg";
   static String govtDeptIcon = "${iconPath}govt_dept_icon.svg";
   static String contentCreaterIcon = "${iconPath}content_creater_icon.svg";
+
+  static String healthCareIcon = "${iconPath}health_care_icon.svg";
+  static String hostelIcon = "${iconPath}hostel_icon.svg";
+  static String otherBusinessRelatedIcon = "${iconPath}other_business_related_icon.svg";
+  static String refreshIcon = "${iconPath}refresh_icon.svg";
 }

@@ -44,7 +44,7 @@ extension CommunicationModeExtension on CommunicationMode {
 }
 
 ///SIZED OF BUSINESS...
-enum SizeOfBusiness {
+enum NatureOfBusiness {
   AGENCY,
   DISTRIBUTORS,
   MANUFACTURERS,
@@ -54,44 +54,44 @@ enum SizeOfBusiness {
   OTHERS, // keep Others last
 }
 
-extension SizeOfBusinessExtension on SizeOfBusiness {
+extension NatureOfBusinessExtension on NatureOfBusiness {
   String get displayName {
     switch (this) {
-      case SizeOfBusiness.AGENCY:
+      case NatureOfBusiness.AGENCY:
         return "Agency";
-      case SizeOfBusiness.DISTRIBUTORS:
+      case NatureOfBusiness.DISTRIBUTORS:
         return "Distributors";
-      case SizeOfBusiness.MANUFACTURERS:
+      case NatureOfBusiness.MANUFACTURERS:
         return "Manufacturers";
-      case SizeOfBusiness.SHOP_STORE:
+      case NatureOfBusiness.SHOP_STORE:
         return "Shop/Store";
-      case SizeOfBusiness.SHOWROOM:
+      case NatureOfBusiness.SHOWROOM:
         return "Showroom";
-      case SizeOfBusiness.WHOLESALER:
+      case NatureOfBusiness.WHOLESALER:
         return "Wholesaler";
-      case SizeOfBusiness.OTHERS:
+      case NatureOfBusiness.OTHERS:
         return "Others";
     }
   }
 
-  static SizeOfBusiness fromString(String value) {
+  static NatureOfBusiness fromString(String value) {
     switch (value.trim().toUpperCase()) {
       case 'AGENCY':
-        return SizeOfBusiness.AGENCY;
+        return NatureOfBusiness.AGENCY;
       case 'DISTRIBUTORS':
-        return SizeOfBusiness.DISTRIBUTORS;
+        return NatureOfBusiness.DISTRIBUTORS;
       case 'MANUFACTURERS':
-        return SizeOfBusiness.MANUFACTURERS;
+        return NatureOfBusiness.MANUFACTURERS;
       case 'SHOP_STORE':
-        return SizeOfBusiness.SHOP_STORE;
+        return NatureOfBusiness.SHOP_STORE;
       case 'SHOWROOM':
-        return SizeOfBusiness.SHOWROOM;
+        return NatureOfBusiness.SHOWROOM;
       case 'WHOLESALER':
-        return SizeOfBusiness.WHOLESALER;
+        return NatureOfBusiness.WHOLESALER;
       case 'OTHERS':
-        return SizeOfBusiness.OTHERS;
+        return NatureOfBusiness.OTHERS;
       default:
-        return SizeOfBusiness.OTHERS;
+        return NatureOfBusiness.OTHERS;
     }
   }
 }
