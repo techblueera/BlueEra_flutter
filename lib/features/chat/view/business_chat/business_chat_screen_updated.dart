@@ -1,5 +1,8 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/features/chat/view/business_chat/widgets/business_chat_foods.dart';
+import 'package:BlueEra/features/chat/view/business_chat/widgets/business_chat_products.dart';
+import 'package:BlueEra/features/chat/view/business_chat/widgets/business_chat_services.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -7,11 +10,13 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_constant.dart';
+import '../../../../core/constants/app_enum.dart';
 import '../../../../core/constants/app_image_assets.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../../../core/routes/route_helper.dart';
 import '../../../../core/services/notification_utils.dart';
 import '../../../common/bottomNavigationBar/auth/controller/bottom_bar_controller.dart';
+import '../../../common/feed/view/feed_screen.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetListOfMessageData.dart';
@@ -20,14 +25,15 @@ import '../widget/component_widgets.dart';
 import '../widget/message_card.dart';
 
 class BusinessChatScreenUpdated extends StatefulWidget {
-  BusinessChatScreenUpdated({required this.conversationId,
-    required this.userId,
-    required this.businessId,
-    this.profileImage,
-    required this.type,
-    this.name,
-    this.contactNo,
-    required this.isInitialMessage});
+  BusinessChatScreenUpdated(
+      {required this.conversationId,
+      required this.userId,
+      required this.businessId,
+      this.profileImage,
+      required this.type,
+      this.name,
+      this.contactNo,
+      required this.isInitialMessage});
 
   final String? conversationId;
   final String? userId;
@@ -90,7 +96,6 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     Theme.of(context);
@@ -101,8 +106,10 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
               ChatEmitEvents.ChatList, {ApiKeys.type: "business"}, true);
           chatViewController.onSelectChatTab(1);
           bottomBarController.onChangeIndex(4);
-          Navigator.popUntil(context, ModalRoute.withName(
-              RouteHelper.getBottomNavigationBarScreenRoute()));
+          Navigator.popUntil(
+              context,
+              ModalRoute.withName(
+                  RouteHelper.getBottomNavigationBarScreenRoute()));
         } else {
           chatViewController.emitEvent(
               ChatEmitEvents.ChatList, {ApiKeys.type: "business"}, true);
@@ -113,29 +120,29 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
         return Scaffold(
           backgroundColor: backgroundColor,
           appBar: (chatThemeController.isMessageSelectionActive.value &&
-              widget.type != "Admin")
+                  widget.type != "Admin")
               ? getChatOptionsAppBar(
-            context,
-            profileImage: widget.profileImage,
-            editingController: editingController,
-            conversationId: widget.conversationId,
-            userId: widget.userId,
-            type: widget.type,
-            name: widget.name,
-            contactNo: widget.contactNo,
-          )
-              : getChatTitleAppBar(socketType: "business",
-            context,
-            userId: widget.userId,
-            // userId: widget.userId,
-            type: widget.type,
-            name: widget.name,
-            contactNo: widget.contactNo,
-            businessId: widget.businessId,
-            profileImage: widget.profileImage,
-            conversationId: widget.conversationId,
-          ),
-
+                  context,
+                  profileImage: widget.profileImage,
+                  editingController: editingController,
+                  conversationId: widget.conversationId,
+                  userId: widget.userId,
+                  type: widget.type,
+                  name: widget.name,
+                  contactNo: widget.contactNo,
+                )
+              : getChatTitleAppBar(
+                  socketType: "business",
+                  context,
+                  userId: widget.userId,
+                  // userId: widget.userId,
+                  type: widget.type,
+                  name: widget.name,
+                  contactNo: widget.contactNo,
+                  businessId: widget.businessId,
+                  profileImage: widget.profileImage,
+                  conversationId: widget.conversationId,
+                ),
           body: Obx(() {
             if (chatViewController.getListOfMessageResponse.value.status ==
                 Status.COMPLETE) {
@@ -164,14 +171,12 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
                         height: SizeConfig.screenHeight,
                       ),
                     ),
-
-
                     Column(
                       children: [
                         Container(
-                          height: 40,
+                          height: 42,
                           padding: EdgeInsets.only(left: 10, right: 6),
-                          margin: EdgeInsets.only(top: 8),
+                          margin: EdgeInsets.only(top: 8, bottom: 4),
                           child: ListView.separated(
                             scrollDirection: Axis.horizontal,
                             itemCount: chatViewController.tabs.length,
@@ -179,26 +184,29 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
                             itemBuilder: (context, index) {
                               return Obx(() {
                                 final selected = index ==
-                                    chatViewController.businessTabIndexSelected
-                                        .value;
+                                    chatViewController
+                                        .businessTabIndexSelected.value;
                                 return InkWell(
                                   onTap: () {
-                                    chatViewController.changeBusinessInsideTab(
-                                        index);
+                                    chatViewController
+                                        .changeBusinessInsideTab(index);
                                   },
                                   child: Container(
                                     margin: EdgeInsets.symmetric(
                                         horizontal: 0, vertical: 3),
                                     padding: EdgeInsets.symmetric(
-                                      horizontal: 12,),
+                                      horizontal: 12,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: selected
                                           ? AppColors.primaryColor
                                           : AppColors.white,
                                       borderRadius: BorderRadius.circular(12),
-                                      border: selected ? null : Border.all(
-                                          color: AppColors.borderBox
-                                              .withOpacity(0.75)),
+                                      border: selected
+                                          ? null
+                                          : Border.all(
+                                              color: AppColors.borderBox
+                                                  .withOpacity(0.75)),
                                     ),
                                     child: Center(
                                       child: CustomText(
@@ -208,7 +216,6 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
                                             : AppColors.grayText,
                                         fontWeight: FontWeight.w400,
                                         fontSize: 14,
-
                                       ),
                                     ),
                                   ),
@@ -217,128 +224,224 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
                             },
                           ),
                         ),
-                        Expanded(
-                          child: (messages.isEmpty)
-                              ? Center(
-                            child: InkWell(
-                              onTap: () {
-                                Map<String, dynamic> data = {
-                                  ApiKeys.other_user_id: widget.userId,
-                                  ApiKeys.message: "Namaste 🙏",
-                                  ApiKeys.message_type: "text",
-                                };
-                                chatViewController
-                                    .sendInitialMessage(data);
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 15, vertical: 10),
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.withValues(alpha: 0.5),
-                                  // light color with 0.5 opacity
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: RichText(
-                                  text: TextSpan(
-                                    children: [
-                                      TextSpan(
-                                        text: "No conversation yet. ",
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w500,
+                        if (chatViewController.businessTabIndexSelected == 0)
+                          Expanded(
+                            child: (messages.isEmpty)
+                                ? Center(
+                                    child: InkWell(
+                                      onTap: () {
+                                        Map<String, dynamic> data = {
+                                          ApiKeys.other_user_id: widget.userId,
+                                          ApiKeys.message: "Namaste 🙏",
+                                          ApiKeys.message_type: "text",
+                                        };
+                                        chatViewController
+                                            .sendInitialMessage(data);
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 15, vertical: 10),
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey
+                                              .withValues(alpha: 0.5),
+                                          // light color with 0.5 opacity
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                        ),
+                                        child: RichText(
+                                          text: TextSpan(
+                                            children: [
+                                              TextSpan(
+                                                text: "No conversation yet. ",
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                              TextSpan(
+                                                text: "Say Namaste 🙏",
+                                                style: TextStyle(
+                                                  color: Colors
+                                                      .blue, // blue from theme
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ),
-                                      TextSpan(
-                                        text: "Say Namaste 🙏",
-                                        style: TextStyle(
-                                          color: Colors
-                                              .blue, // blue from theme
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w500,
+                                    ),
+                                  )
+                                : LayoutBuilder(
+                                    builder: (context, constraints) {
+                                      return ConstrainedBox(
+                                        constraints: BoxConstraints(
+                                          minHeight: constraints.maxHeight,
                                         ),
-                                      ),
-                                    ],
+                                        child: IntrinsicHeight(
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 10),
+                                            child: SingleChildScrollView(
+                                              padding: EdgeInsets.zero,
+                                              controller: chatViewController
+                                                  .scrollController,
+                                              reverse: true,
+                                              child: Column(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.end,
+                                                children:
+                                                    messages.map((message) {
+                                                  return MessageCard(
+                                                    message: message,
+                                                    isInitialMessage:
+                                                        widget.isInitialMessage,
+                                                    conversationId:
+                                                        widget.conversationId,
+                                                    userId: widget.userId,
+                                                    name: widget.name,
+                                                    contactNo: widget.contactNo,
+                                                    profileImage:
+                                                        widget.profileImage,
+                                                  );
+                                                }).toList(),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    },
                                   ),
-                                ),
-                              ),
-                            ),
                           )
-                              : LayoutBuilder(
-                            builder: (context, constraints) {
-                              return ConstrainedBox(
+                        else if (chatViewController.businessTabIndexSelected ==
+                            1)
+                          Expanded(child:
+                              LayoutBuilder(builder: (context, constraints) {
+                            return ConstrainedBox(
                                 constraints: BoxConstraints(
                                   minHeight: constraints.maxHeight,
                                 ),
-                                child: IntrinsicHeight(
+                                child: Padding(
+                                  padding: const EdgeInsets.only(
+                                      left: 8, right: 8, bottom: 0),
+                                  child: BusinessChatProducts(
+                                    conversationId: widget.conversationId ?? '',
+                                    businessId: widget.userId ?? '',
+                                  ),
+                                ));
+                          }))
+                        else if (chatViewController.businessTabIndexSelected ==
+                            2)
+                          Expanded(child:
+                              LayoutBuilder(builder: (context, constraints) {
+                            return ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  minHeight: constraints.maxHeight,
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.only(
+                                      left: 8, right: 8, bottom: 0),
+                                  child: BusinessChatFoods(
+                                    businessId: widget.userId ?? '',
+                                    conversationId: '${widget.conversationId}',
+                                  ),
+                                ));
+                          }))
+                        else if (chatViewController.businessTabIndexSelected ==
+                            3)
+                          Expanded(child:
+                              LayoutBuilder(builder: (context, constraints) {
+                            return ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  minHeight: constraints.maxHeight,
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.only(
+                                      left: 8, right: 8, bottom: 0),
+                                  child:
+                                      //BusinessChatFoods
+                                      BusinessChatServices(
+                                    businessId: widget.userId ?? '',
+                                  ),
+                                ));
+                          }))
+                        else if (chatViewController.businessTabIndexSelected ==
+                            4)
+                          Expanded(
+                            child:
+                                LayoutBuilder(builder: (context, constraints) {
+                              return ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    minHeight: constraints.maxHeight,
+                                  ),
                                   child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 10),
-                                    child: SingleChildScrollView(
-                                      padding: EdgeInsets.zero,
-                                      controller: chatViewController
-                                          .scrollController,
-                                      reverse: true,
-                                      child: Column(
-                                        mainAxisAlignment:
-                                        MainAxisAlignment.end,
-                                        children: messages.map((message) {
-                                          return MessageCard(
-                                            message: message,
-                                            isInitialMessage:
-                                            widget.isInitialMessage,
-                                            conversationId:
-                                            widget.conversationId,
-                                            userId: widget.userId,
-                                            name: widget.name,
-                                            contactNo: widget.contactNo,
-                                            profileImage:
-                                            widget.profileImage,
-                                          );
-                                        }).toList(),
-                                      ),
+                                    padding: const EdgeInsets.only(bottom: 0),
+                                    child: FeedScreen(
+                                        key: ValueKey(
+                                            'feedScreen_user_posts_${widget.userId}'),
+                                        postFilterType: PostType.otherPosts,
+                                        isInParentScroll: false,
+                                        bottomPaddingChannel: 20,
+                                        id: widget.userId),
+                                  ));
+                            }),
+                          )
+                        else if (chatViewController.businessTabIndexSelected ==
+                            5)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 38.0),
+                            child: Center(
+                              child: CustomText("No Reviews Found"),
+                            ),
+                          )
+                        else
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 38.0),
+                                    child: Center(
+                                      child: CustomText("Coming Soon"),
                                     ),
                                   ),
-                                ),
-                              );
-                            },
+                        if (chatViewController.businessTabIndexSelected == 0)
+                          SizedBox(
+                            height: SizeConfig.size6,
                           ),
-                        ),
-                        const SizedBox(
-                          height: 6,
-                        ),
-                        ChatInputBar(
-                          isInitialMessage: widget.isInitialMessage,
-                          userId: widget.userId ?? '',
-                          conversationId: widget.conversationId ?? '',
-                        ),
-                        const SizedBox(height: 14),
+                        if (chatViewController.businessTabIndexSelected == 0)
+                          ChatInputBar(
+                            isInitialMessage: widget.isInitialMessage,
+                            userId: widget.userId ?? '',
+                            conversationId: widget.conversationId ?? '',
+                          ),
+                        if (chatViewController.businessTabIndexSelected == 0)
+                          SizedBox(height: SizeConfig.size14)
+                        else
+                          SizedBox(height: SizeConfig.size6)
                       ],
                     ),
-
                   ],
                 ),
               );
             } else {
               return SafeArea(
                   child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      Image.asset(
-                        AppImageAssets.chating_bg,
-                        fit: BoxFit.cover,
-                        width: SizeConfig.screenWidth,
-                        height: SizeConfig.screenHeight,
-                      ),
-                      Center(
-                        child: SizedBox(
-                          height: 22,
-                          width: 22,
-                          child: CircularProgressIndicator(),
-                        ),
-                      )
-                    ],
-                  ));
+                fit: StackFit.expand,
+                children: [
+                  Image.asset(
+                    AppImageAssets.chating_bg,
+                    fit: BoxFit.cover,
+                    width: SizeConfig.screenWidth,
+                    height: SizeConfig.screenHeight,
+                  ),
+                  Center(
+                    child: SizedBox(
+                      height: 22,
+                      width: 22,
+                      child: CircularProgressIndicator(),
+                    ),
+                  )
+                ],
+              ));
             }
           }),
         );
@@ -346,12 +449,10 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
     );
   }
 
-
   void showMessageEditDialog() {
     Get.dialog(
       AlertDialog(
-        insetPadding:
-        EdgeInsets.symmetric(vertical: 12),
+        insetPadding: EdgeInsets.symmetric(vertical: 12),
         // Reduced outer spacing
         contentPadding: const EdgeInsets.only(bottom: 10),
         backgroundColor: AppColors.appBackgroundColor,
@@ -393,7 +494,7 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
                   filled: true,
                   fillColor: Colors.white.withValues(alpha: 0.05),
                   contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                     borderSide: BorderSide.none,
@@ -427,16 +528,15 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
                       ApiKeys;
                       Map<String, dynamic> data = {
                         ApiKeys.id:
-                        "${chatThemeController.selectedFirstMessage?.value
-                            ?.id}",
+                            "${chatThemeController.selectedFirstMessage?.value?.id}",
                         ApiKeys.type: "message",
                         ApiKeys.message: "${editingController.text}"
                       };
                       bool value =
-                      await chatViewController.updateMessageApi(data);
+                          await chatViewController.updateMessageApi(data);
                       if (value) {
-                        chatViewController.emitEvent(
-                            ChatEmitEvents.messageReceived, {
+                        chatViewController
+                            .emitEvent(ChatEmitEvents.messageReceived, {
                           ApiKeys.conversation_id: widget.conversationId,
                           ApiKeys.page: 1,
                           ApiKeys.is_online_user: widget.userId,

@@ -9,14 +9,19 @@ import 'package:BlueEra/features/common/food/view/widget/km_away_text_widget.dar
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../../../core/api/apiService/api_keys.dart';
+import '../../../../../core/constants/app_constant.dart';
 import '../../model/get_food_details_model.dart';
 
 class FoodCardBusiness extends StatefulWidget {
   final GetFoodDetailsModel serviceData;
   final bool isGridView;
   final bool isShowChat;
+  final bool isShowEnquiry;
   final bool isShowKM;
   final bool isFromChatCard;
+  final String? conversationId;
+  final String? businessId;
   final bool isShowBusinessInfo;
   final BusinessProfileDetails? businessData;
   final double? width;
@@ -30,7 +35,7 @@ class FoodCardBusiness extends StatefulWidget {
     this.isFromChatCard= false,
     this.isShowBusinessInfo = false,
     this.businessData,
-    this.width,
+    this.width,  this.isShowEnquiry=false, this.conversationId, this.businessId,
   }) : super(key: key);
 
   @override
@@ -209,7 +214,64 @@ class _FoodCardBusinessState extends State<FoodCardBusiness> {
                 long:
                     serviceData?.business?.businessLocation?.lon?.toString() ??
                         ""),
+            if (widget.isShowEnquiry)
+              InkWell(
+                onTap: () async {
+                  if (isGuestUser()) {
+                    createProfileScreen();
 
+                    return;
+                  }
+                  final chatViewController = Get.find<ChatViewController>();
+
+                  List<Map<String, String>> urlList =
+                      serviceData?.photos?.map((e) => {"url": e}).toList()??[];
+                  Map<String, dynamic> data = {
+                    ApiKeys.food_id:"${serviceData?.id}",
+
+                    ApiKeys.price: serviceData?.priceType == "single"?
+                    "${serviceData?.singlePrice}":"$priceText",
+                    ApiKeys.discount: "${serviceData?.discounts}",
+                    if ((widget.conversationId ==
+                        '' ||
+                        widget.conversationId==
+                            null))
+                      ApiKeys.other_user_id: widget.businessId
+                    else
+                      ApiKeys.conversation_id: widget.conversationId,
+                    ApiKeys.message:
+                    "${serviceData?.title}",
+                    ApiKeys.message_type : AppConstants.food,
+                    ApiKeys.title: serviceData?.title,
+                    ApiKeys.veg_type :serviceData?.vegType,
+                    ApiKeys.sub_category : serviceData?.subCategory,
+                    ApiKeys.calories: serviceData?.nutritionalSummaryPer100g?.caloriesKcal,
+                    ApiKeys.url: urlList,
+                  };
+                  chatViewController.sendProductMessages(data);
+                  chatViewController.changeBusinessInsideTab(0);
+
+                },
+                child: Container(
+                    width: Get.width,
+                    padding: EdgeInsets.all(SizeConfig.size5),
+
+                    margin: EdgeInsets.only(
+                        left: SizeConfig.size4,
+                        right: SizeConfig.size4,
+                        bottom: SizeConfig.size2),
+                    child: CustomText(
+                      "Enquiry",
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.white,
+                    ),
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(6),
+                      color: AppColors.primaryColor,)
+                  // border: Border.all(color: AppColors.primaryColor)),
+                ),
+              ),
             SizedBox(height: SizeConfig.size5),
           ],
         ),

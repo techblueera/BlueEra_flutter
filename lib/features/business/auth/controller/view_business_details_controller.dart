@@ -107,7 +107,7 @@ class ViewBusinessDetailsController extends GetxController {
   Rx<CategoryData?> selectedCategoryOfBusiness = Rx<CategoryData?>(null);
 
   Rx<SubCategories?> selectedSubCategoryOfBusinessNew =
-      Rx<SubCategories?>(null);
+  Rx<SubCategories?>(null);
 
   RxBool isListingDescriptionEdit = true.obs;
   RxString businessDescription = "".obs;
@@ -165,7 +165,7 @@ class ViewBusinessDetailsController extends GetxController {
     // try {
     await getUserLoginBusinessId();
     ResponseModel responseModel =
-        await BusinessProfileRepo().viewParticularBusinessProfile();
+    await BusinessProfileRepo().viewParticularBusinessProfile();
     if (responseModel.isSuccess) {
       final data = responseModel.response?.data;
       businessProfileDetails = ViewBusinessProfileModel.fromJson(data);
@@ -185,20 +185,20 @@ class ViewBusinessDetailsController extends GetxController {
           sId: businessProfileDetails?.data?.subCategoryDetails?.id,
           name: businessProfileDetails?.data?.subCategoryDetails?.name);
       selectedBusinessType?.value =
-          businessProfileDetails?.data?.typeOfBusiness == "Product"
-              ? BusinessType.Product
-              : businessProfileDetails?.data?.typeOfBusiness == "Service"
-                  ? BusinessType.Service
-                  : businessProfileDetails?.data?.typeOfBusiness == "Food"
-                      ? BusinessType.Food
-                      : BusinessType.Both;
+      businessProfileDetails?.data?.typeOfBusiness == "Product"
+          ? BusinessType.Product
+          : businessProfileDetails?.data?.typeOfBusiness == "Service"
+          ? BusinessType.Service
+          : businessProfileDetails?.data?.typeOfBusiness == "Food"
+          ? BusinessType.Food
+          : BusinessType.Both;
 
       if (businessProfileDetails?.data?.typeOfBusiness ==
           BusinessType.Product.name) {
         selectedTypeOfBusiness.value = BusinessCategory(
           title: "Product Sales: Shop/Store/Showroom",
           subTitle:
-              "(e.g., Clothes, Electronics, Pharmacy, Toy, Beauty product)",
+          "(e.g., Clothes, Electronics, Pharmacy, Toy, Beauty product)",
           icon: AppIconAssets.product_sale,
           type: BusinessType.Product.name,
         );
@@ -215,7 +215,7 @@ class ViewBusinessDetailsController extends GetxController {
         selectedTypeOfBusiness.value = BusinessCategory(
           title: "Grocerie /Food /Restaurant/Beverage",
           subTitle:
-              "All Kind of Cooking/Eatable Shops/Stall/Dairy\nRestaurants, Sweet Shops, Tea Stalls, Juice Centers",
+          "All Kind of Cooking/Eatable Shops/Stall/Dairy\nRestaurants, Sweet Shops, Tea Stalls, Juice Centers",
           icon: AppIconAssets.food_service,
           type: BusinessType.Food.name,
         );
@@ -223,7 +223,7 @@ class ViewBusinessDetailsController extends GetxController {
         selectedTypeOfBusiness.value = BusinessCategory(
           title: "Others: Manufacturing Unit/Industry/Factory",
           subTitle:
-              "If Your Business Is related to Manufacturing / create products Or other activity",
+          "If Your Business Is related to Manufacturing / create products Or other activity",
           icon: AppIconAssets.other_type,
           type: BusinessType
               .Both.name, // (requires Flutter 3.7+, else use Icons.work)
@@ -246,13 +246,13 @@ class ViewBusinessDetailsController extends GetxController {
         profileImage: businessProfileDetails?.data?.logo ?? '',
         businessName: businessProfileDetails?.data?.businessName ?? '',
         businessOwnerName:
-            businessProfileDetails?.data?.ownerDetails?[0].name ?? '',
+        businessProfileDetails?.data?.ownerDetails?[0].name ?? '',
         businessId: businessProfileDetails!.data!.id!,
         loginBusinessUserId: businessProfileDetails!.data!.userId!,
         userNameAt: "",
         businessAddress: businessProfileDetails?.data?.address ?? '',
         subCategoryOfBusiness:
-            businessProfileDetails?.data?.subCategoryDetails?.name ?? '',
+        businessProfileDetails?.data?.subCategoryDetails?.name ?? '',
         typeOfBusiness: businessProfileDetails?.data?.typeOfBusiness ?? '',
       );
 
@@ -280,7 +280,7 @@ class ViewBusinessDetailsController extends GetxController {
 
     String fileName = imagePath.split('/').last;
     imageByPart =
-        await dio.MultipartFile.fromFile(imagePath, filename: fileName);
+    await dio.MultipartFile.fromFile(imagePath, filename: fileName);
 
     Map<String, dynamic> params = {ApiKeys.category_image: imageByPart};
 
@@ -292,7 +292,7 @@ class ViewBusinessDetailsController extends GetxController {
   Future<void> updateBusinessDetails(Map<String, dynamic> params) async {
     try {
       ResponseModel responseModel =
-          await AuthRepo().updateBusinessAccountUserRepo(bodyRequest: params);
+      await AuthRepo().updateBusinessAccountUserRepo(bodyRequest: params);
 
       // ResponseModel responseModel =
       //     await BusinessProfileRepo().updateBusinessProfileDetails(params);
@@ -314,7 +314,7 @@ class ViewBusinessDetailsController extends GetxController {
   Future<void> updateBusinessProfileDetails(Map<String, dynamic> params) async {
     try {
       ResponseModel responseModel =
-          await BusinessProfileRepo().updateBusinessProfileDetails(params);
+      await BusinessProfileRepo().updateBusinessProfileDetails(params);
 
       // ResponseModel responseModel =
       //     await BusinessProfileRepo().updateBusinessProfileDetails(params);
@@ -344,15 +344,15 @@ class ViewBusinessDetailsController extends GetxController {
     isCategoriesLoading.value = true;
     try {
       ResponseModel responseModel =
-          await AuthRepo().getBusinessCategoriesRepo();
+      await AuthRepo().getBusinessCategoriesRepo();
       if (responseModel.isSuccess) {
         final data = responseModel.response?.data;
         businessCategoriesList.value = CategoryModel.fromJson(data).data ?? [];
 
         final dataList = businessCategoriesList
             .where((e) =>
-                e.id?.toLowerCase() ==
-                selectedCategoryOfBusiness.value?.id.toString())
+        e.id?.toLowerCase() ==
+            selectedCategoryOfBusiness.value?.id.toString())
             .toList();
         if (dataList.isNotEmpty) {
           businessSubCategoriesList.addAll(dataList.first.subCategories ?? []);
@@ -370,7 +370,7 @@ class ViewBusinessDetailsController extends GetxController {
   Future<void> postVerifyBusinessDocs(Map<String, dynamic> params) async {
     try {
       ResponseModel responseModel =
-          await BusinessProfileRepo().uploadVerifyBusinessDocs(params);
+      await BusinessProfileRepo().uploadVerifyBusinessDocs(params);
 
       if (responseModel.isSuccess) {
         getBusinessVerification();
@@ -386,7 +386,7 @@ class ViewBusinessDetailsController extends GetxController {
   Future<void> postVerifyOwnerBusinessDocs(Map<String, dynamic> params) async {
     try {
       ResponseModel responseModel =
-          await BusinessProfileRepo().uploadVerificationOwnerDocs(params);
+      await BusinessProfileRepo().uploadVerificationOwnerDocs(params);
       if (responseModel.isSuccess) {
         getBusinessVerification();
       } else {
@@ -399,12 +399,12 @@ class ViewBusinessDetailsController extends GetxController {
   Future<void> getBusinessVerification() async {
     try {
       ResponseModel responseModel =
-          await BusinessProfileRepo().getBusinessVerificationStatus();
+      await BusinessProfileRepo().getBusinessVerificationStatus();
       if (responseModel.isSuccess) {
         final data = responseModel.response?.data;
 
         GetBusinessVerifyViewModel value =
-            GetBusinessVerifyViewModel.fromJson(data['data']);
+        GetBusinessVerifyViewModel.fromJson(data['data']);
         viewBusinessVerifyStatus?.value = value;
       } else {
         commonSnackBar(
@@ -416,7 +416,7 @@ class ViewBusinessDetailsController extends GetxController {
   Future<void> updateBusinessDescription(Map<String, dynamic> params) async {
     try {
       ResponseModel responseModel =
-          await BusinessProfileRepo().uploadBusinessDescription(params);
+      await BusinessProfileRepo().uploadBusinessDescription(params);
       if (responseModel.isSuccess) {
         viewBusinessResponse = ApiResponse.complete(responseModel);
         viewBusinessProfile();
@@ -432,7 +432,7 @@ class ViewBusinessDetailsController extends GetxController {
   Future<void> deleteLiveStoreImage(Map<String, dynamic> params) async {
     try {
       ResponseModel responseModel =
-          await BusinessProfileRepo().deleteLiveStoreImage(params);
+      await BusinessProfileRepo().deleteLiveStoreImage(params);
       if (responseModel.isSuccess) {
         viewBusinessResponse = ApiResponse.complete(responseModel);
         viewBusinessProfile();
@@ -448,7 +448,7 @@ class ViewBusinessDetailsController extends GetxController {
   Future<void> uploadLiveStoreImage(Map<String, dynamic> params) async {
     try {
       ResponseModel responseModel =
-          await BusinessProfileRepo().uploadLiveStoreImages(params);
+      await BusinessProfileRepo().uploadLiveStoreImages(params);
       if (responseModel.isSuccess) {
         viewBusinessResponse = ApiResponse.complete(responseModel);
         viewBusinessProfile();
@@ -466,7 +466,7 @@ class ViewBusinessDetailsController extends GetxController {
   Future<void> viewBusinessProfileById(String userId) async {
     try {
       ResponseModel responseModel =
-          await BusinessProfileRepo().viewBusinessProfileById(userId);
+      await BusinessProfileRepo().viewBusinessProfileById(userId);
 
       if (responseModel.isSuccess) {
         final data = responseModel.response?.data;
@@ -478,16 +478,16 @@ class ViewBusinessDetailsController extends GetxController {
           ApiKeys.user_id: visitedBusinessProfileDetails?.data?.userId
         };
         bool checkCompleted =
-            await chatViewController.checkChatConnection(detas);
+        await chatViewController.checkChatConnection(detas);
         imagePath?.value = visitedBusinessProfileDetails?.data?.logo ?? "";
         businessDescription.value =
             visitedBusinessProfileDetails?.data?.businessDescription ?? "";
 
         conversationId.value = chatViewController
-                .newVisitContactApiResponse?.value?.data?.conversationId ??
+            .newVisitContactApiResponse?.value?.data?.conversationId ??
             '';
         otherUserId?.value = chatViewController
-                .newVisitContactApiResponse?.value?.data?.otherUserId ??
+            .newVisitContactApiResponse?.value?.data?.otherUserId ??
             '';
         if (checkCompleted) {
           viewBusinessResponseNew = ApiResponse.complete(responseModel);
@@ -495,9 +495,9 @@ class ViewBusinessDetailsController extends GetxController {
         visitingcontroller.isFollow.value =
             visitedBusinessProfileDetails?.data?.is_following ?? false;
         distanceFromKm.value = await getDistanceInKm(
-                visitedBusinessProfileDetails?.data?.businessLocation?.lat ?? 0,
-                visitedBusinessProfileDetails?.data?.businessLocation?.lon ??
-                    0) ??
+            visitedBusinessProfileDetails?.data?.businessLocation?.lat ?? 0,
+            visitedBusinessProfileDetails?.data?.businessLocation?.lon ??
+                0) ??
             0.0;
         update();
       } else {
@@ -534,7 +534,7 @@ class ViewBusinessDetailsController extends GetxController {
         businessRatingsResponse.value = ApiResponse.complete(responseModel);
 
         BusinessRatingsModel businessRatingsModel =
-            BusinessRatingsModel.fromJson(responseModel.response?.data);
+        BusinessRatingsModel.fromJson(responseModel.response?.data);
         final List<BusinessRatingsData> newBusinessRatingsData =
             businessRatingsModel.data ?? [];
 
@@ -566,7 +566,7 @@ class ViewBusinessDetailsController extends GetxController {
   Future<void> getAllProductsApi(Map<String, dynamic> params) async {
     try {
       ResponseModel responseModel =
-          await BusinessProfileRepo().getAllProductsApi(params);
+      await BusinessProfileRepo().getAllProductsApi(params);
       if (responseModel.isSuccess) {
         final data = responseModel.response?.data;
         getAllProductDetails?.value = GetAllProductDetailsModel.fromJson(data);
@@ -581,7 +581,7 @@ class ViewBusinessDetailsController extends GetxController {
   Future<void> getParticularRatingApi(Map<String, dynamic> params) async {
     try {
       ResponseModel responseModel =
-          await BusinessProfileRepo().getParticularRatingApi(params);
+      await BusinessProfileRepo().getParticularRatingApi(params);
 
       if (responseModel.isSuccess) {
         final data = responseModel.response?.data;
@@ -638,7 +638,7 @@ class ViewBusinessDetailsController extends GetxController {
       ResponseModel? responseModel;
 
       responseModel =
-          await BusinessProfileRepo().submitRatingToPersonal(userId, params);
+      await BusinessProfileRepo().submitRatingToPersonal(userId, params);
 
       if (responseModel.isSuccess) {
         commonSnackBar(message: "Thank you for your rating!");
@@ -689,16 +689,24 @@ class ViewBusinessDetailsController extends GetxController {
   // Fetch products from API
   final RxList<GetProductData> products = <GetProductData>[].obs;
 
-  Future<void> fetchProducts({required String visitBusinessId}) async {
+  Future<void> fetchProducts({required String visitBusinessId,bool? isSilent}) async {
     try {
-      products.clear();
+      if(isSilent!=true){
+        products.clear();
+      }
+
       errorMessage.value = '';
       final responseModel =
-          await BusinessProfileRepo().getProducts(businessId: visitBusinessId);
+      await BusinessProfileRepo().getProducts(businessId: visitBusinessId);
       final getOwnProductModel =
-          GetProductModel.fromJson(responseModel.response!.data);
+      GetProductModel.fromJson(responseModel.response!.data);
+      if(isSilent!=true){
+        products.addAll(getOwnProductModel.data);
+      }else{
+        products.value=getOwnProductModel.data;
+      }
 
-      products.addAll(getOwnProductModel.data);
+
       businessProductResponse.value = ApiResponse.complete(responseModel);
     } catch (e) {
       businessProductResponse.value = ApiResponse.error('error');
@@ -724,8 +732,16 @@ class ViewBusinessDetailsController extends GetxController {
 
     if (response.isSuccess) {
       businessServiceResponse.value = ApiResponse.complete(response);
-      List<dynamic> jsonData = json.decode(jsonEncode(response.response?.data));
-      log("API Response: --------- ${response.response?.data}");
+      List<dynamic> jsonData=[];
+
+      if(response.response?.data is List){
+        jsonData = json.decode(jsonEncode(response.response?.data));
+
+      }else if(response.response?.data is Map){
+        jsonData = json.decode(jsonEncode(response.response?.data['services']));
+
+      }
+
       services.value =
           jsonData.map((e) => GetServiceModel.fromJson(e)).toList();
     } else {
@@ -736,9 +752,13 @@ class ViewBusinessDetailsController extends GetxController {
   // Fetch foods from API
   final RxList<GetFoodDetailsModel> foods = <GetFoodDetailsModel>[].obs;
 
-  Future<void> fetchFoods({required String visitBusinessId}) async {
+  Future<void> fetchFoods({required String visitBusinessId,bool? isSilent}) async {
     try {
-      foods.clear();
+      if(isSilent!=true){
+        foods.clear();
+      }
+
+
       errorMessage.value = '';
       final responseModel = await BusinessProfileRepo()
           .getFoods(businessId: visitBusinessId, queryParam: {'type': 'food'});
@@ -749,9 +769,9 @@ class ViewBusinessDetailsController extends GetxController {
           // if API returns a raw array
           foods.value =
               data.map((e) => GetFoodDetailsModel.fromJson(e)).toList();
-        } else if (data is Map && data['data'] is List) {
+        } else if (data is Map && data['services'] is List) {
           // if API returns { "data": [...] }
-          foods.value = (data['data'] as List)
+          foods.value = (data['services'] as List)
               .map((e) => GetFoodDetailsModel.fromJson(e))
               .toList();
         }

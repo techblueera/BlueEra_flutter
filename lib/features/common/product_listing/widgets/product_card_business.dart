@@ -1,4 +1,3 @@
-
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -18,8 +17,11 @@ import 'package:get/get.dart';
 class ProductCardBusiness extends StatefulWidget {
   final GetProductData productData;
   final bool isShowChat;
+  final bool isShowEnquiry;
   final bool isShowKM;
   final bool isShowBusinessInfo;
+  final String? conversationId;
+  final String? businessId;
   final BusinessProfileDetails? businessData;
   final double? width;
 
@@ -30,7 +32,7 @@ class ProductCardBusiness extends StatefulWidget {
     this.isShowKM = false,
     this.isShowBusinessInfo = false,
     this.businessData,
-    this.width,
+    this.width, this.isShowEnquiry=false, this.conversationId, this.businessId,
   }) : super(key: key);
 
   @override
@@ -73,7 +75,7 @@ class _ProductCardState extends State<ProductCardBusiness> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: AppColors.whiteE5
+              color: AppColors.whiteE5
           ),
           // boxShadow: [
           //   BoxShadow(
@@ -121,7 +123,7 @@ class _ProductCardState extends State<ProductCardBusiness> {
               ),
             ),
             SizedBox(height: SizeConfig.size8),
-           // SizedBox(height: SizeConfig.size6),
+            // SizedBox(height: SizeConfig.size6),
             // Price Row
             if ((product.sellerClassification?.variants.isNotEmpty ??
                 false)) ...[
@@ -169,7 +171,7 @@ class _ProductCardState extends State<ProductCardBusiness> {
                   ],
                 ),
               ),
-             // SizedBox(height: SizeConfig.size2),
+              // SizedBox(height: SizeConfig.size2),
             ],
             SizedBox(height: SizeConfig.size10),
             if (widget.isShowKM)
@@ -178,26 +180,26 @@ class _ProductCardState extends State<ProductCardBusiness> {
                   vertical: SizeConfig.size4,
                 ), margin: EdgeInsets.symmetric(
                   horizontal: SizeConfig.size4
-                ),
+              ),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(SizeConfig.size4),
-                  color: AppColors.blueShade.withOpacity(0.1),
-                  border: Border.all(
-                    color: AppColors.blueShade
-                  )
+                    borderRadius: BorderRadius.circular(SizeConfig.size4),
+                    color: AppColors.blueShade.withOpacity(0.1),
+                    border: Border.all(
+                        color: AppColors.blueShade
+                    )
                 ),
                 child: KmAwayTextWidget(
-                  isUnderlineShow: false,
+                    isUnderlineShow: false,
                     lat: widget.productData.product.sellerClassification
-                            ?.businessLocation?.latitude
-                            .toString() ??
+                        ?.businessLocation?.latitude
+                        .toString() ??
                         "",
                     long: widget.productData.product.sellerClassification
-                            ?.businessLocation?.longitude
-                            ?.toString() ??
+                        ?.businessLocation?.longitude
+                        ?.toString() ??
                         ""),
               ),
-             // SizedBox(height: SizeConfig.size2),
+            // SizedBox(height: SizeConfig.size2),
             SizedBox(height: SizeConfig.size10),
             if (widget.isShowChat)
               InkWell(
@@ -214,7 +216,7 @@ class _ProductCardState extends State<ProductCardBusiness> {
                   chatViewController.newVisitContactApiResponse?.value;
                   await chatViewController.checkChatConnection(detas);
                   List<Map<String, String>> urlList =
-                  product.details?.media.map((e) => {"url": e}).toList()??[];
+                      product.details?.media.map((e) => {"url": e}).toList()??[];
                   Map<String, dynamic> data = {
                     ApiKeys.product_id:"${product.details?.id}",
 
@@ -241,7 +243,7 @@ class _ProductCardState extends State<ProductCardBusiness> {
                           ''),
                     ApiKeys.message:
                     "${product.details?.name}",
-                    ApiKeys.message_type: "product",
+                    ApiKeys.message_type: AppConstants.product,
                     ApiKeys.title: product.details?.name,
                     ApiKeys.mrp :product.sellerClassification?.variants[0].mrp,
                     ApiKeys.url: urlList,
@@ -284,29 +286,84 @@ class _ProductCardState extends State<ProductCardBusiness> {
 
                 },
                 child: Container(
-                  width: Get.width,
-                  padding: EdgeInsets.all(SizeConfig.size5),
+                    width: Get.width,
+                    padding: EdgeInsets.all(SizeConfig.size5),
 
-                  margin: EdgeInsets.only(
-                      left: SizeConfig.size4,
-                      right: SizeConfig.size4,
-                      bottom: SizeConfig.size2),
-                  child: CustomText(
-                    "Chat",
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.white,
-                  ),
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
+                    margin: EdgeInsets.only(
+                        left: SizeConfig.size4,
+                        right: SizeConfig.size4,
+                        bottom: SizeConfig.size2),
+                    child: CustomText(
+                      "Chat",
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.white,
+                    ),
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(6),
                       color: AppColors.primaryColor,)
-                     // border: Border.all(color: AppColors.primaryColor)),
+                  // border: Border.all(color: AppColors.primaryColor)),
                 ),
               ),
+            if (widget.isShowEnquiry)
+              InkWell(
+                onTap: () async {
+                  if (isGuestUser()) {
+                    createProfileScreen();
+
+                    return;
+                  }
+                  final chatViewController = Get.find<ChatViewController>();
+
+                  List<Map<String, String>> urlList =
+                      product.details?.media.map((e) => {"url": e}).toList()??[];
+                  Map<String, dynamic> data = {
+                    ApiKeys.product_id:"${product.details?.id}",
+
+                    ApiKeys.price: "${product.sellerClassification?.variants[0].sellingPrice}",
+                    ApiKeys.discount: "${discountProduct}",
+                    if ((widget.conversationId ==
+                        '' ||
+                        widget.conversationId==
+                            null))
+                      ApiKeys.other_user_id: widget.businessId
+                    else
+                      ApiKeys.conversation_id: widget.conversationId,
+                    ApiKeys.message:
+                    "${product.details?.name}",
+                    ApiKeys.message_type: AppConstants.product,
+                    ApiKeys.title: product.details?.name,
+                    ApiKeys.mrp :product.sellerClassification?.variants[0].mrp,
+                    ApiKeys.url: urlList,
+                  };
+                  chatViewController.sendProductMessages(data);
+                  chatViewController.changeBusinessInsideTab(0);
+
+                },
+                child: Container(
+                    width: Get.width,
+                    padding: EdgeInsets.all(SizeConfig.size5),
+
+                    margin: EdgeInsets.only(
+                        left: SizeConfig.size4,
+                        right: SizeConfig.size4,
+                        bottom: SizeConfig.size2),
+                    child: CustomText(
+                      "Enquiry",
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.white,
+                    ),
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(6),
+                      color: AppColors.primaryColor,)
+                  // border: Border.all(color: AppColors.primaryColor)),
+                ),
+              ),
+            SizedBox(height: SizeConfig.size4,),
           ],
         ),
       ),
     );
   }
 }
-

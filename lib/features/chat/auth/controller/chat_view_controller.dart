@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -87,7 +88,7 @@ class ChatViewController extends GetxController {
   final localStorageHelper = LocalStorageHelper();
   RxInt businessTabIndexSelected = 0.obs;
 
-  final List<String> tabs = ['Chat','Products', 'Services','Post','Reviews','Others'];
+  final List<String> tabs = ['Chat','Products', 'Foods','Services','Post','Reviews','Others'];
 
   void changeBusinessInsideTab(int index) {
     businessTabIndexSelected.value = index;
