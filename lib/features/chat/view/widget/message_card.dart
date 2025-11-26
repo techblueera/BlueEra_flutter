@@ -246,7 +246,8 @@ class _MessageCardState extends State<MessageCard>
             selectedVariants: (widget.message.metadata?.variant?.contains("{")??false)?jsonDecode(widget.message.metadata?.variant??'{}'):{},
           ),
 
-              width: SizeConfig.screenWidth*0.68
+              width: SizeConfig.screenWidth*0.68,
+            time: time
           );
       case "order_request":
         messageWidget = RiderRequestMsgCard(message: widget.message,);
@@ -471,6 +472,7 @@ class _MessageCardState extends State<MessageCard>
   Widget ProductCard(
       ProductListing product, {
         required double width,
+        required String time
       }) {
 
     return GestureDetector(
@@ -533,28 +535,43 @@ class _MessageCardState extends State<MessageCard>
                     const SizedBox(height: 6),
 
                     // Price Row
-                    Row(
+                    Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        CustomText(
-                          '₹${product.price}',
-                          fontWeight: FontWeight.w700,
-                          fontSize: SizeConfig.medium,
-                          color: AppColors.mainTextColor,
+                        Row(
+                          children: [
+                            CustomText(
+                              '₹${product.price}',
+                              fontWeight: FontWeight.w700,
+                              fontSize: SizeConfig.medium,
+                              color: AppColors.mainTextColor,
+                            ),
+                            const SizedBox(width: 8),
+                            CustomText(
+                              ' ₹${product.mrp}',
+                              fontSize: SizeConfig.small11,
+                              color: AppColors.grayText,
+                              fontWeight: FontWeight.w400,
+                              decoration: TextDecoration.lineThrough,
+                            ),
+                            CustomText(
+                              ' ${product.discount}% off',
+                              fontSize: SizeConfig.small11,
+                              color: Colors.green[600],
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 8),
-                        CustomText(
-                          ' ₹${product.mrp}',
-                          fontSize: SizeConfig.small11,
-                          color: AppColors.grayText,
-                          fontWeight: FontWeight.w400,
-                          decoration: TextDecoration.lineThrough,
-                        ),
-                        CustomText(
-                          ' ${product.discount}% off',
-                          fontSize: SizeConfig.small11,
-                          color: Colors.green[600],
-                          fontWeight: FontWeight.w400,
-                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                          child: CustomText(
+                            "${time}",
+                            fontSize: SizeConfig.size10,
+                            fontWeight: FontWeight.w400,
+                            overflow: TextOverflow.ellipsis,
+                            color: AppColors.grayText,
+                            maxLines: 1,
+                          ),
+                        )
                       ],
                     ),
 
