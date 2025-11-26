@@ -25,7 +25,7 @@ class StandaloneServiceScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print("sdkl;mcskcmskl;dcmsdcmk");
+
     return Obx(() {
       if (controller.isLoading.value) {
         return const Center(child: CircularProgressIndicator());
