@@ -1843,5 +1843,12 @@ class AppStrings {
   static const pleaseSpecifyIfOther = "please_specify_if_other";
   static const done = "done";
 
+
+  /// Strings Keys
+  static const microphonePermissionRequired = "microphonePermissionRequired";
+  static const recordingPaused = "recordingPaused";
+  static const recording = "recording";
+  static const tab_ott = "tab_ott";
+
   ///BHAVESH END
 }
