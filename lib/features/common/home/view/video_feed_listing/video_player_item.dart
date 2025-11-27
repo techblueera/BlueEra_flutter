@@ -474,7 +474,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                 ],
               ),
             ),
-            SizedBox(height: SizeConfig.size10),
+            SizedBox(height: SizeConfig.size30),
 
           ],
         ),
