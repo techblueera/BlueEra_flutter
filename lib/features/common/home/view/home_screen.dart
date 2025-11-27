@@ -48,7 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
     AppStrings.allPosts,
     AppStrings.channel,
     AppStrings.tab_saved,
-    AppStrings.tab_ott,
+    // AppStrings.tab_ott,
   ];
   int selectedIndex = 0;
   final TextEditingController searchController = TextEditingController();
@@ -262,7 +262,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 selectedTab: _selectedSavedTab,
                                 headerHeight:
                                     _headerHeight + SizeConfig.size30),
-                      OttScreen()
+                      // OttScreen()
                           ]
                         : [
                             HomeFeedScreenNew(
@@ -284,7 +284,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 selectedTab: _selectedSavedTab,
                                 headerHeight:
                                     _headerHeight + SizeConfig.size30),
-                      OttScreen()
+                      // OttScreen()
 
                     ],
                   ),
