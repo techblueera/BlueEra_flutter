@@ -516,4 +516,8 @@ class AppIconAssets {
   static String hostelIcon = "${iconPath}hostel_icon.svg";
   static String otherBusinessRelatedIcon = "${iconPath}other_business_related_icon.svg";
   static String refreshIcon = "${iconPath}refresh_icon.svg";
+
+  static String frontDeskIcon = "${iconPath}front_desk_icon.svg";
+  static String officeIcon = "${iconPath}office_icon.svg";
+  static String roadsideViewIcon = "${iconPath}roadside_view_icon.svg";
 }

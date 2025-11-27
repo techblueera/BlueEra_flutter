@@ -518,4 +518,9 @@ class ApiKeys {
   static const argCategoryData = 'argCategoryData';
   static const argSubCategory = 'argSubCategory';
   static const argBusinessType = 'argBusinessType';
+  static const argProfession = 'argProfession';
+  static const argProfessionTagId = 'argProfessionTagId';
+  static const argProfessionSubCategory = 'argProfessionSubCategory';
+  static const argSelfEmployment = 'argSelfEmployment';
+  static const argSelfEmploymentTagId = 'argSelfEmploymentTagId';
 }

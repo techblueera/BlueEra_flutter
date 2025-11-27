@@ -14,6 +14,7 @@ import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -25,6 +26,13 @@ class AddBusinessLivePhoto extends StatefulWidget {
 }
 
 class _AddBusinessLivePhotoState extends State<AddBusinessLivePhoto> {
+  final List<Map<String, String>> liveImageTitles = [
+    {'label': AppStrings.frontView, 'icon': AppIconAssets.frontDeskIcon},
+    {'label': AppStrings.entireStoreOffice, 'icon': AppIconAssets.officeIcon},
+    {'label': AppStrings.roadsideOutsideView, 'icon': AppIconAssets.roadsideViewIcon},
+  ];
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -61,7 +69,7 @@ class _AddBusinessLivePhotoState extends State<AddBusinessLivePhoto> {
                   ],
                 ),
 
-                SizedBox(height: SizeConfig.size16),
+                SizedBox(height: SizeConfig.paddingL),
 
                 /// LayoutBuilder to adapt image size
                 LayoutBuilder(
@@ -81,26 +89,42 @@ class _AddBusinessLivePhotoState extends State<AddBusinessLivePhoto> {
 
                         // API Photos (Already uploaded)
                         for (int i = 0; i < apiPhotos.length; i++) {
-                          allPhotos.add(_buildImageContainer(
-                            context,
-                            apiPhotos[i],
-                            i,
-                            controller,
-                            containerWidth,
-                            apiPhotos,
+                          allPhotos.add(
+                              Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _buildLiveImageLabel(i),
+                                  SizedBox(height: SizeConfig.size10),
+                                  _buildImageContainer(
+                                    context,
+                                    apiPhotos[i],
+                                    i,
+                                    controller,
+                                    containerWidth,
+                                    apiPhotos,
+                                  ),
+                                ]
                           ));
                         }
 
                         // Empty slots for remaining photos
                         for (int i = 0; i < emptySlots; i++) {
-                          allPhotos.add(_buildImageContainer(
-                            context,
-                            "",
-                            apiPhotos.length + i,
-                            controller,
-                            containerWidth,
-                            apiPhotos,
-                          ));
+                          allPhotos.add(
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _buildLiveImageLabel(i),
+                                  SizedBox(height: SizeConfig.size10),
+                                  _buildImageContainer(
+                                    context,
+                                    "",
+                                    apiPhotos.length + i,
+                                    controller,
+                                    containerWidth,
+                                    apiPhotos,
+                                  ),
+                                ],
+                              ));
                         }
 
                         return Row(
@@ -114,32 +138,121 @@ class _AddBusinessLivePhotoState extends State<AddBusinessLivePhoto> {
 
                 SizedBox(height: SizeConfig.size16),
 
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: InkWell(
-                      borderRadius: BorderRadius.circular(10.0),
-                      onTap: ()=> Get.until((route) => route.settings.name == RouteHelper.getBottomNavigationBarScreenRoute()),
-                      child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: SizeConfig.size20,
-                        vertical: SizeConfig.size6
+                GetBuilder<ViewBusinessDetailsController>(
+                  id: 'livePhotos',
+                  builder: (controller) {
+                    final apiPhotos = controller.businessProfileDetails?.data?.livePhotos ?? [];
+                    final int count = apiPhotos.length;
+                    final bool hasPhoto = count > 0;
+
+                    /// ---------- BUTTON ACTION ----------
+                    void handleTap() async {
+                      if (!hasPhoto) {
+                        // Skip (no photos uploaded)
+                        Get.until((route) =>
+                        route.settings.name == RouteHelper.getBottomNavigationBarScreenRoute());
+                        return;
+                      }
+
+                      if (count < 3) {
+                        showCommonDialog(
+                          context: context,
+                          header: AppStrings.storeLivePhoto.tr,
+                          text: AppStrings.upload3StorePictures.tr,
+                          confirmCallback: () async {
+                            Get.back();
+                            final imgStr = await SelectProfilePictureDialog.pickFromCamera(
+                              context,
+                              cropAspectRatio: CropAspectRatio(width: 3, height: 4),
+                            );
+                            if (imgStr != null) {
+                              await controller.saveBusinessImages(imgStr, controller);
+                              controller.update(['livePhotos']);
+                            }
+                          },
+                          cancelCallback: () => Get.back(),
+                          confirmText: AppStrings.ok,
+                          cancelText: AppStrings.cancel,
+                        );
+                        return;
+                      }
+
+                      // Continue (photos are 3)
+                      Get.until((route) =>
+                      route.settings.name == RouteHelper.getBottomNavigationBarScreenRoute());
+                    }
+
+                    /// ---------- BUTTON UI ----------
+                    final bool isContinue = hasPhoto;
+                    final bool isDisabled = hasPhoto && count < 3;
+
+                    final Color borderColor = !isContinue
+                        ? AppColors.secondaryTextColor
+                        : isDisabled
+                        ? AppColors.grey9B
+                        : AppColors.primaryColor;
+
+                    final Color bgColor = !isContinue
+                        ? Colors.transparent
+                        : isDisabled
+                        ? AppColors.grey9B
+                        : AppColors.primaryColor;
+
+                    final Color textColor = !isContinue
+                        ? AppColors.secondaryTextColor
+                        : AppColors.white;
+
+                    final String text = !isContinue ? AppStrings.skip : AppStrings.continueText;
+
+                    return Align(
+                      alignment: Alignment.centerRight,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(10.0),
+                        onTap: handleTap,
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: SizeConfig.size20,
+                            vertical: SizeConfig.size6,
+                          ),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: borderColor),
+                            borderRadius: BorderRadius.circular(10.0),
+                            color: bgColor,
+                          ),
+                          child: CustomText(
+                            text,
+                            fontSize: SizeConfig.medium,
+                            fontWeight: FontWeight.w500,
+                            color: textColor,
+                          ),
+                        ),
                       ),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: AppColors.secondaryTextColor),
-                        borderRadius: BorderRadius.circular(10.0)
-                      ),
-                      child: CustomText(
-                        AppStrings.skip,
-                        fontSize: SizeConfig.medium,
-                        fontWeight: FontWeight.w400,
-                        color: AppColors.secondaryTextColor,
-                      ),
-                    ),
-                  ),
+                    );
+                  },
                 )
+
               ],
             )
         ),
+      ),
+    );
+  }
+
+  Widget _buildLiveImageLabel(int i){
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          LocalAssets(imagePath: liveImageTitles[i]['icon']!),
+          SizedBox(width: SizeConfig.size5),
+          CustomText(
+            liveImageTitles[i]['label'],
+            fontSize: SizeConfig.small,
+            fontWeight: FontWeight.w600,
+            color: AppColors.mainTextColor,
+          ),
+        ],
       ),
     );
   }
@@ -160,7 +273,10 @@ class _AddBusinessLivePhotoState extends State<AddBusinessLivePhoto> {
           onTap: () async {
             if (isEmpty) {
               // Pick and upload new image
-              final imgStr = await SelectProfilePictureDialog.pickFromCamera(context);
+              final imgStr = await SelectProfilePictureDialog.pickFromCamera(
+                  context,
+                  cropAspectRatio: CropAspectRatio(width: 3, height: 4)
+              );
               if (imgStr != null) {
                 await controller.saveBusinessImages(imgStr, controller);
                 controller.update(['livePhotos']);

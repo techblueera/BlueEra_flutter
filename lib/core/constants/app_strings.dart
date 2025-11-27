@@ -1716,6 +1716,11 @@ class AppStrings {
 
   static const String minimumThreeImages = 'Minimum 3 images';
 
+  static const String youHaveChosen = 'youHaveChosen';
+
+  static const String frontView = 'frontView';
+  static const String entireStoreOffice = 'entireStoreOffice';
+  static const String roadsideOutsideView = 'roadsideOutsideView';
 
 
   ///BHAVESH START

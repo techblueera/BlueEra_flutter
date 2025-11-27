@@ -10,7 +10,8 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
-import 'package:BlueEra/features/common/store/widget/StoreCategory.dart';
+import 'package:BlueEra/features/common/auth/model/business_profile_category.dart';
+import 'package:BlueEra/features/common/auth/model/individual_profiile_category.dart';
 import 'package:BlueEra/features/common/store/widget/icon_grid_item.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
@@ -33,11 +34,7 @@ class _CreateNewAccountScreenState extends State<CreateNewAccountScreen> {
   @override
   void initState() {
     super.initState();
-    /// individual Categories
-    authController.getAllProfessionController();
-
-   /// Business Categories
-    authController.getAllNewCategories();
+    authController.loadIndividualAndBusinessCategoryData();
   }
 
   @override
@@ -99,9 +96,14 @@ class _CreateNewAccountScreenState extends State<CreateNewAccountScreen> {
                 horizontal: SizeConfig.size8,
                 vertical: SizeConfig.size10,
               ),
-              child: Obx(()=> Column(
+              child: Obx(()=>
+              authController.isAppLoading.value
+                  ? const Center(child: CircularProgressIndicator())
+                  : Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+
+                  /// Individual Categories
 
                   /// Social Profile
                   CustomFormCard(
@@ -115,9 +117,22 @@ class _CreateNewAccountScreenState extends State<CreateNewAccountScreen> {
                               title: AppStrings.socialProfile
                           ),
                           SizedBox(height: SizeConfig.size15),
-                          _iconGrid(
-                              individualSocialProfileList,
-                              onTap: (category) {}
+                          genericIconGrid<IndividualProfileCategory>(
+                              items: individualSocialProfileList,
+                              labelBuilder: (c) => c.name,
+                              iconBuilder: (c) => c.icon,
+                              onTap: (c) {
+                                print("You tapped slugId → ${c.slugId}");
+                                print("You tapped professionSId → ${c.professionTagId}");
+                                Get.toNamed(
+                                  RouteHelper.getPersonalAccountNewScreenRoute(),
+                                  arguments: {
+                                    ApiKeys.argAccountType: AppConstants.individual,
+                                    ApiKeys.argProfessionTagId: c.professionTagId,
+                                    ApiKeys.argProfessionSubCategory: c.professionSubCategory,
+                                  },
+                                );
+                              }
                           )
                         ],
                       )
@@ -136,12 +151,24 @@ class _CreateNewAccountScreenState extends State<CreateNewAccountScreen> {
                             title: AppStrings.joinAsEarnWithBlueEra,
                           ),
                           SizedBox(height: SizeConfig.size15),
-                          _iconGrid(
-                              individualSelfEmployedList,
-                              onTap: (category){
-                                print("You tapped → ${category.slugId}");
-                                print("You tapped category name → ${category.name}");
-
+                          genericIconGrid<IndividualProfileCategory>(
+                              items: individualSelfEmployedList,
+                              labelBuilder: (c) => c.name,
+                              iconBuilder: (c) => c.icon,
+                              onTap: (c){
+                                print("You tapped slugId → ${c.slugId}");
+                                print("You tapped professionSId → ${c.professionTagId}");
+                                print("You tapped selfEmployment → ${c.selfEmployment}");
+                                print("You tapped selfEmploymentSId → ${c.selfEmploymentTagId}");
+                                Get.toNamed(
+                                  RouteHelper.getPersonalAccountNewScreenRoute(),
+                                  arguments: {
+                                    ApiKeys.argAccountType: AppConstants.individual,
+                                    ApiKeys.argProfessionTagId: c.professionTagId,
+                                    ApiKeys.argSelfEmployment: c.selfEmployment,
+                                    ApiKeys.argSelfEmploymentTagId: c.selfEmploymentTagId,
+                                  },
+                                );
                               }
                           )
 
@@ -159,14 +186,17 @@ class _CreateNewAccountScreenState extends State<CreateNewAccountScreen> {
 
                   SizedBox(height: SizeConfig.size15),
 
-                  authController.isCategoryLoading.value ?
-                  Align(
-                      alignment: Alignment.center,
-                      child: Padding(
-                        padding: const EdgeInsets.all(20.0),
-                        child: CircularProgressIndicator(),
-                      ))
-                      : Column(
+
+                  /// Business Categories
+                  // authController.isCategoryLoading.value ?
+                  // Align(
+                  //     alignment: Alignment.center,
+                  //     child: Padding(
+                  //       padding: const EdgeInsets.all(20.0),
+                  //       child: CircularProgressIndicator(),
+                  //     ))
+                  //     :
+                  Column(
                     children: [
                       /// Grocery/Food/Restaurant
                       CustomFormCard(
@@ -180,8 +210,10 @@ class _CreateNewAccountScreenState extends State<CreateNewAccountScreen> {
                                   title: AppStrings.groceryFoodRestaurant
                               ),
                               SizedBox(height: SizeConfig.size15),
-                              _iconGrid(
-                                businessFoodsCategories,
+                              genericIconGrid<BusinessProfileCategory>(
+                                items: businessFoodsCategories,
+                                labelBuilder: (c) => c.name,
+                                iconBuilder: (c) => c.icon,
                                 onTap: (category) {
                                   print("You tapped → ${category.slugId}");
                                   print("You tapped category name → ${category.name}");
@@ -210,8 +242,10 @@ class _CreateNewAccountScreenState extends State<CreateNewAccountScreen> {
                                   title: AppStrings.shopStoreShowroom
                               ),
                               SizedBox(height: SizeConfig.size15),
-                              _iconGrid(
-                                businessProductsCategories,
+                              genericIconGrid<BusinessProfileCategory>(
+                                  items: businessProductsCategories,
+                                  labelBuilder: (c) => c.name,
+                                  iconBuilder: (c) => c.icon,
                                 onTap: (category) {
                                   _showDropdownDialog(
                                       businessType: BusinessType.Product,
@@ -236,8 +270,10 @@ class _CreateNewAccountScreenState extends State<CreateNewAccountScreen> {
                                   title: AppStrings.services
                               ),
                               SizedBox(height: SizeConfig.size15),
-                              _iconGrid(
-                                businessServicesCategories,
+                              genericIconGrid<BusinessProfileCategory>(
+                                items: businessServicesCategories,
+                                labelBuilder: (c) => c.name,
+                                iconBuilder: (c) => c.icon,
                                 onTap: (category) {
                                   print("You tapped → ${category.slugId}");
                                   print("You tapped category id → ${category.categoryData}");
@@ -296,13 +332,7 @@ class _CreateNewAccountScreenState extends State<CreateNewAccountScreen> {
 
                   SizedBox(height: SizeConfig.size10),
                   InkWell(
-                    onTap: ()=> Get.toNamed(
-                      RouteHelper.getCreateUserAccountRoute(),
-                      arguments: {
-                        ApiKeys.argAccountType: AppConstants.business,
-                        ApiKeys.argBusinessType: BusinessType.Both
-                      },
-                    ),
+                    onTap: (){},
                     child: CustomFormCard(
                       padding: EdgeInsets.all(
                         SizeConfig.size10,
@@ -347,8 +377,7 @@ class _CreateNewAccountScreenState extends State<CreateNewAccountScreen> {
                   SizedBox(height: kToolbarHeight),
 
                 ],
-              ))
-              ,
+              )),
             ),
           ),
         ),
@@ -365,15 +394,17 @@ class _CreateNewAccountScreenState extends State<CreateNewAccountScreen> {
     );
   }
 
-  Widget _iconGrid(
-      List<ProfileCategory> items, {
-        void Function(ProfileCategory category)? onTap,
-      }) {
+  Widget genericIconGrid<T>({
+    required List<T> items,
+    required String Function(T item) labelBuilder,
+    required String Function(T item) iconBuilder,
+    void Function(T item)? onTap,
+  }) {
     const crossAxisCount = 4;
     const mainAxisSpacing = 16.0;
 
     // Split into rows of 4
-    final rows = <List<ProfileCategory>>[];
+    final rows = <List<T>>[];
 
     for (int i = 0; i < items.length; i += crossAxisCount) {
       rows.add(
@@ -394,20 +425,18 @@ class _CreateNewAccountScreenState extends State<CreateNewAccountScreen> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: List.generate(crossAxisCount * 2 - 1, (i) {
-              // Even index → actual item
-              // Odd index → spacing
               if (i.isEven) {
                 final itemIndex = i ~/ 2;
 
                 if (itemIndex < rowItems.length) {
-                  final category = rowItems[itemIndex];
+                  final item = rowItems[itemIndex];
 
                   return Expanded(
                     child: IconGridItem(
-                      label: category.name,
-                      icon: category.icon,
+                      label: labelBuilder(item),
+                      icon: iconBuilder(item),
                       onTap: () {
-                        if (onTap != null) onTap(category);
+                        if (onTap != null) onTap(item);
                       },
                     ),
                   );
@@ -415,7 +444,6 @@ class _CreateNewAccountScreenState extends State<CreateNewAccountScreen> {
                   return const Expanded(child: SizedBox());
                 }
               } else {
-                // spacing between items
                 return SizedBox(width: SizeConfig.size8);
               }
             }),
@@ -424,6 +452,7 @@ class _CreateNewAccountScreenState extends State<CreateNewAccountScreen> {
       }),
     );
   }
+
 
   Future<void> _showDropdownDialog({required BusinessType businessType, CategoryData? categoryData}) async {
     if (categoryData == null
@@ -515,7 +544,7 @@ class _CreateNewAccountScreenState extends State<CreateNewAccountScreen> {
     if (selected != null) {
       Navigator.pushNamed(
         context,
-        RouteHelper.getCreateUserAccountRoute(),
+        RouteHelper.getGstNumberScreenRoute(),
         arguments: {
           ApiKeys.argAccountType: AppConstants.business,
           ApiKeys.argBusinessType: businessType,

@@ -5,7 +5,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
-import 'package:BlueEra/features/common/store/widget/StoreCategory.dart';
+import 'package:BlueEra/features/common/auth/model/business_profile_category.dart';
 import 'package:get/get.dart';
 
 class BottomBarController extends GetxController {
@@ -48,7 +48,7 @@ class BottomBarController extends GetxController {
     return [];
   }
 
-  List<ProfileCategory>? _selectList(String? type) {
+  List<BusinessProfileCategory>? _selectList(String? type) {
     switch (type) {
       case AppConstants.service: return businessServicesCategories;
       case AppConstants.food:    return businessFoodsCategories;

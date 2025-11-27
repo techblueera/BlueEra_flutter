@@ -58,6 +58,32 @@ class _CreateBusinessAccountNewStepThreeState
     emailTextController.addListener(_validateForm);
     viewBusinessDetailsController.listingDescriptionController.value
         .addListener(_validateForm);
+    aiGeneratedBusinessDesc();
+  }
+
+  aiGeneratedBusinessDesc() async {
+   await descriptionController.generateDescriptions(
+        onSaved: _validateForm,
+        bodyRequest: {
+          ApiKeys.business_name:
+          viewBusinessDetailsController
+              .businessProfileDetails
+              ?.data
+              ?.businessName,
+          ApiKeys.category:
+          viewBusinessDetailsController
+              .businessProfileDetails
+              ?.data
+              ?.categoryDetails
+              ?.name,
+          ApiKeys.sub_category:
+          viewBusinessDetailsController
+              .businessProfileDetails
+              ?.data
+              ?.subCategoryDetails
+              ?.name,
+          ApiKeys.city: widget.city
+        });
   }
 
 
@@ -78,6 +104,13 @@ class _CreateBusinessAccountNewStepThreeState
     nameTextController.dispose();
     yourRoleController.dispose();
     emailTextController.dispose();
+    nameTextController.removeListener(_validateForm);
+    yourRoleController.removeListener(_validateForm);
+    emailTextController.removeListener(_validateForm);
+    viewBusinessDetailsController
+        .listingDescriptionController
+        .value
+        .removeListener(_validateForm);
     super.dispose();
   }
 
@@ -116,31 +149,9 @@ class _CreateBusinessAccountNewStepThreeState
                       ),
                       InkWell(
                           onTap: () async {
-                            await descriptionController.generateDescriptions(
-                                onSaved: _validateForm,
-                                bodyRequest: {
-                                  ApiKeys.business_name:
-                                  viewBusinessDetailsController
-                                      .businessProfileDetails
-                                      ?.data
-                                      ?.businessName,
-                                  ApiKeys.category:
-                                  viewBusinessDetailsController
-                                      .businessProfileDetails
-                                      ?.data
-                                      ?.categoryDetails
-                                      ?.name,
-                                  ApiKeys.sub_category:
-                                  viewBusinessDetailsController
-                                      .businessProfileDetails
-                                      ?.data
-                                      ?.subCategoryDetails
-                                      ?.name,
-                                  ApiKeys.city: widget.city
-                                });
+                            await aiGeneratedBusinessDesc();
+                            if (!mounted) return;
                             _validateForm();
-
-                            setState(() {});
                           },
                           child: LocalAssets(
                             height: 25,
@@ -244,10 +255,7 @@ class _CreateBusinessAccountNewStepThreeState
                         child: CustomBtn(
                           radius: 10,
                           onTap: () {
-                            Get.offNamedUntil(
-                              RouteHelper.getBottomNavigationBarScreenRoute(),
-                                  (route) => false,
-                            );
+                            Get.toNamed(RouteHelper.getAddBusinessLivePhotoRoute());
                           },
                           title: AppStrings.skip,
                           bgColor: Colors.transparent,

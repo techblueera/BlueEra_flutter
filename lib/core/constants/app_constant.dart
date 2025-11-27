@@ -16,10 +16,11 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/chat/contacts/view/contact_list_page.dart';
+import 'package:BlueEra/features/common/auth/model/individual_profiile_category.dart';
 import 'package:BlueEra/features/common/post/repo/post_repo.dart';
 import 'package:BlueEra/features/common/reel/models/social_input_fields_model.dart';
 import 'package:BlueEra/features/common/store/repo/store_repo.dart';
-import 'package:BlueEra/features/common/store/widget/StoreCategory.dart';
+import 'package:BlueEra/features/common/auth/model/business_profile_category.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -248,14 +249,6 @@ class AppConstants {
   static const rentalServices = "Rental";
   static const bookingServices = "Booking";
   static const homeServices = "Home Services";
-
-  static const electrician = "Electrician";
-  static const taxiDriver = "Taxi-Car Driver";
-  static const beautyServices = "Beauty Services";
-  static const tuition = "Tuition";
-  static const counselling = "Counselling";
-  static const doctors = "Doctors";
-  static const hospital = "Hospital";
 
 }
 
@@ -1285,6 +1278,27 @@ const String SENIOR_CITIZEN_RETIRED = "SENIOR_CITIZEN_RETIRED";
 const String STUDENT = "STUDENT";
 const String OTHERS = "OTHERS"; // keep Others last
 
+// Self - Emplyed
+const String ELECTRICIAN = "ELECTRICIAN";
+const String PLUMBER = "PLUMBER";
+const String TECHNICIAN = "TECHNICIAN";
+const String MAID_CLEANER = "MAID_CLEANER";
+const String CARPENTER = "CARPENTER";
+const String CAR_DRIVER_TAXI = "CAR_DRIVER_TAXI";
+const String DELIVERY_RIDER = "DELIVERY_RIDER";
+const String MECHANIC = "MECHANIC";
+const String TAILOR = "TAILOR";
+const String BEAUTICIAN = "BEAUTICIAN";
+const String HOME_RENOVATION = "HOME_RENOVATION";
+const String PAINTER = "PAINTER";
+const String GARDENER = "GARDENER";
+const String SECURITY = "SECURITY";
+const String INTERIOR_DESIGNER = "INTERIOR_DESIGNER";
+const String DIGITAL_MARKETING = "DIGITAL_MARKETING";
+const String TUTOR = "TUTOR";
+const String CONSULTANT = "CONSULTANT";
+const String OTHER = "OTHER";
+
 int kmRadius1000 = 1000;
 int kmRadius1500 = 1500;
 
@@ -1816,46 +1830,47 @@ String formatClaimedAt(String claimedAt) {
   return "$day/$month/$year"; // WhatsApp-like
 }
 
-final List<ProfileCategory> mainCategories = [
-  ProfileCategory(
-    name: AppConstants.groceryVegetablesDairy,
+/// STORE FEED
+final List<BusinessProfileCategory> mainCategories = [
+  BusinessProfileCategory(
+    name: AppStrings.groceryVegetablesDairy,
     slugId: AppConstants.groceryVegetablesDairy,
     // categoryId: '68ce9917eac48e6b0d4973bf',
     icon: AppIconAssets.groceryIcon,
     type: AppConstants.service,
   ),
-  ProfileCategory(
-    name: AppConstants.foodServices,
+  BusinessProfileCategory(
+    name: AppStrings.food,
     slugId: AppConstants.foodServices,
     icon: AppIconAssets.foodIcon,
     type: AppConstants.service,
   ),
-  ProfileCategory(
-    name: AppConstants.storeServices,
+  BusinessProfileCategory(
+    name: AppStrings.store,
     slugId: AppConstants.storeServices,
     icon: AppIconAssets.storeIcon,
     type: AppConstants.service,
   ),
-  ProfileCategory(
-    name: AppConstants.productsServices,
+  BusinessProfileCategory(
+    name: AppStrings.product,
     slugId: AppConstants.productsServices,
     icon: AppIconAssets.productIcon,
     type: AppConstants.service,
   ),
-  ProfileCategory(
-    name: AppConstants.riderServices,
+  BusinessProfileCategory(
+    name: AppStrings.rider,
     slugId: AppConstants.riderServices,
     icon: AppIconAssets.riderIcon,
     type: AppConstants.service,
   ),
-  ProfileCategory(
-    name: AppConstants.taxiDriverServices,
+  BusinessProfileCategory(
+    name: AppStrings.taxiCarDriver,
     slugId: AppConstants.taxiDriverServices,
     icon: AppIconAssets.taxiDriverIcon,
     type: AppConstants.service,
   ),
-  ProfileCategory(
-    name: AppConstants.rentalServices,
+  BusinessProfileCategory(
+    name: AppStrings.rentalServices,
     slugId: AppConstants.rentalServices,
     icon: AppIconAssets.rentKeyIcon,
     type: AppConstants.service,
@@ -1866,147 +1881,138 @@ final List<ProfileCategory> mainCategories = [
   //   icon: AppIconAssets.bookingEnquiries,
   //   type: AppConstants.service,
   // ),
-  ProfileCategory(
-    name: AppConstants.homeServices,
+  BusinessProfileCategory(
+    name: AppStrings.homeServices,
     slugId: AppConstants.homeServices,
     icon: AppIconAssets.homeServiceIcon,
     type: AppConstants.service,
   ),
 ];
 
-final List<ProfileCategory> providerCategories = [
-  ProfileCategory(
-    name: AppConstants.ELECTRICIAN,
-    slugId: AppConstants.ELECTRICIAN,
+final List<IndividualProfileCategory> providerCategories = [
+  IndividualProfileCategory(
+    name: AppStrings.electrician,
+    slugId: ELECTRICIAN,
     icon: AppIconAssets.electricianIcon,
-    type: AppConstants.service,
   ),
-  ProfileCategory(
-    name: AppConstants.PLUMBER,
-    slugId: AppConstants.PLUMBER,
+  IndividualProfileCategory(
+    name: AppStrings.plumber,
+    slugId: PLUMBER,
     icon: AppIconAssets.plumberIcon,
-    type: AppConstants.service,
   ),
-  ProfileCategory(
-    name: AppConstants.TECHNICIAN,
-    slugId: AppConstants.TECHNICIAN,
+  IndividualProfileCategory(
+    name: AppStrings.technician,
+    slugId: TECHNICIAN,
     icon: AppIconAssets.technicianIcon,
-    type: AppConstants.service,
   ),
-  ProfileCategory(
-    name: AppConstants.MAID_CLEANER,
-    slugId: AppConstants.MAID_CLEANER,
+  IndividualProfileCategory(
+    name: AppStrings.maidCleaner,
+    slugId: MAID_CLEANER,
     icon: AppIconAssets.mainCleanerIcon,
-    type: AppConstants.service,
   ),
-  ProfileCategory(
-    name: AppConstants.CARPENTER,
-    slugId: AppConstants.CARPENTER,
+  IndividualProfileCategory(
+    name: AppStrings.carpenter,
+    slugId: CARPENTER,
     icon: AppIconAssets.carpenterIcon,
-    type: AppConstants.service,
   ),
-  ProfileCategory(
-    name: AppConstants.PAINTER,
-    slugId: AppConstants.PAINTER,
+  IndividualProfileCategory(
+    name: AppStrings.painter,
+    slugId: PAINTER,
     icon: AppIconAssets.painterIcon,
-    type: AppConstants.service,
   ),
-  ProfileCategory(
-    name: AppConstants.MECHANIC,
-    slugId: AppConstants.MECHANIC,
+  IndividualProfileCategory(
+    name: AppStrings.mechanic,
+    slugId: MECHANIC,
     icon: AppIconAssets.mechanicIcon,
-    type: AppConstants.service,
   ),
-  ProfileCategory(
-    name: AppConstants.HOME_RENOVATION,
-    slugId: AppConstants.HOME_RENOVATION,
+  IndividualProfileCategory(
+    name: AppStrings.homeRenovator,
+    slugId: HOME_RENOVATION,
     icon: AppIconAssets.mistryIcon,
-    type: AppConstants.service,
   ),
 ];
 
-
 /// Business Categories
-final List<ProfileCategory> businessServicesCategories = [
-  ProfileCategory(
+final List<BusinessProfileCategory> businessServicesCategories = [
+  BusinessProfileCategory(
       name: AppStrings.consulting,
       slugId: AppConstants.consulting,
       // categoryId: '68ce990deac48e6b0d497298',
       icon: AppIconAssets.consultingServiceIcon,
       type: AppConstants.service),
-  ProfileCategory(
+  BusinessProfileCategory(
       name: AppStrings.automotive,
       slugId: AppConstants.automotive,
       // categoryId: '68ce990beac48e6b0d49724f',
       icon: AppIconAssets.automativeServiceIcon,
       type: AppConstants.service),
-  ProfileCategory(
+  BusinessProfileCategory(
       name: AppStrings.itCommunication,
       slugId: AppConstants.itCommunication,
       // categoryId: '68ce9914eac48e6b0d497366',
       icon: AppIconAssets.itCommunicationIcon,
       type: AppConstants.service),
-  ProfileCategory(
+  BusinessProfileCategory(
       name: AppStrings.homeUtility,
       slugId: AppConstants.homeUtility,
       // categoryId: '68ce9912eac48e6b0d497328',
       icon: AppIconAssets.homeServiceUtilityIcon,
       type: AppConstants.service),
-  ProfileCategory(
+  BusinessProfileCategory(
       name: AppStrings.mediaCreative,
       slugId: AppConstants.mediaCreative,
       // categoryId: '68ce9915eac48e6b0d497382',
       icon: AppIconAssets.mediaPublicityIcon,
       type: AppConstants.service),
-  ProfileCategory(
+  BusinessProfileCategory(
       name: AppStrings.educationTraining,
       slugId: AppConstants.educationTraining,
       // categoryId: '68ce990eeac48e6b0d4972ad',
       icon: AppIconAssets.educationTrainingIcon,
       type: AppConstants.service),
-  ProfileCategory(
+  BusinessProfileCategory(
       name: AppStrings.tourTravel,
       slugId: AppConstants.tourTravel,
       // categoryId: '68ce9916eac48e6b0d4973aa',
       icon: AppIconAssets.tourTravelIcon,
       type: AppConstants.service),
-  ProfileCategory(
+  BusinessProfileCategory(
       name: AppStrings.beautyCare,
       slugId: AppConstants.beautyCare,
       // categoryId: '68ce990beac48e6b0d497260',
       icon: AppIconAssets.beautyPersonalCareIcon,
       type: AppConstants.service),
-  ProfileCategory(
+  BusinessProfileCategory(
       name: AppStrings.serviceCenter,
       slugId: AppConstants.serviceCenter,
       // categoryId: '68ce9915eac48e6b0d497397',
       icon: AppIconAssets.serviceCenterIcon,
       type: AppConstants.service),
-  ProfileCategory(
+  BusinessProfileCategory(
       name: AppStrings.logistics,
       slugId: AppConstants.logistics,
       // categoryId: '68ce9914eac48e6b0d497375',
       icon: AppIconAssets.logisticTransportationIcon,
       type: AppConstants.service),
-  ProfileCategory(
+  BusinessProfileCategory(
       name: AppStrings.celebrationEvent,
       slugId: AppConstants.celebrationEvent,
       // categoryId: '68ce990ceac48e6b0d49727f',
       icon: AppIconAssets.celebrationEventIcon,
       type: AppConstants.service),
-  ProfileCategory(
+  BusinessProfileCategory(
       name: AppStrings.financial,
       slugId: AppConstants.financial,
       // categoryId: '68ce990feac48e6b0d4972dc',
       icon: AppIconAssets.financialIcon,
       type: AppConstants.service),
-  ProfileCategory(
+  BusinessProfileCategory(
       name: AppStrings.healthcareMedicalServices,
       slugId: AppConstants.healthcareMedicalServices,
       // categoryId: '68ce9910eac48e6b0d4972ed',
       icon: AppIconAssets.healthCareIcon,
       type: AppConstants.service),
-  ProfileCategory(
+  BusinessProfileCategory(
       name: AppStrings.hostelsStayService,
       slugId: AppConstants.hostelsStayService,
       // categoryId: '68ce9912eac48e6b0d497341',
@@ -2014,68 +2020,68 @@ final List<ProfileCategory> businessServicesCategories = [
       type: AppConstants.service),
 ];
 
-final List<ProfileCategory> businessProductsCategories = [
-  ProfileCategory(
+final List<BusinessProfileCategory> businessProductsCategories = [
+  BusinessProfileCategory(
       name: AppStrings.furnitureHomeDecor,
       slugId: AppConstants.furnitureHomeDecor,
       // categoryId: '68ce9907eac48e6b0d4971f7',
       icon: AppIconAssets.furnitureHomeDecorIcon,
       type: AppConstants.product),
-  ProfileCategory(
+  BusinessProfileCategory(
       name: AppStrings.sportsFitness,
       slugId: AppConstants.sportsFitness,
       // categoryId: '68ce990aeac48e6b0d497235',
       icon: AppIconAssets.sportsFitnessStoreIcon,
       type: AppConstants.product),
-  ProfileCategory(
+  BusinessProfileCategory(
       name: AppStrings.jewelleryLuxury,
       slugId: AppConstants.jewelleryLuxury,
       // categoryId: '68ce9908eac48e6b0d497204',
       icon: AppIconAssets.jewelleryLuxuryStoreIcon,
       type: AppConstants.product),
-  ProfileCategory(
+  BusinessProfileCategory(
       name: AppStrings.automotiveStore,
       slugId: AppConstants.automotiveStore,
       // categoryId: '68ce9904eac48e6b0d497192',
       icon: AppIconAssets.automotiveStoreIcon,
       type: AppConstants.product),
-  ProfileCategory(
+  BusinessProfileCategory(
       name: AppStrings.booksStationaryGifts,
       slugId: AppConstants.booksStationaryGifts,
       // categoryId: '68ce9905eac48e6b0d4971a5',
       icon: AppIconAssets.booksStationaryGiftsIcon,
       type: AppConstants.product),
-  ProfileCategory(
+  BusinessProfileCategory(
       name: AppStrings.pharmacyMedical,
       slugId: AppConstants.pharmacyMedical,
       // categoryId: '68ce9909eac48e6b0d497217',
       icon: AppIconAssets.pharmacyMedicalStoreIcon,
       type: AppConstants.product),
-  ProfileCategory(
+  BusinessProfileCategory(
       name: AppStrings.petSupplies,
       slugId: AppConstants.petSupplies,
       // categoryId: '68ce9909eac48e6b0d497217',
       icon: AppIconAssets.petSuppliesStoreIcon,
       type: AppConstants.product),
-  ProfileCategory(
+  BusinessProfileCategory(
       name: AppStrings.toysBabyProducts,
       slugId: AppConstants.toysBabyProducts,
       // categoryId: '68ce990aeac48e6b0d497244',
       icon: AppIconAssets.babyToysProductStoreIcon,
       type: AppConstants.product),
-  ProfileCategory(
+  BusinessProfileCategory(
       name: AppStrings.electronicsAppliances,
       slugId: AppConstants.electronicsAppliances,
       // categoryId: '68ce9906eac48e6b0d4971c5',
       icon: AppIconAssets.electronicsApplianceStoreIcon,
       type: AppConstants.product),
-  ProfileCategory(
+  BusinessProfileCategory(
       name: AppStrings.constructionHomeEssentials,
       slugId: AppConstants.constructionHomeEssentials,
       // categoryId: '68ce9905eac48e6b0d4971b0',
       icon: AppIconAssets.constructionHomeEsseIcon,
       type: AppConstants.product),
-  ProfileCategory(
+  BusinessProfileCategory(
       name: AppStrings.fashionLifestyle,
       slugId: AppConstants.fashionLifestyle,
       // categoryId: '68ce9907eac48e6b0d4971dc',
@@ -2084,57 +2090,57 @@ final List<ProfileCategory> businessProductsCategories = [
   ),
 ];
 
-final List<ProfileCategory> businessFoodsCategories = [
-  ProfileCategory(
+final List<BusinessProfileCategory> businessFoodsCategories = [
+  BusinessProfileCategory(
       name: AppStrings.fastFoodQuickService,
       slugId: AppConstants.fastFoodQuickService,
       // categoryId: '68ce9917eac48e6b0d4973cc',
       icon: AppIconAssets.fastFoodQuickServiceIcon,
       type: AppConstants.food
   ),
-  ProfileCategory(
+  BusinessProfileCategory(
       name: AppStrings.multiCuisineRestaurants,
       slugId: AppConstants.multiCuisineRestaurants,
       // categoryId: '68ce9919eac48e6b0d49740a',
       icon: AppIconAssets.multiCuisineRestroIcon,
       type: AppConstants.food
   ),
-  ProfileCategory(
+  BusinessProfileCategory(
       name: AppStrings.groceryVegetablesDairy,
       slugId: AppConstants.groceryVegetablesDairy,
       // categoryId: '68ce9917eac48e6b0d4973bf',
       icon: AppIconAssets.groceryVegetableDairyIcon,
       type: AppConstants.food
   ),
-  ProfileCategory(
+  BusinessProfileCategory(
       name: AppStrings.nonVegRestaurants,
       slugId: AppConstants.nonVegRestaurants,
       // categoryId: '68ce9919eac48e6b0d4973e8',
       icon: AppIconAssets.nonVegRestaurantIcon,
       type: AppConstants.food
   ),
-  ProfileCategory(
+  BusinessProfileCategory(
       name: AppStrings.vegRestaurants,
       slugId: AppConstants.vegRestaurants,
       // categoryId: '68ce9918eac48e6b0d4973d9',
       icon: AppIconAssets.vegRestaurantIcon,
       type: AppConstants.food
   ),
-  ProfileCategory(
+  BusinessProfileCategory(
       name: AppStrings.otherRestaurantsDhaba,
       slugId: AppConstants.otherRestaurantsDhaba,
       // categoryId: '68ce991aeac48e6b0d497417',
       icon: AppIconAssets.restaurantIcon,
       type: AppConstants.food
   ),
-  ProfileCategory(
+  BusinessProfileCategory(
       name: AppStrings.sweetsBakeryDrinks,
       slugId: AppConstants.sweetsBakeryDrinks,
       // categoryId: '68ce9918eac48e6b0d4973d9',
       icon: AppIconAssets.sweetBakeryDrinkIcon,
       type: AppConstants.food
   ),
-  ProfileCategory(
+  BusinessProfileCategory(
       name: AppStrings.otherFoodServices,
       slugId: AppConstants.otherFoodServices,
       // categoryId: '68ce991aeac48e6b0d497428',
@@ -2144,153 +2150,129 @@ final List<ProfileCategory> businessFoodsCategories = [
 ];
 
 /// Individual Categories
-final List<ProfileCategory> individualSocialProfileList = [
-  ProfileCategory(
+final List<IndividualProfileCategory> individualSocialProfileList = [
+  IndividualProfileCategory(
     name: AppStrings.politician,
     slugId: POLITICIAN,
     icon: AppIconAssets.politicianIcon,
-    type: AppConstants.individual
   ),
-  ProfileCategory(
+  IndividualProfileCategory(
     name: AppStrings.socialist,
     slugId: SOCIALIST,
     icon: AppIconAssets.socialistIcon,
-    type: AppConstants.individual
   ),
-  ProfileCategory(
+  IndividualProfileCategory(
     name: AppStrings.journalist,
     slugId: MEDIA,
     icon: AppIconAssets.journalistIcon,
-      type: AppConstants.individual
   ),
-  ProfileCategory(
+  IndividualProfileCategory(
     name: AppStrings.artist,
     slugId: ARTIST,
     icon: AppIconAssets.artistIcon,
-    type: AppConstants.individual
   ),
-  ProfileCategory(
+  IndividualProfileCategory(
     name: AppStrings.industrialist,
     slugId: INDUSTRIALIST,
     icon: AppIconAssets.industrialistIcon,
-    type: AppConstants.individual
   ),
-  ProfileCategory(
+  IndividualProfileCategory(
     name: AppStrings.seniorCitizen,
     slugId: SENIOR_CITIZEN_RETIRED,
     icon: AppIconAssets.seniorCitizenIcon,
-    type: AppConstants.individual
   ),
-  ProfileCategory(
+  IndividualProfileCategory(
     name: AppStrings.govtEmployee,
     slugId: GOVERNMENT_JOB,
     icon: AppIconAssets.govtEmpIcon,
-    type: AppConstants.individual
   ),
-  ProfileCategory(
+  IndividualProfileCategory(
     name: AppStrings.pvtEmployee,
     slugId: PRIVATE_JOB,
     icon: AppIconAssets.pvtEmpIcon,
-    type: AppConstants.individual
   ),
-  ProfileCategory(
+  IndividualProfileCategory(
     name: AppStrings.ngoSociety,
     slugId: REG_UNION, //NGO
     icon: AppIconAssets.ngoSocietyIcon,
-    type: AppConstants.individual
   ),
-  ProfileCategory(
+  IndividualProfileCategory(
     name: AppStrings.govtDepartment,
     slugId: GOVTPSU,
     icon: AppIconAssets.govtDeptIcon,
-    type: AppConstants.individual
   ),
-  ProfileCategory(
+  IndividualProfileCategory(
     name: AppStrings.contentCreator,
     slugId: CONTENT_CREATOR,
     icon: AppIconAssets.contentCreaterIcon,
-    type: AppConstants.individual
   ),
-  ProfileCategory(
+  IndividualProfileCategory(
     name: AppStrings.other,
     slugId: OTHERS,
     icon: AppIconAssets.staggeredIcon,
-    type: AppConstants.individual
   ),
 ];
 
-final List<ProfileCategory> individualSelfEmployedList = [
-  ProfileCategory(
+final List<IndividualProfileCategory> individualSelfEmployedList = [
+  IndividualProfileCategory(
       name: AppStrings.rider,
-      slugId: AppConstants.Rider,
+      slugId: DELIVERY_RIDER,
       icon: AppIconAssets.riderIcon,
-      type: AppConstants.individual
   ),
-  ProfileCategory(
+  IndividualProfileCategory(
     name: AppStrings.electrician,
-    slugId: AppConstants.ELECTRICIAN,
+    slugId: ELECTRICIAN,
     icon: AppIconAssets.electricianIcon,
-    type: AppConstants.individual
   ),
-  ProfileCategory(
+  IndividualProfileCategory(
     name: AppStrings.plumber,
-    slugId: AppConstants.PLUMBER,
+    slugId: PLUMBER,
     icon: AppIconAssets.plumberIcon,
-    type: AppConstants.individual
   ),
-  ProfileCategory(
+  IndividualProfileCategory(
     name: AppStrings.technician,
-    slugId: AppConstants.TECHNICIAN,
+    slugId: TECHNICIAN,
     icon: AppIconAssets.technicianIcon,
-    type: AppConstants.individual
   ),
-  ProfileCategory(
+  IndividualProfileCategory(
     name: AppStrings.maidCleaner,
-    slugId: AppConstants.MAID_CLEANER,
+    slugId: MAID_CLEANER,
     icon: AppIconAssets.mainCleanerIcon,
-    type: AppConstants.individual
   ),
-  ProfileCategory(
+  IndividualProfileCategory(
     name: AppStrings.carpenter,
-    slugId: AppConstants.CARPENTER,
+    slugId: CARPENTER,
     icon: AppIconAssets.carpenterIcon,
-    type: AppConstants.individual
   ),
-  ProfileCategory(
+  IndividualProfileCategory(
     name: AppStrings.taxiCarDriver,
-    slugId: AppConstants.CAR_DRIVER_TAXI,
+    slugId: CAR_DRIVER_TAXI,
     icon: AppIconAssets.taxiDriverIcon,
-    type: AppConstants.individual
   ),
-  ProfileCategory(
+  IndividualProfileCategory(
     name: AppStrings.mechanic,
-    slugId: AppConstants.MECHANIC,
+    slugId: MECHANIC,
     icon: AppIconAssets.mechanicIcon,
-    type: AppConstants.individual
   ),
-  ProfileCategory(
+  IndividualProfileCategory(
     name: AppStrings.homeRenovator,
-    slugId: AppConstants.HOME_RENOVATION,
+    slugId: HOME_RENOVATION,
     icon: AppIconAssets.mistryIcon,
-    type: AppConstants.individual
   ),
-  ProfileCategory(
+  IndividualProfileCategory(
     name: AppStrings.painter,
-    slugId: AppConstants.PAINTER,
+    slugId: PAINTER,
     icon: AppIconAssets.painterIcon,
-    type: AppConstants.individual
   ),
-  ProfileCategory(
+  IndividualProfileCategory(
     name: AppStrings.gardener,
-    slugId: AppConstants.GARDENER,
+    slugId: GARDENER,
     icon: AppIconAssets.gardenerIcon,
-    type: AppConstants.individual
   ),
-  ProfileCategory(
+  IndividualProfileCategory(
     name: AppStrings.securityPerson,
-    slugId: AppConstants.SECURITY,
+    slugId: SECURITY,
     icon: AppIconAssets.securityPersonIcon,
-    type: AppConstants.individual
   )
 ];
 

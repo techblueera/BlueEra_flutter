@@ -23,6 +23,7 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -1070,6 +1071,7 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                     final imgStr =
                         await SelectProfilePictureDialog.pickFromCamera(
                       context,
+                      cropAspectRatio: CropAspectRatio(width: 3, height: 4)
                     );
                     if (imgStr != null) {
                       controller.saveBusinessImages(imgStr, controller);

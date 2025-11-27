@@ -15,12 +15,13 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/auth/model/guest_res_model.dart';
+import 'package:BlueEra/features/common/auth/model/individual_profiile_category.dart';
 import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
 import 'package:BlueEra/features/common/auth/model/username_res_model.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
 import 'package:BlueEra/features/common/auth/views/screens/create_business_account_step_two.dart';
 import 'package:BlueEra/features/common/feed/models/block_user_response.dart';
-import 'package:BlueEra/features/common/store/widget/StoreCategory.dart';
+import 'package:BlueEra/features/common/auth/model/business_profile_category.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -490,6 +491,7 @@ class AuthController extends GetxController {
       isProfessionLoading.value = false;
     }
   }
+
 clearSubCategoryData()
 {
   subcategoriesFiledNameList.clear();
@@ -538,16 +540,58 @@ clearSubCategoryData()
     }
   }
 
+  /// New Flow For Categories
 
-  RxBool isCategoryLoading = false.obs;
+  RxBool isAppLoading = false.obs;
+
   CategoryData? selectedCategoryData;
   SubCategories? selectedSubCategoryData;
   BusinessType? selectedTypeOfBusiness;
   NatureOfBusiness? selectedNatureOfBusiness;
 
-  Future<void> getAllNewCategories() async {
+  Future<void> loadIndividualAndBusinessCategoryData() async {
     try {
-      isCategoryLoading.value = true;
+      isAppLoading.value = true;
+
+      await Future.wait([
+        getAllIndividualProfessionController(),
+        getAllBusinessCategories(),
+      ]);
+    } catch (e) {
+      print(e);
+    } finally {
+      isAppLoading.value = false;
+    }
+  }
+
+  Future<void> getAllIndividualProfessionController() async {
+    try {
+
+      ResponseModel responseModel = await AuthRepo().getAllProfessionsRepo();
+
+      if (responseModel.isSuccess) {
+        professionListingResponse = ApiResponse.complete(responseModel);
+        final data = responseModel.response?.data;
+        professionTypeDataList = PersonalProfessionModel.fromJson(data).data ?? [];
+
+        _updateSocialProfileListWithApi(individualSocialProfileList, professionTypeDataList);
+        _updateSelfEmploymentListWithApi(individualSelfEmployedList, professionTypeDataList);
+
+      } else {
+        commonSnackBar(
+            message: responseModel.message ?? AppStrings.somethingWentWrong);
+        professionListingResponse = ApiResponse.error('error');
+        update();
+      }
+    } catch (e) {
+      professionListingResponse = ApiResponse.error('error');
+      update();
+    }finally{
+    }
+  }
+
+  Future<void> getAllBusinessCategories() async {
+    try {
 
       final response = await AuthRepo().getBusinessCategoriesRepo();
 
@@ -583,11 +627,66 @@ clearSubCategoryData()
       businessCategoryResponse = ApiResponse.error('error');
       update();
     }finally{
-      isCategoryLoading.value = false;
     }
   }
 
-  void _updateListWithApi(List<ProfileCategory> list, List<CategoryData> apiList) {
+  void _updateSocialProfileListWithApi(List<IndividualProfileCategory> list, List<ProfessionTypeData> apiList) {
+    for (int i = 0; i < list.length; i++) {
+      final predefined = list[i];
+
+      final match = apiList.firstWhere(
+            (cat) =>
+        predefined.slugId.toLowerCase() ==
+            (cat.tagId ?? "").toLowerCase(),
+        orElse: () => ProfessionTypeData(), // no match
+      );
+
+      // Assign only if found (CategoryData has id)
+      if (match.id != null) {
+        list[i] = predefined.copyWith(
+            professionTagId: match.tagId,
+            professionSubCategory: match.subcategoriesFiledName
+        );
+      }
+    }
+  }
+
+  void _updateSelfEmploymentListWithApi(
+      List<IndividualProfileCategory> list,
+      List<ProfessionTypeData> apiList,
+      ) {
+    for (int i = 0; i < list.length; i++) {
+      final predefined = list[i];
+      final slug = predefined.slugId.toLowerCase();
+
+      // Find the SELF EMPLOYED category
+      final selfEmploymentCategory = apiList.firstWhere(
+            (cat) => (cat.tagId ?? "").toLowerCase() == SELF_EMPLOYED.toLowerCase(),
+        orElse: () => ProfessionTypeData(),
+      );
+
+      if (selfEmploymentCategory.id == null) continue;
+
+      final subs = selfEmploymentCategory.subcategoriesFiledName ?? [];
+
+      // Compare predefined.slugId with each subcategory.tagId
+      final matchedSub = subs.firstWhere(
+            (sub) => slug == (sub.tagId ?? "").toLowerCase(),
+        orElse: () => SubcategoriesFiledName(),
+      );
+
+      if (matchedSub.id == null) continue; // no subcategory match → skip
+
+      // Update list entry with matched subcategory only
+      list[i] = predefined.copyWith(
+        professionTagId: selfEmploymentCategory.tagId,
+        selfEmployment: matchedSub.name ?? "",
+        selfEmploymentTagId: matchedSub.tagId ?? "",
+      );
+    }
+  }
+
+  void _updateListWithApi(List<BusinessProfileCategory> list, List<CategoryData> apiList) {
     for (int i = 0; i < list.length; i++) {
       final predefined = list[i];
 
@@ -604,8 +703,6 @@ clearSubCategoryData()
       }
     }
   }
-
-
 
 
 }

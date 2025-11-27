@@ -14,11 +14,18 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class GstNumberScreen extends StatefulWidget {
-  final BusinessType? businessType;
+  final String accountType;
+  final BusinessType businessType;
   final CategoryData? categoryData;
   final SubCategories? subCategory;
 
-  GstNumberScreen({super.key, this.businessType, this.categoryData, this.subCategory});
+  GstNumberScreen({
+    super.key,
+    required this.accountType,
+    required this.businessType,
+    this.categoryData,
+    this.subCategory
+  });
 
   @override
   State<GstNumberScreen> createState() => _GstNumberScreenState();

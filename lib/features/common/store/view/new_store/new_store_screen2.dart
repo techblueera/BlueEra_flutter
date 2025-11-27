@@ -8,12 +8,13 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
+import 'package:BlueEra/features/common/auth/model/individual_profiile_category.dart';
 import 'package:BlueEra/features/common/map/view/customize_map_screen.dart';
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
 import 'package:BlueEra/features/common/store/view/new_store/all_food_store_screen.dart';
 import 'package:BlueEra/features/common/store/view/new_store/all_product_store_screen.dart';
 import 'package:BlueEra/features/common/store/view/new_store/business_store_screen.dart';
-import 'package:BlueEra/features/common/store/widget/StoreCategory.dart';
+import 'package:BlueEra/features/common/auth/model/business_profile_category.dart';
 import 'package:BlueEra/features/common/store/widget/icon_grid_item.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_search_bar.dart';
@@ -227,8 +228,10 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                                 }
                             ),
                             SizedBox(height: SizeConfig.size15),
-                            _iconGrid(
-                                mainCategories,
+                            genericIconGrid<BusinessProfileCategory>(
+                                items: mainCategories,
+                                labelBuilder: (c) => c.name,
+                                iconBuilder: (c) => c.icon,
                                 onTap: (category) => _handleNearMeCategoryTap(category)
                             )
                           ],
@@ -253,8 +256,10 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                                 seeMoreTap: () {}
                             ),
                             SizedBox(height: SizeConfig.size15),
-                            _iconGrid(
-                                providerCategories,
+                            genericIconGrid<IndividualProfileCategory>(
+                                items: providerCategories,
+                                labelBuilder: (c) => c.name,
+                                iconBuilder: (c) => c.icon,
                                 onTap: (category){
                                   print("You tapped → ${category.slugId}");
                                   print("You tapped category name → ${category.name}");
@@ -286,8 +291,10 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                                 seeMoreTap: () {}
                             ),
                             SizedBox(height: SizeConfig.size15),
-                            _iconGrid(
-                                businessServicesCategories,
+                            genericIconGrid<BusinessProfileCategory>(
+                              items:  businessServicesCategories,
+                              labelBuilder: (c) => c.name,
+                              iconBuilder: (c) => c.icon,
                               onTap: (category) {
                                 print("You tapped → ${category.slugId}");
                                 print("You tapped category name → ${category.name}");
@@ -322,8 +329,10 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                                 seeMoreTap: () {}
                             ),
                             SizedBox(height: SizeConfig.size15),
-                            _iconGrid(
-                                businessProductsCategories,
+                            genericIconGrid<BusinessProfileCategory>(
+                              items:  businessProductsCategories,
+                              labelBuilder: (c) => c.name,
+                              iconBuilder: (c) => c.icon,
                               onTap: (category) {
                                 print("You tapped → ${category.slugId}");
                                 print("You tapped category name → ${category.name}");
@@ -357,8 +366,10 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                                 seeMoreTap: () {}
                             ),
                             SizedBox(height: SizeConfig.size15),
-                            _iconGrid(
-                                businessFoodsCategories,
+                            genericIconGrid<BusinessProfileCategory>(
+                              items: businessFoodsCategories,
+                              labelBuilder: (c) => c.name,
+                              iconBuilder: (c) => c.icon,
                               onTap: (category) {
                                 print("You tapped → ${category.slugId}");
                                 print("You tapped category data → ${category.categoryData}");
@@ -432,15 +443,17 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
   }
 
 // ---------------- REUSABLE ICON GRID ---------------- //
-  Widget _iconGrid(
-      List<ProfileCategory> items, {
-        void Function(ProfileCategory category)? onTap,
-      }) {
+  Widget genericIconGrid<T>({
+    required List<T> items,
+    required String Function(T item) labelBuilder,
+    required String Function(T item) iconBuilder,
+    void Function(T item)? onTap,
+  }) {
     const crossAxisCount = 4;
     const mainAxisSpacing = 16.0;
 
     // Split into rows of 4
-    final rows = <List<ProfileCategory>>[];
+    final rows = <List<T>>[];
 
     for (int i = 0; i < items.length; i += crossAxisCount) {
       rows.add(
@@ -461,21 +474,18 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: List.generate(crossAxisCount * 2 - 1, (i) {
-              // Even index → actual item
-              // Odd index → spacing
               if (i.isEven) {
                 final itemIndex = i ~/ 2;
 
                 if (itemIndex < rowItems.length) {
-                  final category = rowItems[itemIndex];
+                  final item = rowItems[itemIndex];
 
                   return Expanded(
                     child: IconGridItem(
-                      label: category.name,
-                      icon: category.icon,
+                      label: labelBuilder(item),
+                      icon: iconBuilder(item),
                       onTap: () {
-                        if (onTap != null) onTap(category);
-                        print("Tapped: ${category.slugId}");
+                        if (onTap != null) onTap(item);
                       },
                     ),
                   );
@@ -483,7 +493,6 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                   return const Expanded(child: SizedBox());
                 }
               } else {
-                // spacing between items
                 return SizedBox(width: SizeConfig.size8);
               }
             }),
@@ -508,7 +517,7 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
     );
   }
 
-  void _handleNearMeCategoryTap(ProfileCategory category) {
+  void _handleNearMeCategoryTap(BusinessProfileCategory category) {
     print("You tapped slug Id→ ${category.slugId}");
     print("You tapped category name → ${category.name}");
     print("You tapped category data → ${category.categoryData}");
