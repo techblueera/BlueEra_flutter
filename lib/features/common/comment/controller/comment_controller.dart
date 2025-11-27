@@ -20,6 +20,7 @@ class CommentController extends GetxController {
   RxnString replyingToUser = RxnString();
   RxInt totalCommentCount = 0.obs;
   RxBool isSendCommentLoading = false.obs;
+  var expandedTileIndex = (-1).obs; // -1 = none expanded
 
   void toggleReplies(String commentId, int totalReplies) {
     final current = visibleRepliesCountMap[commentId] ?? 0;
@@ -361,6 +362,7 @@ class CommentController extends GetxController {
   bool get isFormValid =>
       selectedLanguage.value.isNotEmpty &&
       selectedEmotion.value.isNotEmpty &&
+          selectedCommentType.value.isNotEmpty &&
       !isGenerated.value;
 
   void clearAiContent() {

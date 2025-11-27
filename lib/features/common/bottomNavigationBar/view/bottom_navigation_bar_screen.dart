@@ -12,6 +12,7 @@ import 'package:BlueEra/features/common/home/view/home_screen.dart';
 import 'package:BlueEra/features/common/jobs/view/jobs_screen.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/more/controller/more_cards_screen_controller.dart';
+import 'package:BlueEra/features/common/ott/ott_screen.dart';
 import 'package:BlueEra/features/common/reel/models/channel_model.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/common/store/view/new_store/new_store_screen2.dart';
@@ -59,7 +60,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       ? Get.find<DeliverPartnerOrdersController>()
       : Get.put(DeliverPartnerOrdersController());
 
-  void handleRejectOrder( String orderId) {
+  void handleRejectOrder(String orderId) {
     orderController.updateOrderStatusFromPialot(
       {ApiKeys.action: "reject"},
       orderId,
@@ -72,10 +73,11 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       orderId,
     );
   }
+
   @override
   void initState() {
     super.initState();
-     _checkAndFetchLocationData();
+    _checkAndFetchLocationData();
     _getAllBusinessCategories();
     _initializeControllers();
     _initializeUserData();
@@ -84,11 +86,11 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _handlePostFrameInitialization();
       FlutterCallkitIncoming.onEvent.listen((CallEvent? event) {
-        if(event?.event == Event.actionCallAccept){
+        if (event?.event == Event.actionCallAccept) {
           Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
           FlutterCallkitIncoming.endAllCalls();
           // handleAcceptOrder(event?.body['extra']['orderId']??''.toString());
-        }else if(event?.event==Event.actionCallDecline){
+        } else if (event?.event == Event.actionCallDecline) {
           commonSnackBar(message: "Your Order Rejected by You");
           Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
           FlutterCallkitIncoming.endAllCalls();
@@ -97,39 +99,34 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       });
     });
   }
-  Future<void> checkByRiderCall()async{
-    String? orderId=await getCurrentCall();
-    if(orderId!=null){
+
+  Future<void> checkByRiderCall() async {
+    String? orderId = await getCurrentCall();
+    if (orderId != null) {
       Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
       FlutterCallkitIncoming.endAllCalls();
     }
   }
 
   Future<String?> getCurrentCall() async {
-
     var calls = await FlutterCallkitIncoming.activeCalls();
     if (calls is List) {
       if (calls.isNotEmpty) {
+        bool accepted = calls[0]['accepted'];
 
-        bool accepted=calls[0]['accepted'];
-
-        if(accepted){
-          return  calls[0]['extra']['orderId'].toString();
-        }else{
+        if (accepted) {
+          return calls[0]['extra']['orderId'].toString();
+        } else {
           return 'rejected';
         }
-
-
-
       } else {
-
         return null;
       }
-    }else{
+    } else {
       return null;
     }
-
   }
+
   Future<void> _checkAndFetchLocationData() async {
     await LocationService.fetchLocation();
     log('initially lat--> ${LocationService.lat}, initially lng--> ${LocationService.lng}');
@@ -180,7 +177,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       SharedPreferenceUtils.setSecureValue(
           SharedPreferenceUtils.channelOwner, channelOwner),
     ]);
-
   }
 
   Future<void> _initializeBusinessUser() async {
@@ -270,15 +266,16 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
                         isBottomNavVisible: isVisible,
                         currentIndex: bottomBarController.currentIndex.value,
                         onTap: (index) async {
-
                           /// for store need location permission
-                          if(index == 1 || index == 2){
-                            if(LocationService.lat == 0.0 || LocationService.lng == 0.0){
-                               await LocationService.askLocationPermission();
-                            }else{
+                          if (index == 1 || index == 2) {
+                            if (LocationService.lat == 0.0 ||
+                                LocationService.lng == 0.0) {
+                              await LocationService.askLocationPermission();
+                            } else {
                               bottomBarController.onChangeIndex(index);
                             }
                           }
+
                           /// for chat need notification permission
                           else if (index == 4) {
                             await AppNotificationHandler()
@@ -322,13 +319,9 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       case 2:
         return isGuestUser()
             ? GuestDashBoardScreen()
-             : (isBusinessUser())
-                 ? InventoryScreen(
-                      fromBottomNavBar: true
-                  )
-                 : EarnWithBlueEraNewScreen(
-                      fromBottomNavBar: true
-                  );
+            : (isBusinessUser())
+                ? InventoryScreen(fromBottomNavBar: true)
+                : EarnWithBlueEraNewScreen(fromBottomNavBar: true);
       case 3:
         return isGuestUser()
             ? GuestDashBoardScreen()
@@ -351,5 +344,4 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       bottomBarVisibleNotifier.value = visible;
     }
   }
-
 }

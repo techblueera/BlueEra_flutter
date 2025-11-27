@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/chat/view/widget/picked_media_preview.dart';
 import 'package:BlueEra/features/chat/view/widget/quick_reply_bottom_sheet.dart';
 import 'package:BlueEra/features/chat/view/widget/send_live_location_page.dart';
@@ -112,7 +113,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
     final hasPermission = await _requestMicrophonePermission();
     if (!hasPermission) {
       commonSnackBar(
-          message: "Microphone permission is required");
+          message: AppStrings.microphonePermissionRequired);
       return;
     }
 
@@ -243,7 +244,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("Replying to",
+                      Text(AppStrings.replyingTo,
                           style: TextStyle(fontSize: 12, color: Colors.grey)),
                       messageTypeIconWithLabel(reply??Messages()),
                     ],

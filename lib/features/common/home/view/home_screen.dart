@@ -10,6 +10,7 @@ import 'package:BlueEra/features/common/channel_feed_view/channel_feed_screen.da
 import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
 import 'package:BlueEra/features/common/home/view/saved_feed_screen.dart';
+import 'package:BlueEra/features/common/ott/ott_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/inventory_business_cards_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -47,6 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
     AppStrings.allPosts,
     AppStrings.channel,
     AppStrings.tab_saved,
+    // AppStrings.tab_ott,
   ];
   int selectedIndex = 0;
   final TextEditingController searchController = TextEditingController();
@@ -260,6 +262,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 selectedTab: _selectedSavedTab,
                                 headerHeight:
                                     _headerHeight + SizeConfig.size30),
+                      // OttScreen()
                           ]
                         : [
                             HomeFeedScreenNew(
@@ -281,7 +284,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 selectedTab: _selectedSavedTab,
                                 headerHeight:
                                     _headerHeight + SizeConfig.size30),
-                          ],
+                      // OttScreen()
+
+                    ],
                   ),
                 ),
 

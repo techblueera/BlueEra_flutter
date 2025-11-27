@@ -11,6 +11,7 @@ import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
@@ -354,6 +355,36 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                                 ),
 
                                 // ... Your Title/Caption code ...
+                                // 📄 Title or Caption (bottom left)
+                                if (widget.video.subTitle.isNotEmpty)
+                                  SafeArea(
+                                    child: Container(
+                                      margin: EdgeInsets.only(top: 5),
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 8, horizontal: 8),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.secondaryTextColor
+                                            .withValues(alpha: 0.2),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: ExpandableText(
+                                        text: widget.video.subTitle,
+                                        trimLines: 2,
+                                        isReadMoreNewLine: true,
+                                        expandMode: ExpandMode.dialog,
+                                        style: TextStyle(
+                                          color: AppColors.white,
+                                          fontSize: SizeConfig.large,
+                                          fontWeight: FontWeight.w400,
+                                          fontFamily: AppConstants.OpenSans,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+
+                                SizedBox(
+                                  height: SizeConfig.size30,
+                                ),
                               ],
                             ),
                           ),
