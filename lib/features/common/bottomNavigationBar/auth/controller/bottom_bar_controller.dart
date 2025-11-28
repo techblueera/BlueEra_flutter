@@ -5,7 +5,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
-import 'package:BlueEra/features/common/store/widget/StoreCategory.dart';
+import 'package:BlueEra/features/common/auth/model/business_profile_category.dart';
 import 'package:get/get.dart';
 
 class BottomBarController extends GetxController {
@@ -19,15 +19,15 @@ class BottomBarController extends GetxController {
     businessCategoriesList = await HiveServices().getAllCategories() ?? await _fetchFromApi();
     log('[getAllCategories]  ${businessCategoriesList.length} items');
 
-    // single pass – update slugIds
+    // single pass – Add Category Data
     for (final api in businessCategoriesList) {
       final list = _selectList(api.type);
       if (list == null) continue;
 
-      final idx = list.indexWhere((c) => c.name.toLowerCase() == (api.name ?? '').toLowerCase());
+      final idx = list.indexWhere((c) => c.slugId.toLowerCase() == (api.name ?? '').toLowerCase());
       if (idx != -1) {
         log('[slug] ${api.name}  ${list[idx].slugId} → ${api.id}');
-        list[idx] = list[idx].copyWith(slugId: api.id ?? '');
+        list[idx] = list[idx].copyWith(categoryData: api);
       }
     }
     log('[getAllCategories] slug update complete');
@@ -48,11 +48,11 @@ class BottomBarController extends GetxController {
     return [];
   }
 
-  List<StoreFeedCategory>? _selectList(String? type) {
+  List<BusinessProfileCategory>? _selectList(String? type) {
     switch (type) {
-      case AppConstants.service: return serviceCategories;
-      case AppConstants.food:    return foodCategories;
-      case AppConstants.product: return productCategories;
+      case AppConstants.service: return businessServicesCategories;
+      case AppConstants.food:    return businessFoodsCategories;
+      case AppConstants.product: return businessProductsCategories;
       default:                   return null;
     }
   }

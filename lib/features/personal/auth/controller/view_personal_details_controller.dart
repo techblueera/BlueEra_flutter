@@ -639,6 +639,7 @@ class ViewPersonalDetailsController extends GetxController {
       },
     );
   }
+
   void showBioUpdateDialog() {
     final formKey = GlobalKey<FormState>();
     final personalCreateProfileController =

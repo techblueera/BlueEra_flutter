@@ -140,7 +140,7 @@ class NewProfileHeaderWidget extends StatelessWidget {
                                 horizontal: 13, vertical: 6),
                             decoration: BoxDecoration(
                               color: controller.isFollow.value
-                                  ? AppColors.greylite
+                                  ? AppColors.greyLite
                                   : AppColors.primaryColor,
                               borderRadius: BorderRadius.circular(10),
                             ),

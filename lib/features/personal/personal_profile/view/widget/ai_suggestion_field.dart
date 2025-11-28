@@ -32,6 +32,9 @@ class AiSuggestionField extends StatefulWidget {
 }
 
 class _AiSuggestionFieldState extends State<AiSuggestionField> {
+  final aiController = Get.put(AiSuggestionController());
+
+
   @override
   void initState() {
     super.initState();
@@ -49,7 +52,6 @@ class _AiSuggestionFieldState extends State<AiSuggestionField> {
 
   @override
   Widget build(BuildContext context) {
-    final aiController = Get.put(AiSuggestionController());
     final bool isEmpty = widget.textController.text.trim().isEmpty;
 
     return Column(

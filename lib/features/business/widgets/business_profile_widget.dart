@@ -23,6 +23,7 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -585,10 +586,11 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                     (controller.isListingDescriptionEdit.value)
                         ? Row(
                             children: [
-                              InkWell(
+                              Obx(()=> !controller.isLoading.value
+                                  ? InkWell(
                                   onTap: () {
                                     controller.listingDescriptionController
-                                            .value.text =
+                                        .value.text =
                                         controller.businessDescription.value
                                             .toString();
                                     businessDescriptionController
@@ -617,9 +619,9 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                                     //     .toString();
                                     setState(() {
                                       controller
-                                              .isListingDescriptionEdit.value =
-                                          !controller
-                                              .isListingDescriptionEdit.value;
+                                          .isListingDescriptionEdit.value =
+                                      !controller
+                                          .isListingDescriptionEdit.value;
                                     });
                                   },
                                   child: LocalAssets(
@@ -627,7 +629,13 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                                     width: 25,
                                     imgColor: AppColors.primaryColor,
                                     imagePath: AppIconAssets.ai_generative,
-                                  )),
+                                  )) : SizedBox(
+                                  height: 25,
+                                  width: 25,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.0,
+                                  ))),
+
                               SizedBox(
                                 width: SizeConfig.size10,
                               ),
@@ -1070,6 +1078,7 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                     final imgStr =
                         await SelectProfilePictureDialog.pickFromCamera(
                       context,
+                      cropAspectRatio: CropAspectRatio(width: 3, height: 4)
                     );
                     if (imgStr != null) {
                       controller.saveBusinessImages(imgStr, controller);

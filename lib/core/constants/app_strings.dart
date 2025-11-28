@@ -357,6 +357,7 @@ class AppStrings {
   static const tuitionClassesOnlineOffline = "tuitionClassesOnlineOffline";
 
   // Self Work Services
+  static const rider = "rider";
   static const electrician = "electrician";
   static const plumber = "plumber";
   static const technician = "technician";
@@ -1631,6 +1632,104 @@ class AppStrings {
   static const String typeAtLeastThreeCharForSearchProducts    = 'typeAtLeastThreeCharForSearchProducts';
   static const String suggestedProducts    = 'suggestedProducts';
   static const String cannotSelectMoreThanTenVariants    = 'cannotSelectMoreThanTenVariants';
+
+  /// Individual Profile
+  static const String politician      = 'politician';
+  static const String socialist      = 'socialist';
+  static const String journalist      = 'journalist';
+  static const String artist      = 'artist';
+  static const String industrialist      = 'industrialist';
+  static const String seniorCitizen      = 'seniorCitizen';
+  static const String homeMaker      = 'homeMaker';
+  static const String govtEmployee      = 'govtEmployee';
+  static const String pvtEmployee      = 'pvtEmployee';
+  static const String ngoSociety     = 'ngoSociety';
+  static const String govtDepartment      = 'govtDepartment';
+  static const String contentCreator      = 'contentCreator';
+  static const String director      = 'director';
+  static const String student      = 'student';
+  static const String skilledWorker      = 'skilledWorker';
+  static const String farmer      = 'farmer';
+
+  static const String socialProfile      = 'socialProfile';
+  static const String joinAsEarnWithBlueEra      = 'joinAsEarnWithBlueEra';
+  static const String listYourBusiness      = 'listYourBusiness';
+  static const String groceryFoodRestaurant      = 'groceryFoodRestaurant';
+  static const String shopStoreShowroom      = 'shopStoreShowroom';
+  static const String chooseYourAccountType      = 'chooseYourAccountType';
+
+  static const String consulting      = 'consulting';
+  static const String automotive      = 'automotive';
+  static const String itCommunication      = 'itCommunication';
+  static const String homeUtility      = 'homeUtility';
+  static const String mediaCreative      = 'mediaCreative';
+  static const String educationTraining      = 'educationTraining';
+  static const String tourTravel      = 'tourTravel';
+  static const String beautyCare      = 'beautyCare';
+  static const String serviceCenter      = 'serviceCenter';
+  static const String logistics      = 'logistics';
+  static const String celebrationEvent      = 'celebrationEvent';
+  static const String financial      = 'financial';
+
+  static const String furnitureHomeDecor      = 'furnitureHomeDecor';
+  static const String sportsFitness      = 'sportsFitness';
+  static const String jewelleryLuxury      = 'jewelleryLuxury';
+  static const String automotiveStore      = 'automotiveStore';
+  static const String booksStationaryGifts      = 'booksStationaryGifts';
+  static const String pharmacyMedical      = 'pharmacyMedical';
+  static const String petSupplies      = 'petSupplies';
+  static const String toysBabyProducts      = 'toysBabyProducts';
+  static const String electronicsAppliances      = 'electronicsAppliances';
+  static const String constructionHomeEssentials      = 'constructionHomeEssentials';
+  static const String fashionLifestyle      = 'fashionLifestyle';
+  static const String healthcareMedicalServices      = 'healthcareMedicalServices';
+  static const String hostelsStayService      = 'hostelsStayService';
+
+  static const String fastFoodQuickService      = 'fastFoodQuickService';
+  static const String multiCuisineRestaurants      = 'multiCuisineRestaurants';
+  static const String groceryVegetablesDairy      = 'groceryVegetablesDairy';
+  static const String nonVegRestaurants      = 'nonVegRestaurants';
+  static const String vegRestaurants      = 'vegRestaurants';
+  static const String otherRestaurantsDhaba      = 'otherRestaurantsDhaba';
+  static const String sweetsBakeryDrinks      = 'sweetsBakeryDrinks';
+  static const String otherFoodServices      = 'otherFoodServices';
+
+  static const String areYouSureYouWantToExitTheApp = 'areYouSureYouWantToExitTheApp';
+  static const String othersManufacturingUnitIndustryFactory = 'othersManufacturingUnitIndustryFactory';
+  static const String manufacturingRelatedBusinessInfo = 'manufacturingRelatedBusinessInfo';
+  static const String needHelp = 'needHelp';
+  static const String unknown = 'Unknown';
+
+  static const String uploadYourPhotoLogo = 'uploadYourPhotoLogo';
+  static const String categoryAndSubcategory = 'categoryAndSubcategory';
+  static const String businessDetailsTitle = 'businessDetailsTitle';
+  static const String enterBusinessName = 'enterBusinessName';
+  static const String minFiveCharactersRequired = 'minCharactersRequired';
+  static const String natureOfBusiness = 'natureOfBusiness';
+  static const String enterOtherNatureOfBusiness = 'enterOtherNatureOfBusiness';
+  static const String referralCode = 'referralCode';
+  static const String enterReferralCode = 'enterReferralCode';
+  static const String pleaseEnterReferralCode = 'pleaseEnterReferralCode';
+  static const String doYouHaveReferralCode = 'doYouHaveReferralCode';
+  static const String enableLocationPermission = 'enableLocationPermission';
+  static const String specialCharactersNotAllowed = 'specialCharactersNotAllowed';
+  static const String pleaseEnterBusinessSpecialization = 'pleaseEnterBusinessSpecialization';
+  static const String min8CharactersRequired = 'min8CharactersRequired';
+  static const String max24CharactersAllowed = 'max24CharactersAllowed';
+
+  static const String previous = 'Previous';
+  static const String websiteHint = '"https://shop.com"';
+  static const String refresh = 'Refresh';
+
+  static const String minimumThreeImages = 'Minimum 3 images';
+
+  static const String youHaveChosen = 'youHaveChosen';
+
+  static const String frontView = 'frontView';
+  static const String entireStoreOffice = 'entireStoreOffice';
+  static const String roadsideOutsideView = 'roadsideOutsideView';
+  static const personalDetails = "personalDetails";
+
 
   ///BHAVESH START
   static const ownerDetail = "owner_detail";

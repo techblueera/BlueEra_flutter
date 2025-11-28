@@ -1,10 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
-
 import '../../../../../core/api/apiService/api_keys.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/app_constant.dart';
@@ -477,7 +474,7 @@ setState(() {
           ),
         ],
         if ((selectedProfession ==
-            SENIOR_CITIZEN_RETIRED)) ...[
+            SENIOR_CITIZEN)) ...[
           SizedBox(
             height: SizeConfig.size20,
           ),
@@ -630,7 +627,7 @@ setState(() {
             (selectedProfession != CONTENT_CREATOR) &&
             (selectedProfession != HOMEMAKER) &&
             (selectedProfession !=
-                SENIOR_CITIZEN_RETIRED) &&
+                SENIOR_CITIZEN) &&
             (selectedProfession != FARMER) &&
             (selectedProfession != STUDENT) &&
             (selectedProfession != OTHERS)) ...[

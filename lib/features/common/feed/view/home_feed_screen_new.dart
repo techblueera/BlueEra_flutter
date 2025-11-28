@@ -175,9 +175,12 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
             children: [
               isIndividual()
                   ? _buildEarnWithBlueEraWidget()
-                  : (inventoryController.allProducts.isNotEmpty)
-                      ? _buildProductCard()
-                      : SizedBox.shrink(),
+                    : SizedBox.shrink(),
+              // isIndividual()
+              //     ? _buildEarnWithBlueEraWidget()
+              //     : (inventoryController.allProducts.isNotEmpty)
+              //     ? _buildProductCard()
+              //     : SizedBox.shrink(),
               Expanded(
                 child: Center(
                   child: Padding(
@@ -209,9 +212,12 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
             if (indexFeed == 0) {
               return isIndividual()
                   ? _buildEarnWithBlueEraWidget()
-                  : (inventoryController.allProducts.isNotEmpty)
-                      ? _buildProductCard()
-                      : SizedBox.shrink();
+                  :  SizedBox.shrink();
+              // return isIndividual()
+              //     ? _buildEarnWithBlueEraWidget()
+              //     : (inventoryController.allProducts.isNotEmpty)
+              //         ? _buildProductCard()
+              //         : SizedBox.shrink();
             }
             int index = indexFeed - 1;
             final block = blocks[index];
@@ -569,16 +575,16 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
     });
   }
 
-  Widget _buildProductCard() {
-    return Padding(
-      padding: EdgeInsets.only(
-          left: SizeConfig.size8,
-          right: SizeConfig.size8,
-          top: SizeConfig.size8),
-      child: BusinessAllProductCard(
-          allProducts: Get.find<InventoryController>().allProducts),
-    );
-  }
+  // Widget _buildProductCard() {
+  //   return Padding(
+  //     padding: EdgeInsets.only(
+  //         left: SizeConfig.size8,
+  //         right: SizeConfig.size8,
+  //         top: SizeConfig.size8),
+  //     child: BusinessAllProductCard(
+  //         allProducts: Get.find<InventoryController>().allProducts),
+  //   );
+  // }
 
   Widget _buildEarnWithBlueEraWidget() {
     return Container(
