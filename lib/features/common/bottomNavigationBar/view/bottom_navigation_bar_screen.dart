@@ -182,7 +182,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   }
 
   Future<void> _initializeBusinessUser() async {
-    await getBusinessUserOwnProduct();
+    // await getBusinessUserOwnProduct();
   }
 
   void _initializeSocketConnections() {
