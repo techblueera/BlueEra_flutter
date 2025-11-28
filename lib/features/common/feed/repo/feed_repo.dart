@@ -242,5 +242,17 @@ class FeedRepo extends BaseService{
     return response;
   }
 
-
+  ///View Channel details...
+  Future<ResponseModel> fetchAllMessagePosts({required Map<String, dynamic> queryParams}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      // homeFeed,
+    // ?cursor=2025-11-27T12%3A05%3A35.807Z&type=MESSAGE_POST
+      "${userFeedPost}",
+      showProgress: false,
+      params: queryParams,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 }

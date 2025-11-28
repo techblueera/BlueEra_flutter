@@ -238,47 +238,47 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
                   itemBuilder: (c, postIndex) {
                     final imgPostData = block.items[postIndex];
 
-                    if (imgPostData.type == "short_video") {
-                      ShortFeedItem reelData = getVideoData(imgPostData);
-                      int shortID = shortsController?.latestShortsPosts
-                              .indexWhere((post) =>
-                                  post.videoId == reelData.video?.id) ??
-                          0;
-                      return ClipRRect(
-                        borderRadius: (BorderRadius.circular(12)),
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            SingleShortStructure(
-                              key: ValueKey(shortID),
-                              shorts: Shorts.latest,
-                              allLoadedShorts:
-                                  shortsController?.latestShortsPosts,
-                              initialIndex: shortID,
-                              shortItem: reelData,
-                              withBackground: true,
-                              // imageWidth: 170,
-                              imageHeight: SizeConfig.size310,
-                            ),
-                            // total views
-                            Align(
-                              alignment: Alignment.center,
-                              child: Container(
-                                padding: EdgeInsets.all(8.0),
-                                decoration: BoxDecoration(
-                                    color:
-                                        AppColors.black.withValues(alpha: 0.4),
-                                    shape: BoxShape.circle,
-                                    boxShadow: [AppShadows.textFieldShadow]),
-                                child: LocalAssets(
-                                  imagePath: AppIconAssets.playIcon,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }
+                    // if (imgPostData.type == "short_video") {
+                    //   ShortFeedItem reelData = getVideoData(imgPostData);
+                    //   int shortID = shortsController?.latestShortsPosts
+                    //           .indexWhere((post) =>
+                    //               post.videoId == reelData.video?.id) ??
+                    //       0;
+                    //   return ClipRRect(
+                    //     borderRadius: (BorderRadius.circular(12)),
+                    //     child: Stack(
+                    //       alignment: Alignment.center,
+                    //       children: [
+                    //         SingleShortStructure(
+                    //           key: ValueKey(shortID),
+                    //           shorts: Shorts.latest,
+                    //           allLoadedShorts:
+                    //               shortsController?.latestShortsPosts,
+                    //           initialIndex: shortID,
+                    //           shortItem: reelData,
+                    //           withBackground: true,
+                    //           // imageWidth: 170,
+                    //           imageHeight: SizeConfig.size310,
+                    //         ),
+                    //         // total views
+                    //         Align(
+                    //           alignment: Alignment.center,
+                    //           child: Container(
+                    //             padding: EdgeInsets.all(8.0),
+                    //             decoration: BoxDecoration(
+                    //                 color:
+                    //                     AppColors.black.withValues(alpha: 0.4),
+                    //                 shape: BoxShape.circle,
+                    //                 boxShadow: [AppShadows.textFieldShadow]),
+                    //             child: LocalAssets(
+                    //               imagePath: AppIconAssets.playIcon,
+                    //             ),
+                    //           ),
+                    //         ),
+                    //       ],
+                    //     ),
+                    //   );
+                    // }
                     if (imgPostData.type == "image_post") {
                       trackPostView(imgPostData.id);
 

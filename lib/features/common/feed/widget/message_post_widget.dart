@@ -15,6 +15,7 @@ import 'package:BlueEra/features/business/visiting_card/view/business_own_profil
 import 'package:BlueEra/features/common/feed/controller/video_controller.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
+import 'package:BlueEra/features/common/feed/view/all_message_post_screen.dart';
 import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card_widget.dart';
@@ -112,47 +113,53 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (_post.title?.isNotEmpty ?? false) ...[
-                          Padding(
-                            padding: EdgeInsets.only(
-                              left: SizeConfig.size15,
-                              right: SizeConfig.size15,
-                            ),
-                            child: CustomText(
-                              _post.title,
-                              color: AppColors.secondaryTextColor,
-                              fontWeight: FontWeight.bold,
-                              // fontSize: SizeConfig.large,
-                            ),
-                          ),
-                        ],
-                        if (subTitle.isNotEmpty) ...[
-                          Container(
-                            child: Padding(
+                    InkWell(
+                      onTap: (){
+                        Get.to(AllMessagePostScreen(postID: _post.id,));
+
+                      },
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (_post.title?.isNotEmpty ?? false) ...[
+                            Padding(
                               padding: EdgeInsets.only(
                                 left: SizeConfig.size15,
                                 right: SizeConfig.size15,
                               ),
-                              child: ExpandableText(
-                                text: subTitle.trim(),
-                                trimLines: 5,
-                                expandMode: ExpandMode.dialog,
-                                style: TextStyle(
-                                    color: AppColors.mainTextColor,
-                                    fontFamily: AppConstants.OpenSans,
-                                    fontWeight: FontWeight.w400,
-                                    fontSize: SizeConfig.size15),
+                              child: CustomText(
+                                _post.title,
+                                color: AppColors.secondaryTextColor,
+                                fontWeight: FontWeight.bold,
+                                // fontSize: SizeConfig.large,
                               ),
                             ),
-                          ),
-                          SizedBox(
-                            height: SizeConfig.size5,
-                          ),
+                          ],
+                          if (subTitle.isNotEmpty) ...[
+                            Container(
+                              child: Padding(
+                                padding: EdgeInsets.only(
+                                  left: SizeConfig.size15,
+                                  right: SizeConfig.size15,
+                                ),
+                                child: ExpandableText(
+                                  text: subTitle.trim(),
+                                  trimLines: 5,
+                                  expandMode: ExpandMode.dialog,
+                                  style: TextStyle(
+                                      color: AppColors.mainTextColor,
+                                      fontFamily: AppConstants.OpenSans,
+                                      fontWeight: FontWeight.w400,
+                                      fontSize: SizeConfig.size15),
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                              height: SizeConfig.size5,
+                            ),
+                          ],
                         ],
-                      ],
+                      ),
                     ),
                     if (_post.referenceLink?.isNotEmpty ?? false)
                       Padding(

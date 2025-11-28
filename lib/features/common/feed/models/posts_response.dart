@@ -164,7 +164,7 @@ class Post {
 
       poll: json['poll'] != null ? Poll.fromJson(json['poll']) : null,
       isLiked: json['isLiked'],
-      user: json['user'] != null ? User.fromJson(json['user']) : null,
+        user: json['user'] != null ? User.fromJson(json['user']) : null,
       isPostSavedLocal: json['isPostSavedLocal'],
       song: json['song'] != null ? Song.fromJson(json['song']) : null,
       visibilityDuration: json['visibility_duration'],

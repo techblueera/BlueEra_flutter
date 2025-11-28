@@ -8,6 +8,7 @@ import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_widget.dart';
+import 'package:BlueEra/features/common/feed/view/all_message_post_screen.dart';
 import 'package:BlueEra/features/common/home/view/home_screen.dart';
 import 'package:BlueEra/features/common/jobs/view/jobs_screen.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
@@ -167,7 +168,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     final data = channelModel!.data;
     channelId = data.id;
     channelName = data.name;
-    channelOwner = data.ownership.claimedBy;
+    channelOwner = data.username;
+    // channelOwner = data.ownership.claimedBy;
 
     await Future.wait([
       SharedPreferenceUtils.setSecureValue(

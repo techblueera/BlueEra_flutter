@@ -37,13 +37,15 @@
         android:enableOnBackInvokedCallback="true"
         android:icon="@mipmap/ic_launcher_adaptive_fore"
         android:label="BlueEra"
+        android:usesCleartextTraffic="true"
+
         tools:replace="android:label"
         android:largeHeap="true">
 
-        <!-- ✅ OneSignal Service -->
-        <service
-            android:name="com.onesignal.NotificationExtenderService"
-            android:exported="false" />
+<!--        &lt;!&ndash; ✅ OneSignal Service &ndash;&gt;-->
+<!--        <service-->
+<!--            android:name="com.onesignal.NotificationExtenderService"-->
+<!--            android:exported="false" />-->
 
         <!-- Google Maps API Key -->
         <meta-data

@@ -78,7 +78,7 @@ Future<void> showPostViaDialog(
     BuildContext context,
     PostCreationMenu postCreationMenu,
     ) async {
-  String selected = 'profile';
+  String selected = 'channel';
 
   await showDialog(
     context: context,
@@ -130,20 +130,6 @@ Future<void> showPostViaDialog(
                     child: Column(
                       children: [
                         RadioListTile(
-                          value: 'profile',
-                          groupValue: selected,
-                          visualDensity: VisualDensity.compact,
-                          onChanged: (value) =>
-                              setState(() => selected = value!),
-                          contentPadding: EdgeInsets.zero,
-                          title: CustomText(
-                            AppStrings.profile,
-                            color: AppColors.mainTextColor,
-                            fontSize: SizeConfig.medium,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                        RadioListTile(
                           value: 'channel',
                           groupValue: selected,
                           visualDensity: VisualDensity.compact,
@@ -152,6 +138,21 @@ Future<void> showPostViaDialog(
                           contentPadding: EdgeInsets.zero,
                           title: CustomText(
                             AppStrings.channel,
+                            color: AppColors.mainTextColor,
+                            fontSize: SizeConfig.medium,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+
+                        RadioListTile(
+                          value: 'profile',
+                          groupValue: selected,
+                          visualDensity: VisualDensity.compact,
+                          onChanged: (value) =>
+                              setState(() => selected = value!),
+                          contentPadding: EdgeInsets.zero,
+                          title: CustomText(
+                            AppStrings.profile,
                             color: AppColors.mainTextColor,
                             fontSize: SizeConfig.medium,
                             fontWeight: FontWeight.w400,
