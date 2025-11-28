@@ -285,3 +285,38 @@ class LocalStorageHelper {
     // }
   }
 }
+class AiChatLocalStorage {
+  static const String _boxName = "aiChatBox";
+  static const String keyConversationId = "aiChatConversationId";
+
+  static Future<Box<String>> _openBox() async {
+    if (Hive.isBoxOpen(_boxName)) {
+      return Hive.box<String>(_boxName);
+    } else {
+      return await Hive.openBox<String>(_boxName);
+    }
+  }
+
+  /// Save Conversation ID only if it is not already stored
+  static Future<void> saveConversationIdIfEmpty(String id) async {
+    final box = await _openBox();
+
+    String? existingId = box.get(keyConversationId);
+
+    if (existingId == null || existingId.isEmpty) {
+      await box.put(keyConversationId, id);
+    }
+  }
+
+  /// Get stored Conversation ID
+  static Future<String?> getConversationId() async {
+    final box = await _openBox();
+    return box.get(keyConversationId);
+  }
+
+  /// Clear Conversation ID
+  static Future<void> clearConversationId() async {
+    final box = await _openBox();
+    await box.delete(keyConversationId);
+  }
+}

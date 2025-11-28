@@ -1,9 +1,14 @@
+import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_strings.dart';
+import '../../../../core/constants/snackbar_helper.dart';
 import '../../../../widgets/custom_text_cm.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
@@ -123,7 +128,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                       mainAxisSize: MainAxisSize.max,
                       children: [
                         Expanded(
-                          child: RichText(
+                          child: (widget.messages.sendStatus==AppStrings.Ai)?CustomText(widget.message): RichText(
                             text: TextSpan(
                               children: [
                                 TextSpan(
@@ -206,11 +211,24 @@ class _MessageBubbleState extends State<MessageBubble> {
                 children: [
                   CustomText('Message', color: AppColors.black,fontSize: 16,
                     fontWeight: FontWeight.w600,),
-                  CustomText(
-                    time,
-                    fontWeight: FontWeight.w500,
-                    color:  AppColors.black,
-                    fontSize: 12,
+                  Row(
+                    children: [
+                      CustomText(
+                        time,
+                        fontWeight: FontWeight.w500,
+                        color:  AppColors.black,
+                        fontSize: 12,
+                      ),
+                      SizedBox(width: SizeConfig.size8,),
+                      InkWell(
+                          onTap: (){
+                            Clipboard.setData(ClipboardData(text: message));
+                            commonSnackBar(
+                                message: "Copied to clipboard");
+                          },
+                          child: Icon(Icons.copy, size: 20))
+
+                    ],
                   ),
                 ],
               ),
@@ -248,12 +266,16 @@ class _MessageBubbleState extends State<MessageBubble> {
             const SizedBox(height: 18,),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: InkWell(
-                  onTap: (){
-                    Get.back();
+              child: Row(mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  InkWell(
+                      onTap: (){
+                        Get.back();
+                      },
+                      child: CustomText('Close', color: AppColors.primaryColor,fontWeight: FontWeight.w600,fontSize: 14,)),
 
-                  },
-                  child: CustomText('Close', color: AppColors.primaryColor,fontWeight: FontWeight.w600,fontSize: 14,)),
+                ],
+              ),
             ),
             const SizedBox(height: 4,),
 

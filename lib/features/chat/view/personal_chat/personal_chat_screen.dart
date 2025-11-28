@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/api/apiService/api_response.dart';
+import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/app_image_assets.dart';
 import '../../../../core/constants/size_config.dart';
@@ -40,10 +41,7 @@ class PersonalChatScreen extends StatefulWidget {
 }
 
 class _PersonalChatScreenState extends State<PersonalChatScreen> {
-  final Color sentMessageColor = Color(0xFF007AFF);
 
-  final Color receivedMessageColor = Color(0xFFECECEC);
-  final Color backgroundColor = Color(0xFFF5F5F5);
   final chatViewController = Get.find<ChatViewController>();
   final chatThemeController = Get.find<ChatThemeController>();
   final TextEditingController editingController = TextEditingController();
@@ -87,7 +85,7 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
       },
       child: Obx(() {
         return Scaffold(
-          backgroundColor: backgroundColor,
+          backgroundColor: AppColors.fillColor,
           appBar: (chatThemeController.isMessageSelectionActive.value &&
                   widget.type != "Admin")
               ? getChatOptionsAppBar(

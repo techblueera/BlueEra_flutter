@@ -243,8 +243,8 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("Replying to",
-                          style: TextStyle(fontSize: 12, color: Colors.grey)),
+                      CustomText("Replying to",
+                        fontSize: 12, color: AppColors.grayText),
                       messageTypeIconWithLabel(reply??Messages()),
                     ],
                   ),

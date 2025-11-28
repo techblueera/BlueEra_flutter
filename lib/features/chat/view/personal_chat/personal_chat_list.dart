@@ -9,6 +9,7 @@ import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetChatListModel.dart';
+import '../ai_chat/ai_chat_screen.dart';
 import '../widget/component_widgets.dart';
 
 class PersonalChatsList extends StatefulWidget {
@@ -33,6 +34,7 @@ class _PersonalChatsListState extends State<PersonalChatsList> {
           Status.COMPLETE) {
         GetChatListModel? data =
             chatViewController.getPersonalChatListModel?.value;
+
         return RefreshIndicator(
           onRefresh: () async {
             chatViewController.emitEvent(
@@ -43,24 +45,35 @@ class _PersonalChatsListState extends State<PersonalChatsList> {
             child: (data?.chatList?.isEmpty ?? true)
                 ? noChatsFound()
                 : ListView.builder(
-                    itemCount: data?.chatList?.length,
-                    shrinkWrap: true,
-                    itemBuilder: (context, index) {
-                      return ChatListTile(
-                          isFromGroupSelect: widget.isNewGroupUI,
-                          onSelect: () {
-                            setState(() {});
-                          },
-                          type: data?.chatList?[index]?.sender?.accountType ??
-                              AppConstants.individual,
-                          index: index,
-                          chatViewController: chatViewController,
-                          chat: data?.chatList?[index],
-                          theme: theme,
-                          isForwardUI: widget.isForwardUI,
-                          context: context);
-                    },
-                  ),
+              itemCount: (data?.chatList?.length ?? 0) + 1, // ADD 1 EXTRA ITEM
+              shrinkWrap: true,
+              itemBuilder: (context, index) {
+                final chat =(index == 0)? ChatViewController.chat:data?.chatList?[index - 1];
+                return ChatListTile(onTab: (index == 0)?(){
+                 Get.to(()=>AiChatScreen(
+                   profileImage: chat?.sender?.profileImage,
+                   name: chat?.sender?.name,
+                   contactNo: chat?.sender?.contactNo,
+                   conversationId: '',
+                   userId: '',
+                     businessId: '',
+                   type: chat?.sender?.accountType,
+                   isInitialMessage: false,));
+                }:null,
+                  isFromGroupSelect: widget.isNewGroupUI,
+                  onSelect: () {
+                    setState(() {});
+                  },
+                  type: chat?.sender?.accountType ?? AppConstants.individual,
+                  index: index - 1, // correct index for chat list
+                  chatViewController: chatViewController,
+                  chat: chat,
+                  theme: theme,
+                  isForwardUI: widget.isForwardUI,
+                  context: context,
+                );
+              },
+            ),
           ),
         );
       } else {
