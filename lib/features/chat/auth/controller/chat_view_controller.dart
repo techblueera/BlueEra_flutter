@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
-
+import 'dart:typed_data';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -21,6 +21,8 @@ import '../model/Generate_Upload_Ulr_Model.dart';
 import '../model/GetChatListModel.dart';
 import '../model/GetChatRequestListModel.dart';
 import '../model/GetListOfMessageData.dart';
+import '../model/ai_chat_history_msg_model.dart';
+import '../model/ai_chat_reply_msg_model.dart';
 import '../model/contactListModel.dart';
 import '../model/getChatRequestProfileDetailsModel.dart';
 import '../model/getMediaMsgCommentsModel.dart' as cmdImport;
@@ -28,6 +30,7 @@ import '../model/getMediaMsgCommentsModel.dart';
 import '../model/view_group_members_model.dart';
 import '../model/visit_chat_view_model.dart';
 import '../repo/chat_view_repo.dart';
+import '../socket/ai_socket.dart';
 import '../socket/chat_socket.dart';
 
 class ChatViewController extends GetxController {
@@ -37,6 +40,7 @@ class ChatViewController extends GetxController {
   Rx<ApiResponse> groupChatListResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> orderChatListResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> getListOfMessageResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> getListOfAiMessageResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> getGroupMembersResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> generateUploadUrlResponse =
       ApiResponse.initial('Initial').obs;
@@ -44,19 +48,32 @@ class ChatViewController extends GetxController {
       ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> viewContactsListResponse = ApiResponse.initial('Initial').obs;
   final chatSocket = ChatSocketService();
+  final aiSocket = AiSocketService();
   Rx<GetChatRequestListModel>? getChatRequestListModel =
       GetChatRequestListModel().obs;
   Rx<GetChatRequestProfileDetailsModel>? getChatRequestProfileDetailsModel =
       GetChatRequestProfileDetailsModel().obs;
+  static final Map<String, dynamic> aiChatListModel = {
+    "last_message": "Ask anything with friend",
+    "last_message_type": "text",
+    "sender": {
+      "name": "BlueEra Friend",
+      "contact_no": "BlueEra Friend",
+      "profile_image": "https://be-user-bkt.s3.ap-south-1.amazonaws.com/admin/68a31a3edd48c8dfc0656a00/profile/1759817565514-unnamed.webp",
+      "account_type": AppStrings.Ai,
+    }
+  };
+  static final ChatList? chat = ChatList.fromJson(aiChatListModel);
   Rx<GetChatListModel>? getPersonalChatListModel = GetChatListModel().obs;
   Rx<GetChatListModel>? getOrderChatListModel = GetChatListModel().obs;
   Rx<GetChatListModel>? getBusinessChatListModel = GetChatListModel().obs;
   Rx<GetChatListModel>? getGroupChatListModel = GetChatListModel().obs;
   Rx<GetChatListModel>? getPersonalFilteredChatListModel =
       GetChatListModel().obs;
-
   List<Messages>? get getListOfMessageData =>
       getListOfMessageResponse.value.data;
+  // List<Messages>? get getListOfAiMessageData =>
+  //     getListOfAiMessageResponse.value.data;
   Rx<ContactListModel>? contactsListModel = ContactListModel().obs;
   Rx<GetMediaMsgCommentsModel>? getMediaMsgCommentsModel =
       GetMediaMsgCommentsModel().obs;
@@ -79,7 +96,7 @@ class ChatViewController extends GetxController {
   RxList<ChatList?> selectedChatList = <ChatList?>[].obs;
   RxList<String> openedConversation = <String>[].obs;
   RxList<Map<String, dynamic>> groupConnections = <Map<String, dynamic>>[].obs;
-
+  List<Messages>? getListOfAiMessageData=[];
   Rx<GenerateUploadUlrModel?>? generateUploadUlrModel =
       GenerateUploadUlrModel().obs;
   RxString VideoUploadProgress = ''.obs;
@@ -87,91 +104,92 @@ class ChatViewController extends GetxController {
   TabController? chatMainTabController;
   final localStorageHelper = LocalStorageHelper();
   RxInt businessTabIndexSelected = 0.obs;
+  RxBool chatBotReading = false.obs;
+
 
   final List<String> tabs = ['Chat','Products', 'Foods','Services','Post','Reviews','Others'];
-
-  void changeBusinessInsideTab(int index) {
-    businessTabIndexSelected.value = index;
-  }
-  void setReplyMessage(Messages? message) {
-    replyMessage?.value = message;
-  }
-
-  void onSelectChatTab(int index) {
-    if (chatMainTabController == null) {
-      // Optionally initialize here if possible
-      // chatMainTabController = TabController(length: ..., vsync: this);
-      return; // or handle gracefully
+  void parseAiChatHistory(List<dynamic> jsonList) {
+    for (var item in jsonList) {
+      final details = AiChatHistoryMessageModel.fromJson(item);
+      getListOfAiMessageData?.add(
+        Messages(
+          sendStatus: AppStrings.Ai,
+          status: "read",
+          messageRead: 1,
+          message: details.content,          // Use details.content for text
+          conversationId: details.id,        // Or details.conversationId if exists
+          myMessage: details.role == "user", // Mark user's messages
+          createdAt: details.timestamp,
+          messageType: "text",
+        ),
+      );
     }
-    chatMainTabController!.animateTo(index);
-    selectedChatTabIndex.value = index;
-  }
-  void isChatFromBusinessProfile(bool value) {
-    chatFromBusinessProfile.value = value;
+
+    getListOfAiMessageResponse.value =
+        ApiResponse.complete(getListOfAiMessageData);
   }
 
-  void clearMessageControllerCommon() {
+  Future<void> connectAiSocket()async{
+    getListOfAiMessageData?.clear();
+    await aiSocket.connect();
+    aiSocket.onMessage((data){
+      chatBotReading.value=false;
+      AiReplyMessageModel details=AiReplyMessageModel.fromJson(data);
+      saveAiConversationId(details.conversationId);
+      getListOfAiMessageData?.add(Messages(
+          sendStatus: AppStrings.Ai,
+          messageRead: 1,
+          status: "read",
+          message: details.reply,
+          conversationId: details.conversationId,
+          myMessage: false,
+          createdAt:details.timestamp,
+          messageType: "text"
+      ));
+      getListOfAiMessageResponse.value =
+          ApiResponse.complete(getListOfAiMessageData);
+    });
+     aiSocket.onHistory((data){
+       parseAiChatHistory(data);
+     });
+     String? converId= await AiChatLocalStorage.getConversationId();
+     aiSocket.getHistory(converId??'');
+    getListOfAiMessageResponse.value =
+        ApiResponse.initial("Initial");
+  }
+  Future<void> saveAiConversationId(String id)async{
+    await AiChatLocalStorage.saveConversationIdIfEmpty(id);
+  }
+  String formattedDate() {
+    final now = DateTime.now().toUtc();
+    return "${now.toIso8601String().substring(0, 23)}Z";
+  }
+   Future<void> sendMessageToAiSocket({
+      String? conversationId,
+      String? message,
+      Uint8List? imageBytes,
+      String? mimeType,
+  })async{
+     chatBotReading.value=true;
+    String? converId= await AiChatLocalStorage.getConversationId();
+    aiSocket.sendMessage(message: message,conversationId: converId,imageBytes: imageBytes,mimeType: mimeType);
+    getListOfAiMessageData?.add(Messages(
+        sendStatus: AppStrings.Ai,
+        messageRead: 1,
+        message: message,
+        status: "read",
+        conversationId: conversationId,
+        myMessage: true,
+        createdAt:formattedDate(),
+        messageType: "text"
+    )); // Add message to UI
+
+    getListOfAiMessageResponse.value =
+        ApiResponse.complete(getListOfAiMessageData);
     sendMessageController.value.clear();
-    isTextFieldEmpty.value = false;
-  }
-
-  Future<void> loadChatListFromLocal(String type) async {
-    List<ChatList> localChats =
-        await localStorageHelper.getChatListFromLocal(type);
-    getPersonalChatListModel?.value = GetChatListModel(
-      success: true,
-      chatList: localChats,
-      archived: [],
-    );
-    personalChatListResponse.value =
-        ApiResponse.complete(getPersonalChatListModel?.value);
-  }
-
-  void loadChatListWithType({required GetChatListModel chatListModel}) {
-
-    if (chatListModel.type == "business") {
-      getBusinessChatListModel?.value = chatListModel;
-      businessChatListResponse.value = ApiResponse.complete(chatListModel);
-    } else if (chatListModel.type == "personal") {
-      getPersonalChatListModel?.value = chatListModel;
-      personalChatListResponse.value = ApiResponse.complete(chatListModel);
-    } else if (chatListModel.type == "group") {
-      getGroupChatListModel?.value = chatListModel;
-      groupChatListResponse.value =
-          ApiResponse.complete(getGroupChatListModel?.value);
-    }else if (chatListModel.type == "order") {
-      getOrderChatListModel?.value = chatListModel;
-      orderChatListResponse.value =
-          ApiResponse.complete(getOrderChatListModel?.value);
-    } else {
-      // when type is not come  from backend this is show success in personal chat
-      getPersonalChatListModel?.value = chatListModel;
-      personalChatListResponse.value = ApiResponse.complete(chatListModel);
     }
-  }
-
-  void onSearchChatList(String searchQuery) {
-    if (selectedChatTabIndex.value == 0) {
-      // ✅ Always search on the original full list (not filtered list)
-      List<ChatList?>? fullChatList =
-          getPersonalFilteredChatListModel?.value.chatList;
-
-      if (searchQuery.isNotEmpty) {
-        List<ChatList?> filteredList = fullChatList
-                ?.where((e) =>
-                    (e?.sender?.name?.toLowerCase().contains(searchQuery) ??
-                        false))
-                .toList() ??
-            [];
-        getPersonalChatListModel?.value.chatList = filteredList;
-        loadChatListWithType(chatListModel: getPersonalChatListModel!.value);
-      } else {
-        // if empty query, show full list
-        loadChatListWithType(
-            chatListModel: getPersonalFilteredChatListModel!.value);
-      }
-    } else if (selectedChatTabIndex.value == 1) {
-    } else if (selectedChatTabIndex.value == 2) {}
+  Future<void> disposeAiSocket()async{
+     aiSocket.disposeSocket();
   }
 
   Future<void> connectSocket() async {
@@ -287,6 +305,92 @@ class ChatViewController extends GetxController {
     socketConnectedCalled.value = true;
     // }
   }
+
+  void changeBusinessInsideTab(int index) {
+    businessTabIndexSelected.value = index;
+  }
+  void setReplyMessage(Messages? message) {
+    replyMessage?.value = message;
+  }
+
+  void onSelectChatTab(int index) {
+    if (chatMainTabController == null) {
+      // Optionally initialize here if possible
+      // chatMainTabController = TabController(length: ..., vsync: this);
+      return; // or handle gracefully
+    }
+    chatMainTabController!.animateTo(index);
+    selectedChatTabIndex.value = index;
+  }
+  void isChatFromBusinessProfile(bool value) {
+    chatFromBusinessProfile.value = value;
+  }
+
+  void clearMessageControllerCommon() {
+    sendMessageController.value.clear();
+    isTextFieldEmpty.value = false;
+  }
+
+  Future<void> loadChatListFromLocal(String type) async {
+    List<ChatList> localChats =
+        await localStorageHelper.getChatListFromLocal(type);
+    getPersonalChatListModel?.value = GetChatListModel(
+      success: true,
+      chatList: localChats,
+      archived: [],
+    );
+    personalChatListResponse.value =
+        ApiResponse.complete(getPersonalChatListModel?.value);
+  }
+
+  void loadChatListWithType({required GetChatListModel chatListModel}) {
+
+    if (chatListModel.type == "business") {
+      getBusinessChatListModel?.value = chatListModel;
+      businessChatListResponse.value = ApiResponse.complete(chatListModel);
+    } else if (chatListModel.type == "personal") {
+      getPersonalChatListModel?.value = chatListModel;
+      personalChatListResponse.value = ApiResponse.complete(chatListModel);
+    } else if (chatListModel.type == "group") {
+      getGroupChatListModel?.value = chatListModel;
+      groupChatListResponse.value =
+          ApiResponse.complete(getGroupChatListModel?.value);
+    }else if (chatListModel.type == "order") {
+      getOrderChatListModel?.value = chatListModel;
+      orderChatListResponse.value =
+          ApiResponse.complete(getOrderChatListModel?.value);
+    } else {
+      // when type is not come  from backend this is show success in personal chat
+      getPersonalChatListModel?.value = chatListModel;
+      personalChatListResponse.value = ApiResponse.complete(chatListModel);
+    }
+  }
+
+  void onSearchChatList(String searchQuery) {
+    if (selectedChatTabIndex.value == 0) {
+      // ✅ Always search on the original full list (not filtered list)
+      List<ChatList?>? fullChatList =
+          getPersonalFilteredChatListModel?.value.chatList;
+
+      if (searchQuery.isNotEmpty) {
+        List<ChatList?> filteredList = fullChatList
+                ?.where((e) =>
+                    (e?.sender?.name?.toLowerCase().contains(searchQuery) ??
+                        false))
+                .toList() ??
+            [];
+        getPersonalChatListModel?.value.chatList = filteredList;
+        loadChatListWithType(chatListModel: getPersonalChatListModel!.value);
+      } else {
+        // if empty query, show full list
+        loadChatListWithType(
+            chatListModel: getPersonalFilteredChatListModel!.value);
+      }
+    } else if (selectedChatTabIndex.value == 1) {
+    } else if (selectedChatTabIndex.value == 2) {}
+  }
+
+
 
   Future<void> saveSingleMessageToLocal(String conversationId, Messages msg,
       [Map<String, dynamic>? params]) async {

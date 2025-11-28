@@ -86,7 +86,10 @@ class AppConstants {
   static const String SMS = 'SMS';
   static const String WhatsApp = 'WhatsApp';
 
-  // static const String personal = 'personal';
+  static const String personal_Chat_Type = 'personal';
+  static const String business_Chat_Type = 'business';
+  static const String group_Chat_Type = 'group';
+  static const String order_Chat_Type = 'order';
   // static const String business = 'business';
   // static const String company = 'company';
   static const String recruiter = 'recruiter';

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
 import 'package:BlueEra/features/chat/contacts/view/contact_list_page.dart';
@@ -924,7 +925,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
     ),
     titleSpacing: 0,
     title: InkWell(
-      onTap: (type != "Admin")
+      onTap: (type != AppStrings.Admin||type != AppStrings.Ai)
           ? () {
         if (isGroupAppBar != null) {
           Navigator.push(
@@ -1007,8 +1008,8 @@ AppBar getChatTitleAppBar(BuildContext context, {
                 Row(
                   children: [
                     CustomText(
-                      '${(name == "BlueEra Orders") ? "BlueCs Ltd" : (type !=
-                          "Admin") ? (type == "business") ? chatViewController
+                      '${type == AppStrings.Ai?"BlueCs Limited":(name == "BlueEra Orders") ? "BlueCs Ltd" : (type !=
+                          AppStrings.Admin) ? (type == "business") ? chatViewController
                           .userOnlineStatus.value == "Online"
                           ? "Shop Open"
                           : "Shop Closed" : chatViewController
@@ -1020,7 +1021,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
                     SizedBox(
                       width: SizeConfig.size3,
                     ),
-                    (type != "Admin")
+                    (type != AppStrings.Admin)
                         ? SizedBox()
                         : Icon(
                       Icons.verified,
@@ -1034,7 +1035,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
         ],
       ),
     ),
-    actions: (type == "Admin")
+    actions: (type == AppStrings.Admin||type == AppStrings.Ai)
         ? null
         : [
       SizedBox(width: SizeConfig.size8),

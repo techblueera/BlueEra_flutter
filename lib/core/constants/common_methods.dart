@@ -399,10 +399,10 @@ bool isNetworkImage(dynamic image) =>
 
 bool isFileImage(dynamic image) => image is File || image is XFile;
 
-Widget staggeredDotsWaveLoading({Color color = AppColors.primaryColor}) {
+Widget staggeredDotsWaveLoading({Color color = AppColors.primaryColor,EdgeInsets? padding}) {
   return Center(
       child: Padding(
-          padding: EdgeInsets.all(SizeConfig.size15),
+          padding: padding??EdgeInsets.all(SizeConfig.size15),
           child: LoadingAnimationWidget.staggeredDotsWave(
               size: SizeConfig.size40, color: color)));
 }
