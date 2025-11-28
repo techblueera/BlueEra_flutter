@@ -155,7 +155,7 @@ class ChatViewController extends GetxController {
      String? converId= await AiChatLocalStorage.getConversationId();
      aiSocket.getHistory(converId??'');
     getListOfAiMessageResponse.value =
-        ApiResponse.initial("Initial");
+        ApiResponse.complete(getListOfAiMessageData);
   }
   Future<void> saveAiConversationId(String id)async{
     await AiChatLocalStorage.saveConversationIdIfEmpty(id);
