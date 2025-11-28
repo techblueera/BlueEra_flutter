@@ -7,11 +7,11 @@ class RouteConstant {
   static const String OnboardingSliderScreen = "/OnboardingSliderScreen";
   static const String OnboardingStartedScreen = "/OnboardingStartedScreen";
   static const String OtpPageScreen = "/OtpPageScreen";
-  static const String SelectAccountScreen = "/SelectAccountScreen";
-  static const String CreateUserAccount = "/CreateUserAccount";
+  // static const String SelectAccountScreen = "/SelectAccountScreen";
+  // static const String CreateUserAccount = "/CreateUserAccount";
   static const String BottomNavigationBarScreen = "/BottomNavigationBarScreen";
   static const String HomeScreen = "/HomeScreen";
-  static const String BusinessAccount = "/BusinessAccount";
+  // static const String BusinessAccount = "/BusinessAccount";
   // static const String AddEditVisitingCardScreen = "/AddEditVisitingCardScreen";
   static const String BusinessOwnProfileScreen = "/BusinessOwnProfileScreen";
   static const String PersonalProfileCreateScreen =
@@ -109,4 +109,15 @@ class RouteConstant {
   static const String vehicleRentalService = "/VehicleRentalService";
   static const String rentalServiceScreen = "/RentalServiceScreen";
   static const String rentalServiceFullDetailsScreen = "/RentalServiceFullDetailsScreen";
+
+
+  static const String createNewAccountScreen = "/CreateNewAccountScreen";
+  static const String createBusinessAccountNewStepOne = "/CreateBusinessAccountNewStepOne";
+  static const String createBusinessAccountNewStepTwo = "/CreateBusinessAccountNewStepTwo";
+  static const String createBusinessAccountNewStepThree = "/CreateBusinessAccountNewStepThree";
+  static const String addBusinessLivePhoto = "/AddBusinessLivePhoto";
+  static const String personalAccountNewScreen = "/PersonalAccountNewScreen";
+  static const String gstNumberScreen = "/GstNumberScreen";
+  static const String addBioViaAiScreen = "/AddBioViaAiScreen";
+
 }

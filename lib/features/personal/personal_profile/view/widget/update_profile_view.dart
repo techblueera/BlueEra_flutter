@@ -767,7 +767,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                 ),
                               ],
                               if ((selectedProfession ==
-                                  SENIOR_CITIZEN_RETIRED)) ...[
+                                  SENIOR_CITIZEN)) ...[
                                 SizedBox(
                                   height: SizeConfig.size20,
                                 ),
@@ -920,7 +920,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                   (selectedProfession != CONTENT_CREATOR) &&
                                   (selectedProfession != HOMEMAKER) &&
                                   (selectedProfession !=
-                                      SENIOR_CITIZEN_RETIRED) &&
+                                      SENIOR_CITIZEN) &&
                                   (selectedProfession != FARMER) &&
                                   (selectedProfession != STUDENT) &&
                                   (selectedProfession != OTHERS)) ...[

@@ -13,6 +13,7 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../core/api/apiService/api_keys.dart';
@@ -151,11 +152,14 @@ Widget _buildImageContainer(
             showCommonDialog(
               context: context,
               header: AppStrings.storeLivePhoto.tr,
-              text:AppStrings.upload3StorePictures.tr,
+              text: AppStrings.upload3StorePictures.tr,
               // text: 'Please upload all 3 live photos of your store.',
               confirmCallback: () async {
                 Get.back();
-                final imgStr = await SelectProfilePictureDialog.pickFromCamera(context);
+                final imgStr = await SelectProfilePictureDialog.pickFromCamera(
+                    context,
+                    cropAspectRatio: CropAspectRatio(width: 3, height: 4)
+                );
                 if (imgStr != null) {
                   await controller.saveBusinessImages(imgStr, controller);
                   controller.update(['livePhotos']);

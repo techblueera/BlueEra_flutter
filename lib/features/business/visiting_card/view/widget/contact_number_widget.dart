@@ -59,10 +59,14 @@ class _ContactInputFieldState extends State<ContactInputField1> {
                         onChanged: (value) {
                           widget.onTypeChanged(value!);
                         },
+                        // materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        // visualDensity: VisualDensity(horizontal: -3, vertical: -3),
                       ),
                     ),
-                    CustomText(
-                      AppStrings.officeMobNo,
+                    Flexible(
+                      child: CustomText(
+                        AppStrings.officeMobNo,
+                      ),
                     ),
                   ],
                 ),
@@ -85,10 +89,14 @@ class _ContactInputFieldState extends State<ContactInputField1> {
                         onChanged: (value) {
                           widget.onTypeChanged(value!);
                         },
+                        // materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        // visualDensity: VisualDensity(horizontal: -3, vertical: -3),
                       ),
                     ),
-                    CustomText(
-                      AppStrings.officeLandline,
+                    Flexible(
+                      child: CustomText(
+                        AppStrings.officeLandline,
+                      ),
                     ),
                   ],
                 ),

@@ -13,6 +13,7 @@ import 'package:BlueEra/features/common/delivery_partner/model/rider_onboarding_
 import 'package:BlueEra/features/common/delivery_partner/model/rider_service_upload_model.dart';
 import 'package:BlueEra/features/common/delivery_partner/repo/delivery_partner_repo.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
+import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -634,7 +635,8 @@ class DeliveryPartnerController extends GetxController{
   Future<void> addLivePhoto() async {
     final selectedPath =
         await SelectProfilePictureDialog.pickFromCamera(
-        Get.context!
+        Get.context!,
+        cropAspectRatio: CropAspectRatio(width: 3, height: 4)
       );
     if (selectedPath != null) {
       livePhoto.add(File(selectedPath));

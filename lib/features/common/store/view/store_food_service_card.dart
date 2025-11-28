@@ -138,13 +138,13 @@ class StoreFoodServiceCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         CustomText(
-                          "Energy : ",
+                          AppStrings.energyPrefix,
                           fontSize: SizeConfig.small,
                           fontWeight: FontWeight.w500,
                           color: AppColors.secondaryTextColor,
                         ),
                         CustomText(
-                          "${foodDetailsData?.nutritionalSummaryPer100g?.caloriesKcal ?? "N/A"} Cal/100gm",
+                          " ${foodDetailsData?.nutritionalSummaryPer100g?.caloriesKcal ?? AppStrings.na.tr} ${AppStrings.Cal100gm.tr}",
                           fontSize: SizeConfig.small,
                           fontWeight: FontWeight.w500,
                           overflow: TextOverflow.ellipsis,
