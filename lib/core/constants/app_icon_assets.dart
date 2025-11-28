@@ -517,7 +517,10 @@ class AppIconAssets {
   static String otherBusinessRelatedIcon = "${iconPath}other_business_related_icon.svg";
   static String refreshIcon = "${iconPath}refresh_icon.svg";
 
-  static String frontDeskIcon = "${iconPath}front_desk_icon.svg";
-  static String officeIcon = "${iconPath}office_icon.svg";
-  static String roadsideViewIcon = "${iconPath}roadside_view_icon.svg";
+  static String directorIcon = "${iconPath}director_icon.svg";
+  static String homeMakerIcon = "${iconPath}home_maker_icon.svg";
+  static String studentIcon = "${iconPath}student_icon.svg";
+  static String skilledWorkerIcon = "${iconPath}skilled_worker_icon.svg";
+  static String farmerIcon = "${iconPath}farmer_icon.svg";
+
 }

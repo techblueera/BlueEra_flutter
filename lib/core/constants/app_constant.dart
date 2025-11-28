@@ -2,7 +2,6 @@
 
 import 'dart:core';
 import 'dart:math' hide log;
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/model/create_account_model.dart';
 import 'package:BlueEra/core/api/model/onboarding_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -30,7 +29,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
-
 import '../../features/business/visit_business_profile/view/visit_business_profile_new.dart';
 import '../../features/personal/personal_profile/view/widget/service_item.dart';
 
@@ -1263,7 +1261,6 @@ final List<SocialInputFieldsModel> selectedInputFieldsPersonalProfile = [
 const String SELF_EMPLOYED = "SELF_EMPLOYED";
 const String PRIVATE_JOB = "PRIVATE_JOB";
 const String GOVERNMENT_JOB = "GOVERNMENT_JOB";
-const String SKILLED_WORKER = "SKILLED_WORKER";
 const String CONTENT_CREATOR = "CONTENT_CREATOR";
 const String POLITICIAN = "POLITICIAN";
 const String GOVTPSU = "GOVTPSU";
@@ -1273,8 +1270,10 @@ const String ARTIST = "ARTIST";
 const String INDUSTRIALIST = "INDUSTRIALIST";
 const String SOCIALIST = "SOCIALIST";
 const String HOMEMAKER = "HOMEMAKER";
+const String SKILLED_WORKER = "SKILLED_WORKER";
+const String DIRECTOR = "DIRECTOR";
 const String FARMER = "FARMER";
-const String SENIOR_CITIZEN_RETIRED = "SENIOR_CITIZEN_RETIRED";
+const String SENIOR_CITIZEN = "SENIOR_CITIZEN";
 const String STUDENT = "STUDENT";
 const String OTHERS = "OTHERS"; // keep Others last
 
@@ -2172,14 +2171,14 @@ final List<IndividualProfileCategory> individualSocialProfileList = [
     icon: AppIconAssets.artistIcon,
   ),
   IndividualProfileCategory(
-    name: AppStrings.industrialist,
-    slugId: INDUSTRIALIST,
-    icon: AppIconAssets.industrialistIcon,
+    name: AppStrings.director,
+    slugId: DIRECTOR,
+    icon: AppIconAssets.directorIcon,
   ),
   IndividualProfileCategory(
-    name: AppStrings.seniorCitizen,
-    slugId: SENIOR_CITIZEN_RETIRED,
-    icon: AppIconAssets.seniorCitizenIcon,
+    name: AppStrings.homeMaker,
+    slugId: HOMEMAKER,
+    icon: AppIconAssets.homeMakerIcon,
   ),
   IndividualProfileCategory(
     name: AppStrings.govtEmployee,
@@ -2205,6 +2204,39 @@ final List<IndividualProfileCategory> individualSocialProfileList = [
     name: AppStrings.contentCreator,
     slugId: CONTENT_CREATOR,
     icon: AppIconAssets.contentCreaterIcon,
+  ),
+  IndividualProfileCategory(
+    name: AppStrings.other,
+    slugId: OTHERS,
+    icon: AppIconAssets.staggeredIcon,
+  ),
+];
+
+final List<IndividualProfileCategory> individualOtherSocialProfileList = [
+  IndividualProfileCategory(
+    name: AppStrings.student,
+    slugId: STUDENT,
+    icon: AppIconAssets.studentIcon,
+  ),
+  IndividualProfileCategory(
+    name: AppStrings.skilledWorker,
+    slugId: SKILLED_WORKER,
+    icon: AppIconAssets.skilledWorkerIcon,
+  ),
+  IndividualProfileCategory(
+    name: AppStrings.farmer,
+    slugId: FARMER,
+    icon: AppIconAssets.farmerIcon,
+  ),
+  IndividualProfileCategory(
+    name: AppStrings.industrialist,
+    slugId: INDUSTRIALIST,
+    icon: AppIconAssets.industrialistIcon,
+  ),
+  IndividualProfileCategory(
+    name: AppStrings.seniorCitizen,
+    slugId: SENIOR_CITIZEN,
+    icon: AppIconAssets.seniorCitizenIcon,
   ),
   IndividualProfileCategory(
     name: AppStrings.other,
@@ -2275,5 +2307,6 @@ final List<IndividualProfileCategory> individualSelfEmployedList = [
     icon: AppIconAssets.securityPersonIcon,
   )
 ];
+
 
 

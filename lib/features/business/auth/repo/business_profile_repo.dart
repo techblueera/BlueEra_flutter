@@ -234,6 +234,7 @@ class BusinessProfileRepo extends BaseService {
     final response = await ApiBaseHelper().postHTTP(
       "$aiGenerateBusinessDescription",
       params: bodyParam,
+      showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );

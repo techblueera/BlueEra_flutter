@@ -25,6 +25,7 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:hive/hive.dart';
 import 'package:pinput/pinput.dart';
 
 class CreateBusinessAccountNewStepThree extends StatefulWidget {
@@ -61,7 +62,7 @@ class _CreateBusinessAccountNewStepThreeState
     aiGeneratedBusinessDesc();
   }
 
-  aiGeneratedBusinessDesc() async {
+  Future<void> aiGeneratedBusinessDesc() async {
    await descriptionController.generateDescriptions(
         onSaved: _validateForm,
         bodyRequest: {
@@ -147,7 +148,8 @@ class _CreateBusinessAccountNewStepThreeState
                         fontWeight: FontWeight.w400,
                         color: AppColors.black,
                       ),
-                      InkWell(
+                      Obx(()=> !descriptionController.isLoading.value
+                          ? InkWell(
                           onTap: () async {
                             await aiGeneratedBusinessDesc();
                             if (!mounted) return;
@@ -158,6 +160,12 @@ class _CreateBusinessAccountNewStepThreeState
                             width: 25,
                             imgColor: AppColors.primaryColor,
                             imagePath: AppIconAssets.ai_generative,
+                          )) : SizedBox(
+                              height: 25,
+                              width: 25,
+                            child: CircularProgressIndicator(
+                                  strokeWidth: 2.0,
+                                ),
                           )),
                     ],
                   ),
@@ -299,9 +307,6 @@ class _CreateBusinessAccountNewStepThreeState
                     ],
                   ),
 
-                  SizedBox(
-                    height: SizeConfig.size20,
-                  ),
                 ],
               ),
             ),

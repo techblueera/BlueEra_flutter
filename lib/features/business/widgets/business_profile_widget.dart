@@ -586,10 +586,11 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                     (controller.isListingDescriptionEdit.value)
                         ? Row(
                             children: [
-                              InkWell(
+                              Obx(()=> !controller.isLoading.value
+                                  ? InkWell(
                                   onTap: () {
                                     controller.listingDescriptionController
-                                            .value.text =
+                                        .value.text =
                                         controller.businessDescription.value
                                             .toString();
                                     businessDescriptionController
@@ -618,9 +619,9 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                                     //     .toString();
                                     setState(() {
                                       controller
-                                              .isListingDescriptionEdit.value =
-                                          !controller
-                                              .isListingDescriptionEdit.value;
+                                          .isListingDescriptionEdit.value =
+                                      !controller
+                                          .isListingDescriptionEdit.value;
                                     });
                                   },
                                   child: LocalAssets(
@@ -628,7 +629,13 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
                                     width: 25,
                                     imgColor: AppColors.primaryColor,
                                     imagePath: AppIconAssets.ai_generative,
-                                  )),
+                                  )) : SizedBox(
+                                  height: 25,
+                                  width: 25,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.0,
+                                  ))),
+
                               SizedBox(
                                 width: SizeConfig.size10,
                               ),

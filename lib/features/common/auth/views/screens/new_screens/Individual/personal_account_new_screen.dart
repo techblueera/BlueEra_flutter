@@ -511,7 +511,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                       ),
                     ],
 
-                    if ((_selectedProfessionTagId == SENIOR_CITIZEN_RETIRED)) ...[
+                    if ((_selectedProfessionTagId == SENIOR_CITIZEN)) ...[
                       SizedBox(
                         height: SizeConfig.paddingL,
                       ),
@@ -735,12 +735,36 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                       SizedBox(height: SizeConfig.size18),
                     ],
 
+                    if ((_selectedProfessionTagId == DIRECTOR)) ...[
+                      SizedBox(
+                        height: SizeConfig.paddingL,
+                      ),
+                      CommonTextField(
+                        isValidate: false,
+                        textEditController: _companyNameTextController,
+                        // inputLength: 13,
+                        inputLength: 24,
+                        title: "Type Your Company Name",
+                        keyBoardType: TextInputType.text,
+                        regularExpression:
+                        RegularExpressionUtils.alphabetSpacePattern,
+                        hintText: "eg. TCS LTD",
+                        // autovalidateMode: _autoValidate,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter company name';
+                          }
+                          return null;
+                        }
+                      ),
+                    ],
+
                     if ((_selectedProfessionTagId != SELF_EMPLOYED) &&
                         (_selectedProfessionTagId != SKILLED_WORKER) &&
                         (_selectedProfessionTagId != ARTIST) &&
                         (_selectedProfessionTagId != CONTENT_CREATOR) &&
                         (_selectedProfessionTagId != HOMEMAKER) &&
-                        (_selectedProfessionTagId != SENIOR_CITIZEN_RETIRED) &&
+                        (_selectedProfessionTagId != SENIOR_CITIZEN) &&
                         (_selectedProfessionTagId != FARMER) &&
                         (_selectedProfessionTagId != STUDENT) &&
                         (_selectedProfessionTagId != OTHERS)) ...[
@@ -767,7 +791,10 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                         (_selectedProfessionTagId == REG_UNION) ||
                         (_selectedProfessionTagId == MEDIA) ||
                         (_selectedProfessionTagId == INDUSTRIALIST) ||
-                        (_selectedProfessionTagId == ARTIST)) ...[
+                        (_selectedProfessionTagId == ARTIST)||
+                        (_selectedProfessionTagId == DIRECTOR)
+
+                    ) ...[
                       SizedBox(
                         height: SizeConfig.paddingL,
                       ),
@@ -888,7 +915,8 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                         (_selectedProfessionTagId != POLITICIAN) &&
                         (_selectedProfessionTagId != MEDIA) &&
                         (_selectedProfessionTagId != REG_UNION) &&
-                        (_selectedProfessionTagId != INDUSTRIALIST)) ...[
+                        (_selectedProfessionTagId != INDUSTRIALIST) &&
+                        (_selectedProfessionTagId != DIRECTOR)) ...[
                       ..._referralCodeEnable
                           ? [
                         CommonTextField(
@@ -944,22 +972,24 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
           ),
         ),
       ),
-      extendBody: true,
-      bottomNavigationBar: Container(
-        color: AppColors.white,
-        child: Padding(
-          padding: EdgeInsets.only(
-              right: SizeConfig.size15,
-              left: SizeConfig.size15,
-              bottom: SizeConfig.size20,
-              top: SizeConfig.size10),
-          child: SafeArea(
-            child: CustomBtn(
-              isLoading: crBtnLoading,
-              onTap: () => _onSubmitPressed(),
-              title: AppStrings.submit,
-              isValidate: true,
-              radius: SizeConfig.size8,
+      bottomNavigationBar: Material(
+        elevation: 8.0,
+        child: Container(
+          color: AppColors.white,
+          child: Padding(
+            padding: EdgeInsets.only(
+                right: SizeConfig.size15,
+                left: SizeConfig.size15,
+                bottom: SizeConfig.size20,
+                top: SizeConfig.size10),
+            child: SafeArea(
+              child: CustomBtn(
+                isLoading: crBtnLoading,
+                onTap: () => _onSubmitPressed(),
+                title: AppStrings.submit,
+                isValidate: true,
+                radius: SizeConfig.size8,
+              ),
             ),
           ),
         ),
@@ -1001,6 +1031,8 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
           return;
         }
       }
+
+
       setState(() {
         crBtnLoading=true;
       });
@@ -1027,7 +1059,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
         Map<String, dynamic> requestData = {
           ApiKeys.profile_image: imageByPart,
           ApiKeys.name: _nameTextController.text,
-          "date_of_birth": jsonEncode({
+          ApiKeys.date_of_birth_Obj: jsonEncode({
             ApiKeys.date: _selectedDay,
             ApiKeys.month: _selectedMonth,
             ApiKeys.year: _selectedYear,
@@ -1053,7 +1085,8 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
               (_selectedProfessionTagId == INDUSTRIALIST) ||
               (_selectedProfessionTagId == ARTIST) ||
               (_selectedProfessionTagId == MEDIA) ||
-              (_selectedProfessionTagId == GOVTPSU))
+              (_selectedProfessionTagId == GOVTPSU) ||
+              (_selectedProfessionTagId == DIRECTOR))
             ApiKeys.username: userNameController.text,
 
           if (_selectedProfessionTagId == POLITICIAN)
@@ -1067,7 +1100,8 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
 
           if (_selectedProfessionTagId == INDUSTRIALIST)
             ApiKeys.department: _companyNameTextController.text,
-
+          if (_selectedProfessionTagId == DIRECTOR)
+            ApiKeys.department: _companyNameTextController.text,
           if (_selectedProfessionTagId == STUDENT)
             ApiKeys.schoolOrCollegeName: _CourseTextController.text,
           if (_selectedProfessionTagId == OTHERS)
@@ -1082,7 +1116,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
               ApiKeys.artName: _ExpertiseTextController.text,
             }),
 
-          if (_selectedProfessionTagId == SENIOR_CITIZEN_RETIRED)
+          if (_selectedProfessionTagId == SENIOR_CITIZEN)
             ApiKeys.art: jsonEncode({
               ApiKeys.artName: _SeniorTextController.text,
             }),

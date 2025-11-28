@@ -251,7 +251,7 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
   Future<void> _skip() async {
     authController.isHaveGstApprove.value = false;
 
-    Get.toNamed(RouteHelper.getBusinessAccountNewScreenRoute());
+    Get.toNamed(RouteHelper.getCreateBusinessAccountNewStepOneRoute());
     // Navigator.pushNamed(context, RouteHelper.getBusinessAccountRoute());
   }
 
@@ -261,7 +261,7 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
           .getGstVerify(gstNumber: _gstController.text);
     } else {
       authController.hasGstNumber.value = false;
-      Get.toNamed(RouteHelper.getBusinessAccountNewScreenRoute());
+      Get.toNamed(RouteHelper.getCreateBusinessAccountNewStepOneRoute());
       // Get.toNamed(RouteHelper.getBusinessAccountRoute());
     }
   }

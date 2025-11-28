@@ -523,4 +523,8 @@ class ApiKeys {
   static const argProfessionSubCategory = 'argProfessionSubCategory';
   static const argSelfEmployment = 'argSelfEmployment';
   static const argSelfEmploymentTagId = 'argSelfEmploymentTagId';
+  static const argDesignation = 'argDesignation';
+  static const argSelectedDay = 'argSelectedDay';
+  static const argSelectedMonth = 'argSelectedMonth';
+  static const argSelectedYear = 'argSelectedYear';
 }

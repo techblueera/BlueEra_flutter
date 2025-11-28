@@ -1638,11 +1638,16 @@ class AppStrings {
   static const String artist      = 'artist';
   static const String industrialist      = 'industrialist';
   static const String seniorCitizen      = 'seniorCitizen';
+  static const String homeMaker      = 'homeMaker';
   static const String govtEmployee      = 'govtEmployee';
   static const String pvtEmployee      = 'pvtEmployee';
   static const String ngoSociety     = 'ngoSociety';
   static const String govtDepartment      = 'govtDepartment';
   static const String contentCreator      = 'contentCreator';
+  static const String director      = 'director';
+  static const String student      = 'student';
+  static const String skilledWorker      = 'skilledWorker';
+  static const String farmer      = 'farmer';
 
   static const String socialProfile      = 'socialProfile';
   static const String joinAsEarnWithBlueEra      = 'joinAsEarnWithBlueEra';
@@ -1721,6 +1726,7 @@ class AppStrings {
   static const String frontView = 'frontView';
   static const String entireStoreOffice = 'entireStoreOffice';
   static const String roadsideOutsideView = 'roadsideOutsideView';
+  static const personalDetails = "personalDetails";
 
 
   ///BHAVESH START

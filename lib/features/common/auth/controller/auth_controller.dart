@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
@@ -19,7 +20,6 @@ import 'package:BlueEra/features/common/auth/model/individual_profiile_category.
 import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
 import 'package:BlueEra/features/common/auth/model/username_res_model.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
-import 'package:BlueEra/features/common/auth/views/screens/create_business_account_step_two.dart';
 import 'package:BlueEra/features/common/feed/models/block_user_response.dart';
 import 'package:BlueEra/features/common/auth/model/business_profile_category.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
@@ -210,10 +210,25 @@ class AuthController extends GetxController {
           final personalController = Get.put(ViewPersonalDetailsController());
           await personalController.viewPersonalProfile();
 
+          final dobJsonString = reqData?[ApiKeys.date_of_birth_Obj];
+          final dobMap = jsonDecode(dobJsonString);
+
           Get.offNamedUntil(
-            RouteHelper.getBottomNavigationBarScreenRoute(),
-            (route) => false,
+            RouteHelper.getAddBioViaAiScreenRoute(),
+            arguments: {
+              ApiKeys.argProfession: reqData?[ApiKeys.profession],
+              ApiKeys.argDesignation: reqData?[ApiKeys.designation],
+              ApiKeys.argSelectedDay: dobMap[ApiKeys.date],
+              ApiKeys.argSelectedMonth: dobMap[ApiKeys.month],
+              ApiKeys.argSelectedYear: dobMap[ApiKeys.year]
+            },
+            (route) => route.settings.name == RouteHelper.getBottomNavigationBarScreenRoute(),
           );
+
+          // Get.offNamedUntil(
+          //   RouteHelper.getBottomNavigationBarScreenRoute(),
+          //   (route) => false,
+          // );
 
           clearAllData();
           addUserResponse = ApiResponse.complete(response);
@@ -329,7 +344,7 @@ class AuthController extends GetxController {
             gstVerifyModel?.value.data?.tradeName ?? "";
         // Get.toNamed(RouteHelper.getBusinessAccountRoute());
 
-        Get.toNamed(RouteHelper.getBusinessAccountNewScreenRoute());
+        Get.toNamed(RouteHelper.getCreateBusinessAccountNewStepOneRoute());
 
         gstVerifyResponse.value = ApiResponse.complete(responseModel);
       } else {
@@ -574,7 +589,7 @@ clearSubCategoryData()
         final data = responseModel.response?.data;
         professionTypeDataList = PersonalProfessionModel.fromJson(data).data ?? [];
 
-        _updateSocialProfileListWithApi(individualSocialProfileList, professionTypeDataList);
+        _updateAllSocialProfileLists(professionTypeDataList);
         _updateSelfEmploymentListWithApi(individualSelfEmployedList, professionTypeDataList);
 
       } else {
@@ -630,23 +645,32 @@ clearSubCategoryData()
     }
   }
 
-  void _updateSocialProfileListWithApi(List<IndividualProfileCategory> list, List<ProfessionTypeData> apiList) {
-    for (int i = 0; i < list.length; i++) {
-      final predefined = list[i];
+  void _updateAllSocialProfileLists(
+      List<ProfessionTypeData> apiList,
+      ) {
+    for (final apiItem in apiList) {
+      final tag = (apiItem.tagId ?? "").toLowerCase();
 
-      final match = apiList.firstWhere(
-            (cat) =>
-        predefined.slugId.toLowerCase() ==
-            (cat.tagId ?? "").toLowerCase(),
-        orElse: () => ProfessionTypeData(), // no match
-      );
+      // Update main list
+      for (int i = 0; i < individualSocialProfileList.length; i++) {
+        if (individualSocialProfileList[i].slugId.toLowerCase() == tag) {
+          individualSocialProfileList[i] =
+              individualSocialProfileList[i].copyWith(
+                professionTagId: apiItem.tagId,
+                professionSubCategory: apiItem.subcategoriesFiledName,
+              );
+        }
+      }
 
-      // Assign only if found (CategoryData has id)
-      if (match.id != null) {
-        list[i] = predefined.copyWith(
-            professionTagId: match.tagId,
-            professionSubCategory: match.subcategoriesFiledName
-        );
+      // Update other list
+      for (int i = 0; i < individualOtherSocialProfileList.length; i++) {
+        if (individualOtherSocialProfileList[i].slugId.toLowerCase() == tag) {
+          individualOtherSocialProfileList[i] =
+              individualOtherSocialProfileList[i].copyWith(
+                professionTagId: apiItem.tagId,
+                professionSubCategory: apiItem.subcategoriesFiledName,
+              );
+        }
       }
     }
   }

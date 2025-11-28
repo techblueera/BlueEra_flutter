@@ -27,15 +27,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
-class BusinessAccountNewScreen extends StatefulWidget {
-  BusinessAccountNewScreen({super.key});
+class CreateBusinessAccountNewStepOne extends StatefulWidget {
+  CreateBusinessAccountNewStepOne({super.key});
 
   @override
-  State<BusinessAccountNewScreen> createState() =>
-      _BusinessAccountNewScreenState();
+  State<CreateBusinessAccountNewStepOne> createState() =>
+      _CreateBusinessAccountNewStepOneState();
 }
 
-class _BusinessAccountNewScreenState extends State<BusinessAccountNewScreen> {
+class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountNewStepOne> {
   final _formKey = GlobalKey<FormState>();
   AutovalidateMode _autoValidate = AutovalidateMode.disabled;
 
@@ -59,7 +59,7 @@ class _BusinessAccountNewScreenState extends State<BusinessAccountNewScreen> {
               left: SizeConfig.size8,
               right: SizeConfig.size8,
               top: SizeConfig.size15,
-              bottom: SizeConfig.size10,
+              bottom: SizeConfig.size40,
             ),
             child: Column(
               mainAxisSize: MainAxisSize.max,
@@ -110,7 +110,6 @@ class _BusinessAccountNewScreenState extends State<BusinessAccountNewScreen> {
                     ),
                   ],
                 )),
-
 
                 /// Category and Sub Category
                 if(authController.selectedTypeOfBusiness != BusinessType.Both)
@@ -291,7 +290,6 @@ class _BusinessAccountNewScreenState extends State<BusinessAccountNewScreen> {
                   ),
                 ],
 
-
                 SizedBox(
                   height: SizeConfig.paddingXSL,
                 ),
@@ -314,8 +312,7 @@ class _BusinessAccountNewScreenState extends State<BusinessAccountNewScreen> {
                       ///ENTER ORG/COMPANY NAME...
                       Obx(() {
                         return IgnorePointer(
-                          ignoring:
-                          (authController.isHaveGstApprove.value) ? true : false,
+                          ignoring: (authController.isHaveGstApprove.value) ? true : false,
                           child: CommonTextField(
                             textEditController:
                             authController.businessNameTextController,
@@ -474,29 +471,37 @@ class _BusinessAccountNewScreenState extends State<BusinessAccountNewScreen> {
                               decorationColor: AppColors.primaryColor,
                             ),
                           ),
-                        )
+                        ),
                       ],
+
                     ],
                   ),
-                )
+                ),
 
               ],
             ),
           ),
         ),
       ),
-      extendBody: true,
-      bottomNavigationBar: SafeArea(
+      bottomNavigationBar: Material(
+        elevation: 8.0,
+        child: Container(
+          color: AppColors.white,
           child: Padding(
-        padding: EdgeInsets.symmetric(
-            horizontal: SizeConfig.size15, vertical: SizeConfig.size15),
-        child: CustomBtn(
-          onTap: () => _onSubmit(),
-          title: AppStrings.submit,
-          isValidate: true,
-          radius: SizeConfig.size8,
+                  padding: EdgeInsets.symmetric(
+               horizontal: SizeConfig.size15,
+                      vertical: SizeConfig.size15),
+                  child: SafeArea(
+                    child: CustomBtn(
+                            onTap: () => _onSubmit(),
+                            title: AppStrings.submit,
+                            isValidate: true,
+                            radius: SizeConfig.size8,
+                    ),
+                  ),
+                ),
         ),
-      )),
+      ),
     );
   }
 

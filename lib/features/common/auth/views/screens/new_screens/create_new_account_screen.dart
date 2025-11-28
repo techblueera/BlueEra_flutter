@@ -90,16 +90,15 @@ class _CreateNewAccountScreenState extends State<CreateNewAccountScreen> {
           },
         ),
         body: SafeArea(
-          child: SingleChildScrollView(
+          child: Obx(()=> authController.isAppLoading.value
+              ? const Center(child: CircularProgressIndicator())
+              : SingleChildScrollView(
             child: Padding(
               padding: EdgeInsets.symmetric(
                 horizontal: SizeConfig.size8,
                 vertical: SizeConfig.size10,
               ),
-              child: Obx(()=>
-              authController.isAppLoading.value
-                  ? const Center(child: CircularProgressIndicator())
-                  : Column(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
 
@@ -124,14 +123,18 @@ class _CreateNewAccountScreenState extends State<CreateNewAccountScreen> {
                               onTap: (c) {
                                 print("You tapped slugId → ${c.slugId}");
                                 print("You tapped professionSId → ${c.professionTagId}");
-                                Get.toNamed(
-                                  RouteHelper.getPersonalAccountNewScreenRoute(),
-                                  arguments: {
-                                    ApiKeys.argAccountType: AppConstants.individual,
-                                    ApiKeys.argProfessionTagId: c.professionTagId,
-                                    ApiKeys.argProfessionSubCategory: c.professionSubCategory,
-                                  },
-                                );
+                               if(c.slugId != OTHERS){
+                                 Get.toNamed(
+                                   RouteHelper.getPersonalAccountNewScreenRoute(),
+                                   arguments: {
+                                     ApiKeys.argAccountType: AppConstants.individual,
+                                     ApiKeys.argProfessionTagId: c.professionTagId,
+                                     ApiKeys.argProfessionSubCategory: c.professionSubCategory,
+                                   },
+                                 );
+                               }else{
+                                 showProfileCategoryDialog(context);
+                               }
                               }
                           )
                         ],
@@ -377,11 +380,91 @@ class _CreateNewAccountScreenState extends State<CreateNewAccountScreen> {
                   SizedBox(height: kToolbarHeight),
 
                 ],
-              )),
+              ),
             ),
           ),
-        ),
+         ),
+        )
       ),
+    );
+  }
+
+  void showProfileCategoryDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (_) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          insetPadding: EdgeInsets.all(
+             SizeConfig.size20
+          ),
+          child: Container(
+            padding: EdgeInsets.only(
+              left: SizeConfig.size20,
+              right: SizeConfig.size20,
+              top: SizeConfig.size10,
+              bottom: SizeConfig.size20,
+            ),
+            constraints: BoxConstraints(
+              maxHeight: Get.height * 0.7,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: CustomText(
+                        AppStrings.selectYourProfession,
+                        fontWeight: FontWeight.bold,
+                        fontSize: SizeConfig.extraLarge,
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: ()=> Get.back(),
+                      icon: Icon(
+                        Icons.close,
+                      ),
+                    )
+                  ],
+                ),
+
+                SizedBox(height: SizeConfig.size15),
+
+                SingleChildScrollView(
+                  child: genericIconGrid<IndividualProfileCategory>(
+                    items: individualOtherSocialProfileList,
+                    labelBuilder: (c) => c.name,
+                    iconBuilder: (c) => c.icon,
+                    onTap: (c) {
+                      print("You tapped slugId → ${c.slugId}");
+                      print("You tapped professionTagId → ${c.professionTagId}");
+
+                      Navigator.pop(context); // Close dialog
+
+                      Get.toNamed(
+                        RouteHelper.getPersonalAccountNewScreenRoute(),
+                        arguments: {
+                          ApiKeys.argAccountType: AppConstants.individual,
+                          ApiKeys.argProfessionTagId: c.professionTagId,
+                          ApiKeys.argProfessionSubCategory: c.professionSubCategory,
+                        },
+                      );
+                    },
+                  ),
+                ),
+
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -452,7 +535,6 @@ class _CreateNewAccountScreenState extends State<CreateNewAccountScreen> {
       }),
     );
   }
-
 
   Future<void> _showDropdownDialog({required BusinessType businessType, CategoryData? categoryData}) async {
     if (categoryData == null

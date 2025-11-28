@@ -169,7 +169,7 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
                           ? AppStrings.unfollow.tr
                           : AppStrings.follow.tr,
                       controllerVisit.isFollow.value
-                          ? AppColors.greylite
+                          ? AppColors.greyLite
                           : AppColors.primaryColor,
                       controllerVisit.isFollow.value
                           ? AppColors.secondaryTextColor

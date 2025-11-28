@@ -25,7 +25,6 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/post_via_dialog.dart';
 import 'package:BlueEra/widgets/update_live_photo_dialog.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../core/constants/shared_preference_utils.dart';
@@ -224,7 +223,6 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                       } else if (isIndividualUser()) {
                         navigatePushTo(
                             context, PersonalProfileSetupNewScreen());
-                        // navigatePushTo(context, PersonalProfileSetupScreen());
                       } else if (isBusinessUser()) {
                         navigatePushTo(context, BusinessOwnProfileScreen());
                       }
