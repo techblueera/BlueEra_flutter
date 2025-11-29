@@ -45,7 +45,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
     super.initState();
   }
 
-
   @override
   void dispose() {
     Get.delete<InventoryController>();
@@ -1183,7 +1182,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
       missingPriceIds = controller.validateSelectedVariants(controller.searchProductVariantsList);
     }else{
       missingPriceIds = controller.validateSelectedVariants(controller.suggestedProductList);
-
     }
 
     if (missingPriceIds.isNotEmpty) {

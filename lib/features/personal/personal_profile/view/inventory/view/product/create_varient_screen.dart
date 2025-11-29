@@ -157,6 +157,7 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                      shrinkWrap: true,
                      itemCount: widget.controller.listedProducts.length,
                      physics: NeverScrollableScrollPhysics(),
+                     padding: EdgeInsets.zero,
                      itemBuilder: (context, productIndex) {
                        final product = widget.controller.listedProducts[productIndex];
 
@@ -165,7 +166,7 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                        _controllers.putIfAbsent(productIndex, () => CarouselSliderController());
 
                        return Container(
-                         margin: EdgeInsets.only(bottom: 16),
+                         margin: EdgeInsets.only(bottom: SizeConfig.size15),
                          decoration: BoxDecoration(
                              color: AppColors.whiteFE,
                              borderRadius: BorderRadius.circular(10),
@@ -234,20 +235,6 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                                  ],
                                ),
                              ),
-
-
-                             // ClipRRect(
-                             //   borderRadius: BorderRadius.horizontal(left: Radius.circular(10.0)),
-                             //   child: Container(
-                             //     color: AppColors.whiteF1,
-                             //     child: Image.file(
-                             //       File(product.image[0]),
-                             //       width: 120,
-                             //       height: 120,
-                             //       fit: BoxFit.cover,
-                             //     ),
-                             //   ),
-                             // ),
 
                              SizedBox(width: 12),
                              Flexible(
@@ -354,7 +341,7 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                      },
                    ),
 
-                   SizedBox(height: SizeConfig.size5),
+                   SizedBox(height: SizeConfig.size10),
                    CustomBtn(
                      title: widget.controller.isAddProductToInventoryLoading.value
                          ? null // hide text

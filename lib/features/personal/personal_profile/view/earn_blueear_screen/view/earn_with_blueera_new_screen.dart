@@ -98,82 +98,82 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> wit
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        appBar: PreferredSize(
-          preferredSize: Size.fromHeight(kToolbarHeight + 50),
-          child: CommonBackAppBar(
-            isLeading: !(widget.fromBottomNavBar),
-            showGoLiveWidget: Container(
-              margin: EdgeInsets.only(right: SizeConfig.size20),
-              padding: EdgeInsets.symmetric(
-                  horizontal: 10.0,
-                  vertical: 6.0,
-              ),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10.0),
-                border: Border.all(
-                  color: AppColors.primaryColor
-                )
-              ),
-              child: Row(
-                children: [
-                  CustomText(
-                    AppStrings.goLive,
-                    fontWeight: FontWeight.w600,
-                    fontSize: SizeConfig.large,
-                    color: AppColors.primaryColor
-                  ),
-                  SizedBox(width: SizeConfig.size5),
-                  Obx(()=> CustomSwitch(
-                    value: earnWithBlueEraController.showGoLiveEnabled.value,
-                    onChanged: (val) {
-                      earnWithBlueEraController.showGoLiveEnabled.value = !earnWithBlueEraController.showGoLiveEnabled.value;
-                    },
-                    containerHeight: SizeConfig.size24,
-                    containerWidth: SizeConfig.size50,
-                    circleSize: SizeConfig.size18,
-                  )),
-                ],
-              ),
+    return Scaffold(
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(kToolbarHeight + 50),
+        child: CommonBackAppBar(
+          isLeading: !(widget.fromBottomNavBar),
+          showGoLiveWidget: Container(
+            margin: EdgeInsets.only(right: SizeConfig.size20),
+            padding: EdgeInsets.symmetric(
+                horizontal: 10.0,
+                vertical: 6.0,
             ),
-            bottomWidget: TabBar(
-              controller: _tabController,
-              labelColor: AppColors.primaryColor,
-              unselectedLabelColor: Colors.grey[600],
-              indicatorColor: Colors.blue,
-              indicatorWeight: 2,
-              labelStyle: TextStyle(fontWeight: FontWeight.w600),
-              tabs: [
-                Tab(text: AppStrings.myOrder.tr),
-                Tab(text: AppStrings.myStore.tr),
-                Tab(text: AppStrings.businessCards.tr),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10.0),
+              border: Border.all(
+                color: AppColors.primaryColor
+              )
+            ),
+            child: Row(
+              children: [
+                CustomText(
+                  AppStrings.goLive,
+                  fontWeight: FontWeight.w600,
+                  fontSize: SizeConfig.large,
+                  color: AppColors.primaryColor
+                ),
+                SizedBox(width: SizeConfig.size5),
+                Obx(()=> CustomSwitch(
+                  value: earnWithBlueEraController.showGoLiveEnabled.value,
+                  onChanged: (val) {
+                    earnWithBlueEraController.showGoLiveEnabled.value = !earnWithBlueEraController.showGoLiveEnabled.value;
+                  },
+                  containerHeight: SizeConfig.size24,
+                  containerWidth: SizeConfig.size50,
+                  circleSize: SizeConfig.size18,
+                )),
               ],
             ),
           ),
+          bottomWidget: TabBar(
+            controller: _tabController,
+            labelColor: AppColors.primaryColor,
+            unselectedLabelColor: Colors.grey[600],
+            indicatorColor: Colors.blue,
+            indicatorWeight: 2,
+            labelStyle: TextStyle(fontWeight: FontWeight.w600),
+            tabs: [
+              Tab(text: AppStrings.myOrder.tr),
+              Tab(text: AppStrings.myStore.tr),
+              Tab(text: AppStrings.businessCards.tr),
+            ],
+          ),
         ),
-        floatingActionButton: Builder(builder: (context) {
-          return Padding(
-            padding: EdgeInsets.only(
-                bottom: widget.fromBottomNavBar
-                    ? kBottomNavigationBarHeight + SizeConfig.size20
-                    : 0.0
+      ),
+      floatingActionButton: Builder(builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+              bottom: widget.fromBottomNavBar
+                  ? kBottomNavigationBarHeight + SizeConfig.size20
+                  : 0.0
+          ),
+          child: FloatingActionButton(
+            onPressed: () => _openEarnWithBlueEraSheet(),
+            backgroundColor: AppColors.primaryColor,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
             ),
-            child: FloatingActionButton(
-              onPressed: () => _openEarnWithBlueEraSheet(),
-              backgroundColor: AppColors.primaryColor,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(
-                 Icons.add,
-                size: SizeConfig.size36,
-              ),
+            child: Icon(
+               Icons.add,
+              size: SizeConfig.size36,
             ),
-          );
-        }),
-       body: TabBarView(
+          ),
+        );
+      }),
+     body: SafeArea(
+       child: TabBarView(
            controller: _tabController,
            children: [
              _buildOwnUserOrders(),
@@ -184,7 +184,7 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> wit
                ),
              ),
            ]),
-      ),
+     ),
     );
   }
 

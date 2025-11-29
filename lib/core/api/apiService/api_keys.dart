@@ -527,4 +527,9 @@ class ApiKeys {
   static const argSelectedDay = 'argSelectedDay';
   static const argSelectedMonth = 'argSelectedMonth';
   static const argSelectedYear = 'argSelectedYear';
+  static const studentOrBachelorAllowed = 'studentOrBachelorAllowed';
+  static const foodRestriction = 'foodRestriction';
+  static const isFoodRestriction = 'isFoodRestriction';
+  static const allowedFood = 'allowedFood';
+
 }

@@ -47,6 +47,30 @@ class AddFlatRentalServiceController extends GetxController {
   final RxList<String> arrHighlights = <String>[].obs;
   RxList<DetailItem> arrMoreDetails = <DetailItem>[].obs;
 
+  RxBool isUnMarried = false.obs;
+  RxBool isAllowStudentOrBachelor = false.obs;
+  RxBool anyFoodHabitRestriction = false.obs;
+
+  RxMap<String, bool> selectedHabits = <String, bool>{
+    'all': false,
+    'vegetarian': false,
+    'nonVegetarian': false,
+  }.obs;
+
+  final List<Map<String, String>> foodHabits = [
+    {'id': 'all', 'label': AppStrings.all},
+    {'id': 'vegetarian', 'label': AppStrings.vegetarian},
+    {'id': 'nonVegetarian', 'label': AppStrings.nonVegetarian},
+  ];
+
+  String get selectedFoodHabit {
+    if (selectedHabits['all'] == true) return AppStrings.all;
+    if (selectedHabits['vegetarian'] == true) return AppStrings.vegetarian;
+    if (selectedHabits['nonVegetarian'] == true) return AppStrings.nonVegetarian;
+    return '';
+  }
+
+
   /// step 2
   int maxUploadImages = 4;
   final RxList<File> roadSideImage = <File>[].obs;
@@ -78,13 +102,31 @@ class AddFlatRentalServiceController extends GetxController {
         return;
       }
 
+      if(!isUnMarried.value){
+        commonSnackBar(message: AppStrings.unmarriedCouplesRequired.tr);
+        return;
+      }
+
+      if(!isAllowStudentOrBachelor.value){
+        commonSnackBar(message: AppStrings.studentsOrBachelorsRequired.tr);
+        return;
+      }
+
+      if(anyFoodHabitRestriction.value){
+        if(selectedFoodHabit.isEmpty){
+          commonSnackBar(message: AppStrings.foodHabitRequired.tr);
+          return;
+        }
+      }
+
       // Move to next step
       if (currentStep.value < totalSteps - 1) {
         currentStep.value++;
       }
-    } else {
-      commonSnackBar(message: AppStrings.pleaseFillAllFieldsCorrectly.tr);
     }
+    // else {
+    //   commonSnackBar(message: AppStrings.pleaseFillAllFieldsCorrectly.tr);
+    // }
   }
 
 
@@ -175,13 +217,20 @@ class AddFlatRentalServiceController extends GetxController {
           ApiKeys.address: location.text,
           ApiKeys.lat : latitude,
           ApiKeys.lng: longitude,
-          ApiKeys.pincode: '342019',
-          // ApiKeys.pincode: pinCode.text,
+          ApiKeys.pincode: pinCode.text,
           ApiKeys.description: description.text,
           ApiKeys.contactNumber: mobile.text,
           ApiKeys.priceUnit: selectedChargesTypes.value?.label,
           ApiKeys.price: charge.text,
           if(arrHighlights.isNotEmpty) ApiKeys.highlights: jsonEncode(arrHighlights),
+          ApiKeys.restrictions: jsonEncode({
+            ApiKeys.unmarriedCoupleAllowed: isUnMarried.value,
+            ApiKeys.studentOrBachelorAllowed: isAllowStudentOrBachelor.value,
+            ApiKeys.foodRestriction: {
+              ApiKeys.isFoodRestriction: anyFoodHabitRestriction.value,
+              if (anyFoodHabitRestriction.value) ApiKeys.allowedFood: selectedFoodHabit
+            },
+          }),
           if(arrMoreDetails.isNotEmpty) ApiKeys.additionalDetails: jsonEncode(arrMoreDetails.map((e) => e.toJson()).toList()),
           if(roadsideParts.isNotEmpty) ApiKeys.roadImages: roadsideParts,
           if(roomParts.isNotEmpty) ApiKeys.roomImages: roomParts,
