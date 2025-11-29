@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/chat/view/orders_chat/widget/porter_vehicle_option_page.dart';
 import 'package:BlueEra/features/chat/view/orders_chat/widget/select_blueera_pilot.dart';
@@ -48,7 +49,7 @@ class _AddressListScreenState extends State<AddressListScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: CommonBackAppBar(
-        title: "Choose Delivery Address",
+        title:AppStrings.chooseDeliveryAddress,
       ),
       body: SafeArea(
         child: Column(
@@ -66,7 +67,7 @@ class _AddressListScreenState extends State<AddressListScreen> {
                     child: (addresses.isEmpty)
                         ? const Center(
                             child: CustomText(
-                              "There is no address found, Please add Address",
+                              AppStrings.noAddressFound,
                               fontSize: 15,
                             ),
                           )
@@ -132,13 +133,11 @@ class _AddressListScreenState extends State<AddressListScreen> {
                                                 borderRadius: BorderRadius.circular(8),
                                                 border: Border.all(color: Colors.blue),
                                               ),
-                                              child: const Text(
-                                                "Default",
-                                                style: TextStyle(
-                                                    color: Colors.blue,
+                                              child:  CustomText(
+                                                AppStrings.defaultAddress,
+                                                    color: AppColors.primaryColor,
                                                     fontSize: 12,
                                                     fontWeight: FontWeight.w600),
-                                              ),
                                             ),
                                           ],
                                         ],
@@ -203,12 +202,11 @@ class _AddressListScreenState extends State<AddressListScreen> {
                                         children: const [
                                           Icon(Icons.edit, color: Colors.green, size: 18),
                                           SizedBox(width: 4),
-                                          Text(
-                                            "Edit",
-                                            style: TextStyle(
-                                                color: Colors.green,
+                                          CustomText(
+
+AppStrings.edit,                                                color: Colors.green,
                                                 fontWeight: FontWeight.w600,
-                                                fontSize: 13),
+                                                fontSize: 13
                                           ),
                                         ],
                                       ),
@@ -222,17 +220,17 @@ class _AddressListScreenState extends State<AddressListScreen> {
                                         showDialog(
                                           context: context,
                                           builder: (_) => AlertDialog(
-                                            title:  CustomText("Delete Address"),
-                                            content:  CustomText("Are you sure you want to delete this address?"),
+                                            title:  CustomText(AppStrings.deleteAddress),
+                                            content:  CustomText(AppStrings.confirmDeleteAddress),
                                             actions: [
                                               TextButton(
                                                   onPressed: () => Get.back(),
-                                                  child:  CustomText("Cancel")),
+                                                  child:  CustomText(AppStrings.cancel)),
                                               TextButton(
                                                   onPressed: () {
                                                     orderController.deleteAddress(address.id??'');
                                                   },
-                                                  child:  CustomText("Delete", color: Colors.red)),
+                                                  child:  CustomText(AppStrings.delete, color: Colors.red)),
                                             ],
                                           ),
                                         );
@@ -242,7 +240,7 @@ class _AddressListScreenState extends State<AddressListScreen> {
                                           Icon(Icons.delete, color: Colors.red, size: 18),
                                           SizedBox(width: 4),
                                           CustomText(
-                                            "Delete",
+                                              AppStrings.delete,
 
                                                 color: Colors.red,
                                                 fontWeight: FontWeight.w600,
@@ -305,7 +303,7 @@ class _AddressListScreenState extends State<AddressListScreen> {
                   });
                 },
                 icon: const Icon(Icons.add, color: Colors.blue),
-                label: const CustomText("Add Address", color: Colors.blue),
+                label: const CustomText(AppStrings.addAddress, color: Colors.blue),
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: Colors.blue),
                   minimumSize: const Size.fromHeight(48),
@@ -395,8 +393,8 @@ class _AddressListScreenState extends State<AddressListScreen> {
                 ),
               ),
               child: const CustomText(
-                "Next",
-                color: Colors.white,
+
+                AppStrings.next,                color: Colors.white,
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),
@@ -448,7 +446,7 @@ class _AddressListScreenState extends State<AddressListScreen> {
                 ),
                 const SizedBox(height: 20),
                 const CustomText(
-                  "Finding best rider for you...",
+                  AppStrings.findingBestRider,
                   textAlign: TextAlign.center,
                   // style: TextStyle(
                     fontSize: 16,
@@ -461,7 +459,7 @@ class _AddressListScreenState extends State<AddressListScreen> {
                   valueListenable: timerNotifier,
                   builder: (context, seconds, _) {
                     return CustomText(
-                      "Finding in $seconds seconds",
+                      "${AppStrings.findingIn.tr} $seconds ${AppStrings.seconds.tr}",
                       // style: const TextStyle(
                         fontSize: 13,
                         color: Colors.grey,

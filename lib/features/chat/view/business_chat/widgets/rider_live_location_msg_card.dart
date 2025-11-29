@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/track_rider_live_location_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -16,16 +17,18 @@ class RiderLiveLocationMsgCard extends StatefulWidget {
 
   const RiderLiveLocationMsgCard({
     Key? key,
-    required this.message, required this.time,
+    required this.message,
+    required this.time,
   }) : super(key: key);
 
   @override
-  State<RiderLiveLocationMsgCard> createState() => _RiderLiveLocationMsgCardState();
+  State<RiderLiveLocationMsgCard> createState() =>
+      _RiderLiveLocationMsgCardState();
 }
 
 class _RiderLiveLocationMsgCardState extends State<RiderLiveLocationMsgCard> {
   final chatViewController = Get.find<ChatViewController>();
-   MapplsMapController? mapController;
+  MapplsMapController? mapController;
 
   Future<void> _onMapCreated(MapplsMapController controller) async {
     mapController = controller;
@@ -38,17 +41,16 @@ class _RiderLiveLocationMsgCardState extends State<RiderLiveLocationMsgCard> {
     );
     setState(() {});
   }
+
   @override
   Widget build(BuildContext context) {
-    Rider? rider=widget.message.metadata?.rider;
+    Rider? rider = widget.message.metadata?.rider;
 
     return InkWell(
-      onTap: () {
-
-      },
+      onTap: () {},
       child: Container(
-        margin: EdgeInsets.only(right:0,bottom: 2),
-        width:SizeConfig.screenWidth*0.68,
+        margin: EdgeInsets.only(right: 0, bottom: 2),
+        width: SizeConfig.screenWidth * 0.68,
         decoration: BoxDecoration(
           color: AppColors.blueLightShade,
           borderRadius: BorderRadius.circular(10),
@@ -88,7 +90,6 @@ class _RiderLiveLocationMsgCardState extends State<RiderLiveLocationMsgCard> {
             // Title & price
             SizedBox(height: SizeConfig.size10),
 
-
             Container(
               alignment: Alignment.centerLeft,
               padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
@@ -103,16 +104,21 @@ class _RiderLiveLocationMsgCardState extends State<RiderLiveLocationMsgCard> {
             SizedBox(height: SizeConfig.size4),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
-              child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Row(
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.star,color: AppColors.rating,size: 14,),
+                          Icon(
+                            Icons.star,
+                            color: AppColors.rating,
+                            size: 14,
+                          ),
                           SizedBox(width: SizeConfig.size4),
                           CustomText(
-                            "${rider?.starRating??0}",
+                            "${rider?.starRating ?? 0}",
                             fontSize: SizeConfig.size12,
                             fontWeight: FontWeight.w500,
                             overflow: TextOverflow.ellipsis,
@@ -125,7 +131,7 @@ class _RiderLiveLocationMsgCardState extends State<RiderLiveLocationMsgCard> {
                         children: [
                           SizedBox(width: SizeConfig.size6),
                           CustomText(
-                            "${rider?.noOfOrder??0} Orders",
+                            "${rider?.noOfOrder ?? 0} ${AppStrings.orders.tr}",
                             fontSize: SizeConfig.size12,
                             fontWeight: FontWeight.w500,
                             overflow: TextOverflow.ellipsis,
@@ -148,40 +154,57 @@ class _RiderLiveLocationMsgCardState extends State<RiderLiveLocationMsgCard> {
               ),
             ),
             SizedBox(height: SizeConfig.size14),
-            const Divider(height: 1,color: Colors.grey,),
+            const Divider(
+              height: 1,
+              color: Colors.grey,
+            ),
             Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10),
                 color: AppColors.white,
               ),
-              child: Row(mainAxisAlignment: MainAxisAlignment.center,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Expanded(
                     child: TextButton.icon(
                       onPressed: () {
                         //     endLat: 26.7836,
                         //             endLng: 80.9013,
-                        Get.to(()=>TrackRiderLiveLocationPage(riderId: rider?.userId??'', dropLat:widget.message.metadata?.order?.dropLocation?.location?.coordinates?[1]??26.7836, dropLng: widget.message.metadata?.order?.dropLocation?.location?.coordinates?[0]??80.9013,));
+                        Get.to(() => TrackRiderLiveLocationPage(
+                              riderId: rider?.userId ?? '',
+                              dropLat: widget
+                                      .message
+                                      .metadata
+                                      ?.order
+                                      ?.dropLocation
+                                      ?.location
+                                      ?.coordinates?[1] ??
+                                  26.7836,
+                              dropLng: widget
+                                      .message
+                                      .metadata
+                                      ?.order
+                                      ?.dropLocation
+                                      ?.location
+                                      ?.coordinates?[0] ??
+                                  80.9013,
+                            ));
                       },
                       icon: SvgPicture.asset(AppIconAssets.rider_call_icon),
-                      label:   CustomText(
-                        'Track Order',
+                      label: CustomText(
+                        AppStrings.trackOrder,
                         color: AppColors.primaryColor,
                         fontWeight: FontWeight.w900,
                       ),
                     ),
                   ),
-
                 ],
               ),
             ),
-
           ],
         ),
       ),
     );
   }
-
-
-
 }

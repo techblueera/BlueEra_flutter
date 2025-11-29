@@ -2,14 +2,12 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/models/all_message_post_res_model.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/repo/feed_repo.dart';
+import 'package:BlueEra/features/common/feed/widget/social_message_post_grid_widget.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
@@ -98,6 +96,8 @@ class _AllMessagePostScreenState extends State<AllMessagePostScreen> {
   final FeedControllerNew controller = Get.put(FeedControllerNew());
 
   final PageController _pageController = PageController();
+  final PageController _imagePageController = PageController();
+  RxInt currentIndex = 0.obs;
 
   @override
   void initState() {
@@ -125,22 +125,81 @@ class _AllMessagePostScreenState extends State<AllMessagePostScreen> {
               // Using 'dynamic' here, but strictly map this to your Post model
               final post = controller.posts[index];
 
-              final mediaUrl =
-                  post.media != null && (post.media?.isNotEmpty ?? false)
-                      ? post.media![0]
-                      : "";
+              final mediaUrls = post.media ?? [];
+              post.media != null && (post.media?.isNotEmpty ?? false)
+                  ? post.media![0]
+                  : "";
 
               return Stack(
                 fit: StackFit.expand,
                 children: [
-                  CachedNetworkImage(
-                    imageUrl: mediaUrl,
-                    fit: BoxFit.contain,
-                    placeholder: (context, url) => const Center(
-                        child: CircularProgressIndicator(color: Colors.white)),
-                    errorWidget: (context, url, error) =>
-                        const Icon(Icons.error),
-                  ),
+                  mediaUrls.length == 1
+                      ? CachedNetworkImage(
+                          imageUrl: mediaUrls.first,
+                          fit: BoxFit.contain,
+                          placeholder: (context, url) => const Center(
+                              child: CircularProgressIndicator(
+                                  color: Colors.white)),
+                          errorWidget: (context, url, error) =>
+                              const Icon(Icons.error, color: Colors.white),
+                        )
+                      : Column(
+                          children: [
+                            Expanded(
+                              child: PageView.builder(
+                                controller: _imagePageController,
+                                itemCount: mediaUrls.length,
+                                onPageChanged: (index) =>
+                                    currentIndex.value = index,
+                                itemBuilder: (context, index) {
+                                  return CachedNetworkImage(
+                                    imageUrl: mediaUrls[index],
+                                    fit: BoxFit.contain,
+                                    placeholder: (context, url) => const Center(
+                                        child: CircularProgressIndicator(
+                                            color: Colors.white)),
+                                    errorWidget: (context, url, error) =>
+                                        const Icon(Icons.error,
+                                            color: Colors.white),
+                                  );
+                                },
+                              ),
+                            ),
+
+                            // Dot Indicator
+                            SizedBox(height: 8),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children:
+                                  List.generate(mediaUrls.length, (index) {
+                                return Obx(() => AnimatedContainer(
+                                      duration:
+                                          const Duration(milliseconds: 300),
+                                      margin: const EdgeInsets.symmetric(
+                                          horizontal: 4),
+                                      width:
+                                          currentIndex.value == index ? 12 : 8,
+                                      height: 8,
+                                      decoration: BoxDecoration(
+                                        color: currentIndex.value == index
+                                            ? Colors.white
+                                            : Colors.white54,
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                    ));
+                              }),
+                            ),
+                          ],
+                        ),
+
+                  // CachedNetworkImage(
+                  //   imageUrl: mediaUrl,
+                  //   fit: BoxFit.contain,
+                  //   placeholder: (context, url) => const Center(
+                  //       child: CircularProgressIndicator(color: Colors.white)),
+                  //   errorWidget: (context, url, error) =>
+                  //       const Icon(Icons.error),
+                  // ),
 
                   // 2. Dark Gradient Overlay (for text visibility)
                   const Positioned(
@@ -222,7 +281,6 @@ class _AllMessagePostScreenState extends State<AllMessagePostScreen> {
                                     "${post.user?.designation}",
                                     color: Colors.white,
                                     fontSize: 13,
-
                                   ),
                                 if ((post.user?.businessName?.isNotEmpty ??
                                         false) &&

@@ -64,6 +64,27 @@ class HomeStayRentalServiceController extends GetxController{
   ];
 
   RxBool isUnMarried = false.obs;
+  RxBool isAllowStudentOrBachelor = false.obs;
+  RxBool anyFoodHabitRestriction = false.obs;
+
+  RxMap<String, bool> selectedHabits = <String, bool>{
+    'all': false,
+    'vegetarian': false,
+    'nonVegetarian': false,
+  }.obs;
+
+  final List<Map<String, String>> foodHabits = [
+    {'id': 'all', 'label': AppStrings.all},
+    {'id': 'vegetarian', 'label': AppStrings.vegetarian},
+    {'id': 'nonVegetarian', 'label': AppStrings.nonVegetarian},
+  ];
+
+  String get selectedFoodHabit {
+    if (selectedHabits['all'] == true) return AppStrings.all;
+    if (selectedHabits['vegetarian'] == true) return AppStrings.vegetarian;
+    if (selectedHabits['nonVegetarian'] == true) return AppStrings.nonVegetarian;
+    return '';
+  }
 
   final RxList<File> roomImages = <File>[].obs;
   final RxList<File> kitchenImages = <File>[].obs;
@@ -79,11 +100,30 @@ class HomeStayRentalServiceController extends GetxController{
 
   void validateStepTwo(){
     if(formKeyStep2.currentState!.validate()){
-      if(arrHighlights.isNotEmpty){
-        nextStep();
-      }else{
+      if(arrHighlights.isEmpty) {
         commonSnackBar(message: AppStrings.highlightsIsRequired.tr);
+        return;
       }
+
+      // if(!isUnMarried.value){
+      //   commonSnackBar(message: AppStrings.unmarriedCouplesRequired.tr);
+      //   return;
+      // }
+      //
+      // if(!isAllowStudentOrBachelor.value){
+      //   commonSnackBar(message: AppStrings.studentsOrBachelorsRequired.tr);
+      //   return;
+      // }
+
+      if(anyFoodHabitRestriction.value){
+        if(selectedFoodHabit.isEmpty){
+          commonSnackBar(message: AppStrings.foodHabitRequired.tr);
+          return;
+        }
+      }
+
+      nextStep();
+
     }
   }
 
@@ -203,7 +243,13 @@ class HomeStayRentalServiceController extends GetxController{
         if(arrHighlights.isNotEmpty) ApiKeys.highlights: jsonEncode(arrHighlights),
         ApiKeys.restrictions: jsonEncode({
           ApiKeys.unmarriedCoupleAllowed: isUnMarried.value,
+          ApiKeys.studentOrBachelorAllowed: isAllowStudentOrBachelor.value,
+          ApiKeys.foodRestriction: {
+            ApiKeys.isFoodRestriction: anyFoodHabitRestriction.value,
+            if (anyFoodHabitRestriction.value) ApiKeys.allowedFood: selectedFoodHabit
+          },
         }),
+        // ApiKeys.additionalRules: ,
         if(roomParts.isNotEmpty) ApiKeys.roomImages: roomParts,
         if(kitchenParts.isNotEmpty) ApiKeys.kitchenImages: kitchenParts,
         if(bathroomParts.isNotEmpty) ApiKeys.bathroomImages: bathroomParts,

@@ -1,4 +1,3 @@
-
 import 'dart:math' hide log;
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -30,42 +29,37 @@ class OrderNowController extends GetxController {
   Rx<ApiResponse> getAddressResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> getFaireAmountResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> getVehicleOptionResponse = ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> viewBusinessProfileResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> viewBusinessProfileResponse =
+      ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> getRidersListResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> paymentResponse = ApiResponse.initial('Initial').obs;
   final TextEditingController orderValueController = TextEditingController();
   final porterApi = PorterApiService();
-  Rx<TextEditingController> nameController    = TextEditingController().obs;
-  Rx<TextEditingController> phoneController    = TextEditingController().obs;
-  Rx<TextEditingController> fullAddress        = TextEditingController().obs;
-  Rx<TextEditingController> houseNoController  = TextEditingController().obs;
-  Rx<TextEditingController> streetController   = TextEditingController().obs;
+  Rx<TextEditingController> nameController = TextEditingController().obs;
+  Rx<TextEditingController> phoneController = TextEditingController().obs;
+  Rx<TextEditingController> fullAddress = TextEditingController().obs;
+  Rx<TextEditingController> houseNoController = TextEditingController().obs;
+  Rx<TextEditingController> streetController = TextEditingController().obs;
   Rx<TextEditingController> landmarkController = TextEditingController().obs;
-  Rx<TextEditingController> cityController     = TextEditingController().obs;
-  Rx<TextEditingController> stateController    = TextEditingController().obs;
-  Rx<TextEditingController> zipController      = TextEditingController().obs;
-  Rx<TextEditingController> noteController     = TextEditingController().obs;
-  Rx<TextEditingController> typeController      = TextEditingController().obs;
-  Rx<GetAdressDetailsModel> getAddressDetails=GetAdressDetailsModel().obs;
-  Rx<GetBlueeraPiolotModel> getBlueeraPiolotModel=GetBlueeraPiolotModel().obs;
-  Rx<GetPorterVehicleOptionModel> getPorterVehicleOptionModel=GetPorterVehicleOptionModel().obs;
-  Rx<PaymentResponseModel> paymentResponseModel=PaymentResponseModel().obs;
+  Rx<TextEditingController> cityController = TextEditingController().obs;
+  Rx<TextEditingController> stateController = TextEditingController().obs;
+  Rx<TextEditingController> zipController = TextEditingController().obs;
+  Rx<TextEditingController> noteController = TextEditingController().obs;
+  Rx<TextEditingController> typeController = TextEditingController().obs;
+  Rx<GetAdressDetailsModel> getAddressDetails = GetAdressDetailsModel().obs;
+  Rx<GetBlueeraPiolotModel> getBlueeraPiolotModel = GetBlueeraPiolotModel().obs;
+  Rx<GetPorterVehicleOptionModel> getPorterVehicleOptionModel =
+      GetPorterVehicleOptionModel().obs;
+  Rx<PaymentResponseModel> paymentResponseModel = PaymentResponseModel().obs;
   RxBool isDefault = false.obs;
   RxBool ownerOtpLoading = false.obs;
   RxInt? selectedIndex;
-  RxString distanceKm="0.0".obs;
+  RxString distanceKm = "0.0".obs;
   RxList<Riders?> selectedIndexes = <Riders>[].obs;
-  RxString fare="0.0".obs;
-  void copyLat() {
-    Clipboard.setData(ClipboardData(text: lat.value));
-    commonSnackBar(message: "Copied Store Lat");
-  }
-  void copyLong() {
-    Clipboard.setData(ClipboardData(text: long.value));
-    commonSnackBar(message: "Copied Store Long");
-  }
+  RxString fare = "0.0".obs;
 
-  Future<String?> getAddressFromLatLngAsString({required double lat ,required double lng}) async {
+  Future<String?> getAddressFromLatLngAsString(
+      {required double lat, required double lng}) async {
     try {
       List<Placemark> placemarks = await placemarkFromCoordinates(
         lat,
@@ -75,11 +69,11 @@ class OrderNowController extends GetxController {
       if (placemarks.isNotEmpty) {
         final place = placemarks.first;
         String locationString =
-        "${place.name ?? ''}, ${place.subLocality ?? ''}, ${place.subAdministrativeArea ?? ''}, ${place.locality ?? ''} - ${place.postalCode ?? ''}".trim();
+            "${place.name ?? ''}, ${place.subLocality ?? ''}, ${place.subAdministrativeArea ?? ''}, ${place.locality ?? ''} - ${place.postalCode ?? ''}"
+                .trim();
 
         return locationString;
       } else {
-
         return "";
       }
     } catch (e) {
@@ -88,12 +82,15 @@ class OrderNowController extends GetxController {
   }
 
   void calculateDistanceInKm(
-      {required double startLat,required double startLng,required double endLat,required double endLng}) {
+      {required double startLat,
+      required double startLng,
+      required double endLat,
+      required double endLng}) {
     // double distanceInMeters = Geolocator.distanceBetween(startLat, startLng, endLat, endLng);
     // double distanceInKm = distanceInMeters / 1000; // convert meters to km
     // distanceKm.value=double.parse(distanceInKm.toStringAsFixed(2));
     // return double.parse(distanceInKm.toStringAsFixed(2)); // round to 2 decimals
-    Map<String,dynamic> params={
+    Map<String, dynamic> params = {
       ApiKeys.pickupLocation: {
         ApiKeys.latitude: endLat,
         ApiKeys.longitude: endLng
@@ -106,41 +103,45 @@ class OrderNowController extends GetxController {
     getOrderFareFrom(params);
   }
 
-  void setMessageDetails(Messages msg){
-    openedMessage=msg;
-
+  void setMessageDetails(Messages msg) {
+    openedMessage = msg;
   }
-  Future<void> viewBusinessForLocation(String userId,String userType) async {
-    lat.value='0.0';
-    long.value='0.0';
+
+  Future<void> viewBusinessForLocation(String userId, String userType) async {
+    lat.value = '0.0';
+    long.value = '0.0';
     try {
-      ResponseModel responseModel =
-      await BusinessProfileRepo().viewBusinessIdForLocation(userId,userType);
-      if ((userType=='INDIVIDUAL')?(responseModel.response?.data['status']):(responseModel.response?.data['success'])) {
+      ResponseModel responseModel = await BusinessProfileRepo()
+          .viewBusinessIdForLocation(userId, userType);
+      if ((userType == 'INDIVIDUAL')
+          ? (responseModel.response?.data['status'])
+          : (responseModel.response?.data['success'])) {
         final data = responseModel.response?.data;
 
-        if(userType=='INDIVIDUAL'){
-          lat.value=data['data']['user']['user_location']['lat'].toString();
-          long.value=data['data']['user']['user_location']['lon'].toString();
-        }else{
-          address.value=data['data']['address'].toString();
-          lat.value=data['data']['business_location']['lat'].toString();
-          long.value=data['data']['business_location']['lon'].toString();
+        if (userType == 'INDIVIDUAL') {
+          lat.value = data['data']['user']['user_location']['lat'].toString();
+          long.value = data['data']['user']['user_location']['lon'].toString();
+        } else {
+          address.value = data['data']['address'].toString();
+          lat.value = data['data']['business_location']['lat'].toString();
+          long.value = data['data']['business_location']['lon'].toString();
         }
-        viewBusinessProfileResponse.value=ApiResponse.complete(long);
-      }else{
-        viewBusinessProfileResponse.value=ApiResponse.error( AppStrings.somethingWentWrong);
+        viewBusinessProfileResponse.value = ApiResponse.complete(long);
+      } else {
+        viewBusinessProfileResponse.value =
+            ApiResponse.error(AppStrings.somethingWentWrong);
       }
-    }catch(e){
-      viewBusinessProfileResponse.value=ApiResponse.error( AppStrings.somethingWentWrong);
-
+    } catch (e) {
+      viewBusinessProfileResponse.value =
+          ApiResponse.error(AppStrings.somethingWentWrong);
     }
   }
-  Future<List<Riders>?> getRidersNearByShop(Map<String,dynamic> params) async {
+
+  Future<List<Riders>?> getRidersNearByShop(Map<String, dynamic> params) async {
     try {
       ResponseModel responseModel =
-      await BusinessProfileRepo().getNearByRiders(params);
-      if (responseModel.response?.data!=null) {
+          await BusinessProfileRepo().getNearByRiders(params);
+      if (responseModel.response?.data != null) {
         final data = responseModel.response?.data;
 
         getBlueeraPiolotModel.value = GetBlueeraPiolotModel.fromJson(data);
@@ -152,19 +153,23 @@ class OrderNowController extends GetxController {
         }
 
         //6307790308
-        selectedIndexes.addAll(getBlueeraPiolotModel.value.users??[]);
-        getRidersListResponse.value=ApiResponse.complete(getBlueeraPiolotModel);
+        selectedIndexes.addAll(getBlueeraPiolotModel.value.users ?? []);
+        getRidersListResponse.value =
+            ApiResponse.complete(getBlueeraPiolotModel);
         return getBlueeraPiolotModel.value.users;
-      }else{
-        getRidersListResponse.value=ApiResponse.error( AppStrings.somethingWentWrong);
-     return null;
+      } else {
+        getRidersListResponse.value =
+            ApiResponse.error(AppStrings.somethingWentWrong);
+        return null;
       }
-    }catch(e){
-      getRidersListResponse.value=ApiResponse.error( AppStrings.somethingWentWrong);
+    } catch (e) {
+      getRidersListResponse.value =
+          ApiResponse.error(AppStrings.somethingWentWrong);
       return null;
     }
   }
-  Future<void> updateOrderStatus(Map<String,dynamic> params) async {
+
+  Future<void> updateOrderStatus(Map<String, dynamic> params) async {
     try {
       // ResponseModel responseModel =
       // await BusinessProfileRepo().updateMsgOrderStatus(params);
@@ -175,59 +180,55 @@ class OrderNowController extends GetxController {
       // }else{
       //
       // }
-    }catch(e){
-
-    }
+    } catch (e) {}
   }
-  Future<void> updateMessageOrderStatus(Map<String,dynamic> params) async {
+
+  Future<void> updateMessageOrderStatus(Map<String, dynamic> params) async {
     try {
       ResponseModel responseModel =
-      await BusinessProfileRepo().updateMsgOrderStatus(params);
+          await BusinessProfileRepo().updateMsgOrderStatus(params);
       if (responseModel.isSuccess) {
-
-      }else{
-
-      }
-    }catch(e){
-
-    }
+      } else {}
+    } catch (e) {}
   }
-  Future<void> uploadThePickupOtp(Map<String,dynamic> params,String orderId) async {
+
+  Future<void> uploadThePickupOtp(
+      Map<String, dynamic> params, String orderId) async {
     try {
-      ownerOtpLoading.value=true;
+      ownerOtpLoading.value = true;
       ResponseModel responseModel =
-      await MakeOrderRepo().uploadThePickupOtp(params,orderId);
+          await MakeOrderRepo().uploadThePickupOtp(params, orderId);
       if (responseModel.isSuccess) {
-        commonSnackBar(message: "Pickup Order Verified Successfully");
-      }else{
+        commonSnackBar(message: AppStrings.pickupOrderVerifiedSuccessfully);
+      } else {
         commonSnackBar(message: responseModel.message);
       }
-      ownerOtpLoading.value=false;
-    }catch(e){
-      ownerOtpLoading.value=false;
+      ownerOtpLoading.value = false;
+    } catch (e) {
+      ownerOtpLoading.value = false;
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
   }
-  Future<bool> sendMessageToOrderTab(
-      {required Map<String,dynamic> params})
-  async {
-    // try {
-      ResponseModel? response = await MakeOrderRepo().messageToOrder(params);
 
-      if (response.isSuccess) {
-     return true;
-      } else {
-        commonSnackBar(
-            message: response.message ?? AppStrings.somethingWentWrong);
-        return false;
-      }
+  Future<bool> sendMessageToOrderTab(
+      {required Map<String, dynamic> params}) async {
+    // try {
+    ResponseModel? response = await MakeOrderRepo().messageToOrder(params);
+
+    if (response.isSuccess) {
+      return true;
+    } else {
+      commonSnackBar(
+          message: response.message ?? AppStrings.somethingWentWrong);
+      return false;
+    }
     // } catch (e) {
     //   commonSnackBar(message: AppStrings.somethingWentWrong);
     //   return false;
     // }
   }
-  Future<void> VerifyPayment(
-      {required Map<String,dynamic> params}) async {
+
+  Future<void> VerifyPayment({required Map<String, dynamic> params}) async {
     try {
       ResponseModel? response = await MakeOrderRepo().verifyPayment(params);
       if (response.isSuccess) {
@@ -239,31 +240,37 @@ class OrderNowController extends GetxController {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
   }
+
   Future<void> getAddressApi() async {
     try {
-    getAddressResponse.value= ApiResponse.initial("Initial");
+      getAddressResponse.value = ApiResponse.initial("Initial");
       ResponseModel? response = await MakeOrderRepo().getAddress();
 
       if (response.isSuccess) {
-        getAddressDetails.value=GetAdressDetailsModel.fromJson(response.response?.data);
-        getAddressResponse.value= ApiResponse.complete(getAddressDetails.value);
+        getAddressDetails.value =
+            GetAdressDetailsModel.fromJson(response.response?.data);
+        getAddressResponse.value =
+            ApiResponse.complete(getAddressDetails.value);
       } else {
         commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);
-        getAddressResponse.value= ApiResponse.error( response.message ?? AppStrings.somethingWentWrong);
+        getAddressResponse.value = ApiResponse.error(
+            response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
   }
-  Future<void> sendOrderRequestToRider(Map<String,dynamic> params) async {
+
+  Future<void> sendOrderRequestToRider(Map<String, dynamic> params) async {
     try {
-      ResponseModel? response = await MakeOrderRepo().sendOrderRequestToRider(params);
+      ResponseModel? response =
+          await MakeOrderRepo().sendOrderRequestToRider(params);
 
       if (response.isSuccess) {
         commonSnackBar(
-            message:
-            response.message??"Wait Our Rider Will Accept Your Order Soon ");
+            message: response.message ??
+                AppStrings.riderWillAcceptSoon);
       } else {
         commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);
@@ -272,12 +279,13 @@ class OrderNowController extends GetxController {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
   }
+
   Future<void> updatePaymentStausByUser(String params) async {
     try {
-      ResponseModel? response = await MakeOrderRepo().updatePaymentStausByUser(params);
+      ResponseModel? response =
+          await MakeOrderRepo().updatePaymentStausByUser(params);
 
       if (response.isSuccess) {
-
       } else {
         commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);
@@ -286,62 +294,63 @@ class OrderNowController extends GetxController {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
   }
-  Future<void> cancelOrderForce(String orderId,Map<String,dynamic> params) async {
+
+  Future<void> cancelOrderForce(
+      String orderId, Map<String, dynamic> params) async {
     try {
-      ResponseModel? response = await MakeOrderRepo().cancelOrderForce(orderId,params);
+      ResponseModel? response =
+          await MakeOrderRepo().cancelOrderForce(orderId, params);
 
       if (response.isSuccess) {
-        commonSnackBar(
-            message: response.message );
-      } else {
-
-      }
-    } catch (e) {
-
-    }
+        commonSnackBar(message: response.message);
+      } else {}
+    } catch (e) {}
   }
-  Future<void> getOrderFareFrom(Map<String,dynamic> params) async {
+
+  Future<void> getOrderFareFrom(Map<String, dynamic> params) async {
     try {
       ResponseModel? response = await MakeOrderRepo().getOrderFareFrom(params);
 
       if (response.isSuccess) {
-        Map<String,dynamic> data=response.response?.data;
-        fare.value=data['fare'].toString();
-        distanceKm.value=data['distance'].toString();
-        getFaireAmountResponse.value=ApiResponse.complete(data);
+        Map<String, dynamic> data = response.response?.data;
+        fare.value = data['fare'].toString();
+        distanceKm.value = data['distance'].toString();
+        getFaireAmountResponse.value = ApiResponse.complete(data);
       } else {
         commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);
-        getFaireAmountResponse.value=ApiResponse.error( response.message );
+        getFaireAmountResponse.value = ApiResponse.error(response.message);
       }
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
-      getFaireAmountResponse.value=ApiResponse.error( AppStrings.somethingWentWrong);
+      getFaireAmountResponse.value =
+          ApiResponse.error(AppStrings.somethingWentWrong);
     }
   }
 
-  void fetchVehicleQuotes(
-      Map<String,dynamic> params
-      ) async {
-    getVehicleOptionResponse.value= ApiResponse.initial("Initial");
+  void fetchVehicleQuotes(Map<String, dynamic> params) async {
+    getVehicleOptionResponse.value = ApiResponse.initial("Initial");
 
     final data = await porterApi.getQuote(params);
 
-    if (data != null&&data['status']) {
-      getPorterVehicleOptionModel.value=GetPorterVehicleOptionModel.fromJson(data['data']);
-      getVehicleOptionResponse.value= ApiResponse.complete(getPorterVehicleOptionModel.value);
+    if (data != null && data['status']) {
+      getPorterVehicleOptionModel.value =
+          GetPorterVehicleOptionModel.fromJson(data['data']);
+      getVehicleOptionResponse.value =
+          ApiResponse.complete(getPorterVehicleOptionModel.value);
     } else {
-      if(data!=null){
+      if (data != null) {
         final vehicles = data['data']['message'];
-        getVehicleOptionResponse.value= ApiResponse.error(vehicles??AppStrings.somethingWentWrong);
-      }else{
-        getVehicleOptionResponse.value= ApiResponse.error(AppStrings.somethingWentWrong);
+        getVehicleOptionResponse.value =
+            ApiResponse.error(vehicles ?? AppStrings.somethingWentWrong);
+      } else {
+        getVehicleOptionResponse.value =
+            ApiResponse.error(AppStrings.somethingWentWrong);
       }
     }
   }
 
   String generateRequestId() {
-
     final random = Random();
 
     // Generate a random 7-digit number
@@ -349,12 +358,12 @@ class OrderNowController extends GetxController {
 
     // Generate a UUID (version 1)
 
-
     // Combine in your format
     return "TEST_0_${randomNumber}${userId}";
   }
 
-  Future<Map<String, String>> getAddressFromLatLng(double lat, double lng) async {
+  Future<Map<String, String>> getAddressFromLatLng(
+      double lat, double lng) async {
     try {
       List<Placemark> placemarks = await placemarkFromCoordinates(lat, lng);
 
@@ -364,7 +373,6 @@ class OrderNowController extends GetxController {
         final city = place.locality ?? '';
         final state = place.administrativeArea ?? '';
         final pincode = place.postalCode ?? '';
-
 
         return {
           "city": city,
@@ -380,14 +388,16 @@ class OrderNowController extends GetxController {
   }
 
   void createOrder() async {
-    List<AddressDetails>? addressList=getAddressDetails.value.data;
+    List<AddressDetails>? addressList = getAddressDetails.value.data;
     AddressDetails? selectedAddress;
-    if(addressList!=null){
-      selectedAddress=addressList[selectedIndex?.value??0];
+    if (addressList != null) {
+      selectedAddress = addressList[selectedIndex?.value ?? 0];
     }
-    if(openedMessage!=null){
-      Map<String,dynamic> addressData=await getAddressFromLatLng(double.parse(lat.value.toString()),double.parse(long.value.toString()));
-      Map<String,dynamic> params={
+    if (openedMessage != null) {
+      Map<String, dynamic> addressData = await getAddressFromLatLng(
+          double.parse(lat.value.toString()),
+          double.parse(long.value.toString()));
+      Map<String, dynamic> params = {
         "request_id": "${generateRequestId()}",
         // "delivery_instructions": {
         //   "instructions_list": [
@@ -400,14 +410,15 @@ class OrderNowController extends GetxController {
         "pickup_details": {
           "address": {
             "apartment_address": "",
-            "street_address1": "${(openedMessage?.seller?.location==''||openedMessage?.seller?.location==null)?"N/A":openedMessage?.seller?.location}",
+            "street_address1":
+                "${(openedMessage?.seller?.location == '' || openedMessage?.seller?.location == null) ? "N/A" : openedMessage?.seller?.location}",
             // // "street_address2": "Krishna Nagar Industrial Area",
             "landmark": "N/A",
             "city": "${addressData['city']}",
             "state": "${addressData['state']}",
             "pincode": "${addressData['pincode']}",
             "country": "India",
-            "lat":double.parse(lat.value),
+            "lat": double.parse(lat.value),
             "lng": double.parse(long.value),
             "contact_details": {
               "name": "${openedMessage?.seller?.name}",
@@ -438,14 +449,15 @@ class OrderNowController extends GetxController {
 
       final data = await porterApi.createOrder(params);
       if (data != null) {
-        paymentResponseModel.value=PaymentResponseModel.fromJson(data);
-        paymentResponse.value= ApiResponse.complete(paymentResponseModel.value);
+        paymentResponseModel.value = PaymentResponseModel.fromJson(data);
+        paymentResponse.value =
+            ApiResponse.complete(paymentResponseModel.value);
 
-        Map<String,dynamic> addOrderTabPara={
-          ApiKeys.message_id:openedMessage?.id,
-          ApiKeys.other_user_id :openedMessage?.seller?.id,
+        Map<String, dynamic> addOrderTabPara = {
+          ApiKeys.message_id: openedMessage?.id,
+          ApiKeys.other_user_id: openedMessage?.seller?.id,
           ApiKeys.price: "${orderValueController.text}",
-          ApiKeys.order : data,
+          ApiKeys.order: data,
           // "rider": {},
 
           ApiKeys.ride_by: MakeOrderType.porter
@@ -453,111 +465,109 @@ class OrderNowController extends GetxController {
         sendMessageToOrderTab(params: addOrderTabPara);
         final chatViewController = Get.find<ChatViewController>();
 
-        Map<String,dynamic>datadd={
+        Map<String, dynamic> datadd = {
           ApiKeys.messageId: "${openedMessage?.id}",
-          ApiKeys.order_status : true
+          ApiKeys.order_status: true
         };
-        await  updateOrderStatus(datadd);
-        chatViewController. emitEvent(ChatEmitEvents.messageReceived, {
-          ApiKeys.conversation_id: openedMessage?.conversationId??openedMessage?.sender?.id,
+        await updateOrderStatus(datadd);
+        chatViewController.emitEvent(ChatEmitEvents.messageReceived, {
+          ApiKeys.conversation_id:
+              openedMessage?.conversationId ?? openedMessage?.sender?.id,
           ApiKeys.page: 1,
           ApiKeys.is_online_user: businessId,
           ApiKeys.per_page_message: 30,
         });
-
-      } else {
-
-      }
-    }else{
+      } else {}
+    } else {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
-
   }
-  void createSelfPickupOrder(String? messageId,String? userid,String? conversationId,) async {
-    Map<String,dynamic> addOrderTabPara={
 
+  void createSelfPickupOrder(
+    String? messageId,
+    String? userid,
+    String? conversationId,
+  ) async {
+    Map<String, dynamic> addOrderTabPara = {
       ApiKeys.message_id: "$messageId",
-      ApiKeys.other_user_id :userid,
+      ApiKeys.other_user_id: userid,
       ApiKeys.price: "${orderValueController.text}",
       // "order": {},
       // "rider": {},
       ApiKeys.rider_id: "$userId",
       ApiKeys.ride_by: MakeOrderType.self
     };
-        bool value=await sendMessageToOrderTab(params: addOrderTabPara);
-        if(value){
-          final chatViewController = Get.find<ChatViewController>();
+    bool value = await sendMessageToOrderTab(params: addOrderTabPara);
+    if (value) {
+      final chatViewController = Get.find<ChatViewController>();
 
-          Map<String,dynamic>datadd={
-            ApiKeys.messageId: messageId,
-            ApiKeys.order_status : true
-          };
-          await updateOrderStatus(datadd);
-          chatViewController.emitEvent(ChatEmitEvents.messageReceived, {
-            ApiKeys.conversation_id: conversationId??userId,
-            ApiKeys.page: 1,
-            ApiKeys.is_online_user: businessId,
-            ApiKeys.per_page_message: 30,
-          });
-        }
-
+      Map<String, dynamic> datadd = {
+        ApiKeys.messageId: messageId,
+        ApiKeys.order_status: true
+      };
+      await updateOrderStatus(datadd);
+      chatViewController.emitEvent(ChatEmitEvents.messageReceived, {
+        ApiKeys.conversation_id: conversationId ?? userId,
+        ApiKeys.page: 1,
+        ApiKeys.is_online_user: businessId,
+        ApiKeys.per_page_message: 30,
+      });
+    }
   }
-  void createRiderPickupOrder(String? messageId,String? userid,String? conversationId,) async {
-    Map<String,dynamic> addOrderTabPara={
+
+  void createRiderPickupOrder(
+    String? messageId,
+    String? userid,
+    String? conversationId,
+  ) async {
+    Map<String, dynamic> addOrderTabPara = {
       ApiKeys.message_id: "$messageId",
-      ApiKeys.other_user_id :userid,
+      ApiKeys.other_user_id: userid,
       ApiKeys.price: "${orderValueController.text}",
       // "order": {},
       // "rider": {},
       // ApiKeys.rider_id: "$userId",
       ApiKeys.ride_by: MakeOrderType.rider
     };
-        bool value=await sendMessageToOrderTab(params: addOrderTabPara);
+    bool value = await sendMessageToOrderTab(params: addOrderTabPara);
 
-        if(value){
-          final chatViewController = Get.find<ChatViewController>();
+    if (value) {
+      final chatViewController = Get.find<ChatViewController>();
 
-          // Map<String,dynamic>datadd={
-          //   ApiKeys.messageId: messageId,
-          //   ApiKeys.order_status : true
-          // };
-          // await updateOrderStatus(datadd);
-          chatViewController.emitEvent(ChatEmitEvents.messageReceived, {
-            ApiKeys.conversation_id: conversationId??userId,
-            ApiKeys.page: 1,
-            ApiKeys.is_online_user: businessId,
-            ApiKeys.per_page_message: 30,
-          });
-        }
-
+      // Map<String,dynamic>datadd={
+      //   ApiKeys.messageId: messageId,
+      //   ApiKeys.order_status : true
+      // };
+      // await updateOrderStatus(datadd);
+      chatViewController.emitEvent(ChatEmitEvents.messageReceived, {
+        ApiKeys.conversation_id: conversationId ?? userId,
+        ApiKeys.page: 1,
+        ApiKeys.is_online_user: businessId,
+        ApiKeys.per_page_message: 30,
+      });
+    }
   }
 
+  Future<bool?> cancelOrderApi(String orderId, String conversationId) async {
+    final data = await porterApi.cancelOrder(orderId);
+    if (data != null && data) {
+      commonSnackBar(message: AppStrings.orderDeletedSuccessfully);
+      final chatViewController = Get.find<ChatViewController>();
 
-    Future<bool?> cancelOrderApi(String orderId,String conversationId) async {
-      final data = await porterApi.cancelOrder(orderId);
-      if (data != null&&data) {
-        commonSnackBar(message: "Order Deleted Successfully");
-        final chatViewController = Get.find<ChatViewController>();
-
-        chatViewController. emitEvent(ChatEmitEvents.messageReceived, {
-          ApiKeys.conversation_id: conversationId,
-          ApiKeys.page: 1,
-          ApiKeys.is_online_user: businessId,
-          ApiKeys.per_page_message: 30,
-        });
+      chatViewController.emitEvent(ChatEmitEvents.messageReceived, {
+        ApiKeys.conversation_id: conversationId,
+        ApiKeys.page: 1,
+        ApiKeys.is_online_user: businessId,
+        ApiKeys.per_page_message: 30,
+      });
       return data;
-      } else {
-
-
-        commonSnackBar(message: AppStrings.somethingWentWrong);
-      }
-      return null;
-
-
+    } else {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+    return null;
   }
 
-
-  Future<void> addAddressApi(double? lat,double? long) async {
+  Future<void> addAddressApi(double? lat, double? long) async {
     try {
       final addressData = {
         "name": nameController.value.text.trim(),
@@ -572,7 +582,6 @@ class OrderNowController extends GetxController {
         "country": "India",
         "type": "Home",
         "is_default": isDefault.value,
-
         "lat": lat,
         "lng": long,
       };
@@ -590,8 +599,7 @@ class OrderNowController extends GetxController {
         noteController.value.clear();
         typeController.value.clear();
 
-        commonSnackBar(
-            message: response.message);
+        commonSnackBar(message: response.message);
         Get.back();
         getAddressApi();
       } else {
@@ -603,7 +611,8 @@ class OrderNowController extends GetxController {
     }
   }
 
-  Future<void> updateAddressApi(double? lat,double? long,String addressId) async {
+  Future<void> updateAddressApi(
+      double? lat, double? long, String addressId) async {
     try {
       final addressData = {
         "name": nameController.value.text.trim(),
@@ -618,11 +627,11 @@ class OrderNowController extends GetxController {
         "country": "India",
         "type": "Home",
         "is_default": isDefault.value,
-
         "lat": lat,
         "lng": long,
       };
-      ResponseModel? response = await MakeOrderRepo().updateAddress(addressData,addressId);
+      ResponseModel? response =
+          await MakeOrderRepo().updateAddress(addressData, addressId);
       if (response.isSuccess) {
         nameController.value.clear();
         phoneController.value.clear();
@@ -636,8 +645,7 @@ class OrderNowController extends GetxController {
         noteController.value.clear();
         typeController.value.clear();
 
-        commonSnackBar(
-            message: response.message);
+        commonSnackBar(message: response.message);
         Get.back();
         getAddressApi();
       } else {
@@ -651,11 +659,9 @@ class OrderNowController extends GetxController {
 
   Future<void> deleteAddress(String addressId) async {
     try {
-
       ResponseModel? response = await MakeOrderRepo().deleteAddress(addressId);
       if (response.isSuccess) {
-        commonSnackBar(
-            message: response.message);
+        commonSnackBar(message: response.message);
         Get.back();
         getAddressApi();
       } else {
@@ -666,7 +672,4 @@ class OrderNowController extends GetxController {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
   }
-
 }
-
-

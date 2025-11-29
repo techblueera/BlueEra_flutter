@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
@@ -12,6 +13,7 @@ import '../../../../../core/services/notifications/default_ringtone.dart';
 import '../../../../../core/services/notifications/ride_notification_data_model.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 import '../../../../common/delivery_partner/controller/delivery_partner_orders_controller.dart';
+
 class ModernSwipeToAction extends StatefulWidget {
   final VoidCallback onAccept;
   final VoidCallback onReject;
@@ -25,8 +27,6 @@ class ModernSwipeToAction extends StatefulWidget {
   @override
   State<ModernSwipeToAction> createState() => _ModernSwipeToActionState();
 }
-
-
 
 class NewDeliveryRequestScreen extends StatefulWidget {
   final String orderId;
@@ -43,7 +43,9 @@ class NewDeliveryRequestScreen extends StatefulWidget {
     required this.customerImage,
     required this.distance,
     required this.pickupAddress,
-    required this.amount, required this.dropAddress, required this.notificationData,
+    required this.amount,
+    required this.dropAddress,
+    required this.notificationData,
   });
 
   @override
@@ -59,7 +61,8 @@ class _NewDeliveryRequestScreenState extends State<NewDeliveryRequestScreen>
   final orderController = Get.isRegistered<DeliverPartnerOrdersController>()
       ? Get.find<DeliverPartnerOrdersController>()
       : Get.put(DeliverPartnerOrdersController());
-  void handleRejectOrder( String orderId) {
+
+  void handleRejectOrder(String orderId) {
     orderController.updateOrderStatusFromPialot(
       {ApiKeys.action: "reject"},
       orderId,
@@ -72,8 +75,8 @@ class _NewDeliveryRequestScreenState extends State<NewDeliveryRequestScreen>
       orderId,
     );
   }
-  Future<double?> getDistanceInKm(
-      double destLat, double destLng) async {
+
+  Future<double?> getDistanceInKm(double destLat, double destLng) async {
     try {
       // Check permission
       LocationPermission permission = await Geolocator.checkPermission();
@@ -107,21 +110,34 @@ class _NewDeliveryRequestScreenState extends State<NewDeliveryRequestScreen>
       );
 
       // Convert to KM
-      return  double.parse((distanceInMeters / 1000).toStringAsFixed(2));
+      return double.parse((distanceInMeters / 1000).toStringAsFixed(2));
     } catch (e) {
       print("Error getting distance: $e");
       return null;
     }
   }
+
   double? kmFromPickupLocation;
   double? kmFromDropLocation;
-  Future<void> getLocationInKm()async{
-    kmFromPickupLocation =await getDistanceInKm(double.parse(widget.notificationData.metadata?.dropAddress?.lat.toString()??''),double.parse(widget.notificationData.metadata?.dropAddress?.long.toString()??''));
-    kmFromDropLocation =await getDistanceInKm(double.parse(widget.notificationData.metadata?.deliveredAddress?.lat.toString()??''),double.parse(widget.notificationData.metadata?.deliveredAddress?.long.toString()??''));
- setState(() {
 
- });
+  Future<void> getLocationInKm() async {
+    kmFromPickupLocation = await getDistanceInKm(
+        double.parse(
+            widget.notificationData.metadata?.dropAddress?.lat.toString() ??
+                ''),
+        double.parse(
+            widget.notificationData.metadata?.dropAddress?.long.toString() ??
+                ''));
+    kmFromDropLocation = await getDistanceInKm(
+        double.parse(widget.notificationData.metadata?.deliveredAddress?.lat
+                .toString() ??
+            ''),
+        double.parse(widget.notificationData.metadata?.deliveredAddress?.long
+                .toString() ??
+            ''));
+    setState(() {});
   }
+
   @override
   void initState() {
     super.initState();
@@ -132,8 +148,8 @@ class _NewDeliveryRequestScreenState extends State<NewDeliveryRequestScreen>
     //   if (mounted) Navigator.pop(context); // auto dismiss
     // });
     _controller =
-    AnimationController(vsync: this, duration: const Duration(seconds: 2))
-      ..repeat(reverse: true);
+        AnimationController(vsync: this, duration: const Duration(seconds: 2))
+          ..repeat(reverse: true);
 
     glow = Tween<double>(begin: 0.8, end: 1.15).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
@@ -150,7 +166,6 @@ class _NewDeliveryRequestScreenState extends State<NewDeliveryRequestScreen>
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       body: Stack(
         children: [
@@ -209,9 +224,8 @@ class _NewDeliveryRequestScreenState extends State<NewDeliveryRequestScreen>
               bottom: 100,
               left: 0,
               right: 0,
-              child:  // speed (lower = faster)
-              _buildBottomActions()),
-
+              child: // speed (lower = faster)
+                  _buildBottomActions()),
         ],
       ),
     );
@@ -236,7 +250,6 @@ class _NewDeliveryRequestScreenState extends State<NewDeliveryRequestScreen>
                 colors: [
                   AppColors.primaryColor.withOpacity(0.8),
                   AppColors.primaryColor.withOpacity(0.4),
-
                 ],
               ),
             ),
@@ -276,12 +289,11 @@ class _NewDeliveryRequestScreenState extends State<NewDeliveryRequestScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           SizedBox(height: SizeConfig.size10),
 
           Center(
             child: CustomText(
-              "New Delivery Request",
+              AppStrings.newDeliveryRequest,
               color: Colors.black,
               fontSize: SizeConfig.size20,
               fontWeight: FontWeight.w700,
@@ -292,10 +304,11 @@ class _NewDeliveryRequestScreenState extends State<NewDeliveryRequestScreen>
 
           /// ---------- Pickup Section ----------
           commonSectionCard(
-            title: "Pickup Address",
+            title: AppStrings.pickupAddress,
             children: [
               _infoTile(Icons.store_rounded, "${widget.pickupAddress}"),
-              _infoTile(Icons.location_on_outlined, "${kmFromPickupLocation??"Finding Distance.."}${kmFromPickupLocation!=null?"Km Fare":''}"),
+              _infoTile(Icons.location_on_outlined,
+                  "${kmFromPickupLocation ?? "${AppStrings.findingDistance.tr}"}${kmFromPickupLocation != null ? "${AppStrings.kmFare.tr}" : ''}"),
             ],
           ),
 
@@ -303,11 +316,11 @@ class _NewDeliveryRequestScreenState extends State<NewDeliveryRequestScreen>
 
           /// ---------- Drop Section ----------
           commonSectionCard(
-            title: "Drop Address",
+            title: AppStrings.dropAddress,
             children: [
               _infoTile(Icons.store_rounded, '${widget.dropAddress}'),
-              _infoTile(Icons.location_on_outlined, "${kmFromDropLocation??"Finding Distance.."}${kmFromDropLocation!=null?"Km Fare":''}"),
-
+              _infoTile(Icons.location_on_outlined,
+                  "${kmFromDropLocation ?? "${AppStrings.findingDistance.tr}"}${kmFromDropLocation != null ? "${AppStrings.kmFare.tr}" : ''}"),
             ],
           ),
 
@@ -327,7 +340,7 @@ class _NewDeliveryRequestScreenState extends State<NewDeliveryRequestScreen>
               ),
               child: Center(
                 child: CustomText(
-                  "Fare Amount : ₹ ${widget.amount}",
+                  "${AppStrings.fareAmount.tr}: ₹ ${widget.amount}",
                   color: AppColors.black,
                   fontSize: SizeConfig.size18,
                   fontWeight: FontWeight.w800,
@@ -376,7 +389,7 @@ class _NewDeliveryRequestScreenState extends State<NewDeliveryRequestScreen>
 
   Widget _infoTile(IconData icon, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 0.0,vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 6),
       child: Row(
         children: [
           Icon(icon, color: Colors.orange, size: 26),
@@ -400,12 +413,11 @@ class _NewDeliveryRequestScreenState extends State<NewDeliveryRequestScreen>
   // ------------------------------
   Widget _buildBottomActions() {
     return ModernSwipeToAction(
-      onAccept: (){
+      onAccept: () {
         handleAcceptOrder(widget.orderId);
         Navigator.pop(context, "accept");
-
       },
-      onReject: (){
+      onReject: () {
         handleRejectOrder(widget.orderId);
         Navigator.pop(context, "reject");
       },
@@ -501,13 +513,11 @@ class _ModernSwipeToActionState extends State<ModernSwipeToAction>
                 Icon(Icons.keyboard_double_arrow_left,
                     size: 30, color: Colors.red.withOpacity(blink)),
                 const SizedBox(width: 5),
-                Text(
-                  "Decline",
-                  style: TextStyle(
-                    color: Colors.red.withOpacity(blink),
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
+                CustomText(
+                  AppStrings.decline,
+                  color: Colors.red.withOpacity(blink),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
                 ),
               ],
             ),
@@ -524,13 +534,11 @@ class _ModernSwipeToActionState extends State<ModernSwipeToAction>
             opacity: _dragX > 20 ? 1 : 0.4,
             child: Row(
               children: [
-                Text(
-                  "Accept",
-                  style: TextStyle(
-                    color: Colors.green.withOpacity(blink),
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
+                CustomText(
+                  AppStrings.accept,
+                  color: Colors.green.withOpacity(blink),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
                 ),
                 const SizedBox(width: 5),
                 Icon(Icons.keyboard_double_arrow_right,
@@ -544,8 +552,8 @@ class _ModernSwipeToActionState extends State<ModernSwipeToAction>
         // MAIN SWIPE BUTTON
         // -------------------------
         ShakeAnimation(
-          offset: 12,          // how much it shakes left-right
-          shakeDuration: 500,  // speed of one shake
+          offset: 12, // how much it shakes left-right
+          shakeDuration: 500, // speed of one shake
           interval: 2000,
           child: GestureDetector(
             onHorizontalDragUpdate: (details) {
@@ -566,7 +574,6 @@ class _ModernSwipeToActionState extends State<ModernSwipeToAction>
               duration: const Duration(milliseconds: 200),
               curve: Curves.easeOut,
               transform: Matrix4.translationValues(_dragX, 0, 0),
-
               padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 40),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(50),
@@ -574,11 +581,11 @@ class _ModernSwipeToActionState extends State<ModernSwipeToAction>
                   colors: _dragX > 0
                       ? [Colors.greenAccent, Colors.green]
                       : _dragX < 0
-                      ? [Colors.redAccent, Colors.red]
-                      : [
-                    Colors.white.withOpacity(0.8),
-                    Colors.grey.shade200,
-                  ],
+                          ? [Colors.redAccent, Colors.red]
+                          : [
+                              Colors.white.withOpacity(0.8),
+                              Colors.grey.shade200,
+                            ],
                 ),
                 boxShadow: [
                   BoxShadow(
@@ -590,38 +597,29 @@ class _ModernSwipeToActionState extends State<ModernSwipeToAction>
                   ),
                 ],
               ),
-
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   if (_dragX < 0) ...[
                     const Icon(Icons.close, color: Colors.white, size: 28),
                     const SizedBox(width: 8),
-                    const Text(
-                      "Swipe to Decline",
-                      style: TextStyle(
-                          color: Colors.white, fontWeight: FontWeight.bold),
-                    ),
+                    const CustomText(AppStrings.swipeToDecline,
+                        color: Colors.white, fontWeight: FontWeight.bold),
                   ],
                   if (_dragX == 0) ...[
                     Icon(Icons.swipe,
                         color: Colors.blue.withOpacity(blink), size: 28),
                     const SizedBox(width: 12),
-                    Text(
-                      "Swipe",
-                      style: TextStyle(
-                        color: Colors.black.withOpacity(0.7),
-                        fontSize: 17,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    CustomText(
+                      AppStrings.swipe,
+                      color: Colors.black.withOpacity(0.7),
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
                     ),
                   ],
                   if (_dragX > 0) ...[
-                    const Text(
-                      "Swipe to Accept",
-                      style: TextStyle(
-                          color: Colors.white, fontWeight: FontWeight.bold),
-                    ),
+                    const CustomText(AppStrings.swipeToAccept,
+                        color: Colors.white, fontWeight: FontWeight.bold),
                     const SizedBox(width: 8),
                     const Icon(Icons.check, color: Colors.white, size: 28),
                   ],
@@ -634,6 +632,7 @@ class _ModernSwipeToActionState extends State<ModernSwipeToAction>
     );
   }
 }
+
 class ShakeAnimation extends StatefulWidget {
   final Widget child;
   final double offset;
@@ -721,7 +720,6 @@ class _ShakeAnimationState extends State<ShakeAnimation>
   }
 }
 
-
 class RotateScaleAnimation extends StatefulWidget {
   final Widget child;
 
@@ -747,16 +745,16 @@ class _RotateScaleAnimationState extends State<RotateScaleAnimation>
     )..repeat(reverse: true); // smooth back & forth
 
     _rotate = Tween<double>(
-      begin: -0.03,  // slight left tilt
-      end: 0.03,     // slight right tilt
+      begin: -0.03, // slight left tilt
+      end: 0.03, // slight right tilt
     ).animate(CurvedAnimation(
       parent: _controller,
       curve: Curves.easeInOut,
     ));
 
     _scale = Tween<double>(
-      begin: 1.0,   // original size
-      end: 0.92,    // shrink slightly
+      begin: 1.0, // original size
+      end: 0.92, // shrink slightly
     ).animate(CurvedAnimation(
       parent: _controller,
       curve: Curves.easeInOut,

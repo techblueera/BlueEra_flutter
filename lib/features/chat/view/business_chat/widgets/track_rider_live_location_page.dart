@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +11,12 @@ import 'package:mappls_gl/mappls_gl.dart';
 import '../../../auth/controller/live_trach_rider_controller.dart';
 
 class TrackRiderLiveLocationPage extends StatefulWidget {
-  const TrackRiderLiveLocationPage({super.key, required this.riderId, required this.dropLat, required this.dropLng});
+  const TrackRiderLiveLocationPage(
+      {super.key,
+      required this.riderId,
+      required this.dropLat,
+      required this.dropLng});
+
   final double dropLat;
   final double dropLng;
   final String riderId;
@@ -26,7 +32,6 @@ class _TrackRiderLiveLocationPageState
 
   @override
   void initState() {
-
     orderController.fetchStream(widget.riderId);
     super.initState();
   }
@@ -35,15 +40,15 @@ class _TrackRiderLiveLocationPageState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Track Your Rider",
+        title: AppStrings.trackYourRider,
       ),
       body: Obx(() {
         if ((orderController.liveLng.value == 0) ||
-            (orderController.liveLng.value == 0)){
-          return  Center(
-            child: CustomText("Finding Rider Location..."),
+            (orderController.liveLng.value == 0)) {
+          return Center(
+            child: CustomText(AppStrings.findingRiderLocation),
           );
-        }else{
+        } else {
           return SimpleMapplsTracking(
             startLng: orderController.liveLng.value,
             startLat: orderController.liveLat.value,
@@ -55,7 +60,6 @@ class _TrackRiderLiveLocationPageState
     );
   }
 }
-
 
 class SimpleMapplsTracking extends StatefulWidget {
   final double startLat;
@@ -89,11 +93,12 @@ class _SimpleMapplsTrackingState extends State<SimpleMapplsTracking> {
   @override
   void initState() {
     super.initState();
-     _startLocationTracking();
+    _startLocationTracking();
 
     ever(riderController.liveLat, (_) => _updateRiderOnMap());
     ever(riderController.liveLng, (_) => _updateRiderOnMap());
   }
+
   Future<void> _updateRiderOnMap() async {
     if (mapController == null) return;
 
@@ -131,12 +136,10 @@ class _SimpleMapplsTrackingState extends State<SimpleMapplsTracking> {
           ),
         );
       }
-
     } catch (e) {
       print("Error updating rider marker: $e");
     }
   }
-
 
   Future<void> _startLocationTracking() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
@@ -156,7 +159,6 @@ class _SimpleMapplsTrackingState extends State<SimpleMapplsTracking> {
     ).listen((Position position) {
       _updateLiveLocation(position);
     });
-
   }
 
   Future<void> _updateLiveLocation(Position position) async {
@@ -245,19 +247,17 @@ class _SimpleMapplsTrackingState extends State<SimpleMapplsTracking> {
       );
 
       await mapController!.animateCamera(
-        CameraUpdate.newLatLngBounds(
-            bounds, left: 50, top: 50, right: 50, bottom: 50),
+        CameraUpdate.newLatLngBounds(bounds,
+            left: 50, top: 50, right: 50, bottom: 50),
       );
-    } catch (e) {
-
-    }
+    } catch (e) {}
   }
+
   @override
   void dispose() {
     positionStream?.cancel();
     super.dispose();
   }
-
 
   @override
   Widget build(BuildContext context) {

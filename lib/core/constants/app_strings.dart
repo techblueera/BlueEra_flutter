@@ -1731,6 +1731,17 @@ class AppStrings {
   static const String roadsideOutsideView = 'roadsideOutsideView';
   static const personalDetails = "personalDetails";
 
+  static const unmarriedCouplesRequired = "unmarriedCouplesRequired";
+  static const studentsOrBachelorsRequired = "studentsOrBachelorsRequired";
+  static const foodHabitRequired = "foodHabitRequired";
+  static const areYouAllowBachelorOrStudent = "areYouAllowBachelorOrStudent";
+  static const anyFoodHabitRestrictions = "anyFoodHabitRestrictions";
+  static const kindlyIndicateWhichFoodHabits = "kindlyIndicateWhichFoodHabits";
+  static const addMoreRestrictions = "addMoreRestrictions";
+  static const vegetarian = "vegetarian";
+  static const nonVegetarian = "nonVegetarian";
+
+
 
   ///BHAVESH START
   static const ownerDetail = "owner_detail";
@@ -1952,5 +1963,113 @@ class AppStrings {
   static const recording = "recording";
   static const tab_ott = "tab_ott";
 
-  ///BHAVESH END
+  ///CHAT & ORDER...
+  static const pickupOrderVerifiedSuccessfully = "pickupOrderVerifiedSuccessfully";
+  static const riderWillAcceptSoon = "riderWillAcceptSoon";
+  static const orderDeletedSuccessfully = "orderDeletedSuccessfully";
+
+  static const permissionRequired = "permissionRequired";
+  static const allowContactAccess = "allowContactAccess";
+  static const allowPermission = "allowPermission";
+  static const myContacts = "myContacts";
+  static const searchContacts = "searchContacts";
+  static const noContactsFound = "noContactsFound";
+  static const contactsAvailableOnBlueEra = "contactsAvailableOnBlueEra";
+  static const selectContact = "selectContact";
+  static const permissionDenied = "permissionDenied";
+  static const inviteToBlueEra = "inviteToBlueEra";
+  static const selectMembers = "selectMembers";
+  static const addedMembers = "addedMembers";
+  static const invite = "invite";
+  static const noGroupsFound = "noGroupsFound";
+  static const typeMessage = "typeMessage";
+  static const pleaseEnterUrl = "pleaseEnterUrl";
+
+  static const newDeliveryOrder = "newDeliveryOrder";
+
+  static const orderAccepted = "orderAccepted";
+  static const orderRejected = "orderRejected";
+  static const orderStatusMsg = "orderStatusMsg";
+  static const noReviewsFound = "noReviewsFound";
+
+  static const newGroup = "newGroup";
+  static const enterGroupName = "enterGroupName";
+  static const groupName = "groupName";
+  static const privateGroup = "privateGroup";
+  static const publicGroup = "publicGroup";
+  static const on = "on";
+  static const loadingMembers = "loadingMembers";
+  static const noMembersFound = "noMembersFound";
+  static const document = "document";
+  static const contact = "contact";
+  static const audio = "audio";
+  static const video = "video";
+  static const image = "image";
+  static const startConversation = "startConversation";
+  static const groupInfo = "groupInfo";
+  static const you = "you";
+  static const admin = "admin";
+  static const addAddress = "addAddress";
+  static const updateAddress = "updateAddress";
+  static const fullAddress = "fullAddress";
+  static const houseFlatNo = "houseFlatNo";
+  static const street = "street";
+  static const notesPublicInstruction = "notesPublicInstruction";
+  static const deliveryNotes = "deliveryNotes";
+  static const setDefaultAddress = "setDefaultAddress";
+  static const saveAddress = "saveAddress";
+
+  static const newDeliveryRequest = "newDeliveryRequest";
+  static const pickupAddress = "pickupAddress";
+  static const findingDistance = "findingDistance";
+  static const kmFare = "kmFare";
+  static const fareAmount = "fareAmount";
+  static const decline = "decline";
+  static const swipeToDecline = "swipeToDecline";
+  static const swipe = "swipe";
+  static const swipeToAccept = "swipeToAccept";
+  static const dropAddress = "dropAddress";
+
+  static const totalOrderValue = "totalOrderValue";
+  static const choosePickupOption = "choosePickupOption";
+  static const selfPickup = "selfPickup";
+  static const bookRider = "bookRider";
+  static const paid = "paid";
+
+  static const selectVehicle = "selectVehicle";
+  static const noOptionsFoundLocation = "noOptionsFoundLocation";
+  static const capacity = "capacity";
+
+  static const chooseDeliveryAddress = "chooseDeliveryAddress";
+  static const noAddressFound = "noAddressFound";
+  static const defaultAddress = "defaultAddress";
+  static const deleteAddress = "deleteAddress";
+  static const confirmDeleteAddress = "confirmDeleteAddress";
+  static const findingBestRider = "findingBestRider";
+  static const findingIn = "findingIn";
+  static const seconds = "seconds";
+
+  static const orderRejectedChooseAnother = "orderRejectedChooseAnother";
+  static const deliveryPilotNearTo = "deliveryPilotNearTo";
+  static const bookDeliveryPilotNow = "bookDeliveryPilotNow";
+  static const riderAcceptSoon = "riderAcceptSoon";
+
+  static const leavePayment = "leavePayment";
+  static const leavePaymentWarning = "leavePaymentWarning";
+  static const noStay = "noStay";
+  static const yesLeave = "yesLeave";
+  static const away = "away";
+  static const paymentRequired = "paymentRequired";
+  static const waitingPaymentMsg = "waitingPaymentMsg";
+  static const timeRemaining = "timeRemaining";
+  static const payNow = "payNow";
+  static const paymentWindowExpired = "paymentWindowExpired";
+  static const orderCanceledPayment = "orderCanceledPayment";
+  static const paymentFailed = "paymentFailed";
+  static const orderPlacedSuccess = "orderPlacedSuccess";
+  static const viewOrderBelow = "viewOrderBelow";
+  static const notNow = "notNow";
+  static const openOrders = "openOrders";
+
+
 }

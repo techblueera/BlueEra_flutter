@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -9,8 +10,14 @@ import '../../../auth/model/GetListOfMessageData.dart';
 import '../../../auth/model/get_adress_details_model.dart';
 
 class AddAddressScreen extends StatefulWidget {
-  const AddAddressScreen({super.key, this.address, this.lat, this.long,
-    required this.message, this.addressModel});
+  const AddAddressScreen(
+      {super.key,
+      this.address,
+      this.lat,
+      this.long,
+      required this.message,
+      this.addressModel});
+
   final Messages message;
   final String? address;
   final AddressDetails? addressModel;
@@ -22,26 +29,27 @@ class AddAddressScreen extends StatefulWidget {
 }
 
 class _AddAddressScreenState extends State<AddAddressScreen> {
-
   final _formKey = GlobalKey<FormState>();
 
   final orderController = Get.find<OrderNowController>();
-
 
   @override
   void initState() {
     super.initState();
 
-    orderController.fullAddress.value.text=widget.address??"";
-    orderController.nameController.value.text=widget.message.buyer?.name??"";
-    orderController.phoneController.value.text=widget.message.buyer?.contact??"";
+    orderController.fullAddress.value.text = widget.address ?? "";
+    orderController.nameController.value.text =
+        widget.message.buyer?.name ?? "";
+    orderController.phoneController.value.text =
+        widget.message.buyer?.contact ?? "";
     if (widget.addressModel != null) {
       // EDIT MODE
       final a = widget.addressModel!;
 
       orderController.nameController.value.text = a.name ?? "";
       orderController.phoneController.value.text = a.phone ?? "";
-      orderController.fullAddress.value.text = "${a.houseNo}, ${a.street}, ${a.city}";
+      orderController.fullAddress.value.text =
+          "${a.houseNo}, ${a.street}, ${a.city}";
       orderController.houseNoController.value.text = a.houseNo ?? "";
       orderController.streetController.value.text = a.street ?? "";
       orderController.landmarkController.value.text = a.landmark ?? "";
@@ -63,8 +71,10 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
-      appBar:CommonBackAppBar(
-        title: (widget.addressModel==null)?"Add Address":"Update Address",
+      appBar: CommonBackAppBar(
+        title: (widget.addressModel == null)
+            ? AppStrings.addAddress.tr
+            : AppStrings.updateAddress.tr,
       ),
 
       body: SingleChildScrollView(
@@ -77,104 +87,96 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
               CommonTextField(
                 textEditController: orderController.nameController.value,
                 keyBoardType: TextInputType.name,
-                title: "Full Name",
-                hintText: "Enter your full name",
+                title: AppStrings.fullName,
+                hintText: AppStrings.enterFullName,
                 regularExpression: RegularExpressionUtils.alphabetSpacePattern,
                 isValidate: true,
               ),
               const SizedBox(height: 12),
-
               CommonTextField(
                 textEditController: orderController.phoneController.value,
                 keyBoardType: TextInputType.phone,
-                title: "Phone Number",
-                hintText: "Enter phone number",
+                title: AppStrings.phoneNumber,
+                hintText: AppStrings.enterMobileNumberHint,
                 maxLength: 10,
-                regularExpression: RegularExpressionUtils
-                    .phoneWithPrefixPattern,
+                regularExpression:
+                    RegularExpressionUtils.phoneWithPrefixPattern,
                 isValidate: true,
               ),
               const SizedBox(height: 12),
               CommonTextField(
                 textEditController: orderController.fullAddress.value,
                 keyBoardType: TextInputType.name,
-                title: "Full Address",
-                hintText: "Enter your full Address",
+                title: AppStrings.fullAddress,
+                hintText: AppStrings.addressHint,
                 isValidate: false,
               ),
               const SizedBox(height: 12),
-
               CommonTextField(
                 textEditController: orderController.houseNoController.value,
                 keyBoardType: TextInputType.text,
-                title: "House / Flat No",
-                hintText: "Enter house number",
+                title: AppStrings.houseFlatNo,
+                hintText: "B-Div 101",
                 isValidate: false,
               ),
               const SizedBox(height: 12),
-
               CommonTextField(
                 textEditController: orderController.streetController.value,
                 keyBoardType: TextInputType.text,
-                title: "Street",
-                hintText: "Enter street name",
+                title: AppStrings.street,
+                hintText: "Shivaji Nagar",
                 isValidate: false,
               ),
               const SizedBox(height: 12),
-
               CommonTextField(
                 textEditController: orderController.landmarkController.value,
                 keyBoardType: TextInputType.text,
-                title: "Landmark",
-                hintText: "Near City Mall, etc.",
+                title: AppStrings.landMark,
+                hintText: AppStrings.landmarkHint,
                 isValidate: false,
               ),
               const SizedBox(height: 12),
-
               CommonTextField(
                 textEditController: orderController.cityController.value,
                 keyBoardType: TextInputType.text,
-                title: "City",
-                hintText: "Enter city",
+                title: AppStrings.city,
+                hintText: "Mumbai",
                 regularExpression: RegularExpressionUtils.alphabetSpacePattern,
                 isValidate: false,
               ),
               const SizedBox(height: 12),
-
               CommonTextField(
                 textEditController: orderController.stateController.value,
                 keyBoardType: TextInputType.text,
-                title: "State",
-                hintText: "Enter state",
+                title: AppStrings.state,
+                hintText: "Maharashtra",
                 regularExpression: RegularExpressionUtils.alphabetSpacePattern,
                 isValidate: false,
               ),
               const SizedBox(height: 12),
-
               CommonTextField(
                 textEditController: orderController.zipController.value,
                 keyBoardType: TextInputType.number,
-                title: "Zip Code",
-                hintText: "Enter postal code",
+                title: AppStrings.pincodeTitle,
+                hintText: AppStrings.pincodeHint,
                 isValidate: true,
               ),
               const SizedBox(height: 12),
-              
               CommonTextField(
                 textEditController: orderController.noteController.value,
                 keyBoardType: TextInputType.multiline,
-                title: "Notes public instruction to delivery pilot",
-                hintText: "Any delivery notes (optional)",
+                title: AppStrings.notesPublicInstruction,
+                hintText: AppStrings.deliveryNotes,
                 isValidate: false,
               ),
               const SizedBox(height: 12),
-
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                   CustomText(
-                    "Set as default address",
-                   fontSize: 15, fontWeight: FontWeight.w500,
+                  CustomText(
+                    AppStrings.setDefaultAddress,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
                   ),
                   Obx(() {
                     return Switch(
@@ -211,24 +213,22 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                   } else {
                     // UPDATE EXISTING ADDRESS
                     orderController.updateAddressApi(
-                        widget.lat, widget.long,widget.addressModel?.id??''
-                    );
+                        widget.lat, widget.long, widget.addressModel?.id ?? '');
                   }
                 }
               },
-
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
               ),
-              child:  CustomText(
-                widget.addressModel == null?"Save Address":"Update Address",
-
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-
+              child: CustomText(
+                widget.addressModel == null
+                    ? AppStrings.saveAddress
+                    : AppStrings.updateAddress,
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),

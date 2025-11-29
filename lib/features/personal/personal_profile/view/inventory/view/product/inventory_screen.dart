@@ -117,75 +117,73 @@ class _InventoryScreenState extends State<InventoryScreen>
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return SafeArea(
-        child: const Scaffold(
-          body: Center(child: CircularProgressIndicator()),
-        ),
+      return const Scaffold(
+        body: SafeArea(child: Center(child: CircularProgressIndicator())),
       );
     }
 
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: AppColors.whiteF3,
-        appBar: PreferredSize(
-          preferredSize: Size.fromHeight(kToolbarHeight + 50),
-          child: CommonBackAppBar(
-            isLeading: !(widget.fromBottomNavBar),
-            controller: searchController,
-            searchHintText:
-                AppStrings.searchHintText,
-                // 'Search ${_tabController.index == 0 ? 'Product' : _tabController.index == 1 ? 'Service' : 'Food & Grocery'}...',
-            onClearCallback: () => searchController.clear(),
-            isSearch: true,
-            isInventoryPopUpMenu: true,
-            bottomWidget: TabBar(
-              controller: _tabController,
-              labelColor: AppColors.primaryColor,
-              unselectedLabelColor: Colors.grey[600],
-              indicatorColor: Colors.blue,
-              indicatorWeight: 2,
-              labelStyle: TextStyle(fontWeight: FontWeight.w600),
-              tabs: [
-                if (isShowProduct.contains(_businessType))
-                   Tab(text: AppStrings.myProducts.tr),
-                if (isShowService.contains(_businessType))
-                   Tab(text: AppStrings.myServices.tr),
-                if (isShowFood.contains(_businessType))
-                   Tab(text: AppStrings.foodAndGrocery.tr),
-                   Tab(text: AppStrings.businessCards.tr),
-              ],
-            ),
+    return Scaffold(
+      backgroundColor: AppColors.whiteF3,
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(kToolbarHeight + 50),
+        child: CommonBackAppBar(
+          isLeading: !(widget.fromBottomNavBar),
+          controller: searchController,
+          searchHintText:
+              AppStrings.searchHintText,
+              // 'Search ${_tabController.index == 0 ? 'Product' : _tabController.index == 1 ? 'Service' : 'Food & Grocery'}...',
+          onClearCallback: () => searchController.clear(),
+          isSearch: true,
+          isInventoryPopUpMenu: true,
+          bottomWidget: TabBar(
+            controller: _tabController,
+            labelColor: AppColors.primaryColor,
+            unselectedLabelColor: Colors.grey[600],
+            indicatorColor: Colors.blue,
+            indicatorWeight: 2,
+            labelStyle: TextStyle(fontWeight: FontWeight.w600),
+            tabs: [
+              if (isShowProduct.contains(_businessType))
+                 Tab(text: AppStrings.myProducts.tr),
+              if (isShowService.contains(_businessType))
+                 Tab(text: AppStrings.myServices.tr),
+              if (isShowFood.contains(_businessType))
+                 Tab(text: AppStrings.foodAndGrocery.tr),
+                 Tab(text: AppStrings.businessCards.tr),
+            ],
           ),
         ),
-        floatingActionButton: Builder(builder: (context) {
-          return Padding(
-            padding: EdgeInsets.only(
-                bottom: widget.fromBottomNavBar
-                    ? kBottomNavigationBarHeight + SizeConfig.size20
-                    : 0.0
+      ),
+      floatingActionButton: Builder(builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+              bottom: widget.fromBottomNavBar
+                  ? kBottomNavigationBarHeight + SizeConfig.size20
+                  : 0.0
+          ),
+          child: FloatingActionButton(
+            onPressed: () => showPopUpMenu(context, inventoryController),
+            backgroundColor: AppColors.primaryColor,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
             ),
-            child: FloatingActionButton(
-              onPressed: () => showPopUpMenu(context, inventoryController),
-              backgroundColor: AppColors.primaryColor,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: AnimatedRotation(
-                turns: inventoryController.isMenuOpen.value ? 0.25 : 0,
-                duration: const Duration(milliseconds: 500),
-                curve: Curves.easeInOut,
-                child: Obx(() => Icon(
-                      inventoryController.isMenuOpen.value ? Icons.close : Icons.add,
-                      key: ValueKey(inventoryController.isMenuOpen.value),
-                      // important for AnimatedSwitcher
-                      size: SizeConfig.size36,
-                    )),
-              ),
+            child: AnimatedRotation(
+              turns: inventoryController.isMenuOpen.value ? 0.25 : 0,
+              duration: const Duration(milliseconds: 500),
+              curve: Curves.easeInOut,
+              child: Obx(() => Icon(
+                    inventoryController.isMenuOpen.value ? Icons.close : Icons.add,
+                    key: ValueKey(inventoryController.isMenuOpen.value),
+                    // important for AnimatedSwitcher
+                    size: SizeConfig.size36,
+                  )),
             ),
-          );
-        }),
-        body: TabBarView(
+          ),
+        );
+      }),
+      body: SafeArea(
+        child: TabBarView(
           controller: _tabController,
           children: [
             if ((isShowProduct.contains(_businessType)))

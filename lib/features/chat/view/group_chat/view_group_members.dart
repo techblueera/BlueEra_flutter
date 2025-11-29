@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -94,7 +95,7 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                                   const SizedBox(width: 20,),
                                   Icon(Icons.arrow_back_ios,size: 22,),
                                   const SizedBox(width: 2,),
-                                  CustomText("Group Info",
+                                  CustomText(AppStrings.groupInfo,
                                     fontSize: SizeConfig.extraLarge-2,
                                   fontWeight: FontWeight.bold,
                                   )
@@ -177,12 +178,12 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 CustomText(
-                                  'Group',
+                                  AppStrings.group,
                                   color: AppColors.grayText,
                                 ),
                                 CustomText(" • ", color: AppColors.grayText),
                                 CustomText(
-                                  "${members.length} Members",
+                                  "${members.length} ${AppStrings.members.tr}",
                                   color: AppColors.grayText,
                                 )
                               ],
@@ -225,7 +226,7 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                           child: CustomText(
-                            "${members.length} Members",
+                            "${members.length} ${AppStrings.members.tr}",
                             // style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -257,7 +258,7 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                                       ),
                                       const SizedBox(width: 12),
                                       const CustomText(
-                                        "Add Members",
+                                        AppStrings.addedMembers,
                                         // style: TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.bold,
@@ -326,7 +327,7 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                                   ),
                                 ),
                                 title: const CustomText(
-                                  "You",
+                                    AppStrings.you,
                                   // style: TextStyle(
                                       fontSize: 16, fontWeight: FontWeight.bold
                                   // ),
@@ -341,7 +342,7 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                                     border: Border.all(color: Colors.grey.shade400),
                                   ),
                                   child: const CustomText(
-                                    'Admin',
+                                      AppStrings.admin,
                                     // style: TextStyle(
                                         fontSize: 14
                                     // ),
@@ -360,7 +361,7 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                                     onPressed: () {},
                                     icon: const Icon(Icons.remove_red_eye_outlined, size: 18),
                                     label: const CustomText(
-                                      "View All",
+                                      AppStrings.viewAll,
                                           fontWeight: FontWeight.w600,
                                       color: AppColors.primaryColor,
                                     ),
@@ -442,7 +443,7 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                                   border: Border.all(color: Colors.grey.shade400),
                                 ),
                                 child: const CustomText(
-                                  'Admin',
+                                    AppStrings.admin,
                                   // style: TextStyle(
                                       fontSize: 14
                                   // ),
