@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -165,7 +166,7 @@ class _OrderChatScreenState extends State<OrderChatScreen> {
                                   text: TextSpan(
                                     children: [
                                       TextSpan(
-                                        text: "No conversation yet. ",
+                                        text: AppStrings.noConversationYet.tr,
                                         style: TextStyle(
                                           color: Colors.white,
                                           fontSize: 15,
@@ -173,10 +174,9 @@ class _OrderChatScreenState extends State<OrderChatScreen> {
                                         ),
                                       ),
                                       TextSpan(
-                                        text: "Say Namaste 🙏",
+                                        text: AppStrings.sayNamaste.tr,
                                         style: TextStyle(
-                                          color: Colors
-                                              .blue, // blue from theme
+                                          color:AppColors.primaryColor, // blue from theme
                                           fontSize: 15,
                                           fontWeight: FontWeight.w500,
                                         ),

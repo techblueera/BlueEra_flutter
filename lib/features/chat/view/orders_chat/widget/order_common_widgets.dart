@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/chat/view/orders_chat/widget/select_address_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -42,7 +43,7 @@ class OrderCommonWidget {
                       CommonTextField(
                         textEditController: orderController.orderValueController,
                         keyBoardType: TextInputType.number,
-                        title: "Total Order Value",
+                        title: AppStrings.totalOrderValue,
                         hintText: "E.g  ₹400",
                         regularExpression:
                         RegularExpressionUtils.alphanumericPattern,
@@ -66,7 +67,7 @@ class OrderCommonWidget {
                               ),
                               onPressed: () => Navigator.pop(context),
                               child: const CustomText(
-                                "Cancel",
+                                AppStrings.cancel,
                                 fontSize: 15,
                               ),
                             ),
@@ -92,7 +93,7 @@ class OrderCommonWidget {
                               }
                                   : null,
                               child: const CustomText(
-                                "Next",
+                                AppStrings.next,
                                 fontSize: 15,
                                 color: Colors.white,
                               ),
@@ -134,7 +135,7 @@ class OrderCommonWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const CustomText(
-                        "Choose the pickup option",
+                        AppStrings.choosePickupOption,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -162,7 +163,7 @@ class OrderCommonWidget {
                             children: [
                               LocalAssets(imagePath: AppIconAssets.self_pickup),
                               CustomText(
-                                "    Self Pickup",
+                                "    ${AppStrings.selfPickup.tr}",
                                 fontSize: 16,
                                 color: selectedIndex == 0
                                     ? AppColors.white
@@ -198,14 +199,14 @@ class OrderCommonWidget {
                               LocalAssets(
                                   imagePath: AppIconAssets.pickup_by_rider),
                               CustomText(
-                                "    Book a Rider",
+                                "    ${AppStrings.bookRider.tr}",
                                 fontSize: 16,
                                 color: selectedIndex == 1
                                     ? AppColors.white
                                     : AppColors.grayText,
                               ),
                               CustomText(
-                                "  (paid)",
+                                "  (${AppStrings.paid.tr})",
                                 fontSize: 12,
                                 color: selectedIndex == 1
                                     ? AppColors.white
@@ -233,7 +234,7 @@ class OrderCommonWidget {
                               ),
                               onPressed: () => Navigator.pop(context),
                               child: const CustomText(
-                                "Cancel",
+                                AppStrings.cancel,
                                 fontSize: 15,
                               ),
                             ),
@@ -267,7 +268,7 @@ class OrderCommonWidget {
                               }
                                   : null,
                               child: const CustomText(
-                                "Next",
+                                AppStrings.next,
                                 fontSize: 15,
                                 color: Colors.white,
                               ),

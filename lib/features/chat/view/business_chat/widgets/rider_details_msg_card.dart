@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/chat/auth/controller/order_controllar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -12,13 +13,15 @@ import '../../../../../core/constants/size_config.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 import '../../../auth/model/GetListOfMessageData.dart';
 import '../../widget/component_widgets.dart';
+
 class RiderDetailsMsgCard extends StatefulWidget {
   final Messages message;
   final String time;
 
   const RiderDetailsMsgCard({
     Key? key,
-  required this.message, required this.time,
+    required this.message,
+    required this.time,
   }) : super(key: key);
 
   @override
@@ -26,22 +29,19 @@ class RiderDetailsMsgCard extends StatefulWidget {
 }
 
 class _RiderDetailsMsgCardState extends State<RiderDetailsMsgCard> {
-
   final orderController = Get.isRegistered<OrderNowController>()
       ? Get.find<OrderNowController>()
       : Get.put(OrderNowController());
 
   @override
   Widget build(BuildContext context) {
-    Rider? rider=widget.message.metadata?.rider;
+    Rider? rider = widget.message.metadata?.rider;
 
     return InkWell(
-      onTap: () {
-
-      },
+      onTap: () {},
       child: Container(
-        margin: EdgeInsets.only(right:0,bottom: 2),
-        width:SizeConfig.screenWidth*0.68,
+        margin: EdgeInsets.only(right: 0, bottom: 2),
+        width: SizeConfig.screenWidth * 0.68,
         decoration: BoxDecoration(
           color: AppColors.blueLightShade,
           borderRadius: BorderRadius.circular(10),
@@ -64,13 +64,12 @@ class _RiderDetailsMsgCardState extends State<RiderDetailsMsgCard> {
                 isLoading: false,
                 width: double.infinity,
                 height: 156,
-                imagePaths: [rider?.profilePicture??""],
+                imagePaths: [rider?.profilePicture ?? ""],
                 borderRadius: BorderRadius.zero,
               ),
             ),
             // Title & price
             SizedBox(height: SizeConfig.size10),
-
 
             Container(
               alignment: Alignment.centerLeft,
@@ -86,16 +85,21 @@ class _RiderDetailsMsgCardState extends State<RiderDetailsMsgCard> {
             SizedBox(height: SizeConfig.size4),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
-              child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Row(
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.star,color: AppColors.rating,size: 14,),
+                          Icon(
+                            Icons.star,
+                            color: AppColors.rating,
+                            size: 14,
+                          ),
                           SizedBox(width: SizeConfig.size4),
                           CustomText(
-                            "${rider?.starRating??0}",
+                            "${rider?.starRating ?? 0}",
                             fontSize: SizeConfig.size12,
                             fontWeight: FontWeight.w500,
                             overflow: TextOverflow.ellipsis,
@@ -108,7 +112,7 @@ class _RiderDetailsMsgCardState extends State<RiderDetailsMsgCard> {
                         children: [
                           SizedBox(width: SizeConfig.size6),
                           CustomText(
-                            "${rider?.noOfOrder??0} Orders",
+                            "${rider?.noOfOrder ?? 0} ${AppStrings.orders.tr}",
                             fontSize: SizeConfig.size12,
                             fontWeight: FontWeight.w500,
                             overflow: TextOverflow.ellipsis,
@@ -131,89 +135,98 @@ class _RiderDetailsMsgCardState extends State<RiderDetailsMsgCard> {
               ),
             ),
             SizedBox(height: SizeConfig.size14),
-            const Divider(height: 1,color: Colors.grey,),
+            const Divider(
+              height: 1,
+              color: Colors.grey,
+            ),
             Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10),
                 color: AppColors.white,
               ),
-              child: (widget.message.myMessage==false)?
-              Row(mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: TextButton.icon(
-                      onPressed: () {
-                        launchDialPad(rider?.contactNo??'');
-                      },
-                      icon: SvgPicture.asset(AppIconAssets.rider_call_icon),
-                      label:   CustomText(
-                        'Call Now',
-                        color: AppColors.primaryColor,
-                        fontWeight: FontWeight.w900,
-                      ),
+              child: (widget.message.myMessage == false)
+                  ? Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: TextButton.icon(
+                            onPressed: () {
+                              launchDialPad(rider?.contactNo ?? '');
+                            },
+                            icon:
+                                SvgPicture.asset(AppIconAssets.rider_call_icon),
+                            label: CustomText(
+                              AppStrings.callNow,
+                              color: AppColors.primaryColor,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          height: 12,
+                          width: 1,
+                          color: AppColors.grayText.withOpacity(0.4),
+                        ),
+                        Expanded(
+                          child: TextButton.icon(
+                            onPressed: () {
+                              _openBusinessToRiderOTP(context, widget.message);
+                            },
+                            icon: SvgPicture.asset(AppIconAssets.rider_otp),
+                            label: CustomText(
+                              AppStrings.otp,
+                              color: AppColors.primaryColor,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: TextButton.icon(
+                            onPressed: () {
+                              launchDialPad(rider?.contactNo ?? '');
+                            },
+                            icon:
+                                SvgPicture.asset(AppIconAssets.rider_call_icon),
+                            label: CustomText(
+                              AppStrings.callNow,
+                              color: AppColors.primaryColor,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          height: 12,
+                          width: 1,
+                          color: AppColors.grayText.withOpacity(0.4),
+                        ),
+                        Expanded(
+                          child: TextButton.icon(
+                            onPressed: () {},
+                            icon: SvgPicture.asset(
+                              AppIconAssets.quillChatIcon,
+                              color: AppColors.primaryColor,
+                            ),
+                            label: CustomText(
+                              AppStrings.chatNow,
+                              color: AppColors.primaryColor,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  Container(
-                    height: 12,
-                    width: 1,
-                    color: AppColors.grayText.withOpacity(0.4),
-                  ),
-                  Expanded(
-                    child: TextButton.icon(
-                      onPressed: () {
-                        _openBusinessToRiderOTP(context,widget.message);
-                      },
-                      icon: SvgPicture.asset(AppIconAssets.rider_otp),
-                      label:   CustomText(
-                        'OTP',
-                        color: AppColors.primaryColor,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ),
-                ],
-              ):Row(mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: TextButton.icon(
-                      onPressed: () {
-                        launchDialPad(rider?.contactNo??'');
-                      },
-                      icon: SvgPicture.asset(AppIconAssets.rider_call_icon),
-                      label:   CustomText(
-                        'Call Now',
-                        color: AppColors.primaryColor,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    height: 12,
-                    width: 1,
-                    color: AppColors.grayText.withOpacity(0.4),
-                  ),
-                  Expanded(
-                    child: TextButton.icon(
-                      onPressed: () {
-
-                      },
-                      icon: SvgPicture.asset(AppIconAssets.quillChatIcon,color: AppColors.primaryColor,),
-                      label:   CustomText(
-                        'Chat Now',
-                        color: AppColors.primaryColor,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
             ),
-
           ],
         ),
       ),
     );
   }
+
   void launchDialPad(String phoneNumber) async {
     final Uri url = Uri(scheme: 'tel', path: phoneNumber);
 
@@ -223,27 +236,28 @@ class _RiderDetailsMsgCardState extends State<RiderDetailsMsgCard> {
       throw 'Could not launch dialer';
     }
   }
-  void _openBusinessToRiderOTP(BuildContext context, Messages message){
-    showDialog(
-         barrierDismissible: true,
-        context: context, builder: (context){
-      return Dialog(
-        backgroundColor: Colors.transparent,
-        constraints: BoxConstraints(
-        minWidth: 280,
-        maxWidth: 400,
-        minHeight: 200,
-      ),
-        child: BusinessToRiderOtpVerificationCard(
-          onSubmit: (String p1)async {
-            Map<String,dynamic> data={
-        ApiKeys.pickupOTP: "$p1"
-        };
-          await orderController.uploadThePickupOtp(data,message.metadata?.orderId??'');
-         Get.back();
-          },),
-      );
-    });
-  }
 
+  void _openBusinessToRiderOTP(BuildContext context, Messages message) {
+    showDialog(
+        barrierDismissible: true,
+        context: context,
+        builder: (context) {
+          return Dialog(
+            backgroundColor: Colors.transparent,
+            constraints: BoxConstraints(
+              minWidth: 280,
+              maxWidth: 400,
+              minHeight: 200,
+            ),
+            child: BusinessToRiderOtpVerificationCard(
+              onSubmit: (String p1) async {
+                Map<String, dynamic> data = {ApiKeys.pickupOTP: "$p1"};
+                await orderController.uploadThePickupOtp(
+                    data, message.metadata?.orderId ?? '');
+                Get.back();
+              },
+            ),
+          );
+        });
+  }
 }

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -60,7 +61,7 @@ class WaitingForPaymentDialog extends StatelessWidget {
               t.cancel();
               // Navigator.pop(context);
               commonSnackBar(
-                message: "Payment window expired. Please try again.",
+                message: AppStrings.paymentWindowExpired,
               );
             }
           });
@@ -75,39 +76,37 @@ class WaitingForPaymentDialog extends StatelessWidget {
         /// ⚠️ Warning dialog shown when user tries to leave
         Future<bool> _showLeaveWarningDialog(BuildContext ctx) async {
           return await showDialog<bool>(
-            context: ctx,
-            barrierDismissible: false,
-            builder: (ctx) => AlertDialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(SizeConfig.size16),
-              ),
-              title: const Text(
-                "Leave Payment?",
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              content: Text(
-                "If you leave this screen, your order will be cancelled.\nAre you sure you want to leave?",
-                style: TextStyle(fontSize: SizeConfig.size15),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(ctx, false); // ❌ Stay
-                  },
-                  child: const CustomText("No, Stay"),
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.red,
+                context: ctx,
+                barrierDismissible: false,
+                builder: (ctx) => AlertDialog(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(SizeConfig.size16),
                   ),
-                  onPressed: () {
-                    Navigator.pop(ctx, true); // ✅ Leave
-                  },
-                  child: const CustomText("Yes, Leave", color: AppColors.white),
+                  title: const CustomText(AppStrings.leavePayment,
+                      fontWeight: FontWeight.bold),
+                  content: CustomText(AppStrings.leavePaymentWarning,
+                      fontSize: SizeConfig.size15),
+                  actions: [
+                    TextButton(
+                        onPressed: () {
+                          Navigator.pop(ctx, false); // ❌ Stay
+                        },
+                        child: CustomText(
+                          AppStrings.noStay,
+                        )),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.red,
+                      ),
+                      onPressed: () {
+                        Navigator.pop(ctx, true); // ✅ Leave
+                      },
+                      child: const CustomText(AppStrings.yesLeave,
+                          color: AppColors.white),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ) ??
+              ) ??
               false;
         }
 
@@ -118,12 +117,9 @@ class WaitingForPaymentDialog extends StatelessWidget {
             if (shouldLeave) {
               timer?.cancel();
               Navigator.pop(context);
-              orderController.cancelOrderForce(orderId, {
-                ApiKeys.status: "cancelled"
-              });
-              commonSnackBar(
-                  message:
-                  "Order cancelled because payment was not completed.");
+              orderController
+                  .cancelOrderForce(orderId, {ApiKeys.status: "cancelled"});
+              commonSnackBar(message: AppStrings.orderCanceledPayment);
             }
             return Future.value(false); // prevent default pop
           },
@@ -164,20 +160,23 @@ class WaitingForPaymentDialog extends StatelessWidget {
                             Row(
                               children: [
                                 Icon(Icons.phone,
-                                    size: SizeConfig.size16, color: AppColors.grey9B),
+                                    size: SizeConfig.size16,
+                                    color: AppColors.grey9B),
                                 SizedBox(width: SizeConfig.size4),
                                 CustomText(driverPhone,
-                                    fontSize: SizeConfig.small, color: AppColors.grey9B),
+                                    fontSize: SizeConfig.small,
+                                    color: AppColors.grey9B),
                               ],
                             ),
                             SizedBox(height: SizeConfig.size4),
                             Row(
                               children: [
                                 Icon(Icons.location_on,
-                                    size: SizeConfig.size16, color: AppColors.grey9B),
+                                    size: SizeConfig.size16,
+                                    color: AppColors.grey9B),
                                 SizedBox(width: SizeConfig.size4),
                                 CustomText(
-                                  "${driverDistanceKm} away",
+                                  "${driverDistanceKm} ${AppStrings.away.tr}",
                                   fontSize: SizeConfig.small,
                                   color: AppColors.grey9B,
                                 ),
@@ -192,13 +191,15 @@ class WaitingForPaymentDialog extends StatelessWidget {
                         },
                         child: Container(
                           padding: EdgeInsets.symmetric(
-                              horizontal: SizeConfig.size14, vertical: SizeConfig.size5),
+                              horizontal: SizeConfig.size14,
+                              vertical: SizeConfig.size5),
                           decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(SizeConfig.size6),
+                              borderRadius:
+                                  BorderRadius.circular(SizeConfig.size6),
                               color: AppColors.primaryColor),
                           child: Center(
                             child: CustomText(
-                              "Call",
+                              AppStrings.call,
                               color: AppColors.white,
                               fontWeight: FontWeight.w500,
                             ),
@@ -257,14 +258,13 @@ class WaitingForPaymentDialog extends StatelessWidget {
 
                   SizedBox(height: SizeConfig.size18),
                   CustomText(
-                    "Payment Required",
+                    AppStrings.paymentRequired,
                     fontSize: SizeConfig.extraLarge,
                     fontWeight: FontWeight.bold,
                   ),
                   SizedBox(height: SizeConfig.size10),
                   CustomText(
-                    "Your rider is waiting for payment confirmation.\n"
-                        "Please complete your payment to proceed with delivery.",
+                    AppStrings.waitingPaymentMsg,
                     textAlign: TextAlign.center,
                     fontSize: SizeConfig.medium15,
                     color: AppColors.black65,
@@ -275,13 +275,14 @@ class WaitingForPaymentDialog extends StatelessWidget {
                   // ⏱ TIMER
                   Container(
                     padding: EdgeInsets.symmetric(
-                        vertical: SizeConfig.size8, horizontal: SizeConfig.size16),
+                        vertical: SizeConfig.size8,
+                        horizontal: SizeConfig.size16),
                     decoration: BoxDecoration(
                       color: AppColors.red.withOpacity(0.08),
                       borderRadius: BorderRadius.circular(SizeConfig.size12),
                     ),
                     child: CustomText(
-                      "Time remaining: ${formatTime(remainingSeconds)}",
+                      "${AppStrings.timeRemaining.tr}: ${formatTime(remainingSeconds)}",
                       fontSize: SizeConfig.medium15,
                       color: AppColors.red,
                       fontWeight: FontWeight.w600,
@@ -297,7 +298,8 @@ class WaitingForPaymentDialog extends StatelessWidget {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primaryColor,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(SizeConfig.size12),
+                              borderRadius:
+                                  BorderRadius.circular(SizeConfig.size12),
                             ),
                             padding: EdgeInsets.symmetric(
                               vertical: SizeConfig.size10,
@@ -311,14 +313,18 @@ class WaitingForPaymentDialog extends StatelessWidget {
 
                             razorpayService.openCheckout(
                               note: {ApiKeys.ride_order_id: '$orderId'},
-                              name: "${orderController.openedMessage?.buyer?.name}",
+                              name:
+                                  "${orderController.openedMessage?.buyer?.name}",
                               subscriptionId: "",
                               description: '',
-                              amount: double.parse(orderController.fare.value.toString()),
-                              contact: "${orderController.openedMessage?.buyer?.contact}",
+                              amount: double.parse(
+                                  orderController.fare.value.toString()),
+                              contact:
+                                  "${orderController.openedMessage?.buyer?.contact}",
                               email: 'admin@bluecs.in',
                               onPaymentSuccess: (response) async {
-                                await orderController.updatePaymentStausByUser(orderId);
+                                await orderController
+                                    .updatePaymentStausByUser(orderId);
                                 orderController.createRiderPickupOrder(
                                   orderController.openedMessage?.id,
                                   orderController.openedMessage?.seller?.id,
@@ -328,18 +334,20 @@ class WaitingForPaymentDialog extends StatelessWidget {
                                 showOrderPlacedDialog(context);
                               },
                               onPaymentError: (response) {
-                                orderController.cancelOrderForce(orderId, {
-                                  ApiKeys.status: "cancelled"
-                                });
-                                debugPrint("Payment Failed: ${response.message}");
+                                orderController.cancelOrderForce(
+                                    orderId, {ApiKeys.status: "cancelled"});
+                                debugPrint(
+                                    "Payment Failed: ${response.message}");
                                 commonSnackBar(
-                                    message: "Payment Failed ${response.message}");
+                                    message:
+                                        "Payment Failed ${response.message}");
                               },
                             );
                           },
-                          icon: Icon(Icons.credit_card, size: SizeConfig.size18),
+                          icon:
+                              Icon(Icons.credit_card, size: SizeConfig.size18),
                           label: CustomText(
-                            "Pay Now (₹${orderController.fare.value})",
+                            "${AppStrings.payNow.tr} (₹${orderController.fare.value})",
                             fontSize: SizeConfig.large,
                             color: AppColors.white,
                           ),
@@ -402,7 +410,7 @@ Future<void> showOrderPlacedDialog(BuildContext context) async {
 
               // ✅ Title
               CustomText(
-                "Order Placed Successfully!",
+                AppStrings.orderPlacedSuccess,
                 fontSize: SizeConfig.extraLarge,
                 color: AppColors.primaryColor,
                 fontWeight: FontWeight.w700,
@@ -412,7 +420,7 @@ Future<void> showOrderPlacedDialog(BuildContext context) async {
 
               // ✅ Subtitle
               CustomText(
-                "You can view your order details in the ‘Orders’ section below.",
+                AppStrings.viewOrderBelow,
                 fontSize: SizeConfig.small,
                 color: AppColors.grey9B,
                 textAlign: TextAlign.center,
@@ -428,13 +436,15 @@ Future<void> showOrderPlacedDialog(BuildContext context) async {
                         Navigator.pop(context);
                       },
                       style: OutlinedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(vertical: SizeConfig.size14),
+                        padding:
+                            EdgeInsets.symmetric(vertical: SizeConfig.size14),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(SizeConfig.size12),
+                          borderRadius:
+                              BorderRadius.circular(SizeConfig.size12),
                         ),
                       ),
                       child: CustomText(
-                        "Not Now",
+                        AppStrings.notNow,
                         fontSize: SizeConfig.medium15,
                         color: AppColors.primaryColor,
                         fontWeight: FontWeight.w600,
@@ -445,23 +455,30 @@ Future<void> showOrderPlacedDialog(BuildContext context) async {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () {
-                        final chatViewController = Get.find<ChatViewController>();
-                        final bottomBarController = Get.find<BottomBarController>();
-                        chatViewController.emitEvent(
-                            ChatEmitEvents.ChatList, {ApiKeys.type: "order"}, true);
+                        final chatViewController =
+                            Get.find<ChatViewController>();
+                        final bottomBarController =
+                            Get.find<BottomBarController>();
+                        chatViewController.emitEvent(ChatEmitEvents.ChatList,
+                            {ApiKeys.type: "order"}, true);
                         chatViewController.onSelectChatTab(3);
                         bottomBarController.onChangeIndex(4);
-                        Navigator.popUntil(context, ModalRoute.withName(RouteHelper.getBottomNavigationBarScreenRoute()));
+                        Navigator.popUntil(
+                            context,
+                            ModalRoute.withName(RouteHelper
+                                .getBottomNavigationBarScreenRoute()));
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primaryColor,
-                        padding: EdgeInsets.symmetric(vertical: SizeConfig.size14),
+                        padding:
+                            EdgeInsets.symmetric(vertical: SizeConfig.size14),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(SizeConfig.size12),
+                          borderRadius:
+                              BorderRadius.circular(SizeConfig.size12),
                         ),
                       ),
                       child: CustomText(
-                        "Open Orders",
+                        AppStrings.openOrders,
                         fontSize: SizeConfig.medium15,
                         color: AppColors.white,
                         fontWeight: FontWeight.w600,

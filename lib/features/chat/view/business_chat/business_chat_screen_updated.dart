@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/business_chat_foods.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/business_chat_products.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/business_chat_services.dart';
@@ -252,7 +253,7 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
                                           text: TextSpan(
                                             children: [
                                               TextSpan(
-                                                text: "No conversation yet. ",
+                                                text:AppStrings.noConversationYet.tr,
                                                 style: TextStyle(
                                                   color: Colors.white,
                                                   fontSize: 15,
@@ -260,7 +261,7 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
                                                 ),
                                               ),
                                               TextSpan(
-                                                text: "Say Namaste 🙏",
+                                                text: AppStrings.sayNamaste.tr,
                                                 style: TextStyle(
                                                   color: Colors
                                                       .blue, // blue from theme
@@ -393,16 +394,16 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
                           Padding(
                             padding: const EdgeInsets.symmetric(vertical: 38.0),
                             child: Center(
-                              child: CustomText("No Reviews Found"),
+                              child: CustomText(AppStrings.noReviewsFound),
                             ),
                           )
                         else
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 38.0),
-                                    child: Center(
-                                      child: CustomText("Coming Soon"),
-                                    ),
-                                  ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 38.0),
+                            child: Center(
+                              child: CustomText("Coming Soon"),
+                            ),
+                          ),
                         if (chatViewController.businessTabIndexSelected == 0)
                           SizedBox(
                             height: SizeConfig.size6,
@@ -470,7 +471,7 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   CustomText(
-                    'Message',
+                    AppStrings.message,
                     color: AppColors.black,
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -490,7 +491,7 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
                 keyboardType: TextInputType.text,
                 textCapitalization: TextCapitalization.words,
                 decoration: InputDecoration(
-                  hintText: 'Type your message...',
+                  hintText:AppStrings.typeMessage.tr,
                   filled: true,
                   fillColor: Colors.white.withValues(alpha: 0.05),
                   contentPadding:
@@ -516,7 +517,7 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
                   InkWell(
                     onTap: () => Get.back(),
                     child: CustomText(
-                      'Close',
+                      AppStrings.close,
                       color: AppColors.primaryColor,
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
@@ -547,7 +548,7 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
                       }
                     },
                     child: CustomText(
-                      'Edit',
+                      AppStrings.edit,
                       color: AppColors.primaryColor,
                       fontWeight: FontWeight.w600,
                       fontSize: 14,

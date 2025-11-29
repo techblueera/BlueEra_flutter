@@ -13,7 +13,8 @@ class BusinessChatFoods extends StatefulWidget {
   final String businessId;
   final String conversationId;
 
-  const BusinessChatFoods({super.key, required this.businessId, required this.conversationId});
+  const BusinessChatFoods(
+      {super.key, required this.businessId, required this.conversationId});
 
   @override
   State<BusinessChatFoods> createState() => _BusinessChatFoodsState();
@@ -26,14 +27,14 @@ class _BusinessChatFoodsState extends State<BusinessChatFoods> {
 
   @override
   void initState() {
-    controller.fetchFoods(visitBusinessId: widget.businessId,isSilent: true);
+    controller.fetchFoods(visitBusinessId: widget.businessId, isSilent: true);
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      if(controller.businessFoodResponse.value.status==Status.COMPLETE){
+      if (controller.businessFoodResponse.value.status == Status.COMPLETE) {
         return _buildGridView(controller);
       }
       return Center(child: CircularProgressIndicator());

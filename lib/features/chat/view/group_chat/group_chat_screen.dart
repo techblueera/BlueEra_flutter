@@ -1,6 +1,6 @@
-
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -41,26 +41,24 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   final Color backgroundColor = Color(0xFFF5F5F5);
   final chatViewController = Get.find<ChatViewController>();
   final chatThemeController = Get.find<ChatThemeController>();
-  final TextEditingController editingController=TextEditingController();
-
+  final TextEditingController editingController = TextEditingController();
 
   @override
   void initState() {
     chatViewController.sendMessageController.value.clear();
-    chatViewController.isTextFieldEmpty.value=false;
-    chatViewController.listenUserNewMessages(userId: "",
-        conversationId: widget.conversationId ?? '');
+    chatViewController.isTextFieldEmpty.value = false;
+    chatViewController.listenUserNewMessages(
+        userId: "", conversationId: widget.conversationId ?? '');
     chatThemeController.resetSelection();
 
     checkPendingMessages();
     super.initState();
   }
 
-
-  Future<void> checkPendingMessages()async{
+  Future<void> checkPendingMessages() async {
     final connectivityResult = await NetworkUtils.isConnected();
-    if(!connectivityResult){
-      chatViewController.sendOfflineMessage(widget.conversationId??"");
+    if (!connectivityResult) {
+      chatViewController.sendOfflineMessage(widget.conversationId ?? "");
     }
   }
 
@@ -88,8 +86,8 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     //   name: widget.name,
     //   profileImage: widget.profileImage,
     // )));
-
   }
+
   @override
   Widget build(BuildContext context) {
     Theme.of(context);
@@ -103,31 +101,30 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
         return Scaffold(
           backgroundColor: backgroundColor,
           appBar: (chatThemeController.isMessageSelectionActive.value &&
-              widget.type != "Admin")
-              ? getChatOptionsAppBar(
-              context,
-              profileImage: widget.profileImage,
-              editingController: editingController,
-              conversationId: widget.conversationId,
-              userId: '',
-              type: widget.type,
-              name: widget.name,
-              contactNo: '')
+                  widget.type != "Admin")
+              ? getChatOptionsAppBar(context,
+                  profileImage: widget.profileImage,
+                  editingController: editingController,
+                  conversationId: widget.conversationId,
+                  userId: '',
+                  type: widget.type,
+                  name: widget.name,
+                  contactNo: '')
               : getChatTitleAppBar(
-              socketType: "group",
-              context,
-              userId: '',
-              isGroupAppBar: true,
-              type: widget.type,
-              name: widget.name,
-              profileImage: widget.profileImage,
-              contactNo: '', conversationId: widget.conversationId),
+                  socketType: "group",
+                  context,
+                  userId: '',
+                  isGroupAppBar: true,
+                  type: widget.type,
+                  name: widget.name,
+                  profileImage: widget.profileImage,
+                  contactNo: '',
+                  conversationId: widget.conversationId),
           body: Obx(() {
-            
             if (chatViewController.getListOfMessageResponse.value.status ==
                 Status.COMPLETE) {
-              List<Messages> messages = chatViewController
-                  .getListOfMessageData??[];
+              List<Messages> messages =
+                  chatViewController.getListOfMessageData ?? [];
               messages.sort((a, b) {
                 final dateA = (a.createdAt != null && a.createdAt!.isNotEmpty)
                     ? DateTime.parse(a.createdAt!).toLocal()
@@ -152,84 +149,91 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                     Column(
                       children: [
                         Expanded(
-                          child: (messages.isEmpty)? Center(
-                            child: InkWell(
-                              onTap: (){
-                                Map<String,dynamic> data = {
-                                  ApiKeys.conversation_id: widget.conversationId,
-                                  ApiKeys.message: "Namaste 🙏",
-                                  ApiKeys.message_type: "text",
-                                };
-                                chatViewController.sendInitialMessage(data);
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 15,vertical: 10),
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.withValues(alpha: 0.5), // light color with 0.5 opacity
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: RichText(
-                                  text: TextSpan(
-                                    children: [
-                                      TextSpan(
-                                        text: "No conversation yet. ",
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w500,
-                                        ),
+                          child: (messages.isEmpty)
+                              ? Center(
+                                  child: InkWell(
+                                    onTap: () {
+                                      Map<String, dynamic> data = {
+                                        ApiKeys.conversation_id:
+                                            widget.conversationId,
+                                        ApiKeys.message: "Namaste 🙏",
+                                        ApiKeys.message_type: "text",
+                                      };
+                                      chatViewController
+                                          .sendInitialMessage(data);
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 15, vertical: 10),
+                                      decoration: BoxDecoration(
+                                        color:
+                                            Colors.grey.withValues(alpha: 0.5),
+                                        // light color with 0.5 opacity
+                                        borderRadius: BorderRadius.circular(8),
                                       ),
-                                      TextSpan(
-                                        text: "Say Namaste 🙏",
-                                        style: TextStyle(
-                                          color: Colors.blue, // blue from theme
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w500,
+                                      child: RichText(
+                                        text: TextSpan(
+                                          children: [
+                                            TextSpan(
+                                              text: AppStrings.noConversationYet.tr,
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                            TextSpan(
+                                              text: AppStrings.sayNamaste.tr,
+                                              style: TextStyle(
+                                                color: AppColors.primaryColor, // blue from theme
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                )
-                                ,
-                              ),
-                            ),
-                          )
-                              :LayoutBuilder(
-                            builder: (context, constraints) {
-                              return ConstrainedBox(
-                                constraints: BoxConstraints(
-                                  minHeight: constraints.maxHeight,
-                                ),
-                                child: IntrinsicHeight(
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 10),
-                                    child: SingleChildScrollView(
-                                      padding: EdgeInsets.zero,
-                                      controller:
-                                      chatViewController.scrollController,
-                                      reverse: true,
-                                      child: Column(
-                                        mainAxisAlignment: MainAxisAlignment
-                                            .end,
-                                        children: messages.map((message) {
-                                          return GroupMessageCard(
-                                            message: message,
-                                            isInitialMessage: false,
-                                            conversationId: widget.conversationId,
-                                            userId: '',
-                                            name: widget.name,
-                                            contactNo: '',
-                                            profileImage: widget.profileImage,
-                                          );
-                                        }).toList(),
                                       ),
                                     ),
                                   ),
+                                )
+                              : LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    return ConstrainedBox(
+                                      constraints: BoxConstraints(
+                                        minHeight: constraints.maxHeight,
+                                      ),
+                                      child: IntrinsicHeight(
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 10),
+                                          child: SingleChildScrollView(
+                                            padding: EdgeInsets.zero,
+                                            controller: chatViewController
+                                                .scrollController,
+                                            reverse: true,
+                                            child: Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.end,
+                                              children: messages.map((message) {
+                                                return GroupMessageCard(
+                                                  message: message,
+                                                  isInitialMessage: false,
+                                                  conversationId:
+                                                      widget.conversationId,
+                                                  userId: '',
+                                                  name: widget.name,
+                                                  contactNo: '',
+                                                  profileImage:
+                                                      widget.profileImage,
+                                                );
+                                              }).toList(),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
                                 ),
-                              );
-                            },
-                          ),
                         ),
                         const SizedBox(
                           height: 6,
@@ -248,23 +252,23 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
             } else {
               return SafeArea(
                   child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      Image.asset(
-                        AppImageAssets.chating_bg,
-                        fit: BoxFit.cover,
-                        width: SizeConfig.screenWidth,
-                        height: SizeConfig.screenHeight,
-                      ),
-                      Center(
-                        child: SizedBox(
-                          height: 22,
-                          width: 22,
-                          child: CircularProgressIndicator(),
-                        ),
-                      )
-                    ],
-                  ));
+                fit: StackFit.expand,
+                children: [
+                  Image.asset(
+                    AppImageAssets.chating_bg,
+                    fit: BoxFit.cover,
+                    width: SizeConfig.screenWidth,
+                    height: SizeConfig.screenHeight,
+                  ),
+                  Center(
+                    child: SizedBox(
+                      height: 22,
+                      width: 22,
+                      child: CircularProgressIndicator(),
+                    ),
+                  )
+                ],
+              ));
             }
           }),
         );
@@ -272,11 +276,11 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     );
   }
 
-  void showMessageEditDialog(
-      ){
+  void showMessageEditDialog() {
     Get.dialog(
       AlertDialog(
-        insetPadding:  EdgeInsets.symmetric( vertical: 12), // Reduced outer spacing
+        insetPadding: EdgeInsets.symmetric(vertical: 12),
+        // Reduced outer spacing
         contentPadding: const EdgeInsets.only(bottom: 10),
         backgroundColor: AppColors.appBackgroundColor,
         shape: RoundedRectangleBorder(
@@ -293,7 +297,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   CustomText(
-                    'Message',
+                    AppStrings.message,
                     color: AppColors.black,
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -313,10 +317,11 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                 keyboardType: TextInputType.text,
                 textCapitalization: TextCapitalization.words,
                 decoration: InputDecoration(
-                  hintText: 'Type your message...',
+                  hintText: AppStrings.typeMessage.tr,
                   filled: true,
                   fillColor: Colors.white.withValues(alpha: 0.05),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                     borderSide: BorderSide.none,
@@ -332,12 +337,13 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
             const SizedBox(height: 24),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14),
-              child: Row(mainAxisAlignment: MainAxisAlignment.end,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   InkWell(
                     onTap: () => Get.back(),
                     child: CustomText(
-                      'Close',
+                      AppStrings.close,
                       color: AppColors.primaryColor,
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
@@ -345,16 +351,19 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                   ),
                   const SizedBox(width: 16),
                   InkWell(
-                    onTap: ()async {
+                    onTap: () async {
                       ApiKeys;
-                      Map<String,dynamic> data={
-                        ApiKeys.id: "${chatThemeController.selectedFirstMessage?.value?.id}",
+                      Map<String, dynamic> data = {
+                        ApiKeys.id:
+                            "${chatThemeController.selectedFirstMessage?.value?.id}",
                         ApiKeys.type: "message",
                         ApiKeys.message: "${editingController.text}"
                       };
-                      bool value =await chatViewController.updateMessageApi(data);
-                      if(value){
-                        chatViewController.emitEvent(ChatEmitEvents.messageReceived, {
+                      bool value =
+                          await chatViewController.updateMessageApi(data);
+                      if (value) {
+                        chatViewController
+                            .emitEvent(ChatEmitEvents.messageReceived, {
                           ApiKeys.conversation_id: widget.conversationId,
                           ApiKeys.page: 1,
                           ApiKeys.is_online_user: '',
@@ -365,7 +374,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                       }
                     },
                     child: CustomText(
-                      'Edit',
+                      AppStrings.edit,
                       color: AppColors.primaryColor,
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
@@ -381,13 +390,5 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
       ),
       useSafeArea: true,
     );
-
   }
-
-
-
-
-
 }
-
-

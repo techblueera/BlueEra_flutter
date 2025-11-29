@@ -19,7 +19,6 @@ class AiSocketService {
   }
   // CONNECT SOCKET
   Future<void> connect() async {
-    print("AI Socket Connected__________hhh ______ sdflklsklsdkcmsldkcmsldkcmsdlkcmsdlkcmsdlkc");
 
     if (socket != null && socket!.connected) return;
 
@@ -31,12 +30,8 @@ class AiSocketService {
           .setAuth({'token': authTokenGlobal}) // IMPORTANT FIX
           .build(),
     );
-    log("sdlklkcsdlkcsdl ${authTokenGlobal}");
-    print("AI Socket Connected_____ffff ${socket}___________ sdflklsklsdkcmsldkcmsldkcmsdlkcmsdlkcmsdlkc");
-
     // Connect
     await socket!.connect();
-    print("AI Socket Connected_____KKKK ${socket}___________ sdflklsklsdkcmsldkcmsldkcmsdlkcmsdlkcmsdlkc");
 
     // GLOBAL LISTENERS
     socket!.onConnect((_) {
