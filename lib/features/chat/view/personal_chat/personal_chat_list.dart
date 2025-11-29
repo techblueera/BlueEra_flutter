@@ -48,7 +48,7 @@ class _PersonalChatsListState extends State<PersonalChatsList> {
               itemCount: (data?.chatList?.length ?? 0) + 1, // ADD 1 EXTRA ITEM
               shrinkWrap: true,
               itemBuilder: (context, index) {
-                final chat =(index == 0)? ChatViewController.chat:data?.chatList?[index - 1];
+                final chat =(index == 0)? ChatViewController.personalAiChatModule:data?.chatList?[index - 1];
                 return ChatListTile(onTab: (index == 0)?(){
                  Get.to(()=>AiChatScreen(
                    profileImage: chat?.sender?.profileImage,

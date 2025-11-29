@@ -61,7 +61,7 @@ class _GroupVideoCommentsPageState extends State<GroupVideoCommentsPage> {
 
     like_count=int.parse(widget.message.likes_count=="null"?"0":widget.message.likes_count??'0');
     reply_count=int.parse(widget.message.replies_count=='null'?"0":widget.message.replies_count??'0');
-    chatViewController.emitEvent("messageViewed", {
+    chatViewController.emitEvent(ChatEmitEvents.messageViewed, {
       ApiKeys.message_id: widget.message.id ?? '',
       ApiKeys.page: 1,
       ApiKeys.per_page_message: 50,
@@ -228,7 +228,7 @@ class _GroupVideoCommentsPageState extends State<GroupVideoCommentsPage> {
                   };
                   bool value = await chatViewController.likeAndUnlikeMessage(data,widget.userId,widget.conversationId);
                   if(value){
-                    chatViewController.emitEvent("messageViewed", {
+                    chatViewController.emitEvent(ChatEmitEvents.messageViewed, {
                       ApiKeys.message_id: widget.message.id ?? '',
                       ApiKeys.page: 1,
                       ApiKeys.per_page_message: 50,
@@ -277,7 +277,7 @@ class _GroupVideoCommentsPageState extends State<GroupVideoCommentsPage> {
         child: Scaffold(
           appBar: CommonBackAppBar(
             onBackTap: (){
-              chatViewController.emitEvent("messageReceived", {
+              chatViewController.emitEvent(ChatEmitEvents.messageReceived, {
                 ApiKeys.conversation_id: widget.conversationId,
                 ApiKeys.page: 1,
                 ApiKeys.is_online_user: widget.userId,

@@ -60,7 +60,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
     chatViewController.sendMessageController.value.clear();
     chatViewController.isTextFieldEmpty.value = false;
     chatThemeController.resetSelection();
-    chatViewController.connectAiSocket();
+    chatViewController.connectAiSocket(widget.type);
     super.initState();
   }
   @override
@@ -391,6 +391,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
                                       onTap: () async {
                                         if(chatViewController.sendMessageController.value.text.isNotEmpty){
                                           chatViewController.sendMessageToAiSocket(
+                                              type: widget.type,
                                             message: chatViewController.sendMessageController.value.text
                                           );
                                         }

@@ -925,7 +925,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
     ),
     titleSpacing: 0,
     title: InkWell(
-      onTap: (type != AppStrings.Admin||type != AppStrings.Ai)
+      onTap: (type != AppStrings.Admin||type != AppStrings.Ai||type != AppStrings.BusinessAi)
           ? () {
         if (isGroupAppBar != null) {
           Navigator.push(
@@ -1008,7 +1008,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
                 Row(
                   children: [
                     CustomText(
-                      '${type == AppStrings.Ai?"BlueCs Limited":(name == "BlueEra Orders") ? "BlueCs Ltd" : (type !=
+                      '${(type == AppStrings.Ai||type==AppStrings.BusinessAi)?"BlueCs Limited":(name == "BlueEra Orders") ? "BlueCs Ltd" : (type !=
                           AppStrings.Admin) ? (type == "business") ? chatViewController
                           .userOnlineStatus.value == "Online"
                           ? "Shop Open"
@@ -1035,7 +1035,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
         ],
       ),
     ),
-    actions: (type == AppStrings.Admin||type == AppStrings.Ai)
+    actions: (type == AppStrings.Admin||type == AppStrings.Ai||type == AppStrings.BusinessAi)
         ? null
         : [
       SizedBox(width: SizeConfig.size8),

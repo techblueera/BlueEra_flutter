@@ -10,6 +10,7 @@ import '../../../../core/constants/size_config.dart';
 import '../../../../widgets/custom_text_cm.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetChatListModel.dart';
+import '../ai_chat/ai_chat_screen.dart';
 import '../widget/component_widgets.dart';
 class BusinessChatsList extends StatefulWidget {
   const BusinessChatsList({super.key, this.isForwardUI, this.isNewGroupUI});
@@ -47,15 +48,32 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
             margin: EdgeInsets.only(bottom: SizeConfig.size70),
             child: (data?.chatList?.isEmpty??true)?noChatsFound(): ListView.builder(
               padding: EdgeInsets.symmetric(vertical: 8),
-              itemCount: data?.chatList?.length,
+              itemCount:  (data?.chatList?.length ?? 0) + 1,
               itemBuilder: (context, index) {
-                return ChatListTile(
+                final chat =(index == 0)? ChatViewController.businessAiChatModule:data?.chatList?[index - 1];
+                return ChatListTile(onTab: (index == 0)?(){
+                  Get.to(()=>AiChatScreen(
+                    profileImage: chat?.sender?.profileImage,
+                    name: chat?.sender?.name,
+                    contactNo: chat?.sender?.contactNo,
+                    conversationId: '',
+                    userId: '',
+                    businessId: '',
+                    type: chat?.sender?.accountType,
+                    isInitialMessage: false,));
+                }:null,
                     isFromGroupSelect: widget.isNewGroupUI,
                     onSelect: (){
                   setState(() {
 
                   });
-                },type: "business",index: index, chatViewController: chatViewController,  chat: data?.chatList?[index], theme: theme, isForwardUI: widget.isForwardUI, context: context);
+                },type: "business",
+                    index: index,
+                    chatViewController: chatViewController,
+                    chat: chat,
+                    theme: theme,
+                    isForwardUI: widget.isForwardUI,
+                    context: context);
               }
             ),
           ),

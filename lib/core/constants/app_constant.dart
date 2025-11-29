@@ -1741,6 +1741,7 @@ class ChatEmitEvents{
   static const ChatList = "ChatList";
   static const screenRoom = "screenRoom";
   static const messageReceived = "messageReceived";
+  static const messageViewed = "messageViewed";
 }
 
 final List<String> timeOptions = [

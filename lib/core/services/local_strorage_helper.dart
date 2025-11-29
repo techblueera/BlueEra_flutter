@@ -287,7 +287,9 @@ class LocalStorageHelper {
 }
 class AiChatLocalStorage {
   static const String _boxName = "aiChatBox";
-  static const String keyConversationId = "aiChatConversationId";
+
+  static const String keyPersonalConversationId = "personalConversationId";
+  static const String keyBusinessConversationId = "businessConversationId";
 
   static Future<Box<String>> _openBox() async {
     if (Hive.isBoxOpen(_boxName)) {
@@ -297,26 +299,44 @@ class AiChatLocalStorage {
     }
   }
 
-  /// Save Conversation ID only if it is not already stored
-  static Future<void> saveConversationIdIfEmpty(String id) async {
+  /// Save Conversation ID for given type (personal/business)
+  static Future<void> saveConversationIdIfEmpty({
+    required String type,
+    required String id,
+  }) async {
     final box = await _openBox();
 
-    String? existingId = box.get(keyConversationId);
+    String key = _getKey(type);
+    String? existingId = box.get(key);
 
     if (existingId == null || existingId.isEmpty) {
-      await box.put(keyConversationId, id);
+      await box.put(key, id);
     }
   }
 
-  /// Get stored Conversation ID
-  static Future<String?> getConversationId() async {
+  /// Get Conversation ID for given type
+  static Future<String?> getConversationId(String type) async {
     final box = await _openBox();
-    return box.get(keyConversationId);
+    String key = _getKey(type);
+    return box.get(key);
   }
 
-  /// Clear Conversation ID
-  static Future<void> clearConversationId() async {
+  /// Clear Conversation ID for given type
+  static Future<void> clearConversationId(String type) async {
     final box = await _openBox();
-    await box.delete(keyConversationId);
+    String key = _getKey(type);
+    await box.delete(key);
+  }
+
+  /// Internal: Map type to storage key
+  static String _getKey(String type) {
+    switch (type) {
+      case "personal":
+        return keyPersonalConversationId;
+      case "business":
+        return keyBusinessConversationId;
+      default:
+        throw Exception("Invalid type. Use 'personal' or 'business'");
+    }
   }
 }

@@ -63,7 +63,18 @@ class ChatViewController extends GetxController {
       "account_type": AppStrings.Ai,
     }
   };
-  static final ChatList? chat = ChatList.fromJson(aiChatListModel);
+  static final Map<String, dynamic> businessAiChatListModel = {
+    "last_message": "Ask anything about business",
+    "last_message_type": "text",
+    "sender": {
+      "name": "BlueEra Business Friend",
+      "contact_no": "BlueEra Friend",
+      "profile_image": "https://be-user-bkt.s3.ap-south-1.amazonaws.com/admin/68a31a3edd48c8dfc0656a00/profile/1759817565514-unnamed.webp",
+      "account_type": AppStrings.BusinessAi,
+    }
+  };
+  static final ChatList? personalAiChatModule = ChatList.fromJson(aiChatListModel);
+  static final ChatList? businessAiChatModule = ChatList.fromJson(businessAiChatListModel);
   Rx<GetChatListModel>? getPersonalChatListModel = GetChatListModel().obs;
   Rx<GetChatListModel>? getOrderChatListModel = GetChatListModel().obs;
   Rx<GetChatListModel>? getBusinessChatListModel = GetChatListModel().obs;
@@ -129,13 +140,13 @@ class ChatViewController extends GetxController {
         ApiResponse.complete(getListOfAiMessageData);
   }
 
-  Future<void> connectAiSocket()async{
+  Future<void> connectAiSocket(String? type)async{
     getListOfAiMessageData?.clear();
     await aiSocket.connect();
     aiSocket.onMessage((data){
       chatBotReading.value=false;
       AiReplyMessageModel details=AiReplyMessageModel.fromJson(data);
-      saveAiConversationId(details.conversationId);
+      saveAiConversationId(details.conversationId,type);
       getListOfAiMessageData?.add(Messages(
           sendStatus: AppStrings.Ai,
           messageRead: 1,
@@ -152,13 +163,14 @@ class ChatViewController extends GetxController {
      aiSocket.onHistory((data){
        parseAiChatHistory(data);
      });
-     String? converId= await AiChatLocalStorage.getConversationId();
+     String? converId= await AiChatLocalStorage.getConversationId(type==AppStrings.BusinessAi?AppConstants.business_Chat_Type:AppConstants.personal_Chat_Type,);
      aiSocket.getHistory(converId??'');
     getListOfAiMessageResponse.value =
         ApiResponse.complete(getListOfAiMessageData);
   }
-  Future<void> saveAiConversationId(String id)async{
-    await AiChatLocalStorage.saveConversationIdIfEmpty(id);
+  Future<void> saveAiConversationId(String id,String? type)async{
+
+    await AiChatLocalStorage.saveConversationIdIfEmpty(id: id,type:type==AppStrings.BusinessAi?AppConstants.business_Chat_Type:AppConstants.personal_Chat_Type);
   }
   String formattedDate() {
     final now = DateTime.now().toUtc();
@@ -166,12 +178,13 @@ class ChatViewController extends GetxController {
   }
    Future<void> sendMessageToAiSocket({
       String? conversationId,
+      required String? type,
       String? message,
       Uint8List? imageBytes,
       String? mimeType,
   })async{
      chatBotReading.value=true;
-    String? converId= await AiChatLocalStorage.getConversationId();
+    String? converId= await AiChatLocalStorage.getConversationId(type==AppStrings.BusinessAi?AppConstants.business_Chat_Type:AppConstants.personal_Chat_Type);
     aiSocket.sendMessage(message: message,conversationId: converId,imageBytes: imageBytes,mimeType: mimeType);
     getListOfAiMessageData?.add(Messages(
         sendStatus: AppStrings.Ai,
@@ -214,10 +227,10 @@ class ChatViewController extends GetxController {
           parsedData.chatList ?? [], parsedData.type ?? '');
     });
 
-    chatSocket.listenEvent('messageViewed', (data) {
+    chatSocket.listenEvent(ChatEmitEvents.messageViewed, (data) {
       getMediaMsgCommentsModel?.value = GetMediaMsgCommentsModel.fromJson(data);
     });
-    chatSocket.listenEvent('messageReceived', (data) async {
+    chatSocket.listenEvent(ChatEmitEvents.messageReceived, (data) async {
       final parsedData = GetListOfMessageData.fromJson(data);
 
 

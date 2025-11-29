@@ -1627,6 +1627,7 @@ class AppStrings {
   static const String found    = 'found';
   static const String product    = 'Product';
   static const String Ai    = 'Ai';
+  static const String BusinessAi    = 'BusinessAi';
   static const String Admin    = 'Admin';
   static const String notFoundAnyFoodItem    = 'notFoundAnyFoodItem';
   static const String typeAtLeastThreeCharForSearchProducts    = 'typeAtLeastThreeCharForSearchProducts';
