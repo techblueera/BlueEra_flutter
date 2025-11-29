@@ -531,5 +531,6 @@ class ApiKeys {
   static const foodRestriction = 'foodRestriction';
   static const isFoodRestriction = 'isFoodRestriction';
   static const allowedFood = 'allowedFood';
+  static const additionalRules = 'additionalRules';
 
 }

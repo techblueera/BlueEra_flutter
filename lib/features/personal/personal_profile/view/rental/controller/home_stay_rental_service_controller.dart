@@ -105,15 +105,15 @@ class HomeStayRentalServiceController extends GetxController{
         return;
       }
 
-      if(!isUnMarried.value){
-        commonSnackBar(message: AppStrings.unmarriedCouplesRequired.tr);
-        return;
-      }
-
-      if(!isAllowStudentOrBachelor.value){
-        commonSnackBar(message: AppStrings.studentsOrBachelorsRequired.tr);
-        return;
-      }
+      // if(!isUnMarried.value){
+      //   commonSnackBar(message: AppStrings.unmarriedCouplesRequired.tr);
+      //   return;
+      // }
+      //
+      // if(!isAllowStudentOrBachelor.value){
+      //   commonSnackBar(message: AppStrings.studentsOrBachelorsRequired.tr);
+      //   return;
+      // }
 
       if(anyFoodHabitRestriction.value){
         if(selectedFoodHabit.isEmpty){
@@ -249,6 +249,7 @@ class HomeStayRentalServiceController extends GetxController{
             if (anyFoodHabitRestriction.value) ApiKeys.allowedFood: selectedFoodHabit
           },
         }),
+        // ApiKeys.additionalRules: ,
         if(roomParts.isNotEmpty) ApiKeys.roomImages: roomParts,
         if(kitchenParts.isNotEmpty) ApiKeys.kitchenImages: kitchenParts,
         if(bathroomParts.isNotEmpty) ApiKeys.bathroomImages: bathroomParts,

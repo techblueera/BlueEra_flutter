@@ -102,15 +102,15 @@ class AddFlatRentalServiceController extends GetxController {
         return;
       }
 
-      if(!isUnMarried.value){
-        commonSnackBar(message: AppStrings.unmarriedCouplesRequired.tr);
-        return;
-      }
-
-      if(!isAllowStudentOrBachelor.value){
-        commonSnackBar(message: AppStrings.studentsOrBachelorsRequired.tr);
-        return;
-      }
+      // if(!isUnMarried.value){
+      //   commonSnackBar(message: AppStrings.unmarriedCouplesRequired.tr);
+      //   return;
+      // }
+      //
+      // if(!isAllowStudentOrBachelor.value){
+      //   commonSnackBar(message: AppStrings.studentsOrBachelorsRequired.tr);
+      //   return;
+      // }
 
       if(anyFoodHabitRestriction.value){
         if(selectedFoodHabit.isEmpty){
@@ -231,6 +231,7 @@ class AddFlatRentalServiceController extends GetxController {
               if (anyFoodHabitRestriction.value) ApiKeys.allowedFood: selectedFoodHabit
             },
           }),
+          // ApiKeys.additionalRules: ,
           if(arrMoreDetails.isNotEmpty) ApiKeys.additionalDetails: jsonEncode(arrMoreDetails.map((e) => e.toJson()).toList()),
           if(roadsideParts.isNotEmpty) ApiKeys.roadImages: roadsideParts,
           if(roomParts.isNotEmpty) ApiKeys.roomImages: roomParts,

@@ -431,7 +431,7 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
               ),
               boxShadow: [AppShadows.textFieldShadow]
           ),
-          child:  Row(
+          child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               CustomText(
