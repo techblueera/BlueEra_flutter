@@ -162,6 +162,43 @@ class SocialImageGrid extends StatelessWidget {
         ),
         itemBuilder: (context, index) {
           if (index == maxImages - 1 && count > maxImages) {
+            return    Stack(
+              fit: StackFit.expand,
+              children: [
+                ClipRRect(
+                    borderRadius: index == 0
+                        ? BorderRadius.only(
+                      topLeft: Radius.circular(12),
+                    )
+                        : index == 1
+                        ? BorderRadius.only(
+                      topRight: Radius.circular(12),
+                    )
+                        : index == 2
+                        ? BorderRadius.only(
+                        bottomLeft: Radius.circular(12))
+                        : BorderRadius.only(
+                        bottomRight: Radius.circular(12)),
+                    child: netWorkImage(
+                        urlLink: imageUrls[index],
+                        index: index,
+                        heightImg: 0)),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.black54,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Center(
+                    child: CustomText(
+                      '+${count - maxImages}',
+                      color: Colors.white,
+                      fontSize: SizeConfig.size28,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            );
             return InkWell(
               onTap: () => onTapImage(indexOfImage: index),
               child: Stack(
@@ -223,6 +260,7 @@ class SocialImageGrid extends StatelessWidget {
 
     return const SizedBox();
   }
+
   Widget singleNetworkImage({
     required String urlLink,
     required int index,
@@ -239,14 +277,32 @@ class SocialImageGrid extends StatelessWidget {
     final bool isLandscape = hasValidSize && mediaWidth > mediaHeight;
 
     // Choose height and aspect ratio based on orientation
-    final double imageHeight = isLandscape
-        ? screenWidth * (mediaHeight / mediaWidth)
-        : portraitHeight;
+    final double imageHeight =
+        isLandscape ? screenWidth * (mediaHeight / mediaWidth) : portraitHeight;
 
-    final double aspectRatio = hasValidSize
-        ? (mediaWidth / mediaHeight)
-        : 1.0;
-
+    final double aspectRatio = hasValidSize ? (mediaWidth / mediaHeight) : 1.0;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(borderRadiusValue),
+      child: AspectRatio(
+        aspectRatio: isLandscape ? aspectRatio : screenWidth / portraitHeight,
+        child: CachedNetworkImage(
+          imageUrl: urlLink,
+          width: screenWidth,
+          height: imageHeight,
+          fit: BoxFit.cover,
+          placeholder: (context, _) => Container(
+            color: Colors.grey[200],
+            alignment: Alignment.center,
+            child: const CircularProgressIndicator(strokeWidth: 2),
+          ),
+          errorWidget: (context, _, __) => Container(
+            color: Colors.grey[300],
+            alignment: Alignment.center,
+            child: const Icon(Icons.broken_image_outlined, color: Colors.grey),
+          ),
+        ),
+      ),
+    );
     return InkWell(
       onTap: () => onTapImage(indexOfImage: index),
       child: ClipRRect(
@@ -266,7 +322,8 @@ class SocialImageGrid extends StatelessWidget {
             errorWidget: (context, _, __) => Container(
               color: Colors.grey[300],
               alignment: Alignment.center,
-              child: const Icon(Icons.broken_image_outlined, color: Colors.grey),
+              child:
+                  const Icon(Icons.broken_image_outlined, color: Colors.grey),
             ),
           ),
         ),
@@ -274,9 +331,29 @@ class SocialImageGrid extends StatelessWidget {
     );
   }
 
-
   netWorkImage(
       {required String urlLink, required int index, double? heightImg}) {
+
+   return    Container(
+     color: Colors.black,
+     child: CachedNetworkImage(
+       imageUrl: urlLink,
+       fit: BoxFit.cover,
+       width: Get.width,
+       height: heightImg?.toDouble() ?? 300,
+       placeholder: (context, _) => Center(
+         child: LocalAssets(
+           imagePath: AppIconAssets.place_holder_image,
+           boxFix: BoxFit.cover,
+         ),
+       ),
+       errorWidget: (context, _, __) => LocalAssets(
+         imagePath: AppIconAssets.place_holder_image,
+         boxFix: BoxFit.cover,
+       ),
+     ),
+   );
+
     return InkWell(
       onTap: () => onTapImage(indexOfImage: index),
       child: Container(
