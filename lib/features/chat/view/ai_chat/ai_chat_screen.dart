@@ -26,13 +26,13 @@ import '../widget/picked_media_preview.dart';
 class AiChatScreen extends StatefulWidget {
   AiChatScreen(
       {required this.conversationId,
-        required this.userId,
-        required this.businessId,
-        this.profileImage,
-        required this.type,
-        this.name,
-        this.contactNo,
-        required this.isInitialMessage});
+      required this.userId,
+      required this.businessId,
+      this.profileImage,
+      required this.type,
+      this.name,
+      this.contactNo,
+      required this.isInitialMessage});
 
   final String? conversationId;
   final String? userId;
@@ -42,7 +42,6 @@ class AiChatScreen extends StatefulWidget {
   final String? contactNo;
   final String? type;
   final bool isInitialMessage;
-
 
   @override
   State<AiChatScreen> createState() => _AiChatScreenState();
@@ -55,6 +54,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
   final FocusNode _focusNode = FocusNode();
   bool _isEmojiVisible = false;
   final _scrollController = ScrollController();
+
   @override
   void initState() {
     chatViewController.sendMessageController.value.clear();
@@ -63,12 +63,14 @@ class _AiChatScreenState extends State<AiChatScreen> {
     chatViewController.connectAiSocket();
     super.initState();
   }
+
   @override
   void dispose() {
     // TODO: implement dispose
     chatViewController.disposeAiSocket();
     super.dispose();
   }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -79,26 +81,25 @@ class _AiChatScreenState extends State<AiChatScreen> {
         return Scaffold(
           backgroundColor: AppColors.fillColor,
           appBar: (chatThemeController.isMessageSelectionActive.value &&
-              widget.type != AppStrings.Admin)
-              ? getChatOptionsAppBar(
-              context,
-              profileImage: widget.profileImage,
-              editingController: editingController,
-              conversationId: widget.conversationId,
-              userId: widget.userId,
-              type: widget.type,
-              name: widget.name,
-              contactNo: widget.contactNo)
+                  widget.type != AppStrings.Admin)
+              ? getChatOptionsAppBar(context,
+                  profileImage: widget.profileImage,
+                  editingController: editingController,
+                  conversationId: widget.conversationId,
+                  userId: widget.userId,
+                  type: widget.type,
+                  name: widget.name,
+                  contactNo: widget.contactNo)
               : getChatTitleAppBar(
-              socketType: "personal",
-              context,
-              userId: widget.userId,
-              type: widget.type,
-              name: widget.name,
-              profileImage: widget.profileImage,
-              contactNo: widget.contactNo, conversationId: widget.conversationId),
+                  socketType: "personal",
+                  context,
+                  userId: widget.userId,
+                  type: widget.type,
+                  name: widget.name,
+                  profileImage: widget.profileImage,
+                  contactNo: widget.contactNo,
+                  conversationId: widget.conversationId),
           body: Obx(() {
-
             if (chatViewController.getListOfAiMessageResponse.value.status ==
                 Status.COMPLETE) {
               List<Messages> messages =
@@ -130,114 +131,126 @@ class _AiChatScreenState extends State<AiChatScreen> {
                         Expanded(
                           child: (messages.isEmpty)
                               ? Center(
-                            child: InkWell(
-                              onTap: () {
-                                Map<String, dynamic> data = {
-                                  ApiKeys.other_user_id: widget.userId,
-                                  ApiKeys.message: "Namaste 🙏",
-                                  ApiKeys.message_type: "text",
-                                };
-                                chatViewController
-                                    .sendInitialMessage(data);
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 15, vertical: 10),
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.withValues(alpha: 0.5), // light color with 0.5 opacity
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: RichText(
-                                  text: TextSpan(
-                                    children: [
-                                      TextSpan(
-                                        text: "No conversation yet. ",
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w500,
-                                        ),
+                                  child: InkWell(
+                                    onTap: () {
+                                      Map<String, dynamic> data = {
+                                        ApiKeys.other_user_id: widget.userId,
+                                        ApiKeys.message: "Namaste 🙏",
+                                        ApiKeys.message_type: "text",
+                                      };
+                                      chatViewController
+                                          .sendInitialMessage(data);
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 15, vertical: 10),
+                                      decoration: BoxDecoration(
+                                        color:
+                                            Colors.grey.withValues(alpha: 0.5),
+                                        // light color with 0.5 opacity
+                                        borderRadius: BorderRadius.circular(8),
                                       ),
-                                      TextSpan(
-                                        text: "Say Namaste 🙏",
-                                        style: TextStyle(
-                                          color: Colors
-                                              .blue, // blue from theme
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w500,
+                                      child: RichText(
+                                        text: TextSpan(
+                                          children: [
+                                            TextSpan(
+                                              text: AppStrings
+                                                  .noConversationYet.tr,
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                            TextSpan(
+                                              text: AppStrings.sayNamaste.tr,
+                                              style: TextStyle(
+                                                color: AppColors.primaryColor,
+                                                // blue from theme
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          )
-                              : LayoutBuilder(
-                            builder: (context, constraints) {
-                              return ConstrainedBox(
-                                constraints: BoxConstraints(
-                                  minHeight: constraints.maxHeight,
-                                ),
-                                child: IntrinsicHeight(
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 10),
-                                    child: SingleChildScrollView(
-                                      padding: EdgeInsets.zero,
-                                      controller: chatViewController
-                                          .scrollController,
-                                      reverse: (widget.type == AppStrings.Admin)
-                                          ? false
-                                          : true,
-                                      child: Column(
-                                        mainAxisAlignment:
-                                        MainAxisAlignment.end,
-                                        children: messages.map((message) {
-                                          return MessageCard(
-                                            message: message,
-                                            isInitialMessage:
-                                            widget.isInitialMessage,
-                                            conversationId:
-                                            widget.conversationId,
-                                            userId: widget.userId,
-                                            name: widget.name,
-                                            contactNo: widget.contactNo,
-                                            profileImage:
-                                            widget.profileImage,
-                                          );
-                                        }).toList(),
                                       ),
                                     ),
                                   ),
+                                )
+                              : LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    return ConstrainedBox(
+                                      constraints: BoxConstraints(
+                                        minHeight: constraints.maxHeight,
+                                      ),
+                                      child: IntrinsicHeight(
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 10),
+                                          child: SingleChildScrollView(
+                                            padding: EdgeInsets.zero,
+                                            controller: chatViewController
+                                                .scrollController,
+                                            reverse: (widget.type ==
+                                                    AppStrings.Admin)
+                                                ? false
+                                                : true,
+                                            child: Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.end,
+                                              children: messages.map((message) {
+                                                return MessageCard(
+                                                  message: message,
+                                                  isInitialMessage:
+                                                      widget.isInitialMessage,
+                                                  conversationId:
+                                                      widget.conversationId,
+                                                  userId: widget.userId,
+                                                  name: widget.name,
+                                                  contactNo: widget.contactNo,
+                                                  profileImage:
+                                                      widget.profileImage,
+                                                );
+                                              }).toList(),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
                                 ),
-                              );
-                            },
-                          ),
                         ),
-                        (chatViewController.chatBotReading.value==true)? const SizedBox(
-                          height: 6,
-                        ):SizedBox(),
-                        (chatViewController.chatBotReading.value==true)? staggeredDotsWaveLoading(padding: EdgeInsets.symmetric(vertical: SizeConfig.size4),
-                            color: AppColors.grayText
-                        ):SizedBox(),
+                        (chatViewController.chatBotReading.value == true)
+                            ? const SizedBox(
+                                height: 6,
+                              )
+                            : SizedBox(),
+                        (chatViewController.chatBotReading.value == true)
+                            ? staggeredDotsWaveLoading(
+                                padding: EdgeInsets.symmetric(
+                                    vertical: SizeConfig.size4),
+                                color: AppColors.grayText)
+                            : SizedBox(),
                         const SizedBox(
                           height: 6,
                         ),
                         Container(
-            // padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            margin: EdgeInsets.only(bottom: 6),
-            decoration: BoxDecoration(
-            // color: Colors.grey.shade200,
-            borderRadius: BorderRadius.circular(10),
-            ),
-               child:  Padding(
-                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                 child: Row(crossAxisAlignment: CrossAxisAlignment.end,
+                          // padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          margin: EdgeInsets.only(bottom: 6),
+                          decoration: BoxDecoration(
+                            // color: Colors.grey.shade200,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 0),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
                                 Expanded(
                                   child: Container(
-                                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 4),
                                     decoration: BoxDecoration(
                                       color: Colors.white,
                                       borderRadius: BorderRadius.circular(10),
@@ -249,36 +262,52 @@ class _AiChatScreenState extends State<AiChatScreen> {
                                         )
                                       ],
                                     ),
-                                    child:
-                                    Row(crossAxisAlignment: CrossAxisAlignment.end,
+                                    child: Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.end,
                                       children: [
                                         Material(
                                           color: Colors.transparent,
                                           child: InkWell(
-                                            borderRadius: BorderRadius.circular(30),
-                                            overlayColor: WidgetStateProperty.resolveWith<Color?>(
-                                                  (states) {
-                                                if (states.contains(WidgetState.pressed)) {
-                                                  return Colors.grey..withValues(alpha: 0.4); // pressed
+                                            borderRadius:
+                                                BorderRadius.circular(30),
+                                            overlayColor: WidgetStateProperty
+                                                .resolveWith<Color?>(
+                                              (states) {
+                                                if (states.contains(
+                                                    WidgetState.pressed)) {
+                                                  return Colors.grey
+                                                    ..withValues(
+                                                        alpha: 0.4); // pressed
                                                 }
-                                                if (states.contains(WidgetState.hovered)) {
-                                                  return Colors.grey.withValues(alpha: 0.2); // hover
+                                                if (states.contains(
+                                                    WidgetState.hovered)) {
+                                                  return Colors.grey.withValues(
+                                                      alpha: 0.2); // hover
                                                 }
                                                 return null;
                                               },
                                             ),
-
                                             onTap: _toggleEmojiKeyboard,
                                             child: Ink(
                                               decoration: BoxDecoration(
-                                                borderRadius: BorderRadius.circular(30),
+                                                borderRadius:
+                                                    BorderRadius.circular(30),
                                               ),
-                                              padding: const EdgeInsets.symmetric(vertical: 8,horizontal: 8),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      vertical: 8,
+                                                      horizontal: 8),
                                               child: Padding(
-                                                padding: const EdgeInsets.only(bottom: 3.0),
-                                                child: SvgPicture.asset(height: 22, width: 22, AppIconAssets
-                                                    .chat_box_smile, color: AppColors
-                                                    .chat_input_icon_color,),
+                                                padding: const EdgeInsets.only(
+                                                    bottom: 3.0),
+                                                child: SvgPicture.asset(
+                                                  height: 22,
+                                                  width: 22,
+                                                  AppIconAssets.chat_box_smile,
+                                                  color: AppColors
+                                                      .chat_input_icon_color,
+                                                ),
                                               ),
                                             ),
                                           ),
@@ -287,18 +316,21 @@ class _AiChatScreenState extends State<AiChatScreen> {
                                           child: TextFormField(
                                             scrollController: _scrollController,
                                             keyboardType: TextInputType.text,
-                                            textCapitalization: TextCapitalization.sentences,
-                                            controller: chatViewController.sendMessageController
-                                                .value,
+                                            textCapitalization:
+                                                TextCapitalization.sentences,
+                                            controller: chatViewController
+                                                .sendMessageController.value,
                                             minLines: 1,
                                             maxLines: 5,
                                             onChanged: (value) {
                                               if (!value.isEmpty) {
-                                                chatViewController.isTextFieldEmpty.value =
-                                                true;
+                                                chatViewController
+                                                    .isTextFieldEmpty
+                                                    .value = true;
                                               } else {
-                                                chatViewController.isTextFieldEmpty.value =
-                                                false;
+                                                chatViewController
+                                                    .isTextFieldEmpty
+                                                    .value = false;
                                               }
                                             },
                                             style: TextStyle(
@@ -306,13 +338,14 @@ class _AiChatScreenState extends State<AiChatScreen> {
                                                 fontWeight: FontWeight.w500,
                                                 fontSize: 16),
                                             decoration: InputDecoration(
-                                              hintText: "Type Message...",
+                                              hintText:
+                                                  AppStrings.typeMessage.tr,
                                               hintStyle: TextStyle(
                                                   color: Colors.grey,
                                                   fontSize: 14,
-                                                  fontWeight: FontWeight.w500
-                                              ),
-                                              contentPadding: EdgeInsets.only(left: 6,bottom: 10,top: 8),
+                                                  fontWeight: FontWeight.w500),
+                                              contentPadding: EdgeInsets.only(
+                                                  left: 6, bottom: 10, top: 8),
                                               fillColor: Colors.transparent,
                                               filled: true,
                                               isDense: true,
@@ -320,53 +353,82 @@ class _AiChatScreenState extends State<AiChatScreen> {
                                               enabledBorder: InputBorder.none,
                                               focusedBorder: InputBorder.none,
                                               disabledBorder: InputBorder.none,
-
                                             ),
                                             validator: (value) {
-                                              if (value == null || value.isEmpty) {
-                                                return 'Please enter a URL';
+                                              if (value == null ||
+                                                  value.isEmpty) {
+                                                return AppStrings
+                                                    .pleaseEnterUrl.tr;
                                               }
-                                              final httpsUrlRegex = RegExp('r^https:\/\/[a-zA-Z0-9\-._~:\/?#\[\]@!\$&\'()*+,;=%]+\$');
-                                              if (!httpsUrlRegex.hasMatch(value)) {
-                                                return 'Only HTTPS URLs are allowed';
+                                              final httpsUrlRegex = RegExp(
+                                                  'r^https:\/\/[a-zA-Z0-9\-._~:\/?#\[\]@!\$&\'()*+,;=%]+\$');
+                                              if (!httpsUrlRegex
+                                                  .hasMatch(value)) {
+                                                return AppStrings
+                                                    .onlyHttpsAllowed.tr;
                                               }
                                               return null;
                                             },
                                           ),
                                         ),
-
-                                        ( chatViewController.isTextFieldEmpty.value)?SizedBox():SizedBox(width: 8),
-                                        ( chatViewController.isTextFieldEmpty.value)?SizedBox():Material(
-                                          color: Colors.transparent,
-
-                                          child: InkWell(
-                                            onTap: () {
-                                              _pickFromCamera();
-                                            },
-                                            borderRadius: BorderRadius.circular(30),
-                                            overlayColor: WidgetStateProperty.resolveWith<Color?>(
-                                                  (states) {
-                                                if (states.contains(WidgetState.pressed)) {
-                                                  return Colors.grey..withValues(alpha: 0.4); // pressed
-                                                }
-                                                if (states.contains(WidgetState.hovered)) {
-                                                  return Colors.grey.withValues(alpha: 0.2); // hover
-                                                }
-                                                return null;
-                                              },
-                                            ),
-                                            child: Ink(
-                                              decoration: BoxDecoration(
-                                                borderRadius: BorderRadius.circular(30),
-                                                // background if you want
+                                        (chatViewController
+                                                .isTextFieldEmpty.value)
+                                            ? SizedBox()
+                                            : SizedBox(width: 8),
+                                        (chatViewController
+                                                .isTextFieldEmpty.value)
+                                            ? SizedBox()
+                                            : Material(
+                                                color: Colors.transparent,
+                                                child: InkWell(
+                                                  onTap: () {
+                                                    _pickFromCamera();
+                                                  },
+                                                  borderRadius:
+                                                      BorderRadius.circular(30),
+                                                  overlayColor:
+                                                      WidgetStateProperty
+                                                          .resolveWith<Color?>(
+                                                    (states) {
+                                                      if (states.contains(
+                                                          WidgetState
+                                                              .pressed)) {
+                                                        return Colors.grey
+                                                          ..withValues(
+                                                              alpha:
+                                                                  0.4); // pressed
+                                                      }
+                                                      if (states.contains(
+                                                          WidgetState
+                                                              .hovered)) {
+                                                        return Colors.grey
+                                                            .withValues(
+                                                                alpha:
+                                                                    0.2); // hover
+                                                      }
+                                                      return null;
+                                                    },
+                                                  ),
+                                                  child: Ink(
+                                                    decoration: BoxDecoration(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              30),
+                                                      // background if you want
+                                                    ),
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                        vertical: 10,
+                                                        horizontal: 10),
+                                                    child: Icon(
+                                                        Icons
+                                                            .camera_alt_outlined,
+                                                        color: AppColors
+                                                            .chat_input_icon_color,
+                                                        size: 24),
+                                                  ),
+                                                ),
                                               ),
-                                              padding: const EdgeInsets.symmetric(vertical: 10,horizontal: 10),
-                                              child: Icon(Icons.camera_alt_outlined,
-                                                  color: AppColors.chat_input_icon_color,
-                                                  size: 24),
-                                            ),
-                                          ),
-                                        ),
                                       ],
                                     ),
                                   ),
@@ -377,33 +439,47 @@ class _AiChatScreenState extends State<AiChatScreen> {
                                     color: Colors.transparent,
                                     child: InkWell(
                                       borderRadius: BorderRadius.circular(12),
-                                      overlayColor: WidgetStateProperty.resolveWith<Color?>(
-                                            (states) {
-                                          if (states.contains(WidgetState.pressed)) {
-                                            return Colors.grey..withValues(alpha: 0.4); // pressed
+                                      overlayColor: WidgetStateProperty
+                                          .resolveWith<Color?>(
+                                        (states) {
+                                          if (states
+                                              .contains(WidgetState.pressed)) {
+                                            return Colors.grey
+                                              ..withValues(
+                                                  alpha: 0.4); // pressed
                                           }
-                                          if (states.contains(WidgetState.hovered)) {
-                                            return Colors.grey.withValues(alpha: 0.2); // hover
+                                          if (states
+                                              .contains(WidgetState.hovered)) {
+                                            return Colors.grey.withValues(
+                                                alpha: 0.2); // hover
                                           }
                                           return null;
                                         },
                                       ),
                                       onTap: () async {
-                                        if(chatViewController.sendMessageController.value.text.isNotEmpty){
-                                          chatViewController.sendMessageToAiSocket(
-                                            message: chatViewController.sendMessageController.value.text
-                                          );
+                                        if (chatViewController
+                                            .sendMessageController
+                                            .value
+                                            .text
+                                            .isNotEmpty) {
+                                          chatViewController
+                                              .sendMessageToAiSocket(
+                                                  message: chatViewController
+                                                      .sendMessageController
+                                                      .value
+                                                      .text);
                                         }
                                       },
                                       child: Center(
                                         child: Ink(
                                           decoration: BoxDecoration(
-                                            color:
-                                            chatThemeController.myMessageBgColor.value,
-                                            borderRadius: BorderRadius.circular(12),
+                                            color: chatThemeController
+                                                .myMessageBgColor.value,
+                                            borderRadius:
+                                                BorderRadius.circular(12),
                                           ),
                                           padding: EdgeInsets.all(14),
-                                          child:SvgPicture.asset(
+                                          child: SvgPicture.asset(
                                             AppIconAssets.send_message_chat,
                                             height: 21,
                                             width: 21,
@@ -414,9 +490,9 @@ class _AiChatScreenState extends State<AiChatScreen> {
                                   );
                                 })
                               ],
-                                                        ),
-                                                      ),
                             ),
+                          ),
+                        ),
                         const SizedBox(height: 14),
                       ],
                     ),
@@ -426,29 +502,30 @@ class _AiChatScreenState extends State<AiChatScreen> {
             } else {
               return SafeArea(
                   child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      Image.asset(
-                        AppImageAssets.chating_bg,
-                        fit: BoxFit.cover,
-                        width: SizeConfig.screenWidth,
-                        height: SizeConfig.screenHeight,
-                      ),
-                      Center(
-                        child: SizedBox(
-                          height: 22,
-                          width: 22,
-                          child: CircularProgressIndicator(),
-                        ),
-                      )
-                    ],
-                  ));
+                fit: StackFit.expand,
+                children: [
+                  Image.asset(
+                    AppImageAssets.chating_bg,
+                    fit: BoxFit.cover,
+                    width: SizeConfig.screenWidth,
+                    height: SizeConfig.screenHeight,
+                  ),
+                  Center(
+                    child: SizedBox(
+                      height: 22,
+                      width: 22,
+                      child: CircularProgressIndicator(),
+                    ),
+                  )
+                ],
+              ));
             }
           }),
         );
       }),
     );
   }
+
   void _toggleEmojiKeyboard() {
     if (_isEmojiVisible) {
       _focusNode.requestFocus();
@@ -460,6 +537,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
       });
     }
   }
+
   Future<void> _pickFromCamera() async {
     final pickedFile = await ImagePicker().pickImage(
       source: ImageSource.camera,
@@ -468,45 +546,38 @@ class _AiChatScreenState extends State<AiChatScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) =>
-              MultiImagePreviewPage(
-                mediaFiles: [File(pickedFile.path)],
-                onSend: (val, String? commands) async {
-                  Navigator.pop(context);
-                  String? imagePath = File(pickedFile.path).path;
-                  String fileName = imagePath
-                      .split('/')
-                      .last;
-                  String fileExtension = fileName
-                      .split('.')
-                      .last
-                      .toLowerCase();
-                  String messageType = ['mp4', 'mov', 'avi', 'mkv'].contains(
-                      fileExtension)
+          builder: (_) => MultiImagePreviewPage(
+            mediaFiles: [File(pickedFile.path)],
+            onSend: (val, String? commands) async {
+              Navigator.pop(context);
+              String? imagePath = File(pickedFile.path).path;
+              String fileName = imagePath.split('/').last;
+              String fileExtension = fileName.split('.').last.toLowerCase();
+              String messageType =
+                  ['mp4', 'mov', 'avi', 'mkv'].contains(fileExtension)
                       ? 'video'
                       : 'image';
 
-                  dio.MultipartFile? imageByPart = await dio.MultipartFile
-                      .fromFile(
-                    imagePath,
-                    filename: fileName,
-                  );
+              dio.MultipartFile? imageByPart = await dio.MultipartFile.fromFile(
+                imagePath,
+                filename: fileName,
+              );
 
-                  // Map<String, dynamic> data = {
-                  //   if(isInitialFlow)
-                  //     ApiKeys.other_user_id: widget.userId
-                  //   else
-                  //     ApiKeys.conversation_id: widget.conversationId,
-                  //   if(commands != null)
-                  //     ApiKeys.message: commands,
-                  //   ApiKeys.message_type: messageType,
-                  //   ApiKeys.files: imageByPart,
-                  // };
-                  // print('SEND PAYLOAD (camera ${messageType}): '+data.toString());
-                  // sendMessageToUser(
-                  //     data: data, isInitial: isInitialFlow);
-                },
-              ),
+              // Map<String, dynamic> data = {
+              //   if(isInitialFlow)
+              //     ApiKeys.other_user_id: widget.userId
+              //   else
+              //     ApiKeys.conversation_id: widget.conversationId,
+              //   if(commands != null)
+              //     ApiKeys.message: commands,
+              //   ApiKeys.message_type: messageType,
+              //   ApiKeys.files: imageByPart,
+              // };
+              // print('SEND PAYLOAD (camera ${messageType}): '+data.toString());
+              // sendMessageToUser(
+              //     data: data, isInitial: isInitialFlow);
+            },
+          ),
         ),
       );
     }

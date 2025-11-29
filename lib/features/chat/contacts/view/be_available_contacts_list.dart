@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_theme_controller.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -26,12 +28,19 @@ class BeAvailableContactsList extends StatefulWidget {
   final String? conversationId;
   final List<SharedAttachment?>? sharedFiles;
   final bool? isFromAddMember;
-  final  List<GroupMembersListModel>? members;
-   BeAvailableContactsList({super.key, this.sharedText, this.sharedFiles, this.isFromAddMember, this.members, this.conversationId});
+  final List<GroupMembersListModel>? members;
 
+  BeAvailableContactsList(
+      {super.key,
+      this.sharedText,
+      this.sharedFiles,
+      this.isFromAddMember,
+      this.members,
+      this.conversationId});
 
   @override
-  State<BeAvailableContactsList> createState() => _BeAvailableContactsListState();
+  State<BeAvailableContactsList> createState() =>
+      _BeAvailableContactsListState();
 }
 
 class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
@@ -44,7 +53,6 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
 
   Timer? _debounce;
 
-
   @override
   void initState() {
     super.initState();
@@ -52,7 +60,7 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
     // if (widget.from == "group") {
     //   chatViewController.loadGroupConnections();
     // } else {
-      _loadContactsFromStorage();
+    _loadContactsFromStorage();
     // }
     _searchController.addListener(_onSearchChanged);
   }
@@ -63,13 +71,15 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
     _debounce?.cancel();
     super.dispose();
   }
+
   void _onSearchChanged() {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
     _debounce = Timer(const Duration(milliseconds: 300), () {
       final query = _searchController.text.toLowerCase();
       final details = chatViewController.contactsListModel?.value.data;
       if (details != null) {
-        List<ExistingNotConnected> baseList = details.existingNotConnected ?? [];
+        List<ExistingNotConnected> baseList =
+            details.existingNotConnected ?? [];
 
         // ✅ Exclude already added group members first
         baseList = _excludeGroupMembers(baseList);
@@ -77,16 +87,13 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
         setState(() {
           _filteredExisting = baseList
               .where((c) =>
-          (c.name?.toLowerCase().contains(query) ?? false) ||
-              (c.contactNo?.toLowerCase().contains(query) ?? false))
+                  (c.name?.toLowerCase().contains(query) ?? false) ||
+                  (c.contactNo?.toLowerCase().contains(query) ?? false))
               .toList();
         });
       }
     });
   }
-
-
-
 
   List<Map<String, dynamic>> getFormattedContacts(
       List<Map<String, dynamic>> rawContacts) {
@@ -104,22 +111,22 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
         SharedPreferenceUtils.saved_contacts);
     if (storedData != null) {
       Map<String, dynamic> decoded =
-      await compute(jsonDecode, storedData) as Map<String, dynamic>;
+          await compute(jsonDecode, storedData) as Map<String, dynamic>;
       chatViewController.loadContactsFromLocalStorage(decoded);
     } else {
       await _refreshContacts();
     }
   }
+
 // This is the isolate function → runs in background
   List<Map<String, String>> formatContactsInIsolate(
       List<Map<String, dynamic>> rawContacts) {
-
     return rawContacts
         .where((c) => (c["phones"] as List).isNotEmpty)
         .map((c) => {
-      ApiKeys.contact_no: (c["phones"] as List).first as String,
-      ApiKeys.name: c["displayName"] as String,
-    })
+              ApiKeys.contact_no: (c["phones"] as List).first as String,
+              ApiKeys.name: c["displayName"] as String,
+            })
         .toList();
   }
 
@@ -127,7 +134,7 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
     PermissionStatus status = await Permission.contacts.status;
     if (status.isGranted) {
       List<Contact> contacts =
-      await FlutterContacts.getContacts(withProperties: true);
+          await FlutterContacts.getContacts(withProperties: true);
 
       // Convert Contacts → plain JSON-safe map
       List<Map<String, dynamic>> rawContacts = contacts.map((c) {
@@ -138,7 +145,8 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
       }).toList();
 
       // Compute in isolate
-      List<Map<String, String>> formattedContacts = await formatContactsInIsolate(rawContacts);
+      List<Map<String, String>> formattedContacts =
+          await formatContactsInIsolate(rawContacts);
       // await compute(formatContactsInIsolate, rawContacts);
 
       chatViewController.uploadContacts(formattedContacts);
@@ -149,39 +157,36 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
       } else if (newStatus.isPermanentlyDenied) {
         _showPermissionDialog();
       } else {
-        commonSnackBar(
-            message: "Permission denied");
-
+        commonSnackBar(message: AppStrings.permissionDenied);
       }
     }
   }
 
 // Runs in isolate – must only use JSON-safe data
 
-
-
   void _showPermissionDialog() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Permission Required"),
-        content: const Text("Please allow contact access in app settings."),
+        title: const CustomText(AppStrings.permissionRequired),
+        content: const CustomText(AppStrings.allowContactAccess),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
+            child: const CustomText(AppStrings.cancel),
           ),
           ElevatedButton(
             onPressed: () async {
               Navigator.pop(context);
               await openAppSettings();
             },
-            child: const Text("Allow Permission"),
+            child: const CustomText(AppStrings.allowPermission),
           ),
         ],
       ),
     );
   }
+
   List<ExistingNotConnected> _excludeGroupMembers(
       List<ExistingNotConnected> contacts) {
     if (widget.members == null || widget.members!.isEmpty) return contacts;
@@ -199,7 +204,6 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
 
     return WillPopScope(
       onWillPop: () async {
-
         return true;
       },
       child: Scaffold(
@@ -209,7 +213,7 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
             //     .emitEvent("ChatList", {ApiKeys.type: "personal"});
             Navigator.pop(context);
           },
-          title: "My Contacts",
+          title: AppStrings.myContacts,
           isLeading: true,
           isReloadContactButton: true,
           onRefreshContact: () {
@@ -225,12 +229,12 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
               child: TextField(
                 controller: _searchController,
                 decoration: InputDecoration(
-                  hintText: "Search contacts...",
+                  hintText: AppStrings.searchContacts.tr,
                   prefixIcon: const Icon(Icons.search),
                   filled: true,
                   fillColor: theme.colorScheme.surface,
                   contentPadding:
-                  const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+                      const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(30),
                     borderSide: BorderSide.none,
@@ -257,16 +261,22 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
 
                   return ListView(
                     children: [
-                      _SectionTitle("Contacts Available on BlueEra", theme),
-                      if ((_searchController.text.isEmpty ? existing.isEmpty : _filteredExisting.isEmpty))
-                        const Center(child: Padding(
+                      _SectionTitle(
+                          AppStrings.contactsAvailableOnBlueEra, theme),
+                      if ((_searchController.text.isEmpty
+                          ? existing.isEmpty
+                          : _filteredExisting.isEmpty))
+                        const Center(
+                            child: Padding(
                           padding: EdgeInsets.all(16.0),
-                          child: Text("No contacts found"),
+                          child: CustomText(AppStrings.noContactsFound),
                         ))
                       else
                         ...List.generate(
-                          _searchController.text.isEmpty ? existing.length : _filteredExisting.length,
-                              (index) {
+                          _searchController.text.isEmpty
+                              ? existing.length
+                              : _filteredExisting.length,
+                          (index) {
                             final contact = _searchController.text.isEmpty
                                 ? existing[index]
                                 : _filteredExisting[index];
@@ -275,18 +285,17 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
                               isGroupMode: isGroupMode,
                               selectedUserIds: _selectedUsers,
                               onSelect: (id) {
-                                if(widget.isFromAddMember==true){
+                                if (widget.isFromAddMember == true) {
                                   setState(() {
                                     if (_selectedUsers.contains(id)) {
                                       // If the same user is clicked again → unselect
                                       _selectedUsers.remove(id);
                                     } else {
                                       // If another user is clicked → clear old selection and select new one
-                                      _selectedUsers
-                                        ..add(id!);
+                                      _selectedUsers..add(id!);
                                     }
                                   });
-                                }else{
+                                } else {
                                   setState(() {
                                     if (_selectedUsers.contains(id)) {
                                       // If the same user is clicked again → unselect
@@ -299,8 +308,6 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
                                     }
                                   });
                                 }
-
-
                               },
                               chatViewController: chatViewController,
                             );
@@ -308,7 +315,6 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
                         ),
                     ],
                   );
-
                 } else {
                   return const Center(
                       child: SizedBox(
@@ -320,104 +326,112 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
             ),
           ],
         ),
-        bottomNavigationBar:  SafeArea(
+        bottomNavigationBar: SafeArea(
           child: Container(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
             child: CustomBtn(
-              bgColor: _selectedUsers.isEmpty?theme.colorScheme.primary.withValues(alpha: 0.5):theme.colorScheme.primary,
+              bgColor: _selectedUsers.isEmpty
+                  ? theme.colorScheme.primary.withValues(alpha: 0.5)
+                  : theme.colorScheme.primary,
               width: double.infinity,
               height: 48,
               onTap: _selectedUsers.isEmpty
                   ? null
-                  : () async{
-                if(widget.isFromAddMember==true){
-                  List<String?> userId=_selectedUsers.map((e)=>e.id).toList();
-                  Map<String,dynamic> data=
-                    {
-                      ApiKeys.conversation_id: "${widget.conversationId}",
-                      ApiKeys.conversation_users: userId
-                    }
-                  ;
-                  chatViewController.addGroupMember(params: data);
-                }else{
-                  if(widget.sharedFiles!=null){
-                    List<File> selectedFiles = [];
-                    List<SharedAttachment?>? sharedList = widget.sharedFiles;
+                  : () async {
+                      if (widget.isFromAddMember == true) {
+                        List<String?> userId =
+                            _selectedUsers.map((e) => e.id).toList();
+                        Map<String, dynamic> data = {
+                          ApiKeys.conversation_id: "${widget.conversationId}",
+                          ApiKeys.conversation_users: userId
+                        };
+                        chatViewController.addGroupMember(params: data);
+                      } else {
+                        if (widget.sharedFiles != null) {
+                          List<File> selectedFiles = [];
+                          List<SharedAttachment?>? sharedList =
+                              widget.sharedFiles;
 
-                    if (sharedList != null && sharedList.isNotEmpty) {
-                      selectedFiles = sharedList
-                          .where((e) => e?.path != null && e!.path.isNotEmpty)
-                          .map((e) => File(e!.path))
-                          .toList();
-                    }
+                          if (sharedList != null && sharedList.isNotEmpty) {
+                            selectedFiles = sharedList
+                                .where((e) =>
+                                    e?.path != null && e!.path.isNotEmpty)
+                                .map((e) => File(e!.path))
+                                .toList();
+                          }
 
-                    List<String?> fileNames = [];
-                    List<String?> fileTypes = [];
-                    for (var file in selectedFiles) {
-                      Map<String, String?> fileInfo = getFileInfo(file);
-                      fileNames.add(fileInfo['fileName']);
-                      fileTypes.add(fileInfo['mimeType']);
-                    }
+                          List<String?> fileNames = [];
+                          List<String?> fileTypes = [];
+                          for (var file in selectedFiles) {
+                            Map<String, String?> fileInfo = getFileInfo(file);
+                            fileNames.add(fileInfo['fileName']);
+                            fileTypes.add(fileInfo['mimeType']);
+                          }
 
-                    String firstFileExtension = selectedFiles.first.path
-                        .split('.')
-                        .last
-                        .toLowerCase();
-                    String messageType = ['mp4', 'mov', 'avi', 'mkv'].contains(
-                        firstFileExtension)
-                        ? 'video'
-                        : 'image';
+                          String firstFileExtension = selectedFiles.first.path
+                              .split('.')
+                              .last
+                              .toLowerCase();
+                          String messageType = ['mp4', 'mov', 'avi', 'mkv']
+                                  .contains(firstFileExtension)
+                              ? 'video'
+                              : 'image';
 
-                    final uploadParams = {
-                      ApiKeys.fileName: fileNames,
-                      ApiKeys.fileType: fileTypes,
-                    };
+                          final uploadParams = {
+                            ApiKeys.fileName: fileNames,
+                            ApiKeys.fileType: fileTypes,
+                          };
 
-                    chatViewController.generateUploadUrlsApi(
-                      params: uploadParams,
-                      listFile: selectedFiles,
-                      isInitialMessage: _selectedUsers.first.conversationId==null?true:false,
-                      userId: _selectedUsers.first.id??'',
-                      conversationId: _selectedUsers.first.conversationId??'',
-                      messageType: messageType,
-                    );
-                  }else if(widget.sharedText!=null){
-                    Map<String,dynamic> data = {
-                      if(_selectedUsers.first.conversationId==null)
-                        ApiKeys.other_user_id: _selectedUsers.first.id
-                      else
-                        ApiKeys.conversation_id: _selectedUsers.first.conversationId,
-                      ApiKeys.message: "${widget.sharedText}",
-                      ApiKeys.message_type: "text",
-                    };
-                    if(_selectedUsers.first.conversationId==null){
-                      chatViewController.sendInitialMessage(data);
-                    }else{
-                      chatViewController.sendMessage(data);
-                    }
-                  }
+                          chatViewController.generateUploadUrlsApi(
+                            params: uploadParams,
+                            listFile: selectedFiles,
+                            isInitialMessage:
+                                _selectedUsers.first.conversationId == null
+                                    ? true
+                                    : false,
+                            userId: _selectedUsers.first.id ?? '',
+                            conversationId:
+                                _selectedUsers.first.conversationId ?? '',
+                            messageType: messageType,
+                          );
+                        } else if (widget.sharedText != null) {
+                          Map<String, dynamic> data = {
+                            if (_selectedUsers.first.conversationId == null)
+                              ApiKeys.other_user_id: _selectedUsers.first.id
+                            else
+                              ApiKeys.conversation_id:
+                                  _selectedUsers.first.conversationId,
+                            ApiKeys.message: "${widget.sharedText}",
+                            ApiKeys.message_type: "text",
+                          };
+                          if (_selectedUsers.first.conversationId == null) {
+                            chatViewController.sendInitialMessage(data);
+                          } else {
+                            chatViewController.sendMessage(data);
+                          }
+                        }
 
-                  chatViewController.openAnyOneChatFunction(
-                    type: _selectedUsers.first.accountType,
-                    isInitialMessage: true,
-                    userId: _selectedUsers.first.id,
-                    conversationId: _selectedUsers.first.conversationId ?? '',
-                    profileImage: _selectedUsers.first.profileImage,
-                    contactName: _selectedUsers.first.name,
-                    contactNo: _selectedUsers.first.contactNo,
-                    isFromContactList: true,
-                  );
-                }
-
-
-              },
+                        chatViewController.openAnyOneChatFunction(
+                          type: _selectedUsers.first.accountType,
+                          isInitialMessage: true,
+                          userId: _selectedUsers.first.id,
+                          conversationId:
+                              _selectedUsers.first.conversationId ?? '',
+                          profileImage: _selectedUsers.first.profileImage,
+                          contactName: _selectedUsers.first.name,
+                          contactNo: _selectedUsers.first.contactNo,
+                          isFromContactList: true,
+                        );
+                      }
+                    },
               title: _selectedUsers.isEmpty
-                  ? "Select Contact"
-                  :(widget.isFromAddMember==true)?"Add": "Share",
+                  ? AppStrings.selectContact.tr
+                  : (widget.isFromAddMember == true)
+                      ? AppStrings.add.tr
+                      : AppStrings.share.tr,
             ),
           ),
-        )
-           ,
+        ),
       ),
     );
   }
@@ -426,6 +440,7 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
 class _SectionTitle extends StatelessWidget {
   final String text;
   final ThemeData theme;
+
   const _SectionTitle(this.text, this.theme);
 
   @override
@@ -442,7 +457,6 @@ class _SectionTitle extends StatelessWidget {
   }
 }
 
-
 class _ExistingContactTile extends StatelessWidget {
   final ExistingNotConnected? contact;
   final bool isGroupMode;
@@ -450,7 +464,7 @@ class _ExistingContactTile extends StatelessWidget {
   final void Function(ExistingNotConnected? id) onSelect;
   final ChatViewController chatViewController;
 
-  const   _ExistingContactTile({
+  const _ExistingContactTile({
     required this.contact,
     required this.isGroupMode,
     required this.selectedUserIds,
@@ -470,45 +484,44 @@ class _ExistingContactTile extends StatelessWidget {
 
     return ListTile(
       onTap: () {
-          if (userId.isNotEmpty) onSelect(contact);
+        if (userId.isNotEmpty) onSelect(contact);
       },
       leading: CircleAvatar(
         radius: 20,
-        backgroundImage:
-        profileImage.isNotEmpty ? CachedNetworkImageProvider(profileImage) : null,
+        backgroundImage: profileImage.isNotEmpty
+            ? CachedNetworkImageProvider(profileImage)
+            : null,
         child: profileImage.isEmpty
             ? CustomText(
-          name.isNotEmpty ? name[0].toUpperCase() : "?",
-          fontSize: 20,
-          color: theme.colorScheme.surface,
-        )
+                name.isNotEmpty ? name[0].toUpperCase() : "?",
+                fontSize: 20,
+                color: theme.colorScheme.surface,
+              )
             : null,
       ),
-      title: Text( name.isNotEmpty ? name : phone,
-        style: const TextStyle(
-          fontWeight: FontWeight.w600,
-        ),
+      title: CustomText(
+        name.isNotEmpty ? name : phone,
+        fontWeight: FontWeight.w600,
         maxLines: 1,
-        overflow: TextOverflow.ellipsis,),
+        overflow: TextOverflow.ellipsis,
+      ),
       subtitle: name.isNotEmpty
           ? CustomText(
-        (contact?.accountType == "INDIVIDUAL")
-            ? (contact?.designation?.isNotEmpty ?? false)
-            ? contact!.designation!
-            : phone
-            : "",
-      )
+              (contact?.accountType == "INDIVIDUAL")
+                  ? (contact?.designation?.isNotEmpty ?? false)
+                      ? contact!.designation!
+                      : phone
+                  : "",
+            )
           : null,
       trailing: isGroupMode
           ? Checkbox(
-        activeColor: Colors.blue, // fill color when selected
-        checkColor: Colors.white,
-        value: isSelected,
-        onChanged: (_) => onSelect(contact),
-      )
+              activeColor: AppColors.primaryColor, // fill color when selected
+              checkColor: Colors.white,
+              value: isSelected,
+              onChanged: (_) => onSelect(contact),
+            )
           : null,
     );
   }
 }
-
-

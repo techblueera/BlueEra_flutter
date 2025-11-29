@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_theme_controller.dart';
 import 'package:BlueEra/features/chat/view/group_chat/add_new_group_page.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -23,6 +24,7 @@ import '../../auth/model/contactListModel.dart';
 
 class ContactsPage extends StatefulWidget {
   final String? from;
+
   const ContactsPage({super.key, this.from});
 
   @override
@@ -58,6 +60,7 @@ class _ContactsPageState extends State<ContactsPage> {
     _debounce?.cancel();
     super.dispose();
   }
+
   void _onSearchChanged() {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
     _debounce = Timer(const Duration(milliseconds: 300), () {
@@ -74,13 +77,11 @@ class _ContactsPageState extends State<ContactsPage> {
           if (query.isEmpty) {
             _filteredGroupConnections = List.from(groupList);
           } else {
-            _filteredGroupConnections = groupList
-                .where((item) {
+            _filteredGroupConnections = groupList.where((item) {
               final name = (item['name'] ?? '').toString().toLowerCase();
               final userId = (item['user_id'] ?? '').toString().toLowerCase();
               return name.contains(query) || userId.contains(query);
-            })
-                .toList();
+            }).toList();
           }
         });
       } else {
@@ -89,17 +90,17 @@ class _ContactsPageState extends State<ContactsPage> {
         if (details != null) {
           setState(() {
             _filteredExisting = details.existingNotConnected
-                ?.where((c) =>
-            (c.name?.toLowerCase().contains(query) ?? false) ||
-                (c.contactNo?.toLowerCase().contains(query) ?? false))
-                .toList() ??
+                    ?.where((c) =>
+                        (c.name?.toLowerCase().contains(query) ?? false) ||
+                        (c.contactNo?.toLowerCase().contains(query) ?? false))
+                    .toList() ??
                 [];
 
             _filteredNonExisting = details.nonExistingContacts
-                ?.where((c) =>
-            (c.name?.toLowerCase().contains(query) ?? false) ||
-                (c.contactNo?.toLowerCase().contains(query) ?? false))
-                .toList() ??
+                    ?.where((c) =>
+                        (c.name?.toLowerCase().contains(query) ?? false) ||
+                        (c.contactNo?.toLowerCase().contains(query) ?? false))
+                    .toList() ??
                 [];
           });
         }
@@ -115,17 +116,17 @@ class _ContactsPageState extends State<ContactsPage> {
       if (details != null) {
         setState(() {
           _filteredExisting = details.existingNotConnected
-              ?.where((c) =>
-          (c.name?.toLowerCase().contains(query) ?? false) ||
-              (c.contactNo?.toLowerCase().contains(query) ?? false))
-              .toList() ??
+                  ?.where((c) =>
+                      (c.name?.toLowerCase().contains(query) ?? false) ||
+                      (c.contactNo?.toLowerCase().contains(query) ?? false))
+                  .toList() ??
               [];
 
           _filteredNonExisting = details.nonExistingContacts
-              ?.where((c) =>
-          (c.name?.toLowerCase().contains(query) ?? false) ||
-              (c.contactNo?.toLowerCase().contains(query) ?? false))
-              .toList() ??
+                  ?.where((c) =>
+                      (c.name?.toLowerCase().contains(query) ?? false) ||
+                      (c.contactNo?.toLowerCase().contains(query) ?? false))
+                  .toList() ??
               [];
         });
       }
@@ -148,22 +149,22 @@ class _ContactsPageState extends State<ContactsPage> {
         SharedPreferenceUtils.saved_contacts);
     if (storedData != null) {
       Map<String, dynamic> decoded =
-      await compute(jsonDecode, storedData) as Map<String, dynamic>;
+          await compute(jsonDecode, storedData) as Map<String, dynamic>;
       chatViewController.loadContactsFromLocalStorage(decoded);
     } else {
       await _refreshContacts();
     }
   }
+
 // This is the isolate function → runs in background
   List<Map<String, String>> formatContactsInIsolate(
       List<Map<String, dynamic>> rawContacts) {
-
     return rawContacts
         .where((c) => (c["phones"] as List).isNotEmpty)
         .map((c) => {
-      ApiKeys.contact_no: (c["phones"] as List).first as String,
-      ApiKeys.name: c["displayName"] as String,
-    })
+              ApiKeys.contact_no: (c["phones"] as List).first as String,
+              ApiKeys.name: c["displayName"] as String,
+            })
         .toList();
   }
 
@@ -171,7 +172,7 @@ class _ContactsPageState extends State<ContactsPage> {
     PermissionStatus status = await Permission.contacts.status;
     if (status.isGranted) {
       List<Contact> contacts =
-      await FlutterContacts.getContacts(withProperties: true);
+          await FlutterContacts.getContacts(withProperties: true);
 
       // Convert Contacts → plain JSON-safe map
       List<Map<String, dynamic>> rawContacts = contacts.map((c) {
@@ -182,7 +183,8 @@ class _ContactsPageState extends State<ContactsPage> {
       }).toList();
 
       // Compute in isolate
-      List<Map<String, String>> formattedContacts = await formatContactsInIsolate(rawContacts);
+      List<Map<String, String>> formattedContacts =
+          await formatContactsInIsolate(rawContacts);
       // await compute(formatContactsInIsolate, rawContacts);
 
       chatViewController.uploadContacts(formattedContacts);
@@ -193,33 +195,30 @@ class _ContactsPageState extends State<ContactsPage> {
       } else if (newStatus.isPermanentlyDenied) {
         _showPermissionDialog();
       } else {
-        commonSnackBar(
-            message: "Permission denied");
+        commonSnackBar(message: AppStrings.permissionDenied);
       }
     }
   }
 
 // Runs in isolate – must only use JSON-safe data
 
-
-
   void _showPermissionDialog() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Permission Required"),
-        content: const Text("Please allow contact access in app settings."),
+        title: const CustomText(AppStrings.permissionRequired),
+        content: const CustomText(AppStrings.allowContactAccess),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
+            child: const CustomText(AppStrings.cancel),
           ),
           ElevatedButton(
             onPressed: () async {
               Navigator.pop(context);
               await openAppSettings();
             },
-            child: const Text("Allow Permission"),
+            child: const CustomText(AppStrings.allowPermission),
           ),
         ],
       ),
@@ -233,7 +232,8 @@ class _ContactsPageState extends State<ContactsPage> {
 
     return WillPopScope(
       onWillPop: () async {
-        chatViewController.emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: "personal"});
+        chatViewController
+            .emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: "personal"});
         return true;
       },
       child: Scaffold(
@@ -243,7 +243,7 @@ class _ContactsPageState extends State<ContactsPage> {
                 .emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: "personal"});
             Navigator.pop(context);
           },
-          title: "My Contacts",
+          title: AppStrings.myContacts,
           isLeading: true,
           isReloadContactButton: true,
           onRefreshContact: () {
@@ -261,12 +261,12 @@ class _ContactsPageState extends State<ContactsPage> {
               child: TextField(
                 controller: _searchController,
                 decoration: InputDecoration(
-                  hintText: "Search contacts...",
+                  hintText: AppStrings.searchContacts.tr,
                   prefixIcon: const Icon(Icons.search),
                   filled: true,
                   fillColor: theme.colorScheme.surface,
                   contentPadding:
-                  const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+                      const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(30),
                     borderSide: BorderSide.none,
@@ -276,7 +276,6 @@ class _ContactsPageState extends State<ContactsPage> {
             ),
             Expanded(
               child: Obx(() {
-                print("sdlkcsdlkmcsdlc ${chatViewController.viewContactsListResponse.value.status}");
                 if (chatViewController.viewContactsListResponse.value.status ==
                     Status.COMPLETE) {
                   final details =
@@ -303,7 +302,7 @@ class _ContactsPageState extends State<ContactsPage> {
                       return const Center(
                         child: Padding(
                           padding: EdgeInsets.all(16.0),
-                          child: Text("No groups found"),
+                          child: CustomText(AppStrings.noGroupsFound),
                         ),
                       );
                     }
@@ -357,57 +356,66 @@ class _ContactsPageState extends State<ContactsPage> {
 
                   // Normal contacts (with two sections)
                   return ListView(
-                  children: [
-                    _SectionTitle("Contacts Available on BlueEra", theme),
-                    if ((_searchController.text.isEmpty ? existing.isEmpty : _filteredExisting.isEmpty))
-                      const Center(child: Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: Text("No contacts found"),
-                      ))
-                    else
-                      ...List.generate(
-                        _searchController.text.isEmpty ? existing.length : _filteredExisting.length,
-                            (index) {
-                          final contact = _searchController.text.isEmpty
-                              ? existing[index]
-                              : _filteredExisting[index];
-                          return _ExistingContactTile(
-                            contact: contact,
-                            isGroupMode: isGroupMode,
-                            selectedUserIds: _selectedUserIds,
-                            onSelect: (id) {
-                              setState(() {
-                                if (_selectedUserIds.contains(id)) {
-                                  _selectedUserIds.remove(id);
-                                } else {
-                                  _selectedUserIds.add(id);
-                                }
-                              });
-                            },
-                            chatViewController: chatViewController,
-                          );
-                        },
-                      ),
-
-                    _SectionTitle("Invite to BlueEra", theme),
-                    if ((_searchController.text.isEmpty ? nonExisting.isEmpty : _filteredNonExisting.isEmpty))
-                      const Center(child: Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: Text("No contacts found"),
-                      ))
-                    else
-                      ...List.generate(
-                        _searchController.text.isEmpty ? nonExisting.length : _filteredNonExisting.length,
-                            (index) {
-                          final contact = _searchController.text.isEmpty
-                              ? nonExisting[index]
-                              : _filteredNonExisting[index];
-                          return _NonExistingContactTile(contact: contact);
-                        },
-                      ),
-                  ],
+                    children: [
+                      _SectionTitle(
+                          AppStrings.contactsAvailableOnBlueEra, theme),
+                      if ((_searchController.text.isEmpty
+                          ? existing.isEmpty
+                          : _filteredExisting.isEmpty))
+                        const Center(
+                            child: Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: CustomText(AppStrings.noContactsFound),
+                        ))
+                      else
+                        ...List.generate(
+                          _searchController.text.isEmpty
+                              ? existing.length
+                              : _filteredExisting.length,
+                          (index) {
+                            final contact = _searchController.text.isEmpty
+                                ? existing[index]
+                                : _filteredExisting[index];
+                            return _ExistingContactTile(
+                              contact: contact,
+                              isGroupMode: isGroupMode,
+                              selectedUserIds: _selectedUserIds,
+                              onSelect: (id) {
+                                setState(() {
+                                  if (_selectedUserIds.contains(id)) {
+                                    _selectedUserIds.remove(id);
+                                  } else {
+                                    _selectedUserIds.add(id);
+                                  }
+                                });
+                              },
+                              chatViewController: chatViewController,
+                            );
+                          },
+                        ),
+                      _SectionTitle(AppStrings.inviteToBlueEra, theme),
+                      if ((_searchController.text.isEmpty
+                          ? nonExisting.isEmpty
+                          : _filteredNonExisting.isEmpty))
+                        const Center(
+                            child: Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: CustomText(AppStrings.noContactsFound),
+                        ))
+                      else
+                        ...List.generate(
+                          _searchController.text.isEmpty
+                              ? nonExisting.length
+                              : _filteredNonExisting.length,
+                          (index) {
+                            final contact = _searchController.text.isEmpty
+                                ? nonExisting[index]
+                                : _filteredNonExisting[index];
+                            return _NonExistingContactTile(contact: contact);
+                          },
+                        ),
+                    ],
                   );
-
                 } else {
                   return const Center(
                       child: SizedBox(
@@ -421,30 +429,32 @@ class _ContactsPageState extends State<ContactsPage> {
         ),
         bottomNavigationBar: isGroupMode
             ? SafeArea(
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-            child: CustomBtn(
-              bgColor: _selectedUserIds.isEmpty?theme.colorScheme.primary.withValues(alpha: 0.5):theme.colorScheme.primary,
-              width: double.infinity,
-              height: 48,
-              onTap: _selectedUserIds.isEmpty
-                  ? null
-                  : () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => AddNewGroupPage(
-                      selectedUserIds: _selectedUserIds.toList(),
-                    ),
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                  child: CustomBtn(
+                    bgColor: _selectedUserIds.isEmpty
+                        ? theme.colorScheme.primary.withValues(alpha: 0.5)
+                        : theme.colorScheme.primary,
+                    width: double.infinity,
+                    height: 48,
+                    onTap: _selectedUserIds.isEmpty
+                        ? null
+                        : () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => AddNewGroupPage(
+                                  selectedUserIds: _selectedUserIds.toList(),
+                                ),
+                              ),
+                            );
+                          },
+                    title: _selectedUserIds.isEmpty
+                        ? AppStrings.selectMembers.tr
+                        : "${AppStrings.addedMembers.tr} (${_selectedUserIds.length})",
                   ),
-                );
-              },
-              title: _selectedUserIds.isEmpty
-                  ? "Select members"
-                  : "Added Members (${_selectedUserIds.length})",
-            ),
-          ),
-        )
+                ),
+              )
             : null,
       ),
     );
@@ -454,6 +464,7 @@ class _ContactsPageState extends State<ContactsPage> {
 class _SectionTitle extends StatelessWidget {
   final String text;
   final ThemeData theme;
+
   const _SectionTitle(this.text, this.theme);
 
   @override
@@ -486,8 +497,7 @@ class _GroupContactTile extends StatelessWidget {
     final theme = Theme.of(context);
     final userId = item['platform_id'] ?? item['user_id'];
     final name = (item['name'] ?? '').toString();
-    final phone =
-    (item['contact_no'] ?? item['contact'] ?? '').toString();
+    final phone = (item['contact_no'] ?? item['contact'] ?? '').toString();
     final profileImage = (item['profile_image'] ?? '').toString();
 
     return ListTile(
@@ -499,10 +509,10 @@ class _GroupContactTile extends StatelessWidget {
             : null,
         child: profileImage.isEmpty
             ? CustomText(
-          name.isNotEmpty ? name[0].toUpperCase() : "?",
-          fontSize: 20,
-          color: theme.colorScheme.surface,
-        )
+                name.isNotEmpty ? name[0].toUpperCase() : "?",
+                fontSize: 20,
+                color: theme.colorScheme.surface,
+              )
             : null,
       ),
       title: Text(name.isNotEmpty ? name : phone,
@@ -525,7 +535,7 @@ class _ExistingContactTile extends StatelessWidget {
   final void Function(String id) onSelect;
   final ChatViewController chatViewController;
 
-  const   _ExistingContactTile({
+  const _ExistingContactTile({
     required this.contact,
     required this.isGroupMode,
     required this.selectedUserIds,
@@ -564,36 +574,39 @@ class _ExistingContactTile extends StatelessWidget {
       },
       leading: CircleAvatar(
         radius: 20,
-        backgroundImage:
-        profileImage.isNotEmpty ? CachedNetworkImageProvider(profileImage) : null,
+        backgroundImage: profileImage.isNotEmpty
+            ? CachedNetworkImageProvider(profileImage)
+            : null,
         child: profileImage.isEmpty
             ? CustomText(
-          name.isNotEmpty ? name[0].toUpperCase() : "?",
-          fontSize: 20,
-          color: theme.colorScheme.surface,
-        )
+                name.isNotEmpty ? name[0].toUpperCase() : "?",
+                fontSize: 20,
+                color: theme.colorScheme.surface,
+              )
             : null,
       ),
-      title: Text( name.isNotEmpty ? name : phone,
+      title: Text(
+        name.isNotEmpty ? name : phone,
         style: const TextStyle(
           fontWeight: FontWeight.w600,
         ),
         maxLines: 1,
-        overflow: TextOverflow.ellipsis,),
+        overflow: TextOverflow.ellipsis,
+      ),
       subtitle: name.isNotEmpty
           ? CustomText(
-        (contact?.accountType == "INDIVIDUAL")
-            ? (contact?.designation?.isNotEmpty ?? false)
-            ? contact!.designation!
-            : phone
-            : "",
-      )
+              (contact?.accountType == "INDIVIDUAL")
+                  ? (contact?.designation?.isNotEmpty ?? false)
+                      ? contact!.designation!
+                      : phone
+                  : "",
+            )
           : null,
       trailing: isGroupMode
           ? Checkbox(
-        value: isSelected,
-        onChanged: (_) => onSelect(userId),
-      )
+              value: isSelected,
+              onChanged: (_) => onSelect(userId),
+            )
           : null,
     );
   }
@@ -601,6 +614,7 @@ class _ExistingContactTile extends StatelessWidget {
 
 class _NonExistingContactTile extends StatelessWidget {
   final NonExistingContacts? contact;
+
   const _NonExistingContactTile({required this.contact});
 
   @override
@@ -619,18 +633,18 @@ class _NonExistingContactTile extends StatelessWidget {
           color: theme.colorScheme.surface,
         ),
       ),
-      title: Text(name.isNotEmpty ? name : phone,
+      title: Text(
+        name.isNotEmpty ? name : phone,
         style: const TextStyle(
           fontWeight: FontWeight.w600,
         ),
         maxLines: 1,
-        overflow: TextOverflow.ellipsis,),
+        overflow: TextOverflow.ellipsis,
+      ),
       subtitle: Text(phone),
       trailing: TextButton(
-        onPressed: () =>
-            VisitingCardHelper.buildAndShareVisitingCard(context),
-        child: const CustomText("Invite",
-            fontWeight: FontWeight.w600),
+        onPressed: () => VisitingCardHelper.buildAndShareVisitingCard(context),
+        child: const CustomText(AppStrings.invite, fontWeight: FontWeight.w600),
       ),
     );
   }

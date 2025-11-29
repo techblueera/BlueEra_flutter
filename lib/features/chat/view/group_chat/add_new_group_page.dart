@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -82,7 +83,7 @@ class _AddNewGroupPageState extends State<AddNewGroupPage> {
         } else {
           final groupConnection = chatViewController.groupConnections
               .where((connection) =>
-          connection['id'] == userId || connection['_id'] == userId)
+                  connection['id'] == userId || connection['_id'] == userId)
               .firstOrNull;
 
           if (groupConnection != null) {
@@ -143,7 +144,7 @@ class _AddNewGroupPageState extends State<AddNewGroupPage> {
             children: [
               Padding(
                 padding:
-                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
+                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
                 child: Row(
                   children: [
                     InkWell(
@@ -152,12 +153,12 @@ class _AddNewGroupPageState extends State<AddNewGroupPage> {
                         radius: 22,
                         backgroundColor: AppColors.grey9B,
                         backgroundImage:
-                        pickedFile != null ? FileImage(pickedFile!) : null,
+                            pickedFile != null ? FileImage(pickedFile!) : null,
                         child: pickedFile == null
                             ? Icon(Icons.camera_alt,
-                            color: AppColors.white ??
-                                AppColors.white.withOpacity(0.7),
-                            size: 30)
+                                color: AppColors.white ??
+                                    AppColors.white.withOpacity(0.7),
+                                size: 30)
                             : null,
                       ),
                     ),
@@ -165,13 +166,13 @@ class _AddNewGroupPageState extends State<AddNewGroupPage> {
                     Expanded(
                       child: CommonTextField(
                         validator: (val) =>
-                        val!.isEmpty ? "Enter Group Name" : null,
+                            val!.isEmpty ? "Enter Group Name" : null,
                         maxLine: 1,
                         textEditController: groupNameController,
                         inputLength: AppConstants.inputCharterLimit50,
                         keyBoardType: TextInputType.text,
                         regularExpression:
-                        RegularExpressionUtils.alphabetSpacePattern,
+                            RegularExpressionUtils.alphabetSpacePattern,
                         hintText: "Group Name",
                         isValidate: false,
                       ),
@@ -179,9 +180,7 @@ class _AddNewGroupPageState extends State<AddNewGroupPage> {
                   ],
                 ),
               ),
-
               Divider(color: AppColors.grey9B),
-
               ListTile(
                 leading: Icon(
                   (!publicGroup) ? Icons.lock_outline : Icons.lock_open,
@@ -205,80 +204,74 @@ class _AddNewGroupPageState extends State<AddNewGroupPage> {
                   });
                 },
               ),
-
               const SizedBox(height: 10),
-
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Obx(() => CustomText(
-                  "Members: ${chatViewController.selectedChatList.length}",
-                  color: AppColors.black,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                )),
+                      "${AppStrings.members.tr}: ${chatViewController.selectedChatList.length}",
+                      color: AppColors.black,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    )),
               ),
-
               const SizedBox(height: 10),
-
               SizedBox(
                 height: 800,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4),
                   child: isLoadingMembers
                       ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        CircularProgressIndicator(
-                            color: AppColors.primaryColor),
-                        SizedBox(height: 16),
-                        CustomText("Loading members...",
-                            color: AppColors.black),
-                      ],
-                    ),
-                  )
-                      : Obx(() => chatViewController
-                      .selectedChatList.isEmpty
-                      ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.people_outline,
-                            size: 64, color: AppColors.grey9B),
-                        SizedBox(height: 16),
-                        CustomText(
-                          "No members found",
-                          color: AppColors.grey9B,
-                        ),
-                      ],
-                    ),
-                  )
-                      : ListView.builder(
-                    padding: const EdgeInsets.symmetric(vertical: 6),
-                    itemCount:
-                    chatViewController.selectedChatList.length,
-                    itemBuilder: (context, index) {
-                      return ChatListTile(
-                        onSelect: () => setState(() {}),
-                        type: "create group",
-                        index: index,
-                        chatViewController: chatViewController,
-                        chat: chatViewController
-                            .selectedChatList[index],
-                        theme: theme,
-                        isForwardUI: true,
-                        context: context,
-                        isFromGroupSelect: true,
-                      );
-                    },
-                  )),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              CircularProgressIndicator(
+                                  color: AppColors.primaryColor),
+                              SizedBox(height: 16),
+                              CustomText("Loading members...",
+                                  color: AppColors.black),
+                            ],
+                          ),
+                        )
+                      : Obx(() => chatViewController.selectedChatList.isEmpty
+                          ? Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.people_outline,
+                                      size: 64, color: AppColors.grey9B),
+                                  SizedBox(height: 16),
+                                  CustomText(
+                                    "No members found",
+                                    color: AppColors.grey9B,
+                                  ),
+                                ],
+                              ),
+                            )
+                          : ListView.builder(
+                              padding: const EdgeInsets.symmetric(vertical: 6),
+                              itemCount:
+                                  chatViewController.selectedChatList.length,
+                              itemBuilder: (context, index) {
+                                return ChatListTile(
+                                  onSelect: () => setState(() {}),
+                                  type: "create group",
+                                  index: index,
+                                  chatViewController: chatViewController,
+                                  chat: chatViewController
+                                      .selectedChatList[index],
+                                  theme: theme,
+                                  isForwardUI: true,
+                                  context: context,
+                                  isFromGroupSelect: true,
+                                );
+                              },
+                            )),
                 ),
               ),
             ],
           ),
         ),
       ),
-
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           if (_formKey.currentState!.validate()) {

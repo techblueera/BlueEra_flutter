@@ -1951,5 +1951,34 @@ class AppStrings {
   static const recording = "recording";
   static const tab_ott = "tab_ott";
 
-  ///BHAVESH END
+  ///CHAT & ORDER...
+  static const pickupOrderVerifiedSuccessfully = "pickupOrderVerifiedSuccessfully";
+  static const riderWillAcceptSoon = "riderWillAcceptSoon";
+  static const orderDeletedSuccessfully = "orderDeletedSuccessfully";
+
+  static const permissionRequired = "permissionRequired";
+  static const allowContactAccess = "allowContactAccess";
+  static const allowPermission = "allowPermission";
+  static const myContacts = "myContacts";
+  static const searchContacts = "searchContacts";
+  static const noContactsFound = "noContactsFound";
+  static const contactsAvailableOnBlueEra = "contactsAvailableOnBlueEra";
+  static const selectContact = "selectContact";
+  static const permissionDenied = "permissionDenied";
+  static const inviteToBlueEra = "inviteToBlueEra";
+  static const selectMembers = "selectMembers";
+  static const addedMembers = "addedMembers";
+  static const invite = "invite";
+  static const noGroupsFound = "noGroupsFound";
+  static const typeMessage = "typeMessage";
+  static const pleaseEnterUrl = "pleaseEnterUrl";
+
+  static const newDeliveryOrder = "newDeliveryOrder";
+
+  static const orderAccepted = "orderAccepted";
+  static const orderRejected = "orderRejected";
+  static const orderStatusMsg = "orderStatusMsg";
+  static const noReviewsFound = "noReviewsFound";
+
+
 }
