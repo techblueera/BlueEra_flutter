@@ -1730,6 +1730,17 @@ class AppStrings {
   static const String roadsideOutsideView = 'roadsideOutsideView';
   static const personalDetails = "personalDetails";
 
+  static const unmarriedCouplesRequired = "unmarriedCouplesRequired";
+  static const studentsOrBachelorsRequired = "studentsOrBachelorsRequired";
+  static const foodHabitRequired = "foodHabitRequired";
+  static const areYouAllowBachelorOrStudent = "areYouAllowBachelorOrStudent";
+  static const anyFoodHabitRestrictions = "anyFoodHabitRestrictions";
+  static const kindlyIndicateWhichFoodHabits = "kindlyIndicateWhichFoodHabits";
+  static const addMoreRestrictions = "addMoreRestrictions";
+  static const vegetarian = "vegetarian";
+  static const nonVegetarian = "nonVegetarian";
+
+
 
   ///BHAVESH START
   static const ownerDetail = "owner_detail";

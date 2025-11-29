@@ -23,6 +23,7 @@ import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_drop_down.dart';
 import 'package:BlueEra/widgets/common_location_search_field.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
+import 'package:BlueEra/widgets/custom_switch_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/update_contact_number.dart';
@@ -363,6 +364,8 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
             CustomFormCard(
                 child: Column(
                   children: [
+                    _buildRestrictionWidget(),
+                    SizedBox(height: SizeConfig.paddingL),
                     _buildAddMoreDetails(),
                     SizedBox(height: SizeConfig.paddingL),
                     CustomBtn(
@@ -377,6 +380,185 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildRestrictionWidget() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: EdgeInsets.all(SizeConfig.size12),
+          decoration: BoxDecoration(
+              color: AppColors.whiteFE,
+              borderRadius: BorderRadius.circular(10.0),
+              border: Border.all(
+                  color: AppColors.whiteE5
+              ),
+              boxShadow: [AppShadows.textFieldShadow]
+          ),
+          child:  Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              CustomText(
+                AppStrings.doYouAllowUnmarriedCouples,
+                fontSize: SizeConfig.medium,
+                color: AppColors.secondaryTextColor,
+                fontWeight: FontWeight.w400,
+              ),
+              CustomSwitch(
+                value: controller.isUnMarried.value,
+                onChanged: (val) {
+                  controller.isUnMarried.value = !controller.isUnMarried.value;
+                },
+                containerHeight: SizeConfig.size24,
+                containerWidth: SizeConfig.size50,
+                circleSize: SizeConfig.size18,
+              ),
+            ],
+          ),
+        ),
+
+        SizedBox(height: SizeConfig.paddingXSL),
+
+        Container(
+          padding: EdgeInsets.all(SizeConfig.size12),
+          decoration: BoxDecoration(
+              color: AppColors.whiteFE,
+              borderRadius: BorderRadius.circular(10.0),
+              border: Border.all(
+                  color: AppColors.whiteE5
+              ),
+              boxShadow: [AppShadows.textFieldShadow]
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              CustomText(
+                AppStrings.areYouAllowBachelorOrStudent,
+                fontSize: SizeConfig.medium,
+                color: AppColors.secondaryTextColor,
+                fontWeight: FontWeight.w400,
+              ),
+              CustomSwitch(
+                value: controller.isAllowStudentOrBachelor.value,
+                onChanged: (val) {
+                  controller.isAllowStudentOrBachelor.value = !controller.isAllowStudentOrBachelor.value;
+                },
+                containerHeight: SizeConfig.size24,
+                containerWidth: SizeConfig.size50,
+                circleSize: SizeConfig.size18,
+              ),
+            ],
+          ),
+        ),
+
+        SizedBox(height: SizeConfig.paddingXSL),
+
+        Container(
+          decoration: BoxDecoration(
+              color: AppColors.whiteFE,
+              borderRadius: BorderRadius.circular(10.0),
+              border: Border.all(
+                  color: AppColors.whiteE5
+              ),
+              boxShadow: [AppShadows.textFieldShadow]
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: EdgeInsets.only(
+                  left: SizeConfig.size12,
+                  right: SizeConfig.size12,
+                  top: SizeConfig.size12,
+                  bottom: SizeConfig.size12,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    CustomText(
+                      AppStrings.anyFoodHabitRestrictions,
+                      fontSize: SizeConfig.medium,
+                      color: AppColors.secondaryTextColor,
+                      fontWeight: FontWeight.w400,
+                    ),
+                    CustomSwitch(
+                      value: controller.anyFoodHabitRestriction.value,
+                      onChanged: (val) {
+                        controller.anyFoodHabitRestriction.value = !controller.anyFoodHabitRestriction.value;
+                      },
+                      containerHeight: SizeConfig.size24,
+                      containerWidth: SizeConfig.size50,
+                      circleSize: SizeConfig.size18,
+                    ),
+                  ],
+                ),
+              ),
+
+              if(controller.anyFoodHabitRestriction.value)
+                ...[
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+                    child: CustomText(
+                      AppStrings.kindlyIndicateWhichFoodHabits,
+                      fontSize: SizeConfig.small,
+                      color: AppColors.secondaryTextColor,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                  SizedBox(height: SizeConfig.paddingXSL),
+                  ...controller.foodHabits.map((habit) {
+                    return CheckboxListTile(
+                      value: controller.selectedHabits[habit['id']],
+                      onChanged: (value) {
+                        if (value == true) {
+                          // Uncheck all other habits first
+                          controller.selectedHabits.forEach((key, _) {
+                            controller.selectedHabits[key] = false;
+                          });
+                          // Then check only the selected one
+                          controller.selectedHabits[habit['id']!] = true;
+                        } else {
+                          controller.selectedHabits[habit['id']!] = false;
+                        }                      },
+                      title: CustomText(
+                        habit['label']!,
+                        fontSize: SizeConfig.small,
+                        color: AppColors.secondaryTextColor,
+                        fontWeight: FontWeight.w400,
+                      ),
+                      contentPadding: EdgeInsets.zero,
+                      controlAffinity: ListTileControlAffinity.leading,
+                      checkColor: Colors.white,
+                      dense: true,
+                      visualDensity: VisualDensity(horizontal: -4, vertical: -2),
+                    );
+                  }).toList(),
+
+                ],
+
+            ],
+          ),
+        ),
+
+        SizedBox(height: SizeConfig.paddingL),
+
+        Row(
+          mainAxisAlignment: MainAxisAlignment.start  ,
+          children: [
+            const LocalAssets(
+              imagePath: AppIconAssets.addBlueIcon,
+            ),
+            CustomText(
+              AppStrings.addMoreRestrictions,
+              fontSize: SizeConfig.large,
+              fontWeight: FontWeight.w400,
+              color: AppColors.primaryColor,
+            ),
+          ],
+        ),
+      ],
     );
   }
 
