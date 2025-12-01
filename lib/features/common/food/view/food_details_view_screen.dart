@@ -218,7 +218,7 @@ class FoodDetailsViewScreen extends StatelessWidget {
                                         ?.value?.data?.otherUserId ??
                                     ''
                                 : null,
-                            businessId: business?.id,
+                            // businessId: business?.id,
                             type: AppConstants.chatMsgBusinessType,
                             isInitialMessage: (chatViewController
                                             .newVisitContactApiResponse

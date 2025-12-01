@@ -321,7 +321,6 @@ class _HomeServicesBottomSheetState extends State<HomeServicesBottomSheet> {
                                       otherUserId: hasExisting
                                           ? null
                                           : chatData?.otherUserId ?? '',
-                                      businessId: "",
                                       type: "personal",
                                       isInitialMessage: !hasExisting,
                                       userId: serviceData.id ?? '',

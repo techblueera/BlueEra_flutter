@@ -19,7 +19,6 @@ class PersonalChatScreen extends StatefulWidget {
   PersonalChatScreen(
       {required this.conversationId,
       required this.userId,
-      required this.businessId,
       this.profileImage,
       required this.type,
       this.name,
@@ -29,7 +28,6 @@ class PersonalChatScreen extends StatefulWidget {
   final String? conversationId;
   final String? userId;
   final String? profileImage;
-  final String? businessId;
   final String? name;
   final String? contactNo;
   final String? type;

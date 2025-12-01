@@ -147,7 +147,7 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
                                   '')
                               ? viewBusinessDetailsController.otherUserId?.value
                               : null,
-                      businessId: widget.businessProfileDetails.id,
+                      // businessId: widget.businessProfileDetails.id,
                       type: "business",
                       isInitialMessage:
                           (viewBusinessDetailsController.conversationId.value ==

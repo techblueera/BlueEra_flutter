@@ -258,7 +258,6 @@ class _FollowersFollowingPageState extends State<FollowersFollowingPage>
                                 ?.data?.otherUserId ??
                             ''
                         : null,
-                    businessId: "",
                     type: user?.accountType?.toLowerCase(),
                     isInitialMessage: (chatViewController
                                     .newVisitContactApiResponse

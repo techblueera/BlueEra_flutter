@@ -260,7 +260,7 @@ class _ProductCardState extends State<ProductCardBusiness> {
                         ?.data?.otherUserId ??
                         ''
                         : null,
-                    businessId: widget.businessData?.id,
+                    // businessId: widget.businessData?.id,
                     type: "business",
                     isInitialMessage: (chatViewController
                         .newVisitContactApiResponse

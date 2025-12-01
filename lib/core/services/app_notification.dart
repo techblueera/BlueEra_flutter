@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -27,6 +28,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as httpPkg;
 import 'package:permission_handler/permission_handler.dart';
 
+import '../../features/chat/view/group_chat/group_chat_screen.dart';
 import '../../features/chat/view/orders_chat/widget/order_call_alert_page.dart';
 import '../routes/route_helper.dart';
 import 'notifications/ride_notification_data_model.dart';
@@ -393,6 +395,7 @@ class AppNotificationHandler {
 
     /// when app is in background and user tap on it.
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+
       if (message != null && message.data != null) {
         _onTapNotificationFromStatusBar(message.data);
       }
@@ -424,22 +427,36 @@ class AppNotificationHandler {
         OneSignalNotificationDetailsModel.fromJson(dataNotificationResponse);
 
     if (data.operation == "sent_message") {
-      final chatViewController = Get.put(ChatViewController());
-      chatViewController.connectSocket();
-      chatViewController.openAnyOneChatFunction(
-        type: data.conversationType ?? '',
-        conversationId: data.conversationId ?? '',
-        userId: data.senderUser?.id,
-        contactName: data.senderUser?.name,
-        contactNo: "",
-        // contactNo: data.senderUser?.contact,
-        isInitialMessage: false,
-      );
+      OpenedMessageDataModel resModel=OpenedMessageDataModel.fromJson(dataNotificationResponse);
+      // if(resModel.conversationType=="group"){
+      //   Get.to(()=>GroupChatScreen(
+      //     type: AppConstants.group_Chat_Type,
+      //     conversationId: resModel.conversationId,
+      //     profileImage: '',
+      //     name: resModel.senderName,
+      //   ));
+      // }else{
+        final chatViewController = Get.put(ChatViewController());
+        chatViewController.connectSocket();
+        chatViewController.openAnyOneChatFunction(
+          type: resModel.conversationType ?? '',
+          conversationId: resModel.conversationId ?? '',
+          userId: resModel.senderId,
+          contactName: resModel.senderName,
+          contactNo: resModel.senderContact,
+          profileImage: resModel.senderProfileImage,
+
+          isInitialMessage: false,
+        );
+      // }
+
     }else if(data.operation=="RIDE_ORDER_RECEIVED"){
       Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
     }
 
     ///CLEAR ALL NOTIFICATION...
+   // var penNotification=await flutterLocalNotificationsPlugin.pendingNotificationRequests();
+   //  log("kjdskjsj ${penNotification}");
     flutterLocalNotificationsPlugin.cancelAll();
   }
 
@@ -546,3 +563,89 @@ class AppNotificationHandler {
     }
   }
 }
+class OpenedMessageDataModel {
+  final String? conversationId;
+  final String? messageId;
+  final String? senderProfileImage;
+  final String? priority;
+  final String? type;
+  final String? title;
+  final String? message;
+  final String? userId;
+  final String? conversationType;
+  final String? senderName;
+  final String? senderId;
+  final String? messageType;
+  final String? senderContact;
+  final String? notificationId;
+  final String? senderType;
+  final String? operation;
+  final DateTime? timestamp;
+
+  OpenedMessageDataModel({
+    this.conversationId,
+    this.messageId,
+    this.senderProfileImage,
+    this.priority,
+    this.type,
+    this.title,
+    this.message,
+    this.userId,
+    this.conversationType,
+    this.senderName,
+    this.senderId,
+    this.messageType,
+    this.senderContact,
+    this.notificationId,
+    this.senderType,
+    this.operation,
+    this.timestamp,
+  });
+
+  factory OpenedMessageDataModel.fromJson(Map<String, dynamic> json) {
+    return OpenedMessageDataModel(
+      conversationId: json['conversationId'],
+      messageId: json['messageId'],
+      senderProfileImage: json['senderProfileImage'],
+      priority: json['priority'],
+      type: json['type'],
+      title: json['title'],
+      message: json['message'],
+      userId: json['userId'],
+      conversationType: json['conversationType'],
+      senderName: json['senderName'],
+      senderId: json['senderId'],
+      messageType: json['messageType'],
+      senderContact: json['senderContact']?.toString(),
+      notificationId: json['notificationId']?.toString(),
+      senderType: json['senderType'],
+      operation: json['operation'],
+      timestamp: json['timestamp'] != null
+          ? DateTime.parse(json['timestamp'])
+          : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'conversationId': conversationId,
+      'messageId': messageId,
+      'senderProfileImage': senderProfileImage,
+      'priority': priority,
+      'type': type,
+      'title': title,
+      'message': message,
+      'userId': userId,
+      'conversationType': conversationType,
+      'senderName': senderName,
+      'senderId': senderId,
+      'messageType': messageType,
+      'senderContact': senderContact,
+      'notificationId': notificationId,
+      'senderType': senderType,
+      'operation': operation,
+      'timestamp': timestamp?.toIso8601String(),
+    };
+  }
+}
+

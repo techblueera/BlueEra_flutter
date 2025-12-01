@@ -1413,8 +1413,8 @@ class _StoreProductPreviewScreenProductState
                                 ?.data?.otherUserId ??
                             ''
                         : null,
-                    businessId: widget
-                        .productStore?.sellerClassification?.owner?.id,
+                    // businessId: widget
+                    //     .productStore?.sellerClassification?.owner?.id,
                     type: "business",
                     isInitialMessage: (chatViewController
                                     .newVisitContactApiResponse

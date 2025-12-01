@@ -45,6 +45,11 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
 
   @override
   void initState() {
+    chatViewController.emitEvent(ChatEmitEvents.messageReceived, {
+      ApiKeys.conversation_id: widget.conversationId,
+      ApiKeys.page: 1,
+      ApiKeys.per_page_message: 30,
+    });
     chatViewController.sendMessageController.value.clear();
     chatViewController.isTextFieldEmpty.value = false;
     chatViewController.listenUserNewMessages(

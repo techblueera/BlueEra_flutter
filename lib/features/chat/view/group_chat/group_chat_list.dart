@@ -48,7 +48,7 @@ class _GroupChatListTabPageState extends State<GroupChatListTabPage> {
         return RefreshIndicator(
           onRefresh: () async {
             groupChatViewController
-                .emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: "group"});
+                .emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.group_Chat_Type});
           },
           child: Container(
             margin: EdgeInsets.only(bottom: SizeConfig.size70),
@@ -61,17 +61,12 @@ class _GroupChatListTabPageState extends State<GroupChatListTabPage> {
 
                       return InkWell(
                         onTap: () async {
-                          groupChatViewController
-                              .emitEvent(ChatEmitEvents.messageReceived, {
-                            ApiKeys.conversation_id: chat?.conversationId,
-                            ApiKeys.page: 1,
-                            ApiKeys.per_page_message: 30,
-                          });
+
                           Navigator.push(
                               context,
                               MaterialPageRoute(
                                   builder: (context) => GroupChatScreen(
-                                        type: "group",
+                                        type: AppConstants.group_Chat_Type,
                                         conversationId: chat?.conversationId,
                                         profileImage: chat?.groupProfileImage
                                             ?.replaceAll('[', '')

@@ -332,7 +332,6 @@ class _FoodServicesBottomSheetState extends State<FoodServicesBottomSheet> {
                                 otherUserId: hasExisting
                                     ? null
                                     : chatData?.otherUserId ?? '',
-                                businessId: "",
                                 type: "personal",
                                 isInitialMessage: !hasExisting,
                                 userId: serviceData.id ?? '',

@@ -221,7 +221,7 @@ Widget ChatListTile({
             selectChatListCard();
           } else {
             chatViewController.openAnyOneChatFunction(
-              businessId: senderBusinessId,
+              // businessId: senderBusinessId,
               type: type,
               isInitialMessage: false,
               userId: senderId,
@@ -891,7 +891,6 @@ AppBar getChatTitleAppBar(BuildContext context, {
   required String? name,
   required String? contactNo,
   String? profileImage,
-  String? businessId,
   bool? isGroupAppBar,
 }) {
   final theme = Theme.of(context);

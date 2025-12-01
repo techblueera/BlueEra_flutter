@@ -29,7 +29,6 @@ class BusinessChatScreenUpdated extends StatefulWidget {
   BusinessChatScreenUpdated(
       {required this.conversationId,
       required this.userId,
-      required this.businessId,
       this.profileImage,
       required this.type,
       this.name,
@@ -39,7 +38,7 @@ class BusinessChatScreenUpdated extends StatefulWidget {
   final String? conversationId;
   final String? userId;
   final String? profileImage;
-  final String? businessId;
+
   final String? name;
   final String? type;
   final bool isInitialMessage;
@@ -140,7 +139,6 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
                   type: widget.type,
                   name: widget.name,
                   contactNo: widget.contactNo,
-                  businessId: widget.businessId,
                   profileImage: widget.profileImage,
                   conversationId: widget.conversationId,
                 ),

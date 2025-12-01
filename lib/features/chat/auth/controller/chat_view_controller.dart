@@ -588,7 +588,6 @@ class ChatViewController extends GetxController {
       required String? contactName,
       required String? contactNo,
       required bool isInitialMessage,
-      String? businessId,
       bool? isFromContactList}) async {
     businessTabIndexSelected.value=0;
     if (isWithProductSend == true) {
@@ -607,7 +606,6 @@ class ChatViewController extends GetxController {
             profileImage: profileImage,
             name: contactName,
             contactNo: contactNo,
-            businessId: businessId,
           ),
         );
       } else {
@@ -620,7 +618,6 @@ class ChatViewController extends GetxController {
             profileImage: profileImage,
             name: contactName,
             contactNo: contactNo,
-            businessId: businessId,
           ),
         );
       }
@@ -635,7 +632,6 @@ class ChatViewController extends GetxController {
             profileImage: profileImage,
             name: contactName,
             contactNo: contactNo,
-            businessId: businessId,
           ),
         );
       } else {
@@ -648,7 +644,7 @@ class ChatViewController extends GetxController {
             profileImage: profileImage,
             name: contactName,
             contactNo: contactNo,
-            businessId: businessId,
+
           ),
         );
       }
