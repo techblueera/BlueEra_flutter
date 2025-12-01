@@ -29,4 +29,6 @@ class AppImageAssets {
   static String frontDeskImage = "${imgPath}front_desk_image.png";
   static String officeImage = "${imgPath}office_image.png";
   static String roadsideViewImage = "${imgPath}roadside_view_image.png";
+
+  static String searchJobImage = "${imgPath}search_job_image.png";
 }

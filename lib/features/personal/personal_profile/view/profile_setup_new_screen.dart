@@ -2108,10 +2108,10 @@ class _CustomTabBarDelegate extends SliverPersistentHeaderDelegate {
   _CustomTabBarDelegate(this.tabBar, {this.hasFilters = false});
 
   @override
-  double get minExtent => 74;
+  double get minExtent => 50;
 
   @override
-  double get maxExtent => 74;
+  double get maxExtent => 50;
 
   // double get maxExtent => hasFilters ? 90.0 : 50.0;
 

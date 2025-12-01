@@ -78,7 +78,7 @@ class EarnWithBlueEraBottomSheet extends StatelessWidget {
 
   void _handleServiceTap(BuildContext context, ServiceItem service) async {
     switch (service.slugId) {
-      case AppConstants.SELF_WORK_OPTION:
+      case SELF_EMPLOYED:
         if(earnServiceCreatedStatusGlobal == 'true'){
           commonSnackBar(message: 'You can opt only one service');
         }else{
@@ -92,14 +92,14 @@ class EarnWithBlueEraBottomSheet extends StatelessWidget {
 
         break;
 
-      case AppConstants.DELIVERY_PARTNER_OPTION:
-        showProfessionChangeDialog(
+      case DELIVERY_RIDER:
+        ProfessionChangeDialogHelper().shouldShowUpdateDesignationDialog(
           context: context,
-          designation: AppConstants.DELIVERY_PARTNER,
+          designation: DELIVERY_RIDER,
         );
         break;
 
-      case AppConstants.HOME_MADE_PRODUCTS_OPTION:
+      case HOME_MADE_PRODUCTS_OPTION:
         showModalBottomSheet(
           context: context,
           backgroundColor: Colors.transparent,
@@ -108,7 +108,7 @@ class EarnWithBlueEraBottomSheet extends StatelessWidget {
         );
         break;
 
-      case AppConstants.HOME_MADE_FOOD_ITEMS_OPTION:
+      case HOME_MADE_FOOD_ITEMS_OPTION:
         showModalBottomSheet(
           context: context,
           backgroundColor: Colors.transparent,
@@ -117,7 +117,7 @@ class EarnWithBlueEraBottomSheet extends StatelessWidget {
         );
         break;
 
-      case AppConstants.HOME_SERVICES_OPTION:
+      case HOME_SERVICES_OPTION:
         if(earnServiceCreatedStatusGlobal == 'true'){
           commonSnackBar(message: 'You can opt only one service');
         }else {
@@ -130,7 +130,7 @@ class EarnWithBlueEraBottomSheet extends StatelessWidget {
         }
         break;
 
-      case AppConstants.RENTAL_SERVICES_OPTION:
+      case RENTAL_SERVICES_OPTION:
         showModalBottomSheet(
           context: context,
           backgroundColor: Colors.transparent,
@@ -139,25 +139,25 @@ class EarnWithBlueEraBottomSheet extends StatelessWidget {
         );
         break;
 
-      case AppConstants.COUNSELLING_CONSULTING_OPTION:
+      case CONSULTANT:
         if(earnServiceCreatedStatusGlobal == 'true'){
           commonSnackBar(message: 'You can opt only one service');
         }else {
-          showProfessionChangeDialog(
+          ProfessionChangeDialogHelper().shouldShowUpdateDesignationDialog(
             context: context,
-            designation: AppConstants.CONSULTANT,
+            designation: CONSULTANT,
             serviceSubType: EarnWithBlueEraServiceTypes.homeService,
           );
         }
         break;
 
-      case AppConstants.TUITION_CLASSES_ONLINE_OFFLINE_OPTION:
+      case TUTOR:
         if(earnServiceCreatedStatusGlobal == 'true'){
           commonSnackBar(message: 'You can opt only one service');
         }else {
-          showProfessionChangeDialog(
+          ProfessionChangeDialogHelper().shouldShowUpdateDesignationDialog(
             context: context,
-            designation: AppConstants.TUTOR,
+            designation: TUTOR,
             serviceSubType: EarnWithBlueEraServiceTypes.homeService,
           );
         }

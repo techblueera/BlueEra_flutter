@@ -90,7 +90,7 @@ class _AddBioViaAiScreenState extends State<AddBioViaAiScreen> {
                     color: AppColors.secondaryTextColor,
                   ),
                  SizedBox(width: SizeConfig.size8),
-                  InkWell(
+                 InkWell(
                     onTap: () async {
                       await aiController.fetchSuggestions(
                         bodyRequest: {

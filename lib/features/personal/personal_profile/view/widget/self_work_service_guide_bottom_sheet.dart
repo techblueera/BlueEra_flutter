@@ -100,7 +100,7 @@ class _SelfWorkServiceGuideBottomSheetState extends State<SelfWorkServiceGuideBo
 
               final filteredServices = selfWorkServiceList.where((service) {
                 return apiSubcategories.any((api) =>
-                api.name == service.slugId);
+                api.tagId == service.slugId);
               }).toList();
 
               // 3-column grid
@@ -145,9 +145,9 @@ class _SelfWorkServiceGuideBottomSheetState extends State<SelfWorkServiceGuideBo
                   return;
                 }
 
-                showProfessionChangeDialog(
+                ProfessionChangeDialogHelper().shouldShowUpdateDesignationDialog(
                   context: context,
-                  designation: selectedService?.slugId ?? AppConstants.OTHER,
+                  designation: selectedService?.slugId ?? OTHER,
                   serviceSubType: EarnWithBlueEraServiceTypes.selfWork,
                 );
 

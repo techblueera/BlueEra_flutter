@@ -21,6 +21,7 @@ import 'package:BlueEra/features/personal/auth/controller/view_personal_details_
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/inventory_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
 import 'package:BlueEra/widgets/service_provider_dialoge.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_callkit_incoming/entities/call_event.dart';
@@ -279,7 +280,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
                           }
 
                           /// for chat need notification permission
-                          else if (index == 4) {
+                          else if (index == 3) {
                             await AppNotificationHandler()
                                 .checkNotificationPermission();
                             if (await Permission.notification.isGranted) {
@@ -323,14 +324,16 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
             ? GuestDashBoardScreen()
             : (isBusinessUser())
                 ? InventoryScreen(fromBottomNavBar: true)
-                : EarnWithBlueEraNewScreen(fromBottomNavBar: true);
+                : userProfessionGlobal==SELF_EMPLOYED ?
+                   EarnWithBlueEraNewScreen(fromBottomNavBar: true)
+                     : PersonalProfileSetupNewScreen();
+      // case 3:
+      //   return isGuestUser()
+      //       ? GuestDashBoardScreen()
+      //       : JobsScreen(
+      //           isHeaderVisible: isVisible,
+      //           onHeaderVisibilityChanged: _toggleAppBar);
       case 3:
-        return isGuestUser()
-            ? GuestDashBoardScreen()
-            : JobsScreen(
-                isHeaderVisible: isVisible,
-                onHeaderVisibilityChanged: _toggleAppBar);
-      case 4:
       default:
         return isGuestUser()
             ? GuestDashBoardScreen()

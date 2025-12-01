@@ -111,9 +111,9 @@ class _HomeServiceGuideBottomSheetState extends State<HomeServiceGuideBottomShee
                   return;
                 }
 
-                showProfessionChangeDialog(
+                ProfessionChangeDialogHelper().shouldShowUpdateDesignationDialog(
                   context: context,
-                  designation: selectedService?.slugId ?? AppConstants.OTHER,
+                  designation: selectedService?.slugId ?? OTHER,
                   serviceSubType: EarnWithBlueEraServiceTypes.homeService,
                 );
 

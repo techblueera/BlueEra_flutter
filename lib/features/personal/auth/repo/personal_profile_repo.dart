@@ -25,7 +25,7 @@ class PersonalProfileRepo extends BaseService {
       "$updateIndividualAccountUser$userId",
       // "$updateUserProfile/$userId",
       params: formData,
-      showProgress: true,
+      showProgress: false,
       isMultipart: true,
       onError: (error) {
         print("Update user failed: $error");

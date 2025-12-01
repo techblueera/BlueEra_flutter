@@ -120,11 +120,17 @@ class FoodUploadController extends GetxController {
 
   // Food type 1 options
   // final List<String> foodType1Options = ["Food Item", "Beverage"];
+  // final List<String> foodType1Options = [
+  //   AppConstants.TIFFIN,
+  //   AppConstants.BAKERY,
+  //   AppConstants.SWEETS,
+  //   AppConstants.OTHER
+  // ];
   final List<String> foodType1Options = [
-    AppConstants.TIFFIN,
-    AppConstants.BAKERY,
-    AppConstants.SWEETS,
-    AppConstants.OTHER
+    TIFFIN,
+    BAKERY,
+    SWEETS,
+    OTHER
   ];
   bool isCategoryLocked = false;
 

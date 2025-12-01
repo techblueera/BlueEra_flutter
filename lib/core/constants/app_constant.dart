@@ -163,43 +163,33 @@ class AppConstants {
   static const String service = "service";
   static const String chatMsgBusinessType = "business";
 
-  static const SELF_WORK_OPTION = "SELF_WORK_OPTION";
-  static const DELIVERY_PARTNER_OPTION = "DELIVERY_PARTNER_OPTION";
-  static const HOME_MADE_PRODUCTS_OPTION = "HOME_MADE_PRODUCTS_OPTION";
-  static const HOME_MADE_FOOD_ITEMS_OPTION = "HOME_MADE_FOOD_ITEMS_OPTION";
-  static const HOME_SERVICES_OPTION = "HOME_SERVICES_OPTION";
-  static const RENTAL_SERVICES_OPTION = "RENTAL_SERVICES_OPTION";
-  static const COUNSELLING_CONSULTING_OPTION = "COUNSELLING_CONSULTING_OPTION";
-  static const TUITION_CLASSES_ONLINE_OFFLINE_OPTION =
-      "TUITION_CLASSES_ONLINE_OFFLINE_OPTION";
 
-  static const ELECTRICIAN = "Electrician";
-  static const PLUMBER = "Plumber";
-  static const TECHNICIAN = "Technician";
-  static const MAID_CLEANER = "Maid - Cleaner";
-  static const CARPENTER = "Carpenter";
-  static const CAR_DRIVER_TAXI = "Taxi - Car Driver";
-  static const DELIVERY_PARTNER = "Delivery Partner";
-  static const MECHANIC = "Mechanic";
-  static const TAILOR = "Tailor";
-  static const BEAUTICIAN = "Beautician";
-  static const HOME_RENOVATION = "Home Renovator";
-  static const PAINTER = "Painter";
-  static const GARDENER = "Gardener";
-  static const Rider = "Rider";
-  static const SECURITY = "Security Person";
-  static const INTERIOR_DESIGNER = "Interior Designer";
-  static const DIGITAL_MARKETING = "Digital Marketing";
-  static const TUTOR = "Tutor";
-  static const CONSULTANT = "Consultant";
-  static const OTHER = "Other";
-  static const TIFFIN = "Tiffin";
-  static const BAKERY = "Bakery";
-  static const SWEETS = "Sweets";
-  static const HOME_STAY = "HOME STAY";
-  static const Flat_ROOM = "Flat/Room";
-  static const VEHICLE = "Vehicle";
-
+  // static const ELECTRICIAN = "Electrician";
+  // static const PLUMBER = "Plumber";
+  // static const TECHNICIAN = "Technician";
+  // static const MAID_CLEANER = "Maid - Cleaner";
+  // static const CARPENTER = "Carpenter";
+  // static const CAR_DRIVER_TAXI = "Taxi - Car Driver";
+  // static const DELIVERY_PARTNER = "Delivery Partner";
+  // static const MECHANIC = "Mechanic";
+  // static const TAILOR = "Tailor";
+  // static const BEAUTICIAN = "Beautician";
+  // static const HOME_RENOVATION = "Home Renovator";
+  // static const PAINTER = "Painter";
+  // static const GARDENER = "Gardener";
+  // static const Rider = "Rider";
+  // static const SECURITY = "Security Person";
+  // static const INTERIOR_DESIGNER = "Interior Designer";
+  // static const DIGITAL_MARKETING = "Digital Marketing";
+  // static const TUTOR = "Tutor";
+  // static const CONSULTANT = "Consultant";
+  // static const OTHER = "Other";
+  // static const TIFFIN = "Tiffin";
+  // static const BAKERY = "Bakery";
+  // static const SWEETS = "Sweets";
+  // static const HOME_STAY = "HOME STAY";
+  // static const Flat_ROOM = "Flat/Room";
+  // static const VEHICLE = "Vehicle";
 
   /// Services Category
   static const consulting = "Consulting Services";
@@ -1304,6 +1294,17 @@ const String OTHER = "OTHER";
 int kmRadius1000 = 1000;
 int kmRadius1500 = 1500;
 
+const HOME_MADE_PRODUCTS_OPTION = "HOME_MADE_PRODUCTS_OPTION";
+const HOME_MADE_FOOD_ITEMS_OPTION = "HOME_MADE_FOOD_ITEMS_OPTION";
+const HOME_SERVICES_OPTION = "HOME_SERVICES_OPTION";
+const RENTAL_SERVICES_OPTION = "RENTAL_SERVICES_OPTION";
+const TIFFIN = "TIFFIN";
+const BAKERY = "BAKERY";
+const SWEETS = "SWEETS";
+const HOME_STAY = "HOME_STAY";
+const Flat_ROOM = "Flat_ROOM";
+const VEHICLE = "VEHICLE";
+
 double calculateDistanceKm(double lat1, double lon1, double lat2, double lon2) {
   const R = 6371; // Radius of Earth in kilometers
   final dLat = _deg2rad(lat2 - lat1);
@@ -1525,56 +1526,56 @@ bool isVideoUrl(String? url) {
 final List<ServiceItem> earnWithBlueEraServiceList = [
   ServiceItem(
     name: AppStrings.selfWork,
-    slugId: AppConstants.SELF_WORK_OPTION,
+    slugId: SELF_EMPLOYED,
     icon: AppIconAssets.plumberIcon,
     bgColor: const Color(0xFFCBEAFC),
     labelColor: const Color(0xFF004E7C),
   ),
   ServiceItem(
     name: AppStrings.deliveryPartner,
-    slugId: AppConstants.DELIVERY_PARTNER_OPTION,
+    slugId: DELIVERY_RIDER,
     icon: AppIconAssets.deliveryPartnerIcon,
     bgColor: const Color(0xFFDAEDCF),
     labelColor: const Color(0xFF204A08),
   ),
   ServiceItem(
     name: AppStrings.homeMadeProducts,
-    slugId: AppConstants.HOME_MADE_PRODUCTS_OPTION,
+    slugId: HOME_MADE_PRODUCTS_OPTION,
     icon: AppIconAssets.homeMadeProductIcon,
     bgColor: const Color(0xFFFDD5A4),
     labelColor: const Color(0xFF8C4D00),
   ),
   ServiceItem(
     name: AppStrings.homeMadeFoodItems,
-    slugId: AppConstants.HOME_MADE_FOOD_ITEMS_OPTION,
+    slugId: HOME_MADE_FOOD_ITEMS_OPTION,
     icon: AppIconAssets.homeMadeFoodIcon,
     bgColor: const Color(0xFFFEF2B6),
     labelColor: const Color(0xFF856F00),
   ),
   ServiceItem(
     name: AppStrings.homeServices,
-    slugId: AppConstants.HOME_SERVICES_OPTION,
+    slugId: HOME_SERVICES_OPTION,
     icon: AppIconAssets.homeServiceIcon,
     bgColor: const Color(0xFFDBD5F7),
     labelColor: const Color(0xFF140074),
   ),
   ServiceItem(
     name: AppStrings.rentalServices,
-    slugId: AppConstants.RENTAL_SERVICES_OPTION,
+    slugId: RENTAL_SERVICES_OPTION,
     icon: AppIconAssets.rentalServiceIcon,
     bgColor: const Color(0xFFFAD7D3),
     labelColor: const Color(0xFF740C00),
   ),
   ServiceItem(
     name: AppStrings.counsellingConsulting,
-    slugId: AppConstants.COUNSELLING_CONSULTING_OPTION,
+    slugId: CONSULTANT,
     icon: AppIconAssets.counsellingServiceIcon,
     bgColor: const Color(0xFFBCEEE2),
     labelColor: const Color(0xFF006950),
   ),
   ServiceItem(
     name: AppStrings.tuitionClassesOnlineOffline,
-    slugId: AppConstants.TUITION_CLASSES_ONLINE_OFFLINE_OPTION,
+    slugId: TUTOR,
     icon: AppIconAssets.teachingIcon,
     bgColor: const Color(0xFFEEBCE7),
     labelColor: const Color(0xFF8B0077),
@@ -1584,84 +1585,84 @@ final List<ServiceItem> earnWithBlueEraServiceList = [
 final List<ServiceItem> selfWorkServiceList = [
   ServiceItem(
     name: AppStrings.electrician,
-    slugId: AppConstants.ELECTRICIAN,
+    slugId: ELECTRICIAN,
     icon: AppIconAssets.electricianIcon,
     bgColor: const Color(0xFFFFF2DF),
     labelColor: const Color(0xFFAF6800),
   ),
   ServiceItem(
     name: AppStrings.plumber,
-    slugId: AppConstants.PLUMBER,
+    slugId: PLUMBER,
     icon: AppIconAssets.plumberIcon,
     bgColor: const Color(0xFFFFF2C3),
     labelColor: const Color(0xFF5D4900),
   ),
   ServiceItem(
     name: AppStrings.technician,
-    slugId: AppConstants.TECHNICIAN,
+    slugId: TECHNICIAN,
     icon: AppIconAssets.technicianIcon,
     bgColor: const Color(0xFFF0F4C2),
     labelColor: const Color(0xFF4E5500),
   ),
   ServiceItem(
     name: AppStrings.maidCleaner,
-    slugId: AppConstants.MAID_CLEANER,
+    slugId: MAID_CLEANER,
     icon: AppIconAssets.mainCleanerIcon,
     bgColor: const Color(0xFFD7EAC9),
     labelColor: const Color(0xFF183A00),
   ),
   ServiceItem(
     name: AppStrings.carpenter,
-    slugId: AppConstants.CARPENTER,
+    slugId: CARPENTER,
     icon: AppIconAssets.carpenterIcon,
     bgColor: const Color(0xFFE1FCB3),
     labelColor: const Color(0xFF375700),
   ),
   ServiceItem(
     name: AppStrings.taxiCarDriver,
-    slugId: AppConstants.CAR_DRIVER_TAXI,
+    slugId: CAR_DRIVER_TAXI,
     icon: AppIconAssets.taxiDriverIcon,
     bgColor: const Color(0xFFB2DFDC),
     labelColor: const Color(0xFF00625C),
   ),
   ServiceItem(
     name: AppStrings.mechanic,
-    slugId: AppConstants.MECHANIC,
+    slugId: MECHANIC,
     icon: AppIconAssets.mechanicIcon,
     bgColor: const Color(0xFFB3E5FC),
     labelColor: const Color(0xFF003E5B),
   ),
   ServiceItem(
     name: AppStrings.homeRenovator,
-    slugId: AppConstants.HOME_RENOVATION,
+    slugId: HOME_RENOVATION,
     icon: AppIconAssets.mistryIcon,
     bgColor: const Color(0xFFD0C4E8),
     labelColor: const Color(0xFF24006D),
   ),
   ServiceItem(
     name: AppStrings.painter,
-    slugId: AppConstants.PAINTER,
+    slugId: PAINTER,
     icon: AppIconAssets.painterIcon,
     bgColor: const Color(0xFFF9BBD0),
     labelColor: const Color(0xFF84002D),
   ),
   ServiceItem(
     name: AppStrings.gardener,
-    slugId: AppConstants.GARDENER,
+    slugId: GARDENER,
     icon: AppIconAssets.gardenerIcon,
     bgColor: const Color(0xFFA3E7A3),
     labelColor: const Color(0xFF006300),
   ),
   ServiceItem(
     name: AppStrings.securityPerson,
-    slugId: AppConstants.SECURITY,
+    slugId: SECURITY,
     icon: AppIconAssets.securityPersonIcon,
     bgColor: const Color(0xFFD7CCC8),
     labelColor: const Color(0xFF5B3F38),
   ),
   ServiceItem(
     name: AppStrings.other,
-    slugId: AppConstants.OTHER,
+    slugId: OTHER,
     icon: AppIconAssets.staggeredIcon,
     bgColor: const Color(0xFFCFD8DD),
     labelColor: const Color(0xFF36444D),
@@ -1670,36 +1671,36 @@ final List<ServiceItem> selfWorkServiceList = [
 
 final List<ServiceItem> homeServicesList = [
   ServiceItem(
-    name: 'Beauty Services',
-    slugId: AppConstants.BEAUTICIAN,
+    name: AppStrings.beautyServices,
+    slugId: BEAUTICIAN,
     icon: AppIconAssets.beautyServiceIcon,
     bgColor: const Color(0xFFFFF2DF),
     labelColor: const Color(0xFFAF6800),
   ),
   ServiceItem(
-    name: 'Tailoring',
-    slugId: AppConstants.TAILOR,
+    name: AppStrings.tailoring,
+    slugId: TAILOR,
     icon: AppIconAssets.tailoringIcon,
     bgColor: const Color(0xFFFFF2C3),
     labelColor: const Color(0xFF5D4900),
   ),
   ServiceItem(
-    name: 'Digital Marketing',
-    slugId: AppConstants.DIGITAL_MARKETING,
+    name: AppStrings.digitalMarketing,
+    slugId: DIGITAL_MARKETING,
     icon: AppIconAssets.digitalMarketingIcon,
     bgColor: const Color(0xFFF0F4C2),
     labelColor: const Color(0xFF4E5500),
   ),
   ServiceItem(
-    name: 'Interior Decor',
-    slugId: AppConstants.INTERIOR_DESIGNER,
+    name:  AppStrings.interiorDecor,
+    slugId: INTERIOR_DESIGNER,
     icon: AppIconAssets.interiorIcon,
     bgColor: const Color(0xFFD7EAC9),
     labelColor: const Color(0xFF183A00),
   ),
   ServiceItem(
-    name: 'Other',
-    slugId: AppConstants.OTHER,
+    name: AppStrings.other,
+    slugId: OTHER,
     icon: AppIconAssets.staggeredIcon,
     bgColor: const Color(0xFFCFD8DD),
     labelColor: const Color(0xFF36444D),
@@ -1708,22 +1709,22 @@ final List<ServiceItem> homeServicesList = [
 
 final List<ServiceItem> rentalServicesList = [
   ServiceItem(
-    name: 'Home Stay',
-    slugId: AppConstants.HOME_STAY,
+    name: AppStrings.homeStay,
+    slugId: HOME_STAY,
     icon: AppIconAssets.homeStayIcon,
     bgColor: const Color(0xFFFFF2DF),
     labelColor: const Color(0xFFAF6800),
   ),
   ServiceItem(
-    name: 'Flat/Room',
-    slugId: AppConstants.Flat_ROOM,
+    name: AppStrings.flatRoom,
+    slugId: Flat_ROOM,
     icon: AppIconAssets.roomIcon,
     bgColor: const Color(0xFFF0F4C2),
     labelColor: const Color(0xFF4E5500),
   ),
   ServiceItem(
-    name: 'Vehicle',
-    slugId: AppConstants.VEHICLE,
+    name: AppStrings.vehicle,
+    slugId: VEHICLE,
     icon: AppIconAssets.vehicleIcon,
     bgColor: const Color(0xFFD7EAC9),
     labelColor: const Color(0xFF183A00),
@@ -2210,7 +2211,7 @@ final List<IndividualProfileCategory> individualSocialProfileList = [
     icon: AppIconAssets.contentCreaterIcon,
   ),
   IndividualProfileCategory(
-    name: AppStrings.other,
+    name: AppStrings.others,
     slugId: OTHERS,
     icon: AppIconAssets.staggeredIcon,
   ),

@@ -1,6 +1,9 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/delivery_partner_orders/delivery_partner_orders.dart';
@@ -61,25 +64,17 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen> wit
 
   @override
   void initState() {
-    // if(Get.isRegistered<InventoryController>()){
-    //   inventoryController = Get.find<InventoryController>();
-    // } else {
-    //   inventoryController = Get.put(InventoryController());
-    // }
+    log('user designation global -- $userWorkTypeGlobal');
     _tabController = TabController(length: 3, vsync: this);
     earnWithBlueEraController.fetchOwnProducts();
-
+    deliveryPartnerController.ridersOnboardingStatusRepoApi();
     /// check riding status
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkAndOpenEarnServiceSheet();
+      _openEarnWithBlueEraSheet();
     });
-    deliveryPartnerController.ridersOnboardingStatusRepoApi();
     super.initState();
   }
 
-  void _checkAndOpenEarnServiceSheet() async {
-    _openEarnWithBlueEraSheet();
-  }
 
   @override
   void dispose() {

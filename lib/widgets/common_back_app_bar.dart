@@ -8,6 +8,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/typedef_utils.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/jobs/controller/applied_job_controller.dart';
@@ -102,7 +103,9 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
       this.isGoLive = false,
       this.isInventoryPopUpMenu = false,
       this.isStoreProfile,
-      this.isCartIconShow});
+      this.isCartIconShow,
+      this.isCurrentAddress,
+      });
 
   // final AppBar? appBar;
   final String? title;
@@ -176,6 +179,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool? isInventoryPopUpMenu;
   final bool? isStoreProfile;
   final bool? isCartIconShow;
+  final bool? isCurrentAddress;
 
   @override
   Widget build(BuildContext context) {
@@ -660,6 +664,42 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
           Builder(
             builder: (context) => showGoLiveWidget!,
           ),
+
+        if(isCurrentAddress ?? false)
+          Builder(
+            builder: (context) => Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(left: SizeConfig.size15),
+                child: Row(
+                    children: [
+                      LocalAssets(
+                        imagePath: AppIconAssets.currentLocationIcon,
+                        height: SizeConfig.size24,
+                        width: SizeConfig.size24,
+                      ),
+                      SizedBox(width: SizeConfig.size10),
+                      CustomText(
+                        [
+                          if (LocationService.userCurrentAddress.length > 2 &&
+                              LocationService.userCurrentAddress[2].isNotEmpty)
+                            LocationService.userCurrentAddress[2], // locality
+
+                          if (LocationService.userCurrentAddress.length > 3 &&
+                              LocationService.userCurrentAddress[3].isNotEmpty)
+                            LocationService.userCurrentAddress[3], // administrativeArea
+                        ].join(', '),
+                        fontSize: SizeConfig.large,
+                        color: AppColors.primaryColor,
+                        fontWeight: FontWeight.w600,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ]
+                ),
+              ),
+            ),
+          ),
+
         if(isCartIconShow ?? false)
           Builder(
             builder: (context) =>  InkWell(

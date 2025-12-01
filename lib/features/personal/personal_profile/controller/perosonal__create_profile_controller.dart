@@ -118,10 +118,10 @@ class PersonalCreateProfileController extends GetxController {
           message: responseModel.message ?? AppStrings.somethingWentWrong,
         );
       }
-      updateBtnLoading.value = false;
     } catch (e) {
-      updateBtnLoading.value = false;
       updateUserProfileResponse = ApiResponse.error('Update failed');
+    } finally{
+      updateBtnLoading.value = false;
     }
   }
 
