@@ -1,6 +1,9 @@
+import 'dart:ui';
+
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -9,6 +12,8 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/auth/model/individual_profiile_category.dart';
+import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
+import 'package:BlueEra/features/common/jobs/view/jobs_screen.dart';
 import 'package:BlueEra/features/common/map/view/customize_map_screen.dart';
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
 import 'package:BlueEra/features/common/store/view/new_store/all_food_store_screen.dart';
@@ -17,8 +22,10 @@ import 'package:BlueEra/features/common/store/view/new_store/business_store_scre
 import 'package:BlueEra/features/common/auth/model/business_profile_category.dart';
 import 'package:BlueEra/features/common/store/widget/icon_grid_item.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_search_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/gradient_floating_button.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/setup_scroll_visibility_notification.dart';
 import 'package:flutter/material.dart';
@@ -103,6 +110,43 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
     return SafeArea(
       child: Scaffold(
         extendBodyBehindAppBar: true,
+        floatingActionButton: Padding(
+          padding: EdgeInsets.only(
+              bottom: kBottomNavigationBarHeight + SizeConfig.size10
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(SizeConfig.size35),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10.0),
+              child: GradientFloatingButton(
+                height: SizeConfig.size70,
+                width: SizeConfig.size70,
+                borderRadius: SizeConfig.size35,
+                borderWidth: 1.0,
+                padding: EdgeInsets.all(8.0),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.black.withValues(alpha: 0.30),
+                      blurRadius: 4.0,
+                      offset: Offset(0, 2)
+                    )
+                  ],
+                backgroundGradientColors: const [
+                  Color(0xFFFFFFFF),
+                  Color(0xFFCCE0FF),
+                ],
+                borderGradientColors: const [
+                  Color(0xFF004FCE),
+                  Color(0xFF5C9BFF),
+                ],
+                onPressed: () {
+                  print('ai chat bot btn pressed');
+                },
+                child: LocalAssets(imagePath: AppIconAssets.aiChatbotIcon),
+              ),
+            ),
+          ),
+        ),
         body: Obx(()=> setupScrollVisibilityNotification(
           controller: controller.scrollController,
           onVisibilityChanged: (visible, offset) {
@@ -139,22 +183,46 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                 ),
                 child: Column(
                   children: [
-                    CommonSearchBar(
-                      controller: controller.searchController,
-                      height: SizeConfig.size48,
-                      onSearchTap: () {
-                        // handle search
+                    InkWell(
+                      onTap:(){
+                        Widget dest = isGuestUser()
+                            ? GuestDashBoardScreen()
+                            : JobsScreen();
+
+                        Get.to(()=> dest);
                       },
-                      onClearCallback: () {
-      
-                      },
-                      backgroundColor: AppColors.white,
-                      hintText: AppStrings.searchAnything,
-                      borderRadius: 10.0,
-                      boxBorder: Border.all(
-                        color: AppColors.greyE5
-                      )
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                            vertical: SizeConfig.size8,
+                            horizontal: SizeConfig.size10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.white,
+                          borderRadius: BorderRadius.circular(10.0),
+                          border: Border.all(
+                            color: AppColors.greyE5
+                          ),
+                          boxShadow: [AppShadows.textFieldShadow]
+                        ),
+                        child: Row(
+                          children: [
+                            LocalAssets(
+                                imagePath: AppImageAssets.searchJobImage,
+                               height: SizeConfig.size30,
+                               width: SizeConfig.size30,
+                            ),
+                            SizedBox(width: SizeConfig.size10),
+                            CustomText(
+                                'Find Your Dream Job Now',
+                                fontSize: SizeConfig.medium,
+                                color: AppColors.secondaryTextColor,
+                                fontWeight: FontWeight.w400
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
+
       
                     SizedBox(height: SizeConfig.size10),
       
@@ -403,8 +471,7 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                   key: controller.headerKey,
                   child: CommonBackAppBar(
                     isLeading: false,
-                    isStoreProfile: true,
-                    title: isBusinessUser() ? businessNameGlobal : userNameGlobal,
+                    isCurrentAddress: true,
                     isCartIconShow: true,
                   ),
                 ),

@@ -1,6 +1,11 @@
+import 'dart:developer';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_orders_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/delivery_partner_orders/pickup_order_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -17,15 +22,21 @@ class DeliveryPartnerOrders extends StatefulWidget {
 
 class _DeliveryPartnerOrdersState extends State<DeliveryPartnerOrders>  {
   final controller = Get.put(DeliverPartnerOrdersController());
+  final deliveryPartnerController = Get.find<DeliveryPartnerController>();
 
   @override
   void initState() {
-    controller.fetchStream();
+    if (deliveryPartnerController.riderVerificationState == RiderVerificationState.completed) {
+      controller.fetchStream();
+    }
     super.initState();
   }
+
   @override
   void dispose() {
-    controller.subscription?.cancel();
+    if (deliveryPartnerController.riderVerificationState == RiderVerificationState.completed){
+      controller.subscription?.cancel();
+    }
     super.dispose();
   }
 
@@ -33,47 +44,179 @@ class _DeliveryPartnerOrdersState extends State<DeliveryPartnerOrders>  {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.whiteFE,
-      body: Obx(()=> Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      body: (userWorkTypeGlobal == DELIVERY_RIDER)
+          ? Obx(
+              ()=> deliveryPartnerController.isRiderStatusLoading.value ?
+              Center(
+                child: CircularProgressIndicator(),
+              )
+                  : Builder(
+                  builder: (context) {
+                    final state = deliveryPartnerController.riderVerificationState;
+                    final allCompleted = deliveryPartnerController.stepStatus.values.every((s) => s == true);
+                    log('all steps Completed-- $allCompleted');
 
-          Padding(
-            padding: EdgeInsets.all(SizeConfig.size15),
-            child: HorizontalTabSelector(
-              tabs: controller.deliveryPartnerOrdersTabs,
-              selectedIndex: controller.selectedDeliveryPartnerOrderIndex.value,
-              onTabSelected: (index, value) {
-                if (mounted) {
-                  controller.selectedDeliveryPartnerOrderIndex.value = index;
-                }
-              },
-              labelBuilder: (value) => value.label,
-            ),
-          ),
+                    // ---- Rejected ----
+                    if (allCompleted && state == RiderVerificationState.rejected) {
+                      // showStatusDialog(
+                      //   context,
+                      //   "Verification Rejected",
+                      //   "Your rider verification was rejected. Please contact support or update your details.",
+                      // );
 
-          Expanded(
-            child: Builder(
-              builder: (context) {
-                switch (controller.selectedDeliveryPartnerOrderIndex.value) {
-                  case 0:
-                    return PickupOrderScreen();
-                  case 1:
-                    return CustomText(AppStrings.comingSoon);
-                // return GroceryOrderScreen();
-                  case 2:
-                    return CustomText(AppStrings.comingSoon);
-                // return ParcelOrderScreen();
-                  case 3:
-                    return CustomText(AppStrings.comingSoon);
-                // return IncomeScreen();
-                  default:
-                    return SizedBox.shrink(); // fallback
-                }
-              },
-            ),
+                      return Padding(
+                        padding: const EdgeInsets.all(20.0),
+                        child: Center(
+                          child: CustomText(
+                              "Your verification was rejected.",
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      );
+                    }
+
+                    // ---- Pending ----
+                    if (allCompleted && state == RiderVerificationState.pending) {
+                      // showStatusDialog(
+                      //   context,
+                      //   "Verification Pending",
+                      //   "Your rider verification is under review. Please wait for approval.",
+                      // );
+
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: CustomText(
+                              "Your verification is pending. Please wait.",
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      );
+                    }
+
+
+                    // ---- Completed ----
+                    if (state == RiderVerificationState.completed) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+
+                          Padding(
+                            padding: EdgeInsets.all(SizeConfig.size15),
+                            child: HorizontalTabSelector(
+                              tabs: controller.deliveryPartnerOrdersTabs,
+                              selectedIndex: controller
+                                  .selectedDeliveryPartnerOrderIndex.value,
+                              onTabSelected: (index, value) {
+                                if (mounted) {
+                                  controller.selectedDeliveryPartnerOrderIndex.value =
+                                      index;
+                                }
+                              },
+                              labelBuilder: (value) => value.label,
+                            ),
+                          ),
+
+                          Expanded(
+                            child: Builder(
+                              builder: (context) {
+                                switch (controller.selectedDeliveryPartnerOrderIndex
+                                    .value) {
+                                  case 0:
+                                    return PickupOrderScreen();
+                                  case 1:
+                                    return CustomText(AppStrings.comingSoon);
+                                // return GroceryOrderScreen();
+                                  case 2:
+                                    return CustomText(AppStrings.comingSoon);
+                                // return ParcelOrderScreen();
+                                  case 3:
+                                    return CustomText(AppStrings.comingSoon);
+                                // return IncomeScreen();
+                                  default:
+                                    return SizedBox.shrink(); // fallback
+                                }
+                              },
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+
+                    // ================================
+                    final firstIncomplete = deliveryPartnerController.stepStatus.entries
+                        .firstWhere((e) => e.value == false);
+
+                    log('firstIncomplete -- $firstIncomplete');
+
+
+                    String title = "Step Incomplete";
+                    String message = "";
+
+                    switch (firstIncomplete.key) {
+                      case RiderProfileStep.personalInfo:
+                        message = "Please complete your Personal Information.";
+                        break;
+                      case RiderProfileStep.addressInfo:
+                        message = "Please complete your Address Information.";
+                        break;
+                      case RiderProfileStep.personalIdentificationInfo:
+                        message = "Please complete your ID Verification.";
+                        break;
+                      case RiderProfileStep.drivingInfo:
+                        message = "Please complete your Driving Verification.";
+                        break;
+                      case RiderProfileStep.vehicleImagesInfo:
+                        message = "Please upload your Vehicle Images.";
+                        break;
+                      case RiderProfileStep.vehicleInfo:
+                        message = "Please complete your Vehicle Info.";
+                        break;
+                    }
+
+                    // showStatusDialog(context, title, message);
+
+                    return Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Center(
+                        child: CustomText(
+                          message,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    );
+
+                  }
+              )
+      ) : Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Center(
+          child: CustomText(
+              'These orders are available only for delivery riders. Please register as a delivery rider to continue',
+            textAlign: TextAlign.center,
           ),
-        ],
-      ))
+        ),
+      )
     );
   }
+
+  void showStatusDialog(BuildContext context, String title, String message) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: CustomText(title),
+          content: CustomText(message),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: CustomText("OK"),
+            ),
+          ],
+        ),
+      );
+    });
+  }
+
+
 }

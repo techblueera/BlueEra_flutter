@@ -1025,3 +1025,9 @@ extension RentalServiceTypeParser on String {
     }
   }
 }
+
+enum RiderVerificationState {
+  completed,
+  rejected,
+  pending
+}

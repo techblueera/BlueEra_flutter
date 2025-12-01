@@ -17,6 +17,7 @@ class RiderOnboardingStatusResponse {
 }
 
 class Data {
+  String? verificationStatus;
   bool? personalInformation;
   bool? address;
   bool? personalIdentification;
@@ -26,7 +27,9 @@ class Data {
   bool? isOnboardingComplete;
 
   Data(
-      {this.personalInformation,
+      {
+        this.verificationStatus,
+        this.personalInformation,
         this.address,
         this.personalIdentification,
         this.drivingVerification,
@@ -35,6 +38,7 @@ class Data {
         this.isOnboardingComplete});
 
   Data.fromJson(Map<String, dynamic> json) {
+    verificationStatus = json['verificationStatus'];
     personalInformation = json['personalInformation'];
     address = json['address'];
     personalIdentification = json['personalIdentification'];
@@ -46,6 +50,7 @@ class Data {
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['verificationStatus'] = this.verificationStatus;
     data['personalInformation'] = this.personalInformation;
     data['address'] = this.address;
     data['personalIdentification'] = this.personalIdentification;

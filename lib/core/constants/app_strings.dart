@@ -1741,6 +1741,14 @@ class AppStrings {
   static const vegetarian = "vegetarian";
   static const nonVegetarian = "nonVegetarian";
 
+  static const beautyServices = "beautyServices";
+  static const tailoring = "tailoring";
+  static const digitalMarketing = "digitalMarketing";
+  static const interiorDecor = "interiorDecor";
+  static const homeStay = "homeStay";
+  static const flatRoom = "flatRoom";
+  static const vehicle = "vehicle";
+  static const others = "others";
 
 
   ///BHAVESH START

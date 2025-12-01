@@ -22,13 +22,13 @@ import '../../../../core/constants/app_enum.dart';
 import '../../../../core/constants/size_config.dart';
 
 class JobsScreen extends StatefulWidget {
-  final bool isHeaderVisible;
-  final Function(bool isVisible) onHeaderVisibilityChanged;
+  final bool? isHeaderVisible;
+  final Function(bool isVisible)? onHeaderVisibilityChanged;
 
   JobsScreen(
       {super.key,
-      required this.isHeaderVisible,
-      required this.onHeaderVisibilityChanged});
+       this.isHeaderVisible,
+       this.onHeaderVisibilityChanged});
 
   @override
   State<JobsScreen> createState() => _JobsScreenState();
@@ -60,7 +60,7 @@ class _JobsScreenState extends State<JobsScreen> {
   @override
   void didUpdateWidget(covariant JobsScreen oldWidget) {
     if (oldWidget.isHeaderVisible != widget.isHeaderVisible) {
-      jobScreenController.isHeaderVisible.value = widget.isHeaderVisible;
+      jobScreenController.isHeaderVisible.value = widget.isHeaderVisible??false;
       jobScreenController.headerOffset.value = 0.0;
     }
     super.didUpdateWidget(oldWidget);
@@ -136,10 +136,9 @@ class _JobsScreenState extends State<JobsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        
-        body: Obx(() => Stack(
+    return Scaffold(
+      body: SafeArea(
+        child: Obx(() => Stack(
               children: [
                 /// Main Scrollable Area with Dynamic Padding
                 AnimatedPadding(
@@ -158,7 +157,7 @@ class _JobsScreenState extends State<JobsScreen> {
                           ? _buildSelectedBusinessJobTabContent()
                           : SizedBox(),
                 ),
-
+        
                 // Animated Sliding Header
                 AnimatedPositioned(
                   duration: const Duration(milliseconds: 400),
@@ -173,7 +172,7 @@ class _JobsScreenState extends State<JobsScreen> {
                       children: [
                         CommonBackAppBar(
                           isSearch: true,
-                          isLeading: false,
+                          isLeading: true,
                           controller: _searchController,
                           isShowCursor: _searchController.text.isNotEmpty,
                           // Show cursor only when searching
@@ -202,11 +201,11 @@ class _JobsScreenState extends State<JobsScreen> {
                                 onTabSelected: (index, value) {
                                   _searchController.clear();
                                   jobScreenController.clearSearch();
-
+        
                                   setState(() {
                                     selectedIndex = index;
                                   });
-
+        
                                   resetScrollingOnTabChanged();
                                 },
                                 labelBuilder: (jobCategory) {
@@ -230,7 +229,7 @@ class _JobsScreenState extends State<JobsScreen> {
                                       setState(() {
                                         selectedIndex = index;
                                       });
-
+        
                                       resetScrollingOnTabChanged();
                                     },
                                     labelBuilder: (jobCategory) {
@@ -393,14 +392,14 @@ class _JobsScreenState extends State<JobsScreen> {
     if (widget.isHeaderVisible != visible && mounted) {
       jobScreenController.isHeaderVisible.value = visible;
       widget.onHeaderVisibilityChanged
-          .call(visible); // Notify parent to hide/show bottom nav
+          ?.call(visible); // Notify parent to hide/show bottom nav
     }
   }
 
   void resetScrollingOnTabChanged() {
     jobScreenController.isHeaderVisible.value = true;
     widget.onHeaderVisibilityChanged
-        .call(jobScreenController.isHeaderVisible.value);
+        ?.call(jobScreenController.isHeaderVisible.value);
     jobScreenController.headerOffset.value = 0.0;
   }
 }

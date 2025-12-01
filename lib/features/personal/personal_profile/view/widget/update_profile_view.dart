@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -598,6 +599,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                     personalCreateProfileController
                                         .selectedProfessionObj.value = value;
                                     selectedProfession = value?.name;
+                                    log('selected profession name -- $selectedProfession');
                                     authController.subcategoriesFiledNameList
                                         .addAll(value?.subcategoriesFiledName ??
                                             []);
@@ -1048,7 +1050,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                                     personalCreateProfileController
                                                             .selectedSubProfessionObj
                                                             .value
-                                                            ?.name ??
+                                                            ?.tagId ??
                                                         "";
                                               } else {
                                                 designation =

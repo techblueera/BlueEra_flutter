@@ -28,28 +28,28 @@ class _FoodServiceGuideBottomSheetState extends State<FoodServiceGuideBottomShee
   final List<ServiceItem> _services = [
     ServiceItem(
       name: 'Tiffin',
-      slugId: AppConstants.TIFFIN,
+      slugId: TIFFIN,
       icon: AppIconAssets.tiffinIcon,
       bgColor: const Color(0xFFFFF2DF),
       labelColor: const Color(0xFFAF6800),
     ),
     ServiceItem(
       name: 'Bakery',
-      slugId: AppConstants.BAKERY,
+      slugId: BAKERY,
       icon: AppIconAssets.bakeryIcon,
       bgColor: const Color(0xFFFFF2C3),
       labelColor: const Color(0xFF5D4900),
     ),
     ServiceItem(
       name: 'Sweets',
-      slugId: AppConstants.SWEETS,
+      slugId: SWEETS,
       icon: AppIconAssets.sweetIcon,
       bgColor: const Color(0xFFF0F4C2),
       labelColor: const Color(0xFF4E5500),
     ),
     ServiceItem(
       name: 'Other',
-      slugId: 'OTHER',
+      slugId: OTHER,
       icon: AppIconAssets.staggeredIcon,
       bgColor: const Color(0xFFCFD8DD),
       labelColor: const Color(0xFF36444D),

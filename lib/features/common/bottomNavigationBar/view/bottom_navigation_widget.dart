@@ -95,16 +95,16 @@ class BottomNavigationBarWidget extends StatelessWidget {
                 label: AppStrings.me,
                 // isCenter: true, // 👈 center icon
               ),
+              // _buildNavItem(
+              //   index: 3,
+              //   iconPath: AppIconAssets.job,
+              //   isSelected: currentIndex == 3,
+              //   label: AppStrings.jobs,
+              // ),
               _buildNavItem(
                 index: 3,
-                iconPath: AppIconAssets.job,
-                isSelected: currentIndex == 3,
-                label: AppStrings.jobs,
-              ),
-              _buildNavItem(
-                index: 4,
                 iconPath: AppIconAssets.chat,
-                isSelected: currentIndex == 4,
+                isSelected: currentIndex == 3,
                 label: AppStrings.chat,
                 showBadge: chatNotificationCount > 0,
                 badgeText: "$chatNotificationCount",

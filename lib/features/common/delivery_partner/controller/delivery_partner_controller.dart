@@ -37,7 +37,8 @@ class DeliveryPartnerController extends GetxController{
   Rx<ApiResponse> ridersOnboardingVehicleInformationResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> ridersOnboardingStatusResponse = ApiResponse.initial('Initial').obs;
 
-    final stepStatus = <RiderProfileStep, bool>{}.obs;
+  final stepStatus = <RiderProfileStep, bool>{}.obs;
+  String? riderVerificationStatus;
 
   /// step 1
   final fullNameController = TextEditingController();
@@ -119,15 +120,19 @@ class DeliveryPartnerController extends GetxController{
     return null;
   }
 
+  RxBool isRiderStatusLoading = true.obs;
+
   /// ridersOnboardingStatusRepoApi
   Future<void> ridersOnboardingStatusRepoApi() async {
     try {
+
       ResponseModel response = await DeliveryPartnerRepo().ridersOnboardingStatusRepo();
 
       if (response.isSuccess) {
         ridersOnboardingStatusResponse.value = ApiResponse.complete(response);
         final riderOnboardingStatusResponse = RiderOnboardingStatusResponse.fromJson(response.response?.data);
 
+        riderVerificationStatus = riderOnboardingStatusResponse.data?.verificationStatus;
         stepStatus.assignAll({
           RiderProfileStep.personalInfo: riderOnboardingStatusResponse.data?.personalInformation ?? false,
           RiderProfileStep.addressInfo: riderOnboardingStatusResponse.data?.address ?? false,
@@ -145,6 +150,26 @@ class DeliveryPartnerController extends GetxController{
     } catch (e) {
       ridersOnboardingStatusResponse.value = ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
+    }finally{
+      isRiderStatusLoading.value = false;
+    }
+  }
+
+  RiderVerificationState get riderVerificationState {
+    final status = riderVerificationStatus?.toLowerCase();
+
+    switch (status) {
+      case 'completed':
+        return RiderVerificationState.completed;
+
+      case 'rejected':
+        return RiderVerificationState.rejected;
+
+      case 'pending':
+        return RiderVerificationState.pending;
+
+      default:
+        return RiderVerificationState.pending;
     }
   }
 
