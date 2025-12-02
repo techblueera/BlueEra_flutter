@@ -39,8 +39,7 @@ class RentalServicesBottomSheet extends StatefulWidget {
 }
 
 class _RentalServicesBottomSheetState extends State<RentalServicesBottomSheet> {
-  final MapServiceController mapServiceController =
-      Get.put(MapServiceController());
+  final MapServiceController mapServiceController = Get.put(MapServiceController());
   int _selectedSubCategoryIndex = 0;
   String? _selectedSubCategory;
   final List<String> subCategories = [];

@@ -246,10 +246,12 @@ class AuthController extends GetxController {
     }
   }
 
+  RxBool isAddBusinessUserLoading = false.obs;
   Future<void> addBusinessUser({required Map<String, dynamic>? reqData}) async {
     try {
+      isAddBusinessUserLoading.value = true;
       ResponseModel response =
-          await AuthRepo().updateBusinessAccountUserRepo(bodyRequest: reqData);
+          await AuthRepo().updateBusinessAccountUserRepo(bodyRequest: reqData, showProgress: false);
       if (response.isSuccess) {
         GuestUserResModel guestUserResModel =
             GuestUserResModel.fromJson(response.response?.data);
@@ -289,6 +291,8 @@ class AuthController extends GetxController {
       logs("ERRPR $e");
       addUserResponse = ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
+    } finally{
+      isAddBusinessUserLoading.value = false;
     }
   }
 

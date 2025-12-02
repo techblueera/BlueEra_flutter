@@ -54,6 +54,7 @@ class _CreateNewAccountScreenState extends State<CreateNewAccountScreen> {
                 RouteHelper.getMobileNumberLoginRoute(),
                     (Route<dynamic> route) => false,
               );
+              // Get.close(2);
             },
             cancelCallback: () {
               Navigator.of(context).pop(); // Close the dialog

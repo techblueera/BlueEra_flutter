@@ -35,6 +35,7 @@ class RentalServiceData {
   String? contactNumber;
   String? type;
   List<String>? highlights;
+  List<String>? additionalRules;
   List<String>? images;
   List<AdditionalDetails>? additionalDetails;
   String? address;
@@ -68,6 +69,7 @@ class RentalServiceData {
     this.contactNumber,
     this.type,
     this.highlights,
+    this.additionalRules,
     this.images,
     this.additionalDetails,
     this.address,
@@ -102,6 +104,7 @@ class RentalServiceData {
     contactNumber = json['contactNumber'];
     type = json['type'];
     highlights = json['highlights'] != null ? List<String>.from(json['highlights']) : null;
+    additionalRules = json['additionalRules'] != null ? List<String>.from(json['additionalRules']) : null;
     images = json['images'] != null ? List<String>.from(json['images']) : null;
     if (json['additionalDetails'] != null) {
       additionalDetails = <AdditionalDetails>[];
@@ -152,6 +155,7 @@ class RentalServiceData {
     data['contactNumber'] = contactNumber;
     data['type'] = type;
     data['highlights'] = highlights;
+    data['additionalRules'] = additionalRules;
     data['images'] = images;
     if (additionalDetails != null) {
       data['additionalDetails'] = additionalDetails!.map((v) => v.toJson()).toList();
@@ -375,6 +379,8 @@ class MaxPeople {
 
 class Restrictions {
   bool? unmarriedCoupleAllowed;
+  bool? studentOrBachelorAllowed;
+  FoodRestriction? foodRestriction;
   bool? pets;
   bool? smoking;
 
@@ -382,6 +388,10 @@ class Restrictions {
 
   Restrictions.fromJson(Map<String, dynamic> json) {
     unmarriedCoupleAllowed = json['unmarriedCoupleAllowed'];
+    studentOrBachelorAllowed = json['studentOrBachelorAllowed'];
+    foodRestriction = json['foodRestriction'] != null
+        ? FoodRestriction.fromJson(json['foodRestriction'])
+        : null;
     pets = json['pets'];
     smoking = json['smoking'];
   }
@@ -389,8 +399,31 @@ class Restrictions {
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['unmarriedCoupleAllowed'] = unmarriedCoupleAllowed;
+    data['studentOrBachelorAllowed'] = studentOrBachelorAllowed;
+    if (foodRestriction != null) {
+      data['foodRestriction'] = foodRestriction!.toJson();
+    }
     data['pets'] = pets;
     data['smoking'] = smoking;
+    return data;
+  }
+}
+
+class FoodRestriction {
+  bool? isFoodRestriction;
+  String? allowedFood;
+
+  FoodRestriction({this.isFoodRestriction, this.allowedFood});
+
+  FoodRestriction.fromJson(Map<String, dynamic> json) {
+    isFoodRestriction = json['isFoodRestriction'];
+    allowedFood = json['allowedFood'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['isFoodRestriction'] = isFoodRestriction;
+    data['allowedFood'] = allowedFood;
     return data;
   }
 }

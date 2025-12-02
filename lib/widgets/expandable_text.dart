@@ -149,15 +149,24 @@ class _ExpandableTextState extends State<ExpandableText> {
               ),
               SizedBox(height: SizeConfig.size8),
               Flexible(
-                child: SingleChildScrollView(
-                  child: HighlightText(
-                      text: widget.text,
-                    style: TextStyle(
-                      color: AppColors.mainTextColor,
-                      fontSize: SizeConfig.large,
-                      fontWeight: FontWeight.w400,
-                      fontFamily: AppConstants.OpenSans,
-                    )
+                child: Scrollbar(
+                  radius: const Radius.circular(10),
+                  trackVisibility: false,
+                  thumbVisibility: false,
+                  thickness: 3,
+                  child: SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 10.0),
+                      child: HighlightText(
+                          text: widget.text,
+                        style: TextStyle(
+                          color: AppColors.mainTextColor,
+                          fontSize: SizeConfig.large,
+                          fontWeight: FontWeight.w400,
+                          fontFamily: AppConstants.OpenSans,
+                        )
+                      ),
+                    ),
                   ),
                 ),
               ),

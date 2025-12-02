@@ -44,6 +44,7 @@ class VehicleRentalServiceController extends GetxController{
   final pickUpLocationCtrl = TextEditingController();
 
   final RxList<String> arrHighlights = <String>[].obs;
+  final RxList<String> arrMoreRestriction = <String>[].obs;
 
   RxString currentAddress = ''.obs;
   double latitude = 0.0;
@@ -188,6 +189,7 @@ class VehicleRentalServiceController extends GetxController{
     }
   }
 
+
   /// Go to the previous step
   void previousStep() {
     if (currentStep.value > 0) {
@@ -207,6 +209,12 @@ class VehicleRentalServiceController extends GetxController{
     arrHighlights.clear();
     arrHighlights.value = highlights;
   }
+
+  void addMoreRestrictions(List<String> highlights) {
+    arrMoreRestriction.clear();
+    arrMoreRestriction.value = highlights;
+  }
+
 
   RxBool isVehicleRentalServiceLoading = false.obs;
 

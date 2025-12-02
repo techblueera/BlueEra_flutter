@@ -87,6 +87,7 @@ class BusinessProfileRepo extends BaseService {
         isMultipart: true,
         params: params,
         businessLivePhotos,
+        showProgress: false,
         onError: (error) {},
         onSuccess: (data) {});
     return response;

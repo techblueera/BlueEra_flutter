@@ -38,6 +38,7 @@ class HomeStayRentalServiceController extends GetxController{
   final chargeCtrl = TextEditingController();
 
   final RxList<String> arrHighlights = <String>[].obs;
+  final RxList<String> arrMoreRestriction = <String>[].obs;
 
   RxString currentAddress = ''.obs;
   double latitude = 0.0;
@@ -188,6 +189,11 @@ class HomeStayRentalServiceController extends GetxController{
     arrHighlights.value = highlights;
   }
 
+  void addMoreRestrictions(List<String> highlights) {
+    arrMoreRestriction.clear();
+    arrMoreRestriction.value = highlights;
+  }
+
   RxBool isHomeStayRentalServiceLoading = false.obs;
 
   Future<void> addHomeStayRentalServiceApi() async {
@@ -249,7 +255,7 @@ class HomeStayRentalServiceController extends GetxController{
             if (anyFoodHabitRestriction.value) ApiKeys.allowedFood: selectedFoodHabit
           },
         }),
-        // ApiKeys.additionalRules: ,
+        if(arrMoreRestriction.isNotEmpty) ApiKeys.additionalRules: jsonEncode(arrMoreRestriction),
         if(roomParts.isNotEmpty) ApiKeys.roomImages: roomParts,
         if(kitchenParts.isNotEmpty) ApiKeys.kitchenImages: kitchenParts,
         if(bathroomParts.isNotEmpty) ApiKeys.bathroomImages: bathroomParts,

@@ -630,10 +630,7 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
                 if (viewPersonalDetailsController
                         .personalProfileDetails.value.isProfileCreated ==
                     false) {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => CreateProfileScreen()));
+                  Get.to(()=> CreateProfileScreen());
                 } else {
                   Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
                 }

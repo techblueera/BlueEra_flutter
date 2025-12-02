@@ -46,6 +46,7 @@ class AddFlatRentalServiceController extends GetxController {
 
   final RxList<String> arrHighlights = <String>[].obs;
   RxList<DetailItem> arrMoreDetails = <DetailItem>[].obs;
+  final RxList<String> arrMoreRestriction = <String>[].obs;
 
   RxBool isUnMarried = false.obs;
   RxBool isAllowStudentOrBachelor = false.obs;
@@ -155,6 +156,12 @@ class AddFlatRentalServiceController extends GetxController {
     arrMoreDetails.removeAt(index);
   }
 
+  void addMoreRestrictions(List<String> highlights) {
+    arrMoreRestriction.clear();
+    arrMoreRestriction.value = highlights;
+  }
+
+
   bool validateBeforePost() {
     final errors = <String>[];
 
@@ -172,7 +179,6 @@ class AddFlatRentalServiceController extends GetxController {
     }
 
     if (errors.isNotEmpty) {
-      // Show first missing requirement as a toast/snackbar
       commonSnackBar(message: errors.first.tr);
       return false;
     }
@@ -231,7 +237,7 @@ class AddFlatRentalServiceController extends GetxController {
               if (anyFoodHabitRestriction.value) ApiKeys.allowedFood: selectedFoodHabit
             },
           }),
-          // ApiKeys.additionalRules: ,
+          if(arrMoreRestriction.isNotEmpty) ApiKeys.additionalRules: jsonEncode(arrMoreRestriction),
           if(arrMoreDetails.isNotEmpty) ApiKeys.additionalDetails: jsonEncode(arrMoreDetails.map((e) => e.toJson()).toList()),
           if(roadsideParts.isNotEmpty) ApiKeys.roadImages: roadsideParts,
           if(roomParts.isNotEmpty) ApiKeys.roomImages: roomParts,

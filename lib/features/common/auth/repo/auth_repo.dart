@@ -55,10 +55,13 @@ class AuthRepo extends BaseService {
 
   ///User register  REPO...
   Future<ResponseModel> updateBusinessAccountUserRepo(
-      {Map<String, dynamic>? bodyRequest}) async {
+      { Map<String, dynamic>? bodyRequest,
+        bool? showProgress
+      }) async {
     final response = await ApiBaseHelper().putHTTP(
         "${updateBusinessAccount}$userId",
         params: bodyRequest,
+        showProgress: showProgress ?? true,
         onError: (error) {},
         onSuccess: (data) {},
         isMultipart: true);

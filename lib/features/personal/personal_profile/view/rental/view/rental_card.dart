@@ -72,27 +72,17 @@ class RentalCard extends StatelessWidget {
                         Icon(Icons.more_vert, color: Colors.white, size: 16),
                       ),
                     ),
-                    // Positioned(
-                    //   top: 8,
-                    //   left: 8,
-                    //   child: _buildIconBox(
-                    //     Icon(Icons.share, color: AppColors.white, size: 16),
-                    //     onTap: () {
-                    //       // Handle share icon tap if needed
-                    //     },
-                    //   ),
-                    // ),
                   ],
                 ),
               ),
 
-              // Product Details
+              // Rental Details
               Padding(
                 padding: const EdgeInsets.all(8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Service Name
+                    // Rental Name
                     CustomText(
                       rentalServiceData.name,
                       fontWeight: FontWeight.w600,

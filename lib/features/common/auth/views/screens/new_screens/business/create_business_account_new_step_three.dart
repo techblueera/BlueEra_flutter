@@ -57,9 +57,10 @@ class _CreateBusinessAccountNewStepThreeState
     nameTextController.addListener(_validateForm);
     yourRoleController.addListener(_validateForm);
     emailTextController.addListener(_validateForm);
-    viewBusinessDetailsController.listingDescriptionController.value
-        .addListener(_validateForm);
-    aiGeneratedBusinessDesc();
+    viewBusinessDetailsController.listingDescriptionController.value.addListener(_validateForm);
+    WidgetsBinding.instance.addPostFrameCallback((_) =>
+      aiGeneratedBusinessDesc());
+
   }
 
   Future<void> aiGeneratedBusinessDesc() async {
@@ -124,190 +125,196 @@ class _CreateBusinessAccountNewStepThreeState
             isLeading: true,
             title: AppStrings.businessDetailsTitle
         ),
-        body: SingleChildScrollView(
-          child: Container(
-            margin: EdgeInsets.symmetric(
-                horizontal: SizeConfig.size16, vertical: SizeConfig.size16),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surface,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                  horizontal: SizeConfig.size16, vertical: SizeConfig.size30),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      CustomText(
-                        AppStrings.shortBusinessDescription,
-                        fontSize: SizeConfig.medium,
-                        fontWeight: FontWeight.w400,
-                        color: AppColors.black,
-                      ),
-                      Obx(()=> !descriptionController.isLoading.value
-                          ? InkWell(
-                          onTap: () async {
-                            await aiGeneratedBusinessDesc();
-                            if (!mounted) return;
-                            _validateForm();
-                          },
-                          child: LocalAssets(
-                            height: 25,
-                            width: 25,
-                            imgColor: AppColors.primaryColor,
-                            imagePath: AppIconAssets.ai_generative,
-                          )) : SizedBox(
+        body: AbsorbPointer(
+          absorbing: viewBusinessDetailsController.isUpdateBusinessDetailsLoading.value,
+          child: SingleChildScrollView(
+            child: Container(
+              margin: EdgeInsets.symmetric(
+                  horizontal: SizeConfig.size16, vertical: SizeConfig.size16),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                    horizontal: SizeConfig.size16, vertical: SizeConfig.size30),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+          
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        CustomText(
+                          AppStrings.shortBusinessDescription,
+                          fontSize: SizeConfig.medium,
+                          fontWeight: FontWeight.w400,
+                          color: AppColors.black,
+                        ),
+                        Obx(()=> !descriptionController.isLoading.value
+                            ? InkWell(
+                            onTap: () async {
+                              await aiGeneratedBusinessDesc();
+                              if (!mounted) return;
+                              _validateForm();
+                            },
+                            child: LocalAssets(
                               height: 25,
                               width: 25,
-                            child: CircularProgressIndicator(
-                                  strokeWidth: 2.0,
-                                ),
-                          )),
-                    ],
-                  ),
-                  SizedBox(height: SizeConfig.paddingXSL),
-                  CommonTextField(
-                    validator: null,
-                    borderWidth: 0,
-                    borderColor: Colors.transparent,
-                    hintText:
-                    AppStrings.businessDescriptionExample,
-                    textEditController: viewBusinessDetailsController
-                        .listingDescriptionController.value,
-                    maxLine: 5,
-                    isValidate: false,
-                    maxLength: AppConstants.inputCharterLimit400,
-                    onChange: (val) {
-                      viewBusinessDetailsController.businessDescription.value =
-                          val;
-                      _validateForm();
-                    },
-                    inputFormatters: [
-                      LengthLimitingTextInputFormatter(
-                        AppConstants.inputCharterLimit400,
-                      ),
-                      NoLeadingSpaceFormatter(),
-                      NoConsecutiveSpacesFormatter(),
-                    ],
-                  ),
-                  SizedBox(height: SizeConfig.size10),
-                  Obx(() {
-                    return Align(
-                      alignment: Alignment.bottomRight,
-                      child: CustomText(
-                        "${viewBusinessDetailsController.businessDescription.value.length}/${AppConstants.inputCharterLimit400}",
-                        color: AppColors.grey9B,
-                        fontSize: SizeConfig.small,
-                      ),
-                    );
-                  }),
-                  SizedBox(
-                    height: SizeConfig.size28,
-                  ),
-                  Center(
-                    child: CustomText(
-                      AppStrings.ownerDetail,
-                      fontSize: SizeConfig.large,
-                      fontWeight: FontWeight.w600,
+                              imgColor: AppColors.primaryColor,
+                              imagePath: AppIconAssets.ai_generative,
+                            )) : SizedBox(
+                                height: 25,
+                                width: 25,
+                              child: CircularProgressIndicator(
+                                    strokeWidth: 2.0,
+                                  ),
+                            )),
+                      ],
                     ),
-                  ),
-                  SizedBox(
-                    height: SizeConfig.size20,
-                  ),
-                  CommonTextField(
-                    textEditController: nameTextController,
-                    inputLength: AppConstants.inputCharterLimit50,
-                    keyBoardType: TextInputType.text,
-                    regularExpression:
-                    RegularExpressionUtils.alphabetSpacePattern,
-                    title: AppStrings.yourNameHint,
-                    hintText: AppConstants.name,
-                    isValidate: false,
-                  ),
-                  SizedBox(
-                    height: SizeConfig.size20,
-                  ),
-                  CommonTextField(
-                    textEditController: yourRoleController,
-                    inputLength: AppConstants.inputCharterLimit50,
-                    keyBoardType: TextInputType.text,
-                    regularExpression:
-                    RegularExpressionUtils.alphabetSpacePattern,
-                    title: AppStrings.yourRole,
-                    hintText: AppStrings.yourRoleHint,
-                    isValidate: false,
-                  ),
-                  SizedBox(
-                    height: SizeConfig.size20,
-                  ),
-                  CommonTextField(
-                    textEditController: emailTextController,
-                    inputLength: AppConstants.inputCharterLimit50,
-                    keyBoardType: TextInputType.emailAddress,
-                    regularExpression: RegularExpressionUtils.emailPattern,
-                    title: AppStrings.email,
-                    hintText: AppStrings.emailHint,
-                    isValidate: true,
-                    validationType: ValidationTypeEnum.email,
-                  ),
-                  SizedBox(
-                    height: SizeConfig.size28,
-                  ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: CustomBtn(
-                          radius: 10,
-                          onTap: () {
-                            Get.toNamed(RouteHelper.getAddBusinessLivePhotoRoute());
-                          },
-                          title: AppStrings.skip,
-                          bgColor: Colors.transparent,
-                          textColor: AppColors.primaryColor,
-                          borderColor: AppColors.primaryColor,
+                    SizedBox(height: SizeConfig.paddingXSL),
+                    CommonTextField(
+                      validator: null,
+                      borderWidth: 0,
+                      borderColor: Colors.transparent,
+                      hintText:
+                      AppStrings.businessDescriptionExample,
+                      textEditController: viewBusinessDetailsController
+                          .listingDescriptionController.value,
+                      maxLine: 5,
+                      isValidate: false,
+                      maxLength: AppConstants.inputCharterLimit400,
+                      onChange: (val) {
+                        viewBusinessDetailsController.businessDescription.value =
+                            val;
+                        _validateForm();
+                      },
+                      inputFormatters: [
+                        LengthLimitingTextInputFormatter(
+                          AppConstants.inputCharterLimit400,
                         ),
-                      ),
-                      SizedBox(
-                        width: SizeConfig.size10,
-                      ),
-                      Expanded(
-                        child: CustomBtn(
-                          radius: 10,
-                          onTap: isFormValid
-                              ? () async {
-
-                            /// Submit action
-                            Map<String, dynamic> reqParam = {
-                              ApiKeys.businessId: businessId,
-                              ApiKeys.business_description:
-                              viewBusinessDetailsController
-                                  .businessDescription.value,
-                              ApiKeys.owner_details: jsonEncode([
-                                {
-                                  ApiKeys.name: nameTextController.text,
-                                  ApiKeys.role_in_business:
-                                  yourRoleController.text,
-                                  ApiKeys.email: emailTextController.text
-                                }
-                              ]),
-                            };
-                            await viewBusinessDetailsController
-                                .updateBusinessDetails(reqParam);
-                           Get.toNamed(RouteHelper.getAddBusinessLivePhotoRoute());
-                          }
-                              : null,
-                          title: AppStrings.submit,
-                          isValidate: isFormValid,
+                        NoLeadingSpaceFormatter(),
+                        NoConsecutiveSpacesFormatter(),
+                      ],
+                    ),
+                    SizedBox(height: SizeConfig.size10),
+                    Obx(() {
+                      return Align(
+                        alignment: Alignment.bottomRight,
+                        child: CustomText(
+                          "${viewBusinessDetailsController.businessDescription.value.length}/${AppConstants.inputCharterLimit400}",
+                          color: AppColors.grey9B,
+                          fontSize: SizeConfig.small,
                         ),
+                      );
+                    }),
+                    SizedBox(
+                      height: SizeConfig.size28,
+                    ),
+                    Center(
+                      child: CustomText(
+                        AppStrings.ownerDetail,
+                        fontSize: SizeConfig.large,
+                        fontWeight: FontWeight.w600,
                       ),
-                    ],
-                  ),
-
-                ],
+                    ),
+                    SizedBox(
+                      height: SizeConfig.size20,
+                    ),
+                    CommonTextField(
+                      textEditController: nameTextController,
+                      inputLength: AppConstants.inputCharterLimit50,
+                      keyBoardType: TextInputType.text,
+                      regularExpression:
+                      RegularExpressionUtils.alphabetSpacePattern,
+                      title: AppStrings.yourNameHint,
+                      hintText: AppConstants.name,
+                      isValidate: false,
+                    ),
+                    SizedBox(
+                      height: SizeConfig.size20,
+                    ),
+                    CommonTextField(
+                      textEditController: yourRoleController,
+                      inputLength: AppConstants.inputCharterLimit50,
+                      keyBoardType: TextInputType.text,
+                      regularExpression:
+                      RegularExpressionUtils.alphabetSpacePattern,
+                      title: AppStrings.yourRole,
+                      hintText: AppStrings.yourRoleHint,
+                      isValidate: false,
+                    ),
+                    SizedBox(
+                      height: SizeConfig.size20,
+                    ),
+                    CommonTextField(
+                      textEditController: emailTextController,
+                      inputLength: AppConstants.inputCharterLimit50,
+                      keyBoardType: TextInputType.emailAddress,
+                      regularExpression: RegularExpressionUtils.emailPattern,
+                      title: AppStrings.email,
+                      hintText: AppStrings.emailHint,
+                      isValidate: true,
+                      validationType: ValidationTypeEnum.email,
+                    ),
+                    SizedBox(
+                      height: SizeConfig.size28,
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: CustomBtn(
+                            radius: 10,
+                            onTap: () {
+                              Get.toNamed(RouteHelper.getAddBusinessLivePhotoRoute());
+                            },
+                            title: AppStrings.skip,
+                            bgColor: Colors.transparent,
+                            textColor: AppColors.primaryColor,
+                            borderColor: AppColors.primaryColor,
+                          ),
+                        ),
+                        SizedBox(
+                          width: SizeConfig.size10,
+                        ),
+                        Expanded(
+                          child: Obx(()=> CustomBtn(
+                            radius: 10,
+                            onTap: isFormValid
+                                ? () async {
+          
+                              /// Submit action
+                              Map<String, dynamic> reqParam = {
+                                ApiKeys.businessId: businessId,
+                                ApiKeys.business_description:
+                                viewBusinessDetailsController
+                                    .businessDescription.value,
+                                ApiKeys.owner_details: jsonEncode([
+                                  {
+                                    ApiKeys.name: nameTextController.text,
+                                    ApiKeys.role_in_business:
+                                    yourRoleController.text,
+                                    ApiKeys.email: emailTextController.text
+                                  }
+                                ]),
+                              };
+                              await viewBusinessDetailsController
+                                  .updateBusinessDetails(reqParam, showProgress: false);
+                              Get.toNamed(RouteHelper.getAddBusinessLivePhotoRoute());
+                            }
+                                : null,
+                            title: viewBusinessDetailsController.isUpdateBusinessDetailsLoading.value
+                                ? null
+                                : AppStrings.submit,
+                            isLoading: viewBusinessDetailsController.isUpdateBusinessDetailsLoading.value,
+                            isValidate: isFormValid,
+                          )),
+                        ),
+                      ],
+                    ),
+          
+                  ],
+                ),
               ),
             ),
           ),
