@@ -216,7 +216,7 @@ class ChatViewController extends GetxController {
     await loadAllChatListFromLocal();
     // final connectivityResult = await NetworkUtils.isConnected();
     // if (connectivityResult) {
-    //   await loadChatListFromLocal("personal");
+    //   await loadChatListFromLocal(AppConstants.personal_Chat_Type);
     // }
 
     chatSocket.listenEvent(ChatEmitEvents.ChatList, (data) async {
@@ -279,10 +279,10 @@ class ChatViewController extends GetxController {
         message?.myMessage = currentUserId == senderId;
       }
 
-      if (message?.conversation?.type == "personal") {
-        emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: "personal"}, true);
+      if (message?.conversation?.type == AppConstants.personal_Chat_Type) {
+        emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type:  AppConstants.personal_Chat_Type}, true);
       } else {
-        emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: "business"}, true);
+        emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type:  AppConstants.business_Chat_Type}, true);
       }
       String chekedConversationId = userOpenConversationId.value;
       if (chekedConversationId == message?.conversationId) {
@@ -343,37 +343,36 @@ class ChatViewController extends GetxController {
     sendMessageController.value.clear();
     isTextFieldEmpty.value = false;
   }
-
-  Future<void> loadChatListFromLocal(String type) async {
-    List<ChatList> localChats =
-        await localStorageHelper.getChatListFromLocal(type);
-    getPersonalChatListModel?.value = GetChatListModel(
-      success: true,
-      chatList: localChats,
-      archived: [],
-    );
-    personalChatListResponse.value =
-        ApiResponse.complete(getPersonalChatListModel?.value);
-  }
+  //
+  // Future<void> loadChatListFromLocal(String type) async {
+  //   List<ChatList> localChats =
+  //       await localStorageHelper.getChatListFromLocal(type);
+  //   getPersonalChatListModel?.value = GetChatListModel(
+  //     success: true,
+  //     chatList: localChats,
+  //     archived: [],
+  //   );
+  //   personalChatListResponse.value =
+  //       ApiResponse.complete(getPersonalChatListModel?.value);
+  // }
 
   void loadChatListWithType({required GetChatListModel chatListModel}) {
 
-    if (chatListModel.type == "business") {
+    if (chatListModel.type == AppConstants.business_Chat_Type) {
       getBusinessChatListModel?.value = chatListModel;
       businessChatListResponse.value = ApiResponse.complete(chatListModel);
-    } else if (chatListModel.type == "personal") {
+    } else if (chatListModel.type == AppConstants.personal_Chat_Type) {
       getPersonalChatListModel?.value = chatListModel;
       personalChatListResponse.value = ApiResponse.complete(chatListModel);
-    } else if (chatListModel.type == "group") {
+    } else if (chatListModel.type == AppConstants.group_Chat_Type) {
       getGroupChatListModel?.value = chatListModel;
       groupChatListResponse.value =
           ApiResponse.complete(getGroupChatListModel?.value);
-    }else if (chatListModel.type == "order") {
+    }else if (chatListModel.type == AppConstants.order_Chat_Type) {
       getOrderChatListModel?.value = chatListModel;
       orderChatListResponse.value =
           ApiResponse.complete(getOrderChatListModel?.value);
     } else {
-      // when type is not come  from backend this is show success in personal chat
       getPersonalChatListModel?.value = chatListModel;
       personalChatListResponse.value = ApiResponse.complete(chatListModel);
     }
@@ -381,7 +380,6 @@ class ChatViewController extends GetxController {
 
   void onSearchChatList(String searchQuery) {
     if (selectedChatTabIndex.value == 0) {
-      // ✅ Always search on the original full list (not filtered list)
       List<ChatList?>? fullChatList =
           getPersonalFilteredChatListModel?.value.chatList;
 
@@ -595,7 +593,7 @@ class ChatViewController extends GetxController {
     }
     await getLocalConversation(conversationId, userId, otherUserId,contactName);
 
-    if (type == "business") {
+    if (type ==  AppConstants.business_Chat_Type) {
       if (isFromContactList != null && isFromContactList) {
         Get.off(
           () => BusinessChatScreenUpdated(
@@ -688,29 +686,25 @@ class ChatViewController extends GetxController {
   void emitEvent(String event, dynamic data,
       [bool? isFromInitial, String? conversationId]) async {
 
-    // if (event == "ChatList") {
-    //   final type = data[ApiKeys.type];
-    //
-    //
-    //   if (isFromInitial == true) {
-    //     List<ChatList> localChats =
-    //     await localStorageHelper.getChatListFromLocal(type);
-    //       loadChatListWithType(
-    //           chatListModel: GetChatListModel(
-    //             type: type,
-    //             success: true,
-    //             chatList: localChats,
-    //             archived: [],
-    //           ));
-    //   }
-    // }
-
     if (event == ChatEmitEvents.messageReceived &&
         (conversationId ?? "") != userOpenConversationId) {
       getListOfMessageResponse.value = ApiResponse.initial('Initial');
     }
 
     if (event == ChatEmitEvents.ChatList) {
+      // final type = data[ApiKeys.type];
+
+
+        // List<ChatList> localChats =
+        // await localStorageHelper.getChatListFromLocal(type);
+        // loadChatListWithType(
+        //     chatListModel: GetChatListModel(
+        //       type: type,
+        //       success: true,
+        //       chatList: localChats,
+        //       archived: [],
+        //     ));
+
       Map<String, dynamic> dataParams = {
         ApiKeys.type: data[ApiKeys.type]
       };
@@ -1085,7 +1079,7 @@ class ChatViewController extends GetxController {
       await ChatViewRepo().createNewGroupApi(params);
 
       if (responseModel.isSuccess) {
-        emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: "group"});
+        emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type:AppConstants.group_Chat_Type});
         return true;
       } else {
         commonSnackBar(
@@ -1182,7 +1176,7 @@ class ChatViewController extends GetxController {
         }
         scrollDown();
         saveSingleMessageToLocal(message.conversationId ?? '', message, params);
-        emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: "personal"}, true);
+        emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.personal_Chat_Type}, true);
         clearMessageControllerCommon();
       } else {
         clearMessageControllerCommon();

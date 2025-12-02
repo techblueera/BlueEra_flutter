@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -896,7 +897,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
   final theme = Theme.of(context);
   final chatViewController = Get.find<ChatViewController>();
   final bottomBarController = Get.find<BottomBarController>();
-
+   log("ksjdjskskjdcsdkl ${profileImage}");
   return AppBar(
     elevation: 0,
     backgroundColor: Colors.white,

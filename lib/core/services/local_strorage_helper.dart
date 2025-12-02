@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
@@ -63,18 +64,47 @@ class LocalStorageHelper {
       }
 
       final response = await http.get(Uri.parse(imageUrl));
+
       if (response.statusCode == 200) {
         final directory = await getApplicationDocumentsDirectory();
-        final filePath = '${directory.path}/$userId.jpg';
-        final file = File(filePath);
-        await file.writeAsBytes(response.bodyBytes);
-        return filePath;
+
+        final originalPath = '${directory.path}/$userId-original.jpg';
+        final compressedPath = '${directory.path}/$userId-compressed.jpg';
+
+        // Save original image first
+        final originalFile = File(originalPath);
+        await originalFile.writeAsBytes(response.bodyBytes);
+
+        // ---- COMPRESS IMAGE HERE ----
+        final compressedBytes = await FlutterImageCompress.compressWithFile(
+          originalFile.path,
+          quality: 60,        // 0–100 (60 is good balance)
+          minWidth: 300,      // reduce resolution
+          minHeight: 300,
+          format: CompressFormat.jpeg,
+        );
+
+        if (compressedBytes != null) {
+          final compressedFile = File(compressedPath);
+          await compressedFile.writeAsBytes(compressedBytes);
+
+          // remove original large file
+          if (await originalFile.exists()) {
+            await originalFile.delete();
+          }
+
+          return compressedPath;
+        } else {
+          return originalPath;
+        }
       }
     } catch (e) {
-      print('Failed to download image: $e');
+      print('Failed to download/compress image: $e');
     }
+
     return '';
   }
+
 
   Future<String> _downloadAndSaveMediaFile(String url, String uniqueId,String mediaType) async {
     try {
@@ -127,7 +157,6 @@ class LocalStorageHelper {
 
     if (jsonString == null) return [];
     final decoded = jsonDecode(jsonString) as List<dynamic>;
-    log(";asjdlaskdfmlskd ==  ${type}==> ${decoded}");
 
     return decoded.map((e) => ChatList.fromJson(e)).toList();
   }

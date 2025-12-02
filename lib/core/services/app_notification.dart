@@ -425,10 +425,9 @@ class AppNotificationHandler {
     }
     OneSignalNotificationDetailsModel data =
         OneSignalNotificationDetailsModel.fromJson(dataNotificationResponse);
-
     if (data.operation == "sent_message") {
       OpenedMessageDataModel resModel=OpenedMessageDataModel.fromJson(dataNotificationResponse);
-      // if(resModel.conversationType=="group"){
+      // if(resModel.conversationType==AppConstants.group_Chat_Type){
       //   Get.to(()=>GroupChatScreen(
       //     type: AppConstants.group_Chat_Type,
       //     conversationId: resModel.conversationId,
