@@ -1,11 +1,17 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/common/channel_feed_view/channel_feed_message_post_widget.dart';
 import 'package:BlueEra/features/common/feed/models/all_message_post_res_model.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/repo/feed_repo.dart';
+import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
+import 'package:BlueEra/features/common/feed/widget/feed_poll_options_widget.dart';
 import 'package:BlueEra/features/common/feed/widget/social_message_post_grid_widget.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -24,7 +30,8 @@ class FeedControllerNew extends GetxController {
   String? nextCursor;
   bool hasMoreData = true;
 
-  Future<void> fetchPosts({String? cursor, String? postId}) async {
+  Future<void> fetchPosts(
+      {String? cursor, String? postId, String? postType}) async {
     if (isLoading.value) return;
     isLoading.value = true;
 
@@ -34,7 +41,8 @@ class FeedControllerNew extends GetxController {
         ApiKeys.limit: 40,
         if (cursor != null)
           ApiKeys.cursor: nextCursor, // Fetch 40 items for enhancement
-        ApiKeys.type: "MESSAGE_POST", // Fetch 40 items for enhancement
+        ApiKeys.type: postType, // Fetch 40 items for enhancement
+        // ApiKeys.type: "MESSAGE_POST", // Fetch 40 items for enhancement
       };
       final response =
           await FeedRepo().fetchAllMessagePosts(queryParams: queryParams);
@@ -70,7 +78,9 @@ class FeedControllerNew extends GetxController {
 
     // Pagination Logic: Load more when we are 3 items away from end
     if (index >= posts.length - 3 && hasMoreData) {
-      fetchPosts(cursor: nextCursor);
+      fetchPosts(
+        cursor: nextCursor,
+      );
     }
   }
 
@@ -84,9 +94,11 @@ class FeedControllerNew extends GetxController {
 }
 
 class AllMessagePostScreen extends StatefulWidget {
-  AllMessagePostScreen({super.key, required this.postID});
+  AllMessagePostScreen(
+      {super.key, required this.postID, required this.postType});
 
   final String postID;
+  final String postType;
 
   @override
   State<AllMessagePostScreen> createState() => _AllMessagePostScreenState();
@@ -102,14 +114,16 @@ class _AllMessagePostScreenState extends State<AllMessagePostScreen> {
   @override
   void initState() {
     // TODO: implement initState
-    controller.fetchPosts(postId: widget.postID);
+    controller.fetchPosts(postId: widget.postID, postType: widget.postType);
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: widget.postType.toLowerCase() == "poll_post"
+          ? Colors.white
+          : Colors.black,
       body: SafeArea(
         child: Obx(() {
           if (controller.isLoading.value && controller.posts.isEmpty) {
@@ -122,185 +136,178 @@ class _AllMessagePostScreenState extends State<AllMessagePostScreen> {
             itemCount: controller.posts.length,
             onPageChanged: controller.onPageChanged,
             itemBuilder: (context, index) {
-              // Using 'dynamic' here, but strictly map this to your Post model
               final post = controller.posts[index];
 
-              final mediaUrls = post.media ?? [];
-              post.media != null && (post.media?.isNotEmpty ?? false)
-                  ? post.media![0]
-                  : "";
+              return post.type?.toLowerCase() == "poll_post"
+                  ? pollPostWidget(post)
+                  : messageImagePostWidget(post);
+            },
+          );
+        }),
+      ),
+    );
+  }
 
-              return Stack(
-                fit: StackFit.expand,
+  messageImagePostWidget(Post post) {
+    final mediaUrls = post.media ?? [];
+    post.media != null && (post.media?.isNotEmpty ?? false)
+        ? post.media![0]
+        : "";
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        mediaUrls.length == 1
+            ? CachedNetworkImage(
+                imageUrl: mediaUrls.first,
+                fit: BoxFit.contain,
+                placeholder: (context, url) => const Center(
+                    child: CircularProgressIndicator(color: Colors.white)),
+                errorWidget: (context, url, error) =>
+                    const Icon(Icons.error, color: Colors.white),
+              )
+            : Column(
                 children: [
-                  mediaUrls.length == 1
-                      ? CachedNetworkImage(
-                          imageUrl: mediaUrls.first,
+                  Expanded(
+                    child: PageView.builder(
+                      controller: _imagePageController,
+                      itemCount: mediaUrls.length,
+                      onPageChanged: (index) => currentIndex.value = index,
+                      itemBuilder: (context, index) {
+                        return CachedNetworkImage(
+                          imageUrl: mediaUrls[index],
                           fit: BoxFit.contain,
                           placeholder: (context, url) => const Center(
                               child: CircularProgressIndicator(
                                   color: Colors.white)),
                           errorWidget: (context, url, error) =>
                               const Icon(Icons.error, color: Colors.white),
-                        )
-                      : Column(
-                          children: [
-                            Expanded(
-                              child: PageView.builder(
-                                controller: _imagePageController,
-                                itemCount: mediaUrls.length,
-                                onPageChanged: (index) =>
-                                    currentIndex.value = index,
-                                itemBuilder: (context, index) {
-                                  return CachedNetworkImage(
-                                    imageUrl: mediaUrls[index],
-                                    fit: BoxFit.contain,
-                                    placeholder: (context, url) => const Center(
-                                        child: CircularProgressIndicator(
-                                            color: Colors.white)),
-                                    errorWidget: (context, url, error) =>
-                                        const Icon(Icons.error,
-                                            color: Colors.white),
-                                  );
-                                },
-                              ),
+                        );
+                      },
+                    ),
+                  ),
+
+                  // Dot Indicator
+                  SizedBox(height: 8),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(mediaUrls.length, (index) {
+                      return Obx(() => AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            margin: const EdgeInsets.symmetric(horizontal: 4),
+                            width: currentIndex.value == index ? 12 : 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: currentIndex.value == index
+                                  ? Colors.white
+                                  : Colors.white54,
+                              borderRadius: BorderRadius.circular(10),
                             ),
+                          ));
+                    }),
+                  ),
+                ],
+              ),
 
-                            // Dot Indicator
-                            SizedBox(height: 8),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children:
-                                  List.generate(mediaUrls.length, (index) {
-                                return Obx(() => AnimatedContainer(
-                                      duration:
-                                          const Duration(milliseconds: 300),
-                                      margin: const EdgeInsets.symmetric(
-                                          horizontal: 4),
-                                      width:
-                                          currentIndex.value == index ? 12 : 8,
-                                      height: 8,
-                                      decoration: BoxDecoration(
-                                        color: currentIndex.value == index
-                                            ? Colors.white
-                                            : Colors.white54,
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                    ));
-                              }),
-                            ),
-                          ],
+        // 2. Dark Gradient Overlay (for text visibility)
+        const Positioned(
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: 200,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.bottomCenter,
+                end: Alignment.topCenter,
+                colors: [Colors.black87, Colors.transparent],
+              ),
+            ),
+          ),
+        ),
+
+        // 3. Back Button
+        Positioned(
+          top: 10, // Adjust for SizeConfig
+          left: 0,
+          child: Row(
+            children: [
+              Container(
+                child: SizedBox(
+                  width: 25,
+                  height: 25,
+                  child: IconButton(
+                    padding: EdgeInsets.zero,
+                    // remove internal padding
+                    constraints: BoxConstraints(),
+                    // remove minimum button size
+                    icon: const Icon(
+                      Icons.arrow_back_ios,
+                      color: Colors.white,
+                      size: 25,
+                    ),
+                    onPressed: () => Get.back(),
+                  ),
+                ),
+              ),
+              SizedBox(
+                width: SizeConfig.size10,
+              ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  InkWell(
+                    onTap: () {
+                      navigatePushTo(
+                        context,
+                        ImageViewScreen(
+                          appBarTitle: AppStrings.imageViewer,
+                          imageUrls: [post.user?.profileImage ?? ""],
+                          initialIndex: 0,
                         ),
-
-                  // CachedNetworkImage(
-                  //   imageUrl: mediaUrl,
-                  //   fit: BoxFit.contain,
-                  //   placeholder: (context, url) => const Center(
-                  //       child: CircularProgressIndicator(color: Colors.white)),
-                  //   errorWidget: (context, url, error) =>
-                  //       const Icon(Icons.error),
-                  // ),
-
-                  // 2. Dark Gradient Overlay (for text visibility)
-                  const Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    height: 200,
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.bottomCenter,
-                          end: Alignment.topCenter,
-                          colors: [Colors.black87, Colors.transparent],
-                        ),
+                      );
+                    },
+                    child: CachedAvatarWidget(
+                        imageUrl: post.user?.profileImage,
+                        size: 45,
+                        borderRadius: 30),
+                  ),
+                  SizedBox(
+                    width: SizeConfig.size20,
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomText(
+                        "${post.user?.name}",
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
                       ),
-                    ),
+                      if (post.user?.designation?.isNotEmpty ?? false)
+                        CustomText(
+                          "${post.user?.designation}",
+                          color: Colors.white,
+                          fontSize: 13,
+                        ),
+                      if ((post.user?.businessName?.isNotEmpty ?? false) &&
+                          (post.user?.businessName != null) &&
+                          (post.user?.businessName != "null"))
+                        CustomText(
+                          post.user?.businessName ?? "",
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                    ],
                   ),
+                ],
+              ),
+            ],
+          ),
+        ),
 
-                  // 3. Back Button
-                  Positioned(
-                    top: 10, // Adjust for SizeConfig
-                    left: 0,
-                    child: Row(
-                      children: [
-                        Container(
-                          child: SizedBox(
-                            width: 25,
-                            height: 25,
-                            child: IconButton(
-                              padding: EdgeInsets.zero,
-                              // remove internal padding
-                              constraints: BoxConstraints(),
-                              // remove minimum button size
-                              icon: const Icon(
-                                Icons.arrow_back_ios,
-                                color: Colors.white,
-                                size: 25,
-                              ),
-                              onPressed: () => Get.back(),
-                            ),
-                          ),
-                        ),
-                        SizedBox(
-                          width: SizeConfig.size10,
-                        ),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            InkWell(
-                              onTap: () {
-                                navigatePushTo(
-                                  context,
-                                  ImageViewScreen(
-                                    appBarTitle: AppStrings.imageViewer,
-                                    imageUrls: [post.user?.profileImage ?? ""],
-                                    initialIndex: 0,
-                                  ),
-                                );
-                              },
-                              child: CachedAvatarWidget(
-                                  imageUrl: post.user?.profileImage,
-                                  size: 45,
-                                  borderRadius: 30),
-                            ),
-                            SizedBox(
-                              width: SizeConfig.size20,
-                            ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                CustomText(
-                                  "${post.user?.name}",
-                                  color: Colors.white,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                if (post.user?.designation?.isNotEmpty ?? false)
-                                  CustomText(
-                                    "${post.user?.designation}",
-                                    color: Colors.white,
-                                    fontSize: 13,
-                                  ),
-                                if ((post.user?.businessName?.isNotEmpty ??
-                                        false) &&
-                                    (post.user?.businessName != null) &&
-                                    (post.user?.businessName != "null"))
-                                  CustomText(
-                                    post.user?.businessName ?? "",
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  /*    // 4. Right Side Interaction Bar
+        /*    // 4. Right Side Interaction Bar
                   Positioned(
                     right: 10,
                     bottom: 100,
@@ -310,7 +317,7 @@ class _AllMessagePostScreenState extends State<AllMessagePostScreen> {
                         // Avatar
                         _buildAvatar(post.user?.profileImage),
                         const SizedBox(height: 20),
-        
+
                         // Like
                         _buildActionButton(
                           icon: (post.isLiked ?? false)
@@ -321,7 +328,7 @@ class _AllMessagePostScreenState extends State<AllMessagePostScreen> {
                           label: (post.likesCount.toString()),
                           onTap: () => controller.toggleLike(post.id),
                         ),
-        
+
                         // Comment
                         _buildActionButton(
                           icon: Icons.comment,
@@ -330,7 +337,7 @@ class _AllMessagePostScreenState extends State<AllMessagePostScreen> {
                             // Open Comment BottomSheet
                           },
                         ),
-        
+
                         // Share
                         _buildActionButton(
                           icon: Icons.share,
@@ -340,7 +347,7 @@ class _AllMessagePostScreenState extends State<AllMessagePostScreen> {
                             // Share Logic
                           },
                         ),
-        
+
                         // Menu
                         IconButton(
                           icon: const Icon(Icons.more_vert, color: Colors.white),
@@ -352,62 +359,150 @@ class _AllMessagePostScreenState extends State<AllMessagePostScreen> {
                     ),
                   ),*/
 
-                  // 5. Bottom Info (Username & Caption)
-                  Positioned(
-                    bottom: 20,
-                    left: 10,
-                    right: 10, // Leave space for right side bar
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 8),
-                        // Expandable Text Logic
-                        Container(
-                          width: Get.width,
-                          margin: EdgeInsets.only(bottom: SizeConfig.size20),
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 12, horizontal: 12),
-                          decoration: BoxDecoration(
-                            color: AppColors.secondaryTextColor
-                                .withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: ExpandableText(
-                            text: post.subTitle ?? '',
-                            trimLines: 4,
-                            isReadMoreNewLine: true,
-                            expandMode: ExpandMode.dialog,
-                            style: TextStyle(
-                              color: AppColors.white,
-                              fontSize: SizeConfig.large,
-                              fontWeight: FontWeight.w400,
-                              fontFamily: AppConstants.OpenSans,
-                            ),
-                          ),
-                          // child: Text(
-                          //   widget.subTitle ?? '',
-                          //   textAlign: TextAlign.left,
-                          //   style: TextStyle(
-                          //     color: Colors.white,
-                          //     fontSize: SizeConfig.screenWidth * 0.045,
-                          //     fontWeight: FontWeight.w500,
-                          //   ),
-                          // ),
-                        ),
-                        //  CustomText(
-                        //    post.subTitle ?? "",
-                        //    maxLines: 3,
-                        //    overflow: TextOverflow.ellipsis,
-                        // color: Colors.white),
-                      ],
-                    ),
+        // 5. Bottom Info (Username & Caption)
+        Positioned(
+          bottom: 20,
+          left: 10,
+          right: 10, // Leave space for right side bar
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 8),
+              // Expandable Text Logic
+              Container(
+                width: Get.width,
+                margin: EdgeInsets.only(bottom: SizeConfig.size20),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                decoration: BoxDecoration(
+                  color: AppColors.secondaryTextColor.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: ExpandableText(
+                  text: post.subTitle ?? '',
+                  trimLines: 4,
+                  isReadMoreNewLine: true,
+                  expandMode: ExpandMode.dialog,
+                  style: TextStyle(
+                    color: AppColors.white,
+                    fontSize: SizeConfig.large,
+                    fontWeight: FontWeight.w400,
+                    fontFamily: AppConstants.OpenSans,
                   ),
-                ],
-              );
-            },
-          );
-        }),
-      ),
+                ),
+                // child: Text(
+                //   widget.subTitle ?? '',
+                //   textAlign: TextAlign.left,
+                //   style: TextStyle(
+                //     color: Colors.white,
+                //     fontSize: SizeConfig.screenWidth * 0.045,
+                //     fontWeight: FontWeight.w500,
+                //   ),
+                // ),
+              ),
+              //  CustomText(
+              //    post.subTitle ?? "",
+              //    maxLines: 3,
+              //    overflow: TextOverflow.ellipsis,
+              // color: Colors.white),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  ///POLL POST WIDGET...
+
+  pollPostWidget(Post post) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Container(
+              margin: EdgeInsets.only(left: 10),
+              child: SizedBox(
+                width: 25,
+                height: 25,
+                child: IconButton(
+                  padding: EdgeInsets.zero,
+                  // remove internal padding
+                  constraints: BoxConstraints(),
+                  // remove minimum button size
+                  icon: const Icon(
+                    Icons.arrow_back_ios,
+                    size: 25,
+                  ),
+                  onPressed: () => Get.back(),
+                ),
+              ),
+            ),
+            SizedBox(
+              width: SizeConfig.size10,
+            ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                InkWell(
+                  onTap: () {
+                    navigatePushTo(
+                      context,
+                      ImageViewScreen(
+                        appBarTitle: AppStrings.imageViewer,
+                        imageUrls: [post.user?.profileImage ?? ""],
+                        initialIndex: 0,
+                      ),
+                    );
+                  },
+                  child: CachedAvatarWidget(
+                      imageUrl: post.user?.profileImage,
+                      size: 45,
+                      borderRadius: 30),
+                ),
+                SizedBox(
+                  width: SizeConfig.size20,
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CustomText(
+                      "${post.user?.name}",
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    if (post.user?.designation?.isNotEmpty ?? false)
+                      CustomText(
+                        "${post.user?.designation}",
+                        fontSize: 13,
+                      ),
+                    if ((post.user?.businessName?.isNotEmpty ?? false) &&
+                        (post.user?.businessName != null) &&
+                        (post.user?.businessName != "null"))
+                      CustomText(
+                        post.user?.categoryOfBusiness ?? "",
+                        fontSize: 13,
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
+        Padding(
+          padding: const EdgeInsets.only(left: 15.0, top: 15),
+          child: FeedPollOptionsWidget(
+            question: post.poll?.question ?? "",
+            postId: post.id,
+            poll: post.poll,
+            postFilteredType: PostType.all,
+            postedAgo: timeAgo(
+                post.createdAt != null ? post.createdAt! : DateTime.now()),
+            message: post.message,
+            postData: post,
+          ),
+        ),
+
+      ],
     );
   }
 

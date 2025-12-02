@@ -17,6 +17,7 @@ class FeedPollOptionsWidget extends StatefulWidget {
     required this.postFilteredType,
     this.postedAgo,
     this.message,
+    required this.postData,
   });
 
   // final Map<String, bool>? quesOptions;
@@ -28,6 +29,7 @@ class FeedPollOptionsWidget extends StatefulWidget {
   final PostType postFilteredType;
   final String? postedAgo;
   final String? message;
+  final Post? postData;
 
   @override
   State<FeedPollOptionsWidget> createState() => _FeedPollOptionsWidgetState();
@@ -48,6 +50,7 @@ class _FeedPollOptionsWidgetState extends State<FeedPollOptionsWidget> with Auto
         postFilteredType: widget.postFilteredType,
         postedAgo: widget.postedAgo,
         message: widget.message,
+        postData: widget.postData,
     );
   }
 

@@ -51,10 +51,6 @@ class _PostFeedAutoPlayVideoCardState extends State<PostFeedAutoPlayVideoCard>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-
-    // final videoManager = Get.isRegistered<SimplePriorityVideoManager>()
-    //     ? Get.find<SimplePriorityVideoManager>()
-    //     : Get.put(SimplePriorityVideoManager());
     videoManager.removeVideo(widget.videoItem.videoId ?? '');
     super.dispose();
   }
