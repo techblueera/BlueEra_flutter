@@ -189,7 +189,7 @@ class _QaPostWidgetState extends State<QaPostWidget> {
       poll: widget.poll,
       postFilteredType: widget.postFilteredType,
       postedAgo: widget.postedAgo,
-      message: widget.message,
+      message: widget.message, postData: widget.post,
     );
   }
 }

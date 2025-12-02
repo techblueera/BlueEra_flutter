@@ -103,9 +103,13 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
       ignoring: widget.isRepost == true ? true : false,
       child: InkWell(
         onTap: () {
-          Get.to(AllMessagePostScreen(
-            postID: _post.id,
-          ));
+          if ((_post.type?.toUpperCase() == "MESSAGE_POST" &&
+              (_post.media_types?.contains("image/jpeg") ?? false))) {
+            Get.to(AllMessagePostScreen(
+              postID: _post.id,
+              postType: _post.type ?? "",
+            ));
+          }
         },
         child: FeedCardWidget(
             horizontalPadding: widget.horizontalPadding,

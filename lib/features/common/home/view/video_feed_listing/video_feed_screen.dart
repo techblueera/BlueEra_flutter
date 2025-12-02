@@ -66,7 +66,6 @@ class _VideoFeedScreenState extends State<VideoFeedScreen> {
         child: Obx(() {
           // We wrap PageView in Obx ONLY to listen to 'controller.videos' changes (API load)
           // We do NOT listen to 'currentIndex' here.
-          logs("controller.isLoading.value=== ${controller.isLoading.value}");
           if (controller.isLoading.value) {
             return const Center(child: CircularProgressIndicator());
           }

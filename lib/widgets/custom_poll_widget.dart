@@ -1,9 +1,11 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
+import 'package:BlueEra/features/common/feed/view/all_message_post_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:flutter/material.dart';
@@ -18,6 +20,7 @@ class CustomPollWidget extends StatefulWidget {
   final PostType postFilteredType;
   final String? postedAgo;
   final String? message;
+  final Post? postData;
 
   const CustomPollWidget({
     super.key,
@@ -26,7 +29,7 @@ class CustomPollWidget extends StatefulWidget {
     required this.options,
     required this.postFilteredType,
     this.postedAgo,
-    this.message,
+    this.message, this.postData,
   });
 
   @override
@@ -84,34 +87,45 @@ class _CustomPollWidgetState extends State<CustomPollWidget> {
 
     return Column(
       children: [
-        Padding(
-          padding: EdgeInsets.only(
-              left: widget.postFilteredType == PostType.otherChannelPosts
-                  ? SizeConfig.size15
-                  : SizeConfig.size32,
-              right: SizeConfig.size15),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Expanded(
-                child: CustomText(
-                  widget.question,
-                  color: AppColors.mainTextColor,
-                  // fontSize: SizeConfig.large,
-                  fontWeight: FontWeight.w600,
+        InkWell(
+          onTap: (){
+            logs("_post.type ${widget.postData?.type}");
+            if ((widget.postData?.type?.toUpperCase() == "POLL_POST")) {
+              Get.to(AllMessagePostScreen(
+                postID: widget.postData?.id??"",
+                postType: widget.postData?.type ?? "",
+              ));
+            }
+          },
+          child: Padding(
+            padding: EdgeInsets.only(
+                left: widget.postFilteredType == PostType.otherChannelPosts
+                    ? SizeConfig.size15
+                    : SizeConfig.size32,
+                right: SizeConfig.size15),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: CustomText(
+                    widget.question,
+                    color: AppColors.mainTextColor,
+                    // fontSize: SizeConfig.large,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-              ),
-              if (widget.postFilteredType != PostType.otherChannelPosts) ...[
-                SizedBox(width: SizeConfig.size8),
-                CustomText(
-                  '${totalVotes} votes',
-                  fontSize: SizeConfig.medium,
-                  color: Colors.black87,
-                  fontWeight: FontWeight.w500,
-                ),
-              ]
-            ],
+                if (widget.postFilteredType != PostType.otherChannelPosts) ...[
+                  SizedBox(width: SizeConfig.size8),
+                  CustomText(
+                    '${totalVotes} votes',
+                    fontSize: SizeConfig.medium,
+                    color: Colors.black87,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ]
+              ],
+            ),
           ),
         ),
 
