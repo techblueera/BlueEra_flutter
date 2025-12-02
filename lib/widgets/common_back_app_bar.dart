@@ -28,82 +28,85 @@ import 'package:BlueEra/widgets/update_live_photo_dialog.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../core/constants/shared_preference_utils.dart';
+import '../../../../../core/constants/shared_preference_utils.dart';
 import '../features/business/visiting_card/view/business_own_profile_screen.dart';
+
 
 class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
   const CommonBackAppBar(
       {super.key,
-      this.title,
-      this.isLeading = true,
-      this.isFilter = false,
-      this.isNotification = false,
-      this.bellIconNotEmpty = false,
-      this.onNotificationTap,
-      this.onBackTap,
-      this.appBarColor,
-      this.isTextButton = false,
-      this.actionText,
-      this.actionTextColor,
-      this.isShareButton,
-      this.isLogout,
-      this.isDownloadButton,
-      this.isChangeToEditMode = false,
-      this.isQrCodeButton,
-      this.onQrCodeTap,
-      this.onShareTap,
-      this.isLocation,
-      this.isMore,
-      this.isSearch,
-      this.controller,
-      this.onSearchTap,
-      this.onClearCallback,
-      this.searchHintText,
-      this.onLocationTap,
-      this.onMoreTap,
-      this.isTrimmedButton,
-      this.onTrimmedTap,
-      this.isSaveButton,
-      this.onSavedTap,
-      this.iClearButton,
-      this.onClearNotificationsTap,
-      this.isSettingButton,
-      this.isAddPlace,
-      this.onAddPlaceTap,
-      this.isEndJourney,
-      this.onEndJourneyTap,
-      this.titleColor,
-      this.isCancelButton,
-      this.onCancelTap,
-      this.isJobPopUpMenuButton,
-      this.isProfile,
-      this.isResumeCardButton,
-      this.isReloadContactButton,
-      this.onRefreshContact,
-      this.onProfileTap,
-      this.isPDFExport,
-      this.onPDFExportTap,
-      this.jobID,
-      this.jobStatus,
-      this.showRightTextButton = false,
-      this.rightTextButtonText,
-      this.rightTextButtonColor,
-      this.onRightTextButtonTap,
-      this.isShowCursor,
-      this.currentCity,
-      this.isGuestLogout,
-      this.buildCustomWidget,
-      // this.isAddProduct = false,
-      // this.isAddProductCategory = false,
-      this.bottomWidget,
-      this.isGoLiveWidget,
-      this.isFollowRefreshWidget,
-      this.isFollowRefresh = false,
-      this.showGoLiveWidget,
-      this.isGoLive = false,
-      this.isInventoryPopUpMenu = false,
-      this.isStoreProfile,
-      this.isCartIconShow});
+        this.title,
+        this.isLeading = true,
+        this.isFilter = false,
+        this.isNotification = false,
+        this.bellIconNotEmpty = false,
+        this.onNotificationTap,
+        this.onBackTap,
+        this.appBarColor,
+        this.isTextButton = false,
+        this.actionText,
+        this.actionTextColor,
+        this.isShareButton,
+        this.isLogout,
+        this.isDownloadButton,
+        this.isChangeToEditMode = false,
+        this.isQrCodeButton,
+        this.onQrCodeTap,
+        this.onShareTap,
+        this.isLocation,
+        this.isMore,
+        this.isSearch,
+        this.controller,
+        this.onSearchTap,
+        this.onClearCallback,
+        this.searchHintText,
+        this.onLocationTap,
+        this.onMoreTap,
+        this.isTrimmedButton,
+        this.onTrimmedTap,
+        this.isSaveButton,
+        this.onSavedTap,
+        this.iClearButton,
+        this.onClearNotificationsTap,
+        this.isSettingButton,
+        this.isAddPlace,
+        this.onAddPlaceTap,
+        this.isEndJourney,
+        this.onEndJourneyTap,
+        this.titleColor,
+        this.isCancelButton,
+        this.onCancelTap,
+        this.isJobPopUpMenuButton,
+        this.isProfile,
+        this.isResumeCardButton,
+        this.isReloadContactButton,
+        this.onRefreshContact,
+        this.onProfileTap,
+        this.isPDFExport,
+        this.onPDFExportTap,
+        this.jobID,
+        this.jobStatus,
+        this.showRightTextButton = false,
+        this.rightTextButtonText,
+        this.rightTextButtonColor,
+        this.onRightTextButtonTap,
+        this.isShowCursor,
+        this.currentCity,
+        this.isGuestLogout,
+        this.buildCustomWidget,
+        this.isGrocery,
+        // this.isAddProduct = false,
+        // this.isAddProductCategory = false,
+        this.bottomWidget,
+        this.isGoLiveWidget,
+        this.isFollowRefreshWidget,
+        this.isFollowRefresh = false,
+        this.showGoLiveWidget,
+        this.isShadowShow=true,
+        this.isGoLive = false,
+        this.isInventoryPopUpMenu = false,
+        this.isStoreProfile,
+        this.isCartIconShow});
 
   // final AppBar? appBar;
   final String? title;
@@ -114,6 +117,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool bellIconNotEmpty;
   final OnTab? onNotificationTap;
   final bool? isTextButton;
+  final bool? isShadowShow;
   final bool? isChangeToEditMode;
   final bool? isDownloadButton;
   final bool? isLogout;
@@ -124,6 +128,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool? isLocation;
   final bool? isSearch;
   final bool? isShowCursor;
+  final bool? isGrocery;
   final TextEditingController? controller;
   final OnTab? onSearchTap;
   final OnTab? onClearCallback;
@@ -182,15 +187,17 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return AppBar(
       elevation: 4,
-      shadowColor: Colors.black26,
+      shadowColor: (isShadowShow==true)?Colors.black26:null,
       surfaceTintColor: AppColors.white,
       backgroundColor: appBarColor ?? Colors.white,
       automaticallyImplyLeading: false,
+
       titleSpacing: 0,
       centerTitle: (isLeading ?? false) ? true : false,
+
       title: Padding(
         padding: EdgeInsets.only(
-            // left: SizeConfig.paddingL,
+          // left: SizeConfig.paddingL,
             right: SizeConfig.paddingXSL,
             // top: SizeConfig.paddingXSL,
             bottom: SizeConfig.paddingXSL),
@@ -201,7 +208,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
               IconButton(
                   padding: EdgeInsets.zero,
                   onPressed: onBackTap ??
-                      () async {
+                          () async {
                         Navigator.of(context).pop();
                       },
                   icon: LocalAssets(
@@ -289,18 +296,18 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
               (controller == null)
                   ? SizedBox()
                   : Expanded(
-                      child: Padding(
-                        padding: EdgeInsets.only(
-                            left:
-                                (isLeading ?? false) ? 0.0 : SizeConfig.size15),
-                        child: CommonSearchBar(
-                            controller: controller!,
-                            isShowCursor: isShowCursor,
-                            onSearchTap: onSearchTap ?? () {},
-                            onClearCallback: onClearCallback,
-                            hintText: searchHintText),
-                      ),
-                    ),
+                child: Padding(
+                  padding: EdgeInsets.only(
+                      left:
+                      (isLeading ?? false) ? 0.0 : SizeConfig.size15),
+                  child: CommonSearchBar(
+                      controller: controller!,
+                      isShowCursor: isShowCursor,
+                      onSearchTap: onSearchTap ?? () {},
+                      onClearCallback: onClearCallback,
+                      hintText: searchHintText),
+                ),
+              ),
 
             if (isGoLive ?? false)
               Builder(
@@ -382,9 +389,9 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                   if (isGuestUser()) {
                     createProfileScreen();
                   } else if (/*value == PostCreationMenu.videos ||*/
-                      value == PostCreationMenu.photos ||
-                          value == PostCreationMenu.message ||
-                          value == PostCreationMenu.poll) {
+                  value == PostCreationMenu.photos ||
+                      value == PostCreationMenu.message ||
+                      value == PostCreationMenu.poll) {
                     postVia(context, value);
                   } else if (value == PostCreationMenu.jobPost) {
                     Get.toNamed(RouteHelper.getCreateJobPostScreenRoute(),
@@ -428,7 +435,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                             await SharedPreferenceUtils.clearPreference();
                             Navigator.of(context).pushNamedAndRemoveUntil(
                                 RouteHelper.getMobileNumberLoginRoute(),
-                                (Route<dynamic> route) => false);
+                                    (Route<dynamic> route) => false);
                           },
                           cancelCallback: () {
                             Navigator.of(context).pop(); // Close the dialog
@@ -460,6 +467,11 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
       ),
       actions: [
+        if (isGrocery ?? false)
+        Padding(
+          padding: const EdgeInsets.only(right: 20.0),
+          child: Icon(Icons.search),
+        ),
         if (isFollowRefresh ?? false)
           Builder(
             builder: (context) => isFollowRefreshWidget!(),
@@ -714,7 +726,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
 
       if (response.statusCode == 200) {
         JourneyStatusModel journeyStatusModel =
-            JourneyStatusModel.fromJson(response.response?.data);
+        JourneyStatusModel.fromJson(response.response?.data);
         return journeyStatusModel;
       } else {
         return null;

@@ -105,6 +105,9 @@ flutter:
     - assets/products_cards/
     - assets/services_cards/
     - assets/sound/
+    - assets/category/
+    - assets/category/dal/
+
 
 
   fonts:
