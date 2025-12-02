@@ -285,21 +285,22 @@ class ViewBusinessDetailsController extends GetxController {
     Map<String, dynamic> params = {ApiKeys.category_image: imageByPart};
 
     controller.uploadLiveStoreImage(params);
-    await Future.delayed(Duration(seconds: 2));
+    await Future.delayed(Duration(seconds: 1));
     controller.imgDeleteL3.clear();
   }
 
-  Future<void> updateBusinessDetails(Map<String, dynamic> params) async {
+  RxBool isUpdateBusinessDetailsLoading = false.obs;
+  Future<void> updateBusinessDetails(Map<String, dynamic> params, {bool? showProgress}) async {
     try {
+      isUpdateBusinessDetailsLoading.value = true;
       ResponseModel responseModel =
-      await AuthRepo().updateBusinessAccountUserRepo(bodyRequest: params);
+      await AuthRepo().updateBusinessAccountUserRepo(bodyRequest: params, showProgress: showProgress);
 
       // ResponseModel responseModel =
       //     await BusinessProfileRepo().updateBusinessProfileDetails(params);
       if (responseModel.isSuccess) {
         commonSnackBar(message: responseModel.response?.data['message']);
         viewBusinessResponse = ApiResponse.complete(responseModel);
-
         viewBusinessProfile();
         update();
       } else {
@@ -308,6 +309,8 @@ class ViewBusinessDetailsController extends GetxController {
       }
     } catch (e) {
       viewBusinessResponse = ApiResponse.error('error');
+    }finally{
+      isUpdateBusinessDetailsLoading.value = false;
     }
   }
 

@@ -524,4 +524,7 @@ class AppIconAssets {
   static String farmerIcon = "${iconPath}farmer_icon.svg";
   static String aiChatbotIcon = "${iconPath}ai_chatbot_icon.svg";
 
+  static String warningOutlineIcon = "${iconPath}warning_outline_icon.svg";
+  static String blueStarsIcon = "${iconPath}blue_stars_icon.svg";
+
 }

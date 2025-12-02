@@ -207,308 +207,315 @@ class _CreateBusinessAccountNewStepTwoState
                       horizontal: SizeConfig.size16, 
                       vertical: SizeConfig.size30
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                  
-                      /// Mapple map
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          CustomText(
-                            AppStrings.yourBusinessLiveLocation,
-                            fontSize: SizeConfig.large,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.secondaryTextColor,
-                          ),
-                          SizedBox(width: SizeConfig.size8),
-                          _buildFetchAddressWidgets(
-                              child: PositiveCustomBtn(
-                                width: SizeConfig.size80,
-                                height: SizeConfig.size30,
-                                onTap: ()=> updateAddressFromLocation(),
-                                isLeadingShow: true,
-                                leadingIconPath: AppIconAssets.refreshIcon,
-                                title: AppStrings.refresh,
-                                radius: 8.0,
-                                bgColor: AppColors.primaryColor,
-                              )
-                          )
-                        ]
-                      ),
-                      SizedBox(height: SizeConfig.size10),
-                      ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: SizedBox(
-                            width: double.infinity,
-                            height: SizeConfig.size160,
-                            child: Stack(
-                              children: [
-                                MapplsMap(
-                                  onMapCreated: _onMapCreated,
-                                  initialCameraPosition: CameraPosition(
-                                    target: (locationData!=null)
-                                        ? LatLng(
-                                            double.parse(locationData!.lat),
-                                            double.parse(locationData!.long),
-                                          )
-                                        : LatLng(20.5937, 78.9629), // Center of India
-                                    zoom: (locationData!=null) ? 14 : 4,
+                  child: AbsorbPointer(
+                    absorbing: viewBusinessDetailsController.isUpdateBusinessDetailsLoading.value,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+
+                        /// Mapple map
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            CustomText(
+                              AppStrings.yourBusinessLiveLocation,
+                              fontSize: SizeConfig.large,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.secondaryTextColor,
+                            ),
+                            SizedBox(width: SizeConfig.size8),
+                            _buildFetchAddressWidgets(
+                                child: PositiveCustomBtn(
+                                  width: SizeConfig.size80,
+                                  height: SizeConfig.size30,
+                                  onTap: ()=> updateAddressFromLocation(),
+                                  isLeadingShow: true,
+                                  leadingIconPath: AppIconAssets.refreshIcon,
+                                  title: AppStrings.refresh,
+                                  radius: 8.0,
+                                  bgColor: AppColors.primaryColor,
+                                )
+                            )
+                          ]
+                        ),
+                        SizedBox(height: SizeConfig.size10),
+                        ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: SizedBox(
+                              width: double.infinity,
+                              height: SizeConfig.size160,
+                              child: Stack(
+                                children: [
+                                  MapplsMap(
+                                    onMapCreated: _onMapCreated,
+                                    initialCameraPosition: CameraPosition(
+                                      target: (locationData!=null)
+                                          ? LatLng(
+                                              double.parse(locationData!.lat),
+                                              double.parse(locationData!.long),
+                                            )
+                                          : LatLng(20.5937, 78.9629), // Center of India
+                                      zoom: (locationData!=null) ? 14 : 4,
+                                    ),
+                                    myLocationEnabled: false,
+                                    compassEnabled: false,
+                                    rotateGesturesEnabled: true,
+                                    tiltGesturesEnabled: true,
+                                    zoomGesturesEnabled: true,
+                                    scrollGesturesEnabled: true,
+                                    onStyleLoadedCallback: _onStyleLoadedCallback,
                                   ),
-                                  myLocationEnabled: false,
-                                  compassEnabled: false,
-                                  rotateGesturesEnabled: true,
-                                  tiltGesturesEnabled: true,
-                                  zoomGesturesEnabled: true,
-                                  scrollGesturesEnabled: true,
-                                  onStyleLoadedCallback: _onStyleLoadedCallback,
-                                ),
-                                Positioned(
-                                  right: SizeConfig.size10,
-                                  bottom: SizeConfig.size10,
-                                  child: InkWell(
-                                    onTap: () async {
-                                      if(locationData==null) return;
-                  
-                                      openGoogleMaps(latitude: double.parse(locationData!.lat), longitude: double.parse(locationData!.long));
-                                    },
-                                    child: Container(
-                                      padding: EdgeInsets.all(SizeConfig.size8),
-                                      decoration: BoxDecoration(
-                                        color: AppColors.white,
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                            color: AppColors.skyBlueDF, width: 1),
-                                      ),
-                                      child: Transform.rotate(
-                                        angle: -0.6,
-                                        child: const Icon(
-                                          Icons.send_outlined,
-                                          color: AppColors.skyBlueDF,
-                                          size: 20,
+                                  Positioned(
+                                    right: SizeConfig.size10,
+                                    bottom: SizeConfig.size10,
+                                    child: InkWell(
+                                      onTap: () async {
+                                        if(locationData==null) return;
+
+                                        openGoogleMaps(latitude: double.parse(locationData!.lat), longitude: double.parse(locationData!.long));
+                                      },
+                                      child: Container(
+                                        padding: EdgeInsets.all(SizeConfig.size8),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.white,
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                              color: AppColors.skyBlueDF, width: 1),
+                                        ),
+                                        child: Transform.rotate(
+                                          angle: -0.6,
+                                          child: const Icon(
+                                            Icons.send_outlined,
+                                            color: AppColors.skyBlueDF,
+                                            size: 20,
+                                          ),
                                         ),
                                       ),
                                     ),
                                   ),
-                                ),
-                              ],
-                            ),
-                          )),
-                  
-                      SizedBox(height: SizeConfig.size20),
-                  
-                      /// Full Business Address
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          CommonTextField(
-                            readOnly: true,
-                            maxLine: 3,
-                            textEditController: fullBusinessAddressTextController,
-                            inputLength: AppConstants.inputCharterLimit50,
-                            keyBoardType: TextInputType.text,
-                            title: AppStrings.fullBusinessAddress,
-                            regularExpression:
-                            RegularExpressionUtils.alphabetSpacePattern,
-                            hintText: AppStrings.addressHint,
-                            isValidate: false,
-                          ),
-                          _buildFetchAddressWidgets(
-                              child: SizedBox()
-                          )
-                        ],
-                      ),
-                      SizedBox(
-                        height: SizeConfig.size20,
-                      ),
-                  
-                      ///ENTER Landmark ......
-                      // CommonTextField(
-                      //   textEditController: landmarkController,
-                      //   inputLength: AppConstants.inputCharterLimit200,
-                      //   keyBoardType: TextInputType.text,
-                      //   regularExpression:
-                      //   RegularExpressionUtils.alphabetSpacePattern,
-                      //   title: 'Floor / Building Name / Landmark',
-                      //   hintText: 'Floor / Building Name / Landmark',
-                      //   isValidate: false,
-                      // ),
-                      // SizedBox(
-                      //   height: SizeConfig.size20,
-                      // ),
-                  
-                      ///ENTER CITY NAME ......
-                      CommonTextField(
-                        textEditController: cityController,
-                        inputLength: AppConstants.inputCharterLimit50,
-                        keyBoardType: TextInputType.text,
-                        regularExpression:
-                        RegularExpressionUtils.alphabetSpacePattern,
-                        title: AppStrings.city,
-                        hintText: AppStrings.city,
-                        isValidate: false,
-                        readOnly: true,
-                      ),
-                      SizedBox(
-                        height: SizeConfig.size20,
-                      ),
-                  
-                      ///ENTER PIN CODE NAME ......
-                      CommonTextField(
-                        textEditController: picCodeController,
-                        inputLength: AppConstants.inputCharterLimit6,
-                        keyBoardType: TextInputType.number,
-                        regularExpression: RegularExpressionUtils.digitsPattern,
-                        title: AppStrings.pincodeTitle,
-                        hintText: AppStrings.pincodeHint,
-                        isValidate: true,
-                        //  readOnly: true,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return AppStrings.pleaseEnterPinCode.tr;
-                          } else if (!RegExp(RegularExpressionUtils.pinCodeRegExp)
-                              .hasMatch(value)) {
-                            return AppStrings.enterValidIndianPincode.tr;
-                          }
-                          return null;
-                        },
-                      ),
-                      SizedBox(
-                        height: SizeConfig.size28,
-                      ),
-                  
-                      ///Mobile number
-                      ContactInputField1(
-                        mobileController: mobileController,
-                        landlineCodeController: landlineCodeController,
-                        landlineNumberController: landlineNumberController,
-                        selectedType: selectedType ?? ContactType.Mobile,
-                        onTypeChanged: (type) {
-                          mobileController.clear();
-                          landlineCodeController.clear();
-                          landlineNumberController.clear();
-                          setState(() {
-                            selectedType = type;
-                          });
-                  
-                          _validateForm();
-                        },
-                        prefixOnChange: (value) => true,
-                        mobileNumberOnChange: (String) {},
-                      ),
-                      SizedBox(
-                        height: SizeConfig.size20,
-                      ),
-                  
-                      ///websiteOptional
-                      CustomText(
-                        AppStrings.websiteOptional,
-                        fontSize: SizeConfig.medium,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.black,
-                      ),
-                      SizedBox(
-                        height: SizeConfig.size10,
-                      ),
-                      HttpsTextField(
-                        controller: websiteController,
-                        hintText: AppStrings.websiteHint,
-                      ),
-                  
-                      SizedBox(
-                        height: SizeConfig.size28,
-                      ),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: CustomBtn(
-                              radius: 10,
-                              onTap: () {
-                                _onBackPressed();
-                              },
-                              title:  AppStrings.previous,
-                              bgColor: Colors.transparent,
-                              textColor: AppColors.primaryColor,
-                              borderColor: AppColors.primaryColor,
-                            ),
-                          ),
-                          SizedBox(
-                            width: SizeConfig.size10,
-                          ),
-                          Expanded(
-                            child: CustomBtn(
-                              radius: 10,
-                              onTap: isFormValid
-                                  ? () async {
-                                if (selectedType == ContactType.Mobile) {
-                                  if (mobileController.length != 10) {
-                                    commonSnackBar(
-                                        message:
-                                        AppStrings.pleaseEnterValidMobileNo.tr);
-                                    return;
-                                  }
-                                }
-                  
-                                if (selectedType == ContactType.Landline) {
-                                  if (landlineNumberController.text.length < 6 ||
-                                      landlineNumberController.text.length > 8) {
-                                    commonSnackBar(message:AppStrings.pleaseEnterValidLandline.tr);
-                                    return;
-                                  }
-                                }
-                  
-                  
-                                /// Submit action
-                                Map<String, dynamic> reqParam = {
-                                  ApiKeys.businessId: businessId,
-                                  ApiKeys.office_mob_no_Pre: 91,
-                                  "business_number": {
-                                    "office_mob_no": mobileController.text.isNotEmpty
-                                        ? {
-                                      "pre": "91",
-                                      "number": mobileController.text,
-                                    }
-                                        : null,
-                                    "office_landline_no": landlineNumberController.text.isNotEmpty
-                                        ? {
-                                      "pre": landlineCodeController.text,
-                                      "number": landlineNumberController.text,
-                                    }
-                                        : null,
-                                  },
-                  
-                                  ApiKeys.city_state_pincode:
-                                  cityController.text,
-                                  ApiKeys.address:
-                                  fullBusinessAddressTextController.text,
-                                  ApiKeys.business_location: jsonEncode({
-                                    ApiKeys.lat: viewBusinessDetailsController
-                                        .addressLat?.value
-                                        .toString(),
-                                    ApiKeys.lon: viewBusinessDetailsController
-                                        .addressLong?.value
-                                        .toString(),
-                                  }),
-                                  ApiKeys.pincode: picCodeController.text,
-                                  ApiKeys.website_url: websiteController.text,
-                                };
-                                await viewBusinessDetailsController
-                                    .updateBusinessDetails(reqParam);
-                                Get.toNamed(
-                                  RouteHelper.getCreateBusinessAccountNewStepThreeRoute(),
-                                  arguments: {ApiKeys.city: cityController.text}
-                                );
-                              }
-                                  : null,
-                              title: AppStrings.submit,
-                              isValidate: isFormValid,
-                            ),
-                          ),
-                        ],
-                      ),
+                                ],
+                              ),
+                            )),
 
-                    ],
+                        SizedBox(height: SizeConfig.size20),
+
+                        /// Full Business Address
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            CommonTextField(
+                              readOnly: true,
+                              maxLine: 3,
+                              textEditController: fullBusinessAddressTextController,
+                              inputLength: AppConstants.inputCharterLimit50,
+                              keyBoardType: TextInputType.text,
+                              title: AppStrings.fullBusinessAddress,
+                              regularExpression:
+                              RegularExpressionUtils.alphabetSpacePattern,
+                              hintText: AppStrings.addressHint,
+                              isValidate: false,
+                            ),
+                            _buildFetchAddressWidgets(
+                                child: SizedBox()
+                            )
+                          ],
+                        ),
+                        SizedBox(
+                          height: SizeConfig.size20,
+                        ),
+
+                        ///ENTER Landmark ......
+                        // CommonTextField(
+                        //   textEditController: landmarkController,
+                        //   inputLength: AppConstants.inputCharterLimit200,
+                        //   keyBoardType: TextInputType.text,
+                        //   regularExpression:
+                        //   RegularExpressionUtils.alphabetSpacePattern,
+                        //   title: 'Floor / Building Name / Landmark',
+                        //   hintText: 'Floor / Building Name / Landmark',
+                        //   isValidate: false,
+                        // ),
+                        // SizedBox(
+                        //   height: SizeConfig.size20,
+                        // ),
+
+                        ///ENTER CITY NAME ......
+                        CommonTextField(
+                          textEditController: cityController,
+                          inputLength: AppConstants.inputCharterLimit50,
+                          keyBoardType: TextInputType.text,
+                          regularExpression:
+                          RegularExpressionUtils.alphabetSpacePattern,
+                          title: AppStrings.city,
+                          hintText: AppStrings.city,
+                          isValidate: false,
+                          readOnly: true,
+                        ),
+                        SizedBox(
+                          height: SizeConfig.size20,
+                        ),
+
+                        ///ENTER PIN CODE NAME ......
+                        CommonTextField(
+                          textEditController: picCodeController,
+                          inputLength: AppConstants.inputCharterLimit6,
+                          keyBoardType: TextInputType.number,
+                          regularExpression: RegularExpressionUtils.digitsPattern,
+                          title: AppStrings.pincodeTitle,
+                          hintText: AppStrings.pincodeHint,
+                          isValidate: true,
+                          //  readOnly: true,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return AppStrings.pleaseEnterPinCode.tr;
+                            } else if (!RegExp(RegularExpressionUtils.pinCodeRegExp)
+                                .hasMatch(value)) {
+                              return AppStrings.enterValidIndianPincode.tr;
+                            }
+                            return null;
+                          },
+                        ),
+                        SizedBox(
+                          height: SizeConfig.size28,
+                        ),
+
+                        ///Mobile number
+                        ContactInputField1(
+                          mobileController: mobileController,
+                          landlineCodeController: landlineCodeController,
+                          landlineNumberController: landlineNumberController,
+                          selectedType: selectedType ?? ContactType.Mobile,
+                          onTypeChanged: (type) {
+                            mobileController.clear();
+                            landlineCodeController.clear();
+                            landlineNumberController.clear();
+                            setState(() {
+                              selectedType = type;
+                            });
+
+                            _validateForm();
+                          },
+                          prefixOnChange: (value) => true,
+                          mobileNumberOnChange: (String) {},
+                        ),
+                        SizedBox(
+                          height: SizeConfig.size20,
+                        ),
+
+                        ///websiteOptional
+                        CustomText(
+                          AppStrings.websiteOptional,
+                          fontSize: SizeConfig.medium,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.black,
+                        ),
+                        SizedBox(
+                          height: SizeConfig.size10,
+                        ),
+                        HttpsTextField(
+                          controller: websiteController,
+                          hintText: AppStrings.websiteHint,
+                        ),
+
+                        SizedBox(
+                          height: SizeConfig.size28,
+                        ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: CustomBtn(
+                                radius: 10,
+                                onTap: () {
+                                  _onBackPressed();
+                                },
+                                title:  AppStrings.previous,
+                                bgColor: Colors.transparent,
+                                textColor: AppColors.primaryColor,
+                                borderColor: AppColors.primaryColor,
+                              ),
+                            ),
+                            SizedBox(
+                              width: SizeConfig.size10,
+                            ),
+                            Expanded(
+                              child: Obx(()=> CustomBtn(
+                                radius: 10,
+                                onTap: isFormValid
+                                    ? () async {
+                                  if (selectedType == ContactType.Mobile) {
+                                    if (mobileController.length != 10) {
+                                      commonSnackBar(
+                                          message:
+                                          AppStrings.pleaseEnterValidMobileNo.tr);
+                                      return;
+                                    }
+                                  }
+
+                                  if (selectedType == ContactType.Landline) {
+                                    if (landlineNumberController.text.length < 6 ||
+                                        landlineNumberController.text.length > 8) {
+                                      commonSnackBar(message:AppStrings.pleaseEnterValidLandline.tr);
+                                      return;
+                                    }
+                                  }
+
+
+                                  /// Submit action
+                                  Map<String, dynamic> reqParam = {
+                                    ApiKeys.businessId: businessId,
+                                    ApiKeys.office_mob_no_Pre: 91,
+                                    "business_number": {
+                                      "office_mob_no": mobileController.text.isNotEmpty
+                                          ? {
+                                        "pre": "91",
+                                        "number": mobileController.text,
+                                      }
+                                          : null,
+                                      "office_landline_no": landlineNumberController.text.isNotEmpty
+                                          ? {
+                                        "pre": landlineCodeController.text,
+                                        "number": landlineNumberController.text,
+                                      }
+                                          : null,
+                                    },
+
+                                    ApiKeys.city_state_pincode:
+                                    cityController.text,
+                                    ApiKeys.address:
+                                    fullBusinessAddressTextController.text,
+                                    ApiKeys.business_location: jsonEncode({
+                                      ApiKeys.lat: viewBusinessDetailsController
+                                          .addressLat?.value
+                                          .toString(),
+                                      ApiKeys.lon: viewBusinessDetailsController
+                                          .addressLong?.value
+                                          .toString(),
+                                    }),
+                                    ApiKeys.pincode: picCodeController.text,
+                                    ApiKeys.website_url: websiteController.text,
+                                  };
+                                  await viewBusinessDetailsController
+                                      .updateBusinessDetails(reqParam, showProgress: false);
+                                  Get.toNamed(
+                                      RouteHelper.getCreateBusinessAccountNewStepThreeRoute(),
+                                      arguments: {ApiKeys.city: cityController.text}
+                                  );
+                                }
+                                    : null,
+                                title: viewBusinessDetailsController.isUpdateBusinessDetailsLoading.value
+                                    ? null // hide text
+                                    : AppStrings.submit,
+                                isLoading: viewBusinessDetailsController.isUpdateBusinessDetailsLoading.value,
+                                isValidate: isFormValid,
+                               )
+                              ),
+                            ),
+                          ],
+                        ),
+
+                      ],
+                    ),
                   ),
                 ),
               ),

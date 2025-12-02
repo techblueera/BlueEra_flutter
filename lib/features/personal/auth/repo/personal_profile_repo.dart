@@ -17,15 +17,17 @@ class PersonalProfileRepo extends BaseService {
 
     return response;
   }
+
   ///UPDATE USER PROFILE....
   Future<ResponseModel> updateUser({
     required Map<String, dynamic> formData,
+    bool? showProgress
   }) async {
     final response = await ApiBaseHelper().putHTTP(
       "$updateIndividualAccountUser$userId",
       // "$updateUserProfile/$userId",
       params: formData,
-      showProgress: false,
+      showProgress: showProgress ?? true,
       isMultipart: true,
       onError: (error) {
         print("Update user failed: $error");

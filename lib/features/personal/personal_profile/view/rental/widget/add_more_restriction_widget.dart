@@ -11,24 +11,24 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class AddHighlightsWidget extends StatefulWidget {
+class AddMoreRestrictionsWidget extends StatefulWidget {
   /// Initial highlights (can be empty)
-  final List<String> initialHighlights;
+  final List<String> initialRestriction;
 
   /// Callback when user presses Save
   final ValueChanged<List<String>> onSave;
 
-  const AddHighlightsWidget({
+  const AddMoreRestrictionsWidget({
     super.key,
-    this.initialHighlights = const [],
+    this.initialRestriction = const [],
     required this.onSave,
   });
 
   @override
-  State<AddHighlightsWidget> createState() => _AddHighlightsWidgetState();
+  State<AddMoreRestrictionsWidget> createState() => _AddMoreRestrictionsWidgetState();
 }
 
-class _AddHighlightsWidgetState extends State<AddHighlightsWidget> {
+class _AddMoreRestrictionsWidgetState extends State<AddMoreRestrictionsWidget> {
   final List<TextEditingController> _controllers = [];
 
   @override
@@ -36,13 +36,13 @@ class _AddHighlightsWidgetState extends State<AddHighlightsWidget> {
     super.initState();
 
     // If highlights exist, create controllers for them
-    if (widget.initialHighlights.isNotEmpty) {
-      for (final text in widget.initialHighlights) {
+    if (widget.initialRestriction.isNotEmpty) {
+      for (final text in widget.initialRestriction) {
         _controllers.add(TextEditingController(text: text));
       }
     }else{
       // Ensure there are always 4 controllers minimum
-      while(_controllers.length < 4) {
+      while(_controllers.length < 2) {
         _controllers.add(TextEditingController());
       }
     }
@@ -60,15 +60,15 @@ class _AddHighlightsWidgetState extends State<AddHighlightsWidget> {
   }
 
   void _onSavePressed() {
-    final highlights = _controllers
+    final restrictions = _controllers
         .map((c) => c.text.trim())
         .where((text) => text.isNotEmpty)
         .toList();
 
-    if (highlights.length > 10) {
+    if (restrictions.length > 10) {
       Get.snackbar(
         AppStrings.limitExceeded.tr,
-        AppStrings.highlightLimitMessage.tr,
+        AppStrings.restrictionsLimitMessage.tr,
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red.withValues(alpha: 0.8),
         colorText: Colors.white,
@@ -78,7 +78,7 @@ class _AddHighlightsWidgetState extends State<AddHighlightsWidget> {
       return;
     }
 
-    widget.onSave(highlights);
+    widget.onSave(restrictions);
     Get.back();
   }
 
@@ -107,10 +107,10 @@ class _AddHighlightsWidgetState extends State<AddHighlightsWidget> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomText(
-                  AppStrings.addHighlightsTitle,
-                    fontSize: SizeConfig.small,
-                    fontWeight: FontWeight.w400,
-                    color: AppColors.mainTextColor,
+                  AppStrings.addRestrictionsTitle,
+                  fontSize: SizeConfig.small,
+                  fontWeight: FontWeight.w400,
+                  color: AppColors.mainTextColor,
                 ),
                 SizedBox(height: SizeConfig.size8),
                 ListView.builder(
@@ -125,7 +125,7 @@ class _AddHighlightsWidgetState extends State<AddHighlightsWidget> {
                           Expanded(
                             child: CommonTextField(
                               textEditController: _controllers[index],
-                              hintText: AppStrings.hintHighlightsExample,
+                              hintText: AppStrings.hintRestrictionsExample,
                               isValidate: true,
                             ),
                           ),
@@ -148,7 +148,9 @@ class _AddHighlightsWidgetState extends State<AddHighlightsWidget> {
                     children: [
                       const LocalAssets(
                         imagePath: AppIconAssets.addBlueIcon,
+                        imgColor: AppColors.primaryColor,
                       ),
+                      SizedBox(width: SizeConfig.size5),
                       CustomText(
                         AppStrings.addMoreTitle,
                         fontSize: SizeConfig.large,
@@ -164,7 +166,6 @@ class _AddHighlightsWidgetState extends State<AddHighlightsWidget> {
                   title: AppStrings.save,
                   bgColor: AppColors.primaryColor,
                 ),
-
               ],
             ),
           ),

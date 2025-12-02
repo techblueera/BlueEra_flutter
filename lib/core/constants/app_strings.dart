@@ -1750,6 +1750,10 @@ class AppStrings {
   static const vehicle = "vehicle";
   static const others = "others";
 
+  static const addRestrictionsTitle = "addRestrictionsTitle";
+  static const hintRestrictionsExample = "hintRestrictionsExample";
+  static const restrictionsLimitMessage = "restrictionsLimitMessage";
+  static const restrictionsHighlightsTitle = "restrictionsHighlightsTitle";
 
   ///BHAVESH START
   static const ownerDetail = "owner_detail";

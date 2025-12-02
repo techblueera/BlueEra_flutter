@@ -95,12 +95,14 @@ class PersonalCreateProfileController extends GetxController {
   Future<void> updateUserProfileDetails({
     required Map<String, dynamic> params,
     bool isFromProfileOnly = false,
+    bool? showProgress
   }) async {
     try {
       updateBtnLoading.value=true;
       print("Params being sent to API: $params");
       ResponseModel responseModel = await PersonalProfileRepo().updateUser(
         formData: params,
+        showProgress: showProgress
       );
 
       if (responseModel.isSuccess) {

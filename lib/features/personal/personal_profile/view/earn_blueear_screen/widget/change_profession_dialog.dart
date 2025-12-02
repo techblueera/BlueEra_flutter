@@ -44,7 +44,7 @@ class ProfessionChangeDialogHelper {
         designation: designation,
         serviceSubType: serviceSubType,
         viewPersonalDetailsController: viewPersonalDetailsController,
-          isRequiredUpdateDestination: false
+        isRequiredUpdateDestination: false
       );
     }else{
       // Show dialog if changing to self-employed
@@ -181,6 +181,7 @@ class ProfessionChangeDialogHelper {
            ApiKeys.profession: SELF_EMPLOYED,
            ApiKeys.designation: designation,
          },
+         showProgress: false
        );
      }
 

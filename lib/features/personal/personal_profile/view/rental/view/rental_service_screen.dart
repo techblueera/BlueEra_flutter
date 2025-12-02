@@ -157,8 +157,8 @@ class _RentalServiceScreenState extends State<RentalServiceScreen> {
                     cancelCallback: () {
                       Get.back();
                     },
-                    );
-                  },
+                  );
+                },
               );
             },
           );

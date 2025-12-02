@@ -12,6 +12,7 @@ import 'package:BlueEra/features/common/delivery_partner/widget/common_multiple_
 import 'package:BlueEra/features/personal/personal_profile/controller/languge_list_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/controller/home_stay_rental_service_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/widget/add_highlights_widget.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/rental/widget/add_more_restriction_widget.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -802,9 +803,9 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
                   ),
                   SizedBox(width: SizeConfig.size6),
                   Expanded(
-                    child: Text(
+                    child: CustomText(
                       e,
-                      style: const TextStyle(fontSize: 14),
+                      fontSize: SizeConfig.medium
                     ),
                   ),
                 ],
@@ -1031,22 +1032,125 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
 
         SizedBox(height: SizeConfig.paddingL),
 
-        Row(
-          mainAxisAlignment: MainAxisAlignment.start  ,
-          children: [
-            const LocalAssets(
-              imagePath: AppIconAssets.addBlueIcon,
-            ),
-            CustomText(
-              AppStrings.addMoreRestrictions,
-              fontSize: SizeConfig.large,
-              fontWeight: FontWeight.w400,
-              color: AppColors.primaryColor,
-            ),
-          ],
-        ),
+        _buildAddMoreRestrictionsSection()
       ],
     );
   }
+
+
+  Widget _buildAddMoreRestrictionsSection() {
+    return Column(
+      children: [
+        (controller.arrMoreRestriction.isEmpty)
+         ? InkWell(
+          onTap: ()=> Get.to(()=> AddMoreRestrictionsWidget(
+              initialRestriction: controller.arrMoreRestriction,
+              onSave: (List<String> restrictions) {
+                controller.addMoreRestrictions(restrictions);
+              })),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              const LocalAssets(
+                imagePath: AppIconAssets.addBlueIcon,
+                imgColor: AppColors.primaryColor,
+              ),
+              SizedBox(width: SizeConfig.size5),
+              CustomText(
+                AppStrings.addMoreRestrictions,
+                fontSize: SizeConfig.large,
+                fontWeight: FontWeight.w400,
+                color: AppColors.primaryColor,
+              ),
+            ],
+          ),
+        )
+            : Column(
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+
+                CustomText(
+                  AppStrings.restrictionsHighlightsTitle,
+                  fontSize: SizeConfig.small,
+                  fontWeight: FontWeight.w400,
+                  color: AppColors.mainTextColor,
+                ),
+
+                Spacer(),
+                InkWell(
+                  onTap: ()=> Get.to(()=> AddMoreRestrictionsWidget(
+                      initialRestriction: controller.arrMoreRestriction,
+                      onSave: (List<String> restrictions) {
+                        controller.addMoreRestrictions(restrictions);
+                      })),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      const LocalAssets(
+                        imagePath: AppIconAssets.addBlueIcon,
+                        imgColor: AppColors.primaryColor,
+                      ),
+                      SizedBox(width: SizeConfig.size3),
+                      CustomText(
+                        AppStrings.addMoreTitle,
+                        fontSize: SizeConfig.large,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.primaryColor,
+                      ),
+                    ],
+                  ),
+                )
+
+              ],
+            ),
+            SizedBox(height: SizeConfig.size8),
+            Container(
+              margin: const EdgeInsets.only(top: 8),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                  color: AppColors.white,
+                  boxShadow: [AppShadows.textFieldShadow],
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.whiteE5)
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: controller.arrMoreRestriction
+                    .map((e) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Container(
+                        height: SizeConfig.size6,
+                        width: SizeConfig.size6,
+                        decoration: BoxDecoration(
+                            color: AppColors.secondaryTextColor,
+                            shape: BoxShape.circle
+                        ),
+                      ),
+                      SizedBox(width: SizeConfig.size6),
+                      Expanded(
+                        child: CustomText(
+                            e,
+                            fontSize: SizeConfig.medium
+                        ),
+                      ),
+                    ],
+                  ),
+                ))
+                    .toList(),
+              ),
+            )
+          ],
+        ),
+
+      ],
+    );
+  }
+
+
 
 }
