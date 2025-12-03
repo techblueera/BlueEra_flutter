@@ -87,48 +87,36 @@ class _CustomPollWidgetState extends State<CustomPollWidget> {
 
     return Column(
       children: [
-        InkWell(
-          onTap: (){
-            logs("_post.type ${widget.postData?.type}");
-            if ((widget.postData?.type?.toUpperCase() == "POLL_POST")) {
-              Get.to(AllMessagePostScreen(
-                postID: widget.postData?.id??"",
-                postType: widget.postData?.type ?? "",
-              ));
-            }
-          },
-          child: Padding(
-            padding: EdgeInsets.only(
-                left: widget.postFilteredType == PostType.otherChannelPosts
-                    ? SizeConfig.size15
-                    : SizeConfig.size32,
-                right: SizeConfig.size15),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: CustomText(
-                    widget.question,
-                    color: AppColors.mainTextColor,
-                    // fontSize: SizeConfig.large,
-                    fontWeight: FontWeight.w600,
-                  ),
+        Padding(
+          padding: EdgeInsets.only(
+              left: widget.postFilteredType == PostType.otherChannelPosts
+                  ? SizeConfig.size15
+                  : SizeConfig.size32,
+              right: SizeConfig.size15),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Expanded(
+                child: CustomText(
+                  widget.question,
+                  color: AppColors.mainTextColor,
+                  // fontSize: SizeConfig.large,
+                  fontWeight: FontWeight.w600,
                 ),
-                if (widget.postFilteredType != PostType.otherChannelPosts) ...[
-                  SizedBox(width: SizeConfig.size8),
-                  CustomText(
-                    '${totalVotes} votes',
-                    fontSize: SizeConfig.medium,
-                    color: Colors.black87,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ]
-              ],
-            ),
+              ),
+              if (widget.postFilteredType != PostType.otherChannelPosts) ...[
+                SizedBox(width: SizeConfig.size8),
+                CustomText(
+                  '${totalVotes} votes',
+                  fontSize: SizeConfig.medium,
+                  color: Colors.black87,
+                  fontWeight: FontWeight.w500,
+                ),
+              ]
+            ],
           ),
         ),
-
         SizedBox(height: SizeConfig.size5),
 
         // Poll options with progress bars

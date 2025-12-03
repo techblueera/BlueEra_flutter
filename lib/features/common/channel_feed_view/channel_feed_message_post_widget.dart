@@ -557,7 +557,7 @@ class _MessagePostWidgetState extends State<ChannelFeedMessagePostWidget> {
   }
 }
 
-ViewFeedActionWidget({required String iconPath, required String data}) {
+ViewFeedActionWidget({required String iconPath, required String data,Color? fontColor}) {
   return Padding(
     padding: EdgeInsets.only(right: SizeConfig.size10),
     child: Row(
@@ -566,13 +566,14 @@ ViewFeedActionWidget({required String iconPath, required String data}) {
           imagePath: iconPath,
           width: SizeConfig.size18,
           height: SizeConfig.size18,
+          imgColor: fontColor?? AppColors.secondaryTextColor,
         ),
         SizedBox(
           width: SizeConfig.size5,
         ),
         CustomText(
           data,
-          color: AppColors.secondaryTextColor,
+          color: fontColor??AppColors.secondaryTextColor,
           fontSize: SizeConfig.size10,
         ),
       ],

@@ -57,7 +57,7 @@ class Post {
   final String? type;
   final String? natureOfPost;
   final String? referenceLink;
-  final int? commentsCount;
+   int? commentsCount;
    int? likesCount;
   final int? repostCount;
   final int? viewsCount;

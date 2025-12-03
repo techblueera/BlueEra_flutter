@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -7,6 +9,8 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_message_post_widget.dart';
+import 'package:BlueEra/features/common/comment/view/comment_bottom_sheet.dart';
+import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/models/all_message_post_res_model.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/repo/feed_repo.dart';
@@ -17,9 +21,13 @@ import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/widgets/progrss_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:get/get.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:share_plus/share_plus.dart';
 
 class FeedControllerNew extends GetxController {
   var posts = <Post>[].obs; // Replace dynamic with your Post model
@@ -89,6 +97,18 @@ class FeedControllerNew extends GetxController {
     // Update local state
     int index = posts.indexWhere((e) => e.id == postId);
     posts[index].isLiked = !(posts[index].isLiked ?? false);
+    posts[index].likesCount = (posts[index].likesCount ?? 0) +
+        (posts[index].isLiked != null ? 1 : -1);
+
+    posts.refresh();
+  }
+
+  void commentCount(String postId, int newCommentCount) {
+    // Implement API call for like
+    // Update local state
+    int index = posts.indexWhere((e) => e.id == postId);
+    posts[index].commentsCount = newCommentCount;
+
     posts.refresh();
   }
 }
@@ -110,6 +130,8 @@ class _AllMessagePostScreenState extends State<AllMessagePostScreen> {
   final PageController _pageController = PageController();
   final PageController _imagePageController = PageController();
   RxInt currentIndex = 0.obs;
+  bool _isSharing = false;
+  final feedController = Get.put(FeedController());
 
   @override
   void initState() {
@@ -118,37 +140,51 @@ class _AllMessagePostScreenState extends State<AllMessagePostScreen> {
     super.initState();
   }
 
+  bool isShareLoading = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: widget.postType.toLowerCase() == "poll_post"
-          ? Colors.white
-          : Colors.black,
+      backgroundColor: Colors.black,
       body: SafeArea(
-        child: Obx(() {
-          if (controller.isLoading.value && controller.posts.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
-          }
+        child: Stack(
+          children: [
+            Obx(() {
+              if (controller.isLoading.value && controller.posts.isEmpty) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-          return PageView.builder(
-            scrollDirection: Axis.vertical,
-            controller: _pageController,
-            itemCount: controller.posts.length,
-            onPageChanged: controller.onPageChanged,
-            itemBuilder: (context, index) {
-              final post = controller.posts[index];
+              return IgnorePointer(
+                ignoring: isShareLoading,
+                child: PageView.builder(
+                  scrollDirection: Axis.vertical,
+                  controller: _pageController,
+                  itemCount: controller.posts.length,
+                  onPageChanged: controller.onPageChanged,
+                  itemBuilder: (context, index) {
+                    final post = controller.posts[index];
 
-              return post.type?.toLowerCase() == "poll_post"
-                  ? pollPostWidget(post)
-                  : messageImagePostWidget(post);
-            },
-          );
-        }),
+                    return messageImagePostWidget(post, index);
+                  },
+                ),
+              );
+            }),
+            if (isShareLoading)
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: 10),
+                child: const Center(
+                    child: CircularProgressIndicator(
+                        color: AppColors.primaryColor, strokeWidth: 5)
+                    // child: Lottie.asset(AppConstants.appLoader, height: 150.h, width: 150.w, ),
+                    ),
+              )
+          ],
+        ),
       ),
     );
   }
 
-  messageImagePostWidget(Post post) {
+  messageImagePostWidget(Post post, int index) {
     final mediaUrls = post.media ?? [];
     post.media != null && (post.media?.isNotEmpty ?? false)
         ? post.media![0]
@@ -371,7 +407,7 @@ class _AllMessagePostScreenState extends State<AllMessagePostScreen> {
               // Expandable Text Logic
               Container(
                 width: Get.width,
-                margin: EdgeInsets.only(bottom: SizeConfig.size20),
+                margin: EdgeInsets.only(bottom: SizeConfig.size10),
                 padding:
                     const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
                 decoration: BoxDecoration(
@@ -400,11 +436,127 @@ class _AllMessagePostScreenState extends State<AllMessagePostScreen> {
                 //   ),
                 // ),
               ),
-              //  CustomText(
-              //    post.subTitle ?? "",
-              //    maxLines: 3,
-              //    overflow: TextOverflow.ellipsis,
-              // color: Colors.white),
+
+              Container(
+                margin: EdgeInsets.only(bottom: SizeConfig.size20),
+                child: Row(
+                  // crossAxisAlignment: CrossAxisAlignment.start,
+                  // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    ViewFeedActionWidget(
+                        iconPath: AppIconAssets.clock_new,
+                        fontColor: Colors.white,
+                        data: timeAgo((post.createdAt ?? DateTime.now()))),
+                    ViewFeedActionWidget(
+                      iconPath: AppIconAssets.eye_new,
+                      fontColor: Colors.white,
+                      data: formatNumberLikePost(post.viewsCount ?? 0),
+                    ),
+                    InkWell(
+                      onTap: () {
+                        if (isGuestUser()) {
+                          createProfileScreen();
+                        } else {
+                          onCommentPressed(context, post);
+                        }
+                      },
+                      child: ViewFeedActionWidget(
+                          iconPath: AppIconAssets.comment_new,
+                          fontColor: Colors.white,
+                          data: formatNumberLikePost(post.commentsCount ?? 0)),
+                    ),
+                    InkWell(
+                      onTap: () {
+                        if (isGuestUser()) {
+                          createProfileScreen();
+                        } else {
+                          feedController.postLikeDislike(
+                            postId: post.id,
+                            type: PostType.all,
+                          );
+                          controller.toggleLike(post.id);
+                        }
+                      },
+                      child: Padding(
+                        padding: EdgeInsets.only(right: SizeConfig.size10),
+                        child: Row(
+                          children: [
+                            LocalAssets(
+                              imagePath: AppIconAssets.like_new,
+                              width: SizeConfig.size18,
+                              height: SizeConfig.size18,
+                              imgColor: (post.isLiked ?? false)
+                                  ? AppColors.primaryColor
+                                  : AppColors.white,
+                            ),
+                            SizedBox(
+                              width: SizeConfig.size5,
+                            ),
+                            CustomText(
+                              formatNumberLikePost(post.likesCount ?? 0),
+                              color: AppColors.white,
+                              fontSize: SizeConfig.size10,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(left: SizeConfig.size5),
+                      child: InkWell(
+                        onTap: () async {
+                          // Prevent multiple calls
+                          if (_isSharing) return;
+                          setState(() {
+                            isShareLoading = true;
+                          });
+                          try {
+                            _isSharing =
+                                true; // Set flag to prevent multiple calls
+                            XFile? xFile;
+                            if ((post.media?.first.isNotEmpty ?? false)) {
+                              // Safely handle first media
+                              xFile = await urlToCachedXFile(
+                                  post.media?.first ?? "");
+                            }
+
+                            final shareUrl =
+                                postDeepLink(postId: post.id.toString());
+                            final combinedText = shareUrl;
+
+                            await SharePlus.instance.share(ShareParams(
+                                text: combinedText,
+                                title: post.subTitle,
+                                previewThumbnail: xFile,
+                                files: [xFile ?? XFile("")]));
+
+                            if (xFile != null) {
+                              final file = File(xFile.path);
+                              if (await file.exists()) {
+                                await file.delete();
+                                print("🗑️ File deleted from cache.");
+                              }
+                            }
+                          } catch (e) {
+                            print(
+                                "feed card share failed inside _onShareButtonPressed $e");
+                          } finally {
+                            _isSharing = false;
+                            setState(() {
+                              isShareLoading = false;
+                            });
+                            // Reset flag
+                          }
+                        },
+                        child: LocalAssets(
+                          imagePath: AppIconAssets.share_bold,
+                          imgColor: AppColors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
@@ -413,98 +565,6 @@ class _AllMessagePostScreenState extends State<AllMessagePostScreen> {
   }
 
   ///POLL POST WIDGET...
-
-  pollPostWidget(Post post) {
-    return Column(
-      children: [
-        Row(
-          children: [
-            Container(
-              margin: EdgeInsets.only(left: 10),
-              child: SizedBox(
-                width: 25,
-                height: 25,
-                child: IconButton(
-                  padding: EdgeInsets.zero,
-                  // remove internal padding
-                  constraints: BoxConstraints(),
-                  // remove minimum button size
-                  icon: const Icon(
-                    Icons.arrow_back_ios,
-                    size: 25,
-                  ),
-                  onPressed: () => Get.back(),
-                ),
-              ),
-            ),
-            SizedBox(
-              width: SizeConfig.size10,
-            ),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                InkWell(
-                  onTap: () {
-                    navigatePushTo(
-                      context,
-                      ImageViewScreen(
-                        appBarTitle: AppStrings.imageViewer,
-                        imageUrls: [post.user?.profileImage ?? ""],
-                        initialIndex: 0,
-                      ),
-                    );
-                  },
-                  child: CachedAvatarWidget(
-                      imageUrl: post.user?.profileImage,
-                      size: 45,
-                      borderRadius: 30),
-                ),
-                SizedBox(
-                  width: SizeConfig.size20,
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CustomText(
-                      "${post.user?.name}",
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    if (post.user?.designation?.isNotEmpty ?? false)
-                      CustomText(
-                        "${post.user?.designation}",
-                        fontSize: 13,
-                      ),
-                    if ((post.user?.businessName?.isNotEmpty ?? false) &&
-                        (post.user?.businessName != null) &&
-                        (post.user?.businessName != "null"))
-                      CustomText(
-                        post.user?.categoryOfBusiness ?? "",
-                        fontSize: 13,
-                      ),
-                  ],
-                ),
-              ],
-            ),
-          ],
-        ),
-        Padding(
-          padding: const EdgeInsets.only(left: 15.0, top: 15),
-          child: FeedPollOptionsWidget(
-            question: post.poll?.question ?? "",
-            postId: post.id,
-            poll: post.poll,
-            postFilteredType: PostType.all,
-            postedAgo: timeAgo(
-                post.createdAt != null ? post.createdAt! : DateTime.now()),
-            message: post.message,
-            postData: post,
-          ),
-        ),
-
-      ],
-    );
-  }
 
   Widget _buildAvatar(String? url) {
     return Container(
@@ -540,22 +600,28 @@ class _AllMessagePostScreenState extends State<AllMessagePostScreen> {
       ],
     );
   }
+
+  void onCommentPressed(BuildContext context, Post _post) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => FractionallySizedBox(
+        heightFactor: 0.8,
+        child: CommentBottomSheet(
+            id: _post.id,
+            totalComments: _post.commentsCount ?? 0,
+            commentType: CommentType.post,
+            onNewCommentCount: (int newCommentCount) async {
+              await feedController.updateCommentCount(
+                  postId: _post.id,
+                  type: PostType.all,
+                  newCommentCount: newCommentCount);
+              controller.commentCount(_post.id, newCommentCount);
+
+              // _post.commentsCount = newCommentCount;
+            }),
+      ),
+    );
+  }
 }
-// import 'package:BlueEra/widgets/common_back_app_bar.dart';
-// import 'package:flutter/material.dart';
-//
-// class AllMessagePostScreen extends StatefulWidget {
-//   const AllMessagePostScreen({super.key});
-//
-//   @override
-//   State<AllMessagePostScreen> createState() => _AllMessagePostScreenState();
-// }
-//
-// class _AllMessagePostScreenState extends State<AllMessagePostScreen> {
-//   @override
-//   Widget build(BuildContext context) {
-//     return const Scaffold(
-//       appBar: CommonBackAppBar(),
-//     );
-//   }
-// }

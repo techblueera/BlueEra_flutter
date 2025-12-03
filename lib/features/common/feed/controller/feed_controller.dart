@@ -1014,11 +1014,11 @@ class FeedController extends GetxController {
     targetList.assignAll(filtered);
   }
 
-  void updateCommentCount(
+  Future updateCommentCount(
       {required String postId,
       required PostType type,
       SortBy? sortBy,
-      int? newCommentCount}) {
+      int? newCommentCount}) async {
     final list = getListByType(type);
     final postIndex = list.indexWhere((p) => p.id == postId);
 
