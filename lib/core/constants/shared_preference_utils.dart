@@ -38,6 +38,9 @@ String serviceProviderStatusGlobal = '';
 String earnServiceCreatedStatusGlobal = 'false';
 String businessTypeGlobal = '';
 
+String isRiderServiceOpt = 'false';
+String isEarnServiceOpt = 'false';
+
 class SharedPreferenceUtils {
   static const FlutterSecureStorage _secureStorage = FlutterSecureStorage(
       aOptions: AndroidOptions(encryptedSharedPreferences: true),
@@ -80,6 +83,8 @@ class SharedPreferenceUtils {
   static const userServiceExistsKey = 'userServiceExistsKey';
   static const businessType = 'businessType';
   static const notificationDeviceToken = 'notificationDeviceToken';
+  static const isRiderServiceUser = 'isRiderServiceUser';
+  static const isEarnServiceUser = 'isEarnServiceUser';
 
   static Future<void> userLoggedInIndividualGuest({
     required String loginUserId_,
@@ -214,6 +219,8 @@ class SharedPreferenceUtils {
       serviceProviderStatusGlobal = '';
       earnServiceCreatedStatusGlobal = '"false"';
       businessTypeGlobal = '';
+      isRiderServiceOpt = 'false';
+      isEarnServiceOpt = 'false';
       Get.find<AuthController>().imgPath.value = "";
       await SharedPreferenceUtils.setBaseUrlSecureValue(workManagerBaseUrl);
       AppNotificationHandler.getFcmToken();
@@ -409,4 +416,22 @@ Future<void> clearSecureStorageIfFreshInstall() async {
     // await _storage.deleteAll(); // Clears Keychain entries
     await prefs.setBool('hasInstalledBefore', true);
   }
+}
+
+setRiderServiceOptData(bool isRiderServiceUser){
+  SharedPreferenceUtils.setSecureValue(
+      SharedPreferenceUtils.isRiderServiceUser, isRiderServiceUser.toString());
+}
+
+setEarnServiceOptData(bool isEarnServiceUser){
+  SharedPreferenceUtils.setSecureValue(
+      SharedPreferenceUtils.isEarnServiceUser, isEarnServiceUser.toString());
+}
+
+getEarnServiceOptData() async {
+  isRiderServiceOpt = await SharedPreferenceUtils.getSecureValue(
+      SharedPreferenceUtils.isRiderServiceUser);
+  isRiderServiceOpt = await SharedPreferenceUtils.getSecureValue(
+      SharedPreferenceUtils.isEarnServiceUser);
+
 }

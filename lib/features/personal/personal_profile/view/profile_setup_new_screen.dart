@@ -1280,7 +1280,7 @@ class _PersonalProfileSetupNewScreenState
                       children: [
                         _buildCircleIcon(AppIconAssets.channelNew),
                         SizedBox(width: SizeConfig.size6),
-                        _buildTitleWidget(AppStrings.myChannel),
+                        Expanded(child: _buildTitleWidget(AppStrings.myChannel)),
                       ],
                     ),
                     SizedBox(width: SizeConfig.size6),
@@ -1365,7 +1365,7 @@ class _PersonalProfileSetupNewScreenState
         children: [
           _buildCircleIcon(AppIconAssets.earnWithBlueEra),
           SizedBox(width: SizeConfig.size6),
-          _buildTitleWidget(AppStrings.earnWithBlueEra),
+          Expanded(child: _buildTitleWidget(AppStrings.earnWithBlueEra)),
         ],
       ),
       SizedBox(height: SizeConfig.size16),

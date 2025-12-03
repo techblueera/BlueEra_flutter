@@ -154,5 +154,17 @@ class StoreRepo extends BaseService {
     return response;
   }
 
+  ///GET SPECIFIC STORES......
+  Future<ResponseModel> askAiInventoryRepo({required Map<String, dynamic> params}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      aiInventoryAsk,
+      showProgress: false,
+      params: params,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
 
 }

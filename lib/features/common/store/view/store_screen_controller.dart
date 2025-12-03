@@ -97,6 +97,7 @@ class StoreScreenController extends GetxController {
   int foodDataPage = 1;
   bool foodDataHasMore = true;
 
+
   Future<void> checkAndFetchAllStoresFeed() async {
     try {
       isAllStoreFeedFirstLoading.value = true;

@@ -204,6 +204,11 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
           Status.COMPLETE) {
         viewProfileController.viewBusinessProfile();
       }
+    }else{
+      if (viewPersonalDetailsController.viewPersonalResponse.value.status !=
+          Status.COMPLETE) {
+        viewPersonalDetailsController.viewPersonalProfile();
+      }
     }
   }
 
@@ -324,7 +329,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
             ? GuestDashBoardScreen()
             : (isBusinessUser())
                 ? InventoryScreen(fromBottomNavBar: true)
-                : userProfessionGlobal==SELF_EMPLOYED ?
+                : (userProfessionGlobal==SELF_EMPLOYED) ?
                    EarnWithBlueEraNewScreen(fromBottomNavBar: true)
                      : PersonalProfileSetupNewScreen();
       // case 3:

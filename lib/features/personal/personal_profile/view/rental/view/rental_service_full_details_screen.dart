@@ -14,6 +14,7 @@ import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../../../../../core/constants/app_colors.dart';
 
 class RentalServiceFullDetailsScreen extends StatelessWidget {
@@ -210,7 +211,7 @@ class RentalServiceFullDetailsScreen extends StatelessWidget {
                                     _buildAmentityWidget(
                                         iconImage: AppIconAssets.bedIcon,
                                         text:
-                                            '${rentalServiceData.propertyDetails?.beds ?? 0} Beds'),
+                                            '${rentalServiceData.propertyDetails?.beds ?? 0} ${AppStrings.beds.tr}'),
                                     CommonVerticalDivider(
                                       width: 0.5,
                                       color: AppColors.secondaryTextColor,
@@ -219,7 +220,7 @@ class RentalServiceFullDetailsScreen extends StatelessWidget {
                                         iconImage:
                                             AppIconAssets.multiPersonsIcon,
                                         text:
-                                            '${rentalServiceData.propertyDetails?.maxPeople?.adults ?? 0} Beds, ${rentalServiceData.propertyDetails?.maxPeople?.children ?? 0} Child'),
+                                            '${rentalServiceData.propertyDetails?.maxPeople?.adults ?? 0} ${AppStrings.beds.tr}, ${rentalServiceData.propertyDetails?.maxPeople?.children ?? 0} ${AppStrings.child.tr}'),
                                     CommonVerticalDivider(
                                       width: 0.5,
                                       color: AppColors.secondaryTextColor,
@@ -227,7 +228,7 @@ class RentalServiceFullDetailsScreen extends StatelessWidget {
                                     _buildAmentityWidget(
                                         iconImage: AppIconAssets.call,
                                         text: rentalServiceData.contactNumber ??
-                                            'N/A'),
+                                            AppStrings.na),
                                   ],
                                 )),
                     ),
@@ -315,11 +316,12 @@ class RentalServiceFullDetailsScreen extends StatelessWidget {
                 highlights.length,
                 (index) {
                   final e = highlights[index];
+                  final isFirst = index == 0;
                   final isLast = index == highlights.length - 1;
 
                   return Padding(
                     padding: EdgeInsets.only(
-                      top: 4,
+                      top: isFirst ? 0 : 4,
                       bottom: isLast ? 0 : 4,
                     ),
                     child: Row(
@@ -359,15 +361,15 @@ class RentalServiceFullDetailsScreen extends StatelessWidget {
     List<Widget> restrictionItems = [];
 
     // -----------------------------
-    // ⛔ PROPERTY RESTRICTIONS
+    //  PROPERTY RESTRICTIONS
     // -----------------------------
     if (type != RentalServiceType.vehicle) {
       // 1. Unmarried couple allowed
       restrictionItems.add(
         _restrictionRow(
           rentalServiceData.propertyDetails?.restrictions?.unmarriedCoupleAllowed == false
-              ? 'Unmarried couples are NOT allowed'
-              : 'Unmarried couples are allowed',
+              ? AppStrings.unmarriedCouplesNotAllowed
+              : AppStrings.unmarriedCouplesAllowed,
         ),
       );
 
@@ -375,8 +377,8 @@ class RentalServiceFullDetailsScreen extends StatelessWidget {
       restrictionItems.add(
         _restrictionRow(
           rentalServiceData.propertyDetails?.restrictions?.studentOrBachelorAllowed == false
-              ? 'Students / Bachelors are NOT allowed'
-              : 'Students / Bachelors are allowed',
+              ? AppStrings.studentsBachelorsNotAllowed
+              : AppStrings.studentsBachelorsAllowed,
         ),
       );
 
@@ -385,14 +387,14 @@ class RentalServiceFullDetailsScreen extends StatelessWidget {
       restrictionItems.add(
         _restrictionRow(
           foodR?.isFoodRestriction == true
-              ? 'Food restriction: ${foodR?.allowedFood ?? ''}'
-              : 'No food restrictions',
+              ? '${AppStrings.foodRestriction.tr}: ${foodR?.allowedFood ?? ''}'
+              : AppStrings.noFoodRestrictions,
         ),
       );
     }
 
     // -----------------------------
-    // 🚗 VEHICLE RESTRICTIONS
+    //  VEHICLE RESTRICTIONS
     // -----------------------------
     if (hasRules) {
       restrictionItems.addAll(
@@ -406,8 +408,8 @@ class RentalServiceFullDetailsScreen extends StatelessWidget {
     for (int i = 0; i < restrictionItems.length; i++) {
       restrictionItems[i] = Padding(
         padding: EdgeInsets.only(
-          top: 4,
-          bottom: i == restrictionItems.length - 1 ? 0 : 10, // ⭐ No bottom padding for last
+          top: i == 0 ? 0 : 4,
+          bottom: i == restrictionItems.length - 1 ? 0 : 10, //  No bottom padding for last
         ),
         child: restrictionItems[i],
       );

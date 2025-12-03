@@ -25,6 +25,9 @@ class NewStoreController extends GetxController{
       ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> getAllFoodServiceResponse =
       ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> getListOfAiMessageResponse =
+      ApiResponse.initial('Initial').obs;
+
 
   final ScrollController scrollController = ScrollController();
   final GlobalKey headerKey = GlobalKey();
@@ -40,14 +43,6 @@ class NewStoreController extends GetxController{
 
   String? typeOfBusiness;
   String? businessCategoryId;
-
-  @override
-  void onClose() {
-    debounce?.cancel();
-    searchController.dispose();
-    scrollController.dispose();
-    super.onClose();
-  }
 
   /// All Stores data
   RxList<GetAllStoreResModel> allStore = <GetAllStoreResModel>[].obs;
@@ -70,6 +65,19 @@ class NewStoreController extends GetxController{
   int foodDataPage = 1;
   bool foodDataHasMore = true;
 
+  /// Store Ai Variables
+  TextEditingController sendMessageController = TextEditingController();
+  RxBool isTextFieldEmpty = false.obs;
+  final ScrollController aiChatScrollController = ScrollController();
+  RxBool chatBotReading = false.obs;
+
+  @override
+  void onClose() {
+    debounce?.cancel();
+    searchController.dispose();
+    scrollController.dispose();
+    super.onClose();
+  }
 
   ///GET STORES ONLY....
   Future<void>  getAllStoreNearBy({bool isLoadMore = false}) async {
@@ -256,7 +264,6 @@ class NewStoreController extends GetxController{
     }
   }
 
-
   ///GET FOOD SERVICES ONLY....
   Future<void> getAllFoodServiceNearBy({bool isLoadMore = false}) async {
     if (isLoadMore) {
@@ -329,5 +336,53 @@ class NewStoreController extends GetxController{
       }
     }
   }
+
+  RxBool aiInventoryLoading = false.obs;
+
+  /// Ask Ai Inventory
+  Future<void> askAiInventory({required String message}) async {
+
+    try {
+      aiInventoryLoading.value = true;
+      final response = await StoreRepo().askAiInventoryRepo(
+        params: {
+          ApiKeys.query: message
+        },
+      );
+
+      if (response.isSuccess) {
+        getListOfAiMessageResponse.value = ApiResponse.complete(response);
+        // final getOwnProductModel =
+        // GetProductModel.fromJson(response.response?.data);
+        //
+        // final List<GetProductData> newData = getOwnProductModel.data;
+        //
+        // if (newData.isNotEmpty) {
+        //   if (isLoadMore) {
+        //     storeProductDataList.addAll(newData);
+        //   } else {
+        //     storeProductDataList.assignAll(newData);
+        //     log('product data length--> ${storeProductDataList.length}');
+        //     log('loggggg 1--> ${storeProductDataList[0].product.business_name}');
+        //
+        //     if(query == null) {
+        //       await HiveServices().saveAllStoreProduct(
+        //           storeProductDataList, userId);
+        //     }
+        //   }
+        //   storeProductDataPage++;
+        // }
+      } else {
+        storeProductDataHasMore = false;
+        getListOfAiMessageResponse.value = ApiResponse.error('error');
+      }
+    } catch (e) {
+      getListOfAiMessageResponse.value = ApiResponse.error('error');
+    } finally{
+      aiInventoryLoading.value = false;
+    }
+  }
+
+
 
 }

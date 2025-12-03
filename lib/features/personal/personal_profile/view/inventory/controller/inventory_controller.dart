@@ -5,11 +5,12 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
-import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/categoryinventory_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/inventory_based_search_product_response.dart';
@@ -69,9 +70,8 @@ class InventoryController extends GetxController {
   final variantSelection = <String, bool>{}.obs;
   final variantSellingPrice = <String, String>{}.obs;
 
-  final viewProfileController = Get.isRegistered<ViewBusinessDetailsController>()
-      ? Get.find<ViewBusinessDetailsController>()
-      : Get.put(ViewBusinessDetailsController());
+  final viewProfileController = getOrPut(() => ViewBusinessDetailsController());
+  final viewIndividualProfileController = getOrPut(() => ViewPersonalDetailsController());
 
   bool isVariantSelected(String id) => variantSelection[id] ?? false;
   String? getUpdatedPrice(String id) => variantSellingPrice[id];
@@ -390,11 +390,22 @@ class InventoryController extends GetxController {
         log('loading more -- $isLoadMore');
       }
 
+      double? businessLat;
+      double? businessLng;
+      String? categoryId;
+      if(isIndividualUser()){
+         businessLat = viewIndividualProfileController.personalProfileDetails.value.user?.userLocation?.lat ?? LocationService.lat;
+         businessLng = viewIndividualProfileController.personalProfileDetails.value.user?.userLocation?.lon ?? LocationService.lng;
+         // categoryId = viewIndividualProfileController.personalProfileDetails.value.user.c
+         //    ?? viewIndivi dualProfileController.businessProfileDetails?.data?.subCategoryDetails?.id ?? '';
+      }
+      else{
+         businessLat = viewProfileController.businessProfileDetails?.data?.businessLocation?.lat ?? LocationService.lat;
+         businessLng = viewProfileController.businessProfileDetails?.data?.businessLocation?.lon ?? LocationService.lng ;
+         categoryId = viewProfileController.businessProfileDetails?.data?.categoryDetails?.id
+            ?? viewProfileController.businessProfileDetails?.data?.subCategoryDetails?.id ?? '';
 
-      double businessLat = viewProfileController.businessProfileDetails?.data?.businessLocation?.lat ?? LocationService.lat;
-      double businessLng = viewProfileController.businessProfileDetails?.data?.businessLocation?.lon ?? LocationService.lng ;
-      String categoryId = viewProfileController.businessProfileDetails?.data?.categoryDetails?.id
-                           ?? viewProfileController.businessProfileDetails?.data?.subCategoryDetails?.id ?? '';
+      }
 
       Map<String, dynamic> params = {
         ApiKeys.lat: businessLat,
@@ -506,6 +517,7 @@ class InventoryController extends GetxController {
         if((providerType==ProductServiceProviderType.business)){
           navigateToInventory();
         }else{
+          await setEarnServiceOptData(true);
           Get.until(
                 (route) =>
             route.settings.name ==

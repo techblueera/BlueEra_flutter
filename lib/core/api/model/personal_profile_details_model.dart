@@ -12,6 +12,8 @@ class PersonalProfileDetailsModel {
     this.message,
     this.user,
     this.isProfileCreated,
+    this.isRiderServiceUser,
+    this.isEarnServiceUser,
   });
 
   PersonalProfileDetailsModel.fromJson(dynamic json) {
@@ -19,12 +21,16 @@ class PersonalProfileDetailsModel {
     message = json['message'];
     user = json['user'] != null ? User.fromJson(json['user']) : null;
     isProfileCreated = json['isProfileCreated'];
+    isRiderServiceUser = json['isRiderServiceUser'];
+    isEarnServiceUser = json['isEarnServiceUser'];
   }
 
   bool? status;
   String? message;
   User? user;
   bool? isProfileCreated;
+  bool? isRiderServiceUser;
+  bool? isEarnServiceUser;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -34,6 +40,8 @@ class PersonalProfileDetailsModel {
       map['user'] = user?.toJson();
     }
     map['isProfileCreated'] = isProfileCreated;
+    map['isRiderServiceUser'] = isRiderServiceUser;
+    map['isEarnServiceUser'] = isEarnServiceUser;
     return map;
   }
 }
@@ -66,7 +74,8 @@ class User {
     this.objective,
     this.skills,
     this.art,
-    this.location,
+    this.userLocation,
+
   });
 
   User.fromJson(dynamic json) {
@@ -95,8 +104,8 @@ class User {
     introVideo = json['introVideo'];
     objective = json['objective'];
     skills = json['skills'] != null ? json['skills'].cast<String>() : [];
-
     art = json['art'] != null ? new Art.fromJson(json['art']) : null;
+    userLocation = json['user_location'] != null ? new UserLocation.fromJson(json['user_location']) : null;
   }
 
   String? id;
@@ -122,6 +131,7 @@ class User {
   String? introVideo;
   List<String>? skills;
   Art? art;
+  UserLocation? userLocation;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -150,10 +160,13 @@ class User {
     map['location'] = location;
     map['introVideo'] = introVideo;
     map['skills'] = skills;
-
     if (this.art != null) {
       map['art'] = this.art!.toJson();
     }
+    if (this.userLocation != null) {
+      map['user_location'] = this.userLocation!.toJson();
+    }
+
     return map;
   }
 }
@@ -189,7 +202,47 @@ class DateOfBirth {
   }
 }
 
-//
+UserLocation userLocationFromJson(String str) =>
+    UserLocation.fromJson(json.decode(str));
+
+String userLocationToJson(UserLocation data) =>
+    json.encode(data.toJson());
+
+class UserLocation {
+  final double? lat;
+  final double? lon;
+
+  const UserLocation({
+    this.lat,
+    this.lon,
+  });
+
+  factory UserLocation.fromJson(Map<String, dynamic>? json) {
+    if (json == null) return const UserLocation();
+
+    return UserLocation(
+      lat: _parseDouble(json['lat']),
+      lon: _parseDouble(json['lon']),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'lat': lat,
+    'lon': lon,
+  };
+
+  // Safely parse dynamic → double?
+  static double? _parseDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is num) return value.toDouble();
+    if (value is String) {
+      return double.tryParse(value);
+    }
+    return null;
+  }
+}
+
+
 // class Projects {
 //   String? title;
 //   String? description;

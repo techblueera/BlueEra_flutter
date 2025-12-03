@@ -469,6 +469,7 @@ class _MessageCardState extends State<MessageCard>
       ],
     );
   }
+
   Widget ProductCard(
       ProductListing product, {
         required double width,

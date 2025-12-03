@@ -183,6 +183,9 @@ class ViewPersonalDetailsController extends GetxController {
   List<_ProfileFieldStatus> fields = [];
   RxDouble myProfileCompletionPercent = 0.0.obs;
 
+  RxBool isRiderServiceUser = false.obs;
+  RxBool isEarnServiceUser = false.obs;
+
   Future<void> viewPersonalProfile() async {
     final personalController = Get.put(PersonalCreateProfileController());
 
@@ -286,9 +289,15 @@ class ViewPersonalDetailsController extends GetxController {
         );
         await getUserLoginData();
 
+        /// Check Earn services
+        isRiderServiceUser.value = personalProfileDetails.value.isRiderServiceUser ?? false;
+        isEarnServiceUser.value =  personalProfileDetails.value.isEarnServiceUser ?? false;
+        await setRiderServiceOptData(isRiderServiceUser.value);
+        await setEarnServiceOptData(isEarnServiceUser.value);
+        await getEarnServiceOptData();
 
-          /// need to verify (for checking is service exists or not)
-          if (personalProfileDetails.value.user?.profession?.toUpperCase() == SELF_EMPLOYED) {
+        /// need to verify (for checking is service exists or not)
+        if (personalProfileDetails.value.user?.profession?.toUpperCase() == SELF_EMPLOYED) {
           //   if(isCheckServiceOpt){
           //   await getUserServiceCreatedStatusUtils();
           //   if (userServiceCreatedStatusGlobal.isEmpty || userServiceCreatedStatusGlobal == "false") {
@@ -308,6 +317,7 @@ class ViewPersonalDetailsController extends GetxController {
               getServiceProviderStatus();
             }
           }
+
 
         viewPersonalResponse.value = ApiResponse.complete(responseModel);
       } else {

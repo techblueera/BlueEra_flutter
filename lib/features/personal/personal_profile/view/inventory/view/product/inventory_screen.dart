@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -36,9 +37,10 @@ class _InventoryScreenState extends State<InventoryScreen>
   bool _isLoading = true;
   late List<Tab> _tabs;
 
-  final inventoryController = Get.put(InventoryController());
-  final serviceController = Get.put(ServiceController());
-  final foodUploadController = Get.put(FoodUploadController());
+
+  final inventoryController = getOrPut(() => InventoryController());
+  final serviceController = getOrPut(() => ServiceController());
+  final foodUploadController = getOrPut(() => FoodUploadController());
 
   @override
   void initState() {
@@ -72,14 +74,14 @@ class _InventoryScreenState extends State<InventoryScreen>
     } else if (firstTab == 'My Services') {
       final queryParams = {
         ApiKeys.all: false,
-        ApiKeys.type: "service",
+        ApiKeys.type: AppConstants.service,
         ApiKeys.providerType: ProductServiceProviderType.business.title,
       };
       serviceController.getServices(queryParams);
     } else if (firstTab == 'Food & Grocery') {
       final queryParams = {
         ApiKeys.all: false,
-        ApiKeys.type: "food",
+        ApiKeys.type: AppConstants.food,
         ApiKeys.providerType: ProductServiceProviderType.business.title,
       };
       foodUploadController.getFoodService(queryParams);

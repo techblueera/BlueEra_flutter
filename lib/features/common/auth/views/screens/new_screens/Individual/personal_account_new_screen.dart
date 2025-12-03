@@ -1053,12 +1053,12 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
         if ((_selectedProfessionTagId == SELF_EMPLOYED)) {
           designation = _selectedSelfEmploymentTagId ?? "";
         } else {
-          designation = _designationTextController.text;
+          designation = _designationTextController.text.trim();
         }
 
         Map<String, dynamic> requestData = {
           ApiKeys.profile_image: imageByPart,
-          ApiKeys.name: _nameTextController.text,
+          ApiKeys.name: _nameTextController.text.trim(),
           ApiKeys.date_of_birth_Obj: jsonEncode({
             ApiKeys.date: _selectedDay,
             ApiKeys.month: _selectedMonth,

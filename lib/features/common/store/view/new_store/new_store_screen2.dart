@@ -20,6 +20,7 @@ import 'package:BlueEra/features/common/store/view/new_store/all_food_store_scre
 import 'package:BlueEra/features/common/store/view/new_store/all_product_store_screen.dart';
 import 'package:BlueEra/features/common/store/view/new_store/business_store_screen.dart';
 import 'package:BlueEra/features/common/auth/model/business_profile_category.dart';
+import 'package:BlueEra/features/common/store/view/store_ai_chat/store_ai_chat.dart';
 import 'package:BlueEra/features/common/store/widget/icon_grid_item.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -139,9 +140,11 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                   Color(0xFF004FCE),
                   Color(0xFF5C9BFF),
                 ],
-                onPressed: () {
-                  print('ai chat bot btn pressed');
-                },
+                onPressed: ()=> Get.to(()=> StoreAiChatScreen(
+                    profileImage: 'https://be-user-bkt.s3.ap-south-1.amazonaws.com/admin/68a31a3edd48c8dfc0656a00/profile/1759817565514-unnamed.webp',
+                    name: 'BlueEra Friend',
+                    contactNo: 'BlueEra Friend',
+                  )),
                 child: LocalAssets(imagePath: AppIconAssets.aiChatbotIcon),
               ),
             ),
