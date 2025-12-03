@@ -50,7 +50,7 @@ class _PersonalChatsListState extends State<PersonalChatsList> {
               itemBuilder: (context, index) {
                 final chat =(index == 0)? ChatViewController.personalAiChatModule:data?.chatList?[index - 1];
                 return ChatListTile(onTab: (index == 0)?(){
-                 Get.to(()=>AiChatScreen(
+                 Get.to(()=> AiChatScreen(
                    profileImage: chat?.sender?.profileImage,
                    name: chat?.sender?.name,
                    contactNo: chat?.sender?.contactNo,

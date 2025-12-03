@@ -9,6 +9,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/features/common/food/model/food_ai_res_model.dart';
@@ -333,15 +334,11 @@ class FoodUploadController extends GetxController {
          }
          UploadProgressDialog.close();
          commonSnackBar(message: AppStrings.foodAddedSuccess.tr);
-         // Map<String, dynamic> params = {
-         //   ApiKeys.all: false,
-         //   ApiKeys.type: "food",
-         //   ApiKeys.radius: kmRadius1000
-         // };
-         // getFoodService(params);
+          if(providerType == ProductServiceProviderType.user){
+            await setEarnServiceOptData(true);
+          }
          Get.close(2);
-         // Get.back();
-         // Get.back();
+
        } else {
          UploadProgressDialog.close();
          commonSnackBar(message: responseModel.message);

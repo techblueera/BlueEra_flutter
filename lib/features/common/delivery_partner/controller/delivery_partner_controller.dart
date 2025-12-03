@@ -6,6 +6,7 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
@@ -638,6 +639,7 @@ class DeliveryPartnerController extends GetxController{
 
         if (response.isSuccess) {
           ridersOnboardingVehicleInformationResponse.value = ApiResponse.complete(response);
+          await setRiderServiceOptData(true);
           Get.until(
                 (route) =>
             route.settings.name ==

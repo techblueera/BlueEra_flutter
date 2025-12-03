@@ -68,7 +68,7 @@ class _DeliveryPartnerOrdersState extends State<DeliveryPartnerOrders>  {
                         padding: const EdgeInsets.all(20.0),
                         child: Center(
                           child: CustomText(
-                              "Your verification was rejected.",
+                            AppStrings.verificationRejected,
                             textAlign: TextAlign.center,
                           ),
                         ),
@@ -87,7 +87,7 @@ class _DeliveryPartnerOrdersState extends State<DeliveryPartnerOrders>  {
                         child: Padding(
                           padding: const EdgeInsets.all(20.0),
                           child: CustomText(
-                              "Your verification is pending. Please wait.",
+                            AppStrings.verificationPending,
                             textAlign: TextAlign.center,
                           ),
                         ),
@@ -150,27 +150,27 @@ class _DeliveryPartnerOrdersState extends State<DeliveryPartnerOrders>  {
                     log('firstIncomplete -- $firstIncomplete');
 
 
-                    String title = "Step Incomplete";
+                    String title = AppStrings.stepIncompleteTitle;
                     String message = "";
 
                     switch (firstIncomplete.key) {
                       case RiderProfileStep.personalInfo:
-                        message = "Please complete your Personal Information.";
+                        message = AppStrings.personalInfoMsg;
                         break;
                       case RiderProfileStep.addressInfo:
-                        message = "Please complete your Address Information.";
+                        message = AppStrings.addressInfoMsg;
                         break;
                       case RiderProfileStep.personalIdentificationInfo:
-                        message = "Please complete your ID Verification.";
+                        message = AppStrings.idVerificationMsg;
                         break;
                       case RiderProfileStep.drivingInfo:
-                        message = "Please complete your Driving Verification.";
+                        message = AppStrings.drivingVerificationMsg;
                         break;
                       case RiderProfileStep.vehicleImagesInfo:
-                        message = "Please upload your Vehicle Images.";
+                        message = AppStrings.vehicleImagesMsg;
                         break;
                       case RiderProfileStep.vehicleInfo:
-                        message = "Please complete your Vehicle Info.";
+                        message = AppStrings.vehicleInfoMsg;
                         break;
                     }
 
@@ -192,7 +192,7 @@ class _DeliveryPartnerOrdersState extends State<DeliveryPartnerOrders>  {
         padding: const EdgeInsets.all(20.0),
         child: Center(
           child: CustomText(
-              'These orders are available only for delivery riders. Please register as a delivery rider to continue',
+            AppStrings.ridersOnlyMsg,
             textAlign: TextAlign.center,
           ),
         ),
@@ -210,7 +210,7 @@ class _DeliveryPartnerOrdersState extends State<DeliveryPartnerOrders>  {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: CustomText("OK"),
+              child: CustomText(AppStrings.ok),
             ),
           ],
         ),

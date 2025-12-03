@@ -173,9 +173,6 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
         if (posts.isEmpty) {
           return Column(
             children: [
-              isIndividual()
-                  ? _buildEarnWithBlueEraWidget()
-                    : SizedBox.shrink(),
               // isIndividual()
               //     ? _buildEarnWithBlueEraWidget()
               //     : (inventoryController.allProducts.isNotEmpty)
@@ -209,17 +206,15 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
               ? const NeverScrollableScrollPhysics()
               : const AlwaysScrollableScrollPhysics(),
           itemBuilder: (context, indexFeed) {
-            if (indexFeed == 0) {
-              return isIndividual()
-                  ? _buildEarnWithBlueEraWidget()
-                  :  SizedBox.shrink();
-              // return isIndividual()
-              //     ? _buildEarnWithBlueEraWidget()
-              //     : (inventoryController.allProducts.isNotEmpty)
-              //         ? _buildProductCard()
-              //         : SizedBox.shrink();
-            }
-            int index = indexFeed - 1;
+            // if (indexFeed == 0) {
+            //   // return isIndividual()
+            //   //     ? _buildEarnWithBlueEraWidget()
+            //   //     : (inventoryController.allProducts.isNotEmpty)
+            //   //         ? _buildProductCard()
+            //   //         : SizedBox.shrink();
+            // }
+            // int index = indexFeed - 1;
+            int index = indexFeed;
             final block = blocks[index];
 
             if (block.isGrid) {
@@ -586,65 +581,65 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
   //   );
   // }
 
-  Widget _buildEarnWithBlueEraWidget() {
-    return Container(
-      margin: EdgeInsets.only(
-          bottom: SizeConfig.paddingXS,
-          left: SizeConfig.paddingXS,
-          right: SizeConfig.paddingXS),
-      decoration: BoxDecoration(
-          color: AppColors.white,
-          boxShadow: [AppShadows.cardShadow],
-          borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: EdgeInsets.only(
-            left: SizeConfig.size8,
-            right: SizeConfig.size8,
-            top: SizeConfig.size10,
-            bottom: SizeConfig.size10),
-        child: Column(children: [
-          Row(
-            children: [
-              _buildCircleIcon(AppIconAssets.earnWithBlueEra),
-              SizedBox(width: SizeConfig.size6),
-              _buildTitleWidget(AppStrings.earnWithBlueEra),
-            ],
-          ),
-          SizedBox(height: SizeConfig.size16),
-          HorizontalVideoPlayer(
-            isAutoPlay: true,
-          ),
-          SizedBox(height: SizeConfig.size16),
-          Align(
-            alignment: Alignment.bottomRight,
-            child: CustomBtn(
-              width: SizeConfig.size160,
-              title: AppStrings.letsStartEarningNow,
-              onTap: () {
-                // Get.to(() => ShareServiceScreen(serviceId: '68f319ca6e8f907aadee126d'));
-                final ViewPersonalDetailsController
-                    viewPersonalDetailsController =
-                    Get.isRegistered<ViewPersonalDetailsController>()
-                        ? Get.find<ViewPersonalDetailsController>()
-                        : Get.put(ViewPersonalDetailsController());
-                if (viewPersonalDetailsController
-                        .personalProfileDetails.value.isProfileCreated ==
-                    false) {
-                  Get.to(()=> CreateProfileScreen());
-                } else {
-                  Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
-                }
-              },
-              bgColor: AppColors.primaryColor,
-              textColor: AppColors.white,
-              height: SizeConfig.size34,
-              radius: 10.0,
-            ),
-          ),
-        ]),
-      ),
-    );
-  }
+  // Widget _buildEarnWithBlueEraWidget() {
+  //   return Container(
+  //     margin: EdgeInsets.only(
+  //         bottom: SizeConfig.paddingXS,
+  //         left: SizeConfig.paddingXS,
+  //         right: SizeConfig.paddingXS),
+  //     decoration: BoxDecoration(
+  //         color: AppColors.white,
+  //         boxShadow: [AppShadows.cardShadow],
+  //         borderRadius: BorderRadius.circular(12)),
+  //     child: Padding(
+  //       padding: EdgeInsets.only(
+  //           left: SizeConfig.size8,
+  //           right: SizeConfig.size8,
+  //           top: SizeConfig.size10,
+  //           bottom: SizeConfig.size10),
+  //       child: Column(children: [
+  //         Row(
+  //           children: [
+  //             _buildCircleIcon(AppIconAssets.earnWithBlueEra),
+  //             SizedBox(width: SizeConfig.size6),
+  //             _buildTitleWidget(AppStrings.earnWithBlueEra),
+  //           ],
+  //         ),
+  //         SizedBox(height: SizeConfig.size16),
+  //         HorizontalVideoPlayer(
+  //           isAutoPlay: true,
+  //         ),
+  //         SizedBox(height: SizeConfig.size16),
+  //         Align(
+  //           alignment: Alignment.bottomRight,
+  //           child: CustomBtn(
+  //             width: SizeConfig.size160,
+  //             title: AppStrings.letsStartEarningNow,
+  //             onTap: () {
+  //               // Get.to(() => ShareServiceScreen(serviceId: '68f319ca6e8f907aadee126d'));
+  //               final ViewPersonalDetailsController
+  //                   viewPersonalDetailsController =
+  //                   Get.isRegistered<ViewPersonalDetailsController>()
+  //                       ? Get.find<ViewPersonalDetailsController>()
+  //                       : Get.put(ViewPersonalDetailsController());
+  //               if (viewPersonalDetailsController
+  //                       .personalProfileDetails.value.isProfileCreated ==
+  //                   false) {
+  //                 Get.to(()=> CreateProfileScreen());
+  //               } else {
+  //                 Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
+  //               }
+  //             },
+  //             bgColor: AppColors.primaryColor,
+  //             textColor: AppColors.white,
+  //             height: SizeConfig.size34,
+  //             radius: 10.0,
+  //           ),
+  //         ),
+  //       ]),
+  //     ),
+  //   );
+  // }
 
   Widget _buildCircleIcon(String iconImage) {
     return Container(

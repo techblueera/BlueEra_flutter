@@ -1,10 +1,22 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/widget/change_profession_dialog.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/repo/inventory_repo.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/widget/food_service_guide_bottom_sheet.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/widget/home_service_guide_bottom_sheet.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/widget/product_service_guide_bottom_sheet.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/widget/rental_service_guide_bottom_sheet.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/widget/self_work_service_guide_bottom_sheet.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+import '../../widget/service_item.dart';
 
 
 class EarnWithBlueEraController extends GetxController{
@@ -42,6 +54,10 @@ class EarnWithBlueEraController extends GetxController{
   RxBool isOwnServiceDataFirstLoading = false.obs;
   int ownServiceDataPage = 1;
   bool ownServiceDataHasMore = true;
+
+  /// Earn Service Opt flag
+  RxString isRiderServiceOpt = ''.obs;
+  RxString isEarnServiceOpt = ''.obs;
 
   Future<void> fetchOwnProducts({bool isLoadMore = false}) async {
     if (isLoadMore) {
@@ -92,6 +108,98 @@ class EarnWithBlueEraController extends GetxController{
       } else {
         isOwnProductDataFirstLoading.value = false;
       }
+    }
+  }
+
+  void handleServiceTap(BuildContext context, ServiceItem service) async {
+    switch (service.slugId) {
+      case SELF_EMPLOYED:
+        if(earnServiceCreatedStatusGlobal == 'true'){
+          commonSnackBar(message: AppStrings.youCanOptOnlyOneService.tr);
+        }else{
+          showModalBottomSheet(
+            context: context,
+            backgroundColor: Colors.transparent,
+            isScrollControlled: true,
+            builder: (_) => SelfWorkServiceGuideBottomSheet(),
+          );
+        }
+
+        break;
+
+      case DELIVERY_RIDER:
+        ProfessionChangeDialogHelper().shouldShowUpdateDesignationDialog(
+          context: context,
+          designation: DELIVERY_RIDER,
+        );
+        break;
+
+      case HOME_MADE_PRODUCTS_OPTION:
+        showModalBottomSheet(
+          context: context,
+          backgroundColor: Colors.transparent,
+          isScrollControlled: true,
+          builder: (_) => ProductServiceGuideBottomSheet(),
+        );
+        break;
+
+      case HOME_MADE_FOOD_ITEMS_OPTION:
+        showModalBottomSheet(
+          context: context,
+          backgroundColor: Colors.transparent,
+          isScrollControlled: true,
+          builder: (_) => FoodServiceGuideBottomSheet(),
+        );
+        break;
+
+      case HOME_SERVICES_OPTION:
+        if(earnServiceCreatedStatusGlobal == 'true'){
+          commonSnackBar(message: AppStrings.youCanOptOnlyOneService.tr);
+        }else {
+          showModalBottomSheet(
+            context: context,
+            backgroundColor: Colors.transparent,
+            isScrollControlled: true,
+            builder: (_) => HomeServiceGuideBottomSheet(),
+          );
+        }
+        break;
+
+      case RENTAL_SERVICES_OPTION:
+        showModalBottomSheet(
+          context: context,
+          backgroundColor: Colors.transparent,
+          isScrollControlled: true,
+          builder: (_) => RentalServiceGuideBottomSheet(),
+        );
+        break;
+
+      case CONSULTANT:
+        if(earnServiceCreatedStatusGlobal == 'true'){
+          commonSnackBar(message: AppStrings.youCanOptOnlyOneService.tr);
+        }else {
+          ProfessionChangeDialogHelper().shouldShowUpdateDesignationDialog(
+            context: context,
+            designation: CONSULTANT,
+            serviceSubType: EarnWithBlueEraServiceTypes.homeService,
+          );
+        }
+        break;
+
+      case TUTOR:
+        if(earnServiceCreatedStatusGlobal == 'true'){
+          commonSnackBar(message: AppStrings.youCanOptOnlyOneService.tr);
+        }else {
+          ProfessionChangeDialogHelper().shouldShowUpdateDesignationDialog(
+            context: context,
+            designation: TUTOR,
+            serviceSubType: EarnWithBlueEraServiceTypes.homeService,
+          );
+        }
+        break;
+
+      default:
+        break;
     }
   }
 

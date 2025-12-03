@@ -7,6 +7,7 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_enum.dart' hide MediaType;
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/store/repo/product_repo.dart';
@@ -720,31 +721,10 @@ class ProductController extends GetxController{
       if(route.settings.name == RouteHelper.getInventoryScreenRoute()) return route.settings.name == RouteHelper.getInventoryScreenRoute();
       else return route.settings.name == RouteHelper.getBottomNavigationBarScreenRoute();
     });
-
-    // bool isInventoryInStack = false;
-    //
-    // // First check entire stack WITHOUT popping it
-    // Get.routeTree.routes.forEach((route) {
-    //   if (route.name == RouteHelper.getInventoryScreenRoute()) {
-    //     isInventoryInStack = true;
-    //   }
-    // });
-    //
-    // log('isInventoryInStack--> $isInventoryInStack');
-    //
-    // // Case 1: Inventory exists → pop until inventory
-    // if (isInventoryInStack) {
-    //   Get.until((route) => route.settings.name == RouteHelper.getInventoryScreenRoute());
-    // }
-    // // Case 2: Inventory not in stack → go to bottom tab, then push inventory
-    // else {
-    //   Get.until((route) => route.settings.name == RouteHelper.getBottomNavigationBarScreenRoute());
-    //   // Get.toNamed(RouteHelper.getInventoryScreenRoute());
-    // }
-
   }
 
-  void navigateToEarnWithBlueEraSectionAfterAddProduct(){
+  Future<void> navigateToEarnWithBlueEraSectionAfterAddProduct() async {
+    await setEarnServiceOptData(true);
     Get.until((route) => Get.currentRoute == RouteHelper.getEarnWithBlueEraNewScreenRoute());
   }
 

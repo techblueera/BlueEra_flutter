@@ -521,5 +521,6 @@ abstract class BaseService {
   final String verifyMobileUpdateOtp = 'user-service/user/verify-mobile-update-otp';
   final String storesByCategory = 'map-service/api/stores/inventory/category';
   final String userFeedPost = 'userfeed-service/feed/posts';
+  final String aiInventoryAsk = 'ai-service/api/ai-inventory/ask';
 
 }

@@ -241,6 +241,8 @@ class AppConstants {
   static const bookingServices = "Booking";
   static const homeServices = "Home Services";
 
+  static const storeAi = "StoreAi";
+
 }
 
 ///IS GUEST USER...

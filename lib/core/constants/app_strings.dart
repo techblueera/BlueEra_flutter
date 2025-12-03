@@ -1755,6 +1755,25 @@ class AppStrings {
   static const restrictionsLimitMessage = "restrictionsLimitMessage";
   static const restrictionsHighlightsTitle = "restrictionsHighlightsTitle";
 
+  static const verificationRejected = "verificationRejected";
+  static const verificationPending = "verificationPending";
+  static const stepIncompleteTitle = "stepIncompleteTitle";
+  static const personalInfoMsg = "personalInfoMsg";
+  static const addressInfoMsg = "addressInfoMsg";
+  static const idVerificationMsg = "idVerificationMsg";
+  static const drivingVerificationMsg = "drivingVerificationMsg";
+  static const vehicleImagesMsg = "vehicleImagesMsg";
+  static const vehicleInfoMsg = "vehicleInfoMsg";
+  static const ridersOnlyMsg = "ridersOnlyMsg";
+  static const unmarriedCouplesNotAllowed = "unmarriedCouplesNotAllowed";
+  static const unmarriedCouplesAllowed = "unmarriedCouplesAllowed";
+  static const studentsBachelorsNotAllowed = "studentsBachelorsNotAllowed";
+  static const studentsBachelorsAllowed = "studentsBachelorsAllowed";
+  static const foodRestriction = "foodRestriction";
+  static const noFoodRestrictions = "noFoodRestrictions";
+  static const youCanOptOnlyOneService = "youCanOptOnlyOneService";
+
+
   ///BHAVESH START
   static const ownerDetail = "owner_detail";
   static const yourName = "your_name";
