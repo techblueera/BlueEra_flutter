@@ -1745,6 +1745,10 @@ class ChatEmitEvents{
   static const screenRoom = "screenRoom";
   static const messageReceived = "messageReceived";
   static const messageViewed = "messageViewed";
+  static const newMessageReceived = "newMessageReceived";
+  static const isOnLine = "isOnLine";
+  static const messageStatusUpdate = "messageStatusUpdate";
+  static const update_data = "update_data";
 }
 
 final List<String> timeOptions = [

@@ -264,7 +264,7 @@ class ChatViewController extends GetxController {
             ApiResponse.complete(parsedData.messages);
       }
     });
-    chatSocket.listenEvent('newMessageReceived', (data) {
+    chatSocket.listenEvent(ChatEmitEvents.newMessageReceived, (data) {
       Messages? message;
 
       if (data['message'] != null) {
@@ -293,7 +293,7 @@ class ChatViewController extends GetxController {
         scrollDown();
       }
     });
-    chatSocket.listenEvent("isOnLine", (data) {
+    chatSocket.listenEvent(ChatEmitEvents.isOnLine, (data) {
       if (userOpenUserId.value == data['user_id']) {
         if (data['is_online']) {
           userOnlineStatus.value = "Online";
@@ -302,12 +302,12 @@ class ChatViewController extends GetxController {
         userOnlineStatus.value = "Offline";
       }
     });
-    chatSocket.listenEvent("messageStatusUpdate", (data) {
+    chatSocket.listenEvent(ChatEmitEvents.messageStatusUpdate, (data) {
       if (data['conversation_id'] == userOpenConversationId.value) {
         readMessageStatus.value = data['status'];
       }
     });
-    chatSocket.listenEvent("update_data", (data) {
+    chatSocket.listenEvent(ChatEmitEvents.update_data, (data) {
       emitEvent(ChatEmitEvents.messageReceived, {
         ApiKeys.conversation_id: data[ApiKeys.conversation_id],
         ApiKeys.page: 1,
@@ -520,11 +520,12 @@ class ChatViewController extends GetxController {
     });
   }
 
-  Future<void> loadOfflineMessages(String conversationId) async {
+  Future<List<Messages>> loadOfflineMessages(String conversationId) async {
     final localMessages =
         await localStorageHelper.getMessagesByConversationId(conversationId);
     getListOfMessageResponse.value = ApiResponse.complete(localMessages);
     scrollDown();
+    return localMessages;
   }
 
   Future<bool?> sendProductMessages(Map<String, dynamic> params) async {
@@ -654,31 +655,33 @@ class ChatViewController extends GetxController {
     // final connectivityResult = await NetworkUtils.isConnected();
     getListOfMessageResponse.value = ApiResponse.initial('Initial');
     // if (connectivityResult) {
-    loadOfflineMessages(conversationId);
+    List<Messages> chatList = await loadOfflineMessages(conversationId);
     // }
     // else if (openedConversation.contains(conversationId)) {
     //   loadOfflineMessages(conversationId);
     // }
     // else {
-    emitEvent(
-        ChatEmitEvents.messageReceived,
-        (otherUserId != null)
-            ? {
-                ApiKeys.other_user_id: otherUserId,
-                ApiKeys.page: 1,
-                ApiKeys.is_online_user: userId,
-                ApiKeys.per_page_message: 30,
-          if(name!=null&&name=="BlueEra Orders")
-            ApiKeys.orders_conversation:true
-              }
-            : {
-                ApiKeys.conversation_id: conversationId,
-                ApiKeys.page: 1,
-                ApiKeys.is_online_user: userId,
-                ApiKeys.per_page_message: 30,
-          if(name!=null&&name=="BlueEra Orders")
-            ApiKeys.orders_conversation:true
-              });
+    if(chatList.isEmpty){
+      emitEvent(
+          ChatEmitEvents.messageReceived,
+          (otherUserId != null)
+              ? {
+            ApiKeys.other_user_id: otherUserId,
+            ApiKeys.page: 1,
+            ApiKeys.is_online_user: userId,
+            ApiKeys.per_page_message: 30,
+            if(name!=null&&name=="BlueEra Orders")
+              ApiKeys.orders_conversation:true
+          }
+              : {
+            ApiKeys.conversation_id: conversationId,
+            ApiKeys.page: 1,
+            ApiKeys.is_online_user: userId,
+            ApiKeys.per_page_message: 30,
+            if(name!=null&&name=="BlueEra Orders")
+              ApiKeys.orders_conversation:true
+          });
+    }
 
     // }
   }
@@ -692,24 +695,24 @@ class ChatViewController extends GetxController {
     }
 
     if (event == ChatEmitEvents.ChatList) {
-      // final type = data[ApiKeys.type];
-
-
-        // List<ChatList> localChats =
-        // await localStorageHelper.getChatListFromLocal(type);
-        // loadChatListWithType(
-        //     chatListModel: GetChatListModel(
-        //       type: type,
-        //       success: true,
-        //       chatList: localChats,
-        //       archived: [],
-        //     ));
-
-      Map<String, dynamic> dataParams = {
-        ApiKeys.type: data[ApiKeys.type]
-      };
+      final type = data[ApiKeys.type];
+        List<ChatList> localChats =
+        await localStorageHelper.getChatListFromLocal(type);
+     if(localChats.isEmpty){
+       Map<String, dynamic> dataParams = {
+         ApiKeys.type: data[ApiKeys.type]
+       };
+       chatSocket.emitEvent(event, dataParams);
+     }else{
+       loadChatListWithType(
+           chatListModel: GetChatListModel(
+             type: type,
+             success: true,
+             chatList: localChats,
+             archived: [],
+           ));
+     }
       chatSocket.emitEvent(ChatEmitEvents.screenRoom, {ApiKeys.conversation_id: "online"});
-      chatSocket.emitEvent(event, dataParams);
     } else {
       chatSocket.emitEvent(event, data);
     }
@@ -719,25 +722,25 @@ class ChatViewController extends GetxController {
 
     loadChatListWithType(
         chatListModel: GetChatListModel(
-      type: "personal",
+      type: AppConstants.personal_Chat_Type,
       success: true,
-      chatList: await localStorageHelper.getChatListFromLocal("personal"),
+      chatList: await localStorageHelper.getChatListFromLocal(AppConstants.personal_Chat_Type),
       archived: [],
     ));
 
     loadChatListWithType(
         chatListModel: GetChatListModel(
-      type: "business",
+      type: AppConstants.business_Chat_Type,
       success: true,
-      chatList: await localStorageHelper.getChatListFromLocal("business"),
+      chatList: await localStorageHelper.getChatListFromLocal(AppConstants.business_Chat_Type),
       archived: [],
     ));
 
     loadChatListWithType(
         chatListModel: GetChatListModel(
-      type: "group",
+      type: AppConstants.group_Chat_Type,
       success: true,
-      chatList: await localStorageHelper.getChatListFromLocal("group"),
+      chatList: await localStorageHelper.getChatListFromLocal(AppConstants.group_Chat_Type),
       archived: [],
     ));
   }
@@ -872,7 +875,7 @@ class ChatViewController extends GetxController {
       ResponseModel responseModel =
           await ChatViewRepo().acceptOrDeclineRequest(params);
       if (responseModel.isSuccess) {
-        chatSocket.emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: "personal"});
+        chatSocket.emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.personal_Chat_Type});
         getChatRequestList();
         chatMessageRequestResponse.value = ApiResponse.complete(responseModel);
         commonSnackBar(

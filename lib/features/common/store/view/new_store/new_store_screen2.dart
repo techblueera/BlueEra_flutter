@@ -20,7 +20,6 @@ import 'package:BlueEra/features/common/store/view/new_store/all_food_store_scre
 import 'package:BlueEra/features/common/store/view/new_store/all_product_store_screen.dart';
 import 'package:BlueEra/features/common/store/view/new_store/business_store_screen.dart';
 import 'package:BlueEra/features/common/auth/model/business_profile_category.dart';
-import 'package:BlueEra/features/common/store/view/store_ai_chat/store_ai_chat.dart';
 import 'package:BlueEra/features/common/store/widget/icon_grid_item.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -32,6 +31,9 @@ import 'package:BlueEra/widgets/setup_scroll_visibility_notification.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mappls_gl/mappls_gl.dart';
+
+import '../../../../chat/auth/controller/chat_view_controller.dart';
+import '../../../../chat/view/ai_chat/ai_chat_screen.dart';
 
 class NewStoreScreen2 extends StatefulWidget {
   final bool isHeaderVisible;
@@ -140,11 +142,19 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                   Color(0xFF004FCE),
                   Color(0xFF5C9BFF),
                 ],
-                onPressed: ()=> Get.to(()=> StoreAiChatScreen(
-                    profileImage: 'https://be-user-bkt.s3.ap-south-1.amazonaws.com/admin/68a31a3edd48c8dfc0656a00/profile/1759817565514-unnamed.webp',
-                    name: 'BlueEra Friend',
-                    contactNo: 'BlueEra Friend',
-                  )),
+                onPressed: () {
+                  final chat =ChatViewController.personalAiChatModule;
+
+                  Get.to(()=>AiChatScreen(
+                    profileImage: chat?.sender?.profileImage,
+                    name: chat?.sender?.name,
+                    contactNo: chat?.sender?.contactNo,
+                    conversationId: '',
+                    userId: '',
+                    businessId: '',
+                    type: chat?.sender?.accountType,
+                    isInitialMessage: false,));
+                },
                 child: LocalAssets(imagePath: AppIconAssets.aiChatbotIcon),
               ),
             ),

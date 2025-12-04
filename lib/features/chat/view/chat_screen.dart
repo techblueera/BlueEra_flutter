@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -195,6 +196,7 @@ class _ChatMainScreenState extends State<ChatMainScreen>
     Future.delayed(Duration.zero, () {
       widget.onHeaderVisibilityChanged?.call(true);
     });
+
     return Scaffold(
       floatingActionButton: (_isFromForward()) ||
               chatViewController.chatMainTabController?.index == 1

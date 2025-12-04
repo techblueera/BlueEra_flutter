@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
@@ -33,8 +34,8 @@ class ChatSocketService {
       _socket.connect();
       _socket.onConnect((_) {
         _isConnected = true;
-        _socket.emit(ChatEmitEvents.screenRoom, {ApiKeys.conversation_id: "online"});
-        _socket.emit(ChatEmitEvents.ChatList, {ApiKeys.type: "personal"});
+        // _socket.emit(ChatEmitEvents.screenRoom, {ApiKeys.conversation_id: "online"});
+        // _socket.emit(ChatEmitEvents.ChatList, {ApiKeys.type: "personal"});
           print("Socket connected!");
 
       });
@@ -54,7 +55,6 @@ class ChatSocketService {
   }
 
   void emitEvent(String event, dynamic data) async{
-
     if (_isConnected) {
       _socket.emit(event, data);
     } else {

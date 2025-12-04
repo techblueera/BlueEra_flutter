@@ -20,9 +20,17 @@ class MessageMediaUrl {
     name = json['name'];
     size = json['size'];
     mimetype = json['mimetype'];
+    createdAt= json['created_at'];
+    myMessage= json['my_message'];
+    conversationId= json['conversation_id'];
+    messageId= json['_id'];
     id = json['_id'];
   }
   String? url;
+  String? messageId;
+  String? conversationId;
+  bool? myMessage;
+  String? createdAt;
   String? type;
   String? name;
   num? size;
