@@ -24,6 +24,7 @@ import '../../../widgets/common_box_shadow.dart';
 import '../../../widgets/local_assets.dart';
 import '../../../widgets/update_live_photo_dialog.dart';
 import '../../common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import '../../common/food/view/grocery/grocery_items_categrory.dart';
 import '../../common/reel/view/channel/follower_following_screen.dart';
 import '../auth/controller/view_business_details_controller.dart';
 import '../auth/model/viewBusinessProfileModel.dart';
@@ -240,6 +241,7 @@ class BusinessProfileHeader extends StatelessWidget {
                                     prevBusinessDetails: details,
                                   ),
                                 ));
+
                           },
                           child: Container(
                             padding: const EdgeInsets.symmetric(
