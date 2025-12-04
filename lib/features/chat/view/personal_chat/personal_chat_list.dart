@@ -1,4 +1,6 @@
 
+import 'dart:developer';
+
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -29,7 +31,6 @@ class _PersonalChatsListState extends State<PersonalChatsList> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Obx(() {
-
       if (chatViewController.personalChatListResponse.value.status ==
           Status.COMPLETE) {
         GetChatListModel? data =

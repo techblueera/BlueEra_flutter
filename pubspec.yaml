@@ -80,6 +80,7 @@ dependencies:
   get_thumbnail_video: ^0.7.3
   flutter_callkit_incoming: ^3.0.0
   flutter_webrtc: ^1.2.1
+  video_compress: ^3.1.4
 
 dependency_overrides:
   intl: ^0.19.0

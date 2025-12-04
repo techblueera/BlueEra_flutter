@@ -86,9 +86,9 @@ class _OrderChatScreenState extends State<OrderChatScreen> {
     return WillPopScope(
       onWillPop: () async {
         chatViewController.emitEvent(
-            ChatEmitEvents.ChatList, {ApiKeys.type: "personal"}, true);
+            ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.personal_Chat_Type}, true);
         chatViewController.emitEvent(
-            "newMessageReceived", {ApiKeys.type: "personal"}, true);
+            ChatEmitEvents.newMessageReceived, {ApiKeys.type: AppConstants.personal_Chat_Type}, true);
 
         return true;
       },

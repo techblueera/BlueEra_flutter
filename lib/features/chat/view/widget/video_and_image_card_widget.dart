@@ -8,6 +8,7 @@ import '../../../../widgets/custom_text_cm.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/model/GetListOfMessageData.dart';
 import '../../auth/model/messageMediaUrl.dart';
+import '../media_view_page/medias_slider_page.dart';
 import '../orders_chat/order_chat_screen.dart';
 import 'component_widgets.dart';
 import 'custom_video_player.dart';
@@ -201,13 +202,15 @@ class _VideoAndImageCardWidgetState extends State<VideoAndImageCardWidget> {
         if(chatThemeController.isMessageSelectionActive.value){
           chatThemeController.selectMoreMessage(message);
         }else{
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) =>
-                  VideoCommentsPage(chaterName: widget.name??'',videoPath: path.url ?? '', message: message, userId: '${widget.userId}', conversationId: '${widget.conversationId}',),
-            ),
-          );
+          Get.to(()=>MediaSliderPage(conversationId: widget.conversationId, conversationPersonName: widget.name??"", seletedUrl: path.url??'',));
+
+          // Navigator.push(
+          //   context,
+          //   MaterialPageRoute(
+          //     builder: (_) =>
+          //         VideoCommentsPage(chaterName: widget.name??'',videoPath: path.url ?? '', message: message, userId: '${widget.userId}', conversationId: '${widget.conversationId}',),
+          //   ),
+          // );
         }
       },
       child: ChatVideoMessage(message: message,
@@ -230,13 +233,14 @@ class _VideoAndImageCardWidgetState extends State<VideoAndImageCardWidget> {
         if(chatThemeController.isMessageSelectionActive.value){
           chatThemeController.selectMoreMessage(message);
         }else{
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) =>
-                  VideoCommentsPage(chaterName: widget.name??'',videoPath: path.url ?? '', message: message, userId: '${widget.userId}', conversationId: '${widget.conversationId}',),
-            ),
-          );
+         Get.to(()=>MediaSliderPage(conversationId: widget.conversationId, conversationPersonName: widget.name??"",seletedUrl: path.url??'',));
+          // Navigator.push(
+          //   context,
+          //   MaterialPageRoute(
+          //     builder: (_) =>
+          //         VideoCommentsPage(chaterName: widget.name??'',videoPath: path.url ?? '', message: message, userId: '${widget.userId}', conversationId: '${widget.conversationId}',),
+          //   ),
+          // );
           // Navigator.push(
           //   context,
           //   MaterialPageRoute(

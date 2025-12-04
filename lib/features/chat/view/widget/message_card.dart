@@ -972,8 +972,8 @@ class _MessageCardState extends State<MessageCard>
             color: Colors.white,
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Text(text,
-              style: TextStyle(color: Colors.grey.shade700, fontSize: 12)),
+          child: CustomText(text,
+             color: Colors.grey.shade700, fontSize: 12),
         ),
       ),
     );
@@ -1122,6 +1122,7 @@ class _MessageCardState extends State<MessageCard>
                             padding:
                                 const EdgeInsets.symmetric(horizontal: 8.0),
                             child: CustomText(
+                              maxLines: 1,
                               "${message.split('\n')[0]}",
                               fontWeight: FontWeight.w600,
                               color: (isReceiveMsg)
@@ -1135,7 +1136,8 @@ class _MessageCardState extends State<MessageCard>
                             padding:
                                 const EdgeInsets.symmetric(horizontal: 8.0),
                             child: CustomText(
-                              "${message.split('\n')[1]}",
+                              maxLines: 1,
+                              "${message.split('\n').isEmpty?"":message.split('\n').length<2?"":message.split('\n')[1]}",
                               fontWeight: FontWeight.w400,
                               color: (isReceiveMsg)
                                   ? Colors.black87

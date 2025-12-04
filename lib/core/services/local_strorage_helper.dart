@@ -6,6 +6,7 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
+import 'package:video_compress/video_compress.dart';
 
 import '../../features/chat/auth/model/GetChatListModel.dart';
 import '../../features/chat/auth/model/GetListOfMessageData.dart';
@@ -56,7 +57,6 @@ class LocalStorageHelper {
       return [];
     }
   }
-
   Future<String> _downloadAndSaveImage(String imageUrl, String userId) async {
     try {
       if (userId.trim().isEmpty) {
@@ -106,20 +106,101 @@ class LocalStorageHelper {
   }
 
 
-  Future<String> _downloadAndSaveMediaFile(String url, String uniqueId,String mediaType) async {
+  Future<String> _downloadAndSaveMediaFile(String url, String uniqueId, String mediaType) async {
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
         final dir = await getApplicationDocumentsDirectory();
-        final fileName = "$uniqueId-${DateTime.now().millisecondsSinceEpoch}.${mediaType}";
-        final file = File('${dir.path}/$fileName');
+
+        final fileName =
+            "$uniqueId-${DateTime.now().millisecondsSinceEpoch}.$mediaType";
+
+        final filePath = '${dir.path}/$fileName';
+
+        final file = File(filePath);
         await file.writeAsBytes(response.bodyBytes);
-        return file.path;
+
+        // ----------------------------------------------------
+        // 🔥 IMAGE COMPRESSION
+        // ----------------------------------------------------
+        if (mediaType.toLowerCase() == "jpg" ||
+            mediaType.toLowerCase() == "jpeg" ||
+            mediaType.toLowerCase() == "png") {
+          return await _compressImageFile(filePath, uniqueId);
+        }
+
+        // ----------------------------------------------------
+        // 🔥 VIDEO COMPRESSION
+        // ----------------------------------------------------
+        if (mediaType.toLowerCase() == "mp4" ||
+            mediaType.toLowerCase() == "mov" ||
+            mediaType.toLowerCase() == "mkv") {
+          return await _compressVideoFile(filePath, uniqueId);
+        }
+
+        // ----------------------------------------------------
+        // Other documents (PDF, MP3, ZIP, etc.)
+        // ----------------------------------------------------
+        return filePath;
       }
     } catch (e) {
       print("Download error: $e");
     }
     return '';
+  }
+  Future<String> _compressImageFile(String filePath, String uniqueId) async {
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      final outPath = '${dir.path}/$uniqueId-img-compressed.jpg';
+
+      final compressedBytes = await FlutterImageCompress.compressWithFile(
+        filePath,
+        quality: 60,
+        minWidth: 300,
+        minHeight: 300,
+        format: CompressFormat.jpeg,
+      );
+
+      if (compressedBytes != null) {
+        final file = File(outPath);
+        await file.writeAsBytes(compressedBytes);
+
+        // Delete original image
+        File(filePath).delete();
+
+        return outPath;
+      }
+    } catch (e) {
+      print("Image compression error: $e");
+    }
+
+    return filePath;
+  }
+  Future<String> _compressVideoFile(String filePath, String uniqueId) async {
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      final outPath = '${dir.path}/$uniqueId-video-compressed.mp4';
+
+      final compressedVideo = await VideoCompress.compressVideo(
+        filePath,
+        quality: VideoQuality.MediumQuality,
+        deleteOrigin: false, // delete manually
+      );
+
+      if (compressedVideo != null && compressedVideo.file != null) {
+        final compressedFile = compressedVideo.file!;
+        await compressedFile.copy(outPath);
+
+        // delete original video
+        File(filePath).delete();
+
+        return outPath;
+      }
+    } catch (e) {
+      print("Video compression error: $e");
+    }
+
+    return filePath;
   }
 
   Future<void> saveChatList(List<ChatList?> chats, String type) async {
@@ -173,7 +254,8 @@ class LocalStorageHelper {
         if (media.url != null && media.url!.startsWith("http")) {
           final filePath = await _downloadAndSaveMediaFile(
             media.url!,
-            message.id ?? DateTime.now().millisecondsSinceEpoch.toString(),media.name?.split(".")[1]??''
+            message.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+              media.name?.split(".")[1]??''
           );
 
           if (filePath.isNotEmpty) {
@@ -313,6 +395,28 @@ class LocalStorageHelper {
     //   return [];
     // }
   }
+  Future<List<Messages>> getMediaMessagesByConversationId(String conversationId) async {
+    final box = await Hive.openBox<String>('messagesBox');
+    final jsonString = box.get(conversationId);
+
+    if (jsonString == null || jsonString.isEmpty) {
+      return [];
+    }
+
+    final List<dynamic> jsonList = jsonDecode(jsonString);
+
+    // Convert to Messages
+    List<Messages> allMessages =
+    jsonList.map((item) => Messages.fromJson(item)).toList();
+
+    // FILTER: keep only messages with media
+    List<Messages> filtered = allMessages.where((msg) {
+      return (msg.messageType =="image"||msg.messageType =="video"||msg.messageType =="document") ;  // url exists + contains media list
+    }).toList();
+
+    return filtered;
+  }
+
 }
 class AiChatLocalStorage {
   static const String _boxName = "aiChatBox";

@@ -200,7 +200,7 @@ Widget ChatListTile({
   if (chatViewController.selectedUserIds.isNotEmpty) {
     isSelected = chatViewController.selectedUserIds.contains(senderId);
   }
-
+  log("lsdkdcdlsksdl ${senderProfileImage}");
   void selectChatListCard() {
     if (isSelected) {
       chatViewController.selectedUserIds.remove(senderId);
@@ -897,7 +897,6 @@ AppBar getChatTitleAppBar(BuildContext context, {
   final theme = Theme.of(context);
   final chatViewController = Get.find<ChatViewController>();
   final bottomBarController = Get.find<BottomBarController>();
-   log("ksjdjskskjdcsdkl ${profileImage}");
   return AppBar(
     elevation: 0,
     backgroundColor: Colors.white,

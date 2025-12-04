@@ -32,6 +32,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mappls_gl/mappls_gl.dart';
 
+import '../../../../chat/auth/controller/chat_view_controller.dart';
+import '../../../../chat/view/ai_chat/ai_chat_screen.dart';
+
 class NewStoreScreen2 extends StatefulWidget {
   final bool isHeaderVisible;
   final Function(bool isVisible)? onHeaderVisibilityChanged;
@@ -140,7 +143,17 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                   Color(0xFF5C9BFF),
                 ],
                 onPressed: () {
-                  print('ai chat bot btn pressed');
+                  final chat =ChatViewController.personalAiChatModule;
+
+                  Get.to(()=>AiChatScreen(
+                    profileImage: chat?.sender?.profileImage,
+                    name: chat?.sender?.name,
+                    contactNo: chat?.sender?.contactNo,
+                    conversationId: '',
+                    userId: '',
+                    businessId: '',
+                    type: chat?.sender?.accountType,
+                    isInitialMessage: false,));
                 },
                 child: LocalAssets(imagePath: AppIconAssets.aiChatbotIcon),
               ),
