@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
@@ -27,7 +28,7 @@ class FoodUploadScreen extends StatefulWidget {
 }
 
 class _FoodUploadScreenState extends State<FoodUploadScreen> {
-  final FoodUploadController controller = Get.put(FoodUploadController());
+  final FoodUploadController controller = getOrPut(() => FoodUploadController());
 
   @override
   void initState() {
@@ -66,95 +67,95 @@ class _FoodUploadScreenState extends State<FoodUploadScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          child: Padding(
-            padding: EdgeInsets.all(SizeConfig.size20),
-            child: CommonCardWidget(
-              child: Padding(
-                padding: EdgeInsets.all(0),
-                child: Obx(()=> AbsorbPointer(
-                  absorbing: controller.isGenerateFoodLoading.value,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Upload Images Section
-                      _buildUploadImagesSection(context),
+          padding: EdgeInsets.symmetric(
+            horizontal: SizeConfig.size8,
+            vertical: SizeConfig.size15,
+          ),
+          child: CommonCardWidget(
+            cardMargin: 0.0,
+            child: Obx(()=> AbsorbPointer(
+              absorbing: controller.isGenerateFoodLoading.value,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Upload Images Section
+                  _buildUploadImagesSection(context),
 
-                      SizedBox(height: SizeConfig.size20),
+                  SizedBox(height: SizeConfig.size20),
 
-                      // Food Name Field
-                      _buildTextField(
-                        label: AppStrings.foodName,
-                        hint: AppStrings.egPaneerButterMasala,
-                        inputController: controller.foodNameController,
-                        filedName: 'food_name',
-                      ),
-                      SizedBox(height: SizeConfig.size20),
-
-                      // Food Type 1 Selection
-                      AbsorbPointer(
-                        absorbing: controller.isCategoryLocked,
-                        child: _buildTabSection(
-                          title: AppStrings.foodType1,
-                          tabs: controller.foodType1Options,
-                          selectedIndex: controller.selectedFoodType1Index,
-                          onTabSelected: (index, value) {
-                              controller.selectedFoodType1.value = value;
-                              controller.selectedFoodType1Index.value = index;
-                          },
-                        ),
-                      ),
-                      SizedBox(height: SizeConfig.size20),
-
-                      // Food Type 2 Selection
-                      _buildTabSection(
-                        title: AppStrings.foodType2,
-                        tabs: controller.foodType2Options,
-                        selectedIndex: controller.selectedFoodType2Index,
-                        onTabSelected: (index, value) {
-                          controller.selectedFoodType2.value = value;
-                        },
-                      ),
-                      SizedBox(height: SizeConfig.size20),
-
-                      // Cooking Method Selection
-                      _buildTabSection(
-                        title: AppStrings.cookingMethod,
-                        tabs: controller.cookingMethodOptions,
-                        selectedIndex: controller.selectedCookingMethodIndex,
-                        onTabSelected: (index, value) {
-                          controller.selectedCookingMethod.value = value;
-                        },
-                      ),
-                      SizedBox(height: SizeConfig.size20),
-
-                      // Item Nature Selection
-                      _buildTabSection(
-                        title: AppStrings.itemNature,
-                        tabs: controller.itemNatureOptions,
-                        selectedIndex: controller.selectedItemNatureIndex,
-                        onTabSelected: (index, value) {
-                          controller.selectedItemNature.value = value;
-                        },
-                      ),
-                      SizedBox(height: SizeConfig.size20),
-
-                      // City Name Field (Optional)
-                      _buildTextField(
-                        label: AppStrings.cityNameOptional,
-                        hint: AppStrings.egDurgapur,
-                        inputController: controller.cityNameController,
-                        filedName: '',
-                      ),
-                      SizedBox(height: SizeConfig.size30),
-
-                      // Generate Button
-                      _buildGenerateButton(),
-                      SizedBox(height: SizeConfig.size30),
-                    ],
+                  // Food Name Field
+                  _buildTextField(
+                    label: AppStrings.foodName,
+                    hint: AppStrings.egPaneerButterMasala,
+                    inputController: controller.foodNameController,
+                    filedName: 'food_name',
                   ),
-                )),
+                  SizedBox(height: SizeConfig.size20),
+
+                  // Food Type 1 Selection
+                  AbsorbPointer(
+                    absorbing: controller.isCategoryLocked,
+                    child: _buildTabSection(
+                      title: AppStrings.foodType1,
+                      tabs: controller.foodType1Options,
+                      selectedIndex: controller.selectedFoodType1Index,
+                      onTabSelected: (index, value) {
+                          controller.selectedFoodType1.value = value;
+                          controller.selectedFoodType1Index.value = index;
+                      },
+                    ),
+                  ),
+                  SizedBox(height: SizeConfig.size20),
+
+                  // Food Type 2 Selection
+                  _buildTabSection(
+                    title: AppStrings.foodType2,
+                    tabs: controller.foodType2Options,
+                    selectedIndex: controller.selectedFoodType2Index,
+                    onTabSelected: (index, value) {
+                      controller.selectedFoodType2.value = value;
+                    },
+                  ),
+                  SizedBox(height: SizeConfig.size20),
+
+                  // Cooking Method Selection
+                  _buildTabSection(
+                    title: AppStrings.cookingMethod,
+                    tabs: controller.cookingMethodOptions,
+                    selectedIndex: controller.selectedCookingMethodIndex,
+                    onTabSelected: (index, value) {
+                      controller.selectedCookingMethod.value = value;
+                    },
+                  ),
+                  SizedBox(height: SizeConfig.size20),
+
+                  // Item Nature Selection
+                  _buildTabSection(
+                    title: AppStrings.itemNature,
+                    tabs: controller.itemNatureOptions,
+                    selectedIndex: controller.selectedItemNatureIndex,
+                    onTabSelected: (index, value) {
+                      controller.selectedItemNature.value = value;
+                    },
+                  ),
+                  SizedBox(height: SizeConfig.size20),
+
+                  // City Name Field (Optional)
+                  _buildTextField(
+                    label: AppStrings.cityNameOptional,
+                    hint: AppStrings.egDurgapur,
+                    inputController: controller.cityNameController,
+                    filedName: '',
+                  ),
+                  SizedBox(height: SizeConfig.size30),
+
+                  // Generate Button
+                  _buildGenerateButton(),
+
+                  SizedBox(height: SizeConfig.size10),
+                ],
               ),
-            ),
+            )),
           ),
         ),
       ),

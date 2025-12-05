@@ -99,7 +99,6 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
       this.isGoLiveWidget,
       this.isFollowRefreshWidget,
       this.isFollowRefresh = false,
-      this.showGoLiveWidget,
       this.isGoLive = false,
       this.isInventoryPopUpMenu = false,
       this.isStoreProfile,
@@ -174,7 +173,6 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool? isFollowRefresh;
   final bool? isGoLive;
   final Widget Function()? isFollowRefreshWidget;
-  final Widget? showGoLiveWidget;
   final Widget Function()? isGoLiveWidget;
   final bool? isInventoryPopUpMenu;
   final bool? isStoreProfile;
@@ -659,10 +657,6 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
         if (buildCustomWidget != null)
           Builder(
             builder: (context) => buildCustomWidget!(),
-          ),
-        if (showGoLiveWidget != null)
-          Builder(
-            builder: (context) => showGoLiveWidget!,
           ),
 
         if(isCurrentAddress ?? false)

@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -47,8 +48,7 @@ class SubmitFoodProductPage extends StatefulWidget {
 }
 
 class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
-
-  final controller = Get.find<FoodUploadController>();
+  final controller = getOrPut(() => FoodUploadController());
 
   @override
   void initState() {
@@ -302,8 +302,11 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
 
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child:  Obx(()=> AbsorbPointer(
+          padding: EdgeInsets.symmetric(
+              horizontal: SizeConfig.size8,
+              vertical: SizeConfig.size15,
+          ),
+          child: Obx(()=> AbsorbPointer(
             absorbing: controller.isAddFoodLoading.value,
             child: Form(
               key: controller.formKey,

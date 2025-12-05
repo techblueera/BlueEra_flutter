@@ -12,6 +12,7 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/delivery_partner_orders/delivery_partner_orders.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/account_setting_screen/account_settings_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/controller/earn_with_blueera_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
 import 'package:BlueEra/features/common/food/view/food_and_grocery_screen.dart';
@@ -22,7 +23,6 @@ import 'package:BlueEra/features/personal/personal_profile/view/widget/common_se
 import 'package:BlueEra/features/personal/personal_profile/view/widget/earn_with_blue_era_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/horizonatal_video_player.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/custom_switch_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
@@ -152,39 +152,43 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen>
           preferredSize: Size.fromHeight(kToolbarHeight + 50),
           child: CommonBackAppBar(
             isLeading: !(widget.fromBottomNavBar),
-            showGoLiveWidget: Container(
-              margin: EdgeInsets.only(right: SizeConfig.size20),
-              padding: EdgeInsets.symmetric(
-                horizontal: 10.0,
-                vertical: 6.0,
-              ),
-              decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10.0),
-                  border: Border.all(
-                      color: AppColors.primaryColor
-                  )
-              ),
-              child: Row(
-                children: [
-                  CustomText(
-                      AppStrings.goLive,
-                      fontWeight: FontWeight.w600,
-                      fontSize: SizeConfig.large,
-                      color: AppColors.primaryColor
+            isGoLive: true,
+            isGoLiveWidget: () {
+              if (accountTypeGlobal == AppConstants.individual) {
+                final statusData = serviceProviderStatusGlobal.toUpperCase();
+                if (statusData == AppConstants.OPEN.toUpperCase()) {
+                  viewPersonalDetailsController.shopStatusOpenClose.value = true;
+                } else {
+                  viewPersonalDetailsController.shopStatusOpenClose.value = false;
+                }
+                return Container(
+                  margin: EdgeInsets.only(left: SizeConfig.size10),
+                  height: SizeConfig.size40,
+                  decoration: BoxDecoration(
+                      border: Border.all(
+                        color: AppColors.primaryColor,
+                      ),
+                      borderRadius: BorderRadius.circular(12)),
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: SizeConfig.size10,
+                      ),
+                      CustomText(
+                        "Go Live",
+                        color: AppColors.primaryColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      buildToggleSwitchChip(
+                        value: viewPersonalDetailsController.shopStatusOpenClose,
+                        onChanged: viewPersonalDetailsController.toggleShopStatus,
+                      ),
+                    ],
                   ),
-                  SizedBox(width: SizeConfig.size5),
-                  Obx(()=> CustomSwitch(
-                    value: earnWithBlueEraController.showGoLiveEnabled.value,
-                    onChanged: (val) {
-                      earnWithBlueEraController.showGoLiveEnabled.value = !earnWithBlueEraController.showGoLiveEnabled.value;
-                    },
-                    containerHeight: SizeConfig.size24,
-                    containerWidth: SizeConfig.size50,
-                    circleSize: SizeConfig.size18,
-                  )),
-                ],
-              ),
-            ),
+                );
+              }
+              return SizedBox.shrink();
+            },
             bottomWidget: TabBar(
               controller: _tabController,
               labelColor: AppColors.primaryColor,

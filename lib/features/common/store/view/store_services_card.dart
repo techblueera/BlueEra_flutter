@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/service/model/get_service_model.dart';
@@ -109,7 +110,7 @@ class StoreServicesCard extends StatelessWidget {
                       children: [
                         Expanded(
                           child: CustomText(
-                            serviceData?.title ?? "N/A",
+                            serviceData?.title ?? AppStrings.na,
                             fontSize: SizeConfig.medium,
                             fontWeight: FontWeight.w600,
                             overflow: TextOverflow.ellipsis,
@@ -144,7 +145,7 @@ class StoreServicesCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           CustomText(
-                              "Price: ",
+                              AppStrings.pricePrefix,
                               fontSize: SizeConfig.small,
                               fontWeight: FontWeight.w400,
                               color: AppColors.secondaryTextColor
@@ -159,8 +160,8 @@ class StoreServicesCard extends StatelessWidget {
                           const SizedBox(width: 6),
                           CustomText(
                               (maxDiscount?.amountOff != null)
-                                  ? "${maxDiscount?.amountOff.toString()}% Off"
-                                  : "0% Off",
+                                  ? "${maxDiscount?.amountOff.toString()}% ${AppStrings.off.tr}"
+                                  : "0% ${AppStrings.off.tr}",
                               fontSize: SizeConfig.small,
                               fontWeight: FontWeight.w400,
                               color: Colors.green.shade600
@@ -185,7 +186,7 @@ class StoreServicesCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           CustomText(
-                              "Open: ",
+                              "${AppStrings.open.tr}: ",
                               fontSize: SizeConfig.small,
                               fontWeight: FontWeight.w400,
                               color: AppColors.green39
@@ -207,7 +208,7 @@ class StoreServicesCard extends StatelessWidget {
 
 
                           CustomText(
-                              "Close: ",
+                              "${AppStrings.close.tr}: ",
                               fontSize: SizeConfig.small,
                               fontWeight: FontWeight.w400,
                               color: AppColors.red
@@ -225,7 +226,7 @@ class StoreServicesCard extends StatelessWidget {
                     SizedBox(height: SizeConfig.size4),
 
                     CustomText(
-                    serviceData?.business?.categoryOfBusiness?.name ?? "N/A",
+                    serviceData?.business?.categoryOfBusiness?.name ?? AppStrings.na,
                     fontSize: SizeConfig.small,
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
@@ -234,7 +235,7 @@ class StoreServicesCard extends StatelessWidget {
 
                     SizedBox(height: SizeConfig.size3),
                     CustomText(
-                      serviceData?.business?.businessName ?? "N/A",
+                      serviceData?.business?.businessName ?? AppStrings.na,
                       fontSize: SizeConfig.small,
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
