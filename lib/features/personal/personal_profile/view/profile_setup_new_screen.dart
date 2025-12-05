@@ -1186,32 +1186,34 @@ class _PersonalProfileSetupNewScreenState
               // );
               return Padding(
                 padding: const EdgeInsets.only(right: 8),
-                child: ElevatedButton(
-                  onPressed: () {
-                    _tabController?.animateTo(index);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    elevation: 0,
-                    foregroundColor: isSelected
-                        ? AppColors.white
-                        : AppColors.secondaryTextColor,
-                    backgroundColor:
-                        isSelected ? AppColors.primaryColor : Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      side: BorderSide(
-                        color: isSelected
-                            ? AppColors.primaryColor
-                            : AppColors.secondaryTextColor,
+                child: SizedBox(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      _tabController?.animateTo(index);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      elevation: 0,
+                      foregroundColor: isSelected
+                          ? AppColors.white
+                          : AppColors.secondaryTextColor,
+                      backgroundColor:
+                          isSelected ? AppColors.primaryColor : Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        side: BorderSide(
+                          color: isSelected
+                              ? AppColors.primaryColor
+                              : AppColors.secondaryTextColor,
+                        ),
                       ),
+                      padding: EdgeInsets.only(left: 8, right: 8),
+                      // minimumSize: Size(SizeConfig.size80, SizeConfig.size34),
+                      // maximumSize: Size(SizeConfig.size90, SizeConfig.size34),
                     ),
-                    padding: EdgeInsets.only(left: 8, right: 8),
-                    // minimumSize: Size(SizeConfig.size80, SizeConfig.size34),
-                    // maximumSize: Size(SizeConfig.size90, SizeConfig.size34),
-                  ),
-                  child: CustomText(
-                    '${PostTabs.postTab[index].nameKey}',
-                    color: isSelected ? AppColors.white : AppColors.black,
+                    child: CustomText(
+                      '${PostTabs.postTab[index].nameKey}',
+                      color: isSelected ? AppColors.white : AppColors.black,
+                    ),
                   ),
                 ),
               );
@@ -1274,15 +1276,10 @@ class _PersonalProfileSetupNewScreenState
           ? Column(
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        _buildCircleIcon(AppIconAssets.channelNew),
-                        SizedBox(width: SizeConfig.size6),
-                        Expanded(child: _buildTitleWidget(AppStrings.myChannel)),
-                      ],
-                    ),
+                    _buildCircleIcon(AppIconAssets.channelNew),
+                    SizedBox(width: SizeConfig.size6),
+                    Expanded(child: _buildTitleWidget(AppStrings.myChannel)),
                     SizedBox(width: SizeConfig.size6),
                     InkWell(
                       onTap: () {
