@@ -106,8 +106,6 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
         this.isGoLive = false,
         this.isInventoryPopUpMenu = false,
         this.isStoreProfile,
-        this.isCartIconShow,
-        this.isCurrentAddress
       });
 
   // final AppBar? appBar;
@@ -183,8 +181,6 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Widget Function()? isGoLiveWidget;
   final bool? isInventoryPopUpMenu;
   final bool? isStoreProfile;
-  final bool? isCartIconShow;
-  final bool? isCurrentAddress;
 
   @override
   Widget build(BuildContext context) {
@@ -668,85 +664,16 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
           ),
-        if (buildCustomWidget != null)
-          Builder(
-            builder: (context) => buildCustomWidget!(),
-          ),
         if (showGoLiveWidget != null)
           Builder(
             builder: (context) => showGoLiveWidget!,
           ),
 
-        if(isCurrentAddress ?? false)
+        if (buildCustomWidget != null)
           Builder(
-            builder: (context) => Expanded(
-              child: Padding(
-                padding: EdgeInsets.only(left: SizeConfig.size15),
-                child: Row(
-                    children: [
-                      LocalAssets(
-                        imagePath: AppIconAssets.currentLocationIcon,
-                        height: SizeConfig.size24,
-                        width: SizeConfig.size24,
-                      ),
-                      SizedBox(width: SizeConfig.size10),
-                      CustomText(
-                        [
-                          if (LocationService.userCurrentAddress.length > 2 &&
-                              LocationService.userCurrentAddress[2].isNotEmpty)
-                            LocationService.userCurrentAddress[2], // locality
-
-                          if (LocationService.userCurrentAddress.length > 3 &&
-                              LocationService.userCurrentAddress[3].isNotEmpty)
-                            LocationService.userCurrentAddress[3], // administrativeArea
-                        ].join(', '),
-                        fontSize: SizeConfig.large,
-                        color: AppColors.primaryColor,
-                        fontWeight: FontWeight.w600,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ]
-                ),
-              ),
-            ),
+            builder: (context) => buildCustomWidget!(),
           ),
 
-        if(isCartIconShow ?? false)
-          Builder(
-            builder: (context) =>  InkWell(
-              onTap: () {
-                if(isBusinessUser()){
-                  final controller = Get.find<ViewBusinessDetailsController>();
-
-                  if((controller.businessProfileDetails?.data?.livePhotos ?? []).length < 3){
-                    showLivePhotoDialog(
-                      context: context,
-                    );
-                  }else{
-                    Get.toNamed(RouteHelper.getInventoryScreenRoute());
-
-                  }
-                }else{
-                  final controller = Get.find<ViewPersonalDetailsController>();
-
-                  if (controller
-                      .personalProfileDetails.value.isProfileCreated ==
-                      false) {
-                    Get.to(()=> CreateProfileScreen());
-                  } else {
-                    Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
-                  }
-                }
-              },
-              child: Padding(
-                padding: EdgeInsets.only(right: SizeConfig.size20),
-                child: LocalAssets(
-                  imagePath: AppIconAssets.cartIcon,
-                ),
-              ),
-            ),
-          ),
       ],
       bottom: bottomWidget,
     );

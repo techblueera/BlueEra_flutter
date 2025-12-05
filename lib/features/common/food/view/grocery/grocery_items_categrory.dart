@@ -1,7 +1,8 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/features/common/store/widget/icon_grid_item.dart';
 import 'package:flutter/material.dart';
-
+import 'package:get/get.dart';
 import '../../../../../core/constants/app_colors.dart';
-import '../../../../../core/constants/size_config.dart';
 import '../../../../../widgets/common_back_app_bar.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 import 'baby_care.dart';
@@ -9,286 +10,388 @@ import 'cooking_esential_page.dart';
 import 'diary.dart';
 import 'fruits_veg.dart';
 
-class CategoryPage extends StatelessWidget {
+class CategoryPage extends StatefulWidget {
   const CategoryPage({super.key});
+
+  @override
+  State<CategoryPage> createState() => _CategoryPageState();
+}
+
+class _CategoryPageState extends State<CategoryPage> with SingleTickerProviderStateMixin {
+  TabController? _tabController;
+  final TextEditingController searchController = TextEditingController();
+  final List<Tab> _tabs = [
+    Tab(text: 'Grocery & Veg'),
+    Tab(text: 'Home Essential'),
+    Tab(text: 'Others')
+  ];
+
+  final List<Map<String, String>> biscuitFoods  = [
+    {
+      "icon": "chips.png",
+      "label": "Chips &\nNamkeens",
+    },
+    {
+      "icon": "biscuits.png",
+      "label": "Biscuits\n& Cookies",
+    },
+    {
+      "icon": "chocolate.png",
+      "label": "Chocolates\n& Candies",
+    },
+    {
+      "icon": "indiansweets.png",
+      "label": "Indian\nSweets",
+    },
+    {
+      "icon": "drinks.png",
+      "label": "Drinks\n& Juices",
+    },
+    {
+      "icon": "cereals.png",
+      "label": "Breakfast\nCereals",
+    },
+    {
+      "icon": "noodles.png",
+      "label": "Noodles, Pasta\n& Vermicelli",
+    },
+    {
+      "icon": "readytoeat.png",
+      "label": "Ready To\ncook & Eat",
+    },
+  ];
+
+  final List<Map<String, String>> fruitsVeg = [
+    {"icon": "freshfruits.png", "label": "Fresh Fruits"},
+    {"icon": "basicveg.png", "label": "Basic\nVegetables"},
+    {"icon": "premiumveg.png", "label": "Premium Fruits\n& Vegetables"},
+  ];
+
+  final List<Map<String, String>> cookingEssentials = [
+    {"icon": "rice.png", "label": "Rice"},
+    {"icon": "dals.png", "label": "Dals & Pulses"},
+    {"icon": "ghee.png", "label": "Ghee"},
+    {"icon": "wheat.png", "label": "Wheat & Soya"},
+    {"icon": "sugar.png", "label": "Salt, Sugar\n& Jaggery"},
+    {"icon": "poha.png", "label": "Sabudana, Poha\n& Murmura"},
+    {"icon": "atta.png", "label": "Atta, Flours\n& Sooji"},
+    {"icon": "dryfruits.png", "label": "Dry Fruits\n& Nuts"},
+    {"icon": "dryfruits.png", "label": "Edible Oils"},
+    {"icon": "dryfruits.png", "label": "Millets\n& Organic"},
+  ];
+
+  final List<Map<String, String>> dairyBakery = [
+    {"icon": "milk.png", "label": "Milk & Milk\nProducts"},
+    {"icon": "paneer.png", "label": "Cheese,\nPaneer & Tofu"},
+    {"icon": "batter.png", "label": "Batter\n& Chutney"},
+    {"icon": "tasto.png", "label": "Toast\n& Khari"},
+    {"icon": "cakes.png", "label": "Cakes &\nMuffins"},
+    {"icon": "breads.png", "label": "Breads\n& Chapatis"},
+    {"icon": "snacks.png", "label": "Bakery\n& Snacks"},
+  ];
+
+  final List<Map<String, String>> momBabyCare = [
+    {"icon": "food.png", "label": "Food\n& Feeding"},
+    {"icon": "bath.png", "label": "Bath, Hygiene\n& Grooming"},
+    {"icon": "bedding.png", "label": "Bedding, Toys\n& Accessories"},
+    {"icon": "health.png", "label": "Health\n& Wellness"},
+    {"icon": "diapers.png", "label": "Diapers\n& Wipes"},
+  ];
+
+  final List<Map<String, String>> kitchenware = [
+    {"icon": "gas.png", "label": "Gas Stove"},
+    {"icon": "storage.png", "label": "Containers &\nStorage"},
+    {"icon": "flask.png", "label": "Flask, Bottle\n& Tiffin Boxes"},
+    {"icon": "cutting.png", "label": "Cutting\n& Chopping"},
+    {"icon": "tools.png", "label": "Kitchen Tools"},
+    {"icon": "bakeware.png", "label": "Bakeware"},
+  ];
+
+  final List<Map<String, String>> tableware = [
+    {"icon": "dining.png", "label": "Dining"},
+    {"icon": "serveware.png", "label": "Serveware"},
+    {"icon": "barware.png", "label": "Barware"},
+    {"icon": "tableacc.png", "label": "Table Accessories"},
+    {"icon": "mugs.png", "label": "Cups, Mugs &\nMore"},
+    {"icon": "drinkware.png", "label": "Glassware &\nDrinkware"},
+  ];
+
+  final List<Map<String, String>> giftsHampers = [
+    {"icon": "tea.png", "label": "Tea Gifts"},
+    {"icon": "chocogift.png", "label": "Chocolate Gifts"},
+    {"icon": "gourmet.png", "label": "Gourmet Gifts"},
+  ];
+
+  final List<Map<String, String>> homeCategory = [
+    {"icon": "detergents.png", "label": "Detergents\n& Cleaners"},
+    {"icon": "fresheners.png", "label": "Fresheners\n& Repellents"},
+    {"icon": "homecleaning.png", "label": "Home &\nCleaning Tools"},
+    {"icon": "furnishing.png", "label": "Furnishing &\nPersonal Wear"},
+    {"icon": "dishwash.png", "label": "Dishwash"},
+    {"icon": "pooja.png", "label": "Pooja Needs"},
+    {"icon": "electricals.png", "label": "Basic Electricals"},
+    {"icon": "shoecare.png", "label": "Shoe Care"},
+  ];
+
+
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: _tabs.length, vsync: this);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F1F3),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              const SizedBox(height: 10),
-
-              _topTabs(),
-
-              const SizedBox(height: 10),
-
-              _sectionWidget(
-                "Biscuits, Drinks & Packaged Foods",
-                showMore: true,
-                icons: [
-                  _iconItem("chips.png", "Chips &\nNamkeens"),
-
-
-                  _iconItem("biscuits.png", "Biscuits\n& Cookies"),
-
-                  _iconItem("chocolate.png", "Chocolates\n& Candies"),
-
-                  _iconItem("indiansweets.png", "Indian\nSweets"),
-                  _iconItem("drinks.png", "Drinks\n& Juices"),
-                  _iconItem("cereals.png", "Breakfast\nCereals"),
-                  _iconItem("noodles.png", "Noodles, Pasta\n& Vermicelli"),
-                  _iconItem("readytoeat.png", "Ready To\ncook & Eat"),
-                ], context: context,
-              ),
-
-              _sectionWidget(
-                "Fruits & Vegetables",
-                icons: [
-                  _iconItem("freshfruits.png", "Fresh Fruits"),
-                  _iconItem("basicveg.png", "Basic\nVegetables"),
-                  _iconItem("premiumveg.png", "Premium Fruits\n& Vegetables"),
-                ], context: context,
-                seeMorePage: FruitsVegPage(),
-                showMore: true
-
-              ),
-
-              _sectionWidget(
-                "Cooking Essentials",
-                icons: [
-                  _iconItem("rice.png", "Rice"),
-                  _iconItem("dals.png", "Dals & Pulses"),
-                  _iconItem("ghee.png", "Ghee"),
-                  _iconItem("wheat.png", "Wheat & Soya"),
-                  _iconItem("sugar.png", "Salt, Sugar\n& Jaggery"),
-                  _iconItem("poha.png", "Sabudana, Poha\n& Murmura"),
-                  _iconItem("atta.png", "Atta, Flours\n& Sooji"),
-                  _iconItem("dryfruits.png", "Dry Fruits\n& Nuts"),
-                ], context: context,
-                showMore: true,
-                seeMorePage: CookingEssentialsPage(),
-
-
-              ),
-
-              _sectionWidget(
-                "Dairy & Bakery",
-                icons: [
-                  _iconItem("milk.png", "Milk & Milk\nProducts"),
-                  _iconItem("paneer.png", "Cheese,\nPaneer & Tofu"),
-                  _iconItem("batter.png", "Batter\n& Chutney"),
-                  _iconItem("tasto.png", "Toast\n& Khari"),
-                  _iconItem("cakes.png", "Cakes &\nMuffins"),
-                  _iconItem("breads.png", "Breads\n& Chapatis"),
-                  _iconItem("snacks.png", "Bakery\n& Snacks"),
-                ], context: context,
-                showMore: true,
-                seeMorePage: MilkAndDairyCategoryPage(),
-              ),
-
-              _sectionWidget(
-                "Mom & Baby Care",
-                icons: [
-                  _iconItem("food.png", "Food\n& Feeding"),
-                  _iconItem("bath.png", "Bath, Hygiene\n& Grooming"),
-                  _iconItem("bedding.png", "Bedding, Toys\n& Accessories"),
-                  _iconItem("health.png", "Health\n& Wellness"),
-                  _iconItem("diapers.png", "Diapers\n& Wipes"),
-                ], context: context,
-                showMore: true,
-                seeMorePage: MomBabyCarePage(),
-              ),
-
-              _sectionWidget(
-                "Kitchenware",
-                icons: [
-                  _iconItem("gas.png", "Gas Stove"),
-                  _iconItem("storage.png", "Containers &\nStorage"),
-                  _iconItem("flask.png", "Flask, Bottle\n& Tiffin Boxes"),
-                  _iconItem("cutting.png", "Cutting\n& Chopping"),
-                  _iconItem("tools.png", "Kitchen Tools"),
-                  _iconItem("bakeware.png", "Bakeware"),
-                ], context: context,
-              ),
-
-              _sectionWidget(
-                "Tableware",
-                icons: [
-                  _iconItem("dining.png", "Dining"),
-                  _iconItem("serveware.png", "Serveware"),
-                  _iconItem("barware.png", "Barware"),
-                  _iconItem("tableacc.png", "Table Accessories"),
-                  _iconItem("mugs.png", "Cups, Mugs &\nMore"),
-                  _iconItem("drinkware.png", "Glassware &\nDrinkware"),
-                ], context: context,
-              ),
-
-              _sectionWidget(
-                "Gifts & Hampers",
-                icons: [
-                  _iconItem("tea.png", "Tea Gifts"),
-                  _iconItem("chocogift.png", "Chocolate Gifts"),
-                  _iconItem("gourmet.png", "Gourmet Gifts"),
-                ], context: context,
-              ),
-
-              _sectionWidget(
-                "Home",
-                showMore: true,
-                icons: [
-                  _iconItem("detergents.png", "Detergents\n& Cleaners"),
-                  _iconItem("fresheners.png", "Fresheners\n& Repellents"),
-                  _iconItem("homecleaning.png", "Home &\nCleaning Tools"),
-                  _iconItem("furnishing.png", "Furnishing &\nPersonal Wear"),
-                  _iconItem("dishwash.png", "Dishwash"),
-                  _iconItem("pooja.png", "Pooja Needs"),
-                  _iconItem("electricals.png", "Basic Electricals"),
-                  _iconItem("shoecare.png", "Shoe Care"),
-                ], context: context,
-              ),
-
-              const SizedBox(height: 40),
-            ],
+      backgroundColor: AppColors.whiteF3,
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(kToolbarHeight + 50),
+        child: CommonBackAppBar(
+          bottomWidget: TabBar(
+            controller: _tabController,
+            labelColor: AppColors.primaryColor,
+            unselectedLabelColor: Colors.grey[600],
+            indicatorColor: Colors.blue,
+            indicatorWeight: 2,
+            labelStyle: TextStyle(fontWeight: FontWeight.w600),
+            tabs: _tabs,
           ),
         ),
       ),
-    );
-  }
+      body: SafeArea(
+        child: TabBarView(
+          controller: _tabController,
+          children: [
 
-  Widget _topTabs() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
-        _tabItem("Grocery & Veg", true),
-        _tabItem("Home Essential", false),
-        _tabItem("Others", false),
-      ],
-    );
-  }
+            SingleChildScrollView(
+              child: Column(
+                children: [
 
-  Widget _tabItem(String text, bool active) {
-    return Column(
-      children: [
-        Text(
-          text,
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-            color: active ? Colors.black : Colors.grey,
-          ),
-        ),
-        const SizedBox(height: 4),
-        if (active)
-          Container(
-            height: 3,
-            width: 80,
-            decoration: BoxDecoration(
-              color: const Color(0xFF1A73E8),
-              borderRadius: BorderRadius.circular(20),
+                  _sectionWidget(
+                    "Biscuits, Drinks & Packaged Foods",
+                    arrCategory: biscuitFoods,
+                    context: context,
+                    onTap:(value){
+
+                    }
+                  ),
+
+                  _sectionWidget(
+                    "Fruits & Vegetables",
+                    arrCategory: fruitsVeg,
+                    context: context,
+                      onTap:(value){
+                        Get.to(()=> FruitsVegPage());
+                      }
+                  ),
+
+                  _sectionWidget(
+                    "Cooking Essentials",
+                    arrCategory: cookingEssentials,
+                    context: context,
+                      onTap:(value){
+                        Get.to(()=> CookingEssentialsPage());
+                      }
+                  ),
+
+                  _sectionWidget(
+                    "Dairy & Bakery",
+                    arrCategory: dairyBakery,
+                    context: context,
+                      onTap:(value){
+                        Get.to(()=> MilkAndDairyCategoryPage());
+
+                      }
+                  ),
+
+                  _sectionWidget(
+                    "Mom & Baby Care",
+                    arrCategory: momBabyCare,
+                    context: context,
+                      onTap:(value){
+                         Get.to(()=> MomBabyCarePage());
+                      }
+                  ),
+
+                  _sectionWidget(
+                    "Kitchenware",
+                    arrCategory: kitchenware,
+                    context: context,
+                      onTap:(value){
+
+                      }
+                  ),
+
+                  _sectionWidget(
+                    "Tableware",
+                    arrCategory: tableware,
+                    context: context,
+                      onTap:(value){
+
+                      }
+                  ),
+
+                  _sectionWidget(
+                    "Gifts & Hampers",
+                    arrCategory: giftsHampers,
+                    context: context,
+                      onTap:(value){
+
+                      }
+                  ),
+
+                  _sectionWidget(
+                    "Home",
+                    arrCategory: homeCategory,
+                    context: context,
+                      onTap:(value){
+
+                      }
+                  ),
+
+                  const SizedBox(height: 40),
+                ],
+              ),
             ),
-          )
-      ],
+
+            Center(child: CustomText(AppStrings.comingSoon)),
+
+            Center(child: CustomText(AppStrings.comingSoon))
+
+          ],
+        ),
+      ),
     );
   }
 
   Widget _sectionWidget(
       String title, {
-        required List<Widget> icons,
-        bool showMore = false,
-        Widget? seeMorePage,
-        required BuildContext context
+        required List<Map<String, String>> arrCategory,
+        required BuildContext context,
+        void Function(Map<String, String> item)? onTap,
       }) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
-      padding: const EdgeInsets.all( 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              CustomText(
-                title,
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: AppColors.mainTextColor,
+    const int crossAxisCount = 4;
+    const double mainAxisSpacing = 16.0;
 
+    final firstEight = arrCategory.take(8).toList();
+    final remaining = arrCategory.skip(8).toList();
+    final bool hasMore = remaining.isNotEmpty;
 
-              ),
-              const Spacer(),
-              if (showMore && seeMorePage != null)
-                InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => seeMorePage,
-                      ),
-                    );
-                  },
-                  child: CustomText(
-                    "See More",
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.primaryColor,
-                  ),
+    final isExpanded = false.obs;
+
+    // list → rows-of-4
+    List<Widget> _buildRows(List<Map<String, String>> source) {
+      final rows = <List<Map<String, String>>>[];
+      for (int i = 0; i < source.length; i += crossAxisCount) {
+        rows.add(
+          source.sublist(i, (i + crossAxisCount).clamp(0, source.length)),
+        );
+      }
+
+      return rows.map((rowItems) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: mainAxisSpacing),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: List.generate(crossAxisCount * 2 - 1, (i) {
+              if (i.isEven) {
+                final index = i ~/ 2;
+                if (index < rowItems.length) {
+                  final item = rowItems[index];
+                  return Expanded(
+                    child: IconGridItem(
+                      label: item['label']!,
+                      icon: 'assets/category/${item['icon']}',
+                      onTap: () => onTap?.call(item),
+                    ),
+                  );
+                }
+              }
+              return const Expanded(child: SizedBox());
+            }),
+          ),
+        );
+      }).toList();
+    }
+
+    return Obx(() {
+      final visibleList = isExpanded.value ? arrCategory : firstEight;
+
+      return Container(
+        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                CustomText(
+                  title,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.mainTextColor,
                 ),
+                const Spacer(),
+                if (hasMore)
+                  InkWell(
+                    onTap: () => isExpanded.toggle(),
+                    child: CustomText(
+                      isExpanded.value ? 'See Less'.tr : 'See More'.tr,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primaryColor,
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 16),
 
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          Wrap(
-            spacing: 10,
-
-            runSpacing: 16,
-            children: icons,
-          ),
-        ],
-      ),
-    );
+            /* grid */
+            Column(children: _buildRows(visibleList)),
+          ],
+        ),
+      );
+    });
   }
 
-  Widget _iconItem(String img, String label) {
-    return SizedBox(
-      width: SizeConfig.size80,
-      child: Column(
-
-        children: [
-          Container(
-
-            padding:  EdgeInsets.all(SizeConfig.size6),
-            decoration: BoxDecoration(
-              color: AppColors.lightBlue,
-              shape: BoxShape.circle,
-            ),
-            child: Image.asset(
-              "assets/category/$img",
-              height: SizeConfig.size40,
-              width: SizeConfig.size40,
-              fit: BoxFit.contain,
-            ),
-          ),
-           SizedBox(height: SizeConfig.size6),
-          CustomText(
-            label,
-            fontSize: 10,
-            fontWeight: FontWeight.w600,
-            color: AppColors.secondaryTextColor,
-            textAlign: TextAlign.center,
-
-
-          ),
-
-        ],
-      ),
-    );
-  }
+  // Widget _iconItem(String img, String label) {
+  //   return SizedBox(
+  //     width: SizeConfig.size80,
+  //     child: Column(
+  //
+  //       children: [
+  //         Container(
+  //
+  //           padding:  EdgeInsets.all(SizeConfig.size6),
+  //           decoration: BoxDecoration(
+  //             color: AppColors.lightBlue,
+  //             shape: BoxShape.circle,
+  //           ),
+  //           child: Image.asset(
+  //             "assets/category/$img",
+  //             height: SizeConfig.size40,
+  //             width: SizeConfig.size40,
+  //             fit: BoxFit.contain,
+  //           ),
+  //         ),
+  //          SizedBox(height: SizeConfig.size6),
+  //         CustomText(
+  //           label,
+  //           fontSize: 10,
+  //           fontWeight: FontWeight.w600,
+  //           color: AppColors.secondaryTextColor,
+  //           textAlign: TextAlign.center,
+  //
+  //
+  //         ),
+  //
+  //       ],
+  //     ),
+  //   );
+  // }
 }

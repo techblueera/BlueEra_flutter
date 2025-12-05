@@ -519,6 +519,7 @@ class _CreateNewAccountScreenState extends State<CreateNewAccountScreen> {
                     child: IconGridItem(
                       label: labelBuilder(item),
                       icon: iconBuilder(item),
+                      imgColor: AppColors.blue6B,
                       onTap: () {
                         if (onTap != null) onTap(item);
                       },

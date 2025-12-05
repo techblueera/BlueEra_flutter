@@ -296,7 +296,7 @@ ProductModel(
                       borderRadius: BorderRadius.circular(6),
                       border: selected
                           ? null
-                          : Border.all(color: AppColors.greylite, width: 0.5),
+                          : Border.all(color: AppColors.greyLite, width: 0.5),
                     ),
                     child: Center(
                       child: CustomText(

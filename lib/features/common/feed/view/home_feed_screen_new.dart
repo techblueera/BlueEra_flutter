@@ -72,6 +72,7 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
   var homeScreenController = Get.isRegistered<HomeScreenController>()
       ? Get.find<HomeScreenController>()
       : Get.put(HomeScreenController());
+
   final viewPersonalDetailsController =
       Get.put(ViewPersonalDetailsController());
 

@@ -137,6 +137,7 @@ class AppConstants {
   static const All = "All";
   static const IN_PROGRESS = "In Progress";
   static const INTERVIEW = "Interview";
+  static const DELETE = "DELETE";
 
   static const Applied = "Applied";
   static const Screening = "Screening";
@@ -2314,6 +2315,55 @@ final List<IndividualProfileCategory> individualSelfEmployedList = [
     icon: AppIconAssets.securityPersonIcon,
   )
 ];
+
+List<PopupMenuEntry<String>> groceryPopupMenuItems() {
+  final List<Map<String, String>> items = [
+    {'id': AppConstants.EDIT, 'title': 'Edit Product', 'icon': AppIconAssets.pen_line},
+    {'id': AppConstants.DELETE, 'title': 'Delete From List', 'icon': AppIconAssets.deleteIcon},
+  ];
+
+  final List<PopupMenuEntry<String>> entries = [];
+
+  for (var i = 0; i < items.length; i++) {
+    final menu = items[i];
+    entries.add(
+      PopupMenuItem<String>(
+        height: SizeConfig.size35,
+        value: menu['id'],
+        child: Row(
+          children: [
+            LocalAssets(imagePath: menu['icon']!),
+            SizedBox(width: SizeConfig.size5),
+            CustomText(
+              menu['title'],
+              fontSize: SizeConfig.medium,
+              color: AppColors.black30,
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (i != items.length - 1) {
+      entries.add(
+        const PopupMenuItem<String>(
+          enabled: false,
+          padding: EdgeInsets.zero,
+          height: 1,
+          child: Divider(
+            indent: 10,
+            endIndent: 10,
+            height: 1,
+            thickness: 0.2,
+            color: AppColors.grey99,
+          ),
+        ),
+      );
+    }
+  }
+
+  return entries;
+}
 
 
 
