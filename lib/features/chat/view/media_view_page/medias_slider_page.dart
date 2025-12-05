@@ -1,8 +1,6 @@
-import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
@@ -11,9 +9,8 @@ import 'package:get/get_core/src/get_main.dart';
 import 'package:video_player/video_player.dart';
 
 import '../../../../core/api/apiService/api_response.dart';
+import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/controller/load_chat_medias_controller.dart';
-import '../../auth/model/messageMediaUrl.dart';
-import '../widget/document_message_card.dart';
 
 class MediaSliderPage extends StatefulWidget {
   final String conversationId;
@@ -35,20 +32,22 @@ class _MediaSliderPageState extends State<MediaSliderPage> {
   final controller = Get.isRegistered<LoadChatMediasController>()
       ? Get.find<LoadChatMediasController>()
       : Get.put(LoadChatMediasController());
-
+  final chatViewController = Get.find<ChatViewController>();
 
   @override
   void initState() {
     super.initState();
-    controller.loadOfflineMessages(widget.conversationId,widget.seletedUrl);
+    controller.loadOfflineMessages(widget.conversationId,widget.seletedUrl,chatViewController.getListOfMessageData??[]);
 
+  }
+  bool isNetworkUrl(String url) {
+    return url.startsWith("http://") || url.startsWith("https://");
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.black,
-      // appBar: CommonBackAppBar(title: "Medias"),
       body: Obx(() {
         if (controller.allMediaResponse.value.status ==
             Status.COMPLETE) {
@@ -77,11 +76,14 @@ class _MediaSliderPageState extends State<MediaSliderPage> {
                           controller.onChangeMessageTime(media.createdAt);
                           controller.onChangeMimeType(mimetype);
                         });
-                        if (mimetype.contains("pdf"))
+
+                        if (mimetype.contains("pdf")) {
                           return _buildPDFViewer(url);
-                        if (mimetype.contains("video"))
+                        } else if (mimetype.contains("video")) {
                           return _buildVideoPlayer(url);
-                        return _buildImageViewer(url);
+                        } else {
+                          return _buildImageViewer(url);
+                        }
                       },
                     ),
                   ),
@@ -206,81 +208,98 @@ class _MediaSliderPageState extends State<MediaSliderPage> {
     );
   }
 
-  // IMAGE VIEWER
   Widget _buildImageViewer(String url) {
+    final isNetwork = isNetworkUrl(url);
+
     return InteractiveViewer(
       maxScale: 8,
-      child: Image.file(
+      child: isNetwork
+          ? Image.network(
+        url,
+        fit: BoxFit.contain,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) {
+          return Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.broken_image, size: 60, color: Colors.grey),
+                const SizedBox(height: 8),
+                CustomText(
+                  "Failed to load image",
+                 color: Colors.grey[600],
+                ),
+              ],
+            ),
+          );
+        },
+      )
+        : Image.file(
         File(url),
-        fit: BoxFit.cover,
+        fit: BoxFit.contain,
       ),
     );
   }
+  Future<String> _preparePdf(String url) async {
+    if (!isNetworkUrl(url)) return url;
+
+    final bytes = await HttpClient().getUrl(Uri.parse(url)).then((r) => r.close()).then((r) => r.fold<List<int>>([], (p, e) => p..addAll(e)));
+
+    final temp = File('${Directory.systemTemp.path}/${DateTime.now().millisecondsSinceEpoch}.pdf');
+    await temp.writeAsBytes(bytes);
+
+    return temp.path;
+  }
 
   Widget _buildPDFViewer(String url) {
-    return Stack(
-      children: [
-        Positioned.fill(
-          child: PDFView(
-            onViewCreated: (val) {
-              // setState(() {
-              //   isBarsVisible=false;
-              // });
-            },
-            fitEachPage: true,
-            filePath: url,
-            enableSwipe: true,
-            swipeHorizontal: false,
-            autoSpacing: false,
-            pageFling: true,
-            onRender: (_pages) {},
-            onError: (error) => debugPrint(error.toString()),
-            onPageError: (page, error) =>
-                debugPrint('$page: ${error.toString()}'),
-          ),
-        ),
-        Positioned(
-            top: 64,
-            right: 28,
-            child: InkWell(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) =>
-                        PdfViewerPage(
-                          pdfUrl: url,
-                          pdfName: '',
-                        ),
-                  ),
-                );
-              },
-              child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(30),
-                    color: AppColors.grayText.withOpacity(0.5),
-                  ),
-                  padding: EdgeInsets.all(4),
-                  child: Icon(
-                    Icons.fullscreen,
-                    size: 34,
-                    color: AppColors.white,
-                  )),
-            ))
-      ],
+    return FutureBuilder(
+      future: _preparePdf(url),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return Center(child: CircularProgressIndicator(color: Colors.white));
+        }
+
+        final localPath = snapshot.data!;
+        return _pdfView(localPath);
+      },
     );
   }
 
-  // VIDEO PLAYER
-  Widget _buildVideoPlayer(String url) {
-    return VideoPlayerWidget(videoPath: url);
+  Widget _pdfView(String filePath) {
+    return PDFView(
+      filePath: filePath,
+      enableSwipe: true,
+      fitEachPage: true,
+    );
   }
+
+
+  Widget _buildVideoPlayer(String url) {
+    final isNetwork = isNetworkUrl(url);
+
+    return VideoPlayerWidget(
+      videoPath: url,
+      isNetwork: isNetwork,
+    );
+  }
+
 }
 
 class VideoPlayerWidget extends StatefulWidget {
   final String videoPath;
+  final bool isNetwork;
 
-  const VideoPlayerWidget({super.key, required this.videoPath});
+  const VideoPlayerWidget({
+    super.key,
+    required this.videoPath,
+    required this.isNetwork,
+  });
 
   @override
   State<VideoPlayerWidget> createState() => _VideoPlayerWidgetState();
@@ -293,10 +312,17 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   @override
   void initState() {
     super.initState();
-    controller = VideoPlayerController.file(File(widget.videoPath))
-      ..initialize().then((_) {
+    if (widget.isNetwork) {
+      controller = VideoPlayerController.networkUrl(Uri.parse(widget.videoPath))..initialize().then((_) {
         setState(() {});
       });
+    } else {
+      controller = VideoPlayerController.file(File(widget.videoPath))..initialize().then((_) {
+        setState(() {});
+      });
+    }
+
+      ;
   }
 
   @override

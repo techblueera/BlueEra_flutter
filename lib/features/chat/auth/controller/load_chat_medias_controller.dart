@@ -67,23 +67,39 @@ class LoadChatMediasController extends GetxController {
     String formetText= formatChatHistoryTime(value??'');
     createdAt?.value=formetText;
   }
-  Future<void> loadOfflineMessages(String conversationId,String selectedUrl) async {
+  Future<void> loadOfflineMessages(String conversationId,String selectedUrl,List<Messages> onlineMessagesList) async {
     List<Messages> messages =
     await localStorageHelper.getMediaMessagesByConversationId(conversationId);
 
     // Flatten media lists
     final List<MessageMediaUrl> temp = [];
+    if(messages.isEmpty){
+      for (var msg in messages) {
+        if (msg.url != null && msg.url!.isNotEmpty) {
+          for (var media in msg.url!) {
 
-    for (var msg in messages) {
-      if (msg.url != null && msg.url!.isNotEmpty) {
-        for (var media in msg.url!) {
+            // Attach parent message meta
+            media.messageId = msg.id;
+            media.conversationId = msg.conversationId;
+            media.createdAt = msg.createdAt;
+            media.myMessage = msg.myMessage;
+            temp.add(media);
+          }
+        }
+      }
 
-          // Attach parent message meta
-          media.messageId = msg.id;
-          media.conversationId = msg.conversationId;
-          media.createdAt = msg.createdAt;
-          media.myMessage = msg.myMessage;
-          temp.add(media);
+    }else{
+      for (var msg in onlineMessagesList) {
+        if (msg.url != null && msg.url!.isNotEmpty) {
+          for (var media in msg.url!) {
+
+            // Attach parent message meta
+            media.messageId = msg.id;
+            media.conversationId = msg.conversationId;
+            media.createdAt = msg.createdAt;
+            media.myMessage = msg.myMessage;
+            temp.add(media);
+          }
         }
       }
     }

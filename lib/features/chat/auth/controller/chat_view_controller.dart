@@ -116,6 +116,7 @@ class ChatViewController extends GetxController {
   final localStorageHelper = LocalStorageHelper();
   RxInt businessTabIndexSelected = 0.obs;
   RxBool chatBotReading = false.obs;
+  RxBool viewAllMembers = false.obs;
 
 
   final List<String> tabs = ['Chat','Products', 'Foods','Services','Post','Reviews','Others'];
@@ -204,7 +205,17 @@ class ChatViewController extends GetxController {
   Future<void> disposeAiSocket()async{
      aiSocket.disposeSocket();
   }
-
+ //  final parsedData = GetChatListModel.fromJson(data);
+  //       List<ChatList?>? chatList=  await localStorageHelper.saveChatList(
+  //           parsedData.chatList ?? [], parsedData.type ?? '');
+  //       final postDetails = GetChatListModel(
+  //         chatList: chatList,
+  //         archived: parsedData.archived,
+  //         success: true,
+  //         type: parsedData.type
+  //       );
+  //       loadChatListWithType(chatListModel: postDetails);
+  //       getPersonalFilteredChatListModel?.value = postDetails;
   Future<void> connectSocket() async {
 
 
@@ -698,12 +709,7 @@ class ChatViewController extends GetxController {
       final type = data[ApiKeys.type];
         List<ChatList> localChats =
         await localStorageHelper.getChatListFromLocal(type);
-     if(localChats.isEmpty){
-       Map<String, dynamic> dataParams = {
-         ApiKeys.type: data[ApiKeys.type]
-       };
-       chatSocket.emitEvent(event, dataParams);
-     }else{
+     if(!localChats.isEmpty){
        loadChatListWithType(
            chatListModel: GetChatListModel(
              type: type,
@@ -712,6 +718,11 @@ class ChatViewController extends GetxController {
              archived: [],
            ));
      }
+
+      Map<String, dynamic> dataParams = {
+        ApiKeys.type: data[ApiKeys.type]
+      };
+      chatSocket.emitEvent(event, dataParams);
       chatSocket.emitEvent(ChatEmitEvents.screenRoom, {ApiKeys.conversation_id: "online"});
     } else {
       chatSocket.emitEvent(event, data);

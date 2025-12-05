@@ -57,6 +57,11 @@ class LocalStorageHelper {
       return [];
     }
   }
+  // Future<String> downloadAndSaveUserImageWithUId(String compressedPath, String userId) async {
+  //   await UserImageStorage.saveUserImage(userId, compressedPath);
+  //   return compressedPath;
+  // }
+
   Future<String> _downloadAndSaveImage(String imageUrl, String userId) async {
     try {
       if (userId.trim().isEmpty) {
@@ -148,6 +153,7 @@ class LocalStorageHelper {
     }
     return '';
   }
+
   Future<String> _compressImageFile(String filePath, String uniqueId) async {
     try {
       final dir = await getApplicationDocumentsDirectory();
@@ -208,28 +214,49 @@ class LocalStorageHelper {
 
     for (var chat in chats) {
       final sender = chat?.sender;
-      String? localPath;
 
-      if (sender?.profileImage != null) {
-        localPath = await _downloadAndSaveImage(
-          sender?.profileImage ?? '',
-          sender?.id ?? '',
+      if (sender != null && sender.profileImage != null && sender.id != null) {
+
+        final localPath = await getOrDownloadUserImage(
+          sender.profileImage!,
+          sender.id!,
         );
+
+        // Replace URL with local path
+        sender.profileImage = localPath;
       }
 
-      final chatMap = chat?.toJson();
-      if (localPath != null && localPath.isNotEmpty) {
-        chatMap?['sender']['profile_image'] = localPath;
-      }
-
-      modifiedChats.add(chatMap??{});
+      modifiedChats.add(chat?.toJson() ?? {});
     }
 
     final encoded = jsonEncode(modifiedChats);
     final box = await Hive.openBox<String>('chatListJsonBox');
 
-    // Save separately using type as key
+    // Save based on type
     await box.put('${type}_chat_list', encoded);
+  }
+
+  Future<String> getOrDownloadUserImage(String url, String userId) async {
+    if (userId.isEmpty || url.isEmpty) return url;
+
+    final box = await Hive.openBox<String>('userImages');
+
+    // 1️⃣ Already stored?
+    final existing = box.get(userId);
+    if (existing != null && existing.isNotEmpty && File(existing).existsSync()) {
+      return existing;
+    }
+
+    // 2️⃣ Not stored → download & compress
+    final savedPath = await _downloadAndSaveImage(url, userId);
+
+    // 3️⃣ Save to Hive for future use
+    if (savedPath.isNotEmpty) {
+      await box.put(userId, savedPath);
+      return savedPath;
+    }
+
+    return url;
   }
 
   Future<List<ChatList>> getChatListFromLocal(String type) async {
@@ -471,5 +498,27 @@ class AiChatLocalStorage {
       default:
         throw Exception("Invalid type. Use 'personal' or 'business'");
     }
+  }
+}
+class UserImageStorage {
+  static const _boxName = "userImagesBox";
+
+  static Future<Box<String>> _openBox() async {
+    if (Hive.isBoxOpen(_boxName)) {
+      return Hive.box<String>(_boxName);
+    }
+    return await Hive.openBox<String>(_boxName);
+  }
+
+  // Save
+  static Future<void> saveUserImage(String userId, String filePath) async {
+    final box = await _openBox();
+    await box.put(userId, filePath);
+  }
+
+  // Get
+  static Future<String?> getUserImage(String userId) async {
+    final box = await _openBox();
+    return box.get(userId);
   }
 }

@@ -12,6 +12,9 @@ import 'package:get/get.dart';
 
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_icon_assets.dart';
+import '../../../../widgets/local_assets.dart';
+import '../../../common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/view_group_members_model.dart';
 import '../../contacts/view/be_available_contacts_list.dart';
@@ -37,7 +40,6 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
   final chatViewController = Get.find<ChatViewController>();
   @override
   void initState() {
-    // TODO: implement initState
     Map<String, dynamic> data = {
       ApiKeys.conversation_id: widget.conversationId
     };
@@ -49,9 +51,7 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      // appBar: CommonBackAppBar(
-      //   title: "Group Members",
-      // ),
+
       body: Obx(() {
         if (chatViewController.getGroupMembersResponse.value.status ==
             Status.COMPLETE) {
@@ -63,7 +63,6 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
                   Column(
                     children: [
                       Container(
@@ -118,38 +117,72 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                                     builder: (context, offset, innerChild) {
                                       return Transform.translate(
                                         offset: Offset(offset.dx * 100, offset.dy * 100),
-                                        child: CircleAvatar(
-                                          backgroundColor: theme.colorScheme.primary,
-                                          radius: radius,
-                                          backgroundImage: (widget.profileImage != null &&
-                                              widget.profileImage!.trim().isNotEmpty)
-                                              ? (widget.profileImage!.startsWith('http')
-                                              ? NetworkImage(widget.profileImage!)
-                                              : (File(widget.profileImage!).existsSync()
-                                              ? FileImage(File(widget.profileImage!)) as ImageProvider
-                                              : null))
-                                              : null,
-                                          child: (widget.profileImage != null &&
-                                              widget.profileImage!.trim().isNotEmpty &&
-                                              (widget.profileImage!.startsWith('http') ||
-                                                  File(widget.profileImage!).existsSync()))
-                                              ? null
-                                              : (widget.name != null && widget.name!.isNotEmpty)
-                                              ? Center(
-                                            child: CustomText(
-                                              "${widget.name!.split('')[0]}",
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.w800,
-                                              fontSize: radius * 0.83, // scale font with avatar
+                                        child: Stack(
+                                          children: [
+                                            CircleAvatar(
+                                              backgroundColor: theme.colorScheme.primary,
+                                              radius: radius,
+                                              backgroundImage: (widget.profileImage != null &&
+                                                  widget.profileImage!.trim().isNotEmpty)
+                                                  ? (widget.profileImage!.startsWith('http')
+                                                  ? NetworkImage(widget.profileImage!)
+                                                  : (File(widget.profileImage!).existsSync()
+                                                  ? FileImage(File(widget.profileImage!)) as ImageProvider
+                                                  : null))
+                                                  : null,
+                                              child: (widget.profileImage != null &&
+                                                  widget.profileImage!.trim().isNotEmpty &&
+                                                  (widget.profileImage!.startsWith('http') ||
+                                                      File(widget.profileImage!).existsSync()))
+                                                  ? null
+                                                  : (widget.name != null && widget.name!.isNotEmpty)
+                                                  ? Center(
+                                                child: CustomText(
+                                                  "${widget.name!.split('')[0]}",
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.w800,
+                                                  fontSize: radius * 0.83, // scale font with avatar
+                                                ),
+                                              )
+                                                  : Center(
+                                                child: Icon(
+                                                  Icons.person,
+                                                  color: theme.colorScheme.surface,
+                                                  size: radius, // scale icon too
+                                                ),
+                                              ),
                                             ),
-                                          )
-                                              : Center(
-                                            child: Icon(
-                                              Icons.person,
-                                              color: theme.colorScheme.surface,
-                                              size: radius, // scale icon too
-                                            ),
-                                          ),
+                                            // Positioned(
+                                            //   bottom: 0,
+                                            //   right: 0,
+                                            //   child: InkWell(
+                                            //     onTap: ()async{
+                                            //       var newPath= await SelectProfilePictureDialog.showLogoDialog(
+                                            //       context, "Change Group Profile");
+                                            //     },
+                                            //     child: Container(
+                                            //       decoration: BoxDecoration(
+                                            //         shape: BoxShape.circle,
+                                            //         border: Border.all(color: AppColors.white, width: 2) ,
+                                            //       ),
+                                            //       child: Container(
+                                            //
+                                            //         padding: EdgeInsets.all(6),
+                                            //         decoration: BoxDecoration(
+                                            //           shape: BoxShape.circle,
+                                            //           color: AppColors.primaryColor,
+                                            //         ),
+                                            //         child: LocalAssets(
+                                            //           imagePath: AppIconAssets.editIcon,
+                                            //           height: SizeConfig.size14,
+                                            //           width: SizeConfig.size14,
+                                            //           imgColor: Colors.white,
+                                            //         ),
+                                            //       ),
+                                            //     ),
+                                            //   ),
+                                            // ),
+                                          ],
                                         ),
                                       );
                                     },
@@ -236,7 +269,9 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                         ),
                         ListView.builder(
                           padding: const EdgeInsets.only(bottom: 10),
-                          itemCount: members.length > 6 ? 8 : members.length + 1,
+                          itemCount: chatViewController.viewAllMembers.value
+                              ? members.length + 1   // +1 for Add Members card
+                              : (members.length > 6 ? 8 : members.length + 1),
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           itemBuilder: (context, index) {
@@ -353,22 +388,28 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                                                         }
 
                             // Last item — View All button if more than 6 members
-                            if (members.length > 6 && index == 7) {
+                            // Last item — View All button if list is collapsed
+                            if (!chatViewController.viewAllMembers.value && members.length > 6 && index == 7) {
                               return Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                                 child: Center(
                                   child: OutlinedButton.icon(
-                                    onPressed: () {},
-                                    icon: const Icon(Icons.remove_red_eye_outlined, size: 18),
+                                    onPressed: () {
+                                      setState(() {
+                                        chatViewController.viewAllMembers.value = true;
+                                      });
+                                    },
+                                    icon: const Icon(Icons.expand_more, size: 18),
                                     label: const CustomText(
                                       AppStrings.viewAll,
-                                          fontWeight: FontWeight.w600,
+                                      fontWeight: FontWeight.w600,
                                       color: AppColors.primaryColor,
                                     ),
                                   ),
                                 ),
                               );
                             }
+
 
                             // Normal member tile (excluding "You")
                             final nonMeMembers =
@@ -456,6 +497,9 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
 
                       ],
                     ),
+                  ),
+                  SizedBox(
+                    height: SizeConfig.size12,
                   )
 
                 ],

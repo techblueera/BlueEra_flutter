@@ -200,7 +200,6 @@ Widget ChatListTile({
   if (chatViewController.selectedUserIds.isNotEmpty) {
     isSelected = chatViewController.selectedUserIds.contains(senderId);
   }
-  log("lsdkdcdlsksdl ${senderProfileImage}");
   void selectChatListCard() {
     if (isSelected) {
       chatViewController.selectedUserIds.remove(senderId);
