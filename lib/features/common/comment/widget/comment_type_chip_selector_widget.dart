@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/features/common/comment/controller/comment_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
@@ -8,8 +9,9 @@ import 'package:get/get.dart';
 class CommentTypeChipSelector extends StatelessWidget {
   final List<CommentTypeModel> items;
   final RxString selectedType;
+  final commentController = Get.find<CommentController>();
 
-  const CommentTypeChipSelector({
+   CommentTypeChipSelector({
     Key? key,
     required this.items,
     required this.selectedType,
@@ -27,6 +29,8 @@ class CommentTypeChipSelector extends StatelessWidget {
               onTap: () {
                 selectedType.value = type.sludId;
                 // commentController.onSelectionChanged();
+                  commentController.expandedTileIndex.value = -1; // Close all after final choose
+
               },
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),

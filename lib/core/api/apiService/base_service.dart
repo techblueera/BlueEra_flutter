@@ -522,5 +522,6 @@ abstract class BaseService {
   final String storesByCategory = 'map-service/api/stores/inventory/category';
   final String userFeedPost = 'userfeed-service/feed/posts';
   final String aiInventoryAsk = 'ai-service/api/ai-inventory/ask';
+  final String ottChannelVideo = 'video-service/ott/channel/';
 
 }
