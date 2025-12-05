@@ -1374,42 +1374,6 @@ canGoogleMapOpen({required double latitude, required double longitude}) async {
   }
 }
 
-final List<String> bgAssetsForProductSharing = [
-  'assets/products_cards/blueera_aatmnirbhar_product_card1.jpeg',
-  'assets/products_cards/blueera_aatmnirbhar_product_card2.jpeg',
-  'assets/products_cards/blueera_aatmnirbhar_product_card3.jpeg',
-  'assets/products_cards/blueera_aatmnirbhar_product_card4.jpeg',
-  'assets/products_cards/blueera_aatmnirbhar_product_card5.jpeg',
-  'assets/products_cards/blueera_aatmnirbhar_product_card6.jpeg',
-  'assets/products_cards/blueera_aatmnirbhar_product_card7.jpeg',
-  'assets/products_cards/blueera_aatmnirbhar_product_card8.jpeg',
-  'assets/products_cards/blueera_aatmnirbhar_product_card9.jpeg',
-  'assets/products_cards/blueera_aatmnirbhar_product_card10.jpeg',
-  'assets/products_cards/blueera_aatmnirbhar_product_card11.jpeg',
-  'assets/products_cards/blueera_aatmnirbhar_product_card12.jpeg',
-  'assets/products_cards/blueera_aatmnirbhar_product_card13.jpeg',
-  'assets/products_cards/blueera_aatmnirbhar_product_card14.jpeg',
-  'assets/products_cards/blueera_aatmnirbhar_product_card15.jpeg',
-];
-
-final List<String> bgAssetsForServices = [
-  'assets/services_cards/blueera_aatmnirbhar_service_card1.jpeg',
-  'assets/services_cards/blueera_aatmnirbhar_service_card2.jpeg',
-  'assets/services_cards/blueera_aatmnirbhar_service_card3.jpeg',
-  'assets/services_cards/blueera_aatmnirbhar_service_card4.jpeg',
-  'assets/services_cards/blueera_aatmnirbhar_service_card5.jpeg',
-  'assets/services_cards/blueera_aatmnirbhar_service_card6.jpeg',
-  'assets/services_cards/blueera_aatmnirbhar_service_card7.jpeg',
-  'assets/services_cards/blueera_aatmnirbhar_service_card8.jpeg',
-  'assets/services_cards/blueera_aatmnirbhar_service_card9.jpeg',
-  'assets/services_cards/blueera_aatmnirbhar_service_card10.jpeg',
-  'assets/services_cards/blueera_aatmnirbhar_service_card11.jpeg',
-  'assets/services_cards/blueera_aatmnirbhar_service_card12.jpeg',
-  'assets/services_cards/blueera_aatmnirbhar_service_card13.jpeg',
-  'assets/services_cards/blueera_aatmnirbhar_service_card14.jpeg',
-  'assets/services_cards/blueera_aatmnirbhar_service_card15.jpeg',
-];
-
 var SUPPORTED_LANGUAGES = [
   'Bengali',
   'Bhojpuri',

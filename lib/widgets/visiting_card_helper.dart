@@ -1,13 +1,10 @@
 import 'dart:io';
-import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/common/auth/views/screens/visiting_card_page.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/sharing_business_product_card.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:path_provider/path_provider.dart';
@@ -39,72 +36,6 @@ class VisitingCardHelper {
           .shareVisitingCard(cardKey, shareProfile: false);
     } finally {
       overlay.remove();
-    }
-  }
-
-  static bool _isProductSharing = false;
-
-  /// Builds the card off-screen, captures it, then shares the PNG.
-  static Future<void> buildAndShareProductCard(
-      BuildContext context, GetProductData ownProductData,
-      {required int index}) async {
-    if (_isProductSharing) return;
-    _isProductSharing = true;
-
-    GlobalKey cardKey = GlobalKey();
-
-    final int randomIndex = Random().nextInt(bgAssetsForProductSharing.length);
-    final String bgAsset = bgAssetsForProductSharing[randomIndex];
-
-    await Future.wait([
-      precacheImage(AssetImage(bgAsset), context),
-      if (ownProductData.product.details?.media[index] != null &&
-          ownProductData.product.details!.media[index].isNotEmpty)
-        precacheImage(
-          NetworkImage(ownProductData.product.details!.media[index]),
-          context,
-        ),
-      precacheImage(
-        NetworkImage(userProfileGlobal),
-        context,
-      ),
-    ]);
-
-    // 1. Create an overlay that is not visible
-    final overlay = OverlayEntry(
-      builder: (_) => Transform.translate(
-        offset: const Offset(0, -9999), // move completely off-screen
-        child: SharingBusinessProductCard(
-          cardKey: cardKey,
-          ownProductData: ownProductData,
-          backgroundAsset: bgAsset,
-          // index: index
-        ),
-      ),
-    );
-
-    Overlay.of(context).insert(overlay);
-
-    // Wait until the frame is actually painted
-    await WidgetsBinding.instance.endOfFrame;
-
-    // One extra pump to be safe on slow devices
-    // await Future.delayed(const Duration(milliseconds: 50));
-
-    try {
-      await VisitingCardHelper().shareVisitingCard(cardKey,
-          productId: ownProductData.product.details?.id);
-    } finally {
-      overlay.remove();
-
-      // await NetworkImage(userProfileGlobal).evict();
-      await AssetImage(bgAsset).evict();
-      if (ownProductData.product.details!.media[index].isNotEmpty) {
-        await NetworkImage(ownProductData.product.details!.media[index])
-            .evict();
-      }
-
-      _isProductSharing = false;
     }
   }
 

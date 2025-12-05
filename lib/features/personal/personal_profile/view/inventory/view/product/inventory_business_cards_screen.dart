@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/service/controller/service_controller.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart' show CommonBackAppBar;
@@ -29,9 +30,9 @@ class InventoryBusinessCardsScreen extends StatefulWidget {
 class _InventoryBusinessCardsScreenState extends State<InventoryBusinessCardsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  final inventoryController = Get.put(InventoryController());
-  final serviceController = Get.put(ServiceController());
-  final foodUploadController = Get.put(FoodUploadController());
+  final inventoryController = getOrPut(() => InventoryController());
+  final serviceController = getOrPut(() => ServiceController());
+  final foodUploadController = getOrPut(() => FoodUploadController());
 
   late List<Tab> _tabs = [];
   late List<String> _tabTypes = [];
@@ -185,7 +186,6 @@ class _InventoryBusinessCardsScreenState extends State<InventoryBusinessCardsScr
                       }
                       return BusinessAllProductCard(
                         allProducts: inventoryController.allProducts,
-                        showHorizontal: false,
                       );
                     });
 
