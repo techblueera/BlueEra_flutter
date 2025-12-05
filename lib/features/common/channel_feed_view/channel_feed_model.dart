@@ -103,7 +103,7 @@ class ChannelFeedData {
 
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
-    isFollowing = json['isFollowing'];
+    isFollowing = json['isFollowing']??false;
     posts = json["stats"]['posts'];
     followers = json["stats"]['followers'];
     v = json['__v'];

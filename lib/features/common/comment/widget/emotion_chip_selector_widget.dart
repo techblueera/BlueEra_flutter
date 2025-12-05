@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/features/common/comment/controller/comment_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +14,7 @@ class EmotionChipSelector extends StatelessWidget {
     required this.emotionList,
     required this.selectedEmotion,
   });
+  final commentController = Get.find<CommentController>();
 
   @override
   Widget build(BuildContext context) {
@@ -24,8 +26,13 @@ class EmotionChipSelector extends StatelessWidget {
           final bool isSelected = selectedEmotion.value == emotion.sludId;
 
           return GestureDetector(
-            onTap: () => selectedEmotion.value = emotion.sludId,
-            child: Container(
+            // onTap: () => selectedEmotion.value = emotion.sludId,
+              onTap: () {
+                selectedEmotion.value = emotion.sludId;
+                commentController.expandedTileIndex.value = 2; // Open Comment Type tile
+              },
+
+              child: Container(
               padding: EdgeInsets.symmetric(horizontal: 8, vertical: 5),
               decoration: BoxDecoration(
                 color: isSelected ? AppColors.primaryColor : Colors.transparent,

@@ -4,8 +4,11 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_model.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_join_list_model.dart';
+import 'package:BlueEra/features/common/ott/model/all_channel_res_model.dart';
+import 'package:BlueEra/features/common/ott/model/ott_channel_video_res_model.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/repo/user_repo.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class ChannelFeedController extends GetxController {
@@ -146,7 +149,6 @@ class ChannelFeedController extends GetxController {
       } else {
         await unFollowUserController(candidateResumeId: channelId);
       }
-
     } catch (e) {
       // 🔹 3. Rollback if API fails
       unJoinChannelDataList[index] =
@@ -189,5 +191,89 @@ class ChannelFeedController extends GetxController {
     } else {
       isChannelJoin.value = true;
     }
+  }
+
+  ///GET ALL CHANNEL....
+  var allChannelDataList = <AllChannelData>[].obs;
+  final allChannelResModel = AllChannelResModel().obs;
+  var isAllChannelLoading = false.obs;
+  var hasMoreAllChannel = true.obs;
+  int _pageAllChannel = 1;
+
+  Future<void> getAllChannelData({bool loadMore = false}) async {
+    if (isAllChannelLoading.value) return;
+    isAllChannelLoading.value = true;
+
+    if (!loadMore) _pageAllChannel = 1;
+    final fetchedData = await ChannelRepo().getAllChannelRepo(
+        page: _pageAllChannel, limit: 20); // implement your API fetch
+    final data = fetchedData.response?.data;
+
+    late final Map<String, dynamic> json;
+
+    if (data is String) {
+      json = jsonDecode(data);
+    } else if (data is Map<String, dynamic>) {
+      json = data;
+    } else {
+      throw Exception('Unexpected response type: ${data.runtimeType}');
+    }
+    allChannelResModel.value = AllChannelResModel.fromJson(json);
+    final fetched = (json['data'] as List)
+        .map((item) => AllChannelData.fromJson(item))
+        .toList();
+    if (fetched.isEmpty) {
+      hasMoreAllChannel.value = false;
+    } else {
+      if (loadMore) {
+        allChannelDataList.addAll(fetched);
+      } else {
+        allChannelDataList.assignAll(fetched);
+      }
+      _pageAllChannel++;
+    }
+    isAllChannelLoading.value = false;
+  }
+
+  var allVideoChannelDataList = <VideoItems>[].obs;
+  final allVideoChannelResModel = OttChannelVideoResModel().obs;
+  var isAllVideoChannelLoading = false.obs;
+  var hasMoreAllVideoChannel = true.obs;
+  int _pageAllVideoChannel = 1;
+
+  Future<void> getAllChannelVideoData({bool loadMore = false,required String channelId}) async {
+    if (isAllVideoChannelLoading.value) return;
+    isAllVideoChannelLoading.value = true;
+
+    if (!loadMore) _pageAllVideoChannel = 1;
+    final fetchedData = await ChannelRepo().getAllVideoChannelRepo(
+        // page: _pageAllVideoChannel, limit: 20, channelID: channelId); // implement your API fetch
+        page: _pageAllVideoChannel, limit: 20, channelID: "68ea37d8c86a4e2c382e2a4d"); // implement your API fetch
+    final data = fetchedData.response?.data;
+
+    late final Map<String, dynamic> json;
+
+    if (data is String) {
+      json = jsonDecode(data);
+    } else if (data is Map<String, dynamic>) {
+      json = data;
+    } else {
+      throw Exception('Unexpected response type: ${data.runtimeType}');
+    }
+    allVideoChannelResModel.value = OttChannelVideoResModel.fromJson(json);
+
+    if (allVideoChannelResModel.value.videos?.items?.isEmpty ?? false) {
+      hasMoreAllVideoChannel.value = false;
+    } else {
+      if (loadMore) {
+        allVideoChannelDataList
+            .addAll(allVideoChannelResModel.value.videos?.items ?? []);
+      } else {
+        allVideoChannelDataList
+            .assignAll(allVideoChannelResModel.value.videos?.items ?? []);
+      }
+      _pageAllVideoChannel++;
+    }
+    isAllVideoChannelLoading.value = false;
   }
 }

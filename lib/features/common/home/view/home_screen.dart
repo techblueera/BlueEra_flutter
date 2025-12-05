@@ -10,6 +10,7 @@ import 'package:BlueEra/features/common/channel_feed_view/channel_feed_screen.da
 import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
 import 'package:BlueEra/features/common/home/view/saved_feed_screen.dart';
+import 'package:BlueEra/features/common/ott/view/ott_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
@@ -45,12 +46,12 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<String> postTab = [
     AppStrings.allPosts,
     AppStrings.channel,
+    AppStrings.tab_ott,
     AppStrings.tab_saved,
-    // AppStrings.tab_ott,
+
   ];
   int selectedIndex = 0;
   final TextEditingController searchController = TextEditingController();
-  List<SavedFeedTab> filters = SavedFeedTab.values.toList();
   late SavedFeedTab _selectedSavedTab;
   final homeScreenController = Get.put(HomeScreenController());
 
@@ -241,50 +242,55 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                     children: isIndividual()
                         ? [
-                            HomeFeedScreenNew(
-                              key: ValueKey('feedScreen_all'),
-                              onHeaderVisibilityChanged:
-                                  _toggleAppBarAndBottomNav,
-                              postFilterType: PostType.all,
-                              query: searchController.text.isEmpty
-                                  ? null
-                                  : searchController.text,
-                              headerHeight: _headerHeight,
-                              isInParentScroll: false,
-                            ),
-                            ChannelFeedScreen(),
-                            SavedFeedScreen(
+                            if (selectedIndex == 0)
+                              HomeFeedScreenNew(
+                                key: ValueKey('feedScreen_all'),
                                 onHeaderVisibilityChanged:
                                     _toggleAppBarAndBottomNav,
-                                query: searchController.text,
-                                selectedTab: _selectedSavedTab,
-                                headerHeight:
-                                    _headerHeight + SizeConfig.size30),
-                      // OttScreen()
+                                postFilterType: PostType.all,
+                                query: searchController.text.isEmpty
+                                    ? null
+                                    : searchController.text,
+                                headerHeight: _headerHeight,
+                                isInParentScroll: false,
+                              ),
+                            if (selectedIndex == 1) ChannelFeedScreen(),
+                      if (selectedIndex == 2) OttScreen(),
+
+                            if (selectedIndex == 3)
+                              SavedFeedScreen(
+                                  onHeaderVisibilityChanged:
+                                      _toggleAppBarAndBottomNav,
+                                  query: searchController.text,
+                                  selectedTab: _selectedSavedTab,
+                                  headerHeight:
+                                      _headerHeight + SizeConfig.size30),
                           ]
                         : [
-                            HomeFeedScreenNew(
-                              key: ValueKey('feedScreen_all'),
-                              onHeaderVisibilityChanged:
-                                  _toggleAppBarAndBottomNav,
-                              postFilterType: PostType.all,
-                              query: searchController.text.isEmpty
-                                  ? null
-                                  : searchController.text,
-                              headerHeight: _headerHeight,
-                              isInParentScroll: false,
-                            ),
-                            ChannelFeedScreen(),
-                            SavedFeedScreen(
+                            if (selectedIndex == 0)
+                              HomeFeedScreenNew(
+                                key: ValueKey('feedScreen_all'),
                                 onHeaderVisibilityChanged:
                                     _toggleAppBarAndBottomNav,
-                                query: searchController.text,
-                                selectedTab: _selectedSavedTab,
-                                headerHeight:
-                                    _headerHeight + SizeConfig.size30),
-                      // OttScreen()
+                                postFilterType: PostType.all,
+                                query: searchController.text.isEmpty
+                                    ? null
+                                    : searchController.text,
+                                headerHeight: _headerHeight,
+                                isInParentScroll: false,
+                              ),
+                            if (selectedIndex == 1) ChannelFeedScreen(),
+                      if (selectedIndex == 2) OttScreen(),
 
-                    ],
+                            if (selectedIndex == 3)
+                              SavedFeedScreen(
+                                  onHeaderVisibilityChanged:
+                                      _toggleAppBarAndBottomNav,
+                                  query: searchController.text,
+                                  selectedTab: _selectedSavedTab,
+                                  headerHeight:
+                                      _headerHeight + SizeConfig.size30),
+                          ],
                   ),
                 ),
 
@@ -321,10 +327,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           labelBuilder: (label) => label,
                         ),
                         SizedBox(height: SizeConfig.size10),
-                        // if (postTab[selectedIndex] == "Saved") ...[
-                        //   _filterButtons(),
-                        //   SizedBox(height: SizeConfig.size10),
-                        // ]
                       ],
                     ),
                   ),
@@ -332,38 +334,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             )),
       ),
-    );
-  }
-
-  Widget _filterButtons() {
-    return Row(
-      children: [
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: SizeConfig.paddingXSL),
-          child: Row(
-            children: filters.map((filter) {
-              final isSelected = _selectedSavedTab == filter;
-              return Padding(
-                padding: EdgeInsets.only(right: SizeConfig.size14),
-                child: GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _selectedSavedTab = filter;
-                    });
-                  },
-                  child: CustomText(
-                    filter.title, // use .label for display text
-                    decoration: TextDecoration.underline,
-                    color: isSelected ? Colors.blue : Colors.black54,
-                    decorationColor: isSelected ? Colors.blue : Colors.black54,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-        )
-      ],
     );
   }
 

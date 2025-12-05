@@ -13,7 +13,7 @@ import 'package:BlueEra/features/common/home/view/home_screen.dart';
 import 'package:BlueEra/features/common/jobs/view/jobs_screen.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/more/controller/more_cards_screen_controller.dart';
-import 'package:BlueEra/features/common/ott/ott_screen.dart';
+import 'package:BlueEra/features/common/ott/view/ott_screen.dart';
 import 'package:BlueEra/features/common/reel/models/channel_model.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/common/store/view/new_store/new_store_screen2.dart';

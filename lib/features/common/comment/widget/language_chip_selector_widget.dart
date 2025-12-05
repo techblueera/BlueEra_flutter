@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/features/common/comment/controller/comment_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -11,6 +12,7 @@ class LanguageChipSelector extends StatelessWidget {
     required this.languages,
     required this.selectedLanguage,
   });
+  final commentController = Get.find<CommentController>();
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +24,12 @@ class LanguageChipSelector extends StatelessWidget {
           final bool isSelected = selectedLanguage.value == language;
 
           return GestureDetector(
-            onTap: () => selectedLanguage.value = language,
+              onTap: () {
+                selectedLanguage.value = language;
+                commentController.expandedTileIndex.value = 1; // Open Emotion tile
+              },
+
+              // onTap: () => selectedLanguage.value = language,
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: 8, vertical: 5),
               decoration: BoxDecoration(

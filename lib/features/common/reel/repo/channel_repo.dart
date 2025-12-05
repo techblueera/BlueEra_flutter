@@ -63,7 +63,7 @@ class ChannelRepo extends BaseService {
     print("url=== ${url}");
     // final url="https://p3qw782za2.execute-api.ap-south-1.amazonaws.com/api/${initUpload}";
     final response = await ApiBaseHelper().getHTTP(
-    // final response = await ApiBaseHelper().uploadInitGet(
+      // final response = await ApiBaseHelper().uploadInitGet(
       url!,
       params: queryParams,
       showProgress: false,
@@ -71,7 +71,9 @@ class ChannelRepo extends BaseService {
       onSuccess: (data) {},
     );
     return response;
-  }///UPLOAD INIT...
+  }
+
+  ///UPLOAD INIT...
   Future<ResponseModel?> workmanagerUploadInit(
       {required Map<String, dynamic> queryParams, required String? url}) async {
     final response = await ApiBaseHelper().uploadInitGet(
@@ -119,7 +121,7 @@ print("url=== ${url}");
   Future<ResponseModel?> uploadVideo(
       {required Map<String, dynamic> bodyRequest, String? url}) async {
     final response = await ApiBaseHelper().postHTTP(
-    // final response = await ApiBaseHelper().workManagerPostHTTP(
+      // final response = await ApiBaseHelper().workManagerPostHTTP(
       url ?? videoUpload,
       // isMultipart: true,
       showProgress: true,
@@ -130,12 +132,11 @@ print("url=== ${url}");
     return response;
   }
 
-
   ///UPLOAD VIDEO...
   Future<ResponseModel?> workManagerUploadVideo(
       {required Map<String, dynamic> bodyRequest, String? url}) async {
     final response = await ApiBaseHelper().workManagerPostHTTP(
-      url ??"",
+      url ?? "",
       // isMultipart: true,
       showProgress: false,
       params: bodyRequest,
@@ -146,10 +147,8 @@ print("url=== ${url}");
   }
 
   ///UPDATE VIDEO DETAILS...
-  Future<ResponseModel> updateVideoDetails({
-        required String videoId,
-        required Map<String, dynamic> params
-  }) async {
+  Future<ResponseModel> updateVideoDetails(
+      {required String videoId, required Map<String, dynamic> params}) async {
     String video = videos(videoId);
     final response = await ApiBaseHelper().putHTTP(
       video,
@@ -159,7 +158,6 @@ print("url=== ${url}");
     );
     return response;
   }
-
 
   ///Get Video Categories...
   Future<ResponseModel> getVideoCategories() async {
@@ -217,12 +215,10 @@ print("url=== ${url}");
     required String channelId,
     required Map<String, dynamic> bodyRequest,
   }) async {
-    return await ApiBaseHelper().putHTTP(
-      "${channels}/$channelId",
-      params: bodyRequest,
-      isMultipart: true
-      // isArrayReq: true,
-    );
+    return await ApiBaseHelper().putHTTP("${channels}/$channelId",
+        params: bodyRequest, isMultipart: true
+        // isArrayReq: true,
+        );
   }
 
   ///GET ALL Channel Videos...  (Only use for fetching other user channel videos)
@@ -364,7 +360,6 @@ print("url=== ${url}");
     return response;
   }
 
-
   ///GET VIDEO STATUS...
   Future<ResponseModel> getVideoStatus() async {
     final response = await ApiBaseHelper().getHTTP(
@@ -376,10 +371,11 @@ print("url=== ${url}");
     return response;
   }
 
-
   ///GET CHANNEL FOLLOWING ME ...
-  Future<ResponseModel> getChannelFollowingMeRepo({  required int page,
-    required int limit,}) async {
+  Future<ResponseModel> getChannelFollowingMeRepo({
+    required int page,
+    required int limit,
+  }) async {
     final response = await ApiBaseHelper().getHTTP(
       "${channelFollowingMe}?page=$page&limit=$limit",
       showProgress: false,
@@ -390,8 +386,10 @@ print("url=== ${url}");
   }
 
   ///GET CHANNEL UnFOLLOWING ME ...
-  Future<ResponseModel> getChannelRecommendationsMeRepo({  required int page,
-    required int limit,}) async {
+  Future<ResponseModel> getChannelRecommendationsMeRepo({
+    required int page,
+    required int limit,
+  }) async {
     final response = await ApiBaseHelper().getHTTP(
       "${channelsRecommendations}?page=$page&limit=$limit&filter=latest",
       showProgress: false,
@@ -401,7 +399,6 @@ print("url=== ${url}");
     return response;
   }
 
-
   ///GET FOLLOWER LIST...
   Future<ResponseModel> getChannelJoinedUserRepo({
     required String userId,
@@ -409,6 +406,35 @@ print("url=== ${url}");
     ResponseModel response = await ApiBaseHelper().getHTTP(
       "${channel_service_follower}${userId}/followers",
       showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  ///GET ALL CHANNEL...
+  Future<ResponseModel> getAllChannelRepo({
+    required int page,
+    required int limit,
+  }) async {
+    final response = await ApiBaseHelper().getHTTP(
+      "$channels?page=$page&limit=$limit&sortOrder=asc",
+      showProgress: true,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  ///GET ALL VIDEO FROM CHANNEL...
+  Future<ResponseModel> getAllVideoChannelRepo({
+    required int page,
+    required int limit,
+    required String channelID,
+  }) async {
+    final response = await ApiBaseHelper().getHTTP(
+      "$ottChannelVideo/${channelID}/content?page=$page&size=$limit",
+      showProgress: true,
       onError: (error) {},
       onSuccess: (data) {},
     );
