@@ -2,6 +2,7 @@
 <network-security-config>
     <domain-config cleartextTrafficPermitted="true">
         <domain includeSubdomains="true">blueera.ai</domain>
+        <domain includeSubdomains="true">be.blueera.ai</domain>
         <domain includeSubdomains="true">43.204.251.10</domain>
     </domain-config>
 </network-security-config>

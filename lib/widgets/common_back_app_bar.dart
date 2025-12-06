@@ -32,79 +32,79 @@ import '../core/constants/shared_preference_utils.dart';
 import '../features/business/visiting_card/view/business_own_profile_screen.dart';
 
 class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const CommonBackAppBar(
-      {super.key,
-      this.title,
-      this.isLeading = true,
-      this.isFilter = false,
-      this.isNotification = false,
-      this.bellIconNotEmpty = false,
-      this.onNotificationTap,
-      this.onBackTap,
-      this.appBarColor,
-      this.isTextButton = false,
-      this.actionText,
-      this.actionTextColor,
-      this.isShareButton,
-      this.isLogout,
-      this.isDownloadButton,
-      this.isChangeToEditMode = false,
-      this.isQrCodeButton,
-      this.onQrCodeTap,
-      this.onShareTap,
-      this.isLocation,
-      this.isMore,
-      this.isSearch,
-      this.controller,
-      this.onSearchTap,
-      this.onClearCallback,
-      this.searchHintText,
-      this.onLocationTap,
-      this.onMoreTap,
-      this.isTrimmedButton,
-      this.onTrimmedTap,
-      this.isSaveButton,
-      this.onSavedTap,
-      this.iClearButton,
-      this.onClearNotificationsTap,
-      this.isSettingButton,
-      this.isAddPlace,
-      this.onAddPlaceTap,
-      this.isEndJourney,
-      this.onEndJourneyTap,
-      this.titleColor,
-      this.isCancelButton,
-      this.onCancelTap,
-      this.isJobPopUpMenuButton,
-      this.isProfile,
-      this.isResumeCardButton,
-      this.isReloadContactButton,
-      this.onRefreshContact,
-      this.onProfileTap,
-      this.isPDFExport,
-      this.onPDFExportTap,
-      this.jobID,
-      this.jobStatus,
-      this.showRightTextButton = false,
-      this.rightTextButtonText,
-      this.rightTextButtonColor,
-      this.onRightTextButtonTap,
-      this.isShowCursor,
-      this.currentCity,
-      this.isGuestLogout,
-      this.buildCustomWidget,
-      // this.isAddProduct = false,
-      // this.isAddProductCategory = false,
-      this.bottomWidget,
-      this.isGoLiveWidget,
-      this.isFollowRefreshWidget,
-      this.isFollowRefresh = false,
-      this.isGoLive = false,
-      this.isInventoryPopUpMenu = false,
-      this.isStoreProfile,
-      this.isCartIconShow,
-      this.isCurrentAddress,
-      });
+  const CommonBackAppBar({
+    super.key,
+    this.title,
+    this.isLeading = true,
+    this.isFilter = false,
+    this.isNotification = false,
+    this.bellIconNotEmpty = false,
+    this.onNotificationTap,
+    this.onBackTap,
+    this.appBarColor,
+    this.isTextButton = false,
+    this.actionText,
+    this.actionTextColor,
+    this.isShareButton,
+    this.isLogout,
+    this.isDownloadButton,
+    this.isChangeToEditMode = false,
+    this.isQrCodeButton,
+    this.onQrCodeTap,
+    this.onShareTap,
+    this.isLocation,
+    this.isMore,
+    this.isSearch,
+    this.controller,
+    this.onSearchTap,
+    this.onClearCallback,
+    this.searchHintText,
+    this.onLocationTap,
+    this.onMoreTap,
+    this.isTrimmedButton,
+    this.onTrimmedTap,
+    this.isSaveButton,
+    this.onSavedTap,
+    this.iClearButton,
+    this.onClearNotificationsTap,
+    this.isSettingButton,
+    this.isAddPlace,
+    this.onAddPlaceTap,
+    this.isEndJourney,
+    this.onEndJourneyTap,
+    this.titleColor,
+    this.isCancelButton,
+    this.onCancelTap,
+    this.isJobPopUpMenuButton,
+    this.isProfile,
+    this.isResumeCardButton,
+    this.isReloadContactButton,
+    this.onRefreshContact,
+    this.onProfileTap,
+    this.isPDFExport,
+    this.onPDFExportTap,
+    this.jobID,
+    this.jobStatus,
+    this.showRightTextButton = false,
+    this.rightTextButtonText,
+    this.rightTextButtonColor,
+    this.onRightTextButtonTap,
+    this.isShowCursor,
+    this.currentCity,
+    this.isGuestLogout,
+    this.buildCustomWidget,
+    // this.isAddProduct = false,
+    // this.isAddProductCategory = false,
+    this.bottomWidget,
+    this.isGoLiveWidget,
+    this.isFollowRefreshWidget,
+    this.isFollowRefresh = false,
+    this.isGoLive = false,
+    this.isInventoryPopUpMenu = false,
+    this.isStoreProfile,
+    this.isCartIconShow,
+    this.isCurrentAddress,
+  });
 
   // final AppBar? appBar;
   final String? title;
@@ -209,7 +209,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                     imagePath: AppIconAssets.back_arrow,
                     height: SizeConfig.paddingL,
                     width: SizeConfig.paddingL,
-                    imgColor: Colors.black,
+                    imgColor:  Colors.black,
                   )),
 
             // if (isLeading ?? false) SizedBox(width: SizeConfig.paddingXSL),
@@ -422,8 +422,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                     onPressed: () async {
                       await showCommonDialog(
                           context: context,
-                          text: AppStrings
-                              .logoutConfirmationMessage,
+                          text: AppStrings.logoutConfirmationMessage,
                           confirmCallback: () async {
                             await SharedPreferenceUtils.clearPreference();
                             Navigator.of(context).pushNamedAndRemoveUntil(
@@ -658,64 +657,64 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
           Builder(
             builder: (context) => buildCustomWidget!(),
           ),
-
-        if(isCurrentAddress ?? false)
+        if (isCurrentAddress ?? false)
           Builder(
             builder: (context) => Expanded(
               child: Padding(
                 padding: EdgeInsets.only(left: SizeConfig.size15),
-                child: Row(
-                    children: [
-                      LocalAssets(
-                        imagePath: AppIconAssets.currentLocationIcon,
-                        height: SizeConfig.size24,
-                        width: SizeConfig.size24,
-                      ),
-                      SizedBox(width: SizeConfig.size10),
-                      CustomText(
-                        [
-                          if (LocationService.userCurrentAddress.length > 2 &&
-                              LocationService.userCurrentAddress[2].isNotEmpty)
-                            LocationService.userCurrentAddress[2], // locality
+                child: Row(children: [
+                  LocalAssets(
+                    imagePath: AppIconAssets.currentLocationIcon,
+                    height: SizeConfig.size24,
+                    width: SizeConfig.size24,
+                  ),
+                  SizedBox(width: SizeConfig.size10),
+                  CustomText(
+                    [
+                      if (LocationService.userCurrentAddress.length > 2 &&
+                          LocationService.userCurrentAddress[2].isNotEmpty)
+                        LocationService.userCurrentAddress[2],
+                      // locality
 
-                          if (LocationService.userCurrentAddress.length > 3 &&
-                              LocationService.userCurrentAddress[3].isNotEmpty)
-                            LocationService.userCurrentAddress[3], // administrativeArea
-                        ].join(', '),
-                        fontSize: SizeConfig.large,
-                        color: AppColors.primaryColor,
-                        fontWeight: FontWeight.w600,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ]
-                ),
+                      if (LocationService.userCurrentAddress.length > 3 &&
+                          LocationService.userCurrentAddress[3].isNotEmpty)
+                        LocationService.userCurrentAddress[3],
+                      // administrativeArea
+                    ].join(', '),
+                    fontSize: SizeConfig.large,
+                    color: AppColors.primaryColor,
+                    fontWeight: FontWeight.w600,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ]),
               ),
             ),
           ),
-
-        if(isCartIconShow ?? false)
+        if (isCartIconShow ?? false)
           Builder(
-            builder: (context) =>  InkWell(
+            builder: (context) => InkWell(
               onTap: () {
-                if(isBusinessUser()){
+                if (isBusinessUser()) {
                   final controller = Get.find<ViewBusinessDetailsController>();
 
-                  if((controller.businessProfileDetails?.data?.livePhotos ?? []).length < 3){
+                  if ((controller.businessProfileDetails?.data?.livePhotos ??
+                              [])
+                          .length <
+                      3) {
                     showLivePhotoDialog(
                       context: context,
                     );
-                  }else{
+                  } else {
                     Get.toNamed(RouteHelper.getInventoryScreenRoute());
-
                   }
-                }else{
+                } else {
                   final controller = Get.find<ViewPersonalDetailsController>();
 
                   if (controller
-                      .personalProfileDetails.value.isProfileCreated ==
+                          .personalProfileDetails.value.isProfileCreated ==
                       false) {
-                    Get.to(()=> CreateProfileScreen());
+                    Get.to(() => CreateProfileScreen());
                   } else {
                     Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
                   }

@@ -22,7 +22,7 @@ class BuildAllChannelsListWidget extends StatelessWidget {
         itemBuilder: (context, index) {
           final item = channelFeedController.allChannelDataList[index];
           return SizedBox(
-            width: 100,
+            width: 80,
             child: LogoNameWidget(
               logoUrl: item.logoUrl ?? "",
               channelName: item.name ?? "",

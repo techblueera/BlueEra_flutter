@@ -31,6 +31,7 @@ class _VideoListScreenState extends State<VideoListScreen> {
   @override
   void initState() {
     super.initState();
+    channelFeedController.allVideoChannelDataList.clear();
     apiCalling(isLoadMore: false);
     // Listener for Pagination
     _scrollController.addListener(() {
@@ -79,7 +80,7 @@ class _VideoListScreenState extends State<VideoListScreen> {
                     channelFeedController.allVideoChannelDataList[index];
                 return InkWell(
                     onTap: () {
-                      // Get.to(() => OttVideoPlayerScreen());
+                      Get.to(() => OttVideoPlayerScreen(videoItems: video,));
                     },
                     child: _buildVideoItem(video));
               },

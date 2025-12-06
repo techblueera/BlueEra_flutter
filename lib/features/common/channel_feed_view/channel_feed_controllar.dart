@@ -247,8 +247,8 @@ class ChannelFeedController extends GetxController {
 
     if (!loadMore) _pageAllVideoChannel = 1;
     final fetchedData = await ChannelRepo().getAllVideoChannelRepo(
-        // page: _pageAllVideoChannel, limit: 20, channelID: channelId); // implement your API fetch
-        page: _pageAllVideoChannel, limit: 20, channelID: "68ea37d8c86a4e2c382e2a4d"); // implement your API fetch
+        page: _pageAllVideoChannel, limit: 20, channelID: channelId); // implement your API fetch
+        // page: _pageAllVideoChannel, limit: 20, channelID: "68ea37d8c86a4e2c382e2a4d"); // implement your API fetch
     final data = fetchedData.response?.data;
 
     late final Map<String, dynamic> json;

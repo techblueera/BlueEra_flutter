@@ -58,7 +58,6 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   ///SET YOUR API CALLING ENV.
   await projectKeys(environmentType: AppConstants.prod);
   await firebaseInitializeApp();

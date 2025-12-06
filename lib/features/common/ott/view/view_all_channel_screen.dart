@@ -52,7 +52,7 @@ class _ViewAllChannelScreenState extends State<ViewAllChannelScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CommonBackAppBar(
-        title: "All Join Channel",
+        title: "All Channels",
       ),
       body: Obx(() {
         return RefreshIndicator(
@@ -69,10 +69,10 @@ class _ViewAllChannelScreenState extends State<ViewAllChannelScreen> {
               // Display 3 items per row (Standard for Mobile)
               crossAxisSpacing: 15,
               // Horizontal space between items
-              mainAxisSpacing: 20,
+              mainAxisSpacing: 10,
               // Vertical space between items
               childAspectRatio:
-                  1, // Adjust this ratio to fit your Text height (Width / Height)
+                 0.9, // Adjust this ratio to fit your Text height (Width / Height)
             ),
             // If loading more, add +1 to count for the spinner
             itemCount: channelFeedController.allChannelDataList.length +

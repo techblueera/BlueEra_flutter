@@ -18,29 +18,26 @@ class ChannelCardWidget extends StatelessWidget {
     return Card(
       elevation: 0,
       child: Padding(
-        padding: const EdgeInsets.all(0),
+        padding: const EdgeInsets.all(10),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
-              InkWell(
-                onTap: () {
-                  navigatePushTo(
-                    context,
-                    ImageViewScreen(
-                      appBarTitle: AppStrings.imageViewer,
-                      // imageUrls: [post?.author.profileImage ?? ''],
-                      imageUrls: [channelModel.logoUrl ?? ""],
-                      initialIndex: 0,
-                    ),
-                  );
-                },
-                child: CachedAvatarWidget(
-                    imageUrl: channelModel.logoUrl,
-                    size: 54,
-                    borderRadius: 25),
-              ),
+            InkWell(
+              onTap: () {
+                navigatePushTo(
+                  context,
+                  ImageViewScreen(
+                    appBarTitle: AppStrings.imageViewer,
+                    // imageUrls: [post?.author.profileImage ?? ''],
+                    imageUrls: [channelModel.logoUrl ?? ""],
+                    initialIndex: 0,
+                  ),
+                );
+              },
+              child: CachedAvatarWidget(
+                  imageUrl: channelModel.logoUrl, size: 54, borderRadius: 25),
+            ),
             const SizedBox(width: 12),
 
             // Text content
@@ -58,16 +55,14 @@ class ChannelCardWidget extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   CustomText(
-                  channelModel.latestPost?.subTitle,
-                      color: AppColors.secondaryTextColor,
-                      fontWeight: FontWeight.w700,
-                      fontFamily: AppConstants.OpenSans,
-                      fontSize: SizeConfig.medium,
+                    channelModel.latestPost?.subTitle,
+                    color: AppColors.secondaryTextColor,
+                    fontWeight: FontWeight.w700,
+                    fontFamily: AppConstants.OpenSans,
+                    fontSize: SizeConfig.medium,
                     overflow: TextOverflow.ellipsis,
-
                     maxLines: 2,
                   ),
-
                 ],
               ),
             ),
@@ -75,7 +70,7 @@ class ChannelCardWidget extends StatelessWidget {
 
             // Trailing section (time, badge, link)
             Padding(
-              padding:  EdgeInsets.only(right: 5),
+              padding: EdgeInsets.only(right: 5),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
