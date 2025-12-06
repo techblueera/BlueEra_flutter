@@ -48,7 +48,6 @@ class _HomeScreenState extends State<HomeScreen> {
     AppStrings.channel,
     AppStrings.tab_ott,
     AppStrings.tab_saved,
-
   ];
   int selectedIndex = 0;
   final TextEditingController searchController = TextEditingController();
@@ -226,12 +225,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   duration: const Duration(milliseconds: 400),
                   curve: Curves.easeInOut,
                   padding: EdgeInsets.only(
-                      top: (selectedIndex == 2
-                          ? _headerHeight *
-                                  (1 -
-                                      homeScreenController.headerOffset.value) +
-                              SizeConfig.size30
-                          : _headerHeight *
+                      top: ( _headerHeight *
                               (1 - homeScreenController.headerOffset.value))),
                   child: PageView(
                     controller: _pageController,
@@ -254,9 +248,18 @@ class _HomeScreenState extends State<HomeScreen> {
                                 headerHeight: _headerHeight,
                                 isInParentScroll: false,
                               ),
-                            if (selectedIndex == 1) ChannelFeedScreen(),
-                      if (selectedIndex == 2) OttScreen(),
-
+                            if (selectedIndex == 1)
+                              ChannelFeedScreen(
+                                headerHeight: _headerHeight,
+                                onHeaderVisibilityChanged:
+                                    _toggleAppBarAndBottomNav,
+                              ),
+                            if (selectedIndex == 2)
+                              OttScreen(
+                                headerHeight: _headerHeight,
+                                onHeaderVisibilityChanged:
+                                    _toggleAppBarAndBottomNav,
+                              ),
                             if (selectedIndex == 3)
                               SavedFeedScreen(
                                   onHeaderVisibilityChanged:
@@ -279,9 +282,18 @@ class _HomeScreenState extends State<HomeScreen> {
                                 headerHeight: _headerHeight,
                                 isInParentScroll: false,
                               ),
-                            if (selectedIndex == 1) ChannelFeedScreen(),
-                      if (selectedIndex == 2) OttScreen(),
-
+                            if (selectedIndex == 1)
+                              ChannelFeedScreen(
+                                headerHeight: _headerHeight,
+                                onHeaderVisibilityChanged:
+                                    _toggleAppBarAndBottomNav,
+                              ),
+                            if (selectedIndex == 2)
+                              OttScreen(
+                                headerHeight: _headerHeight,
+                                onHeaderVisibilityChanged:
+                                    _toggleAppBarAndBottomNav,
+                              ),
                             if (selectedIndex == 3)
                               SavedFeedScreen(
                                   onHeaderVisibilityChanged:
