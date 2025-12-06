@@ -51,7 +51,7 @@ class _BusinessAllProductCardState extends State<BusinessAllProductCard> {
         final totalHorizontalSpacing = (crossAxisCount - 1) * crossSpacing;
         final itemWidth = (constraints.maxWidth - totalHorizontalSpacing) / crossAxisCount;
 
-        final approximateItemHeight = SizeConfig.size290;
+        final approximateItemHeight = SizeConfig.size300;
 
         final childAspectRatio = itemWidth / approximateItemHeight;
 
@@ -212,6 +212,42 @@ class _BusinessAllProductCardState extends State<BusinessAllProductCard> {
                         color: Colors.grey,
                       ),
 
+                      // InkWell(
+                      //   borderRadius: BorderRadius.vertical(bottom: Radius.circular(10.0)),
+                      //   onTap: () async {
+                      //     final currentProduct = widget.allProducts[_currentIndex];
+                      //     await VisitingCardHelper().shareVisitingCard(
+                      //         _cardKey[index],
+                      //         productId: currentProduct.product.details?.id
+                      //     );
+                      //   },
+                      //   child: Padding(
+                      //     padding: EdgeInsets.symmetric(
+                      //         horizontal: SizeConfig.size8,
+                      //         vertical: SizeConfig.size8,
+                      //     ),
+                      //     child: FittedBox(
+                      //       fit: BoxFit.scaleDown,
+                      //       child: Row(
+                      //         children: [
+                      //           CustomText(
+                      //               AppStrings.shareCardToSocialMediaGrowBusiness,
+                      //               color: AppColors.secondaryTextColor,
+                      //               fontWeight: FontWeight.w400,
+                      //               fontSize: SizeConfig.small,
+                      //               fontFamily: AppConstants.OpenSans
+                      //           ),
+                      //           SizedBox(width: SizeConfig.size8),
+                      //           LocalAssets(
+                      //               imagePath: AppIconAssets.share_bold,
+                      //               imgColor: AppColors.primaryColor
+                      //           ),
+                      //         ],
+                      //       ),
+                      //     ),
+                      //   ),
+                      // ),
+
                       InkWell(
                         borderRadius: BorderRadius.vertical(bottom: Radius.circular(10.0)),
                         onTap: () async {
@@ -221,32 +257,34 @@ class _BusinessAllProductCardState extends State<BusinessAllProductCard> {
                               productId: currentProduct.product.details?.id
                           );
                         },
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(
+                        child: Container(
+                          color: AppColors.white,
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(
                               horizontal: SizeConfig.size8,
                               vertical: SizeConfig.size8,
-                          ),
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
+                            ),
                             child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                CustomText(
-                                    AppStrings.shareCardToSocialMediaGrowBusiness,
-                                    color: AppColors.secondaryTextColor,
-                                    fontWeight: FontWeight.w400,
-                                    fontSize: SizeConfig.small,
-                                    fontFamily: AppConstants.OpenSans
-                                ),
-                                SizedBox(width: SizeConfig.size8),
                                 LocalAssets(
                                     imagePath: AppIconAssets.share_bold,
                                     imgColor: AppColors.primaryColor
+                                ),
+                                SizedBox(width: SizeConfig.size8),
+                                CustomText(
+                                    AppStrings.share,
+                                    color: AppColors.primaryColor,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: SizeConfig.medium,
+                                    fontFamily: AppConstants.OpenSans
                                 ),
                               ],
                             ),
                           ),
                         ),
                       ),
+
                     ],
                   ),
 

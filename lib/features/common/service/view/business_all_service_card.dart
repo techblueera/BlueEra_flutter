@@ -293,31 +293,68 @@ class _BusinessAllServiceCardState extends State<BusinessAllServiceCard> {
                                 serviceId: currentService.id
                             );
                           },
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: SizeConfig.size8,
-                              vertical: SizeConfig.size8,
-                            ),
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
+                          child: Container(
+                            color: AppColors.white,
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: SizeConfig.size8,
+                                vertical: SizeConfig.size8,
+                              ),
                               child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  CustomText(
-                                      AppStrings.shareCardToSocialMediaGrowBusiness,
-                                      color: AppColors.secondaryTextColor,
-                                      fontWeight: FontWeight.w400,
-                                      fontSize: SizeConfig.small,
-                                      fontFamily: AppConstants.OpenSans),
-                                  SizedBox(width: SizeConfig.size8),
                                   LocalAssets(
                                       imagePath: AppIconAssets.share_bold,
                                       imgColor: AppColors.primaryColor
+                                  ),
+                                  SizedBox(width: SizeConfig.size8),
+                                  CustomText(
+                                      AppStrings.share,
+                                      color: AppColors.primaryColor,
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: SizeConfig.medium,
+                                      fontFamily: AppConstants.OpenSans
                                   ),
                                 ],
                               ),
                             ),
                           ),
                         ),
+
+                        // InkWell(
+                        //   borderRadius: BorderRadius.vertical(bottom: Radius.circular(10.0)),
+                        //   onTap: () async {
+                        //     final currentService = _allServices[index];
+                        //     await VisitingCardHelper().shareVisitingCard(
+                        //         _cardKey[index],
+                        //         serviceId: currentService.id
+                        //     );
+                        //   },
+                        //   child: Padding(
+                        //     padding: EdgeInsets.symmetric(
+                        //       horizontal: SizeConfig.size8,
+                        //       vertical: SizeConfig.size8,
+                        //     ),
+                        //     child: FittedBox(
+                        //       fit: BoxFit.scaleDown,
+                        //       child: Row(
+                        //         children: [
+                        //           CustomText(
+                        //               AppStrings.shareCardToSocialMediaGrowBusiness,
+                        //               color: AppColors.secondaryTextColor,
+                        //               fontWeight: FontWeight.w400,
+                        //               fontSize: SizeConfig.small,
+                        //               fontFamily: AppConstants.OpenSans),
+                        //           SizedBox(width: SizeConfig.size8),
+                        //           LocalAssets(
+                        //               imagePath: AppIconAssets.share_bold,
+                        //               imgColor: AppColors.primaryColor
+                        //           ),
+                        //         ],
+                        //       ),
+                        //     ),
+                        //   ),
+                        // ),
                       ],
                     )
 

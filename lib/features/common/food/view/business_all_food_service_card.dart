@@ -1,4 +1,3 @@
-import 'dart:math' hide log;
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -8,7 +7,6 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/food/controller/food_upload_controller.dart';
 import 'package:BlueEra/features/common/food/model/get_food_details_model.dart';
-import 'package:BlueEra/features/common/food/view/sharing_business_food_service_card.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_horizontal_divider.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -140,7 +138,7 @@ class _BusinessAllFoodServiceCardState extends State<BusinessAllFoodServiceCard>
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 6, vertical: 2),
                                     decoration: BoxDecoration(
-                                      color: controller.getFoodTypeColor(foodDetailsData?.vegType),
+                                      color: controller.getFoodTypeColor(foodDetailsData.vegType),
                                       borderRadius: BorderRadius.circular(4),
                                     ),
                                     child: CustomText(
@@ -234,7 +232,7 @@ class _BusinessAllFoodServiceCardState extends State<BusinessAllFoodServiceCard>
                       CommonHorizontalDivider(
                         color: Colors.grey,
                       ),
-            
+
                       InkWell(
                         borderRadius: BorderRadius.vertical(bottom: Radius.circular(10.0)),
                         onTap: () async {
@@ -244,31 +242,68 @@ class _BusinessAllFoodServiceCardState extends State<BusinessAllFoodServiceCard>
                               serviceId: currentFoodServices.id
                           );
                         },
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: SizeConfig.size8,
-                            vertical: SizeConfig.size8,
-                          ),
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
+                        child: Container(
+                          color: AppColors.white,
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: SizeConfig.size8,
+                              vertical: SizeConfig.size8,
+                            ),
                             child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                CustomText(
-                                    AppStrings.shareCardToSocialMediaGrowBusiness,
-                                    color: AppColors.secondaryTextColor,
-                                    fontWeight: FontWeight.w400,
-                                    fontSize: SizeConfig.small,
-                                    fontFamily: AppConstants.OpenSans),
-                                SizedBox(width: SizeConfig.size8),
                                 LocalAssets(
                                     imagePath: AppIconAssets.share_bold,
                                     imgColor: AppColors.primaryColor
+                                ),
+                                SizedBox(width: SizeConfig.size8),
+                                CustomText(
+                                    AppStrings.share,
+                                    color: AppColors.primaryColor,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: SizeConfig.medium,
+                                    fontFamily: AppConstants.OpenSans
                                 ),
                               ],
                             ),
                           ),
                         ),
                       ),
+
+                      // InkWell(
+                      //   borderRadius: BorderRadius.vertical(bottom: Radius.circular(10.0)),
+                      //   onTap: () async {
+                      //     final currentFoodServices = widget.allFoodServices[index];
+                      //     await VisitingCardHelper().shareVisitingCard(
+                      //         _cardKey[index],
+                      //         serviceId: currentFoodServices.id
+                      //     );
+                      //   },
+                      //   child: Padding(
+                      //     padding: EdgeInsets.symmetric(
+                      //       horizontal: SizeConfig.size8,
+                      //       vertical: SizeConfig.size8,
+                      //     ),
+                      //     child: FittedBox(
+                      //       fit: BoxFit.scaleDown,
+                      //       child: Row(
+                      //         children: [
+                      //           CustomText(
+                      //               AppStrings.shareCardToSocialMediaGrowBusiness,
+                      //               color: AppColors.secondaryTextColor,
+                      //               fontWeight: FontWeight.w400,
+                      //               fontSize: SizeConfig.small,
+                      //               fontFamily: AppConstants.OpenSans),
+                      //           SizedBox(width: SizeConfig.size8),
+                      //           LocalAssets(
+                      //               imagePath: AppIconAssets.share_bold,
+                      //               imgColor: AppColors.primaryColor
+                      //           ),
+                      //         ],
+                      //       ),
+                      //     ),
+                      //   ),
+                      // ),
                     ],
                   )
             
