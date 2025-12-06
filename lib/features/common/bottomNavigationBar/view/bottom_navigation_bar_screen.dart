@@ -52,7 +52,9 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   int chatNotificationCount = 0;
   final ValueNotifier<bool> bottomBarVisibleNotifier = ValueNotifier(true);
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  final chatViewController = Get.put(ChatViewController());
+  final chatViewController = Get.isRegistered<ChatViewController>()
+      ? Get.find<ChatViewController>()
+      : Get.put(ChatViewController());
   final bottomBarController = Get.put(BottomBarController());
   final moreCardsScreenController = Get.put(MoreCardsScreenController());
   final viewPersonalDetailsController =

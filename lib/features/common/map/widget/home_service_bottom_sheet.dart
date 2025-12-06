@@ -301,8 +301,9 @@ class _HomeServicesBottomSheetState extends State<HomeServicesBottomSheet> {
                           child: (serviceData.id != userId)
                               ? CommonIconContainerButton(
                                   onTap: () async {
-                                    final chatViewController =
-                                        Get.put(ChatViewController());
+                                    final chatViewController = Get.isRegistered<ChatViewController>()
+                                        ? Get.find<ChatViewController>()
+                                        : Get.put(ChatViewController());
                                     await chatViewController
                                         .checkChatConnection(
                                             {ApiKeys.user_id: serviceData.id});

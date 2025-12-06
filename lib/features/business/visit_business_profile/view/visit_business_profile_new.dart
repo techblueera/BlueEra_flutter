@@ -49,7 +49,9 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
   late TabController _tabController;
   final controller = Get.put(ViewBusinessDetailsController());
   final controllerVisit = Get.put(VisitProfileController());
-  final chatViewController = Get.put(ChatViewController());
+  final chatViewController = Get.isRegistered<ChatViewController>()
+      ? Get.find<ChatViewController>()
+      : Get.put(ChatViewController());
 
   late VisitProfileController visitProfileController;
 

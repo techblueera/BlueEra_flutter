@@ -222,6 +222,103 @@ class ChatViewController extends GetxController {
     if (socketConnected.value == false) {
       await chatSocket.connectToSocket();
       socketConnected.value = true;
+      chatSocket.listenEvent(ChatEmitEvents.ChatList, (data) async {
+        final parsedData = GetChatListModel.fromJson(data);
+        loadChatListWithType(chatListModel: parsedData);
+        getPersonalFilteredChatListModel?.value = parsedData;
+        await localStorageHelper.saveChatList(
+            parsedData.chatList ?? [], parsedData.type ?? '');
+      });
+
+      chatSocket.listenEvent(ChatEmitEvents.messageViewed, (data) {
+        getMediaMsgCommentsModel?.value = GetMediaMsgCommentsModel.fromJson(data);
+      });
+      chatSocket.listenEvent(ChatEmitEvents.messageReceived, (data) async {
+        final parsedData = GetListOfMessageData.fromJson(data);
+
+
+        if (parsedData.messages != null) {
+          for (var message in parsedData.messages!) {
+            if (message.myMessage == null) {
+              final currentUserId =
+                  userId; // Global variable from shared_preference_utils.dart
+              final senderId = message.senderId;
+              message.myMessage = currentUserId == senderId;
+            }
+          }
+        }
+
+        if (parsedData.messages?.isNotEmpty ?? false) {
+          final conversationId = parsedData.messages?.first.conversationId ?? '';
+          if (parsedData.messages != null && conversationId.isNotEmpty) {
+            getListOfMessageResponse.value =
+                ApiResponse.complete(parsedData.messages);
+            scrollDown();
+            Future.delayed(Duration.zero, () {
+              localStorageHelper.saveMessagesByConversationId(
+                  userOpenConversationId.value, parsedData.messages!);
+            });
+          } else {
+            getListOfMessageResponse.value =
+                ApiResponse.complete(parsedData.messages);
+          }
+        } else {
+          getListOfMessageResponse.value =
+              ApiResponse.complete(parsedData.messages);
+        }
+      });
+      chatSocket.listenEvent(ChatEmitEvents.newMessageReceived, (data) {
+        Messages? message;
+
+        if (data['message'] != null) {
+          message = Messages.fromJson(data['message']);
+        } else {
+          message = null;
+        }
+        if (message?.myMessage == null) {
+          final currentUserId =
+              userId; // Global variable from shared_preference_utils.dart
+          final senderId = message?.senderId;
+          message?.myMessage = currentUserId == senderId;
+        }
+
+        if (message?.conversation?.type == AppConstants.personal_Chat_Type) {
+          emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type:  AppConstants.personal_Chat_Type}, true);
+        } else {
+          emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type:  AppConstants.business_Chat_Type}, true);
+        }
+        String chekedConversationId = userOpenConversationId.value;
+        if (chekedConversationId == message?.conversationId) {
+          getListOfMessageData?.add(message??Messages()); // Add message to UI
+          getListOfMessageResponse.value =
+              ApiResponse.complete(getListOfMessageData);
+          saveSingleMessageToLocal(message?.conversationId ?? '', message??Messages());
+          scrollDown();
+        }
+      });
+      chatSocket.listenEvent(ChatEmitEvents.isOnLine, (data) {
+        if (userOpenUserId.value == data['user_id']) {
+          if (data['is_online']) {
+            userOnlineStatus.value = "Online";
+          }
+        } else {
+          userOnlineStatus.value = "Offline";
+        }
+      });
+      chatSocket.listenEvent(ChatEmitEvents.messageStatusUpdate, (data) {
+        if (data['conversation_id'] == userOpenConversationId.value) {
+          readMessageStatus.value = data['status'];
+        }
+      });
+      chatSocket.listenEvent(ChatEmitEvents.update_data, (data) {
+        emitEvent(ChatEmitEvents.messageReceived, {
+          ApiKeys.conversation_id: data[ApiKeys.conversation_id],
+          ApiKeys.page: 1,
+          ApiKeys.is_online_user: userOpenUserId.value,
+          ApiKeys.per_page_message: 30,
+        });
+      });
+      socketConnectedCalled.value = true;
     }
     openedConversation.value = await localStorageHelper.getConversation();
     await loadAllChatListFromLocal();
@@ -230,103 +327,7 @@ class ChatViewController extends GetxController {
     //   await loadChatListFromLocal(AppConstants.personal_Chat_Type);
     // }
 
-    chatSocket.listenEvent(ChatEmitEvents.ChatList, (data) async {
-      final parsedData = GetChatListModel.fromJson(data);
-      loadChatListWithType(chatListModel: parsedData);
-      getPersonalFilteredChatListModel?.value = parsedData;
-      await localStorageHelper.saveChatList(
-          parsedData.chatList ?? [], parsedData.type ?? '');
-    });
 
-    chatSocket.listenEvent(ChatEmitEvents.messageViewed, (data) {
-      getMediaMsgCommentsModel?.value = GetMediaMsgCommentsModel.fromJson(data);
-    });
-    chatSocket.listenEvent(ChatEmitEvents.messageReceived, (data) async {
-      final parsedData = GetListOfMessageData.fromJson(data);
-
-
-      if (parsedData.messages != null) {
-        for (var message in parsedData.messages!) {
-          if (message.myMessage == null) {
-            final currentUserId =
-                userId; // Global variable from shared_preference_utils.dart
-            final senderId = message.senderId;
-            message.myMessage = currentUserId == senderId;
-          }
-        }
-      }
-
-      if (parsedData.messages?.isNotEmpty ?? false) {
-        final conversationId = parsedData.messages?.first.conversationId ?? '';
-        if (parsedData.messages != null && conversationId.isNotEmpty) {
-          getListOfMessageResponse.value =
-              ApiResponse.complete(parsedData.messages);
-          scrollDown();
-          Future.delayed(Duration.zero, () {
-            localStorageHelper.saveMessagesByConversationId(
-                userOpenConversationId.value, parsedData.messages!);
-          });
-        } else {
-          getListOfMessageResponse.value =
-              ApiResponse.complete(parsedData.messages);
-        }
-      } else {
-        getListOfMessageResponse.value =
-            ApiResponse.complete(parsedData.messages);
-      }
-    });
-    chatSocket.listenEvent(ChatEmitEvents.newMessageReceived, (data) {
-      Messages? message;
-
-      if (data['message'] != null) {
-        message = Messages.fromJson(data['message']);
-      } else {
-        message = null;
-      }
-      if (message?.myMessage == null) {
-        final currentUserId =
-            userId; // Global variable from shared_preference_utils.dart
-        final senderId = message?.senderId;
-        message?.myMessage = currentUserId == senderId;
-      }
-
-      if (message?.conversation?.type == AppConstants.personal_Chat_Type) {
-        emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type:  AppConstants.personal_Chat_Type}, true);
-      } else {
-        emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type:  AppConstants.business_Chat_Type}, true);
-      }
-      String chekedConversationId = userOpenConversationId.value;
-      if (chekedConversationId == message?.conversationId) {
-        getListOfMessageData?.add(message??Messages()); // Add message to UI
-        getListOfMessageResponse.value =
-            ApiResponse.complete(getListOfMessageData);
-        saveSingleMessageToLocal(message?.conversationId ?? '', message??Messages());
-        scrollDown();
-      }
-    });
-    chatSocket.listenEvent(ChatEmitEvents.isOnLine, (data) {
-      if (userOpenUserId.value == data['user_id']) {
-        if (data['is_online']) {
-          userOnlineStatus.value = "Online";
-        }
-      } else {
-        userOnlineStatus.value = "Offline";
-      }
-    });
-    chatSocket.listenEvent(ChatEmitEvents.messageStatusUpdate, (data) {
-      if (data['conversation_id'] == userOpenConversationId.value) {
-        readMessageStatus.value = data['status'];
-      }
-    });
-    chatSocket.listenEvent(ChatEmitEvents.update_data, (data) {
-      emitEvent(ChatEmitEvents.messageReceived, {
-        ApiKeys.conversation_id: data[ApiKeys.conversation_id],
-        ApiKeys.page: 1,
-        ApiKeys.is_online_user: userOpenUserId.value,
-        ApiKeys.per_page_message: 30,
-      });
-    });
-    socketConnectedCalled.value = true;
     // }
   }
 
@@ -664,15 +665,16 @@ class ChatViewController extends GetxController {
   Future<void> getLocalConversation(String conversationId, userId,
       [String? otherUserId,String? name]) async {
     // final connectivityResult = await NetworkUtils.isConnected();
-    getListOfMessageResponse.value = ApiResponse.initial('Initial');
+    // getListOfMessageResponse.value = ApiResponse.initial('Initial');
     // if (connectivityResult) {
-    List<Messages> chatList = await loadOfflineMessages(conversationId);
+    // List<Messages> chatList =
+     loadOfflineMessages(conversationId);
     // }
     // else if (openedConversation.contains(conversationId)) {
     //   loadOfflineMessages(conversationId);
     // }
     // else {
-    if(chatList.isEmpty){
+    // if(chatList.isEmpty){
       emitEvent(
           ChatEmitEvents.messageReceived,
           (otherUserId != null)
@@ -692,7 +694,7 @@ class ChatViewController extends GetxController {
             if(name!=null&&name=="BlueEra Orders")
               ApiKeys.orders_conversation:true
           });
-    }
+    // }
 
     // }
   }

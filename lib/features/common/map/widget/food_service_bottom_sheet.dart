@@ -316,8 +316,9 @@ class _FoodServicesBottomSheetState extends State<FoodServicesBottomSheet> {
                         Expanded(
                           child: CommonIconContainerButton(
                             onTap: () async {
-                              final chatViewController =
-                                  Get.put(ChatViewController());
+                              final chatViewController = Get.isRegistered<ChatViewController>()
+                                  ? Get.find<ChatViewController>()
+                                  : Get.put(ChatViewController());
                               await chatViewController.checkChatConnection(
                                   {ApiKeys.user_id: serviceData.id});
 
