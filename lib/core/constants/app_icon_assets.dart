@@ -526,5 +526,6 @@ class AppIconAssets {
 
   static String warningOutlineIcon = "${iconPath}warning_outline_icon.svg";
   static String blueStarsIcon = "${iconPath}blue_stars_icon.svg";
+  static String removeOutlinedIcon = "${iconPath}remove_outlined_icon.svg";
 
 }

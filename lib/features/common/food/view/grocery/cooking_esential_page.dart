@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -46,45 +47,48 @@ class _CookingEssentialsPageState extends State<CookingEssentialsPage> {
     List<String> tabs = controller.categoryTabs[currentCategory]!;
     List<GroceryModel> groceries = controller. categoryProducts[currentCategory]!;
 
-    return Obx((()=> Scaffold(
+    return Scaffold(
       appBar: const CommonBackAppBar(
         title: "Cooking Essentials",
         isShadowShow: false,
         isGrocery: true,
       ),
-      bottomNavigationBar: controller.selectedGroceries.isEmpty
-          ? null
-          : Material(
-        elevation: 8.0,
-        child: Container(
-          color: AppColors.white,
-          child: Padding(
-            padding: EdgeInsets.symmetric(
-                horizontal: SizeConfig.size15,
-                vertical: SizeConfig.size15),
-            child: SafeArea(
-              child: CustomBtn(
-                onTap: () async {
-                  Get.to(()=> AddGroceryScreen());
-                },
-                isValidate: true,
-                radius: SizeConfig.size8,
-                title: AppStrings.next,
-                // isLoading: authController.isAddBusinessUserLoading.value
+      bottomNavigationBar:
+      Obx((){
+        if(controller.selectedGroceries.isEmpty)
+            return SizedBox();
+        else
+          return Material(
+          elevation: 8.0,
+          child: Container(
+            color: AppColors.white,
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                  horizontal: SizeConfig.size15,
+                  vertical: SizeConfig.size15),
+              child: SafeArea(
+                child: CustomBtn(
+                  onTap: () async {
+                    Get.to(()=> AddGroceryScreen());
+                  },
+                  isValidate: true,
+                  radius: SizeConfig.size8,
+                  title: AppStrings.next,
+                  // isLoading: authController.isAddBusinessUserLoading.value
+                ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      }),
+
       body: Row(
         children: [
           leftCategoryList(),
           Expanded(child: rightContent(tabs, groceries)),
         ],
        ),
-      )
-     )
-    );
+      );
   }
 
   Widget leftCategoryList() {
@@ -94,15 +98,16 @@ class _CookingEssentialsPageState extends State<CookingEssentialsPage> {
       child: ListView.builder(
         itemCount: controller.categories.length,
         itemBuilder: (context, index) {
-          return _categoryItem(
+          return Obx(()=> _categoryItem(
             controller.leftIcons[index],
             controller.categories[index],
             selected: controller.selectedIndex.value == index,
             onTap: () {
-                controller.selectedIndex.value = index;
-                controller.selectedTabIndex.value = 0;
+              controller.selectedIndex.value = index;
+              controller.selectedTabIndex.value = 0;
+              log('new selection ${controller.selectedIndex.value}');
             },
-          );
+          ));
         },
       ),
     );
@@ -164,7 +169,7 @@ class _CookingEssentialsPageState extends State<CookingEssentialsPage> {
   }
 
   Widget rightContent(List<String> tabs, List<GroceryModel> products) {
-    return Padding(
+    return Obx(()=> Padding(
       padding: const EdgeInsets.all(8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -263,7 +268,7 @@ class _CookingEssentialsPageState extends State<CookingEssentialsPage> {
           )
         ],
       ),
-    );
+    ));
   }
 
   Widget groceryCard(GroceryModel p) {
@@ -329,9 +334,9 @@ class _CookingEssentialsPageState extends State<CookingEssentialsPage> {
                 children: [
                   CustomText(
                     "${p.name}",
-                    fontSize: 10,
+                    fontSize: SizeConfig.small,
                     maxLines: 2,
-                    color: Colors.black,
+                    color: AppColors.mainTextColor,
                     overflow: TextOverflow.ellipsis,
                     fontWeight: FontWeight.w600,
                   ),

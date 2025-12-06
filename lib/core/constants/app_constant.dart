@@ -138,6 +138,7 @@ class AppConstants {
   static const IN_PROGRESS = "In Progress";
   static const INTERVIEW = "Interview";
   static const DELETE = "DELETE";
+  static const REMOVE = "REMOVE";
 
   static const Applied = "Applied";
   static const Screening = "Screening";
@@ -2319,7 +2320,7 @@ final List<IndividualProfileCategory> individualSelfEmployedList = [
 List<PopupMenuEntry<String>> groceryPopupMenuItems() {
   final List<Map<String, String>> items = [
     {'id': AppConstants.EDIT, 'title': 'Edit Product', 'icon': AppIconAssets.pen_line},
-    {'id': AppConstants.DELETE, 'title': 'Delete From List', 'icon': AppIconAssets.deleteIcon},
+    {'id': AppConstants.REMOVE, 'title': 'Remove From List', 'icon': AppIconAssets.removeOutlinedIcon},
   ];
 
   final List<PopupMenuEntry<String>> entries = [];

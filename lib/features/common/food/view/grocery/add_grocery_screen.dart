@@ -58,7 +58,7 @@ class _AddGroceryScreenState extends State<AddGroceryScreen> {
                 crossAxisCount: 2,
                 crossAxisSpacing: 10,
                 mainAxisSpacing: 10,
-                childAspectRatio: 0.9,
+                childAspectRatio: 0.86,
               ),
               itemBuilder: (_, i) =>
                   groceryCard(controller.selectedGroceries[i], i),
@@ -103,9 +103,9 @@ class _AddGroceryScreenState extends State<AddGroceryScreen> {
               children: [
                 CustomText(
                   "${p.name}",
-                  fontSize: 10,
+                  fontSize: SizeConfig.small,
                   maxLines: 2,
-                  color: Colors.black,
+                  color: AppColors.mainTextColor,
                   overflow: TextOverflow.ellipsis,
                   fontWeight: FontWeight.w600,
                 ),
@@ -184,7 +184,7 @@ class _AddGroceryScreenState extends State<AddGroceryScreen> {
       onSelected: (value) async {
         if (value == AppConstants.EDIT) {
           Get.back(result: true);
-        } else if (value == AppConstants.DELETE) {
+        } else if (value == AppConstants.REMOVE) {
           controller.selectedGroceries.removeAt(i);
           if (controller.selectedGroceries.length == 0) {
             Get.back(result: true);
@@ -225,8 +225,6 @@ class _AddGroceryScreenState extends State<AddGroceryScreen> {
           ],
           borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
           padding: EdgeInsets.only(
-              left: SizeConfig.size12,
-              right: SizeConfig.size12,
               top: SizeConfig.size10,
               bottom: kToolbarHeight),
           builder: (scrollController) {
@@ -247,26 +245,31 @@ class _AddGroceryScreenState extends State<AddGroceryScreen> {
                     ),
                   ),
 
-                  Row(
-                    children: [
-                      Expanded(
-                        child: CustomText(
-                          "Edit Product",
-                          fontSize: SizeConfig.medium,
-                          color: AppColors.mainTextColor,
-                          fontWeight: FontWeight.w600,
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: SizeConfig.size12,
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: CustomText(
+                            "Edit Product",
+                            fontSize: SizeConfig.medium,
+                            color: AppColors.mainTextColor,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                      ),
-                      SizedBox(width: SizeConfig.size8),
-                      IconButton(
-                        onPressed: () => Get.back(),
-                        icon: Icon(
-                          Icons.close,
-                          size: SizeConfig.size20,
-                          color: AppColors.black,
+                        SizedBox(width: SizeConfig.size8),
+                        IconButton(
+                          onPressed: () => Get.back(),
+                          icon: Icon(
+                            Icons.close,
+                            size: SizeConfig.size20,
+                            color: AppColors.black,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                   SizedBox(height: SizeConfig.size10),
                   ListView.separated(
@@ -274,152 +277,159 @@ class _AddGroceryScreenState extends State<AddGroceryScreen> {
                     itemCount: controller.selectedGroceries.length,
                     physics: NeverScrollableScrollPhysics(),
                     shrinkWrap: true,
-                    padding: EdgeInsets.only(bottom: 10),
+                    padding: EdgeInsets.only(
+                        bottom: SizeConfig.size12
+                    ),
                     itemBuilder: (BuildContext context, int index) {
                       final groceryItem = controller.selectedGroceries[index];
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          /// --- Image Carousel (Horizontal) ---
-                          Container(
-                            padding: EdgeInsets.all(10.0),
-                            decoration: BoxDecoration(
-                                color: AppColors.primaryColor
-                                    .withValues(alpha: 0.05),
-                                borderRadius: BorderRadius.circular(10.0)),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                SizedBox(
-                                  height: 80,
-                                  child: ListView.separated(
-                                    scrollDirection: Axis.horizontal,
-                                    itemBuilder: (_, index) {
-                                      return ClipRRect(
-                                        borderRadius: BorderRadius.circular(10),
-                                        child: LocalAssets(
-                                          imagePath: groceryItem.image,
-                                          width: 80,
-                                          height: 80,
-                                          boxFix: BoxFit.cover,
-                                        ),
-                                      );
-                                    },
-                                    separatorBuilder: (_, __) =>
-                                        const SizedBox(width: 10),
-                                    itemCount: 4,
+                      return Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: SizeConfig.size12,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            /// --- Image Carousel (Horizontal) ---
+                            Container(
+                              padding: EdgeInsets.all(10.0),
+                              decoration: BoxDecoration(
+                                  color: AppColors.primaryColor
+                                      .withValues(alpha: 0.05),
+                                  borderRadius: BorderRadius.circular(10.0)),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  SizedBox(
+                                    height: 80,
+                                    child: ListView.separated(
+                                      scrollDirection: Axis.horizontal,
+                                      itemBuilder: (_, index) {
+                                        return ClipRRect(
+                                          borderRadius: BorderRadius.circular(10),
+                                          child: LocalAssets(
+                                            imagePath: groceryItem.image,
+                                            width: 80,
+                                            height: 80,
+                                            boxFix: BoxFit.cover,
+                                          ),
+                                        );
+                                      },
+                                      separatorBuilder: (_, __) =>
+                                          const SizedBox(width: 10),
+                                      itemCount: 4,
+                                    ),
                                   ),
-                                ),
 
-                                SizedBox(height: SizeConfig.size10),
+                                  SizedBox(height: SizeConfig.size10),
 
-                                /// --- Product Title ---
-                                CustomText(
-                                  groceryItem.name,
-                                  fontSize: SizeConfig.medium,
-                                  color: AppColors.mainTextColor,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                                  /// --- Product Title ---
+                                  CustomText(
+                                    groceryItem.name,
+                                    fontSize: SizeConfig.medium,
+                                    color: AppColors.mainTextColor,
+                                    fontWeight: FontWeight.w600,
+                                  ),
 
-                                SizedBox(height: SizeConfig.size8),
+                                  SizedBox(height: SizeConfig.size8),
 
-                                /// --- Price Row ---
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    Container(
-                                      padding: EdgeInsets.all(4.0),
-                                      decoration: BoxDecoration(
-                                          color: AppColors.white,
-                                          borderRadius:
-                                              BorderRadius.circular(4.0),
-                                          border: Border.all(
-                                              color: AppColors.greyE5,
-                                              width: 0.5)),
-                                      child: CustomText(
-                                        groceryItem.weight,
+                                  /// --- Price Row ---
+                                  Row(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Container(
+                                        padding: EdgeInsets.all(4.0),
+                                        decoration: BoxDecoration(
+                                            color: AppColors.white,
+                                            borderRadius:
+                                                BorderRadius.circular(4.0),
+                                            border: Border.all(
+                                                color: AppColors.greyE5,
+                                                width: 0.5)),
+                                        child: CustomText(
+                                          groceryItem.weight,
+                                          fontSize: SizeConfig.small,
+                                          color: AppColors.secondaryTextColor,
+                                          fontWeight: FontWeight.w400,
+                                        ),
+                                      ),
+                                      SizedBox(width: SizeConfig.size10),
+                                      CustomText(
+                                        "₹${groceryItem.price}",
+                                        fontSize: SizeConfig.medium,
+                                        color: AppColors.primaryColor,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                      SizedBox(width: SizeConfig.size8),
+                                      CustomText(
+                                        "₹${groceryItem.oldPrice}",
                                         fontSize: SizeConfig.small,
                                         color: AppColors.secondaryTextColor,
                                         fontWeight: FontWeight.w400,
+                                        decoration: TextDecoration.lineThrough,
+                                        decorationColor:
+                                            AppColors.secondaryTextColor,
                                       ),
-                                    ),
-                                    SizedBox(width: SizeConfig.size10),
-                                    CustomText(
-                                      "₹${groceryItem.price}",
-                                      fontSize: SizeConfig.medium,
-                                      color: AppColors.primaryColor,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                    SizedBox(width: SizeConfig.size8),
-                                    CustomText(
-                                      "₹${groceryItem.oldPrice}",
-                                      fontSize: SizeConfig.small,
-                                      color: AppColors.secondaryTextColor,
-                                      fontWeight: FontWeight.w400,
-                                      decoration: TextDecoration.lineThrough,
-                                      decorationColor:
-                                          AppColors.secondaryTextColor,
-                                    ),
-                                    SizedBox(width: SizeConfig.size8),
-                                    CustomText(groceryItem.discount,
-                                        fontSize: SizeConfig.small,
-                                        color: AppColors.greenShade,
-                                        fontWeight: FontWeight.w400),
-                                  ],
+                                      SizedBox(width: SizeConfig.size8),
+                                      CustomText(groceryItem.discount,
+                                          fontSize: SizeConfig.small,
+                                          color: AppColors.greenShade,
+                                          fontWeight: FontWeight.w400),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            SizedBox(height: SizeConfig.size16),
+
+                            /// --- Original MRP ---
+                            CustomText(
+                              "Original MRP",
+                              fontSize: SizeConfig.medium,
+                              color: AppColors.mainTextColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            SizedBox(height: SizeConfig.size10),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _TextFieldBox(
+                                      title: 'Unit', hint: "E.g. 100G"),
+                                ),
+                                SizedBox(width: SizeConfig.size8),
+                                Expanded(
+                                  child: _TextFieldBox(
+                                      title: 'Price', hint: "E.g. ₹1,999"),
                                 ),
                               ],
                             ),
-                          ),
 
-                          SizedBox(height: SizeConfig.size16),
+                            SizedBox(height: SizeConfig.size16),
 
-                          /// --- Original MRP ---
-                          CustomText(
-                            "Original MRP",
-                            fontSize: SizeConfig.medium,
-                            color: AppColors.mainTextColor,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          SizedBox(height: SizeConfig.size10),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _TextFieldBox(
-                                    title: 'Unit', hint: "E.g. 100G"),
-                              ),
-                              SizedBox(width: SizeConfig.size8),
-                              Expanded(
-                                child: _TextFieldBox(
-                                    title: 'Price', hint: "E.g. ₹1,999"),
-                              ),
-                            ],
-                          ),
-
-                          SizedBox(height: SizeConfig.size16),
-
-                          /// --- Selling Price ---
-                          CustomText(
-                            "What Is Your Selling price",
-                            fontSize: SizeConfig.medium,
-                            color: AppColors.mainTextColor,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          SizedBox(height: SizeConfig.size10),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _TextFieldBox(
-                                    title: 'Unit', hint: "E.g. 100G"),
-                              ),
-                              SizedBox(width: SizeConfig.size8),
-                              Expanded(
-                                child: _TextFieldBox(
-                                    title: 'Selling Price',
-                                    hint: "E.g. ₹1,999"),
-                              ),
-                            ],
-                          ),
-                        ],
+                            /// --- Selling Price ---
+                            CustomText(
+                              "What Is Your Selling price",
+                              fontSize: SizeConfig.medium,
+                              color: AppColors.mainTextColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            SizedBox(height: SizeConfig.size10),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _TextFieldBox(
+                                      title: 'Unit', hint: "E.g. 100G"),
+                                ),
+                                SizedBox(width: SizeConfig.size8),
+                                Expanded(
+                                  child: _TextFieldBox(
+                                      title: 'Selling Price',
+                                      hint: "E.g. ₹1,999"),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       );
                     },
                     separatorBuilder: (BuildContext context, int index) {
@@ -429,7 +439,7 @@ class _AddGroceryScreenState extends State<AddGroceryScreen> {
                           child:
                               index != controller.selectedGroceries.length - 1
                                   ? CommonHorizontalDivider(
-                                      color: AppColors.greyE5,
+                                      color: AppColors.shadowColor,
                                     )
                                   : SizedBox());
                     },
