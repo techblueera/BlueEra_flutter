@@ -40,6 +40,7 @@ class NotificationDataList {
   String? createdAt;
   String? updatedAt;
   String? message;
+  String? notification_type;
   User? user;
   SenderProfile? senderProfile;
 
@@ -56,6 +57,7 @@ class NotificationDataList {
         this.updatedAt,
         this.message,
         this.senderProfile,
+        this.notification_type,
         this.user});
 
   NotificationDataList.fromJson(Map<String, dynamic> json) {
@@ -71,6 +73,7 @@ class NotificationDataList {
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];
     message = json['message'];
+    notification_type = json['notification_type'];
     user = json['user'] != null ? new User.fromJson(json['user']) : null;
     senderProfile = json['sender_profile'] != null ? SenderProfile.fromJson(json['sender_profile']) : null;
 
@@ -90,6 +93,7 @@ class NotificationDataList {
     data['created_at'] = this.createdAt;
     data['updated_at'] = this.updatedAt;
     data['message'] = this.message;
+    data['notification_type'] = this.notification_type;
     if (this.user != null) {
       data['user'] = this.user!.toJson();
     }
@@ -101,20 +105,23 @@ class NotificationDataList {
 }
 
 class Metadata {
-  String? postId;
+  String? jobId;
   String? senderName;
+  String? message;
 
-  Metadata({this.postId, this.senderName});
+  Metadata({this.jobId, this.senderName, this.message});
 
   Metadata.fromJson(Map<String, dynamic> json) {
-    postId = json['post_id'];
+    jobId = json['jobId']??json['post_id'];
     senderName = json['senderName'];
+    message = json['message'];
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['post_id'] = this.postId;
+    data['jobId'] = this.jobId;
     data['senderName'] = this.senderName;
+    data['message'] = this.message;
     return data;
   }
 }

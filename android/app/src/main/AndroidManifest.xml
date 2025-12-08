@@ -38,7 +38,7 @@
         android:icon="@mipmap/ic_launcher_adaptive_fore"
         android:label="BlueEra"
         android:usesCleartextTraffic="true"
-
+        android:requestLegacyExternalStorage="true"
         tools:replace="android:label"
         android:largeHeap="true">
 

@@ -440,4 +440,19 @@ print("url=== ${url}");
     );
     return response;
   }
+
+  ///SEARCH CHANNEL...
+  Future<ResponseModel> getSearchChannelRepo({
+    required int page,
+    required int limit,
+    required String query,
+  }) async {
+    final response = await ApiBaseHelper().getHTTP(
+      "$channelSearch?query=$query&page=$page&limit=$limit",
+      showProgress: true,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 }

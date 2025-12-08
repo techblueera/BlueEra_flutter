@@ -58,7 +58,6 @@ class JobDetailsScreenController extends GetxController{
       if (response.isSuccess && response.response?.data != null) {
         try {
           jobDetails.value = GetJobDetailsByIdModel.fromJson(response.response!.data);
-        logs("is saved job=====${    jobDetails.value?.isSavedByUser}");
         } catch (parseError) {
           error.value = 'Error parsing job details: ${parseError.toString()}';
           jobDetails.value = null;

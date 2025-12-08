@@ -19,25 +19,26 @@ class CommonSearchBar extends StatelessWidget {
   final BoxBorder? boxBorder;
   final double? height;
 
-  const CommonSearchBar({
-    super.key,
-    required this.controller,
-    this.onClearCallback,
-    this.onChange,
-    this.onSearchTap,
-    this.backgroundColor,
-    this.hintText,
-    this.borderRadius,
-    this.isShowCursor,
-    this.boxBorder,
-    this.height
-  });
+  const CommonSearchBar(
+      {super.key,
+      required this.controller,
+      this.onClearCallback,
+      this.onChange,
+      this.onSearchTap,
+      this.backgroundColor,
+      this.hintText,
+      this.borderRadius,
+      this.isShowCursor,
+      this.boxBorder,
+      this.height});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       height: height ?? SizeConfig.size40,
-      padding: controller.text.isEmpty ? null : EdgeInsets.only(left: SizeConfig.size15),
+      padding: controller.text.isEmpty
+          ? null
+          : EdgeInsets.only(left: SizeConfig.size15),
       decoration: BoxDecoration(
         color: backgroundColor ?? AppColors.greyD3,
         borderRadius: BorderRadius.circular(borderRadius ?? 10.0),
@@ -55,24 +56,30 @@ class CommonSearchBar extends StatelessWidget {
         textAlignVertical: TextAlignVertical.center,
         decoration: InputDecoration(
           hintText: hintText?.tr ?? AppStrings.searchHere.tr,
-          hintStyle: TextStyle(fontSize: SizeConfig.medium, color: AppColors.secondaryTextColor),
+          hintStyle: TextStyle(
+              fontSize: SizeConfig.medium, color: AppColors.secondaryTextColor),
           border: InputBorder.none,
           enabledBorder: InputBorder.none,
           focusedBorder: InputBorder.none,
           prefixIcon: controller.text.isEmpty
               ? Padding(
-            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8, vertical: SizeConfig.size5),
-            child: LocalAssets(imagePath: AppIconAssets.chat_search, imgColor: AppColors.mainTextColor),
-          )
+                  padding: EdgeInsets.symmetric(
+                      horizontal: SizeConfig.size8, vertical: SizeConfig.size5),
+                  child: LocalAssets(
+                      imagePath: AppIconAssets.chat_search,
+                      imgColor: AppColors.mainTextColor),
+                )
               : null,
           suffixIcon: controller.text.isNotEmpty
               ? GestureDetector(
-            onTap: onClearCallback,
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
-              child: Icon(Icons.clear, color: AppColors.black28, size: SizeConfig.paddingXL),
-            ),
-          )
+                  onTap: onClearCallback,
+                  child: Padding(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+                    child: Icon(Icons.clear,
+                        color: AppColors.black28, size: SizeConfig.paddingXL),
+                  ),
+                )
               : null,
           isDense: true,
           filled: false,

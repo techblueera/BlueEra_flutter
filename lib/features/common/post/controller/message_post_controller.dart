@@ -18,6 +18,7 @@ import 'package:BlueEra/features/common/post/widget/video_trimmer_screen.dart';
 import 'package:BlueEra/features/common/reel/models/generate_presigned_url.dart';
 import 'package:BlueEra/features/common/reel/models/video_category_response.dart';
 import 'package:BlueEra/widgets/uploading_progressing_dialog.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -29,6 +30,7 @@ import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:http_parser/http_parser.dart' as htp;
+import 'package:permission_handler/permission_handler.dart';
 
 class MessagePostController extends GetxController {
   /// ADD MSG POST
@@ -186,23 +188,64 @@ class MessagePostController extends GetxController {
   }
 
   // 🟢 PICK MEDIA (image or video)
+
   Future<void> pickMedia() async {
-    FileType fileType = FileType.image;
-    // FileType fileType = FileType.media;
-    // if (selectedType.value == MediaType.image)
-    fileType = FileType.image;
-    // if (selectedType.value == MediaType.video) fileType = FileType.video;
+    bool permissionGranted = false;
 
-    FilePickerResult? result = await FilePicker.platform
-        .pickFiles(allowMultiple: true, type: fileType, compressionQuality: 80);
+    if (Platform.isAndroid) {
+      final androidInfo = await DeviceInfoPlugin().androidInfo;
 
-    if (result == null) return;
+      // For Android 13+ (SDK 33)
+      if (androidInfo.version.sdkInt >= 33) {
+        // Use photos permission
+        var status = await Permission.photos.request();
+        permissionGranted = status.isGranted;
+      }
+      // For Android 11 (SDK 30) and below
+      else {
+        var status = await Permission.storage.request();
+        permissionGranted = status.isGranted;
+      }
+    } else {
+      // iOS logic
+      permissionGranted = true;
+    }
 
-    final files = result.paths.map((e) => File(e!)).toList();
+    if (permissionGranted) {
+      final List<XFile> images = await picker.pickMultiImage();
+      final files = images.map((e) => File(e.path)).toList();
+      selectedType.value = MediaType.image;
+      imagesList.addAll(files);
+      logs("imagesList    ${imagesList}");
+    } else {
+      print("Permission denied");
+    }
+  }
 
-    selectedType.value = MediaType.image;
+  Future<void> pickMedia_() async {
+    try {
+      FileType fileType = FileType.image;
+      // FileType fileType = FileType.media;
+      // if (selectedType.value == MediaType.image)
+      fileType = FileType.image;
+      // if (selectedType.value == MediaType.video) fileType = FileType.video;
 
-    imagesList.addAll(files);
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+          allowMultiple: true, type: fileType, compressionQuality: 80);
+      logs("imagesList  result  ${result?.paths}");
+
+      if (result == null) return;
+
+      final files = result.paths.map((e) => File(e!)).toList();
+
+      selectedType.value = MediaType.image;
+
+      imagesList.addAll(files);
+      logs("imagesList    ${imagesList}");
+    } on Exception catch (e) {
+      logs("ERROR PICK ${e}");
+      // TODO
+    }
   }
 
   Future<void> pickVideoMedia() async {
@@ -235,7 +278,7 @@ class MessagePostController extends GetxController {
 
       // Upload / Save / Play trimmed video here
     }
-      // <-- Add for video
+    // <-- Add for video
   }
 
   /*Future<void> pickVideoMedia() async {
@@ -272,7 +315,7 @@ class MessagePostController extends GetxController {
     );
 
     videoThumbnails[videoFile.path] = File(thumbPath.path);
-    }
+  }
 
   Future<void> uploadMessagePost({required PostVia? postVia}) async {
     try {

@@ -7,7 +7,10 @@ import 'package:get/get.dart';
 
 class LogoNameWidget extends StatelessWidget {
   const LogoNameWidget(
-      {super.key, required this.logoUrl, required this.channelName, required this.channelID});
+      {super.key,
+      required this.logoUrl,
+      required this.channelName,
+      required this.channelID});
 
   final String logoUrl;
   final String channelName;
@@ -17,9 +20,9 @@ class LogoNameWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
-
-         Get.to(VideoListScreen(
-          channelID: channelID, channelName: channelName,
+        Get.to(VideoListScreen(
+          channelID: channelID,
+          channelName: channelName,
         ));
       },
       child: Column(
@@ -47,7 +50,7 @@ class LogoNameWidget extends StatelessWidget {
             // Check if URL exists before trying to load
             child: ((logoUrl.isNotEmpty))
                 ? CachedNetworkImage(
-                    imageUrl: logoUrl,
+                    imageUrl: logoUrl,filterQuality: FilterQuality.low,
                     // 1. If image loads successfully, show it in a CircleAvatar
                     imageBuilder: (context, imageProvider) => CircleAvatar(
                       radius: 35,
@@ -61,7 +64,6 @@ class LogoNameWidget extends StatelessWidget {
                       child: const SizedBox(
                         height: 20,
                         width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
                       ),
                     ),
                     // 3. If image fails to load, show the fallback icon

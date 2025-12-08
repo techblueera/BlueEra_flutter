@@ -5,6 +5,8 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
+import 'package:BlueEra/features/common/jobs/view/job_details_screen.dart';
 import 'package:BlueEra/features/common/notification/model/notification_model.dart';
 import 'package:BlueEra/features/common/notification/notification_repo.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
@@ -140,7 +142,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
   Widget build(BuildContext context) {
     notificationFilters = [
       TabItem(id: 'All', title: AppStrings.all.tr),
-      TabItem(id: 'Chats', title: AppStrings.chat.tr),
       TabItem(id: 'Orders', title: AppStrings.orders.tr),
       TabItem(id: 'Tags', title: AppStrings.tagsText.tr),
       TabItem(id: 'Jobs', title: AppStrings.jobs.tr),
@@ -235,7 +236,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   final String imageUrl =
                       data.senderProfile?.profileImage ?? '';
                   final String id = data.sId ?? "";
-                  final String title = data.message ?? '';
+                  final String title = (data.message?.isNotEmpty ?? false)
+                      ? (data.message ?? data.metadata?.message ?? "")
+                      : (data.metadata?.message ?? "");
                   final String status = data.status ?? '';
                   String time = '';
                   try {
@@ -255,11 +258,19 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         NotificationListRepo().notificationReadRepo(
                             notificationId: data.sId ?? "");
                       }
+                      if (data.notification_type == "jobs") {
+                        redirectJobPost(jobID: data.metadata?.jobId ?? "");
+                      }
+                      else if(data.notification_type == "posts"){
+                        Get.to(() => PostDeatilPage(), arguments: {"postId": data.metadata?.jobId ?? ""});
 
-                      redirectToProfileScreen(
-                        accountType: data.senderProfile?.account_type ?? "",
-                        profileId: data.senderProfile?.id ?? "",
-                      );
+                      }
+                      else {
+                        redirectToProfileScreen(
+                          accountType: data.senderProfile?.account_type ?? "",
+                          profileId: data.senderProfile?.id ?? "",
+                        );
+                      }
                     },
                     child: Column(
                       children: [
@@ -315,7 +326,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                 Expanded(
                                   child: CustomText(
                                     title,
-                                    maxLines: 2,
+                                    maxLines: 3,
                                     fontWeight: FontWeight.w600,
                                     overflow: TextOverflow.ellipsis,
                                     color: AppColors.mainTextColor,
@@ -377,6 +388,27 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 },
               )
             : EmptyStateWidget(message: AppStrings.noNotificationsFound.tr));
+  }
+
+  void redirectJobPost({required String jobID}) {
+    if (isIndividual()) {
+      Get.to(() => JobDetailScreen(
+            jobId: jobID,
+            isPostApply: AppConstants.APPLY_NOW,
+            isPostDirection: AppConstants.DIRECTION,
+            isPostEdit: '',
+            isPostCreate: '',
+          ));
+    }
+    if (isBusiness()) {
+      Get.to(() => JobDetailScreen(
+            jobId: jobID,
+            isPostDirection: '',
+            isPostApply: '',
+            isPostEdit: '',
+            isPostCreate: '',
+          ));
+    }
   }
 
   Future<void> clearAllNotifications(int selected, {String? notifyId}) {

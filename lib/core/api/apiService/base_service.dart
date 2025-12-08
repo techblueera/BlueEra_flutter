@@ -523,5 +523,6 @@ abstract class BaseService {
   final String userFeedPost = 'userfeed-service/feed/posts';
   final String aiInventoryAsk = 'ai-service/api/ai-inventory/ask';
   final String ottChannelVideo = 'video-service/ott/channel/';
+  final String channelSearch = 'channel-service/channels/search/search';
 
 }
