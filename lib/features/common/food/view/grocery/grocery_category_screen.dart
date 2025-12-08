@@ -1,12 +1,16 @@
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/features/common/food/controller/grocery_controller.dart';
+import 'package:BlueEra/features/common/food/model/grocery_category_model.dart';
 import 'package:BlueEra/features/common/store/widget/icon_grid_item.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/controller/earn_with_blueera_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../widgets/common_back_app_bar.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 import 'baby_care.dart';
-import 'cooking_esential_page.dart';
+import 'grocery_subcategory_screen.dart';
 import 'diary.dart';
 import 'fruits_veg.dart';
 
@@ -25,115 +29,7 @@ class _CategoryPageState extends State<CategoryPage> with SingleTickerProviderSt
     Tab(text: 'Home Essential'),
     Tab(text: 'Others')
   ];
-
-  final List<Map<String, String>> biscuitFoods  = [
-    {
-      "icon": "chips.png",
-      "label": "Chips &\nNamkeens",
-    },
-    {
-      "icon": "biscuits.png",
-      "label": "Biscuits\n& Cookies",
-    },
-    {
-      "icon": "chocolate.png",
-      "label": "Chocolates\n& Candies",
-    },
-    {
-      "icon": "indiansweets.png",
-      "label": "Indian\nSweets",
-    },
-    {
-      "icon": "drinks.png",
-      "label": "Drinks\n& Juices",
-    },
-    {
-      "icon": "cereals.png",
-      "label": "Breakfast\nCereals",
-    },
-    {
-      "icon": "noodles.png",
-      "label": "Noodles, Pasta\n& Vermicelli",
-    },
-    {
-      "icon": "readytoeat.png",
-      "label": "Ready To\ncook & Eat",
-    },
-  ];
-
-  final List<Map<String, String>> fruitsVeg = [
-    {"icon": "freshfruits.png", "label": "Fresh Fruits"},
-    {"icon": "basicveg.png", "label": "Basic\nVegetables"},
-    {"icon": "premiumveg.png", "label": "Premium Fruits\n& Vegetables"},
-  ];
-
-  final List<Map<String, String>> cookingEssentials = [
-    {"icon": "rice.png", "label": "Rice"},
-    {"icon": "dals.png", "label": "Dals & Pulses"},
-    {"icon": "ghee.png", "label": "Ghee"},
-    {"icon": "wheat.png", "label": "Wheat & Soya"},
-    {"icon": "sugar.png", "label": "Salt, Sugar\n& Jaggery"},
-    {"icon": "poha.png", "label": "Sabudana, Poha\n& Murmura"},
-    {"icon": "atta.png", "label": "Atta, Flours\n& Sooji"},
-    {"icon": "dryfruits.png", "label": "Dry Fruits\n& Nuts"},
-    {"icon": "dryfruits.png", "label": "Edible Oils"},
-    {"icon": "dryfruits.png", "label": "Millets\n& Organic"},
-  ];
-
-  final List<Map<String, String>> dairyBakery = [
-    {"icon": "milk.png", "label": "Milk & Milk\nProducts"},
-    {"icon": "paneer.png", "label": "Cheese,\nPaneer & Tofu"},
-    {"icon": "batter.png", "label": "Batter\n& Chutney"},
-    {"icon": "tasto.png", "label": "Toast\n& Khari"},
-    {"icon": "cakes.png", "label": "Cakes &\nMuffins"},
-    {"icon": "breads.png", "label": "Breads\n& Chapatis"},
-    {"icon": "snacks.png", "label": "Bakery\n& Snacks"},
-  ];
-
-  final List<Map<String, String>> momBabyCare = [
-    {"icon": "food.png", "label": "Food\n& Feeding"},
-    {"icon": "bath.png", "label": "Bath, Hygiene\n& Grooming"},
-    {"icon": "bedding.png", "label": "Bedding, Toys\n& Accessories"},
-    {"icon": "health.png", "label": "Health\n& Wellness"},
-    {"icon": "diapers.png", "label": "Diapers\n& Wipes"},
-  ];
-
-  final List<Map<String, String>> kitchenware = [
-    {"icon": "gas.png", "label": "Gas Stove"},
-    {"icon": "storage.png", "label": "Containers &\nStorage"},
-    {"icon": "flask.png", "label": "Flask, Bottle\n& Tiffin Boxes"},
-    {"icon": "cutting.png", "label": "Cutting\n& Chopping"},
-    {"icon": "tools.png", "label": "Kitchen Tools"},
-    {"icon": "bakeware.png", "label": "Bakeware"},
-  ];
-
-  final List<Map<String, String>> tableware = [
-    {"icon": "dining.png", "label": "Dining"},
-    {"icon": "serveware.png", "label": "Serveware"},
-    {"icon": "barware.png", "label": "Barware"},
-    {"icon": "tableacc.png", "label": "Table Accessories"},
-    {"icon": "mugs.png", "label": "Cups, Mugs &\nMore"},
-    {"icon": "drinkware.png", "label": "Glassware &\nDrinkware"},
-  ];
-
-  final List<Map<String, String>> giftsHampers = [
-    {"icon": "tea.png", "label": "Tea Gifts"},
-    {"icon": "chocogift.png", "label": "Chocolate Gifts"},
-    {"icon": "gourmet.png", "label": "Gourmet Gifts"},
-  ];
-
-  final List<Map<String, String>> homeCategory = [
-    {"icon": "detergents.png", "label": "Detergents\n& Cleaners"},
-    {"icon": "fresheners.png", "label": "Fresheners\n& Repellents"},
-    {"icon": "homecleaning.png", "label": "Home &\nCleaning Tools"},
-    {"icon": "furnishing.png", "label": "Furnishing &\nPersonal Wear"},
-    {"icon": "dishwash.png", "label": "Dishwash"},
-    {"icon": "pooja.png", "label": "Pooja Needs"},
-    {"icon": "electricals.png", "label": "Basic Electricals"},
-    {"icon": "shoecare.png", "label": "Shoe Care"},
-  ];
-
-
+  final groceryController = getOrPut(() => GroceryController());
 
   @override
   void initState() {
@@ -170,83 +66,110 @@ class _CategoryPageState extends State<CategoryPage> with SingleTickerProviderSt
 
                   _sectionWidget(
                     "Biscuits, Drinks & Packaged Foods",
-                    arrCategory: biscuitFoods,
+                    arrCategory: groceryController.biscuitFoods,
                     context: context,
-                    onTap:(value){
-
-                    }
-                  ),
-
-                  _sectionWidget(
-                    "Fruits & Vegetables",
-                    arrCategory: fruitsVeg,
-                    context: context,
-                      onTap:(value){
-                        Get.to(()=> FruitsVegPage());
+                      onTap:(groceryCategoryModel){
+                        Get.to(()=> GrocerySubCategoryScreen(
+                            arrGroceries: groceryController.biscuitFoods,
+                            selectedGroceryData: groceryCategoryModel
+                        ));
                       }
                   ),
 
                   _sectionWidget(
-                    "Cooking Essentials",
-                    arrCategory: cookingEssentials,
+                    "Fruits & Vegetables",
+                    arrCategory: groceryController.fruitsVeg,
                     context: context,
-                      onTap:(value){
-                        Get.to(()=> CookingEssentialsPage());
+                    onTap:(groceryCategoryModel){
+                        Get.to(()=> GrocerySubCategoryScreen(
+                            arrGroceries: groceryController.fruitsVeg,
+                            selectedGroceryData: groceryCategoryModel
+                        ));
+                    }
+                  ),
+
+                  _sectionWidget(
+                    "Cooking Essentials",
+                    arrCategory: groceryController.cookingEssentials,
+                    context: context,
+                      onTap:(groceryCategoryModel){
+                        Get.to(()=> GrocerySubCategoryScreen(
+                            arrGroceries: groceryController.cookingEssentials,
+                            selectedGroceryData: groceryCategoryModel
+                        ));
                       }
                   ),
 
                   _sectionWidget(
                     "Dairy & Bakery",
-                    arrCategory: dairyBakery,
+                    arrCategory: groceryController.dairyBakery,
                     context: context,
-                      onTap:(value){
-                        Get.to(()=> MilkAndDairyCategoryPage());
-
-                      }
+                    onTap:(groceryCategoryModel){
+                        Get.to(()=> GrocerySubCategoryScreen(
+                            arrGroceries: groceryController.dairyBakery,
+                            selectedGroceryData: groceryCategoryModel
+                        ));
+                    }
                   ),
 
                   _sectionWidget(
                     "Mom & Baby Care",
-                    arrCategory: momBabyCare,
+                    arrCategory: groceryController.momBabyCare,
                     context: context,
-                      onTap:(value){
-                         Get.to(()=> MomBabyCarePage());
-                      }
+                    onTap:(groceryCategoryModel){
+                        Get.to(()=> GrocerySubCategoryScreen(
+                            arrGroceries: groceryController.momBabyCare,
+                            selectedGroceryData: groceryCategoryModel
+                        ));
+                    }
                   ),
 
                   _sectionWidget(
                     "Kitchenware",
-                    arrCategory: kitchenware,
+                    arrCategory: groceryController.kitchenware,
                     context: context,
-                      onTap:(value){
-
+                      onTap:(groceryCategoryModel){
+                        Get.to(()=> GrocerySubCategoryScreen(
+                            arrGroceries: groceryController.cookingEssentials,
+                            selectedGroceryData: groceryCategoryModel
+                        ));
                       }
                   ),
 
                   _sectionWidget(
                     "Tableware",
-                    arrCategory: tableware,
+                    arrCategory: groceryController.tableware,
                     context: context,
-                      onTap:(value){
+                    onTap:(groceryCategoryModel){
+                        Get.to(()=> GrocerySubCategoryScreen(
+                            arrGroceries: groceryController.tableware,
+                            selectedGroceryData: groceryCategoryModel
+                        ));
+                    }
 
-                      }
                   ),
 
                   _sectionWidget(
                     "Gifts & Hampers",
-                    arrCategory: giftsHampers,
+                    arrCategory: groceryController.giftsHampers,
                     context: context,
-                      onTap:(value){
-
+                      onTap:(groceryCategoryModel){
+                        Get.to(()=> GrocerySubCategoryScreen(
+                            arrGroceries: groceryController.giftsHampers,
+                            selectedGroceryData: groceryCategoryModel
+                        ));
                       }
                   ),
 
                   _sectionWidget(
                     "Home",
-                    arrCategory: homeCategory,
+                    arrCategory: groceryController.homeCategory,
                     context: context,
-                      onTap:(value){
-
+                    onTap:(groceryCategoryModel){
+                        Get.to(()=> GrocerySubCategoryScreen(
+                            arrGroceries: groceryController.homeCategory,
+                            selectedGroceryData: groceryCategoryModel
+                        ));
                       }
                   ),
 
@@ -267,9 +190,9 @@ class _CategoryPageState extends State<CategoryPage> with SingleTickerProviderSt
 
   Widget _sectionWidget(
       String title, {
-        required List<Map<String, String>> arrCategory,
+        required List<GroceryCategoryModel> arrCategory,
         required BuildContext context,
-        void Function(Map<String, String> item)? onTap,
+        void Function(GroceryCategoryModel item)? onTap,
       }) {
     const int crossAxisCount = 4;
     const double mainAxisSpacing = 16.0;
@@ -281,8 +204,8 @@ class _CategoryPageState extends State<CategoryPage> with SingleTickerProviderSt
     final isExpanded = false.obs;
 
     // list → rows-of-4
-    List<Widget> _buildRows(List<Map<String, String>> source) {
-      final rows = <List<Map<String, String>>>[];
+    List<Widget> _buildRows(List<GroceryCategoryModel> source) {
+      final rows = <List<GroceryCategoryModel>>[];
       for (int i = 0; i < source.length; i += crossAxisCount) {
         rows.add(
           source.sublist(i, (i + crossAxisCount).clamp(0, source.length)),
@@ -301,8 +224,8 @@ class _CategoryPageState extends State<CategoryPage> with SingleTickerProviderSt
                   final item = rowItems[index];
                   return Expanded(
                     child: IconGridItem(
-                      label: item['label']!,
-                      icon: 'assets/category/${item['icon']}',
+                      label: item.label ?? '',
+                      icon: 'assets/category/${item.icon}',
                       onTap: () => onTap?.call(item),
                     ),
                   );

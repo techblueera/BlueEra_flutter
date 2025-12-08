@@ -523,4 +523,8 @@ abstract class BaseService {
   final String userFeedPost = 'userfeed-service/feed/posts';
   final String aiInventoryAsk = 'ai-service/api/ai-inventory/ask';
 
+
+  final String searchGroceryCategory = 'grocery-service/api/products/search';
+  String GroceryCategoryOfChildren(String key) => 'grocery-service/api/categories/key/$key/children';
+
 }

@@ -1309,6 +1309,88 @@ const HOME_STAY = "HOME_STAY";
 const Flat_ROOM = "Flat_ROOM";
 const VEHICLE = "VEHICLE";
 
+
+/// GROCERY
+// biscuit & foods
+ const String CHIPS_NAMKEEN       = 'CHIPS_NAMKEEN';
+ const String BISCUITS_COOKIES    = 'BISCUITS_COOKIES';
+ const String CHOCOLATES_CANDIES  = 'CHOCOLATES_CANDIES';
+ const String INDIAN_SWEETS       = 'INDIAN_SWEETS';
+ const String DRINKS_JUICES       = 'DRINKS_JUICES';
+ const String BREAKFAST_CEREALS   = 'BREAKFAST_CEREALS';
+ const String NOODLES_PASTA       = 'NOODLES_PASTA';
+ const String READY_TO_COOK      = 'READY_TO_COOK';
+ const String SPREAD              = 'SPREAD';
+ const String PICKLES             = 'PICKLES';
+ const String TEA                 = 'TEA';
+
+// fruits & veg
+ const String FRESH_FRUITS        = 'FRESH_FRUITS';
+ const String BASIC_VEGETABLES    = 'BASIC_VEGETABLES';
+ const String PREMIUM_FV          = 'PREMIUM_FV';
+
+// cooking essentials
+ const String RICE                = 'RICE';
+ const String DALS_PULSES         = 'DALS_PULSES';
+ const String GHEE                = 'GHEE';
+ const String WHEAT_SOYA          = 'WHEAT_SOYA';
+ const String SALT_SUGAR_JAGGERY  = 'SALT_SUGAR_JAGGERY';
+ const String SNACK_BASES         = 'SNACK_BASES';
+ const String ATTA_FLOURS         = 'ATTA_FLOURS';
+ const String DRY_FRUITS          = 'DRY_FRUITS';
+ const String EDIBLE_OILS         = 'EDIBLE_OILS';
+ const String MILLET_ORGANIC      = 'MILLET_ORGANIC';
+
+// dairy & bakery
+ const String MILK_PRODUCTS       = 'MILK_PRODUCTS';
+ const String CHEESE_PANEER_TOFU  = 'CHEESE_PANEER_TOFU';
+ const String BUTTER_CHUTNEY      = 'BUTTER_CHUTNEY';
+ const String TOAST_KHARI         = 'TOAST_KHARI';
+ const String CAKES_MUFFINS       = 'CAKES_MUFFINS';
+ const String BREADS_CHAPATIS     = 'BREADS_CHAPATIS';
+ const String BAKERY_SNACKS       = 'BAKERY_SNACKS';
+
+// mom & baby
+ const String BABY_FOOD           = 'BABY_FOOD';
+ const String BABY_HYGIENE        = 'BABY_HYGIENE';
+ const String BABY_TOYS           = 'BABY_TOYS';
+ const String BABY_HEALTH         = 'BABY_HEALTH';
+ const String DIAPERS_WIPES       = 'DIAPERS_WIPES';
+
+// kitchenware
+ const String GAS_STOVE           = 'GAS_STOVE';
+ const String STORAGE_CONTAINERS  = 'STORAGE_CONTAINERS';
+ const String BOTTLES_FLASKS      = 'BOTTLES_FLASKS';
+ const String CUTTING_CHOPPING    = 'CUTTING_CHOPPING';
+ const String KITCHEN_TOOLS       = 'KITCHEN_TOOLS';
+ const String BAKEWARE            = 'BAKEWARE';
+
+// tableware
+ const String DINING              = 'DINING';
+ const String SERVEWARE           = 'SERVEWARE';
+ const String BARWARE             = 'BARWARE';
+ const String TABLE_ACCESSORIES   = 'TABLE_ACCESSORIES';
+ const String CUPS_MUGS           = 'CUPS_MUGS';
+ const String GLASSWARE           = 'GLASSWARE';
+
+// gifts
+ const String TEA_GIFTS           = 'TEA_GIFTS';
+ const String CHOCOLATE_GIFTS     = 'CHOCOLATE_GIFTS';
+ const String GOURMET_GIFTS       = 'GOURMET_GIFTS';
+
+// home
+ const String DETERGENTS          = 'DETERGENTS';
+ const String FRESHENERS          = 'FRESHENERS';
+ const String CLEANING_TOOLS      = 'CLEANING_TOOLS';
+ const String FURNISHING          = 'FURNISHING';
+ const String DISHWASH            = 'DISHWASH';
+ const String POOJA_NEEDS         = 'POOJA_NEEDS';
+ const String ELECTRICALS         = 'ELECTRICALS';
+ const String SHOE_CARE           = 'SHOE_CARE';
+ const String FURNITURE           = 'FURNITURE';
+ const String BAGS_TRAVEL         = 'BAGS_TRAVEL';
+
+
 double calculateDistanceKm(double lat1, double lon1, double lat2, double lon2) {
   const R = 6371; // Radius of Earth in kilometers
   final dLat = _deg2rad(lat2 - lat1);

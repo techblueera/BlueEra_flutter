@@ -1,25 +1,118 @@
+import 'dart:developer';
+
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/api/apiService/api_response.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/features/common/food/view/grocery/cooking_esential_page.dart';
+import 'package:BlueEra/features/common/food/model/children_of_grocery_category_response.dart';
+import 'package:BlueEra/features/common/food/model/grocery_category_model.dart';
+import 'package:BlueEra/features/common/food/model/grocery_product_model.dart';
+import 'package:BlueEra/features/common/food/repo/grocery_repo.dart';
+import 'package:BlueEra/features/common/food/view/grocery/grocery_subcategory_screen.dart';
 import 'package:get/get.dart';
 
 class GroceryController extends GetxController {
-  RxList<GroceryModel> selectedGroceries = <GroceryModel>[].obs;
-  RxInt selectedIndex = 0.obs;
+  ApiResponse groceryCategoryResponse = ApiResponse.initial('Initial');
+
+  RxString selectedGrocery = ''.obs;
+
+  RxList<GroceryProductData> selectedGroceries = <GroceryProductData>[].obs;
+
   RxInt selectedTabIndex = 0.obs;
   int maxLimit = 10;
 
-  List<String> categories = [
-    "Rice",
-    "Dals & Pulses",
-    "Ghee",
-    "Wheat & Soya",
-    "Salt, Sugar",
-    "Sabudana, Poha & Murmura",
-    "Atta & Flour",
-    "Dry Fruits & Nuts",
-    "Edible Oils",
-    "Millets & Organic",
+  int? selectedDay, selectedMonth, selectedYear;
+  
+  /// Main Grocery Categories
+  final List<GroceryCategoryModel> biscuitFoods = [
+    GroceryCategoryModel(icon: "chips.png", label: "Chips &\nNamkeens", tagId: CHIPS_NAMKEEN),
+    GroceryCategoryModel(icon: "biscuits.png", label: "Biscuits\n& Cookies", tagId: BISCUITS_COOKIES),
+    GroceryCategoryModel(icon: "chocolate.png", label: "Chocolates\n& Candies", tagId: CHOCOLATES_CANDIES),
+    GroceryCategoryModel(icon: "indiansweets.png", label: "Indian\nSweets", tagId: INDIAN_SWEETS),
+    GroceryCategoryModel(icon: "drinks.png", label: "Drinks\n& Juices", tagId: DRINKS_JUICES),
+    GroceryCategoryModel(icon: "cereals.png", label: "Breakfast\nCereals", tagId: BREAKFAST_CEREALS),
+    GroceryCategoryModel(icon: "noodles.png", label: "Noodles, Pasta\n& Vermicelli", tagId: NOODLES_PASTA),
+    GroceryCategoryModel(icon: "readytoeat.png", label: "Ready To\nCook & Eat", tagId: READY_TO_COOK),
+    GroceryCategoryModel(icon: "ketup_Tomato_Sauce.png", label: "Spread, Sauces\n& Ketchup", tagId: SPREAD),
+    GroceryCategoryModel(icon: "pickles_chutney.png", label: "Pickles, Chutney\n& Flavouring", tagId: PICKLES),
+    GroceryCategoryModel(icon: "tea_and_coffee.png", label: "Tea & Coffee", tagId: TEA),
   ];
+
+  final List<GroceryCategoryModel> fruitsVeg = [
+    GroceryCategoryModel(icon: "freshfruits.png", label: "Fresh Fruits", tagId: FRESH_FRUITS),
+    GroceryCategoryModel(icon: "basicveg.png", label: "Basic\nVegetables", tagId: BASIC_VEGETABLES),
+    GroceryCategoryModel(icon: "premiumveg.png", label: "Premium Fruits\n& Vegetables", tagId: PREMIUM_FV),
+  ];
+
+  final List<GroceryCategoryModel> cookingEssentials = [
+    GroceryCategoryModel(icon: "rice.png", label: "Rice", tagId: RICE),
+    GroceryCategoryModel(icon: "dals.png", label: "Dals & Pulses", tagId: DALS_PULSES),
+    GroceryCategoryModel(icon: "ghee.png", label: "Ghee", tagId: GHEE),
+    GroceryCategoryModel(icon: "wheat.png", label: "Wheat & Soya", tagId: WHEAT_SOYA),
+    GroceryCategoryModel(icon: "sugar.png", label: "Salt, Sugar\n& Jaggery", tagId: SALT_SUGAR_JAGGERY),
+    GroceryCategoryModel(icon: "poha.png", label: "Sabudana, Poha\n& Murmura", tagId: SNACK_BASES),
+    GroceryCategoryModel(icon: "atta.png", label: "Atta, Flours\n& Sooji", tagId: ATTA_FLOURS),
+    GroceryCategoryModel(icon: "dryfruits.png", label: "Dry Fruits\n& Nuts", tagId: DRY_FRUITS),
+    GroceryCategoryModel(icon: "millets_and_organic.png", label: "Edible Oils", tagId: EDIBLE_OILS),
+    GroceryCategoryModel(icon: "edible_oil.png", label: "Millets\n& Organic", tagId: MILLET_ORGANIC),
+  ];
+
+  final List<GroceryCategoryModel> dairyBakery = [
+    GroceryCategoryModel(icon: "milk.png", label: "Milk & Milk\nProducts", tagId: MILK_PRODUCTS),
+    GroceryCategoryModel(icon: "paneer.png", label: "Cheese,\nPaneer & Tofu", tagId: CHEESE_PANEER_TOFU),
+    GroceryCategoryModel(icon: "batter.png", label: "Batter\n& Chutney", tagId: BUTTER_CHUTNEY),
+    GroceryCategoryModel(icon: "tasto.png", label: "Toast\n& Khari", tagId: TOAST_KHARI),
+    GroceryCategoryModel(icon: "cakes.png", label: "Cakes &\nMuffins", tagId: CAKES_MUFFINS),
+    GroceryCategoryModel(icon: "breads.png", label: "Breads\n& Chapatis", tagId: BREADS_CHAPATIS),
+    GroceryCategoryModel(icon: "snacks.png", label: "Bakery\n& Snacks", tagId: BAKERY_SNACKS),
+  ];
+
+  final List<GroceryCategoryModel> momBabyCare = [
+    GroceryCategoryModel(icon: "food.png", label: "Food\n& Feeding", tagId: BABY_FOOD),
+    GroceryCategoryModel(icon: "bath.png", label: "Bath, Hygiene\n& Grooming", tagId: BABY_HYGIENE),
+    GroceryCategoryModel(icon: "bedding.png", label: "Bedding, Toys\n& Accessories", tagId: BABY_TOYS),
+    GroceryCategoryModel(icon: "health.png", label: "Health\n& Wellness", tagId: BABY_HEALTH),
+    GroceryCategoryModel(icon: "diapers.png", label: "Diapers\n& Wipes", tagId: DIAPERS_WIPES),
+  ];
+
+  final List<GroceryCategoryModel> kitchenware = [
+    GroceryCategoryModel(icon: "gas.png", label: "Gas Stove", tagId: GAS_STOVE),
+    GroceryCategoryModel(icon: "storage.png", label: "Containers &\nStorage", tagId: STORAGE_CONTAINERS),
+    GroceryCategoryModel(icon: "flask.png", label: "Flask, Bottle\n& Tiffin Boxes", tagId: BOTTLES_FLASKS),
+    GroceryCategoryModel(icon: "cutting.png", label: "Cutting\n& Chopping", tagId: CUTTING_CHOPPING),
+    GroceryCategoryModel(icon: "tools.png", label: "Kitchen Tools", tagId: KITCHEN_TOOLS),
+    GroceryCategoryModel(icon: "bakeware.png", label: "Bakeware", tagId: BAKEWARE),
+  ];
+
+  final List<GroceryCategoryModel> tableware = [
+    GroceryCategoryModel(icon: "dining.png", label: "Dining", tagId: DINING),
+    GroceryCategoryModel(icon: "serveware.png", label: "Serveware", tagId: SERVEWARE),
+    GroceryCategoryModel(icon: "barware.png", label: "Barware", tagId: BARWARE),
+    GroceryCategoryModel(icon: "tableacc.png", label: "Table Accessories", tagId: TABLE_ACCESSORIES),
+    GroceryCategoryModel(icon: "mugs.png", label: "Cups, Mugs &\nMore", tagId: CUPS_MUGS),
+    GroceryCategoryModel(icon: "drinkware.png", label: "Glassware &\nDrinkware", tagId: GLASSWARE),
+  ];
+
+  final List<GroceryCategoryModel> giftsHampers = [
+    GroceryCategoryModel(icon: "tea.png", label: "Tea Gifts", tagId: TEA_GIFTS),
+    GroceryCategoryModel(icon: "chocogift.png", label: "Chocolate Gifts", tagId: CHOCOLATE_GIFTS),
+    GroceryCategoryModel(icon: "gourmet.png", label: "Gourmet Gifts", tagId: GOURMET_GIFTS),
+  ];
+
+  final List<GroceryCategoryModel> homeCategory = [
+    GroceryCategoryModel(icon: "detergents.png", label: "Detergents\n& Cleaners", tagId: DETERGENTS),
+    GroceryCategoryModel(icon: "fresheners.png", label: "Fresheners\n& Repellents", tagId: FRESHENERS),
+    GroceryCategoryModel(icon: "homecleaning.png", label: "Home &\nCleaning Tools", tagId: CLEANING_TOOLS),
+    GroceryCategoryModel(icon: "furnishing.png", label: "Furnishing &\nPersonal Wear", tagId: FURNISHING),
+    GroceryCategoryModel(icon: "dishwash.png", label: "Dishwash", tagId: DISHWASH),
+    GroceryCategoryModel(icon: "pooja.png", label: "Pooja Needs", tagId: POOJA_NEEDS),
+    GroceryCategoryModel(icon: "electricals.png", label: "Basic Electricals", tagId: ELECTRICALS),
+    GroceryCategoryModel(icon: "shoecare.png", label: "Shoe Care", tagId: SHOE_CARE),
+    GroceryCategoryModel(icon: "furniture.png", label: "Furniture", tagId: FURNITURE),
+    GroceryCategoryModel(icon: "bags_luggage.png", label: "Bags &\nTravel Luggage", tagId: BAGS_TRAVEL),
+  ];
+
 
   /// TABS FOR EACH CATEGORY
   Map<String, List<String>> categoryTabs = {
@@ -108,6 +201,7 @@ class GroceryController extends GetxController {
 
 
   };
+
   List<String> leftIcons = [
     "assets/category/rice.png",
     "assets/category/dals.png",
@@ -121,566 +215,7 @@ class GroceryController extends GetxController {
     "assets/category/dal/millet.png",
   ];
 
-  /// PRODUCT LIST FOR EACH CATEGORY
-  Map<String, List<GroceryModel>> categoryProducts = {
-    "Rice": [
-      GroceryModel(
-          name: "Premium Basmati Rice",
-          image: "assets/category/rice1.png",
-          weight: "1 KG",
-          price: 120,
-          oldPrice: 160,
-          discount: "25%"),
-      GroceryModel(
-        name: "Boiled Rice Classic",
-        image: "assets/category/rice2.png",
-        weight: "5 KG",
-        price: 230,
-        oldPrice: 260,
-        discount: "15%",
-      ),
-      GroceryModel(
-          name: "Premium Basmati Rice",
-          image: "assets/category/rice3.png",
-          weight: "1 KG",
-          price: 120,
-          oldPrice: 160,
-          discount: "25%"),
-      GroceryModel(
-        name: "Boiled Rice Classic",
-        image: "assets/category/rice2.png",
-        weight: "5 KG",
-        price: 230,
-        oldPrice: 260,
-        discount: "15%",
-      ),
-      GroceryModel(
-          name: "Premium Basmati Rice",
-          image: "assets/category/rice1.png",
-          weight: "1 KG",
-          price: 120,
-          oldPrice: 160,
-          discount: "25%"),
-      GroceryModel(
-        name: "Boiled Rice Classic",
-        image: "assets/category/rice2.png",
-        weight: "5 KG",
-        price: 230,
-        oldPrice: 260,
-        discount: "15%",
-      ),
-      GroceryModel(
-          name: "Premium Basmati Rice",
-          image: "assets/category/rice1.png",
-          weight: "1 KG",
-          price: 120,
-          oldPrice: 160,
-          discount: "25%"),
-      GroceryModel(
-        name: "Boiled Rice Classic",
-        image: "assets/category/rice2.png",
-        weight: "5 KG",
-        price: 230,
-        oldPrice: 260,
-        discount: "15%",
-      ),
-    ],
-    "Dals & Pulses": [
-      GroceryModel(
-          name: "Chana Dal",
-          image: "assets/category/dal/chana_dal.png",
-          weight: "1 KG",
-          price: 0,
-          oldPrice: 0,
-          discount: "0%"),
-      GroceryModel(
-          name: "Horse Gram",
-          image: "assets/category/dal/horse_gram.png",
-          weight: "1 KG",
-          price: 0,
-          oldPrice: 0,
-          discount: "0%"),
-      GroceryModel(
-          name: "Kabuli Chana",
-          //  image: "assets/category/kabuli_chana.png",
-          image: "assets/category/dal/horse_gram.png",
-          weight: "1 KG",
-          price: 0,
-          oldPrice: 0,
-          discount: "0%"),
-      GroceryModel(
-          name: "Kala Chana",
-          image: "assets/category/dal/chana_dal.png",
-
-          //image: "assets/category/kala_chana.png",
-          weight: "1 KG",
-          price: 0,
-          oldPrice: 0,
-          discount: "0%"),
-      GroceryModel(
-          name: "Matar / Peas",
-          // image: "assets/category/matar_peas.png",
-          image: "assets/category/dal/horse_gram.png",
-          weight: "1 KG",
-          price: 0,
-          oldPrice: 0,
-          discount: "0%"),
-      GroceryModel(
-          name: "Lobia",
-          image: "assets/category/dal/chana_dal.png",
-
-          // image: "assets/category/lobia.png",
-          weight: "1 KG",
-          price: 0,
-          oldPrice: 0,
-          discount: "0%"),
-      GroceryModel(
-          name: "Masoor Dal",
-          //image: "assets/category/masoor_dal.png",
-          image: "assets/category/dal/horse_gram.png",
-          weight: "1 KG",
-          price: 0,
-          oldPrice: 0,
-          discount: "0%"),
-      GroceryModel(
-          name: "Matki / Moth Beans",
-          image: "assets/category/dal/chana_dal.png",
-
-          // image: "assets/category/matki_moth_beans.png",
-          weight: "1 KG",
-          price: 0,
-          oldPrice: 0,
-          discount: "0%"),
-      GroceryModel(
-          name: "Mixed Dal",
-          // image: "assets/category/mixed_dal.png",
-          image: "assets/category/dal/horse_gram.png",
-          weight: "1 KG",
-          price: 0,
-          oldPrice: 0,
-          discount: "0%"),
-      GroceryModel(
-          name: "Moong Dal",
-          image: "assets/category/dal/chana_dal.png",
-
-          // image: "assets/category/moong_dal.png",
-          weight: "1 KG",
-          price: 0,
-          oldPrice: 0,
-          discount: "0%"),
-      GroceryModel(
-          name: "Other Pulses",
-          // image: "assets/category/other_pulses.png",
-          image: "assets/category/dal/horse_gram.png",
-          weight: "1 KG",
-          price: 0,
-          oldPrice: 0,
-          discount: "0%"),
-      GroceryModel(
-          name: "Peanuts",
-          image: "assets/category/dal/chana_dal.png",
-
-          //  image: "assets/category/peanuts.png",
-          weight: "1 KG",
-          price: 0,
-          oldPrice: 0,
-          discount: "0%"),
-      GroceryModel(
-          name: "Rajma",
-          // image: "assets/category/rajma.png",
-          image: "assets/category/dal/horse_gram.png",
-          weight: "1 KG",
-          price: 0,
-          oldPrice: 0,
-          discount: "0%"),
-      GroceryModel(
-          name: "Toor Dal",
-          // image: "assets/category/toor_dal.png",
-          image: "assets/category/dal/chana_dal.png",
-          weight: "1 KG",
-          price: 0,
-          oldPrice: 0,
-          discount: "0%"),
-      GroceryModel(
-          name: "Urad Dal",
-          // image: "assets/category/urad_dal.png",
-          image: "assets/category/dal/horse_gram.png",
-          weight: "1 KG",
-          price: 0,
-          oldPrice: 0,
-          discount: "0%"),
-      GroceryModel(
-          name: "Val Beans",
-          image: "assets/category/dal/chana_dal.png",
-
-          // image: "assets/category/val_beans.png",
-          weight: "1 KG",
-          price: 0,
-          oldPrice: 0,
-          discount: "0%"),
-    ],
-    "Ghee": [
-      GroceryModel(
-          name: "Tri Premium Cow Ghee..",
-          image: "assets/category/dal/ghee.png",
-          weight: "500 ML",
-          price: 350,
-          oldPrice: 420,
-          discount: "15%"),
-      GroceryModel(
-          name: "Tri Premium Cow Ghee..",
-          image: "assets/category/dal/ghee.png",
-          weight: "500 ML",
-          price: 350,
-          oldPrice: 420,
-          discount: "15%"),
-      GroceryModel(
-          name: "Tri Premium Cow Ghee..",
-          image: "assets/category/dal/ghee.png",
-          weight: "500 ML",
-          price: 350,
-          oldPrice: 420,
-          discount: "15%"),
-      GroceryModel(
-          name: "Tri Premium Cow Ghee..",
-          image: "assets/category/dal/ghee.png",
-          weight: "500 ML",
-          price: 350,
-          oldPrice: 420,
-          discount: "15%"),
-      GroceryModel(
-          name: "Tri Premium Cow Ghee..",
-          image: "assets/category/dal/ghee.png",
-          weight: "500 ML",
-          price: 350,
-          oldPrice: 420,
-          discount: "15%"),
-      GroceryModel(
-          name: "Tri Premium Cow Ghee..",
-          image: "assets/category/dal/ghee.png",
-          weight: "500 ML",
-          price: 350,
-          oldPrice: 420,
-          discount: "15%"),
-      GroceryModel(
-          name: "Tri Premium Cow Ghee..",
-          image: "assets/category/dal/ghee.png",
-          weight: "500 ML",
-          price: 350,
-          oldPrice: 420,
-          discount: "15%"),
-      GroceryModel(
-          name: "Tri Premium Cow Ghee..",
-          image: "assets/category/dal/ghee.png",
-          weight: "500 ML",
-          price: 350,
-          oldPrice: 420,
-          discount: "15%"),
-      GroceryModel(
-          name: "Tri Premium Cow Ghee..",
-          image: "assets/category/dal/ghee.png",
-          weight: "500 ML",
-          price: 350,
-          oldPrice: 420,
-          discount: "15%"),
-      GroceryModel(
-          name: "Tri Premium Cow Ghee..",
-          image: "assets/category/dal/ghee.png",
-          weight: "500 ML",
-          price: 350,
-          oldPrice: 420,
-          discount: "15%"),
-    ],
-    "Wheat & Soya": [
-      GroceryModel(
-          name: "Whole Wheat Grains",
-          image: "assets/category/dal/wheat.png",
-          weight: "1 KG",
-          price: 55,
-          oldPrice: 70,
-          discount: "10%"),GroceryModel(
-          name: "Whole Wheat Grains",
-          image: "assets/category/dal/wheat.png",
-          weight: "1 KG",
-          price: 55,
-          oldPrice: 70,
-          discount: "10%"),GroceryModel(
-          name: "Whole Wheat Grains",
-          image: "assets/category/dal/wheat.png",
-          weight: "1 KG",
-          price: 55,
-          oldPrice: 70,
-          discount: "10%"),GroceryModel(
-          name: "Whole Wheat Grains",
-          image: "assets/category/dal/wheat.png",
-          weight: "1 KG",
-          price: 55,
-          oldPrice: 70,
-          discount: "10%"),GroceryModel(
-          name: "Whole Wheat Grains",
-          image: "assets/category/dal/wheat.png",
-          weight: "1 KG",
-          price: 55,
-          oldPrice: 70,
-          discount: "10%"),GroceryModel(
-          name: "Whole Wheat Grains",
-          image: "assets/category/dal/wheat.png",
-          weight: "1 KG",
-          price: 55,
-          oldPrice: 70,
-          discount: "10%"),
-    ],
-    "Salt, Sugar": [
-      GroceryModel(
-          name: "Iodized Salt",
-          image: "assets/category/dal/jaggery.png",
-          weight: "1 KG",
-          price: 20,
-          oldPrice: 25,
-          discount: "8%"),GroceryModel(
-          name: "Iodized Salt",
-          image: "assets/category/dal/jaggery.png",
-          weight: "1 KG",
-          price: 20,
-          oldPrice: 25,
-          discount: "8%"),GroceryModel(
-          name: "Iodized Salt",
-          image: "assets/category/dal/jaggery.png",
-          weight: "1 KG",
-          price: 20,
-          oldPrice: 25,
-          discount: "8%"),GroceryModel(
-          name: "Iodized Salt",
-          image: "assets/category/dal/jaggery.png",
-          weight: "1 KG",
-          price: 20,
-          oldPrice: 25,
-          discount: "8%"),GroceryModel(
-          name: "Iodized Salt",
-          image: "assets/category/dal/jaggery.png",
-          weight: "1 KG",
-          price: 20,
-          oldPrice: 25,
-          discount: "8%"),GroceryModel(
-          name: "Iodized Salt",
-          image: "assets/category/dal/jaggery.png",
-          weight: "1 KG",
-          price: 20,
-          oldPrice: 25,
-          discount: "8%"),
-    ],
-    "Sabudana, Poha & Murmura": [
-      GroceryModel(
-          name: "Thick Poha",
-          image: "assets/category/dal/murmura.png",
-          weight: "500 GM",
-          price: 35,
-          oldPrice: 50,
-          discount: "12%"),GroceryModel(
-          name: "Thick Poha",
-          image: "assets/category/dal/murmura.png",
-          weight: "500 GM",
-          price: 35,
-          oldPrice: 50,
-          discount: "12%"),GroceryModel(
-          name: "Thick Poha",
-          image: "assets/category/dal/murmura.png",
-          weight: "500 GM",
-          price: 35,
-          oldPrice: 50,
-          discount: "12%"),GroceryModel(
-          name: "Thick Poha",
-          image: "assets/category/dal/murmura.png",
-          weight: "500 GM",
-          price: 35,
-          oldPrice: 50,
-          discount: "12%"),GroceryModel(
-          name: "Thick Poha",
-          image: "assets/category/dal/murmura.png",
-          weight: "500 GM",
-          price: 35,
-          oldPrice: 50,
-          discount: "12%"),GroceryModel(
-          name: "Thick Poha",
-          image: "assets/category/dal/murmura.png",
-          weight: "500 GM",
-          price: 35,
-          oldPrice: 50,
-          discount: "12%"),
-    ],
-    "Atta & Flour": [
-      GroceryModel(
-          name: "Whole Wheat Atta",
-          image: "assets/category/dal/atta.png",
-          weight: "5 KG",
-          price: 199,
-          oldPrice: 260,
-          discount: "20%"),GroceryModel(
-          name: "Whole Wheat Atta",
-          image: "assets/category/dal/atta.png",
-          weight: "5 KG",
-          price: 199,
-          oldPrice: 260,
-          discount: "20%"),GroceryModel(
-          name: "Whole Wheat Atta",
-          image: "assets/category/dal/atta.png",
-          weight: "5 KG",
-          price: 199,
-          oldPrice: 260,
-          discount: "20%"),GroceryModel(
-          name: "Whole Wheat Atta",
-          image: "assets/category/dal/atta.png",
-          weight: "5 KG",
-          price: 199,
-          oldPrice: 260,
-          discount: "20%"),GroceryModel(
-          name: "Whole Wheat Atta",
-          image: "assets/category/dal/atta.png",
-          weight: "5 KG",
-          price: 199,
-          oldPrice: 260,
-          discount: "20%"),GroceryModel(
-          name: "Whole Wheat Atta",
-          image: "assets/category/dal/atta.png",
-          weight: "5 KG",
-          price: 199,
-          oldPrice: 260,
-          discount: "20%"),
-    ],
-    "Dry Fruits & Nuts": [
-      GroceryModel(
-          name: "Premium Cashews",
-          image: "assets/category/dal/almonds.png",
-          weight: "500 GM",
-          price: 520,
-          oldPrice: 600,
-          discount: "10%"),GroceryModel(
-          name: "Premium Cashews",
-          image: "assets/category/dal/almonds.png",
-          weight: "500 GM",
-          price: 520,
-          oldPrice: 600,
-          discount: "10%"), GroceryModel(
-          name: "Premium Cashews",
-          image: "assets/category/dal/almonds.png",
-          weight: "500 GM",
-          price: 520,
-          oldPrice: 600,
-          discount: "10%"), GroceryModel(
-          name: "Premium Cashews",
-          image: "assets/category/dal/almonds.png",
-          weight: "500 GM",
-          price: 520,
-          oldPrice: 600,
-          discount: "10%"), GroceryModel(
-          name: "Premium Cashews",
-          image: "assets/category/dal/almonds.png",
-          weight: "500 GM",
-          price: 520,
-          oldPrice: 600,
-          discount: "10%"), GroceryModel(
-          name: "Premium Cashews",
-          image: "assets/category/dal/almonds.png",
-          weight: "500 GM",
-          price: 520,
-          oldPrice: 600,
-          discount: "10%"),
-    ],
-    "Edible Oils": [
-      GroceryModel(
-        name: " GroundNut Oil",
-        image: "assets/category/dal/oilnew.png",
-        weight: "2L",
-        price: 319,
-        oldPrice: 999,
-        discount: "68% Off",
-      ),GroceryModel(
-        name: " GroundNut Oil",
-        image: "assets/category/dal/oilnew.png",
-        weight: "2L",
-        price: 319,
-        oldPrice: 999,
-        discount: "68% Off",
-      ),GroceryModel(
-        name: " GroundNut Oil",
-        image: "assets/category/dal/oilnew.png",
-        weight: "2L",
-        price: 319,
-        oldPrice: 999,
-        discount: "68% Off",
-      ),GroceryModel(
-        name: " GroundNut Oil",
-        image: "assets/category/dal/oilnew.png",
-        weight: "2L",
-        price: 319,
-        oldPrice: 999,
-        discount: "68% Off",
-      ),GroceryModel(
-        name: " GroundNut Oil",
-        image: "assets/category/dal/oilnew.png",
-        weight: "2L",
-        price: 319,
-        oldPrice: 999,
-        discount: "68% Off",
-      ),GroceryModel(
-        name: " GroundNut Oil",
-        image: "assets/category/dal/oilnew.png",
-        weight: "2L",
-        price: 319,
-        oldPrice: 999,
-        discount: "68% Off",
-      ),
-
-    ],
-    "Millets & Organic": [
-      GroceryModel(
-        name: "Quinoa King Gluten",
-        image: "assets/category/dal/ragi.png",
-        weight: "1KG",
-        price: 319,
-        oldPrice: 999,
-        discount: "68% Off",
-      ),GroceryModel(
-        name: "Quinoa King Gluten",
-        image: "assets/category/dal/ragi.png",
-        weight: "1KG",
-        price: 319,
-        oldPrice: 999,
-        discount: "68% Off",
-      ),GroceryModel(
-        name: "Quinoa King Gluten",
-        image: "assets/category/dal/ragi.png",
-        weight: "1KG",
-        price: 319,
-        oldPrice: 999,
-        discount: "68% Off",
-      ),GroceryModel(
-        name: "Quinoa King Gluten",
-        image: "assets/category/dal/ragi.png",
-        weight: "1KG",
-        price: 319,
-        oldPrice: 999,
-        discount: "68% Off",
-      ),GroceryModel(
-        name: "Quinoa King Gluten",
-        image: "assets/category/dal/ragi.png",
-        weight: "1KG",
-        price: 319,
-        oldPrice: 999,
-        discount: "68% Off",
-      ),GroceryModel(
-        name: "Quinoa King Gluten",
-        image: "assets/category/dal/ragi.png",
-        weight: "1KG",
-        price: 319,
-        oldPrice: 999,
-        discount: "68% Off",
-      ),
-
-    ],
-  };
-
-  void toggleSelection(GroceryModel p) {
+  void toggleSelection(GroceryProductData p) {
       if (selectedGroceries.contains(p)) {
         selectedGroceries.remove(p);
       } else {
@@ -694,5 +229,79 @@ class GroceryController extends GetxController {
 
   bool get isMaxLimitHit =>
       selectedGroceries.length == maxLimit;
+
+
+  RxBool isInitialLoading = false.obs;
+  Future<void> fetchBoth(String key) async {
+    try{
+      isInitialLoading.value = true;
+      await Future.wait([
+        fetchChildrenOfGroceryCategory(key: key),
+        fetchGroceryCategories(key: key),
+      ]);
+    }catch(e){
+
+    } finally{
+      isInitialLoading.value = false;
+    }
+  }
+
+  RxBool isGrocerySubCategoryLoading = false.obs;
+  RxList<GroceryProductData> arrGroceryProducts = <GroceryProductData>[].obs;
+
+  Future<void> fetchGroceryCategories({required String key}) async {
+    try {
+      isGrocerySubCategoryLoading.value = true;
+      final response = await GroceryRepo().searchGroceryCategoryRepo(
+          queryParam: {ApiKeys.key: key}
+      );
+
+      if (!response.isSuccess) {
+        commonSnackBar(
+          message: response.message ?? AppStrings.somethingWentWrong,
+        );
+        return;
+      }
+
+      final groceryProductModel = GroceryProductModel.fromJson(response.response?.data) ;
+      arrGroceryProducts.value = groceryProductModel.data ?? [];
+      log('total grocery-- ${arrGroceryProducts.length}');
+      groceryCategoryResponse = ApiResponse.complete(response);
+      update();
+    } catch (e, s) {
+      groceryCategoryResponse = ApiResponse.error('error');
+      log('stack trace-- $s');
+    }finally{
+      isGrocerySubCategoryLoading.value = false;
+    }
+  }
+
+  RxBool isGroceryCategoryOfChildrenLoading = false.obs;
+  RxList<ChildrenOfGroceryCategoryResponse> arrChildrenOfGroceryCategory = <ChildrenOfGroceryCategoryResponse>[].obs;
+  Future<void> fetchChildrenOfGroceryCategory({required String key}) async {
+    try {
+      isGroceryCategoryOfChildrenLoading.value = true;
+      final response = await GroceryRepo().groceryCategoryOfChildrenRepo(
+        key: key
+      );
+
+      if (!response.isSuccess) {
+        commonSnackBar(
+          message: response.message ?? AppStrings.somethingWentWrong,
+        );
+        return;
+      }
+
+      final jsonData = response.response?.data;
+      arrChildrenOfGroceryCategory.value = ChildrenOfGroceryCategoryResponse.fromJsonList(jsonData);
+      groceryCategoryResponse = ApiResponse.complete(response);
+      update();
+    } catch (e, s) {
+      groceryCategoryResponse = ApiResponse.error('error');
+      update();
+    }finally{
+      isGroceryCategoryOfChildrenLoading.value = false;
+    }
+  }
 
 }
