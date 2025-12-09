@@ -1033,7 +1033,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
         ],
       ),
     ),
-    actions: (type == AppStrings.Admin||type == AppStrings.PersonalChatAi||type == AppStrings.BusinessChatAi)
+    actions: (type == AppStrings.Admin||type == AppStrings.PersonalChatAi||type == AppStrings.BusinessChatAi||type == AppStrings.InventoryChatAi)
         ? null
         : [
       SizedBox(width: SizeConfig.size8),

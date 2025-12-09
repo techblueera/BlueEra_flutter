@@ -660,11 +660,12 @@ class ChatViewController extends GetxController {
       required bool isInitialMessage,
       bool? isFromContactList}) async {
     businessTabIndexSelected.value = 0;
+    await getLocalConversation(
+        conversationId, userId, otherUserId, contactName);
+
     if (isWithProductSend == true) {
       await sendProductMessages(shareProductParams ?? {});
     }
-    await getLocalConversation(
-        conversationId, userId, otherUserId, contactName);
 
     if (type == AppConstants.business_Chat_Type) {
       if (isFromContactList != null && isFromContactList) {
