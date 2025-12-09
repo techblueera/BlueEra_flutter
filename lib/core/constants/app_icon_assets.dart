@@ -499,4 +499,5 @@ class AppIconAssets {
 
   static String finderIcon = "${iconPath}finder_icon.svg";
   static String menIcon = "${iconPath}men_icon.svg";
+  static String toggol_buttons = "${iconPath}toggol_buttons.svg";
 }
