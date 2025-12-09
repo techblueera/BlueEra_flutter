@@ -4,7 +4,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/features/common/food/controller/grocery_controller.dart';
-import 'package:BlueEra/features/common/food/model/grocery_category_model.dart';
+import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
 import 'package:BlueEra/features/common/food/model/grocery_product_model.dart';
 import 'package:BlueEra/features/common/food/view/grocery/add_grocery_screen.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -18,8 +18,8 @@ import '../../../../../widgets/local_assets.dart';
 import '../../../../../widgets/common_back_app_bar.dart';
 
 class GrocerySubCategoryScreen extends StatefulWidget {
-  final List<GroceryCategoryModel> arrGroceries;
-  final GroceryCategoryModel selectedGroceryData;
+  final List<CollapsibleGridModel> arrGroceries;
+  final CollapsibleGridModel selectedGroceryData;
 
    GrocerySubCategoryScreen({
      super.key,
@@ -33,7 +33,7 @@ class GrocerySubCategoryScreen extends StatefulWidget {
 
 class _GrocerySubCategoryScreenState extends State<GrocerySubCategoryScreen> {
   final controller = getOrPut(() => GroceryController());
-  late GroceryCategoryModel selectedGroceryData;
+  late CollapsibleGridModel selectedGroceryData;
 
   @override
   void initState() {
@@ -279,7 +279,7 @@ class _GrocerySubCategoryScreenState extends State<GrocerySubCategoryScreen> {
                 return InkWell(
                   onTap: () {
                       controller.selectedTabIndex.value = i;
-                      controller.fetchGroceryCategories(key: (i != 0) ? item.key ?? '' : selectedGroceryData.tagId);
+                      controller.fetchGroceryCategories(key: (i != 0) ? item.key ?? '' : controller.selectedGrocery.value);
                   },
                   child: Container(
                     margin: EdgeInsets.symmetric(
@@ -330,7 +330,7 @@ class _GrocerySubCategoryScreenState extends State<GrocerySubCategoryScreen> {
                 crossAxisCount: 2,
                 crossAxisSpacing: 10,
                 mainAxisSpacing: 10,
-                childAspectRatio: 0.692,
+                childAspectRatio: 0.6,
               ),
               itemBuilder: (_, i) => groceryCard(controller.arrGroceryProducts[i]),
             ),
@@ -342,6 +342,10 @@ class _GrocerySubCategoryScreenState extends State<GrocerySubCategoryScreen> {
 
   Widget groceryCard(GroceryProductData groceryProductData) {
     final bool isSelected = controller.selectedGroceries.contains(groceryProductData);
+    final price = controller.getPriceDetails(groceryProductData.variants??[]);
+    print("Selling Range: ${price.sellingRange}");
+    print("MRP Range: ${price.mrpRange}");
+    print("Discount Range: ${price.discountRange}");
 
     return GestureDetector(
       onTap: () => controller.toggleSelection(groceryProductData),
@@ -360,9 +364,9 @@ class _GrocerySubCategoryScreenState extends State<GrocerySubCategoryScreen> {
                   child: SizedBox(
                     height: SizeConfig.size140,
                     width: double.infinity,
-                    child: (groceryProductData.productInfo?.images?.isNotEmpty ?? false)
+                    child: (groceryProductData.images?.isNotEmpty ?? false)
                         ? CachedNetworkImage(
-                      imageUrl: groceryProductData.productInfo?.images!.first.url??'',
+                      imageUrl: groceryProductData.images!.first.url??'',
                       fit: BoxFit.cover,
                       placeholder: (context, url) => Container(
                         color: Colors.grey.shade200,
@@ -418,7 +422,7 @@ class _GrocerySubCategoryScreenState extends State<GrocerySubCategoryScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CustomText(
-                    "${groceryProductData.productInfo?.name}",
+                    "${groceryProductData.name}",
                     fontSize: SizeConfig.small,
                     maxLines: 2,
                     color: AppColors.mainTextColor,
@@ -451,8 +455,7 @@ class _GrocerySubCategoryScreenState extends State<GrocerySubCategoryScreen> {
                         padding:
                             EdgeInsets.symmetric(horizontal: 2, vertical: 0.5),
                         child: CustomText(
-                          // groceryProductData.productInfo.weight,
-                          '25KG',
+                          '${groceryProductData.variants?[0].weight?.toInt()} ${groceryProductData.variants?[0].unit}',
                           fontSize: 11,
                           color: Colors.grey,
                         ),
@@ -460,29 +463,72 @@ class _GrocerySubCategoryScreenState extends State<GrocerySubCategoryScreen> {
                     ],
                   ),
                   SizedBox(height: SizeConfig.size6),
-                  Row(
+                  Column(
                     children: [
-                      CustomText(
-                        "₹${groceryProductData.pricing?[0].sellingPrice}",
-                        fontSize: 10,
-                        color: AppColors.primaryColor,
-                        fontWeight: FontWeight.bold,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          CustomText(
+                            "${AppStrings.price.tr}: ",
+                            fontSize: 10,
+                            color: AppColors.secondaryTextColor,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          SizedBox(width: SizeConfig.size3),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: CustomText(
+                              "${price.sellingRange}",
+                              fontSize: 10,
+                              color: AppColors.primaryColor,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
                       ),
-                      SizedBox(width: 4),
-                      CustomText(
-                        "₹${groceryProductData.pricing?[0].mrp}",
-                        fontSize: 10,
-                        color: AppColors.grayText,
-                      ),
-                      SizedBox(width: 4),
-                      CustomText(
-                        "${calculateDiscount(
-                            groceryProductData.pricing![0].sellingPrice.toString(),
-                            groceryProductData.pricing![0].mrp.toString()
-                        ).toStringAsFixed(2)}% ${AppStrings.offCaps.tr}",
-                        fontSize: 10,
-                        color: AppColors.green00,
-                        fontWeight: FontWeight.w600,
+                      SizedBox(height: 4),
+                      Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            CustomText(
+                              "${AppStrings.mrp.tr}: ",
+                              fontSize: 10,
+                              color: AppColors.secondaryTextColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            SizedBox(width: SizeConfig.size3),
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: CustomText(
+                                "${price.mrpRange}",
+                                fontSize: 10,
+                                color: AppColors.grayText,
+                              ),
+                            ),
+                          ],
+                        ),
+
+                      SizedBox(height: 4),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          CustomText(
+                            "${AppStrings.discount.tr}: ",
+                            fontSize: 10,
+                            color: AppColors.secondaryTextColor,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          SizedBox(width: SizeConfig.size3),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: CustomText(
+                              "${price.discountRange}",
+                              fontSize: 10,
+                              color: AppColors.green00,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   )
@@ -494,4 +540,5 @@ class _GrocerySubCategoryScreenState extends State<GrocerySubCategoryScreen> {
       ),
     );
   }
+
 }

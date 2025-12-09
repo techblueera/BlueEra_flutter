@@ -2,20 +2,16 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/food/controller/grocery_controller.dart';
 import 'package:BlueEra/features/common/food/model/grocery_product_model.dart';
-import 'package:BlueEra/features/common/food/view/grocery/grocery_subcategory_screen.dart';
+import 'package:BlueEra/features/common/food/view/grocery/add_grocery_variant_screen.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/common_draggable_bottom_sheet.dart';
-import 'package:BlueEra/widgets/common_horizontal_divider.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:BlueEra/widgets/new_common_date_selection_dropdown.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -43,7 +39,10 @@ class _AddGroceryScreenState extends State<AddGroceryScreen> {
                 horizontal: SizeConfig.size15, vertical: SizeConfig.size15),
             child: SafeArea(
               child: CustomBtn(
-                onTap: () => showEditProductBottomSheet(context),
+                onTap: () {
+                  // showEditProductBottomSheet(context);
+                  Get.to(()=> AddGroceryVariantScreen());
+                },
                 isValidate: true,
                 radius: SizeConfig.size8,
                 title: 'Post ${controller.selectedGroceries.length} Products',
@@ -64,7 +63,7 @@ class _AddGroceryScreenState extends State<AddGroceryScreen> {
                 crossAxisCount: 2,
                 crossAxisSpacing: 10,
                 mainAxisSpacing: 10,
-                childAspectRatio: 0.86,
+                childAspectRatio: 0.75,
               ),
               itemBuilder: (_, i) =>
                   groceryCard(controller.selectedGroceries[i], i),
@@ -74,6 +73,8 @@ class _AddGroceryScreenState extends State<AddGroceryScreen> {
   }
 
   Widget groceryCard(GroceryProductData p, int index) {
+    final price = controller.getPriceDetails(p.variants??[]);
+
     return Container(
       decoration: BoxDecoration(
         color: AppColors.white,
@@ -89,9 +90,9 @@ class _AddGroceryScreenState extends State<AddGroceryScreen> {
                 child: SizedBox(
                   height: SizeConfig.size150,
                   width: double.infinity,
-                  child: (p.productInfo?.images?.isNotEmpty ?? false)
+                  child: (p.images?.isNotEmpty ?? false)
                       ? CachedNetworkImage(
-                    imageUrl: p.productInfo?.images!.first.url??'',
+                    imageUrl: p.images!.first.url??'',
                     fit: BoxFit.cover,
                     placeholder: (context, url) => Container(
                       color: Colors.grey.shade200,
@@ -123,7 +124,7 @@ class _AddGroceryScreenState extends State<AddGroceryScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomText(
-                  "${p.productInfo?.name}",
+                  "${p.name}",
                   fontSize: SizeConfig.small,
                   maxLines: 2,
                   color: AppColors.mainTextColor,
@@ -156,8 +157,7 @@ class _AddGroceryScreenState extends State<AddGroceryScreen> {
                       padding:
                           EdgeInsets.symmetric(horizontal: 2, vertical: 0.5),
                       child: CustomText(
-                        // "${p.productInfo?.name}",
-                        '25KG',
+                        '${p.variants?[0].weight} ${p.variants?[0].unit}',
                         fontSize: 11,
                         color: Colors.grey,
                       ),
@@ -165,29 +165,72 @@ class _AddGroceryScreenState extends State<AddGroceryScreen> {
                   ],
                 ),
                 SizedBox(height: SizeConfig.size6),
-                Row(
+                Column(
                   children: [
-                    CustomText(
-                      "₹${p.pricing?[0].sellingPrice}",
-                      fontSize: 10,
-                      color: AppColors.primaryColor,
-                      fontWeight: FontWeight.bold,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        CustomText(
+                          "${AppStrings.price.tr}: ",
+                          fontSize: 10,
+                          color: AppColors.secondaryTextColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        SizedBox(width: SizeConfig.size3),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: CustomText(
+                            "${price.sellingRange}",
+                            fontSize: 10,
+                            color: AppColors.primaryColor,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
-                    SizedBox(width: 4),
-                    CustomText(
-                      "₹${p.pricing?[0].mrp}",
-                      fontSize: 10,
-                      color: AppColors.grayText,
+                    SizedBox(height: 4),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        CustomText(
+                          "${AppStrings.mrp.tr}: ",
+                          fontSize: 10,
+                          color: AppColors.secondaryTextColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        SizedBox(width: SizeConfig.size3),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: CustomText(
+                            "${price.mrpRange}",
+                            fontSize: 10,
+                            color: AppColors.grayText,
+                          ),
+                        ),
+                      ],
                     ),
-                    SizedBox(width: 4),
-                    CustomText(
-                      "${calculateDiscount(
-                          p.pricing![0].sellingPrice.toString(),
-                          p.pricing![0].mrp.toString()
-                      ).toStringAsFixed(2)}% ${AppStrings.offCaps.tr}",
-                      fontSize: 10,
-                      color: AppColors.green00,
-                      fontWeight: FontWeight.w600,
+
+                    SizedBox(height: 4),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        CustomText(
+                          "${AppStrings.discount.tr}: ",
+                          fontSize: 10,
+                          color: AppColors.secondaryTextColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        SizedBox(width: SizeConfig.size3),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: CustomText(
+                            "${price.discountRange}",
+                            fontSize: 10,
+                            color: AppColors.green00,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 )
@@ -231,321 +274,320 @@ class _AddGroceryScreenState extends State<AddGroceryScreen> {
     );
   }
 
-  void showEditProductBottomSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return CommonDraggableBottomSheet(
-          initialChildSize: 0.45,
-          minChildSize: 0.3,
-          maxChildSize: 0.95,
-          backgroundColor: AppColors.whiteF1,
-          boxShadow: [
-            BoxShadow(
-                color: AppColors.black.withValues(alpha: 0.1),
-                blurRadius: 4.0,
-                offset: Offset(0, -3))
-          ],
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-          padding: EdgeInsets.only(
-              top: SizeConfig.size10,
-              bottom: kToolbarHeight),
-          builder: (scrollController) {
-            return SingleChildScrollView(
-              controller: scrollController,
-              child: Column(
-                children: [
-                  /// --- Top Drag Handle ---
-                  Center(
-                    child: Container(
-                      width: 50,
-                      height: 5,
-                      margin: EdgeInsets.only(bottom: SizeConfig.size5),
-                      decoration: BoxDecoration(
-                        color: AppColors.secondaryTextColor,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  ),
-
-                  Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: SizeConfig.size12,
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: CustomText(
-                            "Edit Product",
-                            fontSize: SizeConfig.medium,
-                            color: AppColors.mainTextColor,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        SizedBox(width: SizeConfig.size8),
-                        IconButton(
-                          onPressed: () => Get.back(),
-                          icon: Icon(
-                            Icons.close,
-                            size: SizeConfig.size20,
-                            color: AppColors.black,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: SizeConfig.size10),
-                  ListView.separated(
-                    // controller: scrollController,
-                    itemCount: controller.selectedGroceries.length,
-                    physics: NeverScrollableScrollPhysics(),
-                    shrinkWrap: true,
-                    padding: EdgeInsets.only(
-                        bottom: SizeConfig.size12
-                    ),
-                    itemBuilder: (BuildContext context, int index) {
-                      final groceryItem = controller.selectedGroceries[index];
-                      return Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: SizeConfig.size12,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-
-                            /// --- Image Carousel (Horizontal) ---
-                            Container(
-                              padding: EdgeInsets.all(10.0),
-                              decoration: BoxDecoration(
-                                  color: AppColors.primaryColor
-                                      .withValues(alpha: 0.05),
-                                  borderRadius: BorderRadius.circular(10.0)),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                SizedBox(
-                                height: SizeConfig.size80,
-                                child: (groceryItem.productInfo?.images?.isNotEmpty == true)
-                                    ? ListView.separated(
-                                  scrollDirection: Axis.horizontal,
-                                  itemCount: groceryItem.productInfo!.images!.length,
-                                  itemBuilder: (_, index) {
-                                    final imgUrl =
-                                        groceryItem.productInfo!.images![index].url ?? '';
-
-                                    return ClipRRect(
-                                      borderRadius: BorderRadius.circular(10.0),
-                                      child: SizedBox(
-                                        height: SizeConfig.size80,
-                                        width: SizeConfig.size80,
-                                        child: CachedNetworkImage(
-                                          imageUrl: imgUrl,
-                                          fit: BoxFit.cover,
-                                          placeholder: (_, __) => Container(
-                                            color: Colors.grey.shade200,
-                                            child: Center(
-                                              child: CircularProgressIndicator(strokeWidth: 2),
-                                            ),
-                                          ),
-                                          errorWidget: (_, __, ___) => LocalAssets(
-                                            imagePath: AppIconAssets.place_holder_image,
-                                            boxFix: BoxFit.cover,
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                  separatorBuilder: (_, __) => const SizedBox(width: 10),
-                                )
-                                    : ClipRRect(
-                                  borderRadius: BorderRadius.circular(10),
-                                  child: LocalAssets(
-                                    imagePath: AppIconAssets.place_holder_image,
-                                    boxFix: BoxFit.cover,
-                                  ),
-                                ),
-                              ),
-
-                                SizedBox(height: SizeConfig.size10),
-
-                                  /// --- Product Title ---
-                                  CustomText(
-                                    groceryItem.productInfo?.name,
-                                    fontSize: SizeConfig.medium,
-                                    color: AppColors.mainTextColor,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-
-                                  SizedBox(height: SizeConfig.size8),
-
-                                  /// --- Price Row ---
-                                  Row(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      Container(
-                                        padding: EdgeInsets.all(4.0),
-                                        decoration: BoxDecoration(
-                                            color: AppColors.white,
-                                            borderRadius:
-                                                BorderRadius.circular(4.0),
-                                            border: Border.all(
-                                                color: AppColors.greyE5,
-                                                width: 0.5)),
-                                        child: CustomText(
-                                          // groceryItem.weight,
-                                          '25KG',
-                                          fontSize: SizeConfig.small,
-                                          color: AppColors.secondaryTextColor,
-                                          fontWeight: FontWeight.w400,
-                                        ),
-                                      ),
-                                      SizedBox(width: SizeConfig.size10),
-                                      CustomText(
-                                        "₹${groceryItem.pricing?[0].sellingPrice}",
-                                        fontSize: SizeConfig.medium,
-                                        color: AppColors.primaryColor,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                      SizedBox(width: SizeConfig.size8),
-                                      CustomText(
-                                        "₹${groceryItem.pricing?[0].mrp}",
-                                        fontSize: SizeConfig.small,
-                                        color: AppColors.secondaryTextColor,
-                                        fontWeight: FontWeight.w400,
-                                        decoration: TextDecoration.lineThrough,
-                                        decorationColor:
-                                            AppColors.secondaryTextColor,
-                                      ),
-                                      SizedBox(width: SizeConfig.size8),
-                                      CustomText(
-                                          "${calculateDiscount(
-                                              groceryItem.pricing![0].sellingPrice.toString(),
-                                              groceryItem.pricing![0].mrp.toString()
-                                          ).toStringAsFixed(2)}% ${AppStrings.offCaps.tr}",
-                                          fontSize: SizeConfig.small,
-                                          color: AppColors.greenShade,
-                                          fontWeight: FontWeight.w400),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            SizedBox(height: SizeConfig.size16),
-
-                            /// --- Original MRP ---
-                            CustomText(
-                              "Original MRP",
-                              fontSize: SizeConfig.medium,
-                              color: AppColors.mainTextColor,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            SizedBox(height: SizeConfig.size10),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: _TextFieldBox(
-                                      title: 'Unit', hint: "E.g. 100G"),
-                                ),
-                                SizedBox(width: SizeConfig.size8),
-                                Expanded(
-                                  child: _TextFieldBox(
-                                      title: 'Price', hint: "E.g. ₹1,999"),
-                                ),
-                              ],
-                            ),
-
-                            SizedBox(height: SizeConfig.size16),
-
-                            /// --- Selling Price ---
-                            CustomText(
-                              "What Is Your Selling price",
-                              fontSize: SizeConfig.medium,
-                              color: AppColors.mainTextColor,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            SizedBox(height: SizeConfig.size10),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: _TextFieldBox(
-                                      title: 'Unit', hint: "E.g. 100G"),
-                                ),
-                                SizedBox(width: SizeConfig.size8),
-                                Expanded(
-                                  child: _TextFieldBox(
-                                      title: 'Selling Price',
-                                      hint: "E.g. ₹1,999"),
-                                ),
-                              ],
-                            ),
-
-                            SizedBox(height: SizeConfig.size16),
-
-                            /// --- Expiry Date ---
-                            CustomText(
-                              "Expiry Date",
-                              fontSize: SizeConfig.medium,
-                              fontWeight: FontWeight.w400,
-                              color: AppColors.mainTextColor,
-                            ),
-                            SizedBox(height: SizeConfig.size8),
-                            NewDatePicker(
-                              selectedDay: controller.selectedDay,
-                              selectedMonth: controller.selectedMonth,
-                              selectedYear: controller.selectedYear,
-                              onDayChanged: (value) {
-                                  controller.selectedDay = value;
-                                // controller.validateForm();
-                              },
-                              onMonthChanged: (value) {
-                                  controller.selectedMonth = value;
-                                 // controller.validateForm();
-                              },
-                              onYearChanged: (value) {
-                                  controller.selectedYear = value;
-                                  // controller.validateForm();
-                              },
-                            )
-                          ],
-                        ),
-                      );
-                    },
-                    separatorBuilder: (BuildContext context, int index) {
-                      return Padding(
-                          padding:
-                              EdgeInsets.symmetric(vertical: SizeConfig.size15),
-                          child:
-                              index != controller.selectedGroceries.length - 1
-                                  ? CommonHorizontalDivider(
-                                      color: AppColors.shadowColor,
-                                    )
-                                  : SizedBox());
-                    },
-                  ),
-
-                  SizedBox(height: SizeConfig.size20),
-
-                  /// --- Update Button ---
-                  Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: SizeConfig.size12,
-                    ),
-                    child: CustomBtn(onTap: () {},
-                        title: "Update",
-                        bgColor: AppColors.primaryColor,
-                    ),
-                  )
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
+  // void showEditProductBottomSheet(BuildContext context) {
+  //   showModalBottomSheet(
+  //     context: context,
+  //     isScrollControlled: true,
+  //     backgroundColor: Colors.transparent,
+  //     builder: (context) {
+  //       return CommonDraggableBottomSheet(
+  //         initialChildSize: 0.45,
+  //         minChildSize: 0.3,
+  //         maxChildSize: 0.95,
+  //         backgroundColor: AppColors.whiteF1,
+  //         boxShadow: [
+  //           BoxShadow(
+  //               color: AppColors.black.withValues(alpha: 0.1),
+  //               blurRadius: 4.0,
+  //               offset: Offset(0, -3))
+  //         ],
+  //         borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+  //         padding: EdgeInsets.only(
+  //             top: SizeConfig.size10,
+  //             bottom: kToolbarHeight),
+  //         builder: (scrollController) {
+  //           return SingleChildScrollView(
+  //             controller: scrollController,
+  //             child: Column(
+  //               children: [
+  //                 /// --- Top Drag Handle ---
+  //                 Center(
+  //                   child: Container(
+  //                     width: 50,
+  //                     height: 5,
+  //                     margin: EdgeInsets.only(bottom: SizeConfig.size5),
+  //                     decoration: BoxDecoration(
+  //                       color: AppColors.secondaryTextColor,
+  //                       borderRadius: BorderRadius.circular(10),
+  //                     ),
+  //                   ),
+  //                 ),
+  //
+  //                 Padding(
+  //                   padding: EdgeInsets.symmetric(
+  //                     horizontal: SizeConfig.size12,
+  //                   ),
+  //                   child: Row(
+  //                     children: [
+  //                       Expanded(
+  //                         child: CustomText(
+  //                           "Edit Product",
+  //                           fontSize: SizeConfig.medium,
+  //                           color: AppColors.mainTextColor,
+  //                           fontWeight: FontWeight.w600,
+  //                         ),
+  //                       ),
+  //                       SizedBox(width: SizeConfig.size8),
+  //                       IconButton(
+  //                         onPressed: () => Get.back(),
+  //                         icon: Icon(
+  //                           Icons.close,
+  //                           size: SizeConfig.size20,
+  //                           color: AppColors.black,
+  //                         ),
+  //                       ),
+  //                     ],
+  //                   ),
+  //                 ),
+  //                 SizedBox(height: SizeConfig.size10),
+  //                 ListView.separated(
+  //                   // controller: scrollController,
+  //                   itemCount: controller.selectedGroceries.length,
+  //                   physics: NeverScrollableScrollPhysics(),
+  //                   shrinkWrap: true,
+  //                   padding: EdgeInsets.only(
+  //                       bottom: SizeConfig.size12
+  //                   ),
+  //                   itemBuilder: (BuildContext context, int index) {
+  //                     final groceryItem = controller.selectedGroceries[index];
+  //                     return Padding(
+  //                       padding: EdgeInsets.symmetric(
+  //                         horizontal: SizeConfig.size12,
+  //                       ),
+  //                       child: Column(
+  //                         crossAxisAlignment: CrossAxisAlignment.start,
+  //                         children: [
+  //
+  //                           /// --- Image Carousel (Horizontal) ---
+  //                           Container(
+  //                             padding: EdgeInsets.all(10.0),
+  //                             decoration: BoxDecoration(
+  //                                 color: AppColors.primaryColor
+  //                                     .withValues(alpha: 0.05),
+  //                                 borderRadius: BorderRadius.circular(10.0)),
+  //                             child: Column(
+  //                               crossAxisAlignment: CrossAxisAlignment.start,
+  //                               children: [
+  //                               SizedBox(
+  //                               height: SizeConfig.size80,
+  //                               child: (groceryItem.productInfo?.images?.isNotEmpty == true)
+  //                                   ? ListView.separated(
+  //                                 scrollDirection: Axis.horizontal,
+  //                                 itemCount: groceryItem.productInfo!.images!.length,
+  //                                 itemBuilder: (_, index) {
+  //                                   final imgUrl =
+  //                                       groceryItem.productInfo!.images![index].url ?? '';
+  //
+  //                                   return ClipRRect(
+  //                                     borderRadius: BorderRadius.circular(10.0),
+  //                                     child: SizedBox(
+  //                                       height: SizeConfig.size80,
+  //                                       width: SizeConfig.size80,
+  //                                       child: CachedNetworkImage(
+  //                                         imageUrl: imgUrl,
+  //                                         fit: BoxFit.cover,
+  //                                         placeholder: (_, __) => Container(
+  //                                           color: Colors.grey.shade200,
+  //                                           child: Center(
+  //                                             child: CircularProgressIndicator(strokeWidth: 2),
+  //                                           ),
+  //                                         ),
+  //                                         errorWidget: (_, __, ___) => LocalAssets(
+  //                                           imagePath: AppIconAssets.place_holder_image,
+  //                                           boxFix: BoxFit.cover,
+  //                                         ),
+  //                                       ),
+  //                                     ),
+  //                                   );
+  //                                 },
+  //                                 separatorBuilder: (_, __) => const SizedBox(width: 10),
+  //                               )
+  //                                   : ClipRRect(
+  //                                 borderRadius: BorderRadius.circular(10),
+  //                                 child: LocalAssets(
+  //                                   imagePath: AppIconAssets.place_holder_image,
+  //                                   boxFix: BoxFit.cover,
+  //                                 ),
+  //                               ),
+  //                             ),
+  //
+  //                               SizedBox(height: SizeConfig.size10),
+  //
+  //                                 /// --- Product Title ---
+  //                                 CustomText(
+  //                                   groceryItem.productInfo?.name,
+  //                                   fontSize: SizeConfig.medium,
+  //                                   color: AppColors.mainTextColor,
+  //                                   fontWeight: FontWeight.w600,
+  //                                 ),
+  //
+  //                                 SizedBox(height: SizeConfig.size8),
+  //
+  //                                 /// --- Price Row ---
+  //                                 Row(
+  //                                   crossAxisAlignment: CrossAxisAlignment.end,
+  //                                   children: [
+  //                                     Container(
+  //                                       padding: EdgeInsets.all(4.0),
+  //                                       decoration: BoxDecoration(
+  //                                           color: AppColors.white,
+  //                                           borderRadius:
+  //                                               BorderRadius.circular(4.0),
+  //                                           border: Border.all(
+  //                                               color: AppColors.greyE5,
+  //                                               width: 0.5)),
+  //                                       child: CustomText(
+  //                                         '${groceryItem.weight} ${groceryItem.unit}',
+  //                                         fontSize: SizeConfig.small,
+  //                                         color: AppColors.secondaryTextColor,
+  //                                         fontWeight: FontWeight.w400,
+  //                                       ),
+  //                                     ),
+  //                                     SizedBox(width: SizeConfig.size10),
+  //                                     CustomText(
+  //                                       "₹${groceryItem.pricing?[0].sellingPrice}",
+  //                                       fontSize: SizeConfig.medium,
+  //                                       color: AppColors.primaryColor,
+  //                                       fontWeight: FontWeight.w700,
+  //                                     ),
+  //                                     SizedBox(width: SizeConfig.size8),
+  //                                     CustomText(
+  //                                       "₹${groceryItem.pricing?[0].mrp}",
+  //                                       fontSize: SizeConfig.small,
+  //                                       color: AppColors.secondaryTextColor,
+  //                                       fontWeight: FontWeight.w400,
+  //                                       decoration: TextDecoration.lineThrough,
+  //                                       decorationColor:
+  //                                           AppColors.secondaryTextColor,
+  //                                     ),
+  //                                     SizedBox(width: SizeConfig.size8),
+  //                                     CustomText(
+  //                                         "${calculateDiscount(
+  //                                             groceryItem.pricing![0].sellingPrice.toString(),
+  //                                             groceryItem.pricing![0].mrp.toString()
+  //                                         ).toStringAsFixed(2)}% ${AppStrings.offCaps.tr}",
+  //                                         fontSize: SizeConfig.small,
+  //                                         color: AppColors.greenShade,
+  //                                         fontWeight: FontWeight.w400),
+  //                                   ],
+  //                                 ),
+  //                               ],
+  //                             ),
+  //                           ),
+  //
+  //                           SizedBox(height: SizeConfig.size16),
+  //
+  //                           /// --- Original MRP ---
+  //                           CustomText(
+  //                             "Original MRP",
+  //                             fontSize: SizeConfig.medium,
+  //                             color: AppColors.mainTextColor,
+  //                             fontWeight: FontWeight.w600,
+  //                           ),
+  //                           SizedBox(height: SizeConfig.size10),
+  //                           Row(
+  //                             children: [
+  //                               Expanded(
+  //                                 child: _TextFieldBox(
+  //                                     title: 'Unit', hint: "E.g. 100G"),
+  //                               ),
+  //                               SizedBox(width: SizeConfig.size8),
+  //                               Expanded(
+  //                                 child: _TextFieldBox(
+  //                                     title: 'Price', hint: "E.g. ₹1,999"),
+  //                               ),
+  //                             ],
+  //                           ),
+  //
+  //                           SizedBox(height: SizeConfig.size16),
+  //
+  //                           /// --- Selling Price ---
+  //                           CustomText(
+  //                             "What Is Your Selling price",
+  //                             fontSize: SizeConfig.medium,
+  //                             color: AppColors.mainTextColor,
+  //                             fontWeight: FontWeight.w600,
+  //                           ),
+  //                           SizedBox(height: SizeConfig.size10),
+  //                           Row(
+  //                             children: [
+  //                               Expanded(
+  //                                 child: _TextFieldBox(
+  //                                     title: 'Unit', hint: "E.g. 100G"),
+  //                               ),
+  //                               SizedBox(width: SizeConfig.size8),
+  //                               Expanded(
+  //                                 child: _TextFieldBox(
+  //                                     title: 'Selling Price',
+  //                                     hint: "E.g. ₹1,999"),
+  //                               ),
+  //                             ],
+  //                           ),
+  //
+  //                           SizedBox(height: SizeConfig.size16),
+  //
+  //                           /// --- Expiry Date ---
+  //                           CustomText(
+  //                             "Expiry Date",
+  //                             fontSize: SizeConfig.medium,
+  //                             fontWeight: FontWeight.w400,
+  //                             color: AppColors.mainTextColor,
+  //                           ),
+  //                           SizedBox(height: SizeConfig.size8),
+  //                           NewDatePicker(
+  //                             selectedDay: controller.selectedDay,
+  //                             selectedMonth: controller.selectedMonth,
+  //                             selectedYear: controller.selectedYear,
+  //                             onDayChanged: (value) {
+  //                                 controller.selectedDay = value;
+  //                               // controller.validateForm();
+  //                             },
+  //                             onMonthChanged: (value) {
+  //                                 controller.selectedMonth = value;
+  //                                // controller.validateForm();
+  //                             },
+  //                             onYearChanged: (value) {
+  //                                 controller.selectedYear = value;
+  //                                 // controller.validateForm();
+  //                             },
+  //                           )
+  //                         ],
+  //                       ),
+  //                     );
+  //                   },
+  //                   separatorBuilder: (BuildContext context, int index) {
+  //                     return Padding(
+  //                         padding:
+  //                             EdgeInsets.symmetric(vertical: SizeConfig.size15),
+  //                         child:
+  //                             index != controller.selectedGroceries.length - 1
+  //                                 ? CommonHorizontalDivider(
+  //                                     color: AppColors.shadowColor,
+  //                                   )
+  //                                 : SizedBox());
+  //                   },
+  //                 ),
+  //
+  //                 SizedBox(height: SizeConfig.size20),
+  //
+  //                 /// --- Update Button ---
+  //                 Padding(
+  //                   padding: EdgeInsets.symmetric(
+  //                     horizontal: SizeConfig.size12,
+  //                   ),
+  //                   child: CustomBtn(onTap: () {},
+  //                       title: "Update",
+  //                       bgColor: AppColors.primaryColor,
+  //                   ),
+  //                 )
+  //               ],
+  //             ),
+  //           );
+  //         },
+  //       );
+  //     },
+  //   );
+  // }
 
   Widget _TextFieldBox({required String title, required String hint}) {
     return CommonTextField(

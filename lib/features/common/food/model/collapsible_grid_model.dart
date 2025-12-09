@@ -1,9 +1,9 @@
-class GroceryCategoryModel {
+class CollapsibleGridModel {
   final String label;
   final String icon;
   final String tagId;
 
-  const GroceryCategoryModel({
+  const CollapsibleGridModel({
     required this.label,
     required this.icon,
     required this.tagId

@@ -25,18 +25,18 @@ class GroceryRepo extends BaseService {
     return response;
   }
 
-  // Future<ResponseModel> getFoodService({Map<String, dynamic>? queryParam}) async {
-  //
-  //   final response = await ApiBaseHelper().getHTTP(
-  //     businessServices,
-  //     params: queryParam,
-  //     showProgress: false,
-  //     onError: (error) {},
-  //     onSuccess: (data) {},
-  //   );
-  //   return response;
-  // }
-  //
+
+  Future<ResponseModel> addGroceryProductVariantRepo({ required String productId, Map<String, dynamic>? params}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      addGroceryProductVariant(productId),
+      params: params,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   // ///FETCH SINGLE FOOD SERVICES....
   // Future<ResponseModel> fetchSingleFoodDataApi({required String serviceId}) async {
   //   final response = await ApiBaseHelper().getHTTP(

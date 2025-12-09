@@ -533,5 +533,9 @@ class ApiKeys {
   static const allowedFood = 'allowedFood';
   static const additionalRules = 'additionalRules';
   static const key = 'key';
+  static const weight = 'weight';
+  static const unit = 'unit';
+  static const pricing = 'pricing';
+  static const variantData = 'variantData';
 
 }
