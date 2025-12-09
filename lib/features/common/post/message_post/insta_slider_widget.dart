@@ -313,7 +313,7 @@ class LocalMediaGrid extends StatelessWidget {
                     ImageViewScreen(
                       subTitle: "",
                       appBarTitle: AppStrings.imageViewer.tr,
-                      imageUrls: [file.path ?? ""],
+                      imageUrls: [file.path],
                       initialIndex: 0,
                     ),
                   ),

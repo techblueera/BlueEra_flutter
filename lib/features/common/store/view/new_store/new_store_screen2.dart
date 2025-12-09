@@ -226,7 +226,7 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                             ),
                             SizedBox(width: SizeConfig.size10),
                             CustomText(
-                                'Find Your Dream Job Now',
+                                AppStrings.findYourDreamJobNow,
                                 fontSize: SizeConfig.medium,
                                 color: AppColors.secondaryTextColor,
                                 fontWeight: FontWeight.w400
@@ -303,7 +303,7 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                         child: Column(
                           children: [
                             _sectionHeader(
-                                title: "Near Me",
+                                title: AppStrings.nearMe,
                                 seeMoreTap: () {
 
                                 }
@@ -333,7 +333,7 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                         child: Column(
                           children: [
                             _sectionHeader(
-                                title: "Professionals",
+                                title: AppStrings.professionals,
                                 seeMoreTap: () {}
                             ),
                             SizedBox(height: SizeConfig.size15),
@@ -342,8 +342,6 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                                 labelBuilder: (c) => c.name,
                                 iconBuilder: (c) => c.icon,
                                 onTap: (category){
-                                  print("You tapped → ${category.slugId}");
-                                  print("You tapped category name → ${category.name}");
                                   Get.to(()=> CustomizeMapScreen(
                                     selectedMapCategoryType: MapServiceCategory.services.label,
                                   ));
@@ -368,7 +366,7 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                         child: Column(
                           children: [
                             _sectionHeader(
-                                title: "Services",
+                                title: AppStrings.services,
                                 seeMoreTap: () {}
                             ),
                             SizedBox(height: SizeConfig.size15),
@@ -377,9 +375,6 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                               labelBuilder: (c) => c.name,
                               iconBuilder: (c) => c.icon,
                               onTap: (category) {
-                                print("You tapped → ${category.slugId}");
-                                print("You tapped category name → ${category.name}");
-                                print("You tapped category data → ${category.categoryData}");
                                 Get.to(()=> BusinessStoreScreen(
                                     typeOfBusiness: AppConstants.service,
                                     selectedStoreCategoryId: category.categoryData?.id,
@@ -406,7 +401,7 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                         child: Column(
                           children: [
                             _sectionHeader(
-                                title: "Stores Near Me",
+                                title: AppStrings.storesNearMe,
                                 seeMoreTap: () {}
                             ),
                             SizedBox(height: SizeConfig.size15),
@@ -415,9 +410,6 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                               labelBuilder: (c) => c.name,
                               iconBuilder: (c) => c.icon,
                               onTap: (category) {
-                                print("You tapped → ${category.slugId}");
-                                print("You tapped category name → ${category.name}");
-                                print("You tapped category data → ${category.categoryData}");
                                 Get.to(()=> BusinessStoreScreen(
                                     typeOfBusiness: AppConstants.product,
                                     selectedStoreCategoryId: category.categoryData?.id,
@@ -443,7 +435,7 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                         child: Column(
                           children: [
                             _sectionHeader(
-                                title: "Food & Restaurant",
+                                title: AppStrings.foodAndRestaurant,
                                 seeMoreTap: () {}
                             ),
                             SizedBox(height: SizeConfig.size15),
@@ -452,9 +444,6 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                               labelBuilder: (c) => c.name,
                               iconBuilder: (c) => c.icon,
                               onTap: (category) {
-                                print("You tapped → ${category.slugId}");
-                                print("You tapped category data → ${category.categoryData}");
-                                print("You tapped category name → ${category.name}");
                                 Get.to(()=> BusinessStoreScreen(
                                     typeOfBusiness: AppConstants.food,
                                     selectedStoreCategoryId: category.categoryData?.id,
@@ -512,7 +501,7 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
         TextButton(
           onPressed: seeMoreTap,
           child: CustomText(
-              "See More",
+              AppStrings.seeMore,
               fontSize: SizeConfig.small,
               color: AppColors.primaryColor,
               fontWeight: FontWeight.w600
@@ -598,9 +587,6 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
   }
 
   void _handleNearMeCategoryTap(BusinessProfileCategory category) {
-    print("You tapped slug Id→ ${category.slugId}");
-    print("You tapped category name → ${category.name}");
-    print("You tapped category data → ${category.categoryData}");
 
     switch (category.slugId) {
       case AppConstants.storeServices:

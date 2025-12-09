@@ -904,8 +904,6 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
     String? authorId = data?.user?.id;
     String? userBusinessId = data?.user?.id;
     String? userAccountType = data?.user?.accountType?.toUpperCase();
-    logs("userAccountType=== ${userAccountType}");
-    logs("userId=== ${userId} authorId  === $authorId");
     if (userAccountType == AppConstants.individual) {
       if (userId == authorId) {
         navigatePushTo(context, PersonalProfileSetupNewScreen());

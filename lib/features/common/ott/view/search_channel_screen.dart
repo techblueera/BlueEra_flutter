@@ -1,10 +1,10 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/ott/controller/search_channel_controller.dart';
 import 'package:BlueEra/features/common/ott/view/all_channel_video_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/common_search_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -12,7 +12,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class SearchChannelScreen extends StatefulWidget {
-  SearchChannelScreen({Key? key}) : super(key: key);
+  SearchChannelScreen({
+    Key? key,
+  }) : super(key: key);
 
   @override
   State<SearchChannelScreen> createState() => _SearchChannelScreenState();
@@ -20,19 +22,21 @@ class SearchChannelScreen extends StatefulWidget {
 
 class _SearchChannelScreenState extends State<SearchChannelScreen> {
   final controller = Get.put(SearchChannelController());
-@override
+
+  @override
   void dispose() {
     // TODO: implement dispose
-  Get.delete<SearchChannelController>();
+    Get.delete<SearchChannelController>();
 
-  super.dispose();
+    super.dispose();
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.white,
       appBar: CommonBackAppBar(
-        title: "Search Channels",
+        title: AppStrings.searchChannels,
       ),
       body: SafeArea(
         child: Column(
@@ -44,13 +48,14 @@ class _SearchChannelScreenState extends State<SearchChannelScreen> {
                 controller: controller.searchController,
                 onChanged: controller.onSearchChanged,
                 decoration: InputDecoration(
-                  hintText: "Search by channel name...",
+                  hintText: AppStrings.searchByChannelName.tr,
                   hintStyle: TextStyle(
                       fontSize: SizeConfig.medium,
                       color: AppColors.secondaryTextColor),
                   prefixIcon: Padding(
                     padding: EdgeInsets.symmetric(
-                        horizontal: SizeConfig.size8, vertical: SizeConfig.size5),
+                        horizontal: SizeConfig.size8,
+                        vertical: SizeConfig.size5),
                     child: LocalAssets(
                         imagePath: AppIconAssets.chat_search,
                         imgColor: AppColors.mainTextColor),
@@ -72,11 +77,11 @@ class _SearchChannelScreenState extends State<SearchChannelScreen> {
 
                 if (controller.searchList.isEmpty &&
                     controller.searchController.text.isNotEmpty) {
-                  return const Center(child: CustomText("No channels found"));
+                  return const Center(child: CustomText(AppStrings.noChannelsFound));
                 }
 
                 if (controller.searchList.isEmpty) {
-                  return const Center(child: CustomText("No channels found"));
+                  return const Center(child: CustomText(AppStrings.noChannelsFound));
                 }
 
                 return ListView.separated(
@@ -86,10 +91,10 @@ class _SearchChannelScreenState extends State<SearchChannelScreen> {
                     final channel = controller.searchList[index];
 
                     return ListTile(
-                      onTap: (){
+                      onTap: () {
                         Get.to(VideoListScreen(
-                          channelID: channel.sId??"",
-                          channelName: channel.name??"",
+                          channelID: channel.sId ?? "",
+                          channelName: channel.name ?? "",
                         ));
                       },
                       leading: Container(
@@ -127,7 +132,6 @@ class _SearchChannelScreenState extends State<SearchChannelScreen> {
                                   child: const SizedBox(
                                     height: 20,
                                     width: 20,
-
                                   ),
                                 ),
                                 // 3. If image fails to load, show the fallback icon
@@ -135,7 +139,8 @@ class _SearchChannelScreenState extends State<SearchChannelScreen> {
                                     CircleAvatar(
                                   radius: 35,
                                   backgroundColor: Colors.grey.shade100,
-                                  child: const Icon(Icons.tv, color: Colors.grey),
+                                  child:
+                                      const Icon(Icons.tv, color: Colors.grey),
                                 ),
                               )
                             // 4. If URL is null/empty originally, show the fallback immediately
@@ -161,7 +166,9 @@ class _SearchChannelScreenState extends State<SearchChannelScreen> {
                 );
               }),
             ),
-            SizedBox(height: 40,),
+            SizedBox(
+              height: 40,
+            ),
           ],
         ),
       ),

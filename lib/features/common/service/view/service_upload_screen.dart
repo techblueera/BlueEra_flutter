@@ -295,7 +295,7 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                 final String? selected =
                     await SelectProfilePictureDialog.showLogoDialog(
                   context,
-                      AppStrings.selectPhoto,
+                      AppStrings.selectPhoto.tr,
                 );
                 if ((selected?.isNotEmpty ?? false) && selected != null) {
                   controller.selectedImage.value = File(selected);

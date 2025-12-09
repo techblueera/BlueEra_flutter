@@ -285,12 +285,6 @@ class _FeedCardState extends State<FeedCard> {
     );
   }
 
-  Future<void> _onSavedUnSavedButtonPressed() async {
-    feedController.savePostToLocalDB(
-        postId: _post?.id ?? '0',
-        type: widget.postFilteredType,
-        sortBy: widget.sortBy);
-  }
 }
 
 bool _isSharing = false;

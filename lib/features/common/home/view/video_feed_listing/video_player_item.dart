@@ -3,11 +3,8 @@ import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/common/channel_feed_view/channel_feed_message_post_widget.dart';
-import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -251,7 +248,8 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                                     children: [
                                       Flexible(
                                         child: CustomText(
-                                          widget.video.authorName,
+                                          widget.video.authorName
+                                            ,
                                           fontWeight: FontWeight.w600,
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
@@ -272,6 +270,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                 ],
               ),
             ),
+            SizedBox(height: SizeConfig.size10),
 
             // VIDEO PLAYER AREA
             Expanded(
@@ -407,7 +406,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                       data: timeAgo(DateTime.parse(widget.video.createdAt))),
                   ViewFeedActionWidget(
                     iconPath: AppIconAssets.eye_new,
-                    data: formatNumberLikePost(widget.video.views_count ?? 0),
+                    data: formatNumberLikePost(widget.video.views_count),
                   ),
                   InkWell(
                     onTap: () {
@@ -420,7 +419,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                     child: ViewFeedActionWidget(
                         iconPath: AppIconAssets.comment_new,
                         data: formatNumberLikePost(
-                            widget.video.comments_count ?? 0)),
+                            widget.video.comments_count)),
                   ),
                   InkWell(
                     onTap: () {
@@ -463,16 +462,16 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
 
                         try {
                           _isSharing =
-                          true; // Set flag to prevent multiple calls
+                              true; // Set flag to prevent multiple calls
                           XFile? xFile;
                           if ((widget.video.thumbnail.isNotEmpty)) {
                             // Safely handle first media
                             xFile = await urlToCachedXFile(
-                                widget.video.thumbnail ?? "");
+                                widget.video.thumbnail);
                           }
 
                           final shareUrl =
-                          postDeepLink(postId: widget.video.id.toString());
+                              postDeepLink(postId: widget.video.id.toString());
                           final combinedText = shareUrl;
 
                           await SharePlus.instance.share(ShareParams(
@@ -506,12 +505,12 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
               ),
             ),
             SizedBox(height: SizeConfig.size30),
-
           ],
         ),
       ),
     );
   }
+
   ViewFeedActionWidget({required String iconPath, required String data}) {
     return Padding(
       padding: EdgeInsets.only(right: SizeConfig.size10),
@@ -521,7 +520,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
             imagePath: iconPath,
             width: SizeConfig.size18,
             height: SizeConfig.size18,
-            imgColor:  AppColors.white,
+            imgColor: AppColors.white,
           ),
           SizedBox(
             width: SizeConfig.size5,
@@ -530,13 +529,11 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
             data,
             color: AppColors.white,
             fontSize: SizeConfig.size10,
-
           ),
         ],
       ),
     );
   }
-
 }
 
 /*

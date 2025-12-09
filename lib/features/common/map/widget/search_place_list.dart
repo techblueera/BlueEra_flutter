@@ -61,20 +61,6 @@ class _SearchPlaceListState extends State<SearchPlaceList> {
     _handleCurrentLocationTap();
     targetLocation=LatLng(widget.lat, widget.lng);
   }
-  Future<void> _updateMarker(LatLng newLocation) async {
-    targetLocation = newLocation;
-    await mapController?.clearSymbols();
-    await mapController?.addSymbol(
-      SymbolOptions(
-        geometry: newLocation,
-        iconImage: "marker-15",
-        iconSize: 1.5,
-      ),
-    );
-    await mapController?.animateCamera(
-      CameraUpdate.newLatLngZoom(newLocation, 14.0),
-    );
-  }
 
   Future<void> _fetchPredictions() async {
     if (widget.query.trim().isEmpty) return;

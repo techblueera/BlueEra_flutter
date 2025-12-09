@@ -1,10 +1,8 @@
 // ignore_for_file: avoid_print, unnecessary_null_comparison, unnecessary_new, unrelated_type_equality_checks, unused_local_variable
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -24,11 +22,8 @@ import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:get/get.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:http/http.dart' as httpPkg;
 import 'package:permission_handler/permission_handler.dart';
 
-import '../../features/chat/view/group_chat/group_chat_screen.dart';
 import '../../features/chat/view/orders_chat/widget/order_call_alert_page.dart';
 import '../routes/route_helper.dart';
 import 'notifications/ride_notification_data_model.dart';
@@ -269,14 +264,6 @@ class AppNotificationHandler {
     );
     await FlutterCallkitIncoming.showCallkitIncoming(callKitParams);
   }
-  Future<String> _downloadAndSaveFile(String url, String fileName) async {
-    final directory = await getApplicationDocumentsDirectory();
-    final filePath = '${directory.path}/$fileName';
-    final response = await httpPkg.get(Uri.parse(url));
-    final file = File(filePath);
-    await file.writeAsBytes(response.bodyBytes);
-    return filePath;
-  }
 
   Future<void> showNotification(
     RemoteMessage notification,
@@ -482,7 +469,7 @@ class AppNotificationHandler {
         ///DEFAULT...
         playNotificationSound = notificationSound;
       }
-    } on Exception catch (e) {
+    } on Exception {
       playNotificationSound = notificationSound;
 
       // TODO

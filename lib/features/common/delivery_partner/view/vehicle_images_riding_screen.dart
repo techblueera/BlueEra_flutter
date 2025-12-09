@@ -36,156 +36,160 @@ class _VehicleImagesRidingScreenState extends State<VehicleImagesRidingScreen> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(SizeConfig.size15),
-        child: Obx(()=> AbsorbPointer(
-          absorbing: controller.isRiderVehicleImagesLoading.value,
-          child: Column(
-            children: [
-              /// vehicleNumberPlateImages
-              GetBuilder<CommonMultipleImageSectionController>(
-                id: CommonMultipleImageSectionController.vehicleNumberPlateImageId,
-                builder: (ctrl) => CommonMultipleImageUploadSection(
-                  title: AppStrings.uploadVehicleNumberPlateImage,
-                  maxImages: 1,
-                  images: controller.vehicleNumberPlateImages,
-                  onAddImage: () async {
-                    multipleImageSectionController.addImages(
-                        label: AppStrings.vehicleNumberPlateImages,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(SizeConfig.size15),
+          child: Obx(()=> AbsorbPointer(
+            absorbing: controller.isRiderVehicleImagesLoading.value,
+            child: Column(
+              children: [
+                /// vehicleNumberPlateImages
+                GetBuilder<CommonMultipleImageSectionController>(
+                  id: CommonMultipleImageSectionController.vehicleNumberPlateImageId,
+                  builder: (ctrl) => CommonMultipleImageUploadSection(
+                    title: AppStrings.uploadVehicleNumberPlateImage,
+                    maxImages: 1,
+                    images: controller.vehicleNumberPlateImages,
+                    onAddImage: () async {
+                      multipleImageSectionController.addImages(
+                          label: AppStrings.vehicleNumberPlateImages,
+                          imageList: controller.vehicleNumberPlateImages,
+                          updateId: CommonMultipleImageSectionController.vehicleNumberPlateImageId,
+                          maxUploadImages: 1
+                      );
+                    },
+                    onRemoveImage: (index) {
+                      multipleImageSectionController.removeImageAt(
                         imageList: controller.vehicleNumberPlateImages,
+                        index: index,
                         updateId: CommonMultipleImageSectionController.vehicleNumberPlateImageId,
-                        maxUploadImages: 1
-                    );
-                  },
-                  onRemoveImage: (index) {
-                    multipleImageSectionController.removeImageAt(
-                      imageList: controller.vehicleNumberPlateImages,
-                      index: index,
-                      updateId: CommonMultipleImageSectionController.vehicleNumberPlateImageId,
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
-              ),
-              SizedBox(height: SizeConfig.paddingM),
-
-              /// vehicleRightSideImageId
-              GetBuilder<CommonMultipleImageSectionController>(
-                id: CommonMultipleImageSectionController.vehicleRightSideImageId,
-                builder: (ctrl) => CommonMultipleImageUploadSection(
-                  title: AppStrings.uploadVehicleRightSideImages,
-                  minImages: 2,
-                  maxImages: controller.maxVehicleImageUpload,
-                  images: controller.vehicleRightSideImages,
-                  onAddImage: () async {
-                    multipleImageSectionController.addImages(
-                        label: AppStrings.vehicleRightSideImages,
+                SizedBox(height: SizeConfig.paddingM),
+        
+                /// vehicleRightSideImageId
+                GetBuilder<CommonMultipleImageSectionController>(
+                  id: CommonMultipleImageSectionController.vehicleRightSideImageId,
+                  builder: (ctrl) => CommonMultipleImageUploadSection(
+                    title: AppStrings.uploadVehicleRightSideImages,
+                    minImages: 2,
+                    maxImages: controller.maxVehicleImageUpload,
+                    images: controller.vehicleRightSideImages,
+                    onAddImage: () async {
+                      multipleImageSectionController.addImages(
+                          label: AppStrings.vehicleRightSideImages,
+                          imageList: controller.vehicleRightSideImages,
+                          updateId: CommonMultipleImageSectionController.vehicleRightSideImageId,
+                          maxUploadImages: controller.maxVehicleImageUpload
+                      );
+                    },
+                    onRemoveImage: (index) {
+                      multipleImageSectionController.removeImageAt(
                         imageList: controller.vehicleRightSideImages,
+                        index: index,
                         updateId: CommonMultipleImageSectionController.vehicleRightSideImageId,
-                        maxUploadImages: controller.maxVehicleImageUpload
-                    );
-                  },
-                  onRemoveImage: (index) {
-                    multipleImageSectionController.removeImageAt(
-                      imageList: controller.vehicleRightSideImages,
-                      index: index,
-                      updateId: CommonMultipleImageSectionController.vehicleRightSideImageId,
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
-              ),
-              SizedBox(height: SizeConfig.paddingM),
-
-              /// vehicleLeftSideImageId
-              GetBuilder<CommonMultipleImageSectionController>(
-                id: CommonMultipleImageSectionController.vehicleLeftSideImageId,
-                builder: (ctrl) => CommonMultipleImageUploadSection(
-                  title: AppStrings.uploadVehicleLeftSideImages,
-                  minImages: 2,
-                  maxImages: controller.maxVehicleImageUpload,
-                  images: controller.vehicleLeftSideImages,
-                  onAddImage: () async {
-                    multipleImageSectionController.addImages(
-                        label: AppStrings.vehicleLeftSideImages,
+                SizedBox(height: SizeConfig.paddingM),
+        
+                /// vehicleLeftSideImageId
+                GetBuilder<CommonMultipleImageSectionController>(
+                  id: CommonMultipleImageSectionController.vehicleLeftSideImageId,
+                  builder: (ctrl) => CommonMultipleImageUploadSection(
+                    title: AppStrings.uploadVehicleLeftSideImages,
+                    minImages: 2,
+                    maxImages: controller.maxVehicleImageUpload,
+                    images: controller.vehicleLeftSideImages,
+                    onAddImage: () async {
+                      multipleImageSectionController.addImages(
+                          label: AppStrings.vehicleLeftSideImages,
+                          imageList: controller.vehicleLeftSideImages,
+                          updateId: CommonMultipleImageSectionController.vehicleLeftSideImageId,
+                          maxUploadImages: controller.maxVehicleImageUpload
+                      );
+                    },
+                    onRemoveImage: (index) {
+                      multipleImageSectionController.removeImageAt(
                         imageList: controller.vehicleLeftSideImages,
+                        index: index,
                         updateId: CommonMultipleImageSectionController.vehicleLeftSideImageId,
-                        maxUploadImages: controller.maxVehicleImageUpload
-                    );
-                  },
-                  onRemoveImage: (index) {
-                    multipleImageSectionController.removeImageAt(
-                      imageList: controller.vehicleLeftSideImages,
-                      index: index,
-                      updateId: CommonMultipleImageSectionController.vehicleLeftSideImageId,
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
-              ),
-              SizedBox(height: SizeConfig.paddingM),
-
-              /// vehicleFrontImages
-              GetBuilder<CommonMultipleImageSectionController>(
-                id: CommonMultipleImageSectionController.vehicleFrontImageId,
-                builder: (ctrl) => CommonMultipleImageUploadSection(
-                  title: AppStrings.uploadVehicleFrontImages,
-                  maxImages: 1,
-                  images: controller.vehicleFrontImages,
-                  onAddImage: () async {
-                    multipleImageSectionController.addImages(
-                        label: AppStrings.vehicleFrontImages,
+                SizedBox(height: SizeConfig.paddingM),
+        
+                /// vehicleFrontImages
+                GetBuilder<CommonMultipleImageSectionController>(
+                  id: CommonMultipleImageSectionController.vehicleFrontImageId,
+                  builder: (ctrl) => CommonMultipleImageUploadSection(
+                    title: AppStrings.uploadVehicleFrontImages,
+                    maxImages: 1,
+                    images: controller.vehicleFrontImages,
+                    onAddImage: () async {
+                      multipleImageSectionController.addImages(
+                          label: AppStrings.vehicleFrontImages,
+                          imageList: controller.vehicleFrontImages,
+                          updateId: CommonMultipleImageSectionController.vehicleFrontImageId,
+                          maxUploadImages: 1
+                      );
+                    },
+                    onRemoveImage: (index) {
+                      multipleImageSectionController.removeImageAt(
                         imageList: controller.vehicleFrontImages,
+                        index: index,
                         updateId: CommonMultipleImageSectionController.vehicleFrontImageId,
-                        maxUploadImages: 1
-                    );
-                  },
-                  onRemoveImage: (index) {
-                    multipleImageSectionController.removeImageAt(
-                      imageList: controller.vehicleFrontImages,
-                      index: index,
-                      updateId: CommonMultipleImageSectionController.vehicleFrontImageId,
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
-              ),
-              SizedBox(height: SizeConfig.paddingM),
-
-              /// vehicleBackImages
-              GetBuilder<CommonMultipleImageSectionController>(
-                id: CommonMultipleImageSectionController.vehicleBackImageId,
-                builder: (ctrl) => CommonMultipleImageUploadSection(
-                  title: AppStrings.uploadVehicleBackImages,
-                  maxImages: 1,
-                  images: controller.vehicleBackImages,
-                  onAddImage: () async {
-                    multipleImageSectionController.addImages(
-                        label: AppStrings.vehicleBackImages,
+                SizedBox(height: SizeConfig.paddingM),
+        
+                /// vehicleBackImages
+                GetBuilder<CommonMultipleImageSectionController>(
+                  id: CommonMultipleImageSectionController.vehicleBackImageId,
+                  builder: (ctrl) => CommonMultipleImageUploadSection(
+                    title: AppStrings.uploadVehicleBackImages,
+                    maxImages: 1,
+                    images: controller.vehicleBackImages,
+                    onAddImage: () async {
+                      multipleImageSectionController.addImages(
+                          label: AppStrings.vehicleBackImages,
+                          imageList: controller.vehicleBackImages,
+                          updateId: CommonMultipleImageSectionController.vehicleBackImageId,
+                          maxUploadImages: 1
+                      );
+                    },
+                    onRemoveImage: (index) {
+                      multipleImageSectionController.removeImageAt(
                         imageList: controller.vehicleBackImages,
+                        index: index,
                         updateId: CommonMultipleImageSectionController.vehicleBackImageId,
-                        maxUploadImages: 1
-                    );
-                  },
-                  onRemoveImage: (index) {
-                    multipleImageSectionController.removeImageAt(
-                      imageList: controller.vehicleBackImages,
-                      index: index,
-                      updateId: CommonMultipleImageSectionController.vehicleBackImageId,
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
-              ),
-              SizedBox(height: SizeConfig.paddingL),
+                SizedBox(height: SizeConfig.paddingL),
+        
+                CustomBtn(
+                  title: controller.isRiderVehicleImagesLoading.value
+                      ? null
+                      : AppStrings.nextButton,
+                  onTap: ()=> controller.ridersOnboardingVehicleImagesApi(),
+                  radius: 10.0,
+                  bgColor: AppColors.primaryColor,
+                  isLoading: controller.isRiderVehicleImagesLoading.value,
+                ),
+                SizedBox(height: SizeConfig.paddingM),
 
-              CustomBtn(
-                title: controller.isRiderVehicleImagesLoading.value
-                    ? null
-                    : AppStrings.nextButton,
-                onTap: ()=> controller.ridersOnboardingVehicleImagesApi(),
-                radius: 10.0,
-                bgColor: AppColors.primaryColor,
-                isLoading: controller.isRiderVehicleImagesLoading.value,
-              )
-            ],
-          ),
-        )),
+              ],
+            ),
+          )),
+        ),
       ),
     );
   }

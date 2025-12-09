@@ -176,7 +176,7 @@ class _FoodUploadScreenState extends State<FoodUploadScreen> {
             final String? selected =
             await SelectProfilePictureDialog.showLogoDialog(
               context,
-              AppStrings.selectPhoto,
+              AppStrings.selectPhoto.tr,
             );
             if ((selected?.isNotEmpty ?? false) && selected != null) {
               controller.selectedImage.value = File(selected);

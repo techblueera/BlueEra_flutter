@@ -295,7 +295,8 @@ class ProductController extends GetxController{
   Future<void> pickImagesStep1(BuildContext context) async {
     final List<String>? selected = await SelectProductImageDialog.showLogoDialog(
       context,
-      'Product Image',
+      AppStrings.productImage,
+      // 'Product Image',
     );
     if (selected != null && selected.isNotEmpty) {
       final remaining = maxStep1Images.value - step1Images.length;
@@ -326,7 +327,8 @@ class ProductController extends GetxController{
     try {
       final List<String>? selected = await SelectProductImageDialog.showLogoDialog(
         context,
-        'Product Image',
+        AppStrings.productImage,
+
       );
       if (selected != null && selected.isNotEmpty) {
         final remaining = maxStep2Images.value - step2Images.length;

@@ -63,7 +63,7 @@ class _AllProductStoreScreenState extends State<AllProductStoreScreen> {
 
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: AppStrings.product
+        title: AppStrings.tab_product
       ),
 
       body: SafeArea(

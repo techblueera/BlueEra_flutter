@@ -1,6 +1,5 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/auth/model/get_all_resumes_model.dart';
 import 'package:BlueEra/features/common/auth/model/get_job_details_byId_model.dart';

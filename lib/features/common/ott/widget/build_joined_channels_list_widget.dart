@@ -1,7 +1,5 @@
-import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_controllar.dart';
 import 'package:BlueEra/features/common/ott/widget/logo_name_widget.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

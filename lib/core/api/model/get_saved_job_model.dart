@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:BlueEra/features/common/auth/model/get_all_jobs_model.dart';
-import 'package:BlueEra/features/common/auth/model/get_job_details_byId_model.dart';
 
 GetSavedJobModel getSavedJobModelFromJson(String str) =>
     GetSavedJobModel.fromJson(json.decode(str));

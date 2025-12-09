@@ -3,7 +3,6 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile_new.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
@@ -187,21 +186,6 @@ class _FollowersFollowingPageState extends State<FollowersFollowingPage>
             );
           }
         });
-        // if (user?.accountType?.toUpperCase() == AppConstants.business) {
-        //   Get.to(() => VisitBusinessProfileNew(
-        //         businessId: user?.id ?? "",
-        //         screenName: AppConstants.feedScreen,
-        //       ));
-        // }
-        // if (user?.accountType?.toUpperCase() == AppConstants.individual) {
-        //   Get.to(() => NewVisitProfileScreen(
-        //     key: ValueKey(user?.id ?? ''),
-        //
-        //     authorId: user?.id ?? '',
-        //         screenFromName: AppConstants.feedScreen,
-        //       ));
-        //
-        // }
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
@@ -240,53 +224,60 @@ class _FollowersFollowingPageState extends State<FollowersFollowingPage>
                   return;
                 }
                 if (isValidation(user)) {
-                  final chatViewController = Get.find<ChatViewController>();
-                  Map<String, dynamic> detas = {ApiKeys.user_id: user?.id};
-                  chatViewController.newVisitContactApiResponse?.value;
-                  await chatViewController.checkChatConnection(detas);
+                  final controllerVisit = Get.put(VisitProfileController());
 
-                  chatViewController.openAnyOneChatFunction(
-                    profileImage: user?.accountType?.toUpperCase() ==
-                            AppConstants.business
-                        ? user?.business_logo
-                        : user?.profileImage,
-                    otherUserId: (chatViewController.newVisitContactApiResponse
-                                    ?.value?.data?.conversationId ??
-                                '') ==
-                            ""
-                        ? chatViewController.newVisitContactApiResponse?.value
-                                ?.data?.otherUserId ??
-                            ''
-                        : null,
-                    type: user?.accountType?.toLowerCase(),
-                    isInitialMessage: (chatViewController
-                                    .newVisitContactApiResponse
-                                    ?.value
-                                    ?.data
-                                    ?.conversationId ??
-                                '') ==
-                            ""
-                        ? true
-                        : false,
-                    userId: user?.id,
-                    conversationId: (chatViewController
-                            .newVisitContactApiResponse
-                            ?.value
-                            ?.data
-                            ?.conversationId ??
-                        ''),
-                    contactName: user?.accountType?.toUpperCase() ==
-                            AppConstants.business
-                        ? user?.business_name
-                        : user?.name,
-                    contactNo: "",
-                  );
+                  await controllerVisit.unFollowUserController(
+                      candidateResumeId: user?.id);
+                  apiCalling(viewTag == "FOLLOWER" ? 1 : 0);
+                  // final chatViewController = Get.find<ChatViewController>();
+                  // Map<String, dynamic> detas = {ApiKeys.user_id: user?.id};
+                  // chatViewController.newVisitContactApiResponse?.value;
+                  // await chatViewController.checkChatConnection(detas);
+                  //
+                  // chatViewController.openAnyOneChatFunction(
+                  //   profileImage: user?.accountType?.toUpperCase() ==
+                  //           AppConstants.business
+                  //       ? user?.business_logo
+                  //       : user?.profileImage,
+                  //   otherUserId: (chatViewController.newVisitContactApiResponse
+                  //                   ?.value?.data?.conversationId ??
+                  //               '') ==
+                  //           ""
+                  //       ? chatViewController.newVisitContactApiResponse?.value
+                  //               ?.data?.otherUserId ??
+                  //           ''
+                  //       : null,
+                  //   type: user?.accountType?.toLowerCase(),
+                  //   isInitialMessage: (chatViewController
+                  //                   .newVisitContactApiResponse
+                  //                   ?.value
+                  //                   ?.data
+                  //                   ?.conversationId ??
+                  //               '') ==
+                  //           ""
+                  //       ? true
+                  //       : false,
+                  //   userId: user?.id,
+                  //   conversationId: (chatViewController
+                  //           .newVisitContactApiResponse
+                  //           ?.value
+                  //           ?.data
+                  //           ?.conversationId ??
+                  //       ''),
+                  //   contactName: user?.accountType?.toUpperCase() ==
+                  //           AppConstants.business
+                  //       ? user?.business_name
+                  //       : user?.name,
+                  //   contactNo: "",
+                  // );
                 } else {
                   final controllerVisit = Get.put(VisitProfileController());
 
                   await controllerVisit.followUserController(
                       candidateResumeId: user?.id);
                   apiCalling(viewTag == "FOLLOWER" ? 1 : 0);
+
+
                 }
                 // setState(() => _isFollowing = !_isFollowing);
                 // widget.onPressed();
@@ -298,7 +289,7 @@ class _FollowersFollowingPageState extends State<FollowersFollowingPage>
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
-                  color: isValidation(user)
+                  color: !isValidation(user)
                       ? AppColors.primaryColor
                       : AppColors.white,
                   border: Border.all(
@@ -307,8 +298,8 @@ class _FollowersFollowingPageState extends State<FollowersFollowingPage>
                   ),
                 ),
                 child: CustomText(
-                  isValidation(user) ? AppStrings.chat : AppStrings.follow,
-                  color: isValidation(user)
+                  isValidation(user) ? "Unfollow" : AppStrings.follow,
+                  color: !isValidation(user)
                       ? AppColors.white
                       : AppColors.primaryColor,
                   fontSize: 13,

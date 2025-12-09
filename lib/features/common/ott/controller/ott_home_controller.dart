@@ -14,28 +14,6 @@ class OttHomeController extends GetxController {
     "https://mir-s3-cdn-cf.behance.net/projects/404/351796219634157.Y3JvcCw5ODMsNzY5LDE0OCww.jpg",
   ];
 
-  final List<ChannelModelNew> joinedChannels = [
-    ChannelModelNew(
-        "Memes",
-        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRr78LHeesQnqsZ2Wn_0gtsMfnW7R7np8cF3Q&s",
-        Colors.red),
-    ChannelModelNew(
-        "Aaj Tak",
-        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSMx4iIwuXN06vqEOkxCd7dzurVykyDu0pdoQ&s",
-        Colors.redAccent),
-    ChannelModelNew(
-        "ABP News",
-        "https://exchange4media.gumlet.io/news-photo/109657-abplogo.jpg",
-        Colors.red),
-    ChannelModelNew(
-        "Yoga Live",
-        "https://yt3.googleusercontent.com/gC3DWxd3mXGoqF6hbbhFKMPX1BIOe-G8uHKg5w8M0aEP5W3Q24asx0oceTl_Y6vA0JZ2L2CGOw=s900-c-k-c0x00ffffff-no-rj",
-        Colors.grey),
-    ChannelModelNew(
-        "FUTURE",
-        "https://i.pinimg.com/280x280_RS/17/11/55/1711550cc94f7837430b514475df73cb.jpg",
-        Colors.blue),
-  ];
 
   final List<VideoModel> continueWatching = [
     VideoModel(

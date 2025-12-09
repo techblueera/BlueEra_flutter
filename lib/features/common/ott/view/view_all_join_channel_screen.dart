@@ -1,9 +1,7 @@
-import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_controllar.dart';
 import 'package:BlueEra/features/common/ott/widget/logo_name_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -31,10 +29,8 @@ class _ViewAllChannelScreenState extends State<ViewAllChannelScreen> {
     _scrollController.addListener(() {
       if (_scrollController.position.pixels ==
           _scrollController.position.maxScrollExtent) {
-        // User reached bottom - Call your pagination logic here
-        // Example: channelFeedController.loadMoreChannels();
+
         apiCalling(isLoadMore: true);
-        print("Load more data...");
       }
     });
   }
@@ -51,7 +47,7 @@ class _ViewAllChannelScreenState extends State<ViewAllChannelScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CommonBackAppBar(
-        title: "All Channel",
+        title:AppStrings.allChannels,
       ),
       body: Obx(() {
         return RefreshIndicator(

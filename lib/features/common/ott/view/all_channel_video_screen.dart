@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_controllar.dart';
 import 'package:BlueEra/features/common/ott/view/ott_video_player_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -88,7 +89,7 @@ class _VideoListScreenState extends State<VideoListScreen> {
           );
         }
         if (channelFeedController.allVideoChannelDataList.isEmpty) {
-          return Center(child: CustomText("No Video Channel Found"));
+          return Center(child: CustomText(AppStrings.noVideoChannelFound));
         }
         return SizedBox.shrink();
       }),

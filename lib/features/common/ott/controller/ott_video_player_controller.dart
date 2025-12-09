@@ -4,10 +4,6 @@ import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:get/get.dart';
-import 'package:video_player/video_player.dart';
 
 class OttVideoPlayerController extends GetxController {
   late VideoPlayerController videoController;

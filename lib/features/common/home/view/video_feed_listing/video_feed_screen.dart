@@ -1,17 +1,13 @@
 import 'package:BlueEra/core/api/model/video_post_model.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/features/common/comment/view/comment_bottom_sheet.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
-import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/home/view/video_feed_listing/video_feed_controller.dart';
 import 'package:BlueEra/features/common/home/view/video_feed_listing/video_player_item.dart';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 // Import your other files: VideoFeedController, FeedController, VideoPlayerItem, etc.
 
 class VideoFeedScreen extends StatefulWidget {

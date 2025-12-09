@@ -162,34 +162,9 @@ class AppConstants {
   static const String product = "product";
   static const String service = "service";
   static const String chatMsgBusinessType = "business";
+  static const String channelFeedList = "channelFeedList";
+  static const String channelOTTList = "channelOTTList";
 
-
-  // static const ELECTRICIAN = "Electrician";
-  // static const PLUMBER = "Plumber";
-  // static const TECHNICIAN = "Technician";
-  // static const MAID_CLEANER = "Maid - Cleaner";
-  // static const CARPENTER = "Carpenter";
-  // static const CAR_DRIVER_TAXI = "Taxi - Car Driver";
-  // static const DELIVERY_PARTNER = "Delivery Partner";
-  // static const MECHANIC = "Mechanic";
-  // static const TAILOR = "Tailor";
-  // static const BEAUTICIAN = "Beautician";
-  // static const HOME_RENOVATION = "Home Renovator";
-  // static const PAINTER = "Painter";
-  // static const GARDENER = "Gardener";
-  // static const Rider = "Rider";
-  // static const SECURITY = "Security Person";
-  // static const INTERIOR_DESIGNER = "Interior Designer";
-  // static const DIGITAL_MARKETING = "Digital Marketing";
-  // static const TUTOR = "Tutor";
-  // static const CONSULTANT = "Consultant";
-  // static const OTHER = "Other";
-  // static const TIFFIN = "Tiffin";
-  // static const BAKERY = "Bakery";
-  // static const SWEETS = "Sweets";
-  // static const HOME_STAY = "HOME STAY";
-  // static const Flat_ROOM = "Flat/Room";
-  // static const VEHICLE = "Vehicle";
 
   /// Services Category
   static const consulting = "Consulting Services";
@@ -1826,7 +1801,7 @@ final List<BusinessProfileCategory> mainCategories = [
     type: AppConstants.service,
   ),
   BusinessProfileCategory(
-    name: AppStrings.product,
+    name: AppStrings.tab_product,
     slugId: AppConstants.productsServices,
     icon: AppIconAssets.productIcon,
     type: AppConstants.service,

@@ -8,7 +8,6 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile_new.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
@@ -17,17 +16,11 @@ import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
-import 'package:BlueEra/features/common/reel/widget/single_shorts_structure.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/create_profile_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/business_all_product_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/widget/horizonatal_video_player.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
-import 'package:BlueEra/widgets/common_box_shadow.dart';
-import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
@@ -592,31 +585,7 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
   //   );
   // }
 
-  Widget _buildCircleIcon(String iconImage) {
-    return Container(
-      padding: EdgeInsets.all(SizeConfig.size6),
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: AppColors.primaryColor.withValues(alpha: 0.1),
-        border: Border.all(color: AppColors.primaryColor, width: 0.5),
-      ),
-      child: LocalAssets(
-        width: SizeConfig.size22,
-        height: SizeConfig.size22,
-        imagePath: iconImage,
-        imgColor: AppColors.primaryColor,
-      ),
-    );
-  }
 
-  Widget _buildTitleWidget(String text) {
-    return CustomText(
-      text,
-      fontSize: SizeConfig.medium,
-      fontWeight: FontWeight.w600,
-      color: AppColors.secondaryTextColor,
-    );
-  }
 }
 
 ShortFeedItem getVideoData(Post video) {

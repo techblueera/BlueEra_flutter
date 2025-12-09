@@ -1,3 +1,4 @@
+
 class VideoPost {
   final String id;
   final String title;
@@ -13,11 +14,11 @@ class VideoPost {
   final String account_type;
   final String type;
   final int views_count;
-   int comments_count;
-   int likes_count;
+  int comments_count;
+  int likes_count;
   final int repost_count;
   final String createdAt;
-   bool isLiked;
+  bool isLiked;
 
   VideoPost({
     required this.id,
@@ -49,16 +50,16 @@ class VideoPost {
       videoUrl: json["media"].isNotEmpty ? json["media"][0] : "",
       thumbnail: json["thumbnail"] ?? "",
       aspectRatio: json["media_aspect_ratio"] ?? "SQUARE",
-      authorName: json["author"]?["name"] ?? "",
+      authorName: json["author"]["name"],
       authorUsername: json["author"]?["username"] ?? "",
       avatar: json["author"]?["avatar"] ?? "",
       designation: json["author"]?["designation"] ?? "",
       business_category: json["author"]?["business_category"] ?? "",
       account_type: json["author"]?["account_type"] ?? "",
-      views_count: json["views_count"]?? "",
-      repost_count: json["repost_count"]?? "",
-      type: json["type"]?? "",
-      comments_count: json["comments_count"]?? "",
+      views_count: json["views_count"] ?? "",
+      repost_count: json["repost_count"] ?? "",
+      type: json["type"] ?? "",
+      comments_count: json["comments_count"] ?? "",
       createdAt: json["created_at"],
       isLiked: json["isLiked"],
       likes_count: json["likes_count"],

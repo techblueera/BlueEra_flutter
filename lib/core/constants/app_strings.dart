@@ -2102,5 +2102,28 @@ class AppStrings {
   static const notNow = "notNow";
   static const openOrders = "openOrders";
 
+  static const searchChannels = "searchChannels";
+  static const searchByChannelName = "searchByChannelName";
+  static const noChannelsFound = "noChannelsFound";
+  static const allChannels = "allChannels";
+  static const continueWatching = "continueWatching";
+  static const recommendedForYou = "recommendedForYou";
+  static const joinedChannels = "joinedChannels";
+  static const noVideoChannelFound = "noVideoChannelFound";
+  static const referral = "referral";
+  static const referredPersons = "referredPersons";
+  static const yourReferralCode = "yourReferralCode";
+  static const referralCodeCopied = "referralCodeCopied";
+  static const referralPoints = "referralPoints";
+  static const referralCount = "referralCount";
+  static const findYourDreamJobNow = "findYourDreamJobNow";
+  static const nearMe = "nearMe";
+  static const professionals = "professionals";
+  static const storesNearMe = "storesNearMe";
+  static const foodAndRestaurant = "foodAndRestaurant";
+  static const seeMore = "seeMore";
+  static const downloadLanguagePack = "downloadLanguagePack";
+  static const downloadLanguageDescription = "downloadLanguageDescription";
+
 
 }

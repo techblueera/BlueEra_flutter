@@ -1014,21 +1014,44 @@ class FeedController extends GetxController {
     targetList.assignAll(filtered);
   }
 
-  Future updateCommentCount(
-      {required String postId,
-      required PostType type,
-      SortBy? sortBy,
-      int? newCommentCount}) async {
-    final list = getListByType(type);
+  Future updateCommentCount({
+    required String postId,
+    required PostType type,
+    SortBy? sortBy,
+    int? newCommentCount,
+  }) async {
+    // 1. Get the actual reactive list (assuming GetX RxList)
+    final RxList<Post> list = getListByType(type);
+
+    // 2. Find the specific post index
     final postIndex = list.indexWhere((p) => p.id == postId);
 
     if (postIndex == -1) return;
 
+    // 3. Update ONLY that specific item using copyWith
     final post = list[postIndex];
     list[postIndex] = post.copyWith(
       commentsCount: newCommentCount,
     );
+
+    // 4. Force the list to notify the UI (Crucial for deep updates)
+    list.refresh();
   }
+  // Future updateCommentCount(
+  //     {required String postId,
+  //     required PostType type,
+  //     SortBy? sortBy,
+  //     int? newCommentCount}) async {
+  //   final list = getListByType(type);
+  //   final postIndex = list.indexWhere((p) => p.id == postId);
+  //
+  //   if (postIndex == -1) return;
+  //
+  //   final post = list[postIndex];
+  //   list[postIndex] = post.copyWith(
+  //     commentsCount: newCommentCount,
+  //   );
+  // }
 
   /// Like/Unlike
   Future<void> getAllLikesUser(

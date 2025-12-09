@@ -62,7 +62,6 @@ class BuildCarouselSectionWidget extends StatelessWidget {
                               entry.key
                           ? Colors.black
                           : Colors.black.withValues(alpha: 0.5),
-                      // color: (Theme.of(Get.context!).primaryColor).withOpacity(controller.currentCarouselIndex.value == entry.key ? 0.9 : 0.4),
                     ),
                   );
                 }).toList(),

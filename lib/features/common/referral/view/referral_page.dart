@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -15,7 +16,7 @@ class ReferralPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Referral",
+        title: AppStrings.referral,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -25,7 +26,7 @@ class ReferralPage extends StatelessWidget {
             _referralSummaryCard(),
             SizedBox(height: SizeConfig.size20),
             CustomText(
-            "Referred Persons",
+              AppStrings.referredPersons,
               fontSize: 16,
               fontWeight: FontWeight.w600,
             ),
@@ -59,7 +60,7 @@ class ReferralPage extends StatelessWidget {
       child: Column(
         children: [
           CustomText(
-           "Your Referral Code",
+            AppStrings.yourReferralCode,
             fontSize: 16,
             fontWeight: FontWeight.bold,
           ),
@@ -76,7 +77,7 @@ class ReferralPage extends StatelessWidget {
               GestureDetector(
                 onTap: () {
                   commonSnackBar(
-                      message: "Referral Code Copied");
+                      message: AppStrings.referralCodeCopied);
 
                   Clipboard.setData(ClipboardData(text: "REK003612"));
                 },
@@ -92,8 +93,8 @@ class ReferralPage extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _subSummary("Referral Points", "120"),
-              _subSummary("Referral Count", "12"),
+              _subSummary(AppStrings.referralPoints, "120"),
+              _subSummary(AppStrings.referralCount, "12"),
             ],
           )
         ],

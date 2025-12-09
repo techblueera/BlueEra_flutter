@@ -52,7 +52,7 @@ class ProfileSettingsNewScreen extends StatelessWidget {
                        ),
                        _buildTile(
                            AppIconAssets.referral,
-                           "Referral",
+                           AppStrings.referral,
                            onTap: () => Get.to(() => ReferralPage())
                        ),
                        _buildTile(

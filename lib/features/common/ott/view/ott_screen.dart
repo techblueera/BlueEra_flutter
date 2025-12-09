@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_controllar.dart';
 import 'package:BlueEra/features/common/channel_feed_view/view_all_joined_channel_list_screen.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
@@ -63,7 +64,7 @@ class _OttScreenState extends State<OttScreen> {
                 // 2. JOINED CHANNELS (Horizontal List)
                 Obx(() {
                   return BuildSectionHeaderWidget(
-                    title: "Joined Channels",
+                    title: AppStrings.joinedChannels,
                     isShowArrow: (channelFeedController
                                 .channelFeedModel.value.pagination?.total ??
                             0) >
@@ -83,14 +84,12 @@ class _OttScreenState extends State<OttScreen> {
                 // 2. JOINED CHANNELS (Horizontal List)
                 Obx(() {
                   return BuildSectionHeaderWidget(
-                    title: "All Channels",
+                    title: AppStrings.allChannels,
                     isShowArrow: (channelFeedController.allChannelResModel.value
                                 .pagination?.totalDocs ??
                             0) >
                         20,
                     onTap: () {
-
-                      // Get.to(HomeView());
                       Get.to(ViewAllChannelScreen());
                     },
                   );
@@ -104,7 +103,7 @@ class _OttScreenState extends State<OttScreen> {
 
                 // 3. CONTINUE WATCHING (Horizontal List)
                 BuildSectionHeaderWidget(
-                  title: "Continue Watching",
+                  title:AppStrings.continueWatching,
                   isShowArrow: false,
                 ),
                 const SizedBox(height: 10),
@@ -116,7 +115,7 @@ class _OttScreenState extends State<OttScreen> {
 
                 // 4. RECOMMENDED FOR YOU (Horizontal List)
                 BuildSectionHeaderWidget(
-                  title: "Recommended for you",
+                  title:AppStrings.recommendedForYou,
                   isShowArrow: false,
                 ),
                 const SizedBox(height: 10),
@@ -138,7 +137,7 @@ class _OttScreenState extends State<OttScreen> {
                   borderRadius: BorderRadius.circular(10)),
               child: Center(
                 child: CustomText(
-                  "Coming soon",
+                  AppStrings.comingSoon,
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
                   fontSize: 18,

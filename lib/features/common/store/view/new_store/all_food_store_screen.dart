@@ -96,15 +96,14 @@ class _AllFoodStoreScreenState extends State<AllFoodStoreScreen> {
                 final totalHorizontalSpacing = (crossAxisCount - 1) * crossSpacing;
                 final itemWidth = (constraints.maxWidth - totalHorizontalSpacing) / crossAxisCount;
 
-                final approximateItemHeight = SizeConfig.size300;
+                final approximateItemHeight = SizeConfig.size350;  // Increased height
 
                 final childAspectRatio = itemWidth / approximateItemHeight;
 
                 return GridView.builder(
                   controller: storesScrollController,
                   padding: EdgeInsets.symmetric(
-                      horizontal: SizeConfig.size8,
-                      vertical: SizeConfig.size10
+                      horizontal: SizeConfig.size8, vertical: SizeConfig.size10
                   ),
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: crossAxisCount,
@@ -131,7 +130,52 @@ class _AllFoodStoreScreenState extends State<AllFoodStoreScreen> {
                   },
                 );
               },
-            ),
+            ),/*LayoutBuilder(
+              builder: (context, constraints) {
+                final crossAxisCount = 2;
+                final crossSpacing = 10.0;
+                final mainSpacing = 10.0;
+
+                final totalHorizontalSpacing = (crossAxisCount - 1) * crossSpacing;
+                final itemWidth = (constraints.maxWidth - totalHorizontalSpacing) / crossAxisCount;
+
+                final approximateItemHeight = SizeConfig.size300;
+
+                final childAspectRatio = itemWidth / approximateItemHeight;
+
+                return GridView.builder(
+                  controller: storesScrollController,
+                  padding: EdgeInsets.symmetric(
+                      horizontal: SizeConfig.size8,
+                      vertical: SizeConfig.size10
+                  ),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: crossAxisCount,
+                    crossAxisSpacing: crossSpacing,
+                    mainAxisSpacing: mainSpacing,
+                    childAspectRatio: childAspectRatio,
+
+                  ),
+                  itemCount: foodList.length +
+                      (controller.isFoodDataLoadingMore.value ? 1 : 0),
+                  itemBuilder: (context, index) {
+                    if (index >= foodList.length) {
+                      return const Padding(
+                        padding: EdgeInsets.all(20),
+                        child: Center(child: CircularProgressIndicator()),
+                      );
+                    }
+
+                    final foodItem = foodList[index];
+
+                    return StoreFoodServiceCard(
+                      foodDetailsData: foodItem,
+                      isShowInGrid: widget.isShowInGrid,
+                    );
+                  },
+                );
+              },
+            ),*/
           ) : ListView.builder(
             controller: storesScrollController,
             padding: EdgeInsets.symmetric(

@@ -348,7 +348,7 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
                                       await SelectProfilePictureDialog
                                           .showLogoDialog(
                                         context,
-                                        AppStrings.selectPhoto,
+                                        AppStrings.selectPhoto.tr,
                                       );
                                       if ((selected?.isNotEmpty ?? false) &&
                                           selected != null) {

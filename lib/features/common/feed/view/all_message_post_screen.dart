@@ -15,14 +15,11 @@ import 'package:BlueEra/features/common/feed/models/all_message_post_res_model.d
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/repo/feed_repo.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
-import 'package:BlueEra/features/common/feed/widget/feed_poll_options_widget.dart';
-import 'package:BlueEra/features/common/feed/widget/social_message_post_grid_widget.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:BlueEra/widgets/progrss_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:get/get.dart';
@@ -564,42 +561,7 @@ class _AllMessagePostScreenState extends State<AllMessagePostScreen> {
     );
   }
 
-  ///POLL POST WIDGET...
 
-  Widget _buildAvatar(String? url) {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.white, width: 2),
-        shape: BoxShape.circle,
-      ),
-      child: CircleAvatar(
-        radius: 22,
-        backgroundImage: url != null ? NetworkImage(url) : null,
-        child: url == null ? const Icon(Icons.person) : null,
-      ),
-    );
-  }
-
-  Widget _buildActionButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-    Color color = Colors.white,
-  }) {
-    return Column(
-      children: [
-        IconButton(
-          icon: Icon(icon, color: color, size: 35),
-          onPressed: onTap,
-        ),
-        Text(
-          label,
-          style: const TextStyle(color: Colors.white, fontSize: 12),
-        ),
-        const SizedBox(height: 15),
-      ],
-    );
-  }
 
   void onCommentPressed(BuildContext context, Post _post) {
     showModalBottomSheet(
