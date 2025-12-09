@@ -532,5 +532,17 @@ class ApiKeys {
   static const isFoodRestriction = 'isFoodRestriction';
   static const allowedFood = 'allowedFood';
   static const additionalRules = 'additionalRules';
+  static const request_id = 'request_id';
+  static const apartment_address = 'apartment_address';
+  static const street_address1 = 'street_address1';
+  static const country = 'country';
+  static const contact_details = 'contact_details';
+  static const phone_number = 'phone_number';
+  static const additional_comments = 'additional_comments';
+  static const is_default = 'is_default';
+  static const zip_code = 'zip_code';
+  static const note = 'note';
+  static const house_no = 'house_no';
+  static const street = 'street';
 
 }

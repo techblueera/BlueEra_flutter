@@ -15,6 +15,7 @@ import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_constant.dart';
 import '../../../../core/services/local_strorage_helper.dart';
 import '../../../../core/services/notification_utils.dart';
+import '../../../common/store/repo/store_repo.dart';
 import '../../view/business_chat/business_chat_screen_updated.dart';
 import '../../view/personal_chat/personal_chat_screen.dart';
 import '../model/Generate_Upload_Ulr_Model.dart';
@@ -27,6 +28,7 @@ import '../model/contactListModel.dart';
 import '../model/getChatRequestProfileDetailsModel.dart';
 import '../model/getMediaMsgCommentsModel.dart' as cmdImport;
 import '../model/getMediaMsgCommentsModel.dart';
+import '../model/inventory_ask_ai_model.dart';
 import '../model/view_group_members_model.dart';
 import '../model/visit_chat_view_model.dart';
 import '../repo/chat_view_repo.dart';
@@ -40,7 +42,10 @@ class ChatViewController extends GetxController {
   Rx<ApiResponse> groupChatListResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> orderChatListResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> getListOfMessageResponse = ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> getListOfAiMessageResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> getListOfAiMessageResponse =
+      ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> getListOfInventoryAiMessageResponse =
+      ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> getGroupMembersResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> generateUploadUrlResponse =
       ApiResponse.initial('Initial').obs;
@@ -59,8 +64,9 @@ class ChatViewController extends GetxController {
     "sender": {
       "name": "BlueEra Friend",
       "contact_no": "BlueEra Friend",
-      "profile_image": "https://be-user-bkt.s3.ap-south-1.amazonaws.com/admin/68a31a3edd48c8dfc0656a00/profile/1759817565514-unnamed.webp",
-      "account_type": AppStrings.Ai,
+      "profile_image":
+          "https://be-user-bkt.s3.ap-south-1.amazonaws.com/admin/68a31a3edd48c8dfc0656a00/profile/1759817565514-unnamed.webp",
+      "account_type": AppStrings.PersonalChatAi,
     }
   };
   static final Map<String, dynamic> businessAiChatListModel = {
@@ -69,22 +75,39 @@ class ChatViewController extends GetxController {
     "sender": {
       "name": "BlueEra Business Friend",
       "contact_no": "BlueEra Friend",
-      "profile_image": "https://be-user-bkt.s3.ap-south-1.amazonaws.com/admin/68a31a3edd48c8dfc0656a00/profile/1759817565514-unnamed.webp",
-      "account_type": AppStrings.BusinessAi,
+      "profile_image":
+          "https://be-user-bkt.s3.ap-south-1.amazonaws.com/admin/68a31a3edd48c8dfc0656a00/profile/1759817565514-unnamed.webp",
+      "account_type": AppStrings.BusinessChatAi,
     }
   };
-  static final ChatList? personalAiChatModule = ChatList.fromJson(aiChatListModel);
-  static final ChatList? businessAiChatModule = ChatList.fromJson(businessAiChatListModel);
+  static final Map<String, dynamic> inventoryAiSearch = {
+    "last_message": "Ask anything with Inventory Friend",
+    "last_message_type": "text",
+    "sender": {
+      "name": "BE Inventory Friend",
+      "contact_no": "BlueEra Inventory Friend",
+      "profile_image":
+          "https://be-user-bkt.s3.ap-south-1.amazonaws.com/admin/68a31a3edd48c8dfc0656a00/profile/1759817565514-unnamed.webp",
+      "account_type": AppStrings.InventoryChatAi,
+    }
+  };
+  static final ChatList? personalAiChatModule =
+      ChatList.fromJson(aiChatListModel);
+  static final ChatList? businessAiChatModule =
+      ChatList.fromJson(businessAiChatListModel);
+  static final ChatList? inventoryAiChatListSearchModule =
+      ChatList.fromJson(inventoryAiSearch);
   Rx<GetChatListModel>? getPersonalChatListModel = GetChatListModel().obs;
   Rx<GetChatListModel>? getOrderChatListModel = GetChatListModel().obs;
   Rx<GetChatListModel>? getBusinessChatListModel = GetChatListModel().obs;
   Rx<GetChatListModel>? getGroupChatListModel = GetChatListModel().obs;
   Rx<GetChatListModel>? getPersonalFilteredChatListModel =
       GetChatListModel().obs;
+
   List<Messages>? get getListOfMessageData =>
       getListOfMessageResponse.value.data;
-  // List<Messages>? get getListOfAiMessageData =>
-  //     getListOfAiMessageResponse.value.data;
+  List<InventoryAskAiModel>? getListOfInventoryAiMessages =[];
+
   Rx<ContactListModel>? contactsListModel = ContactListModel().obs;
   Rx<GetMediaMsgCommentsModel>? getMediaMsgCommentsModel =
       GetMediaMsgCommentsModel().obs;
@@ -107,7 +130,7 @@ class ChatViewController extends GetxController {
   RxList<ChatList?> selectedChatList = <ChatList?>[].obs;
   RxList<String> openedConversation = <String>[].obs;
   RxList<Map<String, dynamic>> groupConnections = <Map<String, dynamic>>[].obs;
-  List<Messages>? getListOfAiMessageData=[];
+  List<Messages>? getListOfAiMessageData = [];
   Rx<GenerateUploadUlrModel?>? generateUploadUlrModel =
       GenerateUploadUlrModel().obs;
   RxString VideoUploadProgress = ''.obs;
@@ -118,19 +141,30 @@ class ChatViewController extends GetxController {
   RxBool chatBotReading = false.obs;
   RxBool viewAllMembers = false.obs;
 
+  final List<String> tabs = [
+    'Chat',
+    'Products',
+    'Foods',
+    'Services',
+    'Post',
+    'Reviews',
+    'Others'
+  ];
 
-  final List<String> tabs = ['Chat','Products', 'Foods','Services','Post','Reviews','Others'];
   void parseAiChatHistory(List<dynamic> jsonList) {
     for (var item in jsonList) {
       final details = AiChatHistoryMessageModel.fromJson(item);
       getListOfAiMessageData?.add(
         Messages(
-          sendStatus: AppStrings.Ai,
+          sendStatus: AppStrings.PersonalChatAi,
           status: "read",
           messageRead: 1,
-          message: details.content,          // Use details.content for text
-          conversationId: details.id,        // Or details.conversationId if exists
-          myMessage: details.role == "user", // Mark user's messages
+          message: details.content,
+          // Use details.content for text
+          conversationId: details.id,
+          // Or details.conversationId if exists
+          myMessage: details.role == "user",
+          // Mark user's messages
           createdAt: details.timestamp,
           messageType: "text",
         ),
@@ -141,71 +175,95 @@ class ChatViewController extends GetxController {
         ApiResponse.complete(getListOfAiMessageData);
   }
 
-  Future<void> connectAiSocket(String? type)async{
+  Future<void> connectAiSocket(String? type) async {
     getListOfAiMessageData?.clear();
+    aiSocket.disposeSocket();
     await aiSocket.connect();
-    aiSocket.onMessage((data){
-      chatBotReading.value=false;
-      AiReplyMessageModel details=AiReplyMessageModel.fromJson(data);
-      saveAiConversationId(details.conversationId,type);
+    aiSocket.onMessage((data) {
+      chatBotReading.value = false;
+      AiReplyMessageModel details = AiReplyMessageModel.fromJson(data);
+      saveAiConversationId(details.conversationId, type);
       getListOfAiMessageData?.add(Messages(
-          sendStatus: AppStrings.Ai,
+          sendStatus: AppStrings.PersonalChatAi,
           messageRead: 1,
           status: "read",
           message: details.reply,
           conversationId: details.conversationId,
           myMessage: false,
-          createdAt:details.timestamp,
-          messageType: "text"
-      ));
+          createdAt: details.timestamp,
+          messageType: "text"));
       getListOfAiMessageResponse.value =
           ApiResponse.complete(getListOfAiMessageData);
     });
-     aiSocket.onHistory((data){
-       parseAiChatHistory(data);
-     });
-     String? converId= await AiChatLocalStorage.getConversationId(type==AppStrings.BusinessAi?AppConstants.business_Chat_Type:AppConstants.personal_Chat_Type,);
-     aiSocket.getHistory(converId??'');
+    aiSocket.onHistory((data) {
+      parseAiChatHistory(data);
+    });
+    String? converId = await AiChatLocalStorage.getConversationId(
+      type == AppStrings.BusinessChatAi
+          ? AppConstants.business_Chat_Type
+          : type == AppStrings.InventoryChatAi
+              ? AppConstants.askInentory_Chat_Type
+              : AppConstants.personal_Chat_Type,
+    );
+    aiSocket.getHistory(converId ?? '');
     getListOfAiMessageResponse.value =
         ApiResponse.complete(getListOfAiMessageData);
   }
-  Future<void> saveAiConversationId(String id,String? type)async{
 
-    await AiChatLocalStorage.saveConversationIdIfEmpty(id: id,type:type==AppStrings.BusinessAi?AppConstants.business_Chat_Type:AppConstants.personal_Chat_Type);
+  Future<void> saveAiConversationId(String id, String? type) async {
+    await AiChatLocalStorage.saveConversationIdIfEmpty(
+        id: id,
+        type: type == AppStrings.BusinessChatAi
+            ? AppConstants.business_Chat_Type
+            : type == AppStrings.InventoryChatAi
+                ? AppConstants.askInentory_Chat_Type
+                : AppConstants.personal_Chat_Type);
   }
+
   String formattedDate() {
     final now = DateTime.now().toUtc();
     return "${now.toIso8601String().substring(0, 23)}Z";
   }
-   Future<void> sendMessageToAiSocket({
-      String? conversationId,
-      required String? type,
-      String? message,
-      Uint8List? imageBytes,
-      String? mimeType,
-  })async{
-     chatBotReading.value=true;
-    String? converId= await AiChatLocalStorage.getConversationId(type==AppStrings.BusinessAi?AppConstants.business_Chat_Type:AppConstants.personal_Chat_Type);
-    aiSocket.sendMessage(message: message,conversationId: converId,imageBytes: imageBytes,mimeType: mimeType);
+
+  Future<void> sendMessageToAiSocket({
+    String? conversationId,
+    required String? type,
+    String? message,
+    Uint8List? imageBytes,
+    String? mimeType,
+  }) async {
+    chatBotReading.value = true;
+    String? converId = await AiChatLocalStorage.getConversationId(
+        type == AppStrings.BusinessChatAi
+            ? AppConstants.business_Chat_Type
+            : type == AppStrings.InventoryChatAi
+                ? AppConstants.askInentory_Chat_Type
+                : AppConstants.personal_Chat_Type);
+    aiSocket.sendMessage(
+        message: message,
+        conversationId: converId,
+        imageBytes: imageBytes,
+        mimeType: mimeType);
     getListOfAiMessageData?.add(Messages(
-        sendStatus: AppStrings.Ai,
+        sendStatus: AppStrings.PersonalChatAi,
         messageRead: 1,
         message: message,
         status: "read",
         conversationId: conversationId,
         myMessage: true,
-        createdAt:formattedDate(),
-        messageType: "text"
-    )); // Add message to UI
+        createdAt: formattedDate(),
+        messageType: "text")); // Add message to UI
 
     getListOfAiMessageResponse.value =
         ApiResponse.complete(getListOfAiMessageData);
     sendMessageController.value.clear();
-    }
-  Future<void> disposeAiSocket()async{
-     aiSocket.disposeSocket();
   }
- //  final parsedData = GetChatListModel.fromJson(data);
+
+  Future<void> disposeAiSocket() async {
+    aiSocket.disposeSocket();
+  }
+
+  //  final parsedData = GetChatListModel.fromJson(data);
   //       List<ChatList?>? chatList=  await localStorageHelper.saveChatList(
   //           parsedData.chatList ?? [], parsedData.type ?? '');
   //       final postDetails = GetChatListModel(
@@ -217,8 +275,6 @@ class ChatViewController extends GetxController {
   //       loadChatListWithType(chatListModel: postDetails);
   //       getPersonalFilteredChatListModel?.value = postDetails;
   Future<void> connectSocket() async {
-
-
     if (socketConnected.value == false) {
       await chatSocket.connectToSocket();
       socketConnected.value = true;
@@ -231,11 +287,11 @@ class ChatViewController extends GetxController {
       });
 
       chatSocket.listenEvent(ChatEmitEvents.messageViewed, (data) {
-        getMediaMsgCommentsModel?.value = GetMediaMsgCommentsModel.fromJson(data);
+        getMediaMsgCommentsModel?.value =
+            GetMediaMsgCommentsModel.fromJson(data);
       });
       chatSocket.listenEvent(ChatEmitEvents.messageReceived, (data) async {
         final parsedData = GetListOfMessageData.fromJson(data);
-
 
         if (parsedData.messages != null) {
           for (var message in parsedData.messages!) {
@@ -249,7 +305,8 @@ class ChatViewController extends GetxController {
         }
 
         if (parsedData.messages?.isNotEmpty ?? false) {
-          final conversationId = parsedData.messages?.first.conversationId ?? '';
+          final conversationId =
+              parsedData.messages?.first.conversationId ?? '';
           if (parsedData.messages != null && conversationId.isNotEmpty) {
             getListOfMessageResponse.value =
                 ApiResponse.complete(parsedData.messages);
@@ -283,16 +340,19 @@ class ChatViewController extends GetxController {
         }
 
         if (message?.conversation?.type == AppConstants.personal_Chat_Type) {
-          emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type:  AppConstants.personal_Chat_Type}, true);
+          emitEvent(ChatEmitEvents.ChatList,
+              {ApiKeys.type: AppConstants.personal_Chat_Type}, true);
         } else {
-          emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type:  AppConstants.business_Chat_Type}, true);
+          emitEvent(ChatEmitEvents.ChatList,
+              {ApiKeys.type: AppConstants.business_Chat_Type}, true);
         }
         String chekedConversationId = userOpenConversationId.value;
         if (chekedConversationId == message?.conversationId) {
-          getListOfMessageData?.add(message??Messages()); // Add message to UI
+          getListOfMessageData?.add(message ?? Messages()); // Add message to UI
           getListOfMessageResponse.value =
               ApiResponse.complete(getListOfMessageData);
-          saveSingleMessageToLocal(message?.conversationId ?? '', message??Messages());
+          saveSingleMessageToLocal(
+              message?.conversationId ?? '', message ?? Messages());
           scrollDown();
         }
       });
@@ -327,13 +387,13 @@ class ChatViewController extends GetxController {
     //   await loadChatListFromLocal(AppConstants.personal_Chat_Type);
     // }
 
-
     // }
   }
 
   void changeBusinessInsideTab(int index) {
     businessTabIndexSelected.value = index;
   }
+
   void setReplyMessage(Messages? message) {
     replyMessage?.value = message;
   }
@@ -347,6 +407,7 @@ class ChatViewController extends GetxController {
     chatMainTabController!.animateTo(index);
     selectedChatTabIndex.value = index;
   }
+
   void isChatFromBusinessProfile(bool value) {
     chatFromBusinessProfile.value = value;
   }
@@ -355,6 +416,7 @@ class ChatViewController extends GetxController {
     sendMessageController.value.clear();
     isTextFieldEmpty.value = false;
   }
+
   //
   // Future<void> loadChatListFromLocal(String type) async {
   //   List<ChatList> localChats =
@@ -369,7 +431,6 @@ class ChatViewController extends GetxController {
   // }
 
   void loadChatListWithType({required GetChatListModel chatListModel}) {
-
     if (chatListModel.type == AppConstants.business_Chat_Type) {
       getBusinessChatListModel?.value = chatListModel;
       businessChatListResponse.value = ApiResponse.complete(chatListModel);
@@ -380,7 +441,7 @@ class ChatViewController extends GetxController {
       getGroupChatListModel?.value = chatListModel;
       groupChatListResponse.value =
           ApiResponse.complete(getGroupChatListModel?.value);
-    }else if (chatListModel.type == AppConstants.order_Chat_Type) {
+    } else if (chatListModel.type == AppConstants.order_Chat_Type) {
       getOrderChatListModel?.value = chatListModel;
       orderChatListResponse.value =
           ApiResponse.complete(getOrderChatListModel?.value);
@@ -412,8 +473,6 @@ class ChatViewController extends GetxController {
     } else if (selectedChatTabIndex.value == 1) {
     } else if (selectedChatTabIndex.value == 2) {}
   }
-
-
 
   Future<void> saveSingleMessageToLocal(String conversationId, Messages msg,
       [Map<String, dynamic>? params]) async {
@@ -513,7 +572,8 @@ class ChatViewController extends GetxController {
       {required String conversationId, required String userId}) {
     userOpenConversationId.value = conversationId;
     userOpenUserId.value = userId;
-    emitEvent(ChatEmitEvents.screenRoom, {ApiKeys.conversation_id: "${conversationId}"});
+    emitEvent(ChatEmitEvents.screenRoom,
+        {ApiKeys.conversation_id: "${conversationId}"});
     addConversationOnce(conversationId);
   }
 
@@ -582,8 +642,7 @@ class ChatViewController extends GetxController {
             message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
-      commonSnackBar(
-          message: e.toString());
+      commonSnackBar(message: e.toString());
     }
     return null;
   }
@@ -600,13 +659,15 @@ class ChatViewController extends GetxController {
       required String? contactNo,
       required bool isInitialMessage,
       bool? isFromContactList}) async {
-    businessTabIndexSelected.value=0;
-    if (isWithProductSend == true) {
-     await sendProductMessages(shareProductParams ?? {});
-    }
-    await getLocalConversation(conversationId, userId, otherUserId,contactName);
+    businessTabIndexSelected.value = 0;
+    await getLocalConversation(
+        conversationId, userId, otherUserId, contactName);
 
-    if (type ==  AppConstants.business_Chat_Type) {
+    if (isWithProductSend == true) {
+      await sendProductMessages(shareProductParams ?? {});
+    }
+
+    if (type == AppConstants.business_Chat_Type) {
       if (isFromContactList != null && isFromContactList) {
         Get.off(
           () => BusinessChatScreenUpdated(
@@ -655,7 +716,6 @@ class ChatViewController extends GetxController {
             profileImage: profileImage,
             name: contactName,
             contactNo: contactNo,
-
           ),
         );
       }
@@ -663,37 +723,37 @@ class ChatViewController extends GetxController {
   }
 
   Future<void> getLocalConversation(String conversationId, userId,
-      [String? otherUserId,String? name]) async {
+      [String? otherUserId, String? name]) async {
     // final connectivityResult = await NetworkUtils.isConnected();
     // getListOfMessageResponse.value = ApiResponse.initial('Initial');
     // if (connectivityResult) {
     // List<Messages> chatList =
-     loadOfflineMessages(conversationId);
+    loadOfflineMessages(conversationId);
     // }
     // else if (openedConversation.contains(conversationId)) {
     //   loadOfflineMessages(conversationId);
     // }
     // else {
     // if(chatList.isEmpty){
-      emitEvent(
-          ChatEmitEvents.messageReceived,
-          (otherUserId != null)
-              ? {
-            ApiKeys.other_user_id: otherUserId,
-            ApiKeys.page: 1,
-            ApiKeys.is_online_user: userId,
-            ApiKeys.per_page_message: 30,
-            if(name!=null&&name=="BlueEra Orders")
-              ApiKeys.orders_conversation:true
-          }
-              : {
-            ApiKeys.conversation_id: conversationId,
-            ApiKeys.page: 1,
-            ApiKeys.is_online_user: userId,
-            ApiKeys.per_page_message: 30,
-            if(name!=null&&name=="BlueEra Orders")
-              ApiKeys.orders_conversation:true
-          });
+    emitEvent(
+        ChatEmitEvents.messageReceived,
+        (otherUserId != null)
+            ? {
+                ApiKeys.other_user_id: otherUserId,
+                ApiKeys.page: 1,
+                ApiKeys.is_online_user: userId,
+                ApiKeys.per_page_message: 30,
+                if (name != null && name == "BlueEra Orders")
+                  ApiKeys.orders_conversation: true
+              }
+            : {
+                ApiKeys.conversation_id: conversationId,
+                ApiKeys.page: 1,
+                ApiKeys.is_online_user: userId,
+                ApiKeys.per_page_message: 30,
+                if (name != null && name == "BlueEra Orders")
+                  ApiKeys.orders_conversation: true
+              });
     // }
 
     // }
@@ -701,7 +761,6 @@ class ChatViewController extends GetxController {
 
   void emitEvent(String event, dynamic data,
       [bool? isFromInitial, String? conversationId]) async {
-
     if (event == ChatEmitEvents.messageReceived &&
         (conversationId ?? "") != userOpenConversationId) {
       getListOfMessageResponse.value = ApiResponse.initial('Initial');
@@ -709,35 +768,34 @@ class ChatViewController extends GetxController {
 
     if (event == ChatEmitEvents.ChatList) {
       final type = data[ApiKeys.type];
-        List<ChatList> localChats =
-        await localStorageHelper.getChatListFromLocal(type);
-     if(!localChats.isEmpty){
-       loadChatListWithType(
-           chatListModel: GetChatListModel(
-             type: type,
-             success: true,
-             chatList: localChats,
-             archived: [],
-           ));
-     }
+      List<ChatList> localChats =
+          await localStorageHelper.getChatListFromLocal(type);
+      if (!localChats.isEmpty) {
+        loadChatListWithType(
+            chatListModel: GetChatListModel(
+          type: type,
+          success: true,
+          chatList: localChats,
+          archived: [],
+        ));
+      }
 
-      Map<String, dynamic> dataParams = {
-        ApiKeys.type: data[ApiKeys.type]
-      };
+      Map<String, dynamic> dataParams = {ApiKeys.type: data[ApiKeys.type]};
       chatSocket.emitEvent(event, dataParams);
-      chatSocket.emitEvent(ChatEmitEvents.screenRoom, {ApiKeys.conversation_id: "online"});
+      chatSocket.emitEvent(
+          ChatEmitEvents.screenRoom, {ApiKeys.conversation_id: "online"});
     } else {
       chatSocket.emitEvent(event, data);
     }
   }
 
   Future<void> loadAllChatListFromLocal() async {
-
     loadChatListWithType(
         chatListModel: GetChatListModel(
       type: AppConstants.personal_Chat_Type,
       success: true,
-      chatList: await localStorageHelper.getChatListFromLocal(AppConstants.personal_Chat_Type),
+      chatList: await localStorageHelper
+          .getChatListFromLocal(AppConstants.personal_Chat_Type),
       archived: [],
     ));
 
@@ -745,7 +803,8 @@ class ChatViewController extends GetxController {
         chatListModel: GetChatListModel(
       type: AppConstants.business_Chat_Type,
       success: true,
-      chatList: await localStorageHelper.getChatListFromLocal(AppConstants.business_Chat_Type),
+      chatList: await localStorageHelper
+          .getChatListFromLocal(AppConstants.business_Chat_Type),
       archived: [],
     ));
 
@@ -753,7 +812,8 @@ class ChatViewController extends GetxController {
         chatListModel: GetChatListModel(
       type: AppConstants.group_Chat_Type,
       success: true,
-      chatList: await localStorageHelper.getChatListFromLocal(AppConstants.group_Chat_Type),
+      chatList: await localStorageHelper
+          .getChatListFromLocal(AppConstants.group_Chat_Type),
       archived: [],
     ));
   }
@@ -779,7 +839,6 @@ class ChatViewController extends GetxController {
       if (responseModel.isSuccess) {
         final data = responseModel.response?.data;
 
-
         await SharedPreferenceUtils.setSecureValue(
           SharedPreferenceUtils.saved_contacts,
           json.encode(data),
@@ -792,8 +851,7 @@ class ChatViewController extends GetxController {
             message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
     } else {
-      viewContactsListResponse.value =
-          ApiResponse.error('');
+      viewContactsListResponse.value = ApiResponse.error('');
     }
 
     // } catch (e) {
@@ -835,7 +893,6 @@ class ChatViewController extends GetxController {
       viewContactsListResponse.value = ApiResponse.error('error');
     }
   }
-
 
   Future<void> getLatestChat() async {
     try {
@@ -888,7 +945,8 @@ class ChatViewController extends GetxController {
       ResponseModel responseModel =
           await ChatViewRepo().acceptOrDeclineRequest(params);
       if (responseModel.isSuccess) {
-        chatSocket.emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.personal_Chat_Type});
+        chatSocket.emitEvent(ChatEmitEvents.ChatList,
+            {ApiKeys.type: AppConstants.personal_Chat_Type});
         getChatRequestList();
         chatMessageRequestResponse.value = ApiResponse.complete(responseModel);
         commonSnackBar(
@@ -1039,19 +1097,13 @@ class ChatViewController extends GetxController {
     }
   }
 
-
-  Future<bool> createGroupApi(
-    Map<String, dynamic> params,
-  {
-    bool? isFromFile,
-    Map<String, dynamic>? fileParams,
-    File? fileSended
-
-  }
-  ) async {
-    if(isFromFile!=null){
+  Future<bool> createGroupApi(Map<String, dynamic> params,
+      {bool? isFromFile,
+      Map<String, dynamic>? fileParams,
+      File? fileSended}) async {
+    if (isFromFile != null) {
       ResponseModel responseModel =
-      await ChatViewRepo().generateUploadUrlsApi(fileParams!);
+          await ChatViewRepo().generateUploadUrlsApi(fileParams!);
       clearMessageControllerCommon();
 
       if (!responseModel.isSuccess) {
@@ -1066,7 +1118,6 @@ class ChatViewController extends GetxController {
 
       final files = uploadModel.files;
 
-
       // Parallel Uploads using Future.wait
       await Future.wait(List.generate(files!.length, (i) {
         final file = fileSended;
@@ -1074,28 +1125,31 @@ class ChatViewController extends GetxController {
         final type = files[i].fileType ?? '';
         return uploadFileToS3(file: file!, fileType: type, preSignedUrl: url);
       }));
-      List<String> sharedFile= uploadModel.files?.map((element) {
-        return  element.publicUrl??'';
-      }).toList()??[];
+      List<String> sharedFile = uploadModel.files?.map((element) {
+            return element.publicUrl ?? '';
+          }).toList() ??
+          [];
       params.addAll({
         ApiKeys.group_profile_image: sharedFile,
       });
       ResponseModel responseModelCreas =
-      await ChatViewRepo().createNewGroupApi(params);
+          await ChatViewRepo().createNewGroupApi(params);
       if (responseModelCreas.isSuccess) {
         emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: "group"});
         return true;
       } else {
         commonSnackBar(
-            message: responseModelCreas.message ?? AppStrings.somethingWentWrong);
+            message:
+                responseModelCreas.message ?? AppStrings.somethingWentWrong);
         return false;
       }
-    }else{
+    } else {
       ResponseModel responseModel =
-      await ChatViewRepo().createNewGroupApi(params);
+          await ChatViewRepo().createNewGroupApi(params);
 
       if (responseModel.isSuccess) {
-        emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type:AppConstants.group_Chat_Type});
+        emitEvent(ChatEmitEvents.ChatList,
+            {ApiKeys.type: AppConstants.group_Chat_Type});
         return true;
       } else {
         commonSnackBar(
@@ -1103,9 +1157,6 @@ class ChatViewController extends GetxController {
         return false;
       }
     }
-
-
-
   }
 
   Future<void> getGroupMembersApi(
@@ -1192,7 +1243,8 @@ class ChatViewController extends GetxController {
         }
         scrollDown();
         saveSingleMessageToLocal(message.conversationId ?? '', message, params);
-        emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.personal_Chat_Type}, true);
+        emitEvent(ChatEmitEvents.ChatList,
+            {ApiKeys.type: AppConstants.personal_Chat_Type}, true);
         clearMessageControllerCommon();
       } else {
         clearMessageControllerCommon();
@@ -1473,8 +1525,8 @@ class ChatViewController extends GetxController {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
   }
-  Future<void> addGroupMember(
-      {required Map<String,dynamic> params}) async {
+
+  Future<void> addGroupMember({required Map<String, dynamic> params}) async {
     try {
       ResponseModel? response = await ChatViewRepo().addGroupMembers(params);
       if (response.isSuccess) {
@@ -1485,7 +1537,6 @@ class ChatViewController extends GetxController {
         getGroupMembersApi(data);
         Get.back();
       } else {
-
         commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);
       }
@@ -1507,5 +1558,32 @@ class ChatViewController extends GetxController {
             message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {}
+  }
+
+  Future<void> askAiInventory({required String message}) async {
+    // try {
+    getListOfInventoryAiMessages?.add(InventoryAskAiModel(
+      message: message,
+      messageStatus: AppConstants.AiQuest_Chat_Type
+    ));
+      chatBotReading.value = true;
+      sendMessageController.value.clear();
+      final response = await StoreRepo().askAiInventoryRepo(
+        params: {ApiKeys.query: message},
+      );
+
+      if (response.isSuccess) {
+        InventoryAskAiModel detail=InventoryAskAiModel.fromJson(response.response?.data);
+        detail.messageStatus=AppConstants.AiReply_Chat_Type;
+        getListOfInventoryAiMessages?.add(detail);
+        getListOfInventoryAiMessageResponse.value = ApiResponse.complete(getListOfInventoryAiMessages);
+
+        chatBotReading.value = false;
+      } else {
+        getListOfInventoryAiMessageResponse.value = ApiResponse.error('error');
+      }
+    // } catch (e) {
+    //   getListOfInventoryAiMessageResponse.value = ApiResponse.error('error');
+    // } finally {}
   }
 }

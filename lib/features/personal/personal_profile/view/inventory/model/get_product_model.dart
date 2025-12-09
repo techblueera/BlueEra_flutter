@@ -155,7 +155,7 @@ class ProductDetails {
       addProductFeatures: (json['add_product_features'] as List<dynamic>? ?? [])
           .map((e) => ProductFeature.fromJson(e))
           .toList(),
-      id: json['id'] ?? '',
+      id: json['id'] ?? json['_id'],
       name: json['name'] ?? '',
       type: json['type'] ?? '',
       symbol: json['symbol'] ?? '',

@@ -128,7 +128,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                       mainAxisSize: MainAxisSize.max,
                       children: [
                         Expanded(
-                          child: (widget.messages.sendStatus==AppStrings.Ai)?CustomText(widget.message): RichText(
+                          child: (widget.messages.sendStatus==AppStrings.PersonalChatAi)?_buildAiFormattedText(widget.message): RichText(
                             text: TextSpan(
                               children: [
                                 TextSpan(
@@ -181,6 +181,30 @@ class _MessageBubbleState extends State<MessageBubble> {
     );
 
 
+  }
+  Widget _buildAiFormattedText(String text) {
+    final parts = text.split("**");
+
+    List<TextSpan> spans = [];
+
+    for (int i = 0; i < parts.length; i++) {
+      bool isBold = i.isOdd;
+
+      spans.add(
+        TextSpan(
+          text: parts[i],
+          style: TextStyle(
+            fontSize: 15,
+            color: Colors.black,
+            fontWeight: isBold ? FontWeight.bold : FontWeight.w400,
+          ),
+        ),
+      );
+    }
+
+    return RichText(
+      text: TextSpan(children: spans),
+    );
   }
 
   void _showFullMessageDialog({
