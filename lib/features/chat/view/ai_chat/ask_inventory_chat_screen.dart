@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/features/chat/view/ai_chat/widget/ask_inventory_msg_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
@@ -11,6 +12,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:dio/dio.dart' as dio;
 
 import '../../../../core/api/apiService/api_response.dart';
+import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/app_icon_assets.dart';
 import '../../../../core/constants/app_image_assets.dart';
 import '../../../../core/constants/common_methods.dart';
@@ -18,13 +20,15 @@ import '../../../../core/constants/size_config.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetListOfMessageData.dart';
+import '../../auth/model/inventory_ask_ai_model.dart';
 import '../widget/chat_input_box.dart';
 import '../widget/component_widgets.dart';
+import '../widget/message_bubble.dart';
 import '../widget/message_card.dart';
 import '../widget/picked_media_preview.dart';
 
-class AiChatScreen extends StatefulWidget {
-  AiChatScreen(
+class AskInventoryChatScreen extends StatefulWidget {
+  AskInventoryChatScreen(
       {required this.conversationId,
         required this.userId,
         required this.businessId,
@@ -46,10 +50,10 @@ class AiChatScreen extends StatefulWidget {
 
 
   @override
-  State<AiChatScreen> createState() => _AiChatScreenState();
+  State<AskInventoryChatScreen> createState() => _AskInventoryChatScreenState();
 }
 
-class _AiChatScreenState extends State<AiChatScreen> {
+class _AskInventoryChatScreenState extends State<AskInventoryChatScreen> {
   final chatViewController = Get.find<ChatViewController>();
   final chatThemeController = Get.find<ChatThemeController>();
   final TextEditingController editingController = TextEditingController();
@@ -61,7 +65,10 @@ class _AiChatScreenState extends State<AiChatScreen> {
     chatViewController.sendMessageController.value.clear();
     chatViewController.isTextFieldEmpty.value = false;
     chatThemeController.resetSelection();
-    chatViewController.connectAiSocket(widget.type);
+    chatViewController.getListOfInventoryAiMessageResponse.value = ApiResponse.complete();
+
+    // chatViewController.connectAiSocket(widget.type);
+
     super.initState();
   }
   @override
@@ -100,22 +107,11 @@ class _AiChatScreenState extends State<AiChatScreen> {
               contactNo: widget.contactNo, conversationId: widget.conversationId),
           body: Obx(() {
 
-            if (chatViewController.getListOfAiMessageResponse.value.status ==
+            if (chatViewController.getListOfInventoryAiMessageResponse.value.status ==
                 Status.COMPLETE) {
-              List<Messages> messages =
-                  chatViewController.getListOfAiMessageData ?? [];
+              List<InventoryAskAiModel> messages =
+                  chatViewController.getListOfInventoryAiMessages ?? [];
 
-              messages.sort((a, b) {
-                final dateA = (a.createdAt != null && a.createdAt!.isNotEmpty)
-                    ? DateTime.parse(a.createdAt!).toLocal()
-                    : DateTime.fromMillisecondsSinceEpoch(0);
-
-                final dateB = (b.createdAt != null && b.createdAt!.isNotEmpty)
-                    ? DateTime.parse(b.createdAt!).toLocal()
-                    : DateTime.fromMillisecondsSinceEpoch(0);
-
-                return dateA.compareTo(dateB); // descending
-              });
               return SafeArea(
                 child: Stack(
                   fit: StackFit.expand,
@@ -133,10 +129,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
                               ? Center(
                             child: InkWell(
                               onTap: () {
-                                chatViewController.sendMessageToAiSocket(
-                                    type: widget.type,
-                                    message:"Namaste"
-                                );
+
                               },
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
@@ -156,15 +149,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),
-                                      TextSpan(
-                                        text: "Say Namaste 🙏",
-                                        style: TextStyle(
-                                          color: Colors
-                                              .blue, // blue from theme
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
+
                                     ],
                                   ),
                                 ),
@@ -189,23 +174,26 @@ class _AiChatScreenState extends State<AiChatScreen> {
                                           ? false
                                           : true,
                                       child: Column(
-                                        mainAxisAlignment:
-                                        MainAxisAlignment.end,
+                                        mainAxisAlignment: MainAxisAlignment.end,
                                         children: messages.map((message) {
-                                          return MessageCard(
-                                            message: message,
-                                            isInitialMessage:
-                                            widget.isInitialMessage,
-                                            conversationId:
-                                            widget.conversationId,
-                                            userId: widget.userId,
-                                            name: widget.name,
-                                            contactNo: widget.contactNo,
-                                            profileImage:
-                                            widget.profileImage,
-                                          );
+                                          switch (message.messageStatus) {
+                                            case AppConstants.AiReply_Chat_Type:
+                                              return AskInventoryMsgCard(response: message);
+
+                                            case AppConstants.AiQuest_Chat_Type:
+                                              return  MessageBubble(
+                                                messages: Messages(),
+                                                message: message.message??"",
+                                                time: '',
+                                                isReceiveMsg: false,
+                                              ); // or your reply widget
+                                          }
+
+                                          // Fallback widget to avoid returning null
+                                          return const SizedBox();
                                         }).toList(),
-                                      ),
+                                      )
+                                      ,
                                     ),
                                   ),
                                 ),
@@ -223,15 +211,15 @@ class _AiChatScreenState extends State<AiChatScreen> {
                           height: 6,
                         ),
                         Container(
-            // padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            margin: EdgeInsets.only(bottom: 6),
-            decoration: BoxDecoration(
-            // color: Colors.grey.shade200,
-            borderRadius: BorderRadius.circular(10),
-            ),
-               child:  Padding(
-                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                 child: Row(crossAxisAlignment: CrossAxisAlignment.end,
+                          // padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          margin: EdgeInsets.only(bottom: 6),
+                          decoration: BoxDecoration(
+                            // color: Colors.grey.shade200,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child:  Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                            child: Row(crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
                                 Expanded(
                                   child: Container(
@@ -389,8 +377,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
                                       onTap: () async {
                                         if(chatViewController.sendMessageController.value.text.isNotEmpty){
                                             chatViewController
-                                                .sendMessageToAiSocket(
-                                                type: widget.type,
+                                                .askAiInventory(
                                                 message: chatViewController
                                                     .sendMessageController.value
                                                     .text
@@ -416,9 +403,9 @@ class _AiChatScreenState extends State<AiChatScreen> {
                                   );
                                 })
                               ],
-                                                        ),
-                                                      ),
                             ),
+                          ),
+                        ),
                         const SizedBox(height: 14),
                       ],
                     ),

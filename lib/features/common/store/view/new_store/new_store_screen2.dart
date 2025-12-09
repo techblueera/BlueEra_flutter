@@ -34,6 +34,7 @@ import 'package:mappls_gl/mappls_gl.dart';
 
 import '../../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../../chat/view/ai_chat/ai_chat_screen.dart';
+import '../../../../chat/view/ai_chat/ask_inventory_chat_screen.dart';
 
 class NewStoreScreen2 extends StatefulWidget {
   final bool isHeaderVisible;
@@ -143,9 +144,9 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                   Color(0xFF5C9BFF),
                 ],
                 onPressed: () {
-                  final chat =ChatViewController.personalAiChatModule;
+                  final chat =ChatViewController.inventoryAiChatListSearchModule;
 
-                  Get.to(()=>AiChatScreen(
+                  Get.to(()=>AskInventoryChatScreen(
                     profileImage: chat?.sender?.profileImage,
                     name: chat?.sender?.name,
                     contactNo: chat?.sender?.contactNo,

@@ -398,7 +398,7 @@ class OrderNowController extends GetxController {
           double.parse(lat.value.toString()),
           double.parse(long.value.toString()));
       Map<String, dynamic> params = {
-        "request_id": "${generateRequestId()}",
+        ApiKeys.request_id: "${generateRequestId()}",
         // "delivery_instructions": {
         //   "instructions_list": [
         //     {
@@ -407,44 +407,43 @@ class OrderNowController extends GetxController {
         //     }
         //   ]
         // },
-        "pickup_details": {
-          "address": {
-            "apartment_address": "",
-            "street_address1":
+        ApiKeys.pickup_details: {
+          ApiKeys.address: {
+            ApiKeys.apartment_address: "",
+            ApiKeys.street_address1:
                 "${(openedMessage?.seller?.location == '' || openedMessage?.seller?.location == null) ? "N/A" : openedMessage?.seller?.location}",
             // // "street_address2": "Krishna Nagar Industrial Area",
-            "landmark": "N/A",
-            "city": "${addressData['city']}",
-            "state": "${addressData['state']}",
-            "pincode": "${addressData['pincode']}",
-            "country": "India",
-            "lat": double.parse(lat.value),
-            "lng": double.parse(long.value),
-            "contact_details": {
-              "name": "${openedMessage?.seller?.name}",
-              "phone_number": "${openedMessage?.seller?.contact}"
+            ApiKeys.landmark: "N/A",
+            ApiKeys.city: "${addressData['city']}",
+            ApiKeys.state: "${addressData['state']}",
+            ApiKeys.pincode: "${addressData['pincode']}",
+            ApiKeys.country: "India",
+            ApiKeys.lat: double.parse(lat.value),
+            ApiKeys.lng: double.parse(long.value),
+            ApiKeys.contact_details: {
+            ApiKeys.name: "${openedMessage?.seller?.name}",
+            ApiKeys.phone_number: "${openedMessage?.seller?.contact}"
             }
           }
         },
-        "drop_details": {
-          "address": {
-            "apartment_address": "${selectedAddress?.houseNo}",
-            "street_address1": "${selectedAddress?.street}",
-            // "street_address2": "This is My Order ID",
-            "landmark": "${selectedAddress?.landmark}",
-            "city": "${selectedAddress?.city}",
-            "state": "${selectedAddress?.state}",
-            "pincode": "${selectedAddress?.zipCode}",
-            "country": "${selectedAddress?.country}",
-            "lat": selectedAddress?.lat,
-            "lng": selectedAddress?.lng,
-            "contact_details": {
-              "name": "${selectedAddress?.name}",
-              "phone_number": "+91${selectedAddress?.phone}"
+          ApiKeys.drop_details: {
+      ApiKeys.address: {
+      ApiKeys.apartment_address: "${selectedAddress?.houseNo}",
+      ApiKeys.street_address1: "${selectedAddress?.street}",
+      ApiKeys.landmark: "${selectedAddress?.landmark}",
+      ApiKeys.city: "${selectedAddress?.city}",
+      ApiKeys.state: "${selectedAddress?.state}",
+      ApiKeys.pincode: "${selectedAddress?.zipCode}",
+      ApiKeys.country: "${selectedAddress?.country}",
+      ApiKeys.lat: selectedAddress?.lat,
+      ApiKeys.lng: selectedAddress?.lng,
+      ApiKeys.contact_details: {
+      ApiKeys.name: "${selectedAddress?.name}",
+      ApiKeys.phone_number: "+91${selectedAddress?.phone}"
             }
           }
         },
-        "additional_comments": ""
+ApiKeys.additional_comments: ""
       };
 
       final data = await porterApi.createOrder(params);
@@ -615,20 +614,20 @@ class OrderNowController extends GetxController {
       double? lat, double? long, String addressId) async {
     try {
       final addressData = {
-        "name": nameController.value.text.trim(),
-        "phone": phoneController.value.text.trim(),
-        "house_no": houseNoController.value.text.trim(),
-        "street": streetController.value.text.trim(),
-        "landmark": landmarkController.value.text.trim(),
-        "city": cityController.value.text.trim(),
-        "state": stateController.value.text.trim(),
-        "zip_code": zipController.value.text.trim(),
-        "note": noteController.value.text.trim(),
-        "country": "India",
-        "type": "Home",
-        "is_default": isDefault.value,
-        "lat": lat,
-        "lng": long,
+        ApiKeys.name: nameController.value.text.trim(),
+        ApiKeys.phone: phoneController.value.text.trim(),
+        ApiKeys.house_no: houseNoController.value.text.trim(),
+        ApiKeys.street: streetController.value.text.trim(),
+        ApiKeys.landmark: landmarkController.value.text.trim(),
+        ApiKeys.city: cityController.value.text.trim(),
+        ApiKeys.state: stateController.value.text.trim(),
+        ApiKeys.zip_code: zipController.value.text.trim(),
+        ApiKeys.note: noteController.value.text.trim(),
+        ApiKeys.country: "India",
+        ApiKeys.type: "Home",
+        ApiKeys.is_default: isDefault.value,
+        ApiKeys.lat: lat,
+        ApiKeys.lng: long,
       };
       ResponseModel? response =
           await MakeOrderRepo().updateAddress(addressData, addressId);

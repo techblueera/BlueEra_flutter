@@ -269,7 +269,11 @@ class AddServiceController extends GetxController {
         // if (detailsList.isNotEmpty)
         //   ApiKeys.extraDetails: detailsList.map((e) => e.toJson()).toList()
       };
-      if(category!=null) params[ApiKeys.category]= category;
+      // String? capitalizeFirst(String name) {
+      //   if (name.isEmpty) return null;
+      //   return this[0].toUpperCase() + substring(1).toLowerCase();
+      // }
+      if(category!=null) params[ApiKeys.category]= category?.capitalizeFirst??'';
       if(serviceSubType!=null)  params[ApiKeys.subType] = serviceSubType.label;
       if(channelId!=null) params[ApiKeys.channelId] = channelId;
 
