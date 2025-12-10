@@ -65,211 +65,214 @@ class _OttVideoPlayerScreenState extends State<OttVideoPlayerScreen> {
                   ],
                 ),
               )
-            : GetBuilder<OttVideoPlayerController>(
-                builder: (_) {
-                  return Center(
-                    child: controller.isInitialized.value
-                        ? Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              // 1. THE VIDEO LAYER
-                              GestureDetector(
-                                onTap: controller.toggleControls,
-                                child: Center(
-                                  child: AspectRatio(
-                                    aspectRatio: controller
-                                        .videoController.value.aspectRatio,
-                                    child:
-                                        VideoPlayer(controller.videoController),
+            : SafeArea(
+              child: GetBuilder<OttVideoPlayerController>(
+                  builder: (_) {
+                    return Center(
+                      child: controller.isInitialized.value
+                          ? Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                // 1. THE VIDEO LAYER
+                                GestureDetector(
+                                  onTap: controller.toggleControls,
+                                  child: Center(
+                                    child: AspectRatio(
+                                      aspectRatio: controller
+                                          .videoController.value.aspectRatio,
+                                      child:
+                                          VideoPlayer(controller.videoController),
+                                    ),
                                   ),
                                 ),
-                              ),
-
-                              // 2. THE CONTROLS OVERLAY (Fade in/out)
-                              Obx(() => AnimatedOpacity(
-                                    opacity: controller.showControls.value
-                                        ? 1.0
-                                        : 0.0,
-                                    duration: const Duration(milliseconds: 300),
-                                    child: IgnorePointer(
-                                      ignoring: !controller.showControls.value,
-                                      child: Stack(
-                                        children: [
-                                          // A. Semi-transparent background for controls visibility
-                                          Container(color: Colors.black38),
-
-                                          // B. TOP ROW (Back + Settings)
-                                          Positioned(
-                                            top: 40,
-                                            left: 20,
-                                            right: 20,
-                                            child: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                IconButton(
-                                                  icon: const Icon(
-                                                      Icons.arrow_back_ios,
-                                                      color: Colors.white),
-                                                  onPressed: () => Get.back(),
-                                                ),
-                                                Expanded(
-                                                    child: CustomText(
-                                                  "${widget.videoItems.title}",
-                                                  color: Colors.white,
-                                                  maxLines: 2,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                )),
-                                                // Quality Settings
-                                                // _buildQualitySettings(context),
-                                              ],
-                                            ),
-                                          ),
-
-                                          // C. CENTER ROW (Rewind - Play - Forward)
-                                          Align(
-                                            alignment: Alignment.center,
-                                            child: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              children: [
-                                                IconButton(
-                                                  iconSize: 40,
-                                                  icon: const Icon(
-                                                      Icons.replay_5,
-                                                      color: Colors.white),
-                                                  onPressed:
-                                                      controller.backward5sec,
-                                                ),
-                                                const SizedBox(width: 20),
-                                                IconButton(
-                                                  iconSize: 60,
-                                                  icon: Icon(
-                                                    controller.isPlaying.value
-                                                        ? Icons
-                                                            .pause_circle_filled
-                                                        : Icons
-                                                            .play_circle_filled,
-                                                    color: Colors.white,
+              
+                                // 2. THE CONTROLS OVERLAY (Fade in/out)
+                                Obx(() => AnimatedOpacity(
+                                      opacity: controller.showControls.value
+                                          ? 1.0
+                                          : 0.0,
+                                      duration: const Duration(milliseconds: 300),
+                                      child: IgnorePointer(
+                                        ignoring: !controller.showControls.value,
+                                        child: Stack(
+                                          children: [
+                                            // A. Semi-transparent background for controls visibility
+                                            Container(color: Colors.black38),
+              
+                                            // B. TOP ROW (Back + Settings)
+                                            Positioned(
+                                              top: 40,
+                                              left: 20,
+                                              right: 20,
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  IconButton(
+                                                    icon: const Icon(
+                                                        Icons.arrow_back_ios,
+                                                        color: Colors.white),
+                                                    onPressed: () => Get.back(),
                                                   ),
-                                                  onPressed:
-                                                      controller.playPause,
-                                                ),
-                                                const SizedBox(width: 20),
-                                                IconButton(
-                                                  iconSize: 40,
-                                                  icon: const Icon(
-                                                      Icons.forward_5,
-                                                      color: Colors.white),
-                                                  onPressed:
-                                                      controller.forward5sec,
-                                                ),
-                                              ],
+                                                  Expanded(
+                                                      child: CustomText(
+                                                    "${widget.videoItems.title}",
+                                                    color: Colors.white,
+                                                    maxLines: 2,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  )),
+                                                  // Quality Settings
+                                                  // _buildQualitySettings(context),
+                                                ],
+                                              ),
                                             ),
-                                          ),
-
-                                          // D. BOTTOM ROW (Time - Slider - Fullscreen)
-                                          Positioned(
-                                            bottom: 20,
-                                            left: 20,
-                                            right: 20,
-                                            child: Column(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Row(
-                                                  children: [
-                                                    // Current Time
-                                                    Text(
-                                                      formatDuration(controller
-                                                          .currentPosition
-                                                          .value),
-                                                      style: const TextStyle(
+              
+                                            // C. CENTER ROW (Rewind - Play - Forward)
+                                            Align(
+                                              alignment: Alignment.center,
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: [
+                                                  IconButton(
+                                                    iconSize: 40,
+                                                    icon: const Icon(
+                                                        Icons.replay_5,
+                                                        color: Colors.white),
+                                                    onPressed:
+                                                        controller.backward5sec,
+                                                  ),
+                                                  const SizedBox(width: 20),
+                                                  IconButton(
+                                                    iconSize: 60,
+                                                    icon: Icon(
+                                                      controller.isPlaying.value
+                                                          ? Icons
+                                                              .pause_circle_filled
+                                                          : Icons
+                                                              .play_circle_filled,
+                                                      color: Colors.white,
+                                                    ),
+                                                    onPressed:
+                                                        controller.playPause,
+                                                  ),
+                                                  const SizedBox(width: 20),
+                                                  IconButton(
+                                                    iconSize: 40,
+                                                    icon: const Icon(
+                                                        Icons.forward_5,
+                                                        color: Colors.white),
+                                                    onPressed:
+                                                        controller.forward5sec,
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+              
+                                            // D. BOTTOM ROW (Time - Slider - Fullscreen)
+                                            Positioned(
+                                              bottom: 20,
+                                              left: 20,
+                                              right: 20,
+                                              child: Column(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Row(
+                                                    children: [
+                                                      // Current Time
+                                                      Text(
+                                                        formatDuration(controller
+                                                            .currentPosition
+                                                            .value),
+                                                        style: const TextStyle(
+                                                            color: Colors.white,
+                                                            fontWeight:
+                                                                FontWeight.bold),
+                                                      ),
+              
+                                                      // Progress Bar
+                                                      Expanded(
+                                                        child: SliderTheme(
+                                                          data: SliderTheme.of(
+                                                                  context)
+                                                              .copyWith(
+                                                            activeTrackColor:
+                                                                AppColors
+                                                                    .primaryColor,
+                                                            // Match your image blue
+                                                            inactiveTrackColor:
+                                                                Colors.grey,
+                                                            thumbColor: AppColors
+                                                                .primaryColor,
+                                                            trackHeight: 2.0,
+                                                            thumbShape:
+                                                                const RoundSliderThumbShape(
+                                                                    enabledThumbRadius:
+                                                                        6.0),
+                                                          ),
+                                                          child: Slider(
+                                                            min: 0,
+                                                            max: controller
+                                                                .totalDuration
+                                                                .value
+                                                                .inSeconds
+                                                                .toDouble(),
+                                                            value: controller
+                                                                .currentPosition
+                                                                .value
+                                                                .inSeconds
+                                                                .toDouble(),
+                                                            onChanged: (val) {
+                                                              controller
+                                                                  .seekTo(val);
+                                                            },
+                                                          ),
+                                                        ),
+                                                      ),
+              
+                                                      // Total Duration
+                                                      CustomText(
+                                                          formatDuration(
+                                                              controller
+                                                                  .totalDuration
+                                                                  .value),
                                                           color: Colors.white,
                                                           fontWeight:
                                                               FontWeight.bold),
-                                                    ),
-
-                                                    // Progress Bar
-                                                    Expanded(
-                                                      child: SliderTheme(
-                                                        data: SliderTheme.of(
-                                                                context)
-                                                            .copyWith(
-                                                          activeTrackColor:
-                                                              AppColors
-                                                                  .primaryColor,
-                                                          // Match your image blue
-                                                          inactiveTrackColor:
-                                                              Colors.grey,
-                                                          thumbColor: AppColors
-                                                              .primaryColor,
-                                                          trackHeight: 2.0,
-                                                          thumbShape:
-                                                              const RoundSliderThumbShape(
-                                                                  enabledThumbRadius:
-                                                                      6.0),
+              
+                                                      // Fullscreen Toggle
+                                                      const SizedBox(width: 10),
+                                                      IconButton(
+                                                        icon: Icon(
+                                                          controller.isFullScreen
+                                                                  .value
+                                                              ? Icons
+                                                                  .fullscreen_exit
+                                                              : Icons.fullscreen,
+                                                          color: Colors.white,
                                                         ),
-                                                        child: Slider(
-                                                          min: 0,
-                                                          max: controller
-                                                              .totalDuration
-                                                              .value
-                                                              .inSeconds
-                                                              .toDouble(),
-                                                          value: controller
-                                                              .currentPosition
-                                                              .value
-                                                              .inSeconds
-                                                              .toDouble(),
-                                                          onChanged: (val) {
-                                                            controller
-                                                                .seekTo(val);
-                                                          },
-                                                        ),
+                                                        onPressed: controller
+                                                            .toggleFullScreen,
                                                       ),
-                                                    ),
-
-                                                    // Total Duration
-                                                    CustomText(
-                                                        formatDuration(
-                                                            controller
-                                                                .totalDuration
-                                                                .value),
-                                                        color: Colors.white,
-                                                        fontWeight:
-                                                            FontWeight.bold),
-
-                                                    // Fullscreen Toggle
-                                                    const SizedBox(width: 10),
-                                                    IconButton(
-                                                      icon: Icon(
-                                                        controller.isFullScreen
-                                                                .value
-                                                            ? Icons
-                                                                .fullscreen_exit
-                                                            : Icons.fullscreen,
-                                                        color: Colors.white,
-                                                      ),
-                                                      onPressed: controller
-                                                          .toggleFullScreen,
-                                                    ),
-                                                  ],
-                                                ),
-                                              ],
+                                                    ],
+                                                  ),
+                                                  SizedBox(height: kBottomNavigationBarHeight,)
+                                                ],
+                                              ),
                                             ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                  )),
-                            ],
-                          )
-                        : const CircularProgressIndicator(color: Colors.white),
-                  );
-                },
-              ),
+                                    )),
+                              ],
+                            )
+                          : const CircularProgressIndicator(color: Colors.white),
+                    );
+                  },
+                ),
+            ),
       ),
     );
   }

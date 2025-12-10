@@ -98,14 +98,16 @@ class AskInventoryMsgCard extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 6),
-                          CustomText(
-                            business?.business_name ?? "",
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-
-                              fontWeight: FontWeight.w600,
-                              fontSize: 12,
-
+                          Expanded(
+                            child: CustomText(
+                              business?.business_name ?? "",
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            
+                                fontWeight: FontWeight.w600,
+                                fontSize: 12,
+                            
+                            ),
                           ),
                         ],
                       ),

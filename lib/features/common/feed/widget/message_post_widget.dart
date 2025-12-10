@@ -103,8 +103,8 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
       ignoring: widget.isRepost == true ? true : false,
       child: InkWell(
         onTap: () {
-          if ((_post.type?.toUpperCase() == "MESSAGE_POST" &&
-              (_post.media_types?.contains("image/jpeg") ?? false))) {
+          if (_post.type?.toUpperCase() == "MESSAGE_POST" &&
+              (_post.media_types?.any((e) => e.startsWith("image")) ?? false)) {
             Get.to(AllMessagePostScreen(
               postID: _post.id,
               postType: _post.type ?? "",
