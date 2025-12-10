@@ -28,6 +28,7 @@ import 'package:flutter_callkit_incoming/entities/call_event.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/constants/snackbar_helper.dart';
 import '../../../../core/routes/route_helper.dart';
@@ -78,6 +79,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     );
   }
 
+  final dialogService = Get.put(DialogService());
+
   @override
   void initState() {
     super.initState();
@@ -87,6 +90,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     _initializeUserData();
     _initializeSocketConnections();
     checkByRiderCall();
+
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _handlePostFrameInitialization();
       FlutterCallkitIncoming.onEvent.listen((CallEvent? event) {
@@ -206,7 +211,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
           Status.COMPLETE) {
         viewProfileController.viewBusinessProfile();
       }
-    }else{
+    } else {
       if (viewPersonalDetailsController.viewPersonalResponse.value.status !=
           Status.COMPLETE) {
         viewPersonalDetailsController.viewPersonalProfile();
@@ -245,9 +250,11 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // if (isGuestUser()) {
+    //   _checkAndShowDialog();
+    // }
     return Scaffold(
       key: _scaffoldKey,
-
       body: ValueListenableBuilder(
           valueListenable: bottomBarVisibleNotifier,
           builder: (context, isVisible, _) {
@@ -331,9 +338,9 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
             ? GuestDashBoardScreen()
             : (isBusinessUser())
                 ? InventoryScreen(fromBottomNavBar: true)
-                : (userProfessionGlobal==SELF_EMPLOYED) ?
-                   EarnWithBlueEraNewScreen(fromBottomNavBar: true)
-                     : PersonalProfileSetupNewScreen();
+                : (userProfessionGlobal == SELF_EMPLOYED)
+                    ? EarnWithBlueEraNewScreen(fromBottomNavBar: true)
+                    : PersonalProfileSetupNewScreen();
       // case 3:
       //   return isGuestUser()
       //       ? GuestDashBoardScreen()
@@ -355,5 +362,62 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     if (bottomBarVisibleNotifier.value != visible) {
       bottomBarVisibleNotifier.value = visible;
     }
+  }
+
+  void _checkAndShowDialog() async {
+    // if (await dialogService.shouldShowDialog()) {
+      Future.delayed(Duration.zero, () async {
+        await Get.dialog(
+          AlertDialog(
+            title: Text("Hello!"),
+            content: Text("This dialog appears once every 24 hours."),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Get.back();
+                },
+                child: Text("OK"),
+              ),
+            ],
+          ),
+        );
+
+        dialogService.saveDialogShown();
+      });
+    // }
+  }
+}
+
+class DialogService extends GetxService {
+  static const String lastShownKey = "last_dialog_shown";
+
+  Future<DialogService> init() async {
+    return this;
+  }
+
+  /// returns true if dialog should be shown
+  Future<bool> shouldShowDialog() async {
+    final prefs = await SharedPreferences.getInstance();
+    final lastShown = prefs.getInt(lastShownKey);
+
+    if (lastShown == null) {
+      return true; // never shown before
+    }
+
+    final lastShownDate = DateTime.fromMillisecondsSinceEpoch(lastShown);
+    final now = DateTime.now();
+
+    // Check 24 hours difference
+    if (now.difference(lastShownDate).inHours >= 24) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /// save the current time as last shown time
+  Future<void> saveDialogShown() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(lastShownKey, DateTime.now().millisecondsSinceEpoch);
   }
 }

@@ -418,12 +418,12 @@ Future<void> clearSecureStorageIfFreshInstall() async {
   }
 }
 
-setRiderServiceOptData(bool isRiderServiceUser){
+setRiderServiceOptData(bool isRiderServiceUser) {
   SharedPreferenceUtils.setSecureValue(
       SharedPreferenceUtils.isRiderServiceUser, isRiderServiceUser.toString());
 }
 
-setEarnServiceOptData(bool isEarnServiceUser){
+setEarnServiceOptData(bool isEarnServiceUser) {
   SharedPreferenceUtils.setSecureValue(
       SharedPreferenceUtils.isEarnServiceUser, isEarnServiceUser.toString());
 }
@@ -433,5 +433,4 @@ getEarnServiceOptData() async {
       SharedPreferenceUtils.isRiderServiceUser);
   isRiderServiceOpt = await SharedPreferenceUtils.getSecureValue(
       SharedPreferenceUtils.isEarnServiceUser);
-
 }

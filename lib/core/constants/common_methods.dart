@@ -20,7 +20,7 @@ import 'app_colors.dart';
 ///SHOW APP LOGS
 logs(String logMsg) {
   // if (foundationObj.kDebugMode) {
-  log(logMsg);
+  print(logMsg);
   // }
 }
 
