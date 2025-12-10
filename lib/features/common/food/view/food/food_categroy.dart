@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
@@ -91,14 +92,14 @@ class _FoodCategoryPageState extends State<FoodCategoryPage> with SingleTickerPr
               _sectionWidget(
                 "Thali & Paratha",
                 icons: [
-                  _iconItem("vegthali.png", "Veg Thali"),
-                  _iconItem("dalRice.png", "Dal–Rice Combo"),
-                  _iconItem("specialpaneerthali.png", "Special Paneer\nThali"),
-                  _iconItem("parathaSabzi.png", "Paratha + Sabzi\nCombo"),
-                  _iconItem("stuffedParatha.png", "Stuffed Paratha"),
-                  _iconItem("malabarPack.png", "Lachha / Malabar\nParatha Pack"),
-                  _iconItem("pooriAloo.png", "Poori + Aloo\nSabzi Pack"),
-                  _iconItem("kichdiCurd.png", "Khichdi / Curd\nRice Meal"),
+                  _iconItem(AppIconCategoryAssets.veg_thali, "Veg Thali"),
+                  _iconItem(AppIconCategoryAssets.dalRice, "Dal–Rice Combo"),
+                  _iconItem(AppIconCategoryAssets.specialpaneerthali, "Special Paneer\nThali"),
+                  _iconItem(AppIconCategoryAssets.parathaSabzi, "Paratha + Sabzi\nCombo"),
+                  _iconItem(AppIconCategoryAssets.stuffedParatha, "Stuffed Paratha"),
+                  _iconItem(AppIconCategoryAssets.malabarPack, "Lachha / Malabar\nParatha Pack"),
+                  _iconItem(AppIconCategoryAssets.pooriAloo, "Poori + Aloo\nSabzi Pack"),
+                  _iconItem(AppIconCategoryAssets.kichdiCurd, "Khichdi / Curd\nRice Meal"),
                 ],
                 context: context,
               ),
@@ -109,14 +110,14 @@ class _FoodCategoryPageState extends State<FoodCategoryPage> with SingleTickerPr
               _sectionWidget(
                 "Paneer Special",
                 icons: [
-                  _iconItem("paneerTikka.png", "Paneer Tikka"),
-                  _iconItem("paneerNuggets.png", "Paneer Nuggets"),
-                  _iconItem("paneerCubes.png", "Paneer Cubes"),
-                  _iconItem("paneerPopcorn.png", "Paneer Popcorn"),
-                  _iconItem("malaiPaneer.png", "Malai Paneer\nTikka"),
-                  _iconItem("tandooriPaneer.png", "Tandoori Paneer\nMarinade"),
-                  _iconItem("chilliPaneer.png", "Chilli Paneer\nPack"),
-                  _iconItem("masalaPaneer.png", "Masala Paneer\nBits"),
+                  _iconItem(AppIconCategoryAssets.paneerTikka, "Paneer Tikka"),
+                  _iconItem(AppIconCategoryAssets.paneerNuggets, "Paneer Nuggets"),
+                  _iconItem(AppIconCategoryAssets.paneerCubes, "Paneer Cubes"),
+                  _iconItem(AppIconCategoryAssets.paneerPopcorn, "Paneer Popcorn"),
+                  _iconItem(AppIconCategoryAssets.malaiPaneer, "Malai Paneer\nTikka"),
+                  _iconItem(AppIconCategoryAssets.tandooriPaneer, "Tandoori Paneer\nMarinade"),
+                  _iconItem(AppIconCategoryAssets.chilliPaneer, "Chilli Paneer\nPack"),
+                  _iconItem(AppIconCategoryAssets.masalaPaneer, "Masala Paneer\nBits"),
                 ],
                 context: context,
               ),
@@ -127,14 +128,14 @@ class _FoodCategoryPageState extends State<FoodCategoryPage> with SingleTickerPr
               _sectionWidget(
                 "Carry & Veg",
                 icons: [
-                  _iconItem("paneerTikka.png", "Paneer Tikka"),
-                  _iconItem("paneerNuggets.png", "Paneer Nuggets"),
-                  _iconItem("paneerCubes.png", "Paneer Cubes"),
-                  _iconItem("paneerPopcorn.png", "Paneer Popcorn"),
-                  _iconItem("malaiPaneer.png", "Malai Paneer\nTikka"),
-                  _iconItem("tandooriPaneer.png", "Tandoori Paneer\nMarinade"),
-                  _iconItem("chilliPaneer.png", "Chilli Paneer\nPack"),
-                  _iconItem("masalaPaneer.png", "Masala Paneer\nBits"),
+                  _iconItem(AppIconCategoryAssets.carryPaneerTikka, "Paneer Tikka"),
+                  _iconItem(AppIconCategoryAssets.carryPaneerNuggets, "Paneer Nuggets"),
+                  _iconItem(AppIconCategoryAssets.carryPaneerCubes, "Paneer Cubes"),
+                  _iconItem(AppIconCategoryAssets.carryPaneerPopcorn, "Paneer Popcorn"),
+                  _iconItem(AppIconCategoryAssets.carryMalaiPaneer, "Malai Paneer\nTikka"),
+                  _iconItem(AppIconCategoryAssets.carryTandooriPaneer, "Tandoori Paneer\nMarinade"),
+                  _iconItem(AppIconCategoryAssets.carryChilliPaneer, "Chilli Paneer\nPack"),
+                  _iconItem(AppIconCategoryAssets.carryMasalaPaneer, "Masala Paneer\nBits"),
                 ],
                 context: context,
               ),
@@ -145,14 +146,14 @@ class _FoodCategoryPageState extends State<FoodCategoryPage> with SingleTickerPr
               _sectionWidget(
                 "Rice Items",
                 icons: [
-                  _iconItem("vegBiryani.png", "Veg Biryani"),
-                  _iconItem("friedRice.png", "Veg Fried Rice"),
-                  _iconItem("vegNoodles.png", "Veg Noodles"),
-                  _iconItem("pastaAlfredo.png", "Pasta Alfredo"),
-                  _iconItem("arrabbiata.png", "Pasta Arrabbiata"),
-                  _iconItem("vegMomos.png", "Veg Momos"),
-                  _iconItem("vegBurger.png", "Veg Burger Patty"),
-                  _iconItem("vegPizza.png", "Veg Pizza"),
+                  _iconItem(AppIconCategoryAssets.vegBiryani, "Veg Biryani"),
+                  _iconItem(AppIconCategoryAssets.friedRice, "Veg Fried Rice"),
+                  _iconItem(AppIconCategoryAssets.vegNoodles, "Veg Noodles"),
+                  _iconItem(AppIconCategoryAssets.pastaAlfredo, "Pasta Alfredo"),
+                  _iconItem(AppIconCategoryAssets.arrabbiata, "Pasta Arrabbiata"),
+                  _iconItem(AppIconCategoryAssets.vegMomos, "Veg Momos"),
+                  _iconItem(AppIconCategoryAssets.vegBurger, "Veg Burger Patty"),
+                  _iconItem(AppIconCategoryAssets.vegPizza, "Veg Pizza"),
                 ],
                 context: context,
               ),
@@ -163,14 +164,14 @@ class _FoodCategoryPageState extends State<FoodCategoryPage> with SingleTickerPr
               _sectionWidget(
                 "Fast Food & Bread Items",
                 icons: [
-                  _iconItem("vegBurger.png", "Veg / Paneer\nBurger"),
-                  _iconItem("fries.png", "French Fries"),
-                  _iconItem("pizzaSlices.png", "Veg Pizza Slices"),
-                  _iconItem("garlicBread.png", "Garlic Bread"),
-                  _iconItem("sandwich.png", "Sandwiches"),
-                  _iconItem("breadPack.png", "White / Brown /\nMultigrain Bread"),
-                  _iconItem("bunsPack.png", "Buns & Pav\nPack"),
-                  _iconItem("toastRusk.png", "Toast / Rusk\nPack"),
+                  _iconItem(AppIconCategoryAssets.burger, "Veg / Paneer\nBurger"),
+                  _iconItem(AppIconCategoryAssets.fries, "French Fries"),
+                  _iconItem(AppIconCategoryAssets.pizzaSlices, "Veg Pizza Slices"),
+                  _iconItem(AppIconCategoryAssets.garlicBread, "Garlic Bread"),
+                  _iconItem(AppIconCategoryAssets.sandwich, "Sandwiches"),
+                  _iconItem(AppIconCategoryAssets.breadPack, "White / Brown /\nMultigrain Bread"),
+                  _iconItem(AppIconCategoryAssets.bunsPack, "Buns & Pav\nPack"),
+                  _iconItem(AppIconCategoryAssets.toastRusk, "Toast / Rusk\nPack"),
                 ],
                 context: context,
               ),
@@ -181,14 +182,14 @@ class _FoodCategoryPageState extends State<FoodCategoryPage> with SingleTickerPr
               _sectionWidget(
                 "Breakfast",
                 icons: [
-                  _iconItem("chole.png", "Chole Bhature"),
-                  _iconItem("cornflakes.png", "Cornflakes"),
-                  _iconItem("muesli.png", "Muesli"),
-                  _iconItem("pooriSabzi.png", "Poori Sabzi"),
-                  _iconItem("uttapam.png", "Uttapam"),
-                  _iconItem("sprouts.png", "Sprouts"),
-                  _iconItem("idli.png", "Idli"),
-                  _iconItem("dosa.png", "Dosa"),
+                  _iconItem(AppIconCategoryAssets.chole, "Chole Bhature"),
+                  _iconItem(AppIconCategoryAssets.cornflakes, "Cornflakes"),
+                  _iconItem(AppIconCategoryAssets.muesli, "Muesli"),
+                  _iconItem(AppIconCategoryAssets.pooriSabzi, "Poori Sabzi"),
+                  _iconItem(AppIconCategoryAssets.uttapam, "Uttapam"),
+                  _iconItem(AppIconCategoryAssets.sprouts, "Sprouts"),
+                  _iconItem(AppIconCategoryAssets.idli, "Idli"),
+                  _iconItem(AppIconCategoryAssets.dosa, "Dosa"),
                 ],
                 context: context,
               ),
@@ -199,14 +200,14 @@ class _FoodCategoryPageState extends State<FoodCategoryPage> with SingleTickerPr
               _sectionWidget(
                 "Tandoori & Grill Veg",
                 icons: [
-                  _iconItem("soyaChaap.png", "Tandoori Soya\nChaap"),
-                  _iconItem("malaiSoya.png", "Malai Soya\nChaap"),
-                  _iconItem("achariSoya.png", "Achari Soya\nChaap"),
-                  _iconItem("periPeri.png", "Peri-Peri Soya\nStrips"),
-                  _iconItem("vegSeekh.png", "Veg Seekh\nKebab"),
-                  _iconItem("tandooriBroccoli.png", "Tandoori\nBroccoli"),
-                  _iconItem("grilledMushroom.png", "Grilled\nMushroom Pack"),
-                  _iconItem("bbqPlatter.png", "BBQ Veg\nPlatter Pack"),
+                  _iconItem(AppIconCategoryAssets.soyaChaap, "Tandoori Soya\nChaap"),
+                  _iconItem(AppIconCategoryAssets.malaiSoya, "Malai Soya\nChaap"),
+                  _iconItem(AppIconCategoryAssets.achariSoya, "Achari Soya\nChaap"),
+                  _iconItem(AppIconCategoryAssets.periPeri, "Peri-Peri Soya\nStrips"),
+                  _iconItem(AppIconCategoryAssets.vegSeekh, "Veg Seekh\nKebab"),
+                  _iconItem(AppIconCategoryAssets.tandooriBroccoli, "Tandoori\nBroccoli"),
+                  _iconItem(AppIconCategoryAssets.grilledMushroom, "Grilled\nMushroom Pack"),
+                  _iconItem(AppIconCategoryAssets.bbqPlatter, "BBQ Veg\nPlatter Pack"),
                 ],
                 context: context,
               ),
@@ -217,36 +218,35 @@ class _FoodCategoryPageState extends State<FoodCategoryPage> with SingleTickerPr
               _sectionWidget(
                 "Instant Meals",
                 icons: [
-                  _iconItem("instantPoha.png", "Instant Poha"),
-                  _iconItem("upma.png", "Instant Upma"),
-                  _iconItem("dalKhichdi.png", "Dal Khichdi"),
-                  _iconItem("rajmaChawal.png", "Rajma Chawal"),
-                  _iconItem("dalTadka.png", "Dal Tadka"),
-                  _iconItem("paneerCurry.png", "Paneer Curry"),
-                  _iconItem("noodlesCup.png", "Noodles Cup"),
-                  _iconItem("pastaCup.png", "Pasta Cup"),
+                  _iconItem(AppIconCategoryAssets.instantPoha, "Instant Poha"),
+                  _iconItem(AppIconCategoryAssets.upma, "Instant Upma"),
+                  _iconItem(AppIconCategoryAssets.dalKhichdi, "Dal Khichdi"),
+                  _iconItem(AppIconCategoryAssets.rajmaChawal, "Rajma Chawal"),
+                  _iconItem(AppIconCategoryAssets.dalTadka, "Dal Tadka"),
+                  _iconItem(AppIconCategoryAssets.paneerCurry, "Paneer Curry"),
+                  _iconItem(AppIconCategoryAssets.noodlesCup, "Noodles Cup"),
+                  _iconItem(AppIconCategoryAssets.pastaCup, "Pasta Cup"),
                 ],
                 context: context,
               ),
 
               // ---------------------------------------------------------
-              // SHUP & OTHERS
+              // SOUP & OTHERS
               // ---------------------------------------------------------
               _sectionWidget(
                 "Shup & Others",
                 icons: [
-                  _iconItem("instantPoha.png", "Instant Poha"),
-                  _iconItem("upma.png", "Instant Upma"),
-                  _iconItem("dalKhichdi.png", "Dal Khichdi"),
-                  _iconItem("rajmaChawal.png", "Rajma Chawal"),
-                  _iconItem("dalTadka.png", "Dal Tadka"),
-                  _iconItem("paneerCurry.png", "Paneer Curry"),
-                  _iconItem("noodlesCup.png", "Noodles Cup"),
-                  _iconItem("pastaCup.png", "Pasta Cup"),
+                  _iconItem(AppIconCategoryAssets.shupInstantPoha, "Instant Poha"),
+                  _iconItem(AppIconCategoryAssets.shupUpma, "Instant Upma"),
+                  _iconItem(AppIconCategoryAssets.shupDalKhichdi, "Dal Khichdi"),
+                  _iconItem(AppIconCategoryAssets.shupRajmaChawal, "Rajma Chawal"),
+                  _iconItem(AppIconCategoryAssets.shupDalTadka, "Dal Tadka"),
+                  _iconItem(AppIconCategoryAssets.shupPaneerCurry, "Paneer Curry"),
+                  _iconItem(AppIconCategoryAssets.shupNoodlesCup, "Noodles Cup"),
+                  _iconItem(AppIconCategoryAssets.shupPastaCup, "Pasta Cup"),
                 ],
                 context: context,
               ),
-
               const SizedBox(height: 40),
             ],
           ),
@@ -332,22 +332,20 @@ class _FoodCategoryPageState extends State<FoodCategoryPage> with SingleTickerPr
 
   // ---------------------------------------------------------
   Widget _iconItem(String img, String label) {
+    // print("dsjkcnlsdkcml ${img}");
     return SizedBox(
       width: SizeConfig.size80,
       child: Column(
         children: [
           Container(
+            height: SizeConfig.size50,
+            width: SizeConfig.size50,
             padding: EdgeInsets.all(SizeConfig.size6),
             decoration: BoxDecoration(
               color: AppColors.lightBlue,
               shape: BoxShape.circle,
             ),
-            child: Image.asset(
-              "assets/category/$img",
-              height: SizeConfig.size40,
-              width: SizeConfig.size40,
-              fit: BoxFit.contain,
-            ),
+            child: LocalAssets(imagePath: img),
           ),
           SizedBox(height: SizeConfig.size6),
           CustomText(
