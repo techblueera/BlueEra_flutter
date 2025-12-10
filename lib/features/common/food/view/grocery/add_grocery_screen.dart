@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/food/controller/grocery_controller.dart';
 import 'package:BlueEra/features/common/food/model/grocery_product_model.dart';
 import 'package:BlueEra/features/common/food/view/grocery/add_grocery_variant_screen.dart';
@@ -40,8 +41,7 @@ class _AddGroceryScreenState extends State<AddGroceryScreen> {
             child: SafeArea(
               child: CustomBtn(
                 onTap: () {
-                  // showEditProductBottomSheet(context);
-                  Get.to(()=> AddGroceryVariantScreen());
+                  Get.toNamed(RouteHelper.getAddGroceryVariantScreenRoute());
                 },
                 isValidate: true,
                 radius: SizeConfig.size8,
@@ -73,7 +73,7 @@ class _AddGroceryScreenState extends State<AddGroceryScreen> {
   }
 
   Widget groceryCard(GroceryProductData p, int index) {
-    final price = controller.getPriceDetails(p.variants??[]);
+    final price = controller.getPriceDetails(p.variants?[0].pricing);
 
     return Container(
       decoration: BoxDecoration(
@@ -90,7 +90,7 @@ class _AddGroceryScreenState extends State<AddGroceryScreen> {
                 child: SizedBox(
                   height: SizeConfig.size150,
                   width: double.infinity,
-                  child: (p.images?.isNotEmpty ?? false)
+                  child: (p.images!=null && p.images!.isNotEmpty)
                       ? CachedNetworkImage(
                     imageUrl: p.images!.first.url??'',
                     fit: BoxFit.cover,

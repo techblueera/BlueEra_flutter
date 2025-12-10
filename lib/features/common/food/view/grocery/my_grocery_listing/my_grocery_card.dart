@@ -2,42 +2,33 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/common/food/controller/food_upload_controller.dart';
-import 'package:BlueEra/features/common/food/model/get_food_details_model.dart';
-import 'package:BlueEra/features/common/food/view/food_details_view_screen.dart';
-import 'package:BlueEra/features/common/store/widget/store_km_away_text_widget.dart';
+import 'package:BlueEra/features/common/food/controller/grocery_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../model/my_grocery_products_reponse.dart';
 
 class MyGroceryCard extends StatelessWidget {
-  // final GetFoodDetailsModel? foodDetailsData;
+  final Variants groceryProductsVariantItem;
   final bool isShowInGrid;
 
   const MyGroceryCard({
     Key? key,
-    // this.foodDetailsData,
+    required this.groceryProductsVariantItem,
     required this.isShowInGrid
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    // final FoodUploadController controller = getOrPut(() => FoodUploadController());
-    //
-    // final priceOptions = foodDetailsData?.priceOptions;
-    //
-    // String priceText = AppStrings.na;
-    // if (priceOptions != null && priceOptions.isNotEmpty) {
-    //   if (priceOptions.length == 1) {
-    //     priceText = "${priceOptions.first.price ?? ''}";
-    //   } else {
-    //     final prices = priceOptions.map((e) => e.price ?? 0).toList();
-    //     prices.sort();
-    //     priceText = "${prices.first} - ₹${prices.last}";
-    //   }
-    // }
+    final controller = getOrPut(() => GroceryController());
+
+    final price = controller.getPriceDetails(groceryProductsVariantItem.pricing);
+    print("Selling Range: ${price.sellingRange}");
+    print("MRP Range: ${price.mrpRange}");
+    print("Discount Range: ${price.discountRange}");
 
     return InkWell(
       onTap: (){
@@ -55,25 +46,23 @@ class MyGroceryCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Image slideshow
-              SizedBox(
-                height: SizeConfig.size150,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child:
-                  // (foodDetailsData?.photos?.isNotEmpty??false)
-                  //     ?
-                  CustomImageSlideshow(
-                    isLoading: false,
-                    width: double.infinity,
-                    height: SizeConfig.size150,
-                    imagePaths: ['assets/category/dal/oilnew.png'],
-                    isLocal: true,
-                    borderRadius: BorderRadius.zero,
-                  )
-                  //     : LocalAssets(
-                  //   imagePath: AppIconAssets.place_holder_image,
-                  //   boxFix: BoxFit.fill,
-                  // ),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child:
+                (groceryProductsVariantItem.images!=null  &&
+                    groceryProductsVariantItem.images!.isNotEmpty)
+                    ? CustomImageSlideshow(
+                  isLoading: false,
+                  width: double.infinity,
+                  height: SizeConfig.size150,
+                  imagePaths: groceryProductsVariantItem.images!.map((i)=> i.url??'').toList(),
+                  borderRadius: BorderRadius.zero,
+                )
+                    : LocalAssets(
+                  imagePath: AppIconAssets.place_holder_image,
+                  boxFix: BoxFit.fill,
+                  height: SizeConfig.size150,
+                  width: double.infinity,
                 ),
               ),
 
@@ -86,129 +75,117 @@ class MyGroceryCard extends StatelessWidget {
                   children: [
                     // Title
                     CustomText(
-                      "Basmati Rice",
+                      groceryProductsVariantItem.variantName,
                       fontWeight: FontWeight.w600,
                       fontSize: SizeConfig.medium,
                       color: AppColors.mainTextColor,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    SizedBox(height: SizeConfig.size5),
+                    SizedBox(height: SizeConfig.size10),
 
-                    // Veg label + category
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Row(
-                        children: [
-                          // (foodDetailsData?.vegType == null)
-                          //     ? SizedBox()
-                          //     :
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 2),
+                    Row(
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                              border:
+                              Border.all(color: AppColors.green00, width: 1),
+                              borderRadius: BorderRadius.circular(2)),
+                          padding: EdgeInsets.all(3.5),
+                          child: Container(
+                            height: 7,
+                            width: 7,
                             decoration: BoxDecoration(
-                              color: AppColors.green7F,
-                              // color: controller.getFoodTypeColor(foodDetailsData?.vegType),
+                                borderRadius: BorderRadius.circular(7),
+                                color: AppColors.green00),
+                          ),
+                        ),
+                        SizedBox(width: SizeConfig.size6),
+                        Container(
+                          decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(4),
+                              border:
+                              Border.all(width: 0.5, color: AppColors.greyE5)),
+                          padding:
+                          EdgeInsets.symmetric(horizontal: 2, vertical: 0.5),
+                          child: CustomText(
+                            '${groceryProductsVariantItem.weight?.toInt()} ${groceryProductsVariantItem.unit}',
+                            fontSize: 11,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: SizeConfig.size6),
+                    Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            CustomText(
+                              "${AppStrings.price.tr}: ",
+                              fontSize: 10,
+                              color: AppColors.secondaryTextColor,
+                              fontWeight: FontWeight.w600,
                             ),
-                            child: CustomText(
-                                AppStrings.veg,
-                                // "${foodDetailsData?.vegType ?? AppStrings.veg}",
-                                color: Colors.white,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600),
-                          ),
-                          // (foodDetailsData?.vegType == null)
-                          //     ? SizedBox()
-                          //     : const SizedBox(
-                          //   width: 6,
-                          // ),
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.food_bank_outlined,
-                                size: 19,
+                            SizedBox(width: SizeConfig.size3),
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: CustomText(
+                                "${price.sellingRange}",
+                                fontSize: 10,
+                                color: AppColors.primaryColor,
+                                fontWeight: FontWeight.bold,
                               ),
-                              CustomText(
-                                AppStrings.na,
-                                // foodDetailsData?.subCategory ?? AppStrings.na,
-                                fontSize: SizeConfig.small,
-                                fontWeight: FontWeight.w500,
-                                color: AppColors.navy,
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 4),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            CustomText(
+                              "${AppStrings.mrp.tr}: ",
+                              fontSize: 10,
+                              color: AppColors.secondaryTextColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            SizedBox(width: SizeConfig.size3),
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: CustomText(
+                                "${price.mrpRange}",
+                                fontSize: 10,
+                                color: AppColors.grayText,
                               ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: SizeConfig.size5),
+                            ),
+                          ],
+                        ),
 
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          CustomText(
-                            AppStrings.energyPrefix,
-                            fontSize: SizeConfig.small,
-                            fontWeight: FontWeight.w500,
-                            color: AppColors.secondaryTextColor,
-                          ),
-                          CustomText(
-                            "50 ${AppStrings.Cal100gm.tr}",
-                            // " ${foodDetailsData?.nutritionalSummaryPer100g?.caloriesKcal ?? AppStrings.na.tr} ${AppStrings.Cal100gm.tr}",
-                            fontSize: SizeConfig.small,
-                            fontWeight: FontWeight.w500,
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 2,
-                            color: AppColors.secondaryTextColor,
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: SizeConfig.size5),
-
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: CustomText(
-                        "₹65982",
-                        fontSize: SizeConfig.small,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primaryColor,
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                      )
-                      // (foodDetailsData?.priceType == "single")
-                      //     ? CustomText(
-                      //   "₹ ${foodDetailsData?.singlePrice ?? "0"}",
-                      //   fontSize: SizeConfig.small,
-                      //   fontWeight: FontWeight.w700,
-                      //   color: AppColors.primaryColor,
-                      //   overflow: TextOverflow.ellipsis,
-                      //   maxLines: 1,
-                      // )
-                      //     : CustomText(
-                      //   "₹ ${priceText}",
-                      //   fontSize: SizeConfig.small,
-                      //   fontWeight: FontWeight.w700,
-                      //   color: AppColors.primaryColor,
-                      //   overflow: TextOverflow.ellipsis,
-                      //   maxLines: 1,
-                      // ),
-                    ),
-
-                    SizedBox(height: SizeConfig.size8),
-
-                    StoreKmAwayTextWidget(
-                      // lat: foodDetailsData?.business?.businessLocation?.lat?.toDouble() ?? 0.0,
-                      // long: foodDetailsData?.business?.businessLocation?.lon?.toDouble() ?? 0.0,
-                      lat: 52.245,
-                      long: 78.256,
-                      isUnderlineShow: false,
-                      isPadding: 4.0,
-                    ),
+                        SizedBox(height: 4),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            CustomText(
+                              "${AppStrings.discount.tr}: ",
+                              fontSize: 10,
+                              color: AppColors.secondaryTextColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            SizedBox(width: SizeConfig.size3),
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: CustomText(
+                                "${price.discountRange}",
+                                fontSize: 10,
+                                color: AppColors.green00,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    )
 
 
                   ],
@@ -234,14 +211,18 @@ class MyGroceryCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             /// Product Image
-            CustomImageSlideshow(
+            (groceryProductsVariantItem.images!=null  &&
+                groceryProductsVariantItem.images!.isNotEmpty)
+                ? CustomImageSlideshow(
               isLoading: false,
-              height: SizeConfig.size200,
-              width: SizeConfig.size140,
-              imagePaths: ['assets/category/dal/oilnew.png'],
-              isLocal: true,
-              borderRadius: BorderRadius.horizontal(left: Radius.circular(10.0)),
-              // fit: BoxFit.cover,
+              width: double.infinity,
+              height: SizeConfig.size150,
+              imagePaths: groceryProductsVariantItem.images!.map((i)=> i.url??'').toList(),
+              borderRadius: BorderRadius.zero,
+            )
+                : LocalAssets(
+              imagePath: AppIconAssets.place_holder_image,
+              boxFix: BoxFit.cover,
             ),
             const SizedBox(width: 10),
 
@@ -258,7 +239,7 @@ class MyGroceryCard extends StatelessWidget {
                       children: [
                         Expanded(
                           child: CustomText(
-                            "Basmati Rice",
+                            groceryProductsVariantItem.variantName,
                             fontSize: SizeConfig.medium,
                             fontWeight: FontWeight.w600,
                             overflow: TextOverflow.ellipsis,
@@ -274,120 +255,108 @@ class MyGroceryCard extends StatelessWidget {
                       ],
                     ),
                     SizedBox(height: SizeConfig.size10),
-
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Row(
-                        children: [
-                          // (foodDetailsData?.vegType == null)
-                          //     ? SizedBox()
-                          //     :
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: AppColors.green7F,
-                              // color: controller.getFoodTypeColor(foodDetailsData?.vegType),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: CustomText(
-                                AppStrings.veg,
-                                // "${foodDetailsData?.vegType ?? AppStrings.veg}",
-                                color: Colors.white,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600),
-                          ),
-                          // (foodDetailsData?.vegType == null)
-                          //     ? SizedBox()
-                          //     : const SizedBox(
-                          //   width: 6,
-                          // ),
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.food_bank_outlined,
-                                size: 19,
-                              ),
-                              CustomText(
-                                AppStrings.na,
-                                // foodDetailsData?.subCategory ?? AppStrings.na,
-                                fontSize: SizeConfig.small,
-                                fontWeight: FontWeight.w500,
-                                color: AppColors.navy,
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: SizeConfig.size10),
-
                     Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        CustomText(
-                          AppStrings.energyPrefix,
-                          fontSize: SizeConfig.small,
-                          fontWeight: FontWeight.w500,
+                        Container(
+                          decoration: BoxDecoration(
+                              border:
+                              Border.all(color: AppColors.green00, width: 1),
+                              borderRadius: BorderRadius.circular(2)),
+                          padding: EdgeInsets.all(3.5),
+                          child: Container(
+                            height: 7,
+                            width: 7,
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(7),
+                                color: AppColors.green00),
+                          ),
                         ),
-                        Expanded(
+                        SizedBox(width: SizeConfig.size6),
+                        Container(
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(4),
+                              border:
+                              Border.all(width: 0.5, color: AppColors.greyE5)),
+                          padding:
+                          EdgeInsets.symmetric(horizontal: 2, vertical: 0.5),
                           child: CustomText(
-                            "50 ${AppStrings.Cal100gm.tr}",
-                            // "${foodDetailsData?.nutritionalSummaryPer100g?.caloriesKcal ?? "N/A"} Cal/100gm",
-                            fontSize: SizeConfig.small,
-                            fontWeight: FontWeight.w500,
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 2,
+                            '${groceryProductsVariantItem.weight?.toInt()} ${groceryProductsVariantItem.unit}',
+                            fontSize: 11,
+                            color: Colors.grey,
                           ),
                         ),
                       ],
                     ),
+                    SizedBox(height: SizeConfig.size6),
+                    Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            CustomText(
+                              "${AppStrings.price.tr}: ",
+                              fontSize: 10,
+                              color: AppColors.secondaryTextColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            SizedBox(width: SizeConfig.size3),
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: CustomText(
+                                "${price.sellingRange}",
+                                fontSize: 10,
+                                color: AppColors.primaryColor,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 4),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            CustomText(
+                              "${AppStrings.mrp.tr}: ",
+                              fontSize: 10,
+                              color: AppColors.secondaryTextColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            SizedBox(width: SizeConfig.size3),
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: CustomText(
+                                "${price.mrpRange}",
+                                fontSize: 10,
+                                color: AppColors.grayText,
+                              ),
+                            ),
+                          ],
+                        ),
 
-                    SizedBox(height: SizeConfig.size10),
-
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: CustomText(
-                        "₹65982",
-                        fontSize: SizeConfig.small,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primaryColor,
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                      )
-
-
-                      // (foodDetailsData?.priceType == "single")
-                      //     ? CustomText(
-                      //   "Price : ₹ ${foodDetailsData?.singlePrice ?? "0"}",
-                      //   fontSize: SizeConfig.small,
-                      //   overflow: TextOverflow.ellipsis,
-                      //   maxLines: 1,
-                      //   color: AppColors.primaryColor,
-                      // )
-                      //     : CustomText(
-                      //   "Price : ₹${priceText}",
-                      //   fontWeight: FontWeight.w600,
-                      //   overflow: TextOverflow.ellipsis,
-                      //   color: AppColors.primaryColor,
-                      //   maxLines: 1,
-                      // ),
-                    ),
-
-                    SizedBox(height: SizeConfig.size10),
-
-                    StoreKmAwayTextWidget(
-                      // lat: foodDetailsData?.business?.businessLocation?.lat?.toDouble() ?? 0.0,
-                      // long: foodDetailsData?.business?.businessLocation?.lon?.toDouble() ?? 0.0,
-                      lat: 52.245,
-                      long: 78.256,
-                      isUnderlineShow: false,
-                      isPadding: 4.0,
-                    ),
-
-
+                        SizedBox(height: 4),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            CustomText(
+                              "${AppStrings.discount.tr}: ",
+                              fontSize: 10,
+                              color: AppColors.secondaryTextColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            SizedBox(width: SizeConfig.size3),
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: CustomText(
+                                "${price.discountRange}",
+                                fontSize: 10,
+                                color: AppColors.green00,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    )
                   ],
                 ),
               ),

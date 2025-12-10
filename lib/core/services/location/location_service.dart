@@ -84,6 +84,7 @@ class LocationService extends GetxService {
 
       if (placeMarks.isNotEmpty) {
         final place = placeMarks.first;
+
         userCurrentAddress.value = _composeAddress(
           thoroughfare: place.thoroughfare,
           subLocality: place.subLocality,
@@ -92,16 +93,8 @@ class LocationService extends GetxService {
           country: place.country,
           postalCode: place.postalCode,
         );
-
-        if (userCurrentAddress.isEmpty) {
-          userCurrentAddress.value = [
-            place.subLocality ?? '',
-            place.locality ?? '',
-            place.administrativeArea ?? '',
-            place.country ?? '',
-          ];
-        }
-      } else {
+      }
+      else {
         userCurrentAddress.value = [];
       }
 

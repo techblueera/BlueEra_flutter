@@ -2,6 +2,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/food/view/grocery/grocery_category_screen.dart';
 import 'package:BlueEra/features/common/food/view/grocery/my_grocery_listing/my_grocery_category_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -11,9 +12,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class GroceryScreen extends StatefulWidget {
-  final bool fromBottomNavBar;
+  final bool? fromBottomNavBar;
 
-  const GroceryScreen({super.key, required this.fromBottomNavBar});
+  const GroceryScreen({super.key, this.fromBottomNavBar});
 
   @override
   State<GroceryScreen> createState() => _GroceryScreenState();
@@ -48,7 +49,7 @@ class _GroceryScreenState extends State<GroceryScreen> with SingleTickerProvider
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(kToolbarHeight + 50),
         child: CommonBackAppBar(
-          isLeading: !(widget.fromBottomNavBar),
+          isLeading: !(widget.fromBottomNavBar??false),
           controller: searchController,
           searchHintText: AppStrings.searchHintText,
           onClearCallback: () => searchController.clear(),
@@ -59,7 +60,7 @@ class _GroceryScreenState extends State<GroceryScreen> with SingleTickerProvider
                 bottom: SizeConfig.paddingXSL
             ),
             child: InkWell(
-              onTap:()=> Get.to(()=> CategoryPage()),
+              onTap:()=> Get.toNamed(RouteHelper.getGroceryCategoryScreenRoute()),
               child: Container(
                 height: SizeConfig.size40,
                 width: SizeConfig.size40,

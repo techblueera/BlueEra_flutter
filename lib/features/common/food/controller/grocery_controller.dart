@@ -2,12 +2,16 @@ import 'dart:convert';
 import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
+import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/food/model/children_of_grocery_category_response.dart';
 import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
 import 'package:BlueEra/features/common/food/model/grocery_product_model.dart';
+import 'package:BlueEra/features/common/food/model/my_grocery_products_reponse.dart';
 import 'package:BlueEra/features/common/food/repo/grocery_repo.dart';
 import 'package:BlueEra/features/common/food/view/grocery/edit_grocery_varient_dialog.dart';
 import 'package:BlueEra/features/common/food/view/grocery/grocery_varient_dialog.dart';
@@ -27,8 +31,15 @@ class PriceResult {
 }
 
 class GroceryController extends GetxController {
-  ApiResponse groceryCategoryResponse = ApiResponse.initial('Initial');
-  Rx<ApiResponse> addGroceryProductNewVariantResponse =
+  Rx<ApiResponse> groceryCategoryResponse =
+    ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> groceryCategoryOfChildrenResponse =
+      ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> createNewGroceryProductNewVariantResponse =
+      ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> addGroceryProductVariantResponse =
+      ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> fetchMyGroceryProductsResponse =
       ApiResponse.initial('Initial').obs;
 
   RxString selectedGrocery = ''.obs;
@@ -40,7 +51,7 @@ class GroceryController extends GetxController {
 
   bool get isMaxLimitHit => selectedGroceries.length == maxLimit;
 
-  Map<String, List<Variants>> selectedProductVariants = {};
+  Map<String, List<VariantsList>> selectedProductVariants = {};
 
   /// Main Grocery Categories
   final List<CollapsibleGridModel> biscuitFoods = [
@@ -259,7 +270,7 @@ class GroceryController extends GetxController {
     }
   }
 
-  void toggleVariant(String productId, Variants variant) {
+  void toggleVariant(String productId, VariantsList variant) {
     selectedProductVariants.putIfAbsent(productId, () => []);
 
     final selectedList = selectedProductVariants[productId]!;
@@ -330,10 +341,10 @@ class GroceryController extends GetxController {
           GroceryProductModel.fromJson(response.response?.data);
       arrGroceryProducts.value = groceryProductModel.data ?? [];
       log('total grocery-- ${arrGroceryProducts.length}');
-      groceryCategoryResponse = ApiResponse.complete(response);
+      groceryCategoryResponse.value = ApiResponse.complete(response);
       update();
     } catch (e, s) {
-      groceryCategoryResponse = ApiResponse.error('error');
+      groceryCategoryResponse.value = ApiResponse.error('error');
       log('stack trace-- $s');
     } finally {
       isGrocerySubCategoryLoading.value = false;
@@ -360,20 +371,20 @@ class GroceryController extends GetxController {
       final jsonData = response.response?.data;
       arrChildrenOfGroceryCategory.value =
           ChildrenOfGroceryCategoryResponse.fromJsonList(jsonData);
-      groceryCategoryResponse = ApiResponse.complete(response);
+      groceryCategoryOfChildrenResponse.value = ApiResponse.complete(response);
       update();
-    } catch (e, s) {
-      groceryCategoryResponse = ApiResponse.error('error');
+    } catch (e) {
+      groceryCategoryOfChildrenResponse.value = ApiResponse.error('error');
       update();
     } finally {
       isGroceryCategoryOfChildrenLoading.value = false;
     }
   }
 
-  PriceResult getPriceDetails(List<Variants> v) {
-    final pricingList = v[0].pricing ?? [];
+  PriceResult getPriceDetails(List<Pricing>? v) {
+    final pricingList = v;
 
-    if (pricingList.isEmpty) {
+    if (pricingList==null) {
       return PriceResult(
         sellingRange: "0",
         mrpRange: "0",
@@ -440,7 +451,7 @@ class GroceryController extends GetxController {
   void openEditVariantDialog({
     required BuildContext context,
     required String title,
-    required Variants variant,
+    required VariantsList variant,
   }) {
     showDialog(
       context: context,
@@ -466,12 +477,12 @@ class GroceryController extends GetxController {
   }) {
     showDialog(
       context: context,
-      barrierDismissible: !isAddGroceryProductNewVariantLoading.value,
+      barrierDismissible: !isCreateNewGroceryProductNewVariantLoading.value,
       builder: (_) {
         return GroceryVariantDialog(
           title: "Add More Variant",
           onSubmit: (weight, unit, mrp, sellingPrice) {
-            addGroceryProductNewVariant(
+            createNewGroceryProductNewVariant(
                 groceryItem: groceryItem,
                 productId: groceryItem.sId ?? '',
                 weight: weight,
@@ -479,14 +490,14 @@ class GroceryController extends GetxController {
                 mrp: mrp,
                 sellingPrice: sellingPrice);
           },
-          isAddGroceryProductNewVariantLoading: isAddGroceryProductNewVariantLoading.value,
+          isAddGroceryProductNewVariantLoading: isCreateNewGroceryProductNewVariantLoading.value,
         );
       },
     );
   }
 
-  RxBool isAddGroceryProductNewVariantLoading = false.obs;
-  Future<void> addGroceryProductNewVariant(
+  RxBool isCreateNewGroceryProductNewVariantLoading = false.obs;
+  Future<void> createNewGroceryProductNewVariant(
       {required GroceryProductData groceryItem,
       required String productId,
       required String weight,
@@ -494,8 +505,7 @@ class GroceryController extends GetxController {
       required String mrp,
       required String sellingPrice}) async {
     try {
-      isAddGroceryProductNewVariantLoading.value = true;
-
+      isCreateNewGroceryProductNewVariantLoading.value = true;
       Map<String, dynamic> data = {
         ApiKeys.variantData: jsonEncode({
           ApiKeys.weight: int.parse(weight),
@@ -509,23 +519,23 @@ class GroceryController extends GetxController {
         })
       };
 
-      final response = await GroceryRepo().addGroceryProductVariantRepo(
+      final response = await GroceryRepo().createNewGroceryProductVariantRepo(
         productId: productId,
         params: data,
       );
 
       if (!response.isSuccess) {
-        addGroceryProductNewVariantResponse.value = ApiResponse.error('error');
+        createNewGroceryProductNewVariantResponse.value = ApiResponse.error('error');
         commonSnackBar(
           message: response.message ?? AppStrings.somethingWentWrong,
         );
         return;
       }
 
-      addGroceryProductNewVariantResponse.value = ApiResponse.complete(response);
+      createNewGroceryProductNewVariantResponse.value = ApiResponse.complete(response);
       final jsonData = response.response?.data;
       log('id-- > ${jsonData['_id']}');
-      final newVariant = Variants(
+      final newVariant = VariantsList(
         weight: int.tryParse(weight),
         sId: jsonData['_id'],
         product: productId,
@@ -551,12 +561,169 @@ class GroceryController extends GetxController {
       );
       update();
       Get.back();
-      update();
-    } catch (e, s) {
-      addGroceryProductNewVariantResponse.value = ApiResponse.error('error');
-      update();
+    } catch (e) {
+      createNewGroceryProductNewVariantResponse.value = ApiResponse.error('error');
     } finally {
-      isAddGroceryProductNewVariantLoading.value = false;
+      isCreateNewGroceryProductNewVariantLoading.value = false;
     }
   }
+
+  RxBool isAddGroceryProductsLoading = false.obs;
+  Future<void> addGroceryProductNewVariant() async {
+    try {
+      isAddGroceryProductsLoading.value = true;
+
+      final payload = buildInventoryPayload();
+
+      print(jsonEncode(payload));
+
+      final response = await GroceryRepo().addGroceryProductVariantRepo(
+        params: payload,
+      );
+
+      if (!response.isSuccess) {
+        addGroceryProductVariantResponse.value = ApiResponse.error('error');
+        commonSnackBar(
+          message: response.message ?? AppStrings.somethingWentWrong,
+        );
+        return;
+      }
+
+      addGroceryProductVariantResponse.value = ApiResponse.complete(response);
+      // final jsonData = response.response?.data;
+
+      Get.until((route) =>
+                  route.settings.name == RouteHelper.getBottomNavigationBarScreenRoute());
+      commonSnackBar(
+        message: response.message ?? AppStrings.somethingWentWrong,
+      );
+      log('success-- ${response.isSuccess}');
+    } catch (e) {
+      addGroceryProductVariantResponse.value = ApiResponse.error('error');
+    } finally {
+      isAddGroceryProductsLoading.value = false;
+    }
+  }
+
+  List<Map<String, dynamic>> buildInventoryPayload() {
+    List<Map<String, dynamic>> payload = [];
+
+    String city = LocationService.userCurrentAddress[2];
+    String postalCode = LocationService.userCurrentAddress[5];
+
+    selectedProductVariants.forEach((productId, variants) {
+      for (final variant in variants) {
+        payload.add({
+          "productVariant": variant.sId ?? "",
+          "pincode": postalCode,
+          "cityName": city,
+
+          "batches": [
+            {
+              "quantity": variant.weight,
+              "mrp": variant.pricing?[0].mrp,
+              "sellingPrice": variant.pricing?[0].sellingPrice,
+            }
+          ],
+        });
+      }
+    });
+
+    return payload;
+  }
+
+  /// Fetch Grocery Products
+  RxList<MyGroceryProductsData> myGroceryProductsList = <MyGroceryProductsData>[].obs;
+  RxList<Variants> myGroceryProductsVariantsList = <Variants>[].obs;
+  RxBool isMyGroceryDataFirstLoading = false.obs;
+  RxBool isMyGroceryDataLoadingMore = false.obs;
+  int myGroceryDataPage = 1;
+  bool myGroceryDataHasMore = true;
+  int pageLimit = 20;
+
+  Future<void> fetchMyGroceryProducts({bool isLoadMore = false, String? categoryId}) async {
+    if (isLoadMore) {
+      if (isMyGroceryDataLoadingMore.value || !myGroceryDataHasMore) return;
+      isMyGroceryDataLoadingMore.value = true;
+    } else {
+      isMyGroceryDataFirstLoading.value = true;
+      myGroceryDataPage = 1;
+      myGroceryDataHasMore = true;
+    }
+
+    try {
+      Map<String, dynamic> params = {
+        ApiKeys.page: myGroceryDataPage,
+        ApiKeys.limit: pageLimit
+      };
+      if(categoryId != null) params[ApiKeys.categoryId] = categoryId;
+
+      ResponseModel responseModel = await GroceryRepo().fetchMyGroceryProductsRepo(queryParam: params);
+      if (responseModel.isSuccess) {
+        fetchMyGroceryProductsResponse.value = ApiResponse.complete(responseModel);
+        final data = responseModel.response?.data;
+        MyGroceryProductsModel myGroceryProductsModel = MyGroceryProductsModel.fromJson(data);
+        List<MyGroceryProductsData> newItems = myGroceryProductsModel.data ?? [];
+
+        if (newItems.isNotEmpty) {
+          if(categoryId==null){
+            if (isLoadMore) {
+              myGroceryProductsList.addAll(newItems);
+            } else {
+              myGroceryProductsList.clear();
+              myGroceryProductsList.assignAll(newItems);
+            }
+          }else{
+            extractAllVariantsFromResponse(
+                newItems,
+                isLoadMore: isLoadMore,
+            );
+          }
+
+
+          myGroceryDataPage++;
+        } else {
+          myGroceryDataHasMore = false;
+        }
+
+        log("Loaded ${newItems.length} items | Total: ${(categoryId==null)
+            ? myGroceryProductsList.length
+        : myGroceryProductsVariantsList.length}");
+      } else {
+        fetchMyGroceryProductsResponse.value = ApiResponse.error('error');
+      }
+    } catch (e) {
+      fetchMyGroceryProductsResponse.value = ApiResponse.error('error');
+      log("ERROR===== $e");
+    } finally{
+      if (isLoadMore) {
+        isMyGroceryDataLoadingMore.value = false;
+      } else {
+        isMyGroceryDataFirstLoading.value = false;
+      }
+    }
+  }
+
+  void extractAllVariantsFromResponse(
+      List<MyGroceryProductsData> groceryProductData,
+      {bool isLoadMore = false}
+      ) {
+    if (!isLoadMore) {
+      myGroceryProductsVariantsList.clear();
+    }
+
+    for (final data in groceryProductData) {
+      final category = data.category;
+      if (category == null) continue;
+
+      final products = category.products ?? [];
+      for (final product in products) {
+        final variants = product.variants ?? [];
+        myGroceryProductsVariantsList.addAll(variants);
+      }
+    }
+  }
+
+
+
 }

@@ -120,4 +120,14 @@ class RouteConstant {
   static const String gstNumberScreen = "/GstNumberScreen";
   static const String addBioViaAiScreen = "/AddBioViaAiScreen";
 
+
+  static const String groceryScreen = "/GroceryScreen";
+  static const String groceryCategoryScreen = "/GroceryCategoryScreen";
+  static const String grocerySubCategoryScreen = "/GrocerySubCategoryScreen";
+  static const String addGroceryScreen = "/AddGroceryScreen";
+  static const String addGroceryVariantScreen = "/AddGroceryVariantScreen";
+  static const String myGroceryCategoryScreen = "/MyGroceryCategoryScreen";
+  static const String myGroceryScreen = "/MyGroceryScreen";
+
+
 }

@@ -537,5 +537,10 @@ class ApiKeys {
   static const unit = 'unit';
   static const pricing = 'pricing';
   static const variantData = 'variantData';
+  static const argFromBottomNavBar = 'argFromBottomNavBar';
+  static const argGroceries = 'argGroceries';
+  static const argSelectedGroceryData = 'argSelectedGroceryData';
+  static const argCategoryId = 'argCategoryId';
+  static const argIsShowInGrid = 'argIsShowInGrid';
 
 }

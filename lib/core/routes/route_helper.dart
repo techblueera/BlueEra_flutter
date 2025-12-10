@@ -27,7 +27,15 @@ import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
+import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
 import 'package:BlueEra/features/common/food/view/food_upload_screen.dart';
+import 'package:BlueEra/features/common/food/view/grocery/add_grocery_screen.dart';
+import 'package:BlueEra/features/common/food/view/grocery/add_grocery_variant_screen.dart';
+import 'package:BlueEra/features/common/food/view/grocery/grocery_category_screen.dart';
+import 'package:BlueEra/features/common/food/view/grocery/grocery_subcategory_screen.dart';
+import 'package:BlueEra/features/common/food/view/grocery/my_grocery_listing/grocery_screen.dart';
+import 'package:BlueEra/features/common/food/view/grocery/my_grocery_listing/my_grocery_category_screen.dart';
+import 'package:BlueEra/features/common/food/view/grocery/my_grocery_listing/my_grocery_screen.dart';
 import 'package:BlueEra/features/common/home/view/home_screen.dart';
 import 'package:BlueEra/features/common/jobs/create_job_post/create_job.dart';
 import 'package:BlueEra/features/common/jobs/create_job_post/create_job_post_step2.dart';
@@ -431,6 +439,26 @@ class RouteHelper {
   static String getAddBioViaAiScreenRoute() =>
       RouteConstant.addBioViaAiScreen;
 
+  static String getGroceryScreenRoute() =>
+      RouteConstant.groceryScreen;
+
+  static String getGroceryCategoryScreenRoute() =>
+      RouteConstant.groceryCategoryScreen;
+
+  static String getGrocerySubCategoryScreenRoute() =>
+      RouteConstant.grocerySubCategoryScreen;
+
+  static String getAddGroceryScreenRoute() =>
+      RouteConstant.addGroceryScreen;
+
+  static String getAddGroceryVariantScreenRoute() =>
+      RouteConstant.addGroceryVariantScreen;
+
+  static String getMyGroceryCategoryScreenRoute() =>
+      RouteConstant.myGroceryCategoryScreen;
+
+  static String getMyGroceryScreenRoute() =>
+      RouteConstant.myGroceryScreen;
 
   ///REDIRECT ROUTING SETUP.....
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -1249,6 +1277,58 @@ class RouteHelper {
               selectedYear: selectedYear
             ),
             settings: RouteSettings(name: getAddBioViaAiScreenRoute())
+        );
+
+      case RouteConstant.groceryScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        final bool? argFromBottomNavBar = args[ApiKeys.argFromBottomNavBar] as bool?;
+        return MaterialPageRoute(
+            builder: (_) => GroceryScreen(
+                fromBottomNavBar: argFromBottomNavBar
+            ),
+            settings: RouteSettings(name: getGroceryScreenRoute())
+        );
+      case RouteConstant.groceryCategoryScreen:
+        return MaterialPageRoute(
+            builder: (_) => GroceryCategoryScreen(),
+            settings: RouteSettings(name: getGroceryCategoryScreenRoute())
+        );
+      case RouteConstant.grocerySubCategoryScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        final List<CollapsibleGridModel> argGroceries = args[ApiKeys.argGroceries] as List<CollapsibleGridModel>;
+        final CollapsibleGridModel argSelectedGroceryData = args[ApiKeys.argSelectedGroceryData] as CollapsibleGridModel;
+        return MaterialPageRoute(
+            builder: (_) => GrocerySubCategoryScreen(
+                arrGroceries: argGroceries,
+                selectedGroceryData: argSelectedGroceryData
+            ),
+            settings: RouteSettings(name: getGrocerySubCategoryScreenRoute())
+        );
+      case RouteConstant.addGroceryScreen:
+        return MaterialPageRoute(
+            builder: (_) => AddGroceryScreen(),
+            settings: RouteSettings(name: getAddGroceryScreenRoute())
+        );
+      case RouteConstant.addGroceryVariantScreen:
+        return MaterialPageRoute(
+            builder: (_) => AddGroceryVariantScreen(),
+            settings: RouteSettings(name: getAddGroceryVariantScreenRoute())
+        );
+      case RouteConstant.myGroceryCategoryScreen:
+        return MaterialPageRoute(
+            builder: (_) => MyGroceryCategoryScreen(),
+            settings: RouteSettings(name: getMyGroceryCategoryScreenRoute())
+        );
+      case RouteConstant.myGroceryScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        final String argCategoryId = args[ApiKeys.argCategoryId] as String;
+        final bool? argIsShowInGrid = args[ApiKeys.argIsShowInGrid] as bool?;
+        return MaterialPageRoute(
+            builder: (_) => MyGroceryScreen(
+                categoryId: argCategoryId,
+                isShowInGrid: argIsShowInGrid
+            ),
+            settings: RouteSettings(name: getMyGroceryScreenRoute())
         );
 
       default:

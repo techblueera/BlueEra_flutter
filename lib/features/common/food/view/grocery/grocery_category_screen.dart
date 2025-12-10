@@ -1,5 +1,7 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/food/controller/grocery_controller.dart';
 import 'package:BlueEra/widgets/collapsible_grid_section.dart';
 import 'package:flutter/material.dart';
@@ -7,16 +9,15 @@ import 'package:get/get.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../widgets/common_back_app_bar.dart';
 import '../../../../../widgets/custom_text_cm.dart';
-import 'grocery_subcategory_screen.dart';
 
-class CategoryPage extends StatefulWidget {
-  const CategoryPage({super.key});
+class GroceryCategoryScreen extends StatefulWidget {
+  const GroceryCategoryScreen({super.key});
 
   @override
-  State<CategoryPage> createState() => _CategoryPageState();
+  State<GroceryCategoryScreen> createState() => _GroceryCategoryScreenState();
 }
 
-class _CategoryPageState extends State<CategoryPage> with SingleTickerProviderStateMixin {
+class _GroceryCategoryScreenState extends State<GroceryCategoryScreen> with SingleTickerProviderStateMixin {
   TabController? _tabController;
   final TextEditingController searchController = TextEditingController();
   final List<Tab> _tabs = [
@@ -63,10 +64,12 @@ class _CategoryPageState extends State<CategoryPage> with SingleTickerProviderSt
                     title: "Biscuits, Drinks & Packaged Foods",
                     categories: groceryController.biscuitFoods,
                       onTap:(groceryCategoryModel){
-                        Get.to(()=> GrocerySubCategoryScreen(
-                            arrGroceries: groceryController.biscuitFoods,
-                            selectedGroceryData: groceryCategoryModel
-                        ));
+                        Get.toNamed(RouteHelper.getGrocerySubCategoryScreenRoute(),
+                            arguments: {
+                              ApiKeys.argGroceries: groceryController.biscuitFoods,
+                              ApiKeys.argSelectedGroceryData: groceryCategoryModel
+                            },
+                        );
                       }
                   ),
 
@@ -74,10 +77,12 @@ class _CategoryPageState extends State<CategoryPage> with SingleTickerProviderSt
                     title: "Fruits & Vegetables",
                     categories: groceryController.fruitsVeg,
                     onTap:(groceryCategoryModel){
-                        Get.to(()=> GrocerySubCategoryScreen(
-                            arrGroceries: groceryController.fruitsVeg,
-                            selectedGroceryData: groceryCategoryModel
-                        ));
+                      Get.toNamed(RouteHelper.getGrocerySubCategoryScreenRoute(),
+                        arguments: {
+                          ApiKeys.argGroceries: groceryController.fruitsVeg,
+                          ApiKeys.argSelectedGroceryData: groceryCategoryModel
+                        },
+                      );
                     }
                   ),
 
@@ -85,10 +90,12 @@ class _CategoryPageState extends State<CategoryPage> with SingleTickerProviderSt
                     title: "Cooking Essentials",
                     categories: groceryController.cookingEssentials,
                       onTap:(groceryCategoryModel){
-                        Get.to(()=> GrocerySubCategoryScreen(
-                            arrGroceries: groceryController.cookingEssentials,
-                            selectedGroceryData: groceryCategoryModel
-                        ));
+                        Get.toNamed(RouteHelper.getGrocerySubCategoryScreenRoute(),
+                          arguments: {
+                            ApiKeys.argGroceries: groceryController.cookingEssentials,
+                            ApiKeys.argSelectedGroceryData: groceryCategoryModel
+                          },
+                        );
                       }
                   ),
 
@@ -96,10 +103,13 @@ class _CategoryPageState extends State<CategoryPage> with SingleTickerProviderSt
                     title: "Dairy & Bakery",
                     categories: groceryController.dairyBakery,
                     onTap:(groceryCategoryModel){
-                        Get.to(()=> GrocerySubCategoryScreen(
-                            arrGroceries: groceryController.dairyBakery,
-                            selectedGroceryData: groceryCategoryModel
-                        ));
+                      Get.toNamed(RouteHelper.getGrocerySubCategoryScreenRoute(),
+                        arguments: {
+                          ApiKeys.argGroceries: groceryController.dairyBakery,
+                          ApiKeys.argSelectedGroceryData: groceryCategoryModel
+                        },
+                      );
+
                     }
                   ),
 
@@ -107,10 +117,12 @@ class _CategoryPageState extends State<CategoryPage> with SingleTickerProviderSt
                     title: "Mom & Baby Care",
                     categories: groceryController.momBabyCare,
                     onTap:(groceryCategoryModel){
-                        Get.to(()=> GrocerySubCategoryScreen(
-                            arrGroceries: groceryController.momBabyCare,
-                            selectedGroceryData: groceryCategoryModel
-                        ));
+                      Get.toNamed(RouteHelper.getGrocerySubCategoryScreenRoute(),
+                        arguments: {
+                          ApiKeys.argGroceries: groceryController.momBabyCare,
+                          ApiKeys.argSelectedGroceryData: groceryCategoryModel
+                        },
+                      );
                     }
                   ),
 
@@ -118,10 +130,12 @@ class _CategoryPageState extends State<CategoryPage> with SingleTickerProviderSt
                     title: "Kitchenware",
                     categories: groceryController.kitchenware,
                       onTap:(groceryCategoryModel){
-                        Get.to(()=> GrocerySubCategoryScreen(
-                            arrGroceries: groceryController.cookingEssentials,
-                            selectedGroceryData: groceryCategoryModel
-                        ));
+                        Get.toNamed(RouteHelper.getGrocerySubCategoryScreenRoute(),
+                          arguments: {
+                            ApiKeys.argGroceries: groceryController.cookingEssentials,
+                            ApiKeys.argSelectedGroceryData: groceryCategoryModel
+                          },
+                        );
                       }
                   ),
 
@@ -129,10 +143,12 @@ class _CategoryPageState extends State<CategoryPage> with SingleTickerProviderSt
                     title: "Tableware",
                     categories: groceryController.tableware,
                     onTap:(groceryCategoryModel){
-                        Get.to(()=> GrocerySubCategoryScreen(
-                            arrGroceries: groceryController.tableware,
-                            selectedGroceryData: groceryCategoryModel
-                        ));
+                      Get.toNamed(RouteHelper.getGrocerySubCategoryScreenRoute(),
+                        arguments: {
+                          ApiKeys.argGroceries: groceryController.tableware,
+                          ApiKeys.argSelectedGroceryData: groceryCategoryModel
+                        },
+                      );
                     }
 
                   ),
@@ -141,10 +157,12 @@ class _CategoryPageState extends State<CategoryPage> with SingleTickerProviderSt
                     title: "Gifts & Hampers",
                     categories: groceryController.giftsHampers,
                       onTap:(groceryCategoryModel){
-                        Get.to(()=> GrocerySubCategoryScreen(
-                            arrGroceries: groceryController.giftsHampers,
-                            selectedGroceryData: groceryCategoryModel
-                        ));
+                        Get.toNamed(RouteHelper.getGrocerySubCategoryScreenRoute(),
+                          arguments: {
+                            ApiKeys.argGroceries: groceryController.giftsHampers,
+                            ApiKeys.argSelectedGroceryData: groceryCategoryModel
+                          },
+                        );
                       }
                   ),
 
@@ -152,10 +170,12 @@ class _CategoryPageState extends State<CategoryPage> with SingleTickerProviderSt
                     title: "Home",
                     categories: groceryController.homeCategory,
                     onTap:(groceryCategoryModel){
-                        Get.to(()=> GrocerySubCategoryScreen(
-                            arrGroceries: groceryController.homeCategory,
-                            selectedGroceryData: groceryCategoryModel
-                        ));
+                      Get.toNamed(RouteHelper.getGrocerySubCategoryScreenRoute(),
+                        arguments: {
+                          ApiKeys.argGroceries: groceryController.homeCategory,
+                          ApiKeys.argSelectedGroceryData: groceryCategoryModel
+                        },
+                      );
                       }
                   ),
 

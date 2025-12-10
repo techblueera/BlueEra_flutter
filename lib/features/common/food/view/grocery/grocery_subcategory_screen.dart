@@ -1,12 +1,11 @@
 import 'dart:developer';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/food/controller/grocery_controller.dart';
 import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
 import 'package:BlueEra/features/common/food/model/grocery_product_model.dart';
-import 'package:BlueEra/features/common/food/view/grocery/add_grocery_screen.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -58,7 +57,7 @@ class _GrocerySubCategoryScreenState extends State<GrocerySubCategoryScreen> {
           child: Icon(Icons.search),
         )
             :  InkWell(
-              onTap: ()=> Get.to(()=> AddGroceryScreen()),
+              onTap: ()=> Get.toNamed(RouteHelper.getAddGroceryScreenRoute()),
               child: Padding(
                         padding: const EdgeInsets.only(right: 20.0),
                         child: Stack(
@@ -107,7 +106,7 @@ class _GrocerySubCategoryScreenState extends State<GrocerySubCategoryScreen> {
               child: SafeArea(
                 child: CustomBtn(
                   onTap: () {
-                    Get.to(()=> AddGroceryScreen());
+                    Get.toNamed(RouteHelper.getAddGroceryScreenRoute());
                   },
                   isValidate: true,
                   radius: SizeConfig.size8,
@@ -342,7 +341,7 @@ class _GrocerySubCategoryScreenState extends State<GrocerySubCategoryScreen> {
 
   Widget groceryCard(GroceryProductData groceryProductData) {
     final bool isSelected = controller.selectedGroceries.contains(groceryProductData);
-    final price = controller.getPriceDetails(groceryProductData.variants??[]);
+    final price = controller.getPriceDetails(groceryProductData.variants?[0].pricing);
     print("Selling Range: ${price.sellingRange}");
     print("MRP Range: ${price.mrpRange}");
     print("Discount Range: ${price.discountRange}");

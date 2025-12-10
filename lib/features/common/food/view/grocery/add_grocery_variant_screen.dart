@@ -9,6 +9,7 @@ import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -30,231 +31,243 @@ class _AddGroceryVariantScreenState extends State<AddGroceryVariantScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return Obx(()=> Scaffold(
       appBar: CommonBackAppBar(),
       bottomNavigationBar: Container(
         color: AppColors.white,
         padding: EdgeInsets.all(SizeConfig.size15),
         child: SafeArea(
-          child: GetBuilder<GroceryController>(
-            builder: (controller) {
-              return CustomBtn(
-                onTap: controller.canSubmitProducts ? () {
-                  // submit logic
-                } : null,
-                isValidate: controller.canSubmitProducts,
-                radius: SizeConfig.size8,
-                bgColor: controller.canSubmitProducts
-                    ? AppColors.primaryColor
-                    : Colors.grey,
-                title:
-                'Publish ${controller.selectedGroceries.length} Products, '
-                    '${controller.selectedProductVariants.length} Variants',
-              );
-            },
-          )
+            child: GetBuilder<GroceryController>(
+              builder: (controller) {
+                return CustomBtn(
+                  onTap: controller.canSubmitProducts ? () {
+                    controller.addGroceryProductNewVariant();
+                  } : null,
+                  isValidate: controller.canSubmitProducts,
+                  radius: SizeConfig.size8,
+                  bgColor: controller.canSubmitProducts
+                      ? AppColors.primaryColor
+                      : Colors.grey,
+                  title:
+                  'Publish ${controller.selectedGroceries.length} Products, '
+                      '${controller.selectedProductVariants.length} Variants',
+                  isLoading: controller.isAddGroceryProductsLoading.value,
+                );
+              },
+            )
         ),
       ),
-      body: ListView.builder(
-        itemCount: controller.selectedGroceries.length,
-        padding: EdgeInsets.symmetric(
-            horizontal: SizeConfig.size8,
-            vertical: SizeConfig.size15
-        ),
-        itemBuilder: (BuildContext context, int index) {
-          final groceryItem = controller.selectedGroceries[index];
-          // List<Variants> groceryVariants = groceryItem.variants??[];
-          return CustomFormCard(
-            padding: EdgeInsets.all(SizeConfig.size10),
-            margin: EdgeInsets.only(
-                bottom: SizeConfig.size12
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+      body: AbsorbPointer(
+        absorbing: controller.isAddGroceryProductsLoading.value,
+        child: ListView.builder(
+          itemCount: controller.selectedGroceries.length,
+          padding: EdgeInsets.symmetric(
+              horizontal: SizeConfig.size8,
+              vertical: SizeConfig.size15
+          ),
+          itemBuilder: (BuildContext context, int index) {
+            final groceryItem = controller.selectedGroceries[index];
+            // List<Variants> groceryVariants = groceryItem.variants??[];
+            return CustomFormCard(
+              padding: EdgeInsets.all(SizeConfig.size10),
+              margin: EdgeInsets.only(
+                  bottom: SizeConfig.size12
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
 
-                Container(
-                  padding: EdgeInsets.all(SizeConfig.size10),
-                  decoration: BoxDecoration(
-                      color: AppColors.primaryColor.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(10.0)),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      (groceryItem.variants?[0].images?.isNotEmpty == true)
-                          ? CustomImageSlideshow(
-                        isLoading: false,
-                        height: SizeConfig.size80,
-                        width: SizeConfig.size80,
-                        imagePaths: groceryItem.variants?[0].images?.map((img) => img.url ?? "").toList() ?? [],
-                        borderRadius: BorderRadius.circular(10),
-                        // fit: BoxFit.cover,
-                      )
-                          : ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: LocalAssets(
-                            imagePath: AppIconAssets.place_holder_image,
-                            boxFix: BoxFit.fill,
+                  Container(
+                    padding: EdgeInsets.all(SizeConfig.size10),
+                    decoration: BoxDecoration(
+                        color: AppColors.primaryColor.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(10.0)),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(10.0),
+                          child:  (groceryItem.images!=null &&  groceryItem.images!.isNotEmpty)
+                              ? CachedNetworkImage(
+                            imageUrl: groceryItem.images!.first.url??'',
+                            fit: BoxFit.cover,
                             height: SizeConfig.size80,
-                            width: SizeConfig.size80
-                        ),
-                      ),
-
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-
-                            /// --- Product Title ---
-                            Padding(
-                              padding: EdgeInsets.only(left: SizeConfig.size10),
-                              child: CustomText(
-                                groceryItem.name,
-                                fontSize: SizeConfig.medium,
-                                color: AppColors.mainTextColor,
-                                fontWeight: FontWeight.w600,
+                            width: SizeConfig.size80,
+                            placeholder: (context, url) => Container(
+                              color: Colors.grey.shade200,
+                              child: Center(
+                                child: CircularProgressIndicator(strokeWidth: 2),
                               ),
                             ),
-
-                            SizedBox(height: SizeConfig.size8),
-
-                            /// --- Variant Column ---
-                            GetBuilder<GroceryController>(
-                              builder: (controller) {
-                                final groceryVariants = groceryItem.variants ?? [];
-
-                                return Column(
-                                  children: List.generate(groceryVariants.length, (variantIndex) {
-                                    final v = groceryVariants[variantIndex];
-
-                                    return Padding(
-                                      padding: EdgeInsets.zero,
-                                      // padding: EdgeInsets.only(bottom: SizeConfig.size2),
-                                      child: Row(
-                                        children: [
-                                          Checkbox(
-                                            value: controller.isVariantSelected(
-                                              groceryItem.sId!,
-                                              groceryItem.variants![variantIndex].sId!,
-                                            ),
-                                            onChanged: (_) {
-                                              controller.toggleVariant(
-                                                groceryItem.sId!,
-                                                groceryItem.variants![variantIndex],
-                                              );
-                                            },
-                                            checkColor: Colors.white,
-                                            activeColor: AppColors.primaryColor,
-                                            side: const BorderSide(
-                                              color: AppColors.secondaryTextColor,
-                                              width: 1.5,
-                                            ),
-                                          ),
-
-                                          CustomText(
-                                            '${v.weight} ${v.unit}',
-                                            fontSize: SizeConfig.small,
-                                            fontWeight: FontWeight.w400,
-                                            color: AppColors.mainTextColor,
-                                          ),
-
-                                          const SizedBox(width: 6),
-
-                                          Container(
-                                            width: 2.0,
-                                            height: SizeConfig.size16,
-                                            color: AppColors.greyLite,
-                                          ),
-
-                                          const SizedBox(width: 6),
-
-                                          CustomText(
-                                            "₹${v.pricing?[0].mrp}",
-                                            fontSize: SizeConfig.small,
-                                            fontWeight: FontWeight.w400,
-                                            color: AppColors.mainTextColor,
-                                          ),
-
-                                          const SizedBox(width: 6),
-
-                                          Container(
-                                            width: 2.0,
-                                            height: SizeConfig.size16,
-                                            color: AppColors.greyLite,
-                                          ),
-
-                                          const SizedBox(width: 6),
-
-                                          CustomText(
-                                            "Selling- ₹${v.pricing?[0].sellingPrice}",
-                                            fontSize: SizeConfig.small,
-                                            fontWeight: FontWeight.w400,
-                                            color: AppColors.mainTextColor,
-                                          ),
-
-                                          const Spacer(),
-
-                                          InkWell(
-                                            onTap:(){
-                                              controller.openEditVariantDialog(
-                                                context: context,
-                                                title: groceryItem.name??'Edit Variant',
-                                                variant: groceryItem.variants![variantIndex],
-                                              );
-                                            },
-                                            child: LocalAssets(
-                                              imagePath: AppIconAssets.pen_line,
-                                              imgColor: AppColors.primaryColor,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  }),
-                                );
-                              },
-                            )
-
-                          ],
+                            errorWidget: (context, url, error) => LocalAssets(
+                              imagePath: AppIconAssets.place_holder_image,
+                              boxFix: BoxFit.cover,
+                            ),
+                          )
+                              : LocalAssets(
+                                  imagePath: AppIconAssets.place_holder_image,
+                                  boxFix: BoxFit.fill,
+                                  height: SizeConfig.size80,
+                                  width: SizeConfig.size80
+                              ),
                         ),
-                      ),
-                    ],
+
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+
+                              /// --- Product Title ---
+                              Padding(
+                                padding: EdgeInsets.only(left: SizeConfig.size10),
+                                child: CustomText(
+                                  groceryItem.name,
+                                  fontSize: SizeConfig.medium,
+                                  color: AppColors.mainTextColor,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+
+                              SizedBox(height: SizeConfig.size8),
+
+                              /// --- Variant Column ---
+                              GetBuilder<GroceryController>(
+                                builder: (controller) {
+                                  final groceryVariants = groceryItem.variants ?? [];
+
+                                  return Column(
+                                    children: List.generate(groceryVariants.length, (variantIndex) {
+                                      final v = groceryVariants[variantIndex];
+
+                                      return Padding(
+                                        padding: EdgeInsets.zero,
+                                        // padding: EdgeInsets.only(bottom: SizeConfig.size2),
+                                        child: Row(
+                                          children: [
+                                            Checkbox(
+                                              value: controller.isVariantSelected(
+                                                groceryItem.sId!,
+                                                groceryItem.variants![variantIndex].sId!,
+                                              ),
+                                              onChanged: (_) {
+                                                controller.toggleVariant(
+                                                  groceryItem.sId!,
+                                                  groceryItem.variants![variantIndex],
+                                                );
+                                              },
+                                              checkColor: Colors.white,
+                                              activeColor: AppColors.primaryColor,
+                                              side: const BorderSide(
+                                                color: AppColors.secondaryTextColor,
+                                                width: 1.5,
+                                              ),
+                                            ),
+
+                                            CustomText(
+                                              '${v.weight} ${v.unit}',
+                                              fontSize: SizeConfig.small,
+                                              fontWeight: FontWeight.w400,
+                                              color: AppColors.mainTextColor,
+                                            ),
+
+                                            const SizedBox(width: 6),
+
+                                            Container(
+                                              width: 2.0,
+                                              height: SizeConfig.size16,
+                                              color: AppColors.greyLite,
+                                            ),
+
+                                            const SizedBox(width: 6),
+
+                                            CustomText(
+                                              "₹${v.pricing?[0].mrp}",
+                                              fontSize: SizeConfig.small,
+                                              fontWeight: FontWeight.w400,
+                                              color: AppColors.mainTextColor,
+                                            ),
+
+                                            const SizedBox(width: 6),
+
+                                            Container(
+                                              width: 2.0,
+                                              height: SizeConfig.size16,
+                                              color: AppColors.greyLite,
+                                            ),
+
+                                            const SizedBox(width: 6),
+
+                                            CustomText(
+                                              "Selling- ₹${v.pricing?[0].sellingPrice}",
+                                              fontSize: SizeConfig.small,
+                                              fontWeight: FontWeight.w400,
+                                              color: AppColors.mainTextColor,
+                                            ),
+
+                                            const Spacer(),
+
+                                            InkWell(
+                                              onTap:(){
+                                                controller.openEditVariantDialog(
+                                                  context: context,
+                                                  title: groceryItem.name??'Edit Variant',
+                                                  variant: groceryItem.variants![variantIndex],
+                                                );
+                                              },
+                                              child: LocalAssets(
+                                                imagePath: AppIconAssets.pen_line,
+                                                imgColor: AppColors.primaryColor,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }),
+                                  );
+                                },
+                              )
+
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
 
-                SizedBox(height: SizeConfig.size10),
+                  SizedBox(height: SizeConfig.size10),
 
-                GestureDetector(
-                  onTap: () {
-                    controller.openAddVariantDialog(
-                      context: context,
-                      groceryItem: groceryItem,
-                    );
-                  },
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      const Icon(
-                        CupertinoIcons.add,
-                        color: AppColors.primaryColor,
-                        size: 20,
-                      ),
-                      SizedBox(width: 6),
-                      CustomText(
-                        "Add More Varient",
-                        color: AppColors.primaryColor,
-                        fontWeight: FontWeight.w600,
-                        fontSize: SizeConfig.small,
-                      ),
-                    ],
-                  ),
-                )
+                  GestureDetector(
+                    onTap: () {
+                      controller.openAddVariantDialog(
+                        context: context,
+                        groceryItem: groceryItem,
+                      );
+                    },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        const Icon(
+                          CupertinoIcons.add,
+                          color: AppColors.primaryColor,
+                          size: 20,
+                        ),
+                        SizedBox(width: 6),
+                        CustomText(
+                          "Add More Varient",
+                          color: AppColors.primaryColor,
+                          fontWeight: FontWeight.w600,
+                          fontSize: SizeConfig.small,
+                        ),
+                      ],
+                    ),
+                  )
 
-              ],
-            ),
-          );
-        },
+                ],
+              ),
+            );
+          },
+        ),
       ),
-    );
+    ));
   }
 }

@@ -1,26 +1,36 @@
 import 'dart:ui';
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/common/food/view/grocery/my_grocery_listing/my_grocery_screen.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/common/food/model/my_grocery_products_reponse.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
 class GroceryCategoryCard extends StatelessWidget {
-  // final ProductStore? productStore;
-  // final bool isShowInGrid;
+  final MyGroceryProductsData groceryProductsData;
+
   const GroceryCategoryCard({
     Key? key,
-    // this.productStore,
-    // required this.isShowInGrid
+    required this.groceryProductsData,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final category = groceryProductsData.category;
     return InkWell(
       onTap: (){
-        Get.to(()=> MyGroceryScreen(isShowInGrid: true));
+        Get.toNamed(RouteHelper.getMyGroceryScreenRoute(),
+          arguments: {
+            ApiKeys.argCategoryId: category?.sId,
+            ApiKeys.argIsShowInGrid: true
+          },
+        );
       },
       child: Container(
         height: SizeConfig.size130,
@@ -46,14 +56,16 @@ class GroceryCategoryCard extends StatelessWidget {
                   color: AppColors.whiteFE,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(10),
-                    child: CustomImageSlideshow(
+                    child: (category!=null && category.image!=null && category.image!.isNotEmpty) ? CustomImageSlideshow(
                       isLoading: false,
                       height: SizeConfig.size130,
                       width: SizeConfig.size180,
-                      isLocal: true,
-                      imagePaths: ['assets/category/dal/oilnew.png'],
-                      borderRadius: BorderRadius.horizontal(left: Radius.circular(10.0)),
-                      // fit: BoxFit.cover,
+                      imagePaths: [category.image!],
+                      borderRadius: BorderRadius.horizontal(left: Radius.circular(10.0))
+                    ) : LocalAssets(
+                      imagePath: AppIconAssets.place_holder_image,
+                      height: SizeConfig.size130,
+                      width: SizeConfig.size180,
                     ),
                   ),
                 ),
@@ -72,7 +84,7 @@ class GroceryCategoryCard extends StatelessWidget {
                               borderRadius: BorderRadius.circular(6.0),
                           ),
                           child: CustomText(
-                              '+10 Product',
+                              '+${category?.productVariantCount??0} Product',
                               fontSize: SizeConfig.extraSmall,
                               fontWeight: FontWeight.w600,
                               color: AppColors.whiteFE
@@ -102,7 +114,7 @@ class GroceryCategoryCard extends StatelessWidget {
                       children: [
                         Expanded(
                           child: CustomText(
-                              'Staples & Grains',
+                              category?.name ?? '',
                               fontSize: SizeConfig.large,
                               fontWeight: FontWeight.w600,
                               color: AppColors.mainTextColor,
@@ -134,7 +146,7 @@ class GroceryCategoryCard extends StatelessWidget {
                     FittedBox(
                       fit: BoxFit.scaleDown,
                       child: CustomText(
-                          '20 April,2025',
+                          formatDate(category?.lastUpdate ?? DateTime.now().toIso8601String()),
                           fontSize: SizeConfig.small,
                           fontWeight: FontWeight.w600,
                           color: AppColors.secondaryTextColor
@@ -150,4 +162,10 @@ class GroceryCategoryCard extends StatelessWidget {
       ),
     );
   }
+
+  String formatDate(String isoDate) {
+    final date = DateTime.parse(isoDate);
+    return DateFormat("d MMMM, yyyy").format(date);
+  }
+
 }

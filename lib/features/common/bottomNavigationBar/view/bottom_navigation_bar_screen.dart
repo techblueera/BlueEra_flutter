@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
@@ -326,22 +327,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
           isHeaderVisible: isVisible,
           onHeaderVisibilityChanged: _toggleAppBar,
         );
-      // case 2:
-      //   return isGuestUser()
-      //       ? GuestDashBoardScreen()
-      //       : (isBusinessUser())
-      //           ? InventoryScreen(fromBottomNavBar: true)
-      //           : (userProfessionGlobal==SELF_EMPLOYED) ?
-      //              EarnWithBlueEraNewScreen(fromBottomNavBar: true)
-      //                : PersonalProfileSetupNewScreen();
       case 2:
-        return isGuestUser()
-            ? GuestDashBoardScreen()
-            : (isBusinessUser())
-            ? GroceryScreen(fromBottomNavBar: true)
-            : (userProfessionGlobal==SELF_EMPLOYED) ?
-        EarnWithBlueEraNewScreen(fromBottomNavBar: true)
-            : PersonalProfileSetupNewScreen();
+        return getHomeScreen();
 
       // case 3:
       //   return isGuestUser()
@@ -365,4 +352,27 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       bottomBarVisibleNotifier.value = visible;
     }
   }
+
+  Widget getHomeScreen() {
+    if (isGuestUser()) return GuestDashBoardScreen();
+    if (isBusinessUser()) return resolveBusinessScreen();
+    if (isIndividualUser()) return resolveIndividualScreen();
+
+    // Fallback (required)
+    return PersonalProfileSetupNewScreen();
+  }
+
+  Widget resolveBusinessScreen() {
+    return BusinessType == BusinessType.Grocery
+        ? GroceryScreen(fromBottomNavBar: true)
+        : GroceryScreen(fromBottomNavBar: true);
+        // : InventoryScreen(fromBottomNavBar: true);
+  }
+
+  Widget resolveIndividualScreen() {
+    return (userProfessionGlobal == SELF_EMPLOYED)
+        ? EarnWithBlueEraNewScreen(fromBottomNavBar: true)
+        : PersonalProfileSetupNewScreen();
+  }
+
 }
