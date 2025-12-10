@@ -1,10 +1,15 @@
+import 'dart:math';
+
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
@@ -128,7 +133,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                       mainAxisSize: MainAxisSize.max,
                       children: [
                         Expanded(
-                          child: (widget.messages.sendStatus==AppStrings.PersonalChatAi)?_buildAiFormattedText(widget.message): RichText(
+                          child: (widget.messages.sendStatus==AppStrings.PersonalChatAi)?buildAiWithCallButtons(widget.message): RichText(
                             text: TextSpan(
                               children: [
                                 TextSpan(
@@ -182,6 +187,131 @@ class _MessageBubbleState extends State<MessageBubble> {
 
 
   }
+
+  List<Map<String, dynamic>> _parseBusinesses(String text) {
+    final lines = text.split('\n');
+
+    final List<Map<String, dynamic>> results = [];
+    Map<String, dynamic>? current;
+
+    final phoneReg = RegExp(r'(\+?\d[\d\s\-()]{6,}\d)');  // More strong pattern
+
+    for (var raw in lines) {
+      var line = raw.trim();
+      if (line.isEmpty) continue;
+
+      if (RegExp(r'^\d+\.\s*').hasMatch(line)) {
+        if (current != null) results.add(current);
+
+        final name = line.replaceAll(RegExp(r'^\d+\.\s*|\*'), "").trim();
+        current = {
+          "name": name,
+          "phones": <String>[],
+        };
+        continue;
+      }
+
+
+      final phoneMatches = phoneReg.allMatches(line);
+
+      if (phoneMatches.isNotEmpty) {
+        // If no business exists → create default group
+        current ??= {
+          "name": "General Info",
+          "phones": <String>[],
+        };
+
+        for (var match in phoneMatches) {
+          var num = match.group(0)!.trim();
+
+          // normalize (remove extra spaces)
+          num = num.replaceAll(RegExp(r'[\s\-]+'), ' ').trim();
+
+          // CASE 3 : Filter +91 ONLY if text contains random data
+          bool isIndian = num.contains("+91");
+
+          // Accept only +91 numbers for this new format
+          if (isIndian) {
+            if (!current["phones"].contains(num)) {
+              current["phones"].add(num);
+            }
+          }
+        }
+      }
+    }
+
+    if (current != null) results.add(current);
+
+    return results;
+  }
+
+  Widget buildAiWithCallButtons(String text) {
+    final businesses = _parseBusinesses(text);
+    int numberCount=0;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildAiFormattedText(text),   // <-- your existing formatted text
+        const SizedBox(height: 16),
+
+        // Call numbers under each company
+        ...businesses.map((b) {
+          numberCount=numberCount+1;
+          List list=b["phones"];
+
+          return (list.isEmpty)?SizedBox():Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Business name
+              CustomText(
+                "${numberCount} . ${b["name"]}",
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.grayText,
+
+              ),
+              const SizedBox(height: 6),
+              // Phone numbers with call icon
+              ...b["phones"].map<Widget>((p) {
+                return GestureDetector(
+                  onTap: () => launchUrl(Uri.parse("tel:$p")),
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        color: AppColors.white,
+                      ),
+                      padding: EdgeInsets.symmetric(horizontal: 12,vertical: 8),
+                      child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          CustomText(
+                            p,
+                            // style: const TextStyle(
+                              fontSize: 16,
+                              color: AppColors.black,
+                              fontWeight: FontWeight.w400,
+                              // decoration: TextDecoration.underline,
+                            // ),
+                          ),
+                          LocalAssets(imagePath: AppIconAssets.chat_call)
+                          // const Icon(Icons.phone, color: Colors.green, size: 20),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+
+              const SizedBox(height: 12),
+            ],
+          );
+        }).toList(),
+      ],
+    );
+  }
+
+
   Widget _buildAiFormattedText(String text) {
     final parts = text.split("**");
 
