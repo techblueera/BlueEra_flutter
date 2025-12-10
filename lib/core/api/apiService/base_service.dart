@@ -525,4 +525,11 @@ abstract class BaseService {
   final String ottChannelVideo = 'video-service/ott/channel/';
   final String channelSearch = 'channel-service/channels/search/search';
 
+
+  final String searchGroceryCategory = 'grocery-service/api/products/search';
+  String GroceryCategoryOfChildren(String key) => 'grocery-service/api/categories/key/$key/children';
+  String createNewProductVariant(String productId) => 'grocery-service/api/products/$productId/variants';
+  final String myGroceryProducts = 'grocery-service/api/inventory/my-products';
+  final String addGroceryProductVariant = 'grocery-service/api/inventory';
+
 }

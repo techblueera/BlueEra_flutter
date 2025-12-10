@@ -161,7 +161,7 @@ class _ProductCardState extends State<ProductCardBusiness> {
                         child: CustomText(
                           '${discountProduct}% Off',
                           fontSize: SizeConfig.size10,
-                          color: AppColors.greenPro,
+                          color: AppColors.greenShade,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           fontWeight: FontWeight.w400,

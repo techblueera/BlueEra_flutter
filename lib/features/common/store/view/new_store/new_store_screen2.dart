@@ -1,16 +1,15 @@
 import 'dart:ui';
-
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
-import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
+import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/auth/model/individual_profiile_category.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
 import 'package:BlueEra/features/common/jobs/view/jobs_screen.dart';
@@ -21,13 +20,15 @@ import 'package:BlueEra/features/common/store/view/new_store/all_product_store_s
 import 'package:BlueEra/features/common/store/view/new_store/business_store_screen.dart';
 import 'package:BlueEra/features/common/auth/model/business_profile_category.dart';
 import 'package:BlueEra/features/common/store/widget/icon_grid_item.dart';
+import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/create_profile_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
-import 'package:BlueEra/widgets/common_search_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/gradient_floating_button.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/setup_scroll_visibility_notification.dart';
+import 'package:BlueEra/widgets/update_live_photo_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mappls_gl/mappls_gl.dart';
@@ -474,8 +475,73 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                   key: controller.headerKey,
                   child: CommonBackAppBar(
                     isLeading: false,
-                    isCurrentAddress: true,
-                    isCartIconShow: true,
+                    buildCustomWidget: ()=> Builder(
+                      builder: (context) => Padding(
+                        padding: EdgeInsets.only(left: SizeConfig.size15, right: SizeConfig.size20),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Row(
+                                  children: [
+                                    LocalAssets(
+                                      imagePath: AppIconAssets.currentLocationIcon,
+                                      height: SizeConfig.size24,
+                                      width: SizeConfig.size24,
+                                    ),
+                                    SizedBox(width: SizeConfig.size10),
+                                    CustomText(
+                                      [
+                                        if (LocationService.userCurrentAddress.length > 2 &&
+                                            LocationService.userCurrentAddress[2].isNotEmpty)
+                                          LocationService.userCurrentAddress[2], // locality
+
+                                        if (LocationService.userCurrentAddress.length > 3 &&
+                                            LocationService.userCurrentAddress[3].isNotEmpty)
+                                          LocationService.userCurrentAddress[3], // administrativeArea
+                                      ].join(', '),
+                                      fontSize: SizeConfig.large,
+                                      color: AppColors.primaryColor,
+                                      fontWeight: FontWeight.w600,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ]
+                              ),
+                            ),
+                            SizedBox(width: SizeConfig.size8),
+                            InkWell(
+                              onTap: () {
+                                if(isBusinessUser()){
+                                  final controller = Get.find<ViewBusinessDetailsController>();
+
+                                  if((controller.businessProfileDetails?.data?.livePhotos ?? []).length < 3){
+                                    showLivePhotoDialog(
+                                      context: context,
+                                    );
+                                  }else{
+                                    Get.toNamed(RouteHelper.getInventoryScreenRoute());
+
+                                  }
+                                }else{
+                                  final controller = Get.find<ViewPersonalDetailsController>();
+
+                                  if (controller
+                                      .personalProfileDetails.value.isProfileCreated ==
+                                      false) {
+                                    Get.to(()=> CreateProfileScreen());
+                                  } else {
+                                    Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
+                                  }
+                                }
+                              },
+                              child: LocalAssets(
+                                imagePath: AppIconAssets.cartIcon,
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -554,6 +620,7 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                     child: IconGridItem(
                       label: labelBuilder(item),
                       icon: iconBuilder(item),
+                      imgColor: AppColors.blue6B,
                       onTap: () {
                         if (onTap != null) onTap(item);
                       },

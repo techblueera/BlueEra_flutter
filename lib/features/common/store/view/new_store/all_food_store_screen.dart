@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/food/model/get_food_details_model.dart';
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
@@ -21,9 +22,7 @@ class AllFoodStoreScreen extends StatefulWidget {
 }
 
 class _AllFoodStoreScreenState extends State<AllFoodStoreScreen> {
-  final controller = Get.isRegistered<NewStoreController>()
-      ? Get.find<NewStoreController>()
-      : Get.put(NewStoreController());
+  final controller = getOrPut(() => NewStoreController());
   final ScrollController storesScrollController = ScrollController();
 
 

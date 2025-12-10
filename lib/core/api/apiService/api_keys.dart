@@ -544,5 +544,15 @@ class ApiKeys {
   static const note = 'note';
   static const house_no = 'house_no';
   static const street = 'street';
+  static const key = 'key';
+  static const weight = 'weight';
+  static const unit = 'unit';
+  static const pricing = 'pricing';
+  static const variantData = 'variantData';
+  static const argFromBottomNavBar = 'argFromBottomNavBar';
+  static const argGroceries = 'argGroceries';
+  static const argSelectedGroceryData = 'argSelectedGroceryData';
+  static const argCategoryId = 'argCategoryId';
+  static const argIsShowInGrid = 'argIsShowInGrid';
 
 }

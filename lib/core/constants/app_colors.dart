@@ -117,7 +117,6 @@ class AppColors {
   static const  green0B = Color(0xFF0BC041);
   static const  greyLite = Color(0xFFCCCCCC);
   static const  blueShade = Color(0xFF0085FE);
-  static const  greenPro = Color(0xFF40A246);
   static const  green1A = Color(0xFF1AA260);
   static const  yellowPro = Color(0xFFFECC2F);
   static const  skyBlueE4 = Color(0xFFE4F2FF);
@@ -126,4 +125,7 @@ class AppColors {
   static const  redB4 = Color(0xFFB40000);
   static const  green00 = Color(0xFF008000);
   static const  borderBox = Color(0xFF999999BF);
+  static const  liteBlue = Color(0xFFE9F3FF);
+  static const  blackMite = Color(0x991C1C1C);
+  static const  redBE = Color(0xFFF9BEBE);
 }

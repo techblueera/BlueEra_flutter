@@ -8,12 +8,14 @@ class IconGridItem extends StatelessWidget {
   final String label;
   final String icon;
   final VoidCallback onTap;
+  final Color? imgColor;
 
   const IconGridItem({
     super.key,
     required this.label,
     required this.icon,
     required this.onTap,
+    this.imgColor,
   });
 
   @override
@@ -34,7 +36,7 @@ class IconGridItem extends StatelessWidget {
               ),
               child: LocalAssets(
                 imagePath: icon,
-                imgColor: AppColors.blue6B,
+                imgColor: imgColor,
                 height: SizeConfig.size30,
                 width: SizeConfig.size30,
               ),

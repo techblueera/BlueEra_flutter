@@ -28,7 +28,7 @@ import 'package:BlueEra/widgets/post_via_dialog.dart';
 import 'package:BlueEra/widgets/update_live_photo_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../core/constants/shared_preference_utils.dart';
+import '../../../../../core/constants/shared_preference_utils.dart';
 import '../features/business/visiting_card/view/business_own_profile_screen.dart';
 
 class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -115,6 +115,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool bellIconNotEmpty;
   final OnTab? onNotificationTap;
   final bool? isTextButton;
+  final bool? isShadowShow;
   final bool? isChangeToEditMode;
   final bool? isDownloadButton;
   final bool? isLogout;
@@ -125,6 +126,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool? isLocation;
   final bool? isSearch;
   final bool? isShowCursor;
+  final bool? isGrocery;
   final TextEditingController? controller;
   final OnTab? onSearchTap;
   final OnTab? onClearCallback;
@@ -459,6 +461,11 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
       ),
       actions: [
+        if (isGrocery ?? false)
+        Padding(
+          padding: const EdgeInsets.only(right: 20.0),
+          child: Icon(Icons.search),
+        ),
         if (isFollowRefresh ?? false)
           Builder(
             builder: (context) => isFollowRefreshWidget!(),

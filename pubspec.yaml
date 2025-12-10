@@ -105,6 +105,9 @@ flutter:
     - assets/video/
     - assets/store/
     - assets/sound/
+    - assets/category/
+    - assets/category/dal/
+
 
 
   fonts:

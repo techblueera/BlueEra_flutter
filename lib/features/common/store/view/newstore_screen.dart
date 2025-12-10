@@ -630,7 +630,7 @@ class _StoreFeedScreenState extends State<StoreFeedScreen>
       case StoreType.inventory:
         return Padding(
           padding: padding,
-          child: StoreProductCard(
+          child:  StoreProductCard(
             productStore: first.inventoryData?.product ?? ProductStore(),
               isShowInGrid: false
           ),

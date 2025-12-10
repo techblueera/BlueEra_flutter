@@ -223,7 +223,9 @@ class _CreateNewAccountScreenState extends State<CreateNewAccountScreen> {
                                   print("You tapped category name → ${category.name}");
                                   print("You tapped category id → ${category.categoryData}");
                                   _showDropdownDialog(
-                                    businessType: BusinessType.Food,
+                                    businessType: (category.slugId == AppConstants.groceryVegetablesDairy)
+                                    ? BusinessType.Grocery
+                                    : BusinessType.Food,
                                     categoryData: category.categoryData,
                                   );
                                 },
@@ -519,6 +521,7 @@ class _CreateNewAccountScreenState extends State<CreateNewAccountScreen> {
                     child: IconGridItem(
                       label: labelBuilder(item),
                       icon: iconBuilder(item),
+                      imgColor: AppColors.blue6B,
                       onTap: () {
                         if (onTap != null) onTap(item);
                       },
