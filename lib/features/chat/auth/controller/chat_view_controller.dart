@@ -180,6 +180,7 @@ class ChatViewController extends GetxController {
     aiSocket.disposeSocket();
     await aiSocket.connect();
     aiSocket.onMessage((data) {
+      log("ldskclskdcslkc ${data}");
       chatBotReading.value = false;
       AiReplyMessageModel details = AiReplyMessageModel.fromJson(data);
       saveAiConversationId(details.conversationId, type);
