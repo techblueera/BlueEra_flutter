@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -32,9 +33,7 @@ import 'package:BlueEra/widgets/update_live_photo_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mappls_gl/mappls_gl.dart';
-
 import '../../../../chat/auth/controller/chat_view_controller.dart';
-import '../../../../chat/view/ai_chat/ai_chat_screen.dart';
 import '../../../../chat/view/ai_chat/ask_inventory_chat_screen.dart';
 
 class NewStoreScreen2 extends StatefulWidget {

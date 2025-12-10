@@ -43,6 +43,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.onBackTap,
     this.appBarColor,
     this.isTextButton = false,
+    this.isShadowShow=true,
     this.actionText,
     this.actionTextColor,
     this.isShareButton,
@@ -102,7 +103,6 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.isGoLive = false,
     this.isInventoryPopUpMenu = false,
     this.isStoreProfile,
-    this.isCartIconShow,
     this.isCurrentAddress,
   });
 
@@ -126,7 +126,6 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool? isLocation;
   final bool? isSearch;
   final bool? isShowCursor;
-  final bool? isGrocery;
   final TextEditingController? controller;
   final OnTab? onSearchTap;
   final OnTab? onClearCallback;
@@ -178,14 +177,13 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Widget Function()? isGoLiveWidget;
   final bool? isInventoryPopUpMenu;
   final bool? isStoreProfile;
-  final bool? isCartIconShow;
   final bool? isCurrentAddress;
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
       elevation: 4,
-      shadowColor: Colors.black26,
+      shadowColor: (isShadowShow==true)?Colors.black26:null,
       surfaceTintColor: AppColors.white,
       backgroundColor: appBarColor ?? Colors.white,
       automaticallyImplyLeading: false,
@@ -461,11 +459,6 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
       ),
       actions: [
-        if (isGrocery ?? false)
-        Padding(
-          padding: const EdgeInsets.only(right: 20.0),
-          child: Icon(Icons.search),
-        ),
         if (isFollowRefresh ?? false)
           Builder(
             builder: (context) => isFollowRefreshWidget!(),
@@ -695,43 +688,6 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ]),
-              ),
-            ),
-          ),
-        if (isCartIconShow ?? false)
-          Builder(
-            builder: (context) => InkWell(
-              onTap: () {
-                if (isBusinessUser()) {
-                  final controller = Get.find<ViewBusinessDetailsController>();
-
-                  if ((controller.businessProfileDetails?.data?.livePhotos ??
-                              [])
-                          .length <
-                      3) {
-                    showLivePhotoDialog(
-                      context: context,
-                    );
-                  } else {
-                    Get.toNamed(RouteHelper.getInventoryScreenRoute());
-                  }
-                } else {
-                  final controller = Get.find<ViewPersonalDetailsController>();
-
-                  if (controller
-                          .personalProfileDetails.value.isProfileCreated ==
-                      false) {
-                    Get.to(() => CreateProfileScreen());
-                  } else {
-                    Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
-                  }
-                }
-              },
-              child: Padding(
-                padding: EdgeInsets.only(right: SizeConfig.size20),
-                child: LocalAssets(
-                  imagePath: AppIconAssets.cartIcon,
-                ),
               ),
             ),
           ),

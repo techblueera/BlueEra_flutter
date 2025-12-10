@@ -2,6 +2,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/food/controller/food_upload_controller.dart';
 import 'package:BlueEra/features/common/food/model/get_food_details_model.dart';
@@ -22,7 +23,8 @@ class StoreFoodServiceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    FoodUploadController controller = Get.put(FoodUploadController());
+    final controller = getOrPut(() => FoodUploadController());
+
     final priceOptions = foodDetailsData?.priceOptions;
 
     String priceText = AppStrings.na;
