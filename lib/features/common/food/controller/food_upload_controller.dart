@@ -56,7 +56,7 @@ class FoodUploadController extends GetxController {
       ApiResponse.initial('Initial').obs;
 
   final GlobalKey<FormState> formKey = GlobalKey();
-  final RxInt selectedFoodSubTabIndex = 1
+  final RxInt selectedFoodSubTabIndex = 0
       .obs;
   // Form controllers
   final TextEditingController foodNameController = TextEditingController();
