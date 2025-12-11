@@ -59,31 +59,42 @@ class GetChatListModel {
 
 class ChatList {
   ChatList({
-      this.conversationId, 
-      this.isGroup, 
-      this.lastMessage,
-      this.groupName,
-      this.groupProfileImage,
-      this.lastMessageType,
-      this.createdAt, 
-      this.updatedAt, 
-      this.unreadCount, 
-      this.publicGroup, 
-      this.sender,});
+    this.conversationId,
+    this.isGroup,
+    this.lastMessage,
+    this.groupName,
+    this.groupProfileImage,
+    this.lastMessageType,
+    this.createdAt,
+    this.updatedAt,
+    this.unreadCount,
+    this.publicGroup,
+    this.sender,
+    this.symbolData,
+  });
 
   ChatList.fromJson(dynamic json) {
     conversationId = json['conversation_id'];
     isGroup = json['is_group'];
     lastMessage = json['last_message'];
-    groupName= json['group_name'].toString();
-    groupProfileImage= json['group_profile_image'].toString();
+    groupName = json['group_name']?.toString();
+    groupProfileImage = json['group_profile_image']?.toString();
     lastMessageType = json['last_message_type'];
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];
     unreadCount = json['unread_count'];
     publicGroup = json['public_group'];
+
     sender = json['sender'] != null ? Sender.fromJson(json['sender']) : null;
+
+    /// NEW: symbolData parsing
+    if (json['symbolData'] != null) {
+      symbolData = (json['symbolData'] as List)
+          .map((e) => SymbolDataModel.fromJson(e))
+          .toList();
+    }
   }
+
   String? conversationId;
   bool? isGroup;
   String? lastMessage;
@@ -95,6 +106,9 @@ class ChatList {
   num? unreadCount;
   bool? publicGroup;
   Sender? sender;
+
+  /// NEW FIELD
+  List<SymbolDataModel>? symbolData;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -108,18 +122,183 @@ class ChatList {
     map['updated_at'] = updatedAt;
     map['unread_count'] = unreadCount;
     map['public_group'] = publicGroup;
+
     if (sender != null) {
       map['sender'] = sender?.toJson();
     }
+
+    /// NEW
+    if (symbolData != null) {
+      map['symbolData'] = symbolData!.map((e) => e.toJson()).toList();
+    }
+
     return map;
   }
-  bool inSearchEvents(String searchQuery){
-    String lowerCaseQuery=searchQuery.toLowerCase();
 
-    return ((sender?.name?.toLowerCase().contains(lowerCaseQuery)??false)||(sender?.contactNo?.toLowerCase().contains(lowerCaseQuery)??false));
+  bool inSearchEvents(String searchQuery) {
+    String lowerCaseQuery = searchQuery.toLowerCase();
+
+    return ((sender?.name?.toLowerCase().contains(lowerCaseQuery) ?? false) ||
+        (sender?.contactNo?.toLowerCase().contains(lowerCaseQuery) ?? false));
+  }
+}
+
+class SymbolDataModel {
+  List<String>? taggedUsers;
+  List<String>? media;
+  List<String>? mediaTypes;
+  String? id;
+  String? type;
+  int? visibilityDuration;
+  String? song;
+  String? message;
+  String? title;
+  String? subTitle;
+  String? natureOfPost;
+  String? location;
+  double? latitude;
+  double? longitude;
+  dynamic locationMetadata;
+  String? mediaAspectRatio;
+  String? postVia;
+  String? referenceLink;
+  String? authorId;
+  String? createdBy;
+  String? updatedBy;
+  dynamic poll;
+  int? commentsCount;
+  int? likesCount;
+  int? repostCount;
+  int? viewsCount;
+  int? sharesCount;
+  String? createdAt;
+  String? updatedAt;
+  bool? isReposted;
+  dynamic childrenPost;
+  String? thumbnail;
+  int? duration;
+  int? mediaHeight;
+  int? mediaWidth;
+
+  SymbolDataModel({
+    this.taggedUsers,
+    this.media,
+    this.mediaTypes,
+    this.id,
+    this.type,
+    this.visibilityDuration,
+    this.song,
+    this.message,
+    this.title,
+    this.subTitle,
+    this.natureOfPost,
+    this.location,
+    this.latitude,
+    this.longitude,
+    this.locationMetadata,
+    this.mediaAspectRatio,
+    this.postVia,
+    this.referenceLink,
+    this.authorId,
+    this.createdBy,
+    this.updatedBy,
+    this.poll,
+    this.commentsCount,
+    this.likesCount,
+    this.repostCount,
+    this.viewsCount,
+    this.sharesCount,
+    this.createdAt,
+    this.updatedAt,
+    this.isReposted,
+    this.childrenPost,
+    this.thumbnail,
+    this.duration,
+    this.mediaHeight,
+    this.mediaWidth,
+  });
+
+  factory SymbolDataModel.fromJson(Map<String, dynamic> json) {
+    return SymbolDataModel(
+      taggedUsers: List<String>.from(json['tagged_users'] ?? []),
+      media: List<String>.from(json['media'] ?? []),
+      mediaTypes: List<String>.from(json['media_types'] ?? []),
+      id: json['id'],
+      type: json['type'],
+      visibilityDuration: json['visibility_duration'],
+      song: json['song'],
+      message: json['message'],
+      title: json['title'],
+      subTitle: json['sub_title'],
+      natureOfPost: json['nature_of_post'],
+      location: json['location'],
+      latitude: (json['latitude'] ?? 0).toDouble(),
+      longitude: (json['longitude'] ?? 0).toDouble(),
+      locationMetadata: json['location_metadata'],
+      mediaAspectRatio: json['media_aspect_ratio'],
+      postVia: json['post_via'],
+      referenceLink: json['reference_link'],
+      authorId: json['author_id'],
+      createdBy: json['created_by'],
+      updatedBy: json['updated_by'],
+      poll: json['poll'],
+      commentsCount: json['comments_count'],
+      likesCount: json['likes_count'],
+      repostCount: json['repost_count'],
+      viewsCount: json['views_count'],
+      sharesCount: json['shares_count'],
+      createdAt: json['created_at'] ,
+      updatedAt: json['updated_at'],
+      isReposted: json['is_reposted'],
+      childrenPost: json['children_post'],
+      thumbnail: json['thumbnail'],
+      duration: json['duration'],
+      mediaHeight: json['media_height'],
+      mediaWidth: json['media_width'],
+    );
   }
 
+  Map<String, dynamic> toJson() {
+    return {
+      "tagged_users": taggedUsers ?? [],
+      "media": media ?? [],
+      "media_types": mediaTypes ?? [],
+      "id": id,
+      "type": type,
+      "visibility_duration": visibilityDuration,
+      "song": song,
+      "message": message,
+      "title": title,
+      "sub_title": subTitle,
+      "nature_of_post": natureOfPost,
+      "location": location,
+      "latitude": latitude,
+      "longitude": longitude,
+      "location_metadata": locationMetadata,
+      "media_aspect_ratio": mediaAspectRatio,
+      "post_via": postVia,
+      "reference_link": referenceLink,
+      "author_id": authorId,
+      "created_by": createdBy,
+      "updated_by": updatedBy,
+      "poll": poll,
+      "comments_count": commentsCount,
+      "likes_count": likesCount,
+      "repost_count": repostCount,
+      "views_count": viewsCount,
+      "shares_count": sharesCount,
+      "created_at": createdAt,
+      "updated_at": updatedAt,
+      "is_reposted": isReposted,
+      "children_post": childrenPost,
+      "thumbnail": thumbnail,
+      "duration": duration,
+      "media_height": mediaHeight,
+      "media_width": mediaWidth,
+    };
+  }
 }
+
 
 /// _id : "687baa0ca598e3558edda1d7"
 /// name : "good person"

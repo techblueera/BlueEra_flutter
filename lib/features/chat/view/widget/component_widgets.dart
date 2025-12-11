@@ -31,6 +31,7 @@ import '../../auth/model/GetChatListModel.dart';
 import '../chat_screen.dart';
 import '../chat_screen_new.dart';
 import '../group_chat/view_group_members.dart';
+import '../symbol_view/symbol_view_images.dart';
 
 Widget timeAndReadInfoWidget({required Messages message,
   required bool isMyMessage,
@@ -242,161 +243,175 @@ Widget ChatListTile({
         children: [
           InkWell(
             onTap: () {
-              showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return Dialog(
-                    insetPadding: const EdgeInsets.all(40),
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(
-                        maxWidth: 300,
-                        maxHeight: 300,
-                      ),
-                      child: Stack(
-                        children: [
-                          // Image Viewer
-                          Center(
-                            child: InteractiveViewer(
-                              panEnabled: true,
-                              minScale: 1.0,
-                              maxScale: 5.0,
-                              child: (senderProfileImage?.isNotEmpty == true &&
-                                  senderProfileImage?.contains('http') == true)
-                                  ? CachedNetworkImage(
-                                imageUrl: senderProfileImage ?? "",
-                                placeholder: (context, url) =>
-                                const Padding(
-                                  padding: EdgeInsets.all(20),
-                                  child: CircularProgressIndicator(),
-                                ),
-                                errorWidget: (context, url, error) =>
-                                const Icon(Icons.error, size: 40),
-                                fit: BoxFit.contain,
-                              )
-                                  : (senderProfileImage?.isNotEmpty == true)
-                                  ? Image.file(
-                                File(senderProfileImage!),
-                                fit: BoxFit.contain,
-                              )
-                                  : CircleAvatar(
-                                radius: 40,
-                                backgroundColor:
-                                Colors.grey.shade400,
-                                child: Text(
-                                  (senderName?.isNotEmpty == true)
-                                      ? senderName![0].toUpperCase()
-                                      : "?",
-                                  style: const TextStyle(
-                                    fontSize: 32,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
+              if(chat?.symbolData?.isNotEmpty??false){
+                Get.to(SymbolViewImages(data: chat?.symbolData??[],));
+                //
+              }else{
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return Dialog(
+                      insetPadding: const EdgeInsets.all(40),
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(
+                          maxWidth: 300,
+                          maxHeight: 300,
+                        ),
+                        child: Stack(
+                          children: [
+                            // Image Viewer
+                            Center(
+                              child: InteractiveViewer(
+                                panEnabled: true,
+                                minScale: 1.0,
+                                maxScale: 5.0,
+                                child: (senderProfileImage?.isNotEmpty == true &&
+                                    senderProfileImage?.contains('http') == true)
+                                    ? CachedNetworkImage(
+                                  imageUrl: senderProfileImage ?? "",
+                                  placeholder: (context, url) =>
+                                  const Padding(
+                                    padding: EdgeInsets.all(20),
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                  errorWidget: (context, url, error) =>
+                                  const Icon(Icons.error, size: 40),
+                                  fit: BoxFit.contain,
+                                )
+                                    : (senderProfileImage?.isNotEmpty == true)
+                                    ? Image.file(
+                                  File(senderProfileImage!),
+                                  fit: BoxFit.contain,
+                                )
+                                    : CircleAvatar(
+                                  radius: 40,
+                                  backgroundColor:
+                                  Colors.grey.shade400,
+                                  child: Text(
+                                    (senderName?.isNotEmpty == true)
+                                        ? senderName![0].toUpperCase()
+                                        : "?",
+                                    style: const TextStyle(
+                                      fontSize: 32,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
-                          // Title Bar
-                          Container(
-                            height: 50,
-                            decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha: 0.5),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 16),
-                                  child: SizedBox(
-                                    width: 160,
-                                    child: CustomText(
-                                      "${(senderName == "null")
-                                          ? senderContactNo
-                                          : senderName ?? senderContactNo}",
-                                      maxLines: 1,
-                                      color: Colors.white,
-                                      overflow: TextOverflow.ellipsis,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
+                            // Title Bar
+                            Container(
+                              height: 50,
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.5),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16),
+                                    child: SizedBox(
+                                      width: 160,
+                                      child: CustomText(
+                                        "${(senderName == "null")
+                                            ? senderContactNo
+                                            : senderName ?? senderContactNo}",
+                                        maxLines: 1,
+                                        color: Colors.white,
+                                        overflow: TextOverflow.ellipsis,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                   ),
-                                ),
-                                IconButton(
-                                  icon: const Icon(
-                                      Icons.close, color: Colors.white),
-                                  onPressed: () => Navigator.of(context).pop(),
-                                ),
-                              ],
+                                  IconButton(
+                                    icon: const Icon(
+                                        Icons.close, color: Colors.white),
+                                    onPressed: () => Navigator.of(context).pop(),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  );
-                },
-              );
+                    );
+                  },
+                );
+              }
+
             },
-            child: CircleAvatar(
-              backgroundColor: theme.colorScheme.primary,
-              radius: SizeConfig.size22,
-              child: (senderProfileImage == null ||
-                  senderProfileImage == "null")
-                  ? Center(
-                child: CustomText(
-                  "${groupName?.split('')[0]}",
-                  color: Colors.white,
-                  fontWeight: FontWeight.w800,
-                  fontSize: SizeConfig.size18,
+            child: Container(
+              padding: (chat?.symbolData?.isNotEmpty??false)?EdgeInsets.all(2):null, // border thickness
+              decoration: (chat?.symbolData?.isNotEmpty??false)?BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: SweepGradient(
+                  startAngle: 0.0,
+                  endAngle: 6.28319, // 2 * pi
+                  colors: const [
+                    AppColors.symbolBorderRed,
+                    AppColors.symbolBorderBlue,     // 1st color
+                    // 1st color
+                    AppColors.symbolBorderYellow,
+                    AppColors.symbolBorderGreen,
+
+                    AppColors.symbolBorderRed,// 1st color
+                        // 1st color
+
+                    // 1st color
+                  ],
+                  stops: const [
+                    0.0,
+                    0.25,
+                    0.50,
+                    0.75,
+                    1.0,
+                  ],
                 ),
-              )
-                  : (senderProfileImage.isNotEmpty)
-                  ? ClipOval(
-                child: (senderProfileImage.startsWith('http'))
-                    ? CachedNetworkImage(
-                  imageUrl: senderProfileImage,
-                  fit: BoxFit.cover,
-                  width: SizeConfig.size44,
-                  height: SizeConfig.size44,
-                  placeholder: (context, url) =>
-                      Container(
-                        color: Colors.grey.shade300,
-                        child: const Center(
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ),
-                  errorWidget: (context, url, error) =>
-                      Center(
-                        child: Text(
-                          senderName?.substring(0, 1) ?? '',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w800,
-                            fontSize: SizeConfig.size18,
-                          ),
-                        ),
-                      ),
-                )
-                    : Image.file(
-                  File(senderProfileImage),
-                  width: SizeConfig.size44,
-                  height: SizeConfig.size44,
-                  fit: BoxFit.cover,
-                ),
-              )
-                  : Center(
-                child: Text(
-                  senderName?.substring(0, 1) ?? '',
-                  style: TextStyle(
+              ):null,
+              child: CircleAvatar(
+                backgroundColor: theme.colorScheme.primary,
+                radius: (chat?.symbolData?.isNotEmpty??false)?SizeConfig.size20:SizeConfig.size22,
+                child: (senderProfileImage == null || senderProfileImage == "null")
+                    ? Center(
+                  child: CustomText(
+                    "${groupName?.split('')[0]}",
                     color: Colors.white,
                     fontWeight: FontWeight.w800,
                     fontSize: SizeConfig.size18,
                   ),
+                )
+                    : (senderProfileImage.isNotEmpty)
+                    ? ClipOval(
+                  child: (senderProfileImage.startsWith('http'))
+                      ? CachedNetworkImage(
+                    imageUrl: senderProfileImage,
+                    fit: BoxFit.cover,
+                    width: SizeConfig.size44,
+                    height: SizeConfig.size44,
+                  )
+                      : Image.file(
+                    File(senderProfileImage),
+                    width: SizeConfig.size44,
+                    height: SizeConfig.size44,
+                    fit: BoxFit.cover,
+                  ),
+                )
+                    : Center(
+                  child: Text(
+                    senderName?.substring(0, 1) ?? '',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                      fontSize: SizeConfig.size18,
+                    ),
+                  ),
                 ),
               ),
-            ),
+            )
+            ,
           ),
           SizedBox(width: SizeConfig.size12),
           Expanded(
