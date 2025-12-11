@@ -3,6 +3,7 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -345,7 +346,7 @@ class _FoodServicesBottomSheetState extends State<FoodServicesBottomSheet> {
                               imagePath: AppIconAssets.quillChatIcon,
                               imgColor: AppColors.white,
                             ),
-                            label: "Chat",
+                            label: AppStrings.chat.tr,
                             backgroundColor: AppColors.primaryColor,
                             height: 28,
                             fontSize: SizeConfig.size12,

@@ -39,11 +39,11 @@ import '../../../../chat/view/ai_chat/ask_inventory_chat_screen.dart';
 class NewStoreScreen2 extends StatefulWidget {
   final bool isHeaderVisible;
   final Function(bool isVisible)? onHeaderVisibilityChanged;
-  const NewStoreScreen2({
-    super.key,
-    required this.isHeaderVisible,
-    this.onHeaderVisibilityChanged
-  });
+
+  const NewStoreScreen2(
+      {super.key,
+      required this.isHeaderVisible,
+      this.onHeaderVisibilityChanged});
 
   @override
   State<NewStoreScreen2> createState() => _NewStoreScreen2State();
@@ -54,7 +54,7 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
   late MapplsMapController mapController;
   late final double userLat;
   late final double userLng;
-  
+
   @override
   void initState() {
     userLat = LocationService.lat;
@@ -67,13 +67,12 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
 
   void _calculateHeaderHeight() {
     final renderBox =
-    controller.headerKey.currentContext?.findRenderObject() as RenderBox?;
+        controller.headerKey.currentContext?.findRenderObject() as RenderBox?;
     if (renderBox != null && mounted) {
       setState(() => controller.headerHeight = renderBox.size.height);
     }
   }
 
-  
   @override
   void didUpdateWidget(covariant NewStoreScreen2 oldWidget) {
     if (oldWidget.isHeaderVisible != widget.isHeaderVisible) {
@@ -90,10 +89,7 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
     try {
       // Add marker
       await mapController.addSymbol(
-        SymbolOptions(
-            geometry: LatLng(userLat, userLng),
-            iconSize: 1.5
-        ),
+        SymbolOptions(geometry: LatLng(userLat, userLng), iconSize: 1.5),
       );
 
       // Move camera to the location
@@ -103,400 +99,431 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
           14.0,
         ),
       );
-
     } catch (e) {
       print('Error adding marker: $e');
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        extendBodyBehindAppBar: true,
-        floatingActionButton: Padding(
-          padding: EdgeInsets.only(
-              bottom: kBottomNavigationBarHeight + SizeConfig.size10
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(SizeConfig.size35),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10.0),
-              child: GradientFloatingButton(
-                height: SizeConfig.size70,
-                width: SizeConfig.size70,
-                borderRadius: SizeConfig.size35,
-                borderWidth: 1.0,
-                padding: EdgeInsets.all(8.0),
+          extendBodyBehindAppBar: true,
+          floatingActionButton: Padding(
+            padding: EdgeInsets.only(
+                bottom: kBottomNavigationBarHeight + SizeConfig.size10),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(SizeConfig.size35),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10.0),
+                child: GradientFloatingButton(
+                  height: SizeConfig.size70,
+                  width: SizeConfig.size70,
+                  borderRadius: SizeConfig.size35,
+                  borderWidth: 1.0,
+                  padding: EdgeInsets.all(8.0),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.black.withValues(alpha: 0.30),
-                      blurRadius: 4.0,
-                      offset: Offset(0, 2)
-                    )
+                        color: AppColors.black.withValues(alpha: 0.30),
+                        blurRadius: 4.0,
+                        offset: Offset(0, 2))
                   ],
-                backgroundGradientColors: const [
-                  Color(0xFFFFFFFF),
-                  Color(0xFFCCE0FF),
-                ],
-                borderGradientColors: const [
-                  Color(0xFF004FCE),
-                  Color(0xFF5C9BFF),
-                ],
-                onPressed: () {
-                  final chat =ChatViewController.inventoryAiChatListSearchModule;
+                  backgroundGradientColors: const [
+                    Color(0xFFFFFFFF),
+                    Color(0xFFCCE0FF),
+                  ],
+                  borderGradientColors: const [
+                    Color(0xFF004FCE),
+                    Color(0xFF5C9BFF),
+                  ],
+                  onPressed: () {
+                    final chat =
+                        ChatViewController.inventoryAiChatListSearchModule;
 
-                  Get.to(()=>AskInventoryChatScreen(
-                    profileImage: chat?.sender?.profileImage,
-                    name: chat?.sender?.name,
-                    contactNo: chat?.sender?.contactNo,
-                    conversationId: '',
-                    userId: '',
-                    businessId: '',
-                    type: chat?.sender?.accountType,
-                    isInitialMessage: false,));
-                },
-                child: LocalAssets(imagePath: AppIconAssets.aiChatbotIcon),
+                    Get.to(() => AskInventoryChatScreen(
+                          profileImage: chat?.sender?.profileImage,
+                          name: chat?.sender?.name,
+                          contactNo: chat?.sender?.contactNo,
+                          conversationId: '',
+                          userId: '',
+                          businessId: '',
+                          type: chat?.sender?.accountType,
+                          isInitialMessage: false,
+                        ));
+                  },
+                  child: LocalAssets(imagePath: AppIconAssets.aiChatbotIcon),
+                ),
               ),
             ),
           ),
-        ),
-        body: Obx(()=> setupScrollVisibilityNotification(
-          controller: controller.scrollController,
-          onVisibilityChanged: (visible, offset) {
-            final currentOffset = controller.headerOffset.value;
-      
-            // Linear animation step (same speed up/down)
-            const step = 0.25;
-      
-            double newOffset = currentOffset;
-            if (visible) {
-              // show header
-              newOffset = (currentOffset - step).clamp(0.0, 1.0);
-            } else {
-              // hide header
-              newOffset = (currentOffset + step).clamp(0.0, 1.0);
-            }
-      
-            controller.headerOffset.value = newOffset;
-            controller.isHeaderVisible.value = visible;
-            widget.onHeaderVisibilityChanged?.call(visible);
-          },
-          child: Stack(
-            children: [
-              AnimatedPadding(
-                duration: const Duration(milliseconds: 400),
-                curve: Curves.easeInOut,
-                padding: EdgeInsets.only(
-                    top:  controller.headerHeight *
-                        (1 - controller.headerOffset.value)),
-                child: SingleChildScrollView(
-                padding: EdgeInsets.symmetric(
-                  horizontal: SizeConfig.size8,
-                  vertical: SizeConfig.size10
-                ),
-                child: Column(
-                  children: [
-                    InkWell(
-                      onTap:(){
-                        Widget dest = isGuestUser()
-                            ? GuestDashBoardScreen()
-                            : JobsScreen();
+          body: Obx(
+            () => setupScrollVisibilityNotification(
+              controller: controller.scrollController,
+              onVisibilityChanged: (visible, offset) {
+                final currentOffset = controller.headerOffset.value;
 
-                        Get.to(()=> dest);
-                      },
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                            vertical: SizeConfig.size8,
-                            horizontal: SizeConfig.size10,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.white,
-                          borderRadius: BorderRadius.circular(10.0),
-                          border: Border.all(
-                            color: AppColors.greyE5
-                          ),
-                          boxShadow: [AppShadows.textFieldShadow]
-                        ),
-                        child: Row(
-                          children: [
-                            LocalAssets(
-                                imagePath: AppImageAssets.searchJobImage,
-                               height: SizeConfig.size30,
-                               width: SizeConfig.size30,
-                            ),
-                            SizedBox(width: SizeConfig.size10),
-                            CustomText(
-                                AppStrings.findYourDreamJobNow,
-                                fontSize: SizeConfig.medium,
-                                color: AppColors.secondaryTextColor,
-                                fontWeight: FontWeight.w400
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                // Linear animation step (same speed up/down)
+                const step = 0.25;
 
-      
-                    SizedBox(height: SizeConfig.size10),
-      
-                    /// Mapple map
-                    ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: SizedBox(
-                          width: double.infinity,
-                          height: SizeConfig.size160,
-                          child: Stack(
-                            children: [
-                              MapplsMap(
-                                onMapCreated: _onMapCreated,
-                                initialCameraPosition: CameraPosition(
-                                  target: LatLng(userLat, userLng),
-                                  zoom: 14.0,
-                                ),
-                                myLocationEnabled: false,
-                                compassEnabled: false,
-                                rotateGesturesEnabled: true,
-                                tiltGesturesEnabled: true,
-                                zoomGesturesEnabled: true,
-                                scrollGesturesEnabled: true,
-                                onStyleLoadedCallback: _onStyleLoadedCallback,
+                double newOffset = currentOffset;
+                if (visible) {
+                  // show header
+                  newOffset = (currentOffset - step).clamp(0.0, 1.0);
+                } else {
+                  // hide header
+                  newOffset = (currentOffset + step).clamp(0.0, 1.0);
+                }
+
+                controller.headerOffset.value = newOffset;
+                controller.isHeaderVisible.value = visible;
+                widget.onHeaderVisibilityChanged?.call(visible);
+              },
+              child: Stack(
+                children: [
+                  AnimatedPadding(
+                    duration: const Duration(milliseconds: 400),
+                    curve: Curves.easeInOut,
+                    padding: EdgeInsets.only(
+                        top: controller.headerHeight *
+                            (1 - controller.headerOffset.value)),
+                    child: SingleChildScrollView(
+                      controller: controller.scrollController,
+                      // <-- ADD THIS
+
+                      padding: EdgeInsets.symmetric(
+                          horizontal: SizeConfig.size8,
+                          vertical: SizeConfig.size10),
+                      child: Column(
+                        children: [
+                          InkWell(
+                            onTap: () {
+                              Widget dest = isGuestUser()
+                                  ? GuestDashBoardScreen()
+                                  : JobsScreen();
+
+                              Get.to(() => dest);
+                            },
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                vertical: SizeConfig.size8,
+                                horizontal: SizeConfig.size10,
                               ),
-                              Positioned(
-                                right: SizeConfig.size10,
-                                bottom: SizeConfig.size10,
-                                child: InkWell(
-                                  onTap: () async {
-                                    openGoogleMaps(latitude: userLat, longitude: userLng);
-                                  },
-                                  child: Container(
-                                    padding: EdgeInsets.all(SizeConfig.size8),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.white,
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                          color: AppColors.skyBlueDF, width: 1),
+                              decoration: BoxDecoration(
+                                  color: AppColors.white,
+                                  borderRadius: BorderRadius.circular(10.0),
+                                  border: Border.all(color: AppColors.greyE5),
+                                  boxShadow: [AppShadows.textFieldShadow]),
+                              child: Row(
+                                children: [
+                                  LocalAssets(
+                                    imagePath: AppImageAssets.searchJobImage,
+                                    height: SizeConfig.size30,
+                                    width: SizeConfig.size30,
+                                  ),
+                                  SizedBox(width: SizeConfig.size10),
+                                  CustomText(AppStrings.findYourDreamJobNow,
+                                      fontSize: SizeConfig.medium,
+                                      color: AppColors.secondaryTextColor,
+                                      fontWeight: FontWeight.w400),
+                                ],
+                              ),
+                            ),
+                          ),
+
+                          SizedBox(height: SizeConfig.size10),
+
+                          /// Mapple map
+                          ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: SizedBox(
+                                width: double.infinity,
+                                height: SizeConfig.size160,
+                                child: Stack(
+                                  children: [
+                                    MapplsMap(
+                                      onMapCreated: _onMapCreated,
+                                      initialCameraPosition: CameraPosition(
+                                        target: LatLng(userLat, userLng),
+                                        zoom: 14.0,
+                                      ),
+                                      myLocationEnabled: false,
+                                      compassEnabled: false,
+                                      rotateGesturesEnabled: true,
+                                      tiltGesturesEnabled: true,
+                                      zoomGesturesEnabled: true,
+                                      scrollGesturesEnabled: true,
+                                      onStyleLoadedCallback:
+                                          _onStyleLoadedCallback,
                                     ),
-                                    child: Transform.rotate(
-                                      angle: -0.6,
-                                      child: const Icon(
-                                        Icons.send_outlined,
-                                        color: AppColors.skyBlueDF,
-                                        size: 20,
+                                    Positioned(
+                                      right: SizeConfig.size10,
+                                      bottom: SizeConfig.size10,
+                                      child: InkWell(
+                                        onTap: () async {
+                                          openGoogleMaps(
+                                              latitude: userLat,
+                                              longitude: userLng);
+                                        },
+                                        child: Container(
+                                          padding:
+                                              EdgeInsets.all(SizeConfig.size8),
+                                          decoration: BoxDecoration(
+                                            color: AppColors.white,
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                                color: AppColors.skyBlueDF,
+                                                width: 1),
+                                          ),
+                                          child: Transform.rotate(
+                                            angle: -0.6,
+                                            child: const Icon(
+                                              Icons.send_outlined,
+                                              color: AppColors.skyBlueDF,
+                                              size: 20,
+                                            ),
+                                          ),
+                                        ),
                                       ),
                                     ),
-                                  ),
+                                  ],
                                 ),
+                              )),
+                          SizedBox(height: SizeConfig.size10),
+
+                          /// Near Me
+                          CustomFormCard(
+                              padding: EdgeInsets.only(
+                                left: SizeConfig.size15,
+                                right: SizeConfig.size15,
+                                bottom: SizeConfig.size15,
+                                top: SizeConfig.size5,
                               ),
-                            ],
+                              child: Column(
+                                children: [
+                                  _sectionHeader(
+                                      title: AppStrings.nearMe,
+                                      seeMoreTap: () {}),
+                                  SizedBox(height: SizeConfig.size15),
+                                  genericIconGrid<BusinessProfileCategory>(
+                                      items: mainCategories,
+                                      labelBuilder: (c) => c.name,
+                                      iconBuilder: (c) => c.icon,
+                                      onTap: (category) =>
+                                          _handleNearMeCategoryTap(category))
+                                ],
+                              )),
+                          SizedBox(height: SizeConfig.size10),
+                          Obx(
+                            () => controller.isBannerVisible.value
+                                ? _bannerWidget(
+                                    AppImageAssets.sampleStoreImage1)
+                                : SizedBox.shrink(),
                           ),
-                        )),
-                    SizedBox(height: SizeConfig.size10),
-      
-                    /// Near Me
-                    CustomFormCard(
-                        padding: EdgeInsets.only(
-                            left: SizeConfig.size15,
-                            right: SizeConfig.size15,
-                            bottom: SizeConfig.size15,
-                            top:  SizeConfig.size5,
-                        ),
-                        child: Column(
-                          children: [
-                            _sectionHeader(
-                                title: AppStrings.nearMe,
-                                seeMoreTap: () {
 
-                                }
-                            ),
-                            SizedBox(height: SizeConfig.size15),
-                            genericIconGrid<BusinessProfileCategory>(
-                                items: mainCategories,
-                                labelBuilder: (c) => c.name,
-                                iconBuilder: (c) => c.icon,
-                                onTap: (category) => _handleNearMeCategoryTap(category)
-                            )
-                          ],
-                        )
+                          SizedBox(height: SizeConfig.size10),
+
+                          /// Professionals
+                          CustomFormCard(
+                              padding: EdgeInsets.only(
+                                left: SizeConfig.size15,
+                                right: SizeConfig.size15,
+                                bottom: SizeConfig.size15,
+                                top: SizeConfig.size5,
+                              ),
+                              child: Column(
+                                children: [
+                                  _sectionHeader(
+                                      title: AppStrings.professionals,
+                                      seeMoreTap: () {}),
+                                  SizedBox(height: SizeConfig.size15),
+                                  genericIconGrid<IndividualProfileCategory>(
+                                      items: providerCategories,
+                                      labelBuilder: (c) => c.name,
+                                      iconBuilder: (c) => c.icon,
+                                      onTap: (category) {
+                                        Get.to(() => CustomizeMapScreen(
+                                              selectedMapCategoryType:
+                                                  MapServiceCategory
+                                                      .services.label,
+                                            ));
+                                      })
+                                ],
+                              )),
+                          SizedBox(height: SizeConfig.size10),
+                          Obx(
+                            () => controller.isBannerVisible.value
+                                ? _bannerWidget(
+                                    AppImageAssets.sampleStoreImage2)
+                                : SizedBox.shrink(),
+                          ),
+                          SizedBox(height: SizeConfig.size10),
+
+                          /// Services
+                          CustomFormCard(
+                              padding: EdgeInsets.only(
+                                left: SizeConfig.size15,
+                                right: SizeConfig.size15,
+                                bottom: SizeConfig.size15,
+                                top: SizeConfig.size5,
+                              ),
+                              child: Column(
+                                children: [
+                                  _sectionHeader(
+                                      title: AppStrings.services,
+                                      seeMoreTap: () {}),
+                                  SizedBox(height: SizeConfig.size15),
+                                  genericIconGrid<BusinessProfileCategory>(
+                                    items: businessServicesCategories,
+                                    labelBuilder: (c) => c.name,
+                                    iconBuilder: (c) => c.icon,
+                                    onTap: (category) {
+                                      Get.to(() => BusinessStoreScreen(
+                                            typeOfBusiness:
+                                                AppConstants.service,
+                                            selectedStoreCategoryId:
+                                                category.categoryData?.id,
+                                            selectedStoreCategoryName:
+                                                category.name,
+                                          ));
+                                    },
+                                  )
+                                ],
+                              )),
+                          SizedBox(height: SizeConfig.size10),
+                          Obx(
+                            () => controller.isBannerVisible.value
+                                ? _bannerWidget(
+                                    AppImageAssets.sampleStoreImage3)
+                                : SizedBox.shrink(),
+                          ),
+                          SizedBox(height: SizeConfig.size10),
+
+                          /// Store Near Me
+                          CustomFormCard(
+                              padding: EdgeInsets.only(
+                                left: SizeConfig.size15,
+                                right: SizeConfig.size15,
+                                bottom: SizeConfig.size15,
+                                top: SizeConfig.size5,
+                              ),
+                              child: Column(
+                                children: [
+                                  _sectionHeader(
+                                      title: AppStrings.storesNearMe,
+                                      seeMoreTap: () {}),
+                                  SizedBox(height: SizeConfig.size15),
+                                  genericIconGrid<BusinessProfileCategory>(
+                                    items: businessProductsCategories,
+                                    labelBuilder: (c) => c.name,
+                                    iconBuilder: (c) => c.icon,
+                                    onTap: (category) {
+                                      Get.to(() => BusinessStoreScreen(
+                                            typeOfBusiness:
+                                                AppConstants.product,
+                                            selectedStoreCategoryId:
+                                                category.categoryData?.id,
+                                            selectedStoreCategoryName:
+                                                category.name,
+                                          ));
+                                    },
+                                  )
+                                ],
+                              )),
+                          SizedBox(height: SizeConfig.size10),
+                          Obx(
+                            () => controller.isBannerVisible.value
+                                ? _bannerWidget(
+                                    AppImageAssets.sampleStoreImage4)
+                                : SizedBox.shrink(),
+                          ),
+                          SizedBox(height: SizeConfig.size10),
+
+                          /// Food & Restaurant
+                          CustomFormCard(
+                              padding: EdgeInsets.only(
+                                left: SizeConfig.size15,
+                                right: SizeConfig.size15,
+                                bottom: SizeConfig.size15,
+                                top: SizeConfig.size5,
+                              ),
+                              child: Column(
+                                children: [
+                                  _sectionHeader(
+                                      title: AppStrings.foodAndRestaurant,
+                                      seeMoreTap: () {}),
+                                  SizedBox(height: SizeConfig.size15),
+                                  genericIconGrid<BusinessProfileCategory>(
+                                    items: businessFoodsCategories,
+                                    labelBuilder: (c) => c.name,
+                                    iconBuilder: (c) => c.icon,
+                                    onTap: (category) {
+                                      Get.to(() => BusinessStoreScreen(
+                                            typeOfBusiness: AppConstants.food,
+                                            selectedStoreCategoryId:
+                                                category.categoryData?.id,
+                                            selectedStoreCategoryName:
+                                                category.name,
+                                          ));
+                                    },
+                                  )
+                                ],
+                              )),
+                          SizedBox(height: SizeConfig.size10),
+                        ],
+                      ),
                     ),
-                    SizedBox(height: SizeConfig.size10),
-                    _bannerWidget(AppImageAssets. sampleStoreImage1),
-                    SizedBox(height: SizeConfig.size10),
-      
-                    /// Professionals
-                    CustomFormCard(
-                        padding: EdgeInsets.only(
-                          left: SizeConfig.size15,
-                          right: SizeConfig.size15,
-                          bottom: SizeConfig.size15,
-                          top:  SizeConfig.size5,
-                        ),
-                        child: Column(
-                          children: [
-                            _sectionHeader(
-                                title: AppStrings.professionals,
-                                seeMoreTap: () {}
-                            ),
-                            SizedBox(height: SizeConfig.size15),
-                            genericIconGrid<IndividualProfileCategory>(
-                                items: providerCategories,
-                                labelBuilder: (c) => c.name,
-                                iconBuilder: (c) => c.icon,
-                                onTap: (category){
-                                  Get.to(()=> CustomizeMapScreen(
-                                    selectedMapCategoryType: MapServiceCategory.services.label,
-                                  ));
-                                }
-                            )
-      
-                          ],
-                        )
-                    ),
-                    SizedBox(height: SizeConfig.size10),
-                    _bannerWidget(AppImageAssets.sampleStoreImage2),
-                    SizedBox(height: SizeConfig.size10),
-      
-                    /// Services
-                    CustomFormCard(
-                        padding: EdgeInsets.only(
-                          left: SizeConfig.size15,
-                          right: SizeConfig.size15,
-                          bottom: SizeConfig.size15,
-                          top:  SizeConfig.size5,
-                        ),
-                        child: Column(
-                          children: [
-                            _sectionHeader(
-                                title: AppStrings.services,
-                                seeMoreTap: () {}
-                            ),
-                            SizedBox(height: SizeConfig.size15),
-                            genericIconGrid<BusinessProfileCategory>(
-                              items:  businessServicesCategories,
-                              labelBuilder: (c) => c.name,
-                              iconBuilder: (c) => c.icon,
-                              onTap: (category) {
-                                Get.to(()=> BusinessStoreScreen(
-                                    typeOfBusiness: AppConstants.service,
-                                    selectedStoreCategoryId: category.categoryData?.id,
-                                    selectedStoreCategoryName: category.name,
-                                ));
-                              },
-                            )
-      
-                          ],
-                        )
-                    ),
-                    SizedBox(height: SizeConfig.size10),
-                    _bannerWidget(AppImageAssets.sampleStoreImage3),
-                    SizedBox(height: SizeConfig.size10),
-      
-                    /// Store Near Me
-                    CustomFormCard(
-                        padding: EdgeInsets.only(
-                          left: SizeConfig.size15,
-                          right: SizeConfig.size15,
-                          bottom: SizeConfig.size15,
-                          top:  SizeConfig.size5,
-                        ),
-                        child: Column(
-                          children: [
-                            _sectionHeader(
-                                title: AppStrings.storesNearMe,
-                                seeMoreTap: () {}
-                            ),
-                            SizedBox(height: SizeConfig.size15),
-                            genericIconGrid<BusinessProfileCategory>(
-                              items:  businessProductsCategories,
-                              labelBuilder: (c) => c.name,
-                              iconBuilder: (c) => c.icon,
-                              onTap: (category) {
-                                Get.to(()=> BusinessStoreScreen(
-                                    typeOfBusiness: AppConstants.product,
-                                    selectedStoreCategoryId: category.categoryData?.id,
-                                    selectedStoreCategoryName: category.name,
-                                ));
-                              },
-                            )
-                          ],
-                        )
-                    ),
-                    SizedBox(height: SizeConfig.size10),
-                    _bannerWidget(AppImageAssets.sampleStoreImage4),
-                    SizedBox(height: SizeConfig.size10),
-      
-                    /// Food & Restaurant
-                    CustomFormCard(
-                        padding: EdgeInsets.only(
-                          left: SizeConfig.size15,
-                          right: SizeConfig.size15,
-                          bottom: SizeConfig.size15,
-                          top:  SizeConfig.size5,
-                        ),
-                        child: Column(
-                          children: [
-                            _sectionHeader(
-                                title: AppStrings.foodAndRestaurant,
-                                seeMoreTap: () {}
-                            ),
-                            SizedBox(height: SizeConfig.size15),
-                            genericIconGrid<BusinessProfileCategory>(
-                              items: businessFoodsCategories,
-                              labelBuilder: (c) => c.name,
-                              iconBuilder: (c) => c.icon,
-                              onTap: (category) {
-                                Get.to(()=> BusinessStoreScreen(
-                                    typeOfBusiness: AppConstants.food,
-                                    selectedStoreCategoryId: category.categoryData?.id,
-                                  selectedStoreCategoryName: category.name,
-                                ));
-                              },
-                            )
-      
-                          ],
-                        )
-                    ),
-                    SizedBox(height: SizeConfig.size10),
-      
-                  ],
-                ),
-              ),
-            ),
-      
-              /// Header stays same
-              AnimatedPositioned(
-                duration: const Duration(milliseconds: 400),
-                curve: Curves.easeInOut,
-                top: -controller.headerOffset.value * controller.headerHeight,
-                left: 0,
-                right: 0,
-                child: KeyedSubtree(
-                  key: controller.headerKey,
-                  child: CommonBackAppBar(
-                    isLeading: false,
-                    buildCustomWidget: ()=> Builder(
-                      builder: (context) => Padding(
-                        padding: EdgeInsets.only(left: SizeConfig.size15, right: SizeConfig.size20),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Row(
-                                  children: [
-                                    LocalAssets(
-                                      imagePath: AppIconAssets.currentLocationIcon,
-                                      height: SizeConfig.size24,
-                                      width: SizeConfig.size24,
-                                    ),
-                                    SizedBox(width: SizeConfig.size10),
-                                    CustomText(
+                  ),
+
+                  /// Header stays same
+                  AnimatedPositioned(
+                    duration: const Duration(milliseconds: 400),
+                    curve: Curves.easeInOut,
+                    top: -controller.headerOffset.value *
+                        controller.headerHeight,
+                    left: 0,
+                    right: 0,
+                    child: KeyedSubtree(
+                      key: controller.headerKey,
+                      child: Builder(
+                        builder: (context) => Container(
+                          margin: EdgeInsets.only(bottom: 10),
+                          padding: EdgeInsets.only(
+                              left: SizeConfig.size15,
+                              right: SizeConfig.size20,
+                              top: SizeConfig.size10,
+                              bottom: SizeConfig.size10),
+                          color: AppColors.white,
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Row(children: [
+                                  LocalAssets(
+                                    imagePath:
+                                        AppIconAssets.currentLocationIcon,
+                                    height: SizeConfig.size24,
+                                    width: SizeConfig.size24,
+                                  ),
+                                  SizedBox(width: SizeConfig.size10),
+                                  Expanded(
+                                    child: CustomText(
                                       [
-                                        if (LocationService.userCurrentAddress.length > 2 &&
-                                            LocationService.userCurrentAddress[2].isNotEmpty)
-                                          LocationService.userCurrentAddress[2], // locality
+                                        if (LocationService
+                                                    .userCurrentAddress.length >
+                                                2 &&
+                                            LocationService
+                                                .userCurrentAddress[2]
+                                                .isNotEmpty)
+                                          LocationService.userCurrentAddress[2],
+                                        // locality
 
-                                        if (LocationService.userCurrentAddress.length > 3 &&
-                                            LocationService.userCurrentAddress[3].isNotEmpty)
-                                          LocationService.userCurrentAddress[3], // administrativeArea
+                                        if (LocationService
+                                                    .userCurrentAddress.length >
+                                                3 &&
+                                            LocationService
+                                                .userCurrentAddress[3]
+                                                .isNotEmpty)
+                                          LocationService.userCurrentAddress[3],
+                                        // administrativeArea
                                       ].join(', '),
                                       fontSize: SizeConfig.large,
                                       color: AppColors.primaryColor,
@@ -504,74 +531,76 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
-                                  ]
+                                  ),
+                                ]),
                               ),
-                            ),
-                            SizedBox(width: SizeConfig.size8),
-                            InkWell(
-                              onTap: () {
-                                if(isBusinessUser()){
-                                  final controller = Get.find<ViewBusinessDetailsController>();
+                              SizedBox(width: SizeConfig.size8),
+                              InkWell(
+                                onTap: () {
+                                  if (isBusinessUser()) {
+                                    final controller = Get.find<
+                                        ViewBusinessDetailsController>();
 
-                                  if((controller.businessProfileDetails?.data?.livePhotos ?? []).length < 3){
-                                    showLivePhotoDialog(
-                                      context: context,
-                                    );
-                                  }else{
-                                    Get.toNamed(RouteHelper.getInventoryScreenRoute());
-
-                                  }
-                                }else{
-                                  final controller = Get.find<ViewPersonalDetailsController>();
-
-                                  if (controller
-                                      .personalProfileDetails.value.isProfileCreated ==
-                                      false) {
-                                    Get.to(()=> CreateProfileScreen());
+                                    if ((controller.businessProfileDetails?.data
+                                                    ?.livePhotos ??
+                                                [])
+                                            .length <
+                                        3) {
+                                      showLivePhotoDialog(
+                                        context: context,
+                                      );
+                                    } else {
+                                      Get.toNamed(RouteHelper
+                                          .getInventoryScreenRoute());
+                                    }
                                   } else {
-                                    Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
+                                    final controller = Get.find<
+                                        ViewPersonalDetailsController>();
+
+                                    if (controller.personalProfileDetails.value
+                                            .isProfileCreated ==
+                                        false) {
+                                      Get.to(() => CreateProfileScreen());
+                                    } else {
+                                      Get.toNamed(RouteHelper
+                                          .getEarnWithBlueEraNewScreenRoute());
+                                    }
                                   }
-                                }
-                              },
-                              child: LocalAssets(
-                                imagePath: AppIconAssets.cartIcon,
-                              ),
-                            )
-                          ],
+                                },
+                                child: LocalAssets(
+                                  imagePath: AppIconAssets.cartIcon,
+                                ),
+                              )
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
+                ],
               ),
-            ],
-          ),
-         ),
-        )
-      ),
+            ),
+          )),
     );
   }
 
   // ---------------- REUSABLE SECTION HEADER ---------------- //
-  Widget _sectionHeader({required String title, required VoidCallback seeMoreTap}) {
+  Widget _sectionHeader(
+      {required String title, required VoidCallback seeMoreTap}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        CustomText(
-            title,
+        CustomText(title,
             fontSize: SizeConfig.large,
             color: AppColors.mainTextColor,
-            fontWeight: FontWeight.w600
-        ),
+            fontWeight: FontWeight.w600),
         TextButton(
           onPressed: seeMoreTap,
-          child: CustomText(
-              AppStrings.seeMore,
+          child: CustomText(AppStrings.seeMore,
               fontSize: SizeConfig.small,
               color: AppColors.primaryColor,
-              fontWeight: FontWeight.w600
-          ),
+              fontWeight: FontWeight.w600),
         ),
       ],
     );
@@ -639,7 +668,7 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
   }
 
   // ---------------- REUSABLE BANNER WIDGET ---------------- //
-  Widget _bannerWidget(String bannerImage){
+  Widget _bannerWidget(String bannerImage) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
       child: Container(
@@ -654,45 +683,40 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
   }
 
   void _handleNearMeCategoryTap(BusinessProfileCategory category) {
-
     switch (category.slugId) {
       case AppConstants.storeServices:
         Get.to(() => BusinessStoreScreen(
-          selectedStoreCategoryName: category.name,
-        ));
+              selectedStoreCategoryName: category.name,
+            ));
         break;
 
       case AppConstants.foodServices:
-        Get.to(() => AllFoodStoreScreen(
-            isShowInGrid: true
-        ));
+        Get.to(() => AllFoodStoreScreen(isShowInGrid: true));
         break;
 
       case AppConstants.productsServices:
-        Get.to(() => AllProductStoreScreen(
-            isShowInGrid: true
-        ));
+        Get.to(() => AllProductStoreScreen(isShowInGrid: true));
         break;
 
       case AppConstants.groceryVegetablesDairy:
         Get.to(() => BusinessStoreScreen(
-          typeOfBusiness: AppConstants.food,
-          selectedStoreCategoryId: '68ce9917eac48e6b0d4973bf',
-          // selectedStoreCategoryId: category.categoryData?.id,
-          selectedStoreCategoryName: category.name,
-        ));
+              typeOfBusiness: AppConstants.food,
+              selectedStoreCategoryId: '68ce9917eac48e6b0d4973bf',
+              // selectedStoreCategoryId: category.categoryData?.id,
+              selectedStoreCategoryName: category.name,
+            ));
         break;
 
       case AppConstants.rentalServices:
         Get.to(() => CustomizeMapScreen(
-          selectedMapCategoryType: MapServiceCategory.rental.label,
-        ));
+              selectedMapCategoryType: MapServiceCategory.rental.label,
+            ));
         break;
 
       case AppConstants.homeServices:
         Get.to(() => CustomizeMapScreen(
-          selectedMapCategoryType: MapServiceCategory.homeService.label,
-        ));
+              selectedMapCategoryType: MapServiceCategory.homeService.label,
+            ));
         break;
       case AppConstants.riderServices:
         break;
@@ -701,6 +725,4 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
         print("⚠ Unknown category tapped: ${category.name}");
     }
   }
-
-
 }

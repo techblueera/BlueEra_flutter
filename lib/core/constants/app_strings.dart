@@ -377,7 +377,7 @@ class AppStrings {
   static const jobs = "jobs";
   static const finder = "finder";
   static const discover = "discover";
-  static const me = "Me";
+  static const me = "me";
 
   ///POST VIA...
   static const postVia = "postVia";
@@ -2125,6 +2125,33 @@ class AppStrings {
   static const seeMore = "seeMore";
   static const downloadLanguagePack = "downloadLanguagePack";
   static const downloadLanguageDescription = "downloadLanguageDescription";
+
+  static const Repost = "Repost";
+  static const watchAgain = "watchAgain";
+  static const addYourThings = "addYourThings";
+  static const addCommentBeforeShare = "addCommentBeforeShare";
+  static const sharePostWithFollowers = "sharePostWithFollowers";
+  static const repostedSuccessfully = "repostedSuccessfully";
+  static const alreadyReposted = "alreadyReposted";
+  static const messageRepost = "messageRepost";
+  static const yourMessage = "yourMessage";
+  static const defaultRepostMessage = "defaultRepostMessage";
+  static const messageMinLengthError = "messageMinLengthError";
+  static const messageLinkNotAllowed = "messageLinkNotAllowed";
+  static const startListingNow = "startListingNow";
+  static const earnWithHomeMadeTitle = "earnWithHomeMadeTitle";
+  static const earnWithHomeMadeSubtitle = "earnWithHomeMadeSubtitle";
+  static const earnWithHomeMadeFoodTitle = "earnWithHomeMadeFoodTitle";
+  static const selectFoodType = "selectFoodType";
+  static const selectFoodTypeMessage = "selectFoodTypeMessage";
+  static const tiffin = "tiffin";
+  static const bakery = "bakery";
+  static const sweets = "sweets";
+  static const earnWithRentalServices = "earnWithRentalServices";
+  static const selectRentalType = "selectRentalType";
+  static const selectRentalTypeMessage = "selectRentalTypeMessage";
+
+
 
 
 }

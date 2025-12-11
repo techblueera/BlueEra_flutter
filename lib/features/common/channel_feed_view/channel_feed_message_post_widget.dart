@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/block_report_selection_dialog.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -26,7 +27,6 @@ import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 
 class ChannelFeedMessagePostWidget extends StatefulWidget {
   final Post? post;
@@ -89,8 +89,6 @@ class _MessagePostWidgetState extends State<ChannelFeedMessagePostWidget> {
 
   @override
   Widget build(BuildContext context) {
-    logs("ValueKey(widget.videoItem.videoId)1= ${widget.post?.id}");
-
     return IgnorePointer(
       ignoring: widget.isRepost == true ? true : false,
       child: FeedCardWidget(
@@ -110,7 +108,6 @@ class _MessagePostWidgetState extends State<ChannelFeedMessagePostWidget> {
                         child: PostFeedAutoPlayVideoCard(
                           videoItem: videoData!,
                           key: ValueKey(videoData?.videoId ?? 0),
-
                           globalMuteNotifier: ValueNotifier(false),
                           videoType: VideoType.videoFeed,
                           onTapOption: () {
@@ -201,7 +198,6 @@ class _MessagePostWidgetState extends State<ChannelFeedMessagePostWidget> {
                           top: SizeConfig.size5),
                       child: ClickableLinkText(url: _post.referenceLink!),
                     ),
-
                   if (widget.isShowOnlyDetails == false) ...[
                     Padding(
                       padding: EdgeInsets.symmetric(
@@ -240,16 +236,6 @@ class _MessagePostWidgetState extends State<ChannelFeedMessagePostWidget> {
                               } else {
                                 widget.likeFeed();
                               }
-                              // if ((_post.likesCount ?? 0) < 1) {
-                              //   return;
-                              // }
-
-                              // showDialog(
-                              //   context: context,
-                              //   builder: (context) => PostLikeUserListDialog(
-                              //     postId: widget.post?.id ?? '',
-                              //   ),
-                              // );
                             },
                             child: Padding(
                               padding:
@@ -336,8 +322,8 @@ class _MessagePostWidgetState extends State<ChannelFeedMessagePostWidget> {
                                                     if (responseModel
                                                         .isSuccess) {
                                                       commonSnackBar(
-                                                          message:
-                                                              "Reposted successfully");
+                                                          message: AppStrings
+                                                              .repostedSuccessfully);
                                                       Get.find<
                                                               NavigationHelperController>()
                                                           .shouldRefreshBottomBar
@@ -348,8 +334,8 @@ class _MessagePostWidgetState extends State<ChannelFeedMessagePostWidget> {
                                                               .getBottomNavigationBarScreenRoute());
                                                     } else {
                                                       commonSnackBar(
-                                                          message:
-                                                              "You have already reposted this post");
+                                                          message: AppStrings
+                                                              .alreadyReposted);
                                                     }
                                                   },
                                                   child: Row(
@@ -385,7 +371,8 @@ class _MessagePostWidgetState extends State<ChannelFeedMessagePostWidget> {
                                                                           SizeConfig
                                                                               .size10),
                                                               child: CustomText(
-                                                                "Repost",
+                                                                AppStrings
+                                                                    .Repost,
                                                                 textAlign:
                                                                     TextAlign
                                                                         .left,
@@ -404,7 +391,8 @@ class _MessagePostWidgetState extends State<ChannelFeedMessagePostWidget> {
                                                                           SizeConfig
                                                                               .size10),
                                                               child: CustomText(
-                                                                "Share this post with your followers",
+                                                                AppStrings
+                                                                    .sharePostWithFollowers,
                                                                 textAlign:
                                                                     TextAlign
                                                                         .left,
@@ -475,7 +463,8 @@ class _MessagePostWidgetState extends State<ChannelFeedMessagePostWidget> {
                                                                           SizeConfig
                                                                               .size10),
                                                               child: CustomText(
-                                                                "Add your things",
+                                                                AppStrings
+                                                                    .addYourThings,
                                                                 textAlign:
                                                                     TextAlign
                                                                         .left,
@@ -494,7 +483,8 @@ class _MessagePostWidgetState extends State<ChannelFeedMessagePostWidget> {
                                                                           SizeConfig
                                                                               .size10),
                                                               child: CustomText(
-                                                                "Add a comment ,photo before you share this post",
+                                                                AppStrings
+                                                                    .addCommentBeforeShare,
                                                                 textAlign:
                                                                     TextAlign
                                                                         .left,
@@ -544,11 +534,6 @@ class _MessagePostWidgetState extends State<ChannelFeedMessagePostWidget> {
                       height: SizeConfig.size5,
                     ),
                   ]
-
-                  // widget.buildActions(),
-                  // SizedBox(
-                  //   height: SizeConfig.size10,
-                  // ),
                 ],
               ),
             ],
@@ -557,7 +542,8 @@ class _MessagePostWidgetState extends State<ChannelFeedMessagePostWidget> {
   }
 }
 
-ViewFeedActionWidget({required String iconPath, required String data,Color? fontColor}) {
+ViewFeedActionWidget(
+    {required String iconPath, required String data, Color? fontColor}) {
   return Padding(
     padding: EdgeInsets.only(right: SizeConfig.size10),
     child: Row(
@@ -566,14 +552,14 @@ ViewFeedActionWidget({required String iconPath, required String data,Color? font
           imagePath: iconPath,
           width: SizeConfig.size18,
           height: SizeConfig.size18,
-          imgColor: fontColor?? AppColors.secondaryTextColor,
+          imgColor: fontColor ?? AppColors.secondaryTextColor,
         ),
         SizedBox(
           width: SizeConfig.size5,
         ),
         CustomText(
           data,
-          color: fontColor??AppColors.secondaryTextColor,
+          color: fontColor ?? AppColors.secondaryTextColor,
           fontSize: SizeConfig.size10,
         ),
       ],

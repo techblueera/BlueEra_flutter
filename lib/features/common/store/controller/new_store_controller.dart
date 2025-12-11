@@ -6,6 +6,7 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/get_all_store_res_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
@@ -70,6 +71,20 @@ class NewStoreController extends GetxController{
   RxBool isTextFieldEmpty = false.obs;
   final ScrollController aiChatScrollController = ScrollController();
   RxBool chatBotReading = false.obs;
+
+
+  RxBool isBannerVisible = false.obs;
+  @override
+  void onInit() {
+    super.onInit();
+    scrollController.addListener(() {
+      if (scrollController.offset > 300) {
+        isBannerVisible.value = true;
+      } else {
+        isBannerVisible.value = false;
+      }
+    });
+  }
 
   @override
   void onClose() {

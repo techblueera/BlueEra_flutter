@@ -2,6 +2,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -294,7 +295,7 @@ class _ProductCardState extends State<ProductCardBusiness> {
                         right: SizeConfig.size4,
                         bottom: SizeConfig.size2),
                     child: CustomText(
-                      "Chat",
+                      AppStrings.chat,
                       fontWeight: FontWeight.bold,
                       color: AppColors.white,
                     ),

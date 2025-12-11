@@ -202,6 +202,9 @@ class SharedPreferenceUtils {
       await _secureStorage.deleteAll();
       // await _secureStorage.isCupertinoProtectedDataAvailable();
 
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove("last_dialog_shown");
+
       authTokenGlobal = '';
       accountTypeGlobal = '';
       userId = '';

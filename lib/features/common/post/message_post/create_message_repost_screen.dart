@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
@@ -63,7 +64,7 @@ class _CreateMessagePostScreenNewState
           preferredSize: Size.fromHeight(kToolbarHeight),
           child: Obx(() {
             return CommonBackAppBar(
-              title: "Message Repost",
+              title: AppStrings.messageRepost,
               isLeading: msgController.isLoading.value ? false : true,
               onBackTap: () {
                 msgController.clearRepostData();
@@ -147,7 +148,7 @@ class _CreateMessagePostScreenNewState
                           }
                         }
                       : null,
-                  title: "Submit"),
+                  title: AppStrings.submit),
             ),
           );
         }),
@@ -177,8 +178,8 @@ class _CreateMessagePostScreenNewState
                           textEditController:
                               msgController.descriptionMessage.value,
                           hintText:
-                              "Hello Everyone @India User Now I am Using It’s Amazing, I suggest to Join Me.",
-                          title: "Your Message",
+                          AppStrings.defaultRepostMessage,
+                          title: AppStrings.yourMessage,
                           maxLine: 5,
                           maxLength: 1000,
                           isValidate: false,
@@ -207,10 +208,10 @@ class _CreateMessagePostScreenNewState
 
                           validator: (val) {
                             if (val == null || val.trim().length < 10) {
-                              return "Message must be at least 10 characters long";
+                              return AppStrings.messageMinLengthError.tr;
                             }
                             if (RegExp(r'https?').hasMatch(val)) {
-                              return "Links are not allowed in the message";
+                              return  AppStrings.messageLinkNotAllowed.tr;
                             }
                             return null;
                           },
@@ -367,31 +368,6 @@ class _CreateMessagePostScreenNewState
                                               ),
                                             ),
                                           ),
-                                          // LEFT: Media Preview
-                                          /*   ClipRRect(
-                                            borderRadius: BorderRadius.only(
-                                              topLeft: Radius.circular(12),
-                                              bottomLeft: Radius.circular(12),
-                                            ),
-                                            child: Image.network(
-                                              widget.post?.media?.first ?? "",
-                                              // only first image for preview
-                                              height: 65,
-                                              width: 90,
-                                              fit: BoxFit.cover,
-                                              errorBuilder:
-                                                  (context, error, stackTrace) =>
-                                                  Container(
-                                                    height: 90,
-                                                    width: 90,
-                                                    color: AppColors.secondaryTextColor
-                                                        ..withValues(alpha: 0.1),
-                                                    child: Icon(Icons.image,
-                                                        color: AppColors
-                                                            .secondaryTextColor),
-                                                  ),
-                                            ),
-                                          ),*/
 
                                           // RIGHT: Text Section
                                           Expanded(

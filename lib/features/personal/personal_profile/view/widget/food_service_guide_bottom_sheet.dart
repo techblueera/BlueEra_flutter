@@ -3,7 +3,9 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
@@ -27,28 +29,28 @@ class _FoodServiceGuideBottomSheetState extends State<FoodServiceGuideBottomShee
 
   final List<ServiceItem> _services = [
     ServiceItem(
-      name: 'Tiffin',
+      name: AppStrings.tiffin,
       slugId: TIFFIN,
       icon: AppIconAssets.tiffinIcon,
       bgColor: const Color(0xFFFFF2DF),
       labelColor: const Color(0xFFAF6800),
     ),
     ServiceItem(
-      name: 'Bakery',
+      name: AppStrings.bakery,
       slugId: BAKERY,
       icon: AppIconAssets.bakeryIcon,
       bgColor: const Color(0xFFFFF2C3),
       labelColor: const Color(0xFF5D4900),
     ),
     ServiceItem(
-      name: 'Sweets',
+      name: AppStrings.sweets,
       slugId: SWEETS,
       icon: AppIconAssets.sweetIcon,
       bgColor: const Color(0xFFF0F4C2),
       labelColor: const Color(0xFF4E5500),
     ),
     ServiceItem(
-      name: 'Other',
+      name: AppStrings.other,
       slugId: OTHER,
       icon: AppIconAssets.staggeredIcon,
       bgColor: const Color(0xFFCFD8DD),
@@ -74,7 +76,7 @@ class _FoodServiceGuideBottomSheetState extends State<FoodServiceGuideBottomShee
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 CustomText(
-                  'Home Made Food Items',
+                  AppStrings.homeMadeFoodItems,
                   fontSize: SizeConfig.large,
                   fontWeight: FontWeight.w600,
                   color: AppColors.mainTextColor,
@@ -90,14 +92,14 @@ class _FoodServiceGuideBottomSheetState extends State<FoodServiceGuideBottomShee
             HorizontalVideoPlayer(),
             SizedBox(height: SizeConfig.size10),
             CustomText(
-              'How To Earn With Home Made Food Items ? consectetur adipiscing elit. Nunc vulputate li.....',
+              '${AppStrings.homeMadeFoodItems.tr} ${AppStrings.earnWithHomeMadeSubtitle.tr} ',
               fontSize: SizeConfig.medium,
               fontWeight: FontWeight.w400,
               color: AppColors.secondaryTextColor,
             ),
             SizedBox(height: SizeConfig.size20),
             CustomText(
-              'select Food Type',
+              AppStrings.selectFoodType,
               fontSize: SizeConfig.large,
               fontWeight: FontWeight.w600,
               color: AppColors.mainTextColor,
@@ -136,16 +138,23 @@ class _FoodServiceGuideBottomSheetState extends State<FoodServiceGuideBottomShee
 
             CustomBtn(
               height: SizeConfig.size40,
-              title: 'Start Listing Now',
+              title: AppStrings.startListingNow,
               onTap: () {
                 if (selectedService == null) {
-                  Get.snackbar('Select Home Made Food Item', 'Please select a home made food item to continue',
-                      backgroundColor: Colors.redAccent.withValues(alpha: 0.8),
-                      colorText: Colors.white);
+                  commonSnackBar(message: AppStrings.selectFoodTypeMessage);
+
                   return;
                 }
-
-                Get.offNamedUntil(
+                Get.back();
+                Get.toNamed(
+                  RouteHelper.getFoodUploadScreenRoute(),
+                  arguments: {
+                    ApiKeys.providerType: ProductServiceProviderType.user,
+                    ApiKeys.serviceSubType: EarnWithBlueEraServiceTypes.homeMadeFood,
+                    ApiKeys.category: selectedService?.slugId,
+                  },
+                );
+         /*       Get.offNamedUntil(
                   RouteHelper.getFoodUploadScreenRoute(),
                   ModalRoute.withName(RouteHelper.getEarnWithBlueEraNewScreenRoute()),
                   arguments: {
@@ -153,7 +162,7 @@ class _FoodServiceGuideBottomSheetState extends State<FoodServiceGuideBottomShee
                     ApiKeys.serviceSubType: EarnWithBlueEraServiceTypes.homeMadeFood,
                     ApiKeys.category: selectedService?.slugId,
                   },
-                );
+                );*/
               },
               bgColor: AppColors.primaryColor,
               textColor: AppColors.white,

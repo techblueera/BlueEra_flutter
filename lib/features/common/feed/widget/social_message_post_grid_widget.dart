@@ -290,14 +290,4 @@ class SocialImageGrid extends StatelessWidget {
 
   }
 
-  onTapImage({required int indexOfImage}) {
-    Get.to(
-      ImageViewScreen(
-        subTitle: subTitle ?? "",
-        appBarTitle: "Image Viewer",
-        imageUrls: imageUrls,
-        initialIndex: indexOfImage,
-      ),
-    );
-  }
 }

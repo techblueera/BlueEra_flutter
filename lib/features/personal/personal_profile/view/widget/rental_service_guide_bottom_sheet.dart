@@ -1,6 +1,8 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/horizonatal_video_player.dart';
@@ -40,7 +42,7 @@ class _RentalServiceGuideBottomSheetState extends State<RentalServiceGuideBottom
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 CustomText(
-                  'Rental Services',
+                  AppStrings.rentalServices,
                   fontSize: SizeConfig.large,
                   fontWeight: FontWeight.w600,
                   color: AppColors.mainTextColor,
@@ -56,14 +58,14 @@ class _RentalServiceGuideBottomSheetState extends State<RentalServiceGuideBottom
             HorizontalVideoPlayer(),
             SizedBox(height: SizeConfig.size10),
             CustomText(
-              'How To Earn With Rental Services ? consectetur adipiscing elit. Nunc vulputate li.....',
+              AppStrings.earnWithRentalServices,
               fontSize: SizeConfig.medium,
               fontWeight: FontWeight.w400,
               color: AppColors.secondaryTextColor,
             ),
             SizedBox(height: SizeConfig.size20),
             CustomText(
-              'select Rental Type',
+              AppStrings.selectRentalType,
               fontSize: SizeConfig.large,
               fontWeight: FontWeight.w600,
               color: AppColors.mainTextColor,
@@ -102,12 +104,11 @@ class _RentalServiceGuideBottomSheetState extends State<RentalServiceGuideBottom
 
             CustomBtn(
               height: SizeConfig.size40,
-              title: 'Start Listing Now',
+              title:AppStrings.startListingNow,
               onTap: () {
                 if (selectedService == null) {
-                  Get.snackbar('Select Rental Type', 'Please select a rental type to continue',
-                      backgroundColor: Colors.redAccent.withValues(alpha: 0.8),
-                      colorText: Colors.white);
+                  commonSnackBar(message: AppStrings.selectRentalTypeMessage);
+
                   return;
                 }
 
@@ -126,7 +127,6 @@ class _RentalServiceGuideBottomSheetState extends State<RentalServiceGuideBottom
   }
 
   void _handleServiceTap() async {
-    print('selected index-- ${selectedIndex}');
     switch (selectedIndex) {
       case 0:
         Get.toNamed(RouteHelper.getHomeStayRentalServiceRoute());

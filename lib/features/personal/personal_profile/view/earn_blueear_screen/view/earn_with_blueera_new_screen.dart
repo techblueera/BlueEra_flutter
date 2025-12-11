@@ -175,7 +175,7 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen>
                         width: SizeConfig.size10,
                       ),
                       CustomText(
-                        "Go Live",
+                        AppStrings.goLive,
                         color: AppColors.primaryColor,
                         fontWeight: FontWeight.w600,
                       ),

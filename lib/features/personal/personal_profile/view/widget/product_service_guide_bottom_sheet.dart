@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -29,7 +30,7 @@ class ProductServiceGuideBottomSheet extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               CustomText(
-                'Home Made Products',
+                AppStrings.homeMadeProducts,
                 fontSize: SizeConfig.large,
                 fontWeight: FontWeight.w600,
                 color: AppColors.mainTextColor,
@@ -45,7 +46,7 @@ class ProductServiceGuideBottomSheet extends StatelessWidget {
           HorizontalVideoPlayer(),
           SizedBox(height: SizeConfig.size10),
           CustomText(
-            'How To Earn With Home Made Products ? consectetur adipiscing elit. Nunc vulputate li.....',
+            "${AppStrings.earnWithHomeMadeTitle.tr} ${AppStrings.earnWithHomeMadeSubtitle.tr}",
             fontSize: SizeConfig.medium,
             fontWeight: FontWeight.w400,
             color: AppColors.secondaryTextColor,
@@ -54,7 +55,7 @@ class ProductServiceGuideBottomSheet extends StatelessWidget {
 
           CustomBtn(
             height: SizeConfig.size40,
-            title: 'Start Listing Now',
+            title: AppStrings.startListingNow,
             onTap: () {
               Get.offNamedUntil(
                 RouteHelper.getAddProductScreenRoute(),

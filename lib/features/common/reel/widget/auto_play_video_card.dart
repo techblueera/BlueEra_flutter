@@ -1,13 +1,23 @@
-
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/video_post_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/home/view/video_feed_listing/video_feed_screen.dart';
+import 'package:BlueEra/features/common/post/controller/message_post_controller.dart';
+import 'package:BlueEra/features/common/post/repo/post_repo.dart';
 import 'package:BlueEra/features/common/reel/widget/auto_video_playback_manager.dart';
 import 'package:BlueEra/features/common/reel/widget/common_video_card.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:octo_image/octo_image.dart';
@@ -65,40 +75,10 @@ class _PostFeedAutoPlayVideoCardState extends State<PostFeedAutoPlayVideoCard>
     );
   }
 
-  Widget singleNetworkImage({
-    required String urlLink,
-    required double media_width,
-    required double media_height,
-  }) {
-    // final double screenWidth = Get.width;
-    const double borderRadiusValue = 12.0;
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(borderRadiusValue),
-      child: CachedNetworkImage(
-        imageUrl: urlLink,
-        width: media_width,
-        height: media_height,
-        fit: BoxFit.cover,
-        placeholder: (context, _) => Container(
-          color: Colors.grey[200],
-          alignment: Alignment.center,
-          child: const CircularProgressIndicator(strokeWidth: 2),
-        ),
-        errorWidget: (context, _, __) => Container(
-          color: Colors.grey[300],
-          alignment: Alignment.center,
-          child: const Icon(Icons.broken_image_outlined, color: Colors.grey),
-        ),
-      ),
-    );
-  }
-
   /// 🧩 Helper: Cover Image Widget
 
   @override
   Widget build(BuildContext context) {
-    // 👇 only the video section
     /// 🧩 Helper: Image Builder
     final mainContent = VisibilityDetector(
       key: ValueKey(widget.videoItem.videoId),
@@ -114,7 +94,6 @@ class _PostFeedAutoPlayVideoCardState extends State<PostFeedAutoPlayVideoCard>
             controller.value.isInitialized &&
             controller.value.size.width > 0 &&
             controller.value.size.height > 0;
-
 
         return LayoutBuilder(builder: (context, constraints) {
           final screenWidth = constraints.maxWidth;
@@ -186,40 +165,244 @@ class _PostFeedAutoPlayVideoCardState extends State<PostFeedAutoPlayVideoCard>
                   ),
 
                 // --- 🔇 Mute Button
-              
-                  if (isCurrent && controller != null)
-                    Positioned(
-                      top: SizeConfig.size12,
-                      right: SizeConfig.size10,
-                      child: GestureDetector(
-                        onTap: videoManager.toggleMute,
-                        child: Container(
-                          padding: EdgeInsets.all(SizeConfig.size6),
-                          decoration: BoxDecoration(
-                            color: AppColors.blackCC,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: ValueListenableBuilder<bool>(
-                            valueListenable: videoManager.isMuted,
-                            builder: (_, isMuted, __) => Icon(
-                              isMuted ? Icons.volume_off : Icons.volume_up,
-                              color: AppColors.white,
-                              size: SizeConfig.size20,
-                            ),
+
+                if (isCurrent && controller != null)
+                  Positioned(
+                    top: SizeConfig.size12,
+                    right: SizeConfig.size10,
+                    child: GestureDetector(
+                      onTap: videoManager.toggleMute,
+                      child: Container(
+                        padding: EdgeInsets.all(SizeConfig.size6),
+                        decoration: BoxDecoration(
+                          color: AppColors.blackCC,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: ValueListenableBuilder<bool>(
+                          valueListenable: videoManager.isMuted,
+                          builder: (_, isMuted, __) => Icon(
+                            isMuted ? Icons.volume_off : Icons.volume_up,
+                            color: AppColors.white,
+                            size: SizeConfig.size20,
                           ),
                         ),
                       ),
                     ),
+                  ),
+
+                // ⭐ NEW — LinkedIn-style UI
+                Obx(() {
+                  if (videoManager.showReplayOverlay.value) {
+                    return Positioned.fill(
+                      child: Container(
+                        color: Colors.black45,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            // Repost button (rounded)
+                            InkWell(
+                              onTap: () {
+                                if (isGuestUser()) {
+                                  createProfileScreen();
+
+                                  return;
+                                }
+                                showDialog(
+                                  context: context,
+                                  barrierDismissible: true,
+                                  builder: (context) {
+                                    return Dialog(
+                                      insetPadding: EdgeInsets.symmetric(
+                                          horizontal: SizeConfig.size20),
+                                      backgroundColor: AppColors.white,
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(12)),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(12),
+                                        child: ConstrainedBox(
+                                          constraints:
+                                              BoxConstraints(maxWidth: 800),
+                                          child: Padding(
+                                            padding: EdgeInsets.symmetric(
+                                                horizontal: SizeConfig.size15),
+                                            child: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                SizedBox(
+                                                    height: SizeConfig.size20),
+                                                InkWell(
+                                                  onTap: () async {
+                                                    Get.put(
+                                                        MessagePostController());
+
+                                                    ///REPOST MESSAGE AND POLL POST...
+                                                    Get.back();
+                                                    ResponseModel
+                                                        responseModel =
+                                                        await PostRepo()
+                                                            .addRePostNewRepo(
+                                                      reqDataData: {
+                                                        ApiKeys.type:
+                                                            AppConstants
+                                                                .MESSAGE_POST,
+                                                        ApiKeys.repostId:
+                                                            widget.videoItem.videoId ??
+                                                                ""
+                                                      },
+                                                    );
+                                                    if (responseModel
+                                                        .isSuccess) {
+                                                      commonSnackBar(
+                                                          message:
+                                                              "Reposted successfully");
+                                                      Get.find<
+                                                              NavigationHelperController>()
+                                                          .shouldRefreshBottomBar
+                                                          .value = true;
+                                                      Get.until((route) =>
+                                                          route.settings.name ==
+                                                          RouteHelper
+                                                              .getBottomNavigationBarScreenRoute());
+                                                    } else {
+                                                      commonSnackBar(
+                                                          message:
+                                                              "You have already reposted this post");
+                                                    }
+                                                  },
+                                                  child: Row(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Container(
+                                                        width:
+                                                            SizeConfig.size30,
+                                                        height:
+                                                            SizeConfig.size30,
+                                                        child: LocalAssets(
+                                                          imagePath:
+                                                              AppIconAssets
+                                                                  .repost_new,
+                                                          width:
+                                                              SizeConfig.size30,
+                                                          height:
+                                                              SizeConfig.size30,
+                                                        ),
+                                                      ),
+                                                      Expanded(
+                                                        child: Column(
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          children: [
+                                                            Padding(
+                                                              padding: EdgeInsets
+                                                                  .symmetric(
+                                                                      horizontal:
+                                                                          SizeConfig
+                                                                              .size10),
+                                                              child: CustomText(
+                                                                "Repost",
+                                                                textAlign:
+                                                                    TextAlign
+                                                                        .left,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                                fontSize:
+                                                                    SizeConfig
+                                                                        .size16,
+                                                              ),
+                                                            ),
+                                                            Padding(
+                                                              padding: EdgeInsets
+                                                                  .symmetric(
+                                                                      horizontal:
+                                                                          SizeConfig
+                                                                              .size10),
+                                                              child: CustomText(
+                                                                "Share this post with your followers",
+                                                                textAlign:
+                                                                    TextAlign
+                                                                        .left,
+                                                                color: AppColors
+                                                                    .secondaryTextColor,
+                                                                fontSize:
+                                                                    SizeConfig
+                                                                        .size13,
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+
+                                                SizedBox(
+                                                    height: SizeConfig.size20),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                );
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 20, vertical: 12),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(40),
+                                  border: Border.all(
+                                      color: Colors.white, width: 1.2),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: const [
+                                    Icon(Icons.repeat, color: Colors.white),
+                                    SizedBox(width: 8),
+                                    CustomText(AppStrings.Repost,
+                                        color: Colors.white, fontSize: 16),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+
+                            // Watch again
+                            GestureDetector(
+                              onTap: () {
+                                videoManager.playVideo(
+                                    widget.videoItem.video?.id ?? "");
+                              },
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: const [
+                                  Icon(Icons.refresh, color: Colors.white),
+                                  SizedBox(width: 8),
+                                  CustomText(AppStrings.watchAgain,
+                                      color: Colors.white, fontSize: 16),
+                                ],
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+                  return SizedBox.shrink();
+                }),
               ],
             ),
           );
         });
-
       }),
     );
 
     /// 🧩 Helper: Cover Image Widget
-    // return SizedBox();
     return SizedBox(
       width: Get.width,
       child: CommonVideoCard(
@@ -227,14 +410,7 @@ class _PostFeedAutoPlayVideoCardState extends State<PostFeedAutoPlayVideoCard>
         videoItem: widget.videoItem,
         videoType: widget.videoType,
         onTapOption: widget.onTapOption,
-        // Changes to onTapCard in PostFeedAutoPlayVideoCard (replace your onTapCard)
-
         onTapCard: () async {
-          // Pause headline playback before pushing fullscreen
-          // videoManager.pauseCurrentVideo();
-
-          // Option A (recommended): Reuse shared controller in fullscreen.
-          // Pass an identifier and let fullscreen UI use the same manager/controller.
           await Get.to(() => VideoFeedScreen(
                 videoData: VideoPost(
                   id: '${widget.videoItem.video?.id}',
@@ -265,253 +441,3 @@ class _PostFeedAutoPlayVideoCardState extends State<PostFeedAutoPlayVideoCard>
     );
   }
 }
-
-/*
-class AutoPlayVideoCard extends StatefulWidget {
-  final ShortFeedItem videoItem;
-  final ValueNotifier<bool>? globalMuteNotifier;
-  final VideoType videoType;
-  final VoidCallback onTapOption;
-
-  const AutoPlayVideoCard({
-    super.key,
-    required this.videoItem,
-    this.globalMuteNotifier,
-    required this.videoType,
-    required this.onTapOption,
-  });
-
-  @override
-  State<AutoPlayVideoCard> createState() => _AutoPlayVideoCardState();
-}
-
-class _AutoPlayVideoCardState extends State<AutoPlayVideoCard> {
-  final videoManager = Get.isRegistered<SimplePriorityVideoManager>()
-      ? Get.find<SimplePriorityVideoManager>()
-      : Get.put(SimplePriorityVideoManager());
-
-  @override
-  void dispose() {
-    // final videoManager = Get.isRegistered<SimplePriorityVideoManager>()
-    //     ? Get.find<SimplePriorityVideoManager>()
-    //     : Get.put(SimplePriorityVideoManager());
-    videoManager.removeVideo(widget.videoItem.videoId ?? '');
-    super.dispose();
-  }
-
-  void _handleVisibilityChange(VisibilityInfo info) {
-    // final videoManager = Get.isRegistered<SimplePriorityVideoManager>()
-    //     ? Get.find<SimplePriorityVideoManager>()
-    //     : Get.put(SimplePriorityVideoManager());
-
-    String videoUrl;
-    // if(Platform.isAndroid){
-    //   videoUrl = widget.videoItem.video?.transcodedUrls?.master ??
-    //       widget.videoItem.video?.videoUrl ??
-    //       '';
-    // }else{
-    //   videoUrl =
-    //       widget.videoItem.video?.videoUrl ??
-    //       '';
-    // }
-    videoUrl = widget.videoItem.video?.videoUrl ?? '';
-
-    videoManager.updateVideoVisibility(
-      widget.videoItem.videoId ?? '',
-      videoUrl,
-      info.visibleFraction,
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // final videoManager = Get.put(SimplePriorityVideoManager());
-
-    // 👇 only the video section
-    final mainContent = AspectRatio(
-      aspectRatio: 16 / 9,
-      child: VisibilityDetector(
-        key: ValueKey(widget.videoItem.videoId),
-        onVisibilityChanged: _handleVisibilityChange,
-        child: Obx(() {
-          final isCurrent = videoManager.currentIndex.value ==
-              widget.videoItem.videoId.hashCode;
-          final controller = videoManager.controller;
-          final isScrolling = videoManager.isScrolling.value;
-
-          return Stack(
-            // fit: StackFit.expand,
-            children: [
-              // Thumbnail
-              AspectRatio(
-                aspectRatio: 16 / 9,
-                child: ClipRRect(
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(8)),
-                  child: widget.videoItem.video?.coverUrl != null &&
-                          isNetworkImage(widget.videoItem.video?.coverUrl ?? '')
-                      ? CachedNetworkImage(
-                          imageUrl: widget.videoItem.video?.coverUrl ?? '',
-                          width: SizeConfig.screenWidth,
-                          height: SizeConfig.size170,
-                          fit: BoxFit.cover,
-                          placeholder: (_, __) => Container(
-                            width: SizeConfig.screenWidth,
-                            height: SizeConfig.size140,
-                            // color: Colors.grey[300],
-                            child: LocalAssets(
-                              imagePath: AppIconAssets.place_holder_image,
-                              boxFix: BoxFit.cover,
-                            ),
-                          ),
-                          errorWidget: (_, __, ___) => Container(
-                            width: SizeConfig.screenWidth,
-                            height: SizeConfig.size140,
-                            color: Colors.grey[300],
-                            child: LocalAssets(
-                              imagePath: AppIconAssets.place_holder_image,
-                              boxFix: BoxFit.cover,
-                            ),
-                            // LocalAssets(imagePath: AppIconAssets.appIcon),
-                          ),
-                        )
-                      : widget.videoItem.video?.coverUrl != null
-                          ? Image.file(
-                              File(widget.videoItem.video?.coverUrl ?? ''),
-                              width: SizeConfig.screenWidth,
-                              height: SizeConfig.size170,
-                              fit: BoxFit.cover,
-                            )
-                          : Container(
-                              width: SizeConfig.screenWidth,
-                              height: SizeConfig.size140,
-                              color: Colors.grey[300],
-                              child: LocalAssets(
-                                  imagePath: AppIconAssets.place_holder_image,
-                                  boxFix: BoxFit.cover),
-                            ),
-                ),
-              ),
-
-              // Video
-              if (isCurrent &&
-                  controller != null &&
-                  controller.value.isInitialized)
-                AspectRatio(
-                    aspectRatio: 16 / 9, child: VideoPlayer(controller)),
-
-              // Loading overlay
-              if (isScrolling && isCurrent)
-                Container(
-                  color: Colors.black38,
-                  child: const Center(child: CircularProgressIndicator()),
-                ),
-
-              // Mute button
-              if (isCurrent && controller != null)
-                Positioned(
-                  top: SizeConfig.size12,
-                  right: SizeConfig.size10,
-                  child: GestureDetector(
-                    onTap: videoManager.toggleMute,
-                    child: Container(
-                      padding: EdgeInsets.all(SizeConfig.size6),
-                      decoration: BoxDecoration(
-                        color: AppColors.blackCC,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: ValueListenableBuilder<bool>(
-                        valueListenable: videoManager.isMuted,
-                        builder: (_, isMuted, __) => Icon(
-                          isMuted ? Icons.volume_off : Icons.volume_up,
-                          color: AppColors.white,
-                          size: SizeConfig.size20,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-
-              // Video meta info (duration, likes)
-              Positioned(
-                left: SizeConfig.size12,
-                right: SizeConfig.size12,
-                bottom: SizeConfig.size12,
-                child: VideoPostMetaInfo(
-                  totalVideoDuration: formatDuration(
-                    Duration(seconds: widget.videoItem.video?.duration ?? 0),
-                  ),
-                  totalLikes:
-                      widget.videoItem.video?.stats?.likes.toString() ?? '0',
-                  videoType: widget.videoType,
-                ),
-              ),
-
-              // Change Thumbnail button
-              if ((widget.videoItem.channel?.id != null &&
-                      widget.videoItem.channel?.id == channelId) ||
-                  (widget.videoItem.author?.accountType ==
-                          AppConstants.individual &&
-                      widget.videoItem.author?.id == userId))
-                Positioned(
-                  left: SizeConfig.size10,
-                  top: SizeConfig.size12,
-                  child: InkWell(
-                    onTap: () => _pickImageFromGallery(context),
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                        vertical: SizeConfig.size6,
-                        horizontal: SizeConfig.size8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.blackCC,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: CustomText(
-                        "Change Thumbnail",
-                        color: AppColors.white,
-                        fontSize: SizeConfig.small,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          );
-        }),
-      ),
-    );
-
-    return CommonVideoCard(
-      mainContent: mainContent,
-      videoItem: widget.videoItem,
-      videoType: widget.videoType,
-      onTapOption: widget.onTapOption,
-      onTapCard: () {
-        Navigator.pushNamed(
-          context,
-          RouteHelper.getVideoPlayerScreenRoute(),
-          arguments: {
-            ApiKeys.videoItem: widget.videoItem,
-            ApiKeys.videoType: widget.videoType
-          },
-        );
-      },
-      isShowUser: true,
-    );
-  }
-
-  void _pickImageFromGallery(BuildContext context) async {
-    final croppedPath = await SelectProfilePictureDialog.pickFromGallery(
-      context,
-      cropAspectRatio: const CropAspectRatio(width: 16, height: 9),
-    );
-    if (croppedPath != null) {
-      await Get.find<VideoController>().updateVideoThumbnail(
-        videoId: widget.videoItem.video?.id ?? '',
-        videoType: widget.videoType,
-        thumbnail: croppedPath,
-      );
-    }
-  }
-}
-*/

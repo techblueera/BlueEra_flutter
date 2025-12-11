@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../../core/constants/size_config.dart';
@@ -53,7 +54,7 @@ class _MyProductsScreenState extends State<MyProductsScreen> {
               ),
               const Spacer(),
               CustomText(
-                "Go Live",
+                AppStrings.goLive,
                 color: Colors.blue,
                 fontWeight: FontWeight.w500,
                 fontSize: SizeConfig.size15,

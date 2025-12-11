@@ -4,10 +4,14 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/chat/view/ai_chat/ask_inventory_chat_screen.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
+import 'package:BlueEra/features/common/bottomNavigationBar/auth/controller/ai_chat_guest_controller.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_widget.dart';
 import 'package:BlueEra/features/common/feed/view/all_message_post_screen.dart';
 import 'package:BlueEra/features/common/food/view/grocery/grocery_category_screen.dart';
@@ -25,6 +29,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_scr
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/inventory_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
+import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/service_provider_dialoge.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_callkit_incoming/entities/call_event.dart';
@@ -66,6 +71,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   final orderController = Get.isRegistered<DeliverPartnerOrdersController>()
       ? Get.find<DeliverPartnerOrdersController>()
       : Get.put(DeliverPartnerOrdersController());
+  final dialogService = Get.put(DialogService());
 
   void handleRejectOrder(String orderId) {
     orderController.updateOrderStatusFromPialot(
@@ -84,6 +90,10 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   @override
   void initState() {
     super.initState();
+    if (isGuestUser()) {
+      logs("DIALOGE CALL");
+      _checkAndShowDialog();
+    }
     _checkAndFetchLocationData();
     _getAllBusinessCategories();
     _initializeControllers();
@@ -136,7 +146,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
 
   Future<void> _checkAndFetchLocationData() async {
     await LocationService.fetchLocation();
-    log('initially lat--> ${LocationService.lat}, initially lng--> ${LocationService.lng}');
   }
 
   void _getAllBusinessCategories() {
@@ -209,7 +218,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
           Status.COMPLETE) {
         viewProfileController.viewBusinessProfile();
       }
-    }else{
+    } else {
       if (viewPersonalDetailsController.viewPersonalResponse.value.status !=
           Status.COMPLETE) {
         viewPersonalDetailsController.viewPersonalProfile();
@@ -250,7 +259,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
-
       body: ValueListenableBuilder(
           valueListenable: bottomBarVisibleNotifier,
           builder: (context, isVisible, _) {
@@ -377,4 +385,37 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         : PersonalProfileSetupNewScreen();
   }
 
+  void _checkAndShowDialog() async {
+    if (await dialogService.shouldShowDialog()) {
+      Future.delayed(Duration(seconds: 5), () async {
+        await showCommonDialog(
+            context: context,
+            header: "Sarthi AI",
+            text: "Start Chat with Sarthi",
+            confirmCallback: () async {
+              Navigator.of(context).pop();
+            },
+            cancelCallback: () {
+              Navigator.of(context).pop();
+
+              final chat = ChatViewController.inventoryAiChatListSearchModule;
+
+              Get.to(() => AskInventoryChatScreen(
+                    profileImage: chat?.sender?.profileImage,
+                    name: chat?.sender?.name,
+                    contactNo: chat?.sender?.contactNo,
+                    conversationId: '',
+                    userId: '',
+                    businessId: '',
+                    type: chat?.sender?.accountType,
+                    isInitialMessage: false,
+                  ));
+              // Close the dialog
+            },
+            confirmText: AppStrings.cancel,
+            cancelText: AppStrings.chatNow);
+        dialogService.saveDialogShown();
+      });
+    }
+  }
 }

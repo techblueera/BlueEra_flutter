@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/block_report_selection_dialog.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -292,11 +293,6 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                   ),
                                   child: InkWell(
                                     onTap: () {
-                                      // Get.to(MessagePostDetailsScreen(
-                                      //   post: _post,
-                                      //   postType: PostType.all
-                                      //   ,
-                                      // ));
                                       openProfileToClickUser();
                                     },
                                     child: Container(
@@ -675,7 +671,7 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                                             .isSuccess) {
                                                           commonSnackBar(
                                                               message:
-                                                                  "Reposted successfully");
+                                                              AppStrings.repostedSuccessfully);
                                                           Get.find<
                                                                   NavigationHelperController>()
                                                               .shouldRefreshBottomBar
@@ -688,7 +684,7 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                                         } else {
                                                           commonSnackBar(
                                                               message:
-                                                                  "You have already reposted this post");
+                                                              AppStrings.alreadyReposted);
                                                         }
                                                       },
                                                       child: Row(
@@ -724,7 +720,7 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                                                               .size10),
                                                                   child:
                                                                       CustomText(
-                                                                    "Repost",
+                                                                        AppStrings.Repost,
                                                                     textAlign:
                                                                         TextAlign
                                                                             .left,
@@ -743,7 +739,7 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                                                               .size10),
                                                                   child:
                                                                       CustomText(
-                                                                    "Share this post with your followers",
+                                                                        AppStrings.sharePostWithFollowers,
                                                                     textAlign:
                                                                         TextAlign
                                                                             .left,
@@ -815,7 +811,7 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                                                               .size10),
                                                                   child:
                                                                       CustomText(
-                                                                    "Add your things",
+                                                                    AppStrings.addYourThings,
                                                                     textAlign:
                                                                         TextAlign
                                                                             .left,
@@ -834,7 +830,7 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                                                               .size10),
                                                                   child:
                                                                       CustomText(
-                                                                    "Add a comment ,photo before you share this post",
+                                                                        AppStrings.addCommentBeforeShare,
                                                                     textAlign:
                                                                         TextAlign
                                                                             .left,

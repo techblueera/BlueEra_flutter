@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -371,7 +372,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
                         width: SizeConfig.size10,
                       ),
                       CustomText(
-                        "Go Live",
+                       AppStrings.goLive,
                         color: AppColors.primaryColor,
                         fontWeight: FontWeight.w600,
                       ),

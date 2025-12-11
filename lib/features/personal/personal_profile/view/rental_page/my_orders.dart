@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:flutter/material.dart';
 
 
@@ -65,7 +66,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     CustomText(
-                      "Go Live",
+                      AppStrings.goLive,
                       color: Colors.blue,
                       fontSize: SizeConfig.size15,
                       fontWeight: FontWeight.w500,

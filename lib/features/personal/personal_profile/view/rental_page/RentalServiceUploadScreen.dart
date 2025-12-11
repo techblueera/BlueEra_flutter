@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:flutter/material.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/size_config.dart';
@@ -17,7 +18,7 @@ class RentalServiceUploadScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: CommonBackAppBar(
-        title: "Rental Service",
+        title: AppStrings.rentalServices,
       ),
       // bottomNavigationBar: SafeArea(
       //   child: Padding(

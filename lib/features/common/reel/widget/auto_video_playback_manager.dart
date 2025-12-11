@@ -9,6 +9,8 @@ class SimplePriorityVideoManager extends GetxController {
   VideoPlayerController? _controller;
   final currentIndex = (-1).obs;
   final ValueNotifier<bool> isMuted = ValueNotifier<bool>(true);
+  final Map<String, int> playCount = {};
+  RxBool showReplayOverlay = false.obs;
 
   // Simple tracking
   final RxMap<String, double> visibleVideos = <String, double>{}.obs;
@@ -20,23 +22,9 @@ class SimplePriorityVideoManager extends GetxController {
 
   VideoPlayerController? get controller => _controller;
 
-  void onScrollStart() {
-    isScrolling.value = true;
-    _playDelayTimer?.cancel();
 
-    // Pause current video during scroll
-    if (_controller?.value.isPlaying == true) {
-      _controller?.pause();
-    }
-
-    _scrollStopTimer?.cancel();
-    _scrollStopTimer = Timer(const Duration(milliseconds: 500), () {
-      isScrolling.value = false;
-      _checkAndPlayTopVideo();
-    });
-  }
-
-  void updateVideoVisibility(String videoId, String videoUrl, double visibilityFraction) {
+  void updateVideoVisibility(
+      String videoId, String videoUrl, double visibilityFraction) {
     if (visibilityFraction >= 0.7) {
       visibleVideos[videoId] = visibilityFraction;
       videoUrls[videoId] = videoUrl;
@@ -47,6 +35,12 @@ class SimplePriorityVideoManager extends GetxController {
 
     if (!isScrolling.value) {
       _checkAndPlayTopVideo();
+    }
+    if (currentIndex.value != videoId.hashCode) {
+      playCount[videoId] = 0; // reset video count
+    }
+    if (currentIndex.value != videoId.hashCode) {
+      playCount[videoId] = 0; // reset video count
     }
   }
 
@@ -77,29 +71,26 @@ class SimplePriorityVideoManager extends GetxController {
     _playDelayTimer?.cancel();
     _playDelayTimer = Timer(const Duration(milliseconds: 600), () {
       if (!isScrolling.value && _currentPriorityVideo == videoId) {
-        _playVideo(videoId);
+        playVideo(videoId);
         _scheduleVideoView(videoId);
         // Future.delayed(const Duration(seconds: 5), () {
         //   // videoView(videoId: videoController.videoFeedItem!.video!.id ?? '0');
         // });
-
       }
     });
   }
 
-
   void _scheduleVideoView(String videoId) {
-
     if (Get.isRegistered<VideoController>()) {
-    } else {
-    }
+    } else {}
     // Future.delayed(const Duration(seconds: 5), () {
     //   videoController?.videoView(videoId: videoId);
     // });
   }
+
   // _scheduleVideoView();
 
-  Future<void> _playVideo(String videoId) async {
+  Future<void> playVideo(String videoId) async {
     final videoUrl = videoUrls[videoId];
     if (videoUrl == null) {
       print('Video URL not found for: $videoId');
@@ -117,14 +108,12 @@ class SimplePriorityVideoManager extends GetxController {
       }
 
       // videoUrl.toLowerCase().endsWith('.m3u8');
-
+      showReplayOverlay = false.obs;
       // Create new controller
       _controller = VideoPlayerController.networkUrl(
-          Uri.parse(videoUrl),
-          videoPlayerOptions: VideoPlayerOptions(
-            mixWithOthers: true,
-            allowBackgroundPlayback: true
-        ),
+        Uri.parse(videoUrl),
+        videoPlayerOptions: VideoPlayerOptions(
+            mixWithOthers: true, allowBackgroundPlayback: true),
         // videoPlayerOptions: isHls
         //     ? VideoPlayerOptions(
         //     mixWithOthers: true,
@@ -133,9 +122,58 @@ class SimplePriorityVideoManager extends GetxController {
         //     : null,
       );
       await _controller!.initialize();
+      playCount[videoId] = 0;
+      _controller?.addListener(() {
+        final controller = _controller;
+        if (controller == null) return;
+
+        final position = controller.value.position;
+        final duration = controller.value.duration;
+
+        if (duration.inMilliseconds == 0) return;
+
+        if (position >= duration) {
+          final count = playCount[videoId] ?? 0;
+
+          if (count < 1) {
+            // Replay once
+            playCount[videoId] = count + 1;
+            controller.seekTo(Duration.zero);
+            controller.play();
+          } else {
+            // Stop & show overlay
+            controller.pause();
+            showReplayOverlay.value = true;
+          }
+        }
+      });
+
+      /*  _controller?.addListener(() {
+
+        final controller = _controller;
+        if (controller == null) return;
+
+        final position = controller.value.position;
+        final duration = controller.value.duration;
+
+        if (duration.inMilliseconds == 0) return; // avoid division crash
+
+        if (position >= duration) {
+          final count = playCount[videoId] ?? 0;
+
+          if (count < 1) {
+            // Play again (2 total plays → count 0,1)
+            playCount[videoId] = count + 1;
+            controller.seekTo(Duration.zero);
+            controller.play();
+          } else {
+            controller.pause();
+          }
+        }
+      });*/
 
       // Set properties
-      await _controller!.setLooping(true);
+      // await _controller!.setLooping(true);
       await _controller!.setVolume(isMuted.value ? 0 : 1);
 
       // Play only if still the priority video
