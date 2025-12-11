@@ -128,4 +128,8 @@ class AppColors {
   static const  liteBlue = Color(0xFFE9F3FF);
   static const  blackMite = Color(0x991C1C1C);
   static const  redBE = Color(0xFFF9BEBE);
+  static const  symbolBorderBlue = Color(0xFF0183FC);
+  static const  symbolBorderRed = Color(0xFFEC2528);
+  static const  symbolBorderGreen = Color(0xFF08F159);
+  static const  symbolBorderYellow = Color(0xFFEEE92B);
 }
