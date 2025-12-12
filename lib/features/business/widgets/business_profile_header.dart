@@ -234,15 +234,15 @@ class BusinessProfileHeader extends StatelessWidget {
                         ),
                         InkWell(
                           onTap: () {
-                            Get.to(FoodCategoryPage());
-                            // Navigator.push(
-                            //     context,
-                            //     MaterialPageRoute(
-                            //       builder: (context) =>
-                            //           BusinessDetailsEditPageOne(
-                            //         prevBusinessDetails: details,
-                            //       ),
-                            //     ));
+
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      BusinessDetailsEditPageOne(
+                                    prevBusinessDetails: details,
+                                  ),
+                                ));
 
                           },
                           child: Container(

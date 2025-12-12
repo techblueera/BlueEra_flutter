@@ -164,9 +164,8 @@ class AppIconCategoryAssets {
   // Eggs
   static const String boiledEgg = "${foodPath}nonveg/boiledEgg.png";
   static const String masalaEgg = "${foodPath}nonveg/masalaEgg.png";
-  static const String eggPatties2 = "${foodPath}nonveg/eggPatties2.png";
   static const String eggRolls = "${foodPath}nonveg/eggRolls.png";
-  static const String eggPatties = "${foodPath}nonveg/eggPatties.png";
+  static const String eggPatties = "${foodPath}nonveg/omelette.png";
   static const String omelette = "${foodPath}nonveg/omelette.png";
   static const String eggSandwich = "${foodPath}nonveg/eggSandwich.png";
   static const String eggCutlet = "${foodPath}nonveg/eggCutlet.png";
@@ -218,25 +217,25 @@ class AppIconCategoryAssets {
   // Dairy Drinks
   // ----------------------
   static const String milk = "${foodPath}sweetanddairy/milk.png";
-  static const String yogurtDrinks = "${foodPath}sweetanddairy/yogurt_drinks.png";
+  static const String yogurtDrinks = "${foodPath}sweetanddairy/yogurtDrinks.png";
   static const String lassi = "${foodPath}sweetanddairy/lassi.png";
   static const String paneer = "${foodPath}sweetanddairy/paneer.png";
   static const String ghee = "${foodPath}sweetanddairy/ghee.png";
   static const String milkshakes = "${foodPath}sweetanddairy/milkshakes.png";
-  static const String teaCoffee = "${foodPath}sweetanddairy/tea_coffee.png";
-  static const String dairyOthers = "${foodPath}sweetanddairy/others.png";
+  static const String teaCoffee = "${foodPath}sweetanddairy/teaCoffee.png";
+  static const String dairyOthers = "${foodPath}sweetanddairy/dairyOthers.png";
 
   // ----------------------
   // Indian Sweets
   // ----------------------
   static const String rasgulla = "${foodPath}sweetanddairy/rasgulla.png";
-  static const String gulabJamun = "${foodPath}sweetanddairy/gulab_jamun.png";
+  static const String gulabJamun = "${foodPath}sweetanddairy/gulabJamun.png";
   static const String rajbhog = "${foodPath}sweetanddairy/rajbhog.png";
   static const String rasmalai = "${foodPath}sweetanddairy/rasmalai.png";
-  static const String kheerCups = "${foodPath}sweetanddairy/kheer_cups.png";
+  static const String kheerCups = "${foodPath}sweetanddairy/kheerCups.png";
   static const String sandesh = "${foodPath}sweetanddairy/sandesh.png";
-  static const String chamCham = "${foodPath}sweetanddairy/cham_cham.png";
-  static const String barfiAssort = "${foodPath}sweetanddairy/barfi_assortment.png";
+  static const String chamCham = "${foodPath}sweetanddairy/chamCham.png";
+  static const String barfiAssort = "${foodPath}sweetanddairy/barfiAssort.png";
 
   // ----------------------
   // Western Desserts
@@ -248,109 +247,108 @@ class AppIconCategoryAssets {
   static const String tarts = "${foodPath}sweetanddairy/tarts.png";
   static const String donuts = "${foodPath}sweetanddairy/donuts.png";
   static const String waffles = "${foodPath}sweetanddairy/waffles.png";
-  static const String dessertJars = "${foodPath}sweetanddairy/dessert_jars.png";
+  static const String dessertJars = "${foodPath}sweetanddairy/dessertJars.png";
 
   // ----------------------
   // Ice Creams & Frozen Desserts
   // ----------------------
-  static const String iceCreamCups = "${foodPath}sweetanddairy/ice_cream_cups.png";
+  static const String iceCreamCups = "${foodPath}sweetanddairy/iceCreamCups.png";
   static const String sorbet = "${foodPath}sweetanddairy/sorbet.png";
   static const String kulfi = "${foodPath}sweetanddairy/kulfi.png";
   static const String gelato = "${foodPath}sweetanddairy/gelato.png";
-  static const String frozenYogurt = "${foodPath}sweetanddairy/frozen_yogurt.png";
+  static const String frozenYogurt = "${foodPath}sweetanddairy/frozenYogurt.png";
   static const String sundae = "${foodPath}sweetanddairy/sundae.png";
-  static const String familyPacks = "${foodPath}sweetanddairy/family_packs.png";
-  static const String iceCreamBars = "${foodPath}sweetanddairy/bars_sticks.png";
+  static const String familyPacks = "${foodPath}sweetanddairy/familyPacks.png";
+  static const String iceCreamBars = "${foodPath}sweetanddairy/iceCreamBars.png";
 
   // ----------------------
   // Juice Corner
   // ----------------------
-  static const String orangeJuice = "${foodPath}sweetanddairy/orange_juice.png";
-  static const String mosambiJuice = "${foodPath}sweetanddairy/mosambi_juice.png";
-  static const String watermelonJuice = "${foodPath}sweetanddairy/watermelon_juice.png";
-  static const String pomegranateJuice = "${foodPath}sweetanddairy/pomegranate_juice.png";
-  static const String pineappleJuice = "${foodPath}sweetanddairy/pineapple_juice.png";
-  static const String mangoJuice = "${foodPath}sweetanddairy/mango_juice.png";
-  static const String appleJuice = "${foodPath}sweetanddairy/apple_juice.png";
-  static const String mixedFruitJuice = "${foodPath}sweetanddairy/mixed_fruit_juice.png";
+  static const String orangeJuice = "${foodPath}sweetanddairy/orangeJuice.png";
+  static const String mosambiJuice = "${foodPath}sweetanddairy/mosambiJuice.png";
+  static const String watermelonJuice = "${foodPath}sweetanddairy/watermelonJuice.png";
+  static const String pomegranateJuice = "${foodPath}sweetanddairy/pomegranateJuice.png";
+  static const String pineappleJuice = "${foodPath}sweetanddairy/pineappleJuice.png";
+  static const String mangoJuice = "${foodPath}sweetanddairy/mangoJuice.png";
+  static const String appleJuice = "${foodPath}sweetanddairy/appleJuice.png";
+  static const String mixedFruitJuice = "${foodPath}sweetanddairy/mixedFruitJuice.png";
 
   // ----------------------
   // Oil Fried Snacks
   // ----------------------
   static const String samosa = "${foodPath}sweetanddairy/samosa.png";
   static const String kachori = "${foodPath}sweetanddairy/kachori.png";
-  static const String pakoraBhaji = "${foodPath}sweetanddairy/pakora_bhaji.png";
-  static const String frenchFries = "${foodPath}sweetanddairy/french_fries.png";
-  static const String chickenFishFry = "${foodPath}sweetanddairy/chicken_fish_fry.png";
-  static const String cutlet = "${foodPath}sweetanddairy/cutlet_patties.png";
+  static const String pakoraBhaji = "${foodPath}sweetanddairy/pakoraBhaji.png";
+  static const String frenchFries = "${foodPath}sweetanddairy/frenchFries.png";
+  static const String chickenFishFry = "${foodPath}sweetanddairy/chickenFishFry.png";
+  static const String cutlet = "${foodPath}sweetanddairy/cutlet.png";
   static const String vada = "${foodPath}sweetanddairy/vada.png";
-  static const String crispyRolls = "${foodPath}sweetanddairy/crispy_rolls.png";
+  static const String crispyRolls = "${foodPath}sweetanddairy/crispyRolls.png";
 //--------- Bakery
 // --------------------- Bakery ---------------------
   static const String puffs = "${foodPath}bakery/puffs.png";
-  static const String bakeryPatties = "${foodPath}bakery/patties.png";
+  static const String bakeryPatties = "${foodPath}bakery/bakeryPatties.png";
   static const String sandwiches = "${foodPath}bakery/sandwiches.png";
   static const String croissants = "${foodPath}bakery/croissants.png";
-
-  static const String bakeryGarlicBread = "${foodPath}bakery/garlic_bread.png";
-  static const String rollsWraps = "${foodPath}bakery/rolls_wraps.png";
-  static const String miniPizzas = "${foodPath}bakery/mini_pizzas.png";
-  static const String cheeseSticks = "${foodPath}bakery/cheese_sticks.png";
+  static const String bakeryGarlicBread = "${foodPath}bakery/bakeryGarlicBread.png";
+  static const String rollsWraps = "${foodPath}bakery/rollsWraps.png";
+  static const String miniPizzas = "${foodPath}bakery/miniPizzas.png";
+  static const String cheeseSticks = "${foodPath}bakery/cheeseSticks.png";
 
   // --------------------- Bread ---------------------
-  static const String whiteBread = "${foodPath}bakery/white_bread.png";
-  static const String brownBread = "${foodPath}bakery/brown_bread.png";
-  static const String multigrainBread = "${foodPath}bakery/multigrain_bread.png";
-  static const String milkBread = "${foodPath}bakery/milk_bread.png";
+  static const String whiteBread = "${foodPath}bakery/whiteBread.png";
+  static const String brownBread = "${foodPath}bakery/brownBread.png";
+  static const String multigrainBread = "${foodPath}bakery/multigrainBread.png";
+  static const String milkBread = "${foodPath}bakery/milkBread.png";
 
-  static const String sandwichBread = "${foodPath}bakery/sandwich_bread.png";
-  static const String garlicBreadLoaf = "${foodPath}bakery/garlic_bread_loaf.png";
-  static const String bunsPav = "${foodPath}bakery/buns_pav.png";
-  static const String artisanBread = "${foodPath}bakery/artisan_bread.png";
+  static const String sandwichBread = "${foodPath}bakery/sandwichBread.png";
+  static const String garlicBreadLoaf = "${foodPath}bakery/garlicBreadLoaf.png";
+  static const String bunsPav = "${foodPath}bakery/bunsPav.png";
+  static const String artisanBread = "${foodPath}bakery/artisanBread.png";
 
   // --------------------- Cakes & Muffins ---------------------
   static const String cupcakes = "${foodPath}bakery/cupcakes.png";
   static const String muffins = "${foodPath}bakery/muffins.png";
-  static const String sliceCakes = "${foodPath}bakery/slice_cakes.png";
+  static const String sliceCakes = "${foodPath}bakery/sliceCakes.png";
   static const String pastries = "${foodPath}bakery/pastries.png";
 
-  static const String teaCakes = "${foodPath}bakery/tea_cakes.png";
-  static const String plumCake = "${foodPath}bakery/plum_cake.png";
-  static const String miniCakes = "${foodPath}bakery/mini_cakes.png";
-  static const String celebrationCake = "${foodPath}bakery/celebration_cake.png";
+  static const String teaCakes = "${foodPath}bakery/teaCakes.png";
+  static const String plumCake = "${foodPath}bakery/plumCake.png";
+  static const String miniCakes = "${foodPath}bakery/miniCakes.png";
+  static const String celebrationCake = "${foodPath}bakery/celebrationCake.png";
 
   // --------------------- Cookies & Biscuits ---------------------
-  static const String butterCookies = "${foodPath}bakery/butter_cookies.png";
-  static const String chocoChipCookies = "${foodPath}bakery/choco_chip_cookies.png";
-  static const String oatsCookies = "${foodPath}bakery/oats_cookies.png";
+  static const String butterCookies = "${foodPath}bakery/butterCookies.png";
+  static const String chocoChipCookies = "${foodPath}bakery/chocoChipCookies.png";
+  static const String oatsCookies = "${foodPath}bakery/oatsCookies.png";
   static const String shortbread = "${foodPath}bakery/shortbread.png";
 
-  static const String jeeraBiscuits = "${foodPath}bakery/jeera_biscuits.png";
-  static const String digestiveCookies = "${foodPath}bakery/digestive_cookies.png";
-  static const String dryCakeRusks = "${foodPath}bakery/dry_cake_rusks.png";
-  static const String assortedCookies = "${foodPath}bakery/assorted_cookies.png";
+  static const String jeeraBiscuits = "${foodPath}bakery/jeeraBiscuits.png";
+  static const String digestiveCookies = "${foodPath}bakery/digestiveCookies.png";
+  static const String dryCakeRusks = "${foodPath}bakery/dryCakeRusks.png";
+  static const String assortedCookies = "${foodPath}bakery/assortedCookies.png";
 
   // --------------------- Dessert / Bakery Sweets ---------------------
-  static const String bakeryDonuts = "${foodPath}bakery/donuts.png";
-  static const String bakeryBrownies = "${foodPath}bakery/brownies.png";
-  static const String cheesecakeSlices = "${foodPath}bakery/cheesecake_slices.png";
-  static const String bakeryTarts = "${foodPath}bakery/tarts.png";
+  static const String bakeryDonuts = "${foodPath}bakery/bakeryDonuts.png";
+  static const String bakeryBrownies = "${foodPath}bakery/bakeryBrownies.png";
+  static const String cheesecakeSlices = "${foodPath}bakery/cheesecakeSlices.png";
+  static const String bakeryTarts = "${foodPath}bakery/bakeryTarts.png";
 
   static const String eclairs = "${foodPath}bakery/eclairs.png";
-  static const String bakeryWaffles = "${foodPath}bakery/waffles.png";
+  static const String bakeryWaffles = "${foodPath}bakery/bakeryWaffles.png";
   static const String puddings = "${foodPath}bakery/puddings.png";
-  static const String bakeryDessertJars = "${foodPath}bakery/dessert_jars.png";
+  static const String bakeryDessertJars = "${foodPath}bakery/bakeryDessertJars.png";
 
   // --------------------- Namkeens ---------------------
-  static const String alooBhujia = "${foodPath}bakery/aloo_bhujia.png";
-  static const String bikaneriBhujia = "${foodPath}bakery/bikaneri_bhujia.png";
-  static const String moongDalNamkeen = "${foodPath}bakery/moong_dal_namkeen.png";
-  static const String navratanMix = "${foodPath}bakery/navratan_mix.png";
+  static const String alooBhujia = "${foodPath}bakery/alooBhujia.png";
+  static const String bikaneriBhujia = "${foodPath}bakery/bikaneriBhujia.png";
+  static const String moongDalNamkeen = "${foodPath}bakery/moongDalNamkeen.png";
+  static const String navratanMix = "${foodPath}bakery/navratanMix.png";
 
-  static const String chanaJorGaram = "${foodPath}bakery/chana_jor_garam.png";
-  static const String masalaSev = "${foodPath}bakery/masala_sev.png";
-  static const String saltedPeanuts = "${foodPath}bakery/salted_peanuts.png";
-  static const String khakhraSnacks = "${foodPath}bakery/khakhra_baked_snacks.png";
+  static const String chanaJorGaram = "${foodPath}bakery/chanaJorGaram.png";
+  static const String masalaSev = "${foodPath}bakery/masalaSev.png";
+  static const String saltedPeanuts = "${foodPath}bakery/saltedPeanuts.png";
+  static const String khakhraSnacks = "${foodPath}bakery/khakhraSnacks.png";
 //-----------others
   // Ice Cream
   static const vanilla = "${foodPath}others/vanilla.png";
@@ -363,7 +361,8 @@ class AppIconCategoryAssets {
   static const nutsCaramel = "${foodPath}others/nuts_caramel.png";
 
   // Street Food
-  static const otherSamosa = "${foodPath}others/samosa.png";
+  static const otherSamosa = "${foodPath}others/nonVegSamosa.png";
+  static const  OthersSamosa = "${foodPath}others/samosa.png";
   static const othersKachori = "${foodPath}others/kachori.png";
   static const alooChop = "${foodPath}others/aloo_chop.png";
   static const breadPakora = "${foodPath}others/bread.png";

@@ -127,7 +127,7 @@ class NonVegCategoryPage extends StatelessWidget {
               _iconItem(AppIconCategoryAssets.chicken65, "Chicken 65"),
               _iconItem(AppIconCategoryAssets.chickenStrips, "Spicy Chicken Strips"),
               _iconItem(AppIconCategoryAssets.nonVegPlatter, "Non-Veg Platter Pack"),
-              _iconItem(AppIconCategoryAssets.samosa, "Chicken Samosa"),
+              _iconItem(AppIconCategoryAssets.nonVegSamosa, "Chicken Samosa"),
               _iconItem(AppIconCategoryAssets.fishPakora, "Fish Pakora"),
               _iconItem(AppIconCategoryAssets.prawnTempura, "Prawn Tempura"),
               _iconItem(AppIconCategoryAssets.chickenLollipop, "Chicken Lollipop"),

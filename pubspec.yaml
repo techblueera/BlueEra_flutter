@@ -109,6 +109,8 @@ flutter:
     - assets/category/dal/
     - assets/category/foods/veg/
     - assets/category/foods/nonveg/
+    - assets/category/foods/sweetanddairy/
+    - assets/category/foods/bakery/
     - assets/category/foods/others/
 
 
