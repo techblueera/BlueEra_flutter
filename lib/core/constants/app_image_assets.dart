@@ -122,14 +122,14 @@ class AppIconCategoryAssets {
   //---------------- NonVeg Section
 
   // Thali & Paratha
-  static const String chickenThali = "${foodPath}nonveg/chicken_thali.png";
-  static const String muttonThali = "${foodPath}nonveg/mutton_thali.png";
-  static const String eggThali = "${foodPath}nonveg/egg_thali.png";
-  static const String fishThali = "${foodPath}nonveg/fish_thali.png";
-  static const String chickenParatha = "${foodPath}nonveg/chicken_paratha.png";
-  static const String eggParatha = "${foodPath}nonveg/egg_paratha.png";
-  static const String keemaParatha = "${foodPath}nonveg/keema_paratha.png";
-  static const String fishCombo = "${foodPath}nonveg/fish_paratha_combo.png";
+  static const String chickenThali = "${foodPath}nonveg/chickenThali.png";
+  static const String muttonThali = "${foodPath}nonveg/muttonThali.png";
+  static const String eggThali = "${foodPath}nonveg/eggThali.png";
+  static const String fishThali = "${foodPath}nonveg/fishThali.png";
+  static const String chickenParatha = "${foodPath}nonveg/chickenParatha.png";
+  static const String eggParatha = "${foodPath}nonveg/eggParatha.png";
+  static const String keemaParatha = "${foodPath}nonveg/keemaParatha.png";
+  static const String fishCombo = "${foodPath}nonveg/fishCombo.png";
 
   // Chicken
   static const String nuggets = "${foodPath}nonveg/nuggets.png";
@@ -142,35 +142,75 @@ class AppIconCategoryAssets {
   static const String wings = "${foodPath}nonveg/wings.png";
 
   // Fish & Seafood
-  static const String fingers = "${foodPath}fish/fingers.png";
-  static const String cutletFish = "${foodPath}fish/cutlet.png";
-  static const String popcornFish = "${foodPath}fish/popcorn.png";
-  static const String patties = "${foodPath}fish/patties.png";
-  static const String prawnFry = "${foodPath}fish/prawn_fry.png";
-  static const String prawnPopcorn = "${foodPath}fish/prawn_popcorn.png";
-  static const String crabSticks = "${foodPath}fish/crab_sticks.png";
-  static const String seafoodMix = "${foodPath}fish/seafood_mix.png";
+  static const String fingers = "${foodPath}nonveg/fingers.png";
+  static const String cutletFish = "${foodPath}nonveg/cutletFish.png";
+  static const String popcornFish = "${foodPath}nonveg/popcorn.png";
+  static const String patties = "${foodPath}nonveg/patties.png";
+  static const String prawnFry = "${foodPath}nonveg/prawnFry.png";
+  static const String prawnPopcorn = "${foodPath}nonveg/prawnPopcorn.png";
+  static const String crabSticks = "${foodPath}nonveg/crabSticks.png";
+  static const String seafoodMix = "${foodPath}nonveg/seafoodMix.png";
 
   // Mutton
-  static const String seekhKebab = "${foodPath}mutton/seekh_kebab.png";
-  static const String shamiKebab = "${foodPath}mutton/shami_kebab.png";
-  static const String muttonCutlets = "${foodPath}mutton/cutlets.png";
-  static const String muttonMomos = "${foodPath}mutton/momos.png";
-  static const String muttonRoll = "${foodPath}mutton/roll.png";
-  static const String muttonPatties = "${foodPath}mutton/patties.png";
-  static const String muttonMeatballs = "${foodPath}mutton/meatballs.png";
-  static const String muttonCurry = "${foodPath}mutton/curry.png";
+  static const String seekhKebab = "${foodPath}nonveg/seekhKebab.png";
+  static const String shamiKebab = "${foodPath}nonveg/shamiKebab.png";
+  static const String muttonCutlets = "${foodPath}nonveg/muttonCutlets.png";
+  static const String muttonMomos = "${foodPath}nonveg/muttonMomos.png";
+  static const String muttonRoll = "${foodPath}nonveg/muttonRoll.png";
+  static const String muttonPatties = "${foodPath}nonveg/muttonPatties.png";
+  static const String muttonMeatballs = "${foodPath}nonveg/muttonMeatballs.png";
+  static const String muttonCurry = "${foodPath}nonveg/muttonCurry.png";
 
   // Eggs
-  static const String boiledEgg = "${foodPath}egg/boiled.png";
-  static const String masalaEgg = "${foodPath}egg/masala.png";
-  static const String eggPatties2 = "${foodPath}egg/patties.png";
-  static const String eggRolls = "${foodPath}egg/rolls.png";
-  static const String eggPatties = "${foodPath}egg/eggPatties.png";
-  static const String omelette = "${foodPath}egg/omelette.png";
-  static const String eggSandwich = "${foodPath}egg/sandwich_filling.png";
-  static const String eggCutlet = "${foodPath}egg/cutlet.png";
-  static const String bhurji = "${foodPath}egg/bhurji.png";
+  static const String boiledEgg = "${foodPath}nonveg/boiledEgg.png";
+  static const String masalaEgg = "${foodPath}nonveg/masalaEgg.png";
+  static const String eggPatties2 = "${foodPath}nonveg/eggPatties2.png";
+  static const String eggRolls = "${foodPath}nonveg/eggRolls.png";
+  static const String eggPatties = "${foodPath}nonveg/eggPatties.png";
+  static const String omelette = "${foodPath}nonveg/omelette.png";
+  static const String eggSandwich = "${foodPath}nonveg/eggSandwich.png";
+  static const String eggCutlet = "${foodPath}nonveg/eggCutlet.png";
+  static const String bhurji = "${foodPath}nonveg/bhurji.png";
+
+// Frozen Non-Veg Meals
+  static const String chickenBiryani = "${foodPath}nonveg/chickenBiryani.png";
+  static const String chickenFriedRice = "${foodPath}nonveg/chickenFriedRice.png";
+  static const String nonVegPizza = "${foodPath}nonveg/nonVegPizza.png";
+  static const String chickenPasta = "${foodPath}nonveg/chickenPasta.png";
+  static const String chickenCheeseBalls = "${foodPath}nonveg/chickenCheeseBalls.png";
+  static const String chickenBurgerPatties = "${foodPath}nonveg/chickenBurgerPatties.png";
+  static const String chickenShawarmaWrap = "${foodPath}nonveg/chickenShawarmaWrap.png";
+  static const String chickenNoodles = "${foodPath}nonveg/chickenNoodles.png";
+
+// Snacks & Starters
+  static const String springRolls = "${foodPath}nonveg/springRolls.png";
+  static const String chicken65 = "${foodPath}nonveg/chicken65.png";
+  static const String chickenStrips = "${foodPath}nonveg/chickenStrips.png";
+  static const String nonVegPlatter = "${foodPath}nonveg/nonVegPlatter.png";
+  static const String nonVegSamosa = "${foodPath}nonveg/nonVegSamosa.png";
+  static const String fishPakora = "${foodPath}nonveg/fishPakora.png";
+  static const String prawnTempura = "${foodPath}nonveg/prawnTempura.png";
+  static const String chickenLollipop = "${foodPath}nonveg/chickenLollipop.png";
+
+// Marinated & Tandoori
+  static const String tandoori = "${foodPath}nonveg/tandoori.png";
+  static const String nonVegPeriPeri = "${foodPath}nonveg/nonVegPeriPeri.png";
+  static const String bbq = "${foodPath}nonveg/bbq.png";
+  static const String malai = "${foodPath}nonveg/malai.png";
+  static const String fishTikka = "${foodPath}nonveg/fishTikka.png";
+  static const String prawnMasala = "${foodPath}nonveg/prawnMasala.png";
+  static const String muttonSeekh = "${foodPath}nonveg/muttonSeekh.png";
+  static const String grillMix = "${foodPath}nonveg/grillMix.png";
+
+// Rolls & Wraps
+  static const String chickenRoll = "${foodPath}nonveg/chickenRoll.png";
+  static const String eggRoll = "${foodPath}nonveg/eggRoll.png";
+  static const String eggChickenRoll = "${foodPath}nonveg/eggChickenRoll.png";
+  static const String fishRoll = "${foodPath}nonveg/fishRoll.png";
+  static const String shawarmaRoll = "${foodPath}nonveg/shawarmaRoll.png";
+  static const String kathiRoll = "${foodPath}nonveg/kathiRoll.png";
+  static const String chickenWrap = "${foodPath}nonveg/chickenWrap.png";
+  static const String mixWrap = "${foodPath}nonveg/mixWrap.png";
 
   //---------------Sweet And Dairy
 
@@ -313,22 +353,22 @@ class AppIconCategoryAssets {
   static const String khakhraSnacks = "${foodPath}bakery/khakhra_baked_snacks.png";
 //-----------others
   // Ice Cream
-  static const vanilla = "${foodPath}icecream/vanilla.png";
-  static const chocolate = "${foodPath}icecream/chocolate.png";
-  static const strawberry = "${foodPath}icecream/strawberry.png";
-  static const butterscotch = "${foodPath}icecream/butterscotch.png";
-  static const blackCurrant = "${foodPath}icecream/black_currant.png";
-  static const mango = "${foodPath}icecream/mango.png";
-  static const coffee = "${foodPath}icecream/coffee.png";
-  static const nutsCaramel = "${foodPath}icecream/nuts_caramel.png";
+  static const vanilla = "${foodPath}others/vanilla.png";
+  static const chocolate = "${foodPath}others/chocolate.png";
+  static const strawberry = "${foodPath}others/strawberry.png";
+  static const butterscotch = "${foodPath}others/butterscotch.png";
+  static const blackCurrant = "${foodPath}others/black_currant.png";
+  static const mango = "${foodPath}others/mango.png";
+  static const coffee = "${foodPath}others/coffee.png";
+  static const nutsCaramel = "${foodPath}others/nuts_caramel.png";
 
   // Street Food
-  static const otherSamosa = "${foodPath}street/samosa.png";
-  static const othersKachori = "${foodPath}street/kachori.png";
-  static const alooChop = "${foodPath}street/aloo_chop.png";
-  static const breadPakora = "${foodPath}street/bread_pakora.png";
-  static const paneerPakora = "${foodPath}street/paneer_pakora.png";
-  static const batataVada = "${foodPath}street/batata_vada.png";
-  static const vegCutlet = "${foodPath}street/veg_cutlet.png";
-  static const dalVada = "${foodPath}street/dal_vada.png";
+  static const otherSamosa = "${foodPath}others/samosa.png";
+  static const othersKachori = "${foodPath}others/kachori.png";
+  static const alooChop = "${foodPath}others/aloo_chop.png";
+  static const breadPakora = "${foodPath}others/bread.png";
+  static const paneerPakora = "${foodPath}others/paneer_pakora.png";
+  static const batataVada = "${foodPath}others/batata_vada.png";
+  static const vegCutlet = "${foodPath}others/veg_cutlet.png";
+  static const dalVada = "${foodPath}others/dal_vada.png";
 }

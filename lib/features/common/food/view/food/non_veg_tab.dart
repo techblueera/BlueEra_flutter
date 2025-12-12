@@ -57,7 +57,7 @@ class NonVegCategoryPage extends StatelessWidget {
             "Fish & Seafood",
             [
               _iconItem(AppIconCategoryAssets.fingers, "Fish Fingers"),
-              _iconItem(AppIconCategoryAssets.cutlets, "Fish Cutlets"),
+              _iconItem(AppIconCategoryAssets.cutletFish, "Fish Cutlets"),
               _iconItem(AppIconCategoryAssets.popcornFish, "Fish Popcorn"),
               _iconItem(AppIconCategoryAssets.patties, "Fish Patties"),
               _iconItem(AppIconCategoryAssets.prawnFry, "Prawn Fry"),
@@ -98,6 +98,73 @@ class NonVegCategoryPage extends StatelessWidget {
               _iconItem(AppIconCategoryAssets.eggSandwich, "Egg Sandwich"),
               _iconItem(AppIconCategoryAssets.eggCutlet, "Egg Cutlet"),
               _iconItem(AppIconCategoryAssets.bhurji, "Egg Bhurji"),
+            ],
+          ),
+// -------------------------------------
+// 6️⃣ Frozen Non-Veg Meals
+// -------------------------------------
+          _sectionWidget(
+            "Frozen Non-Veg Meals",
+            [
+              _iconItem(AppIconCategoryAssets.chickenBiryani, "Chicken Biryani"),
+              _iconItem(AppIconCategoryAssets.chickenFriedRice, "Chicken Fried Rice"),
+              _iconItem(AppIconCategoryAssets.nonVegPizza, "Non-Veg Pizza"),
+              _iconItem(AppIconCategoryAssets.chickenPasta, "Chicken Pasta"),
+              _iconItem(AppIconCategoryAssets.chickenCheeseBalls, "Chicken Cheese Balls"),
+              _iconItem(AppIconCategoryAssets.chickenBurgerPatties, "Chicken Burger Patties"),
+              _iconItem(AppIconCategoryAssets.chickenShawarmaWrap, "Chicken Shawarma Wrap"),
+              _iconItem(AppIconCategoryAssets.chickenNoodles, "Chicken Noodles"),
+            ],
+          ),
+
+// -------------------------------------
+// 7️⃣ Snacks & Starters
+// -------------------------------------
+          _sectionWidget(
+            "Snacks & Starters",
+            [
+              _iconItem(AppIconCategoryAssets.springRolls, "Chicken Spring Rolls"),
+              _iconItem(AppIconCategoryAssets.chicken65, "Chicken 65"),
+              _iconItem(AppIconCategoryAssets.chickenStrips, "Spicy Chicken Strips"),
+              _iconItem(AppIconCategoryAssets.nonVegPlatter, "Non-Veg Platter Pack"),
+              _iconItem(AppIconCategoryAssets.samosa, "Chicken Samosa"),
+              _iconItem(AppIconCategoryAssets.fishPakora, "Fish Pakora"),
+              _iconItem(AppIconCategoryAssets.prawnTempura, "Prawn Tempura"),
+              _iconItem(AppIconCategoryAssets.chickenLollipop, "Chicken Lollipop"),
+            ],
+          ),
+
+// -------------------------------------
+// 8️⃣ Marinated & Tandoori
+// -------------------------------------
+          _sectionWidget(
+            "Marinated & Tandoori",
+            [
+              _iconItem(AppIconCategoryAssets.tandoori, "Chicken Tandoori Marinade"),
+              _iconItem(AppIconCategoryAssets.periPeri, "Chicken Peri-Peri Marinade"),
+              _iconItem(AppIconCategoryAssets.bbq, "Chicken BBQ Marinade"),
+              _iconItem(AppIconCategoryAssets.malai, "Chicken Malai Marinade"),
+              _iconItem(AppIconCategoryAssets.fishTikka, "Fish Tikka Marinade"),
+              _iconItem(AppIconCategoryAssets.prawnMasala, "Prawn Masala Marinade"),
+              _iconItem(AppIconCategoryAssets.muttonSeekh, "Mutton Seekh Marinade"),
+              _iconItem(AppIconCategoryAssets.grillMix, "Grill Mix Pack"),
+            ],
+          ),
+
+// -------------------------------------
+// 9️⃣ Rolls & Wraps
+// -------------------------------------
+          _sectionWidget(
+            "Rolls & Wraps",
+            [
+              _iconItem(AppIconCategoryAssets.chickenRoll, "Chicken Roll"),
+              _iconItem(AppIconCategoryAssets.eggRoll, "Egg Roll"),
+              _iconItem(AppIconCategoryAssets.eggChickenRoll, "Egg-Chicken Roll"),
+              _iconItem(AppIconCategoryAssets.fishRoll, "Fish Roll"),
+              _iconItem(AppIconCategoryAssets.shawarmaRoll, "Chicken Shawarma"),
+              _iconItem(AppIconCategoryAssets.kathiRoll, "Chicken Kathi Roll"),
+              _iconItem(AppIconCategoryAssets.chickenWrap, "Chicken Wrap"),
+              _iconItem(AppIconCategoryAssets.mixWrap, "Non-Veg Wrap Mix"),
             ],
           ),
 

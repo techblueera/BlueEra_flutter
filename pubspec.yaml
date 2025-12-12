@@ -108,6 +108,8 @@ flutter:
     - assets/category/
     - assets/category/dal/
     - assets/category/foods/veg/
+    - assets/category/foods/nonveg/
+    - assets/category/foods/others/
 
 
 
