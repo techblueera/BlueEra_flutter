@@ -64,4 +64,16 @@ class FoodAiRepo extends BaseService {
     return response;
   }
 
+
+  ///FETCH SINGLE FOOD SERVICES....
+  Future<ResponseModel> getFoodCategoryDataApi({required String categoryName}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      "${categoryTree}?type=$categoryName",
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
 }
