@@ -107,6 +107,7 @@ flutter:
     - assets/sound/
     - assets/category/
     - assets/category/dal/
+    - assets/category/foods/all_food_category/
 
 
 

@@ -192,7 +192,7 @@ class _PostFeedAutoPlayVideoCardState extends State<PostFeedAutoPlayVideoCard>
 
                 // ⭐ NEW — LinkedIn-style UI
                 Obx(() {
-                  if (videoManager.showReplayOverlay.value) {
+                  if (videoManager.showReplayOverlay.value&&(showVideo && controller.value.isInitialized)) {
                     return Positioned.fill(
                       child: Container(
                         color: Colors.black45,

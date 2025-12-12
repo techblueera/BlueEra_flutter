@@ -57,7 +57,8 @@ class FoodUploadController extends GetxController {
       ApiResponse.initial('Initial').obs;
 
   final GlobalKey<FormState> formKey = GlobalKey();
-
+  final RxInt selectedFoodSubTabIndex = 0
+      .obs;
   // Form controllers
   final TextEditingController foodNameController = TextEditingController();
   final TextEditingController cityNameController = TextEditingController();
@@ -88,6 +89,9 @@ class FoodUploadController extends GetxController {
   var priceOptions = <PriceOption>[].obs;
 
   bool shouldRefresh = false;
+  void onChangeFoodSubTab(int index){
+    selectedFoodSubTabIndex.value=index;
+  }
 
   @override
   void onInit() {
