@@ -53,6 +53,7 @@ class AppConstants {
   static const String qa = 'QA';
   static const String dev = 'Dev';
   static const String baseImageAssetsPath = "assets/images/";
+  static const String baseImageAssetsCategoryPath = "assets/category/";
   static const String baseIconAssetsPath = "assets/icons/";
   static const String baseSvgAssetsPath = "assets/svg/";
   static const String baseGifsAssetsPath = "assets/gifs/";
