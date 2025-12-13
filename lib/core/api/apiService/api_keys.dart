@@ -554,5 +554,6 @@ class ApiKeys {
   static const argSelectedGroceryData = 'argSelectedGroceryData';
   static const argCategoryId = 'argCategoryId';
   static const argIsShowInGrid = 'argIsShowInGrid';
+  static const argOwnGrocery = 'argOwnGrocery';
 
 }

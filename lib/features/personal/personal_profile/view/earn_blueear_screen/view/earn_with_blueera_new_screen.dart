@@ -27,6 +27,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/widgets/tab_bar_delegate.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -148,62 +149,62 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen>
           : (earnWithBlueEraController.isRiderServiceOpt.value.toLowerCase() == 'true' ||
           earnWithBlueEraController.isEarnServiceOpt.value.toLowerCase() == 'true')
           ? Scaffold(
-        appBar: PreferredSize(
-          preferredSize: Size.fromHeight(kToolbarHeight + 50),
-          child: CommonBackAppBar(
-            isLeading: !(widget.fromBottomNavBar),
-            isGoLive: true,
-            isGoLiveWidget: () {
-              if (accountTypeGlobal == AppConstants.individual) {
-                final statusData = serviceProviderStatusGlobal.toUpperCase();
-                if (statusData == AppConstants.OPEN.toUpperCase()) {
-                  viewPersonalDetailsController.shopStatusOpenClose.value = true;
-                } else {
-                  viewPersonalDetailsController.shopStatusOpenClose.value = false;
-                }
-                return Container(
-                  margin: EdgeInsets.only(left: SizeConfig.size10),
-                  height: SizeConfig.size40,
-                  decoration: BoxDecoration(
-                      border: Border.all(
-                        color: AppColors.primaryColor,
-                      ),
-                      borderRadius: BorderRadius.circular(12)),
-                  child: Row(
-                    children: [
-                      SizedBox(
-                        width: SizeConfig.size10,
-                      ),
-                      CustomText(
-                        AppStrings.goLive,
-                        color: AppColors.primaryColor,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      buildToggleSwitchChip(
-                        value: viewPersonalDetailsController.shopStatusOpenClose,
-                        onChanged: viewPersonalDetailsController.toggleShopStatus,
-                      ),
-                    ],
-                  ),
-                );
-              }
-              return SizedBox.shrink();
-            },
-            bottomWidget: TabBar(
-              controller: _tabController,
-              labelColor: AppColors.primaryColor,
-              unselectedLabelColor: Colors.grey[600],
-              indicatorColor: Colors.blue,
-              indicatorWeight: 2,
-              labelStyle: TextStyle(fontWeight: FontWeight.w600),
-              tabs: [
-                Tab(text: AppStrings.myOrder.tr),
-                Tab(text: AppStrings.myStore.tr),
-                Tab(text: AppStrings.businessCards.tr),
-              ],
-            ),
-          ),
-        ),
+        // appBar: PreferredSize(
+        //   preferredSize: Size.fromHeight(kToolbarHeight + 50),
+        //   child: CommonBackAppBar(
+        //     isLeading: !(widget.fromBottomNavBar),
+        //     isGoLive: true,
+        //     isGoLiveWidget: () {
+        //       if (accountTypeGlobal == AppConstants.individual) {
+        //         final statusData = serviceProviderStatusGlobal.toUpperCase();
+        //         if (statusData == AppConstants.OPEN.toUpperCase()) {
+        //           viewPersonalDetailsController.shopStatusOpenClose.value = true;
+        //         } else {
+        //           viewPersonalDetailsController.shopStatusOpenClose.value = false;
+        //         }
+        //         return Container(
+        //           margin: EdgeInsets.only(left: SizeConfig.size10),
+        //           height: SizeConfig.size40,
+        //           decoration: BoxDecoration(
+        //               border: Border.all(
+        //                 color: AppColors.primaryColor,
+        //               ),
+        //               borderRadius: BorderRadius.circular(12)),
+        //           child: Row(
+        //             children: [
+        //               SizedBox(
+        //                 width: SizeConfig.size10,
+        //               ),
+        //               CustomText(
+        //                 AppStrings.goLive,
+        //                 color: AppColors.primaryColor,
+        //                 fontWeight: FontWeight.w600,
+        //               ),
+        //               buildToggleSwitchChip(
+        //                 value: viewPersonalDetailsController.shopStatusOpenClose,
+        //                 onChanged: viewPersonalDetailsController.toggleShopStatus,
+        //               ),
+        //             ],
+        //           ),
+        //         );
+        //       }
+        //       return SizedBox.shrink();
+        //     },
+        //     bottomWidget: TabBar(
+        //       controller: _tabController,
+        //       labelColor: AppColors.primaryColor,
+        //       unselectedLabelColor: Colors.grey[600],
+        //       indicatorColor: Colors.blue,
+        //       indicatorWeight: 2,
+        //       labelStyle: TextStyle(fontWeight: FontWeight.w600),
+        //       tabs: [
+        //         Tab(text: AppStrings.myOrder.tr),
+        //         Tab(text: AppStrings.myStore.tr),
+        //         Tab(text: AppStrings.businessCards.tr),
+        //       ],
+        //     ),
+        //   ),
+        // ),
         floatingActionButton: Builder(builder: (context) {
           return Padding(
             padding: EdgeInsets.only(
@@ -226,17 +227,55 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen>
           );
         }),
         body: SafeArea(
-          child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildOwnUserOrders(),
-                _buildEarnWithBlueEraStore(),
-                SizedBox(
-                  child: CustomText(
-                      AppStrings.comingSoon
+          child: NestedScrollView(
+            headerSliverBuilder: (context, innerBoxIsScrolled) {
+              return [
+                SliverAppBar(
+                  backgroundColor: Colors.white,
+                  elevation: 0,
+                  floating: true,   // appear on scroll up
+                  snap: true,       // instantly snap down
+                  pinned: false,    // don't keep the header fixed
+                  automaticallyImplyLeading: false,
+                  flexibleSpace: Padding(
+                    padding: EdgeInsets.symmetric(vertical: SizeConfig.size15),
+                    child: _buildHeader(context), // your header row
+                  ),
+                  expandedHeight: SizeConfig.size70,
+                ),
+
+                SliverPersistentHeader(
+                  pinned: true,   // TabBar should always stay visible
+                  delegate: TabBarDelegate(
+                    TabBar(
+                      controller: _tabController,
+                      labelColor: AppColors.primaryColor,
+                      unselectedLabelColor: Colors.grey[600],
+                      indicatorColor: Colors.blue,
+                      indicatorWeight: 2,
+                      labelStyle: TextStyle(fontWeight: FontWeight.w600),
+                      tabs: [
+                        Tab(text: AppStrings.myOrder.tr),
+                        Tab(text: AppStrings.myStore.tr),
+                        Tab(text: AppStrings.businessCards.tr),
+                      ],
+                    ),
                   ),
                 ),
-              ]),
+              ];
+            },
+            body: TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildOwnUserOrders(),
+                  _buildEarnWithBlueEraStore(),
+                  SizedBox(
+                    child: CustomText(
+                        AppStrings.comingSoon
+                    ),
+                  ),
+                ]),
+          ),
         ),
       )
           : Scaffold(
@@ -409,6 +448,9 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen>
                   physics: const AlwaysScrollableScrollPhysics(),
                   shrinkWrap: true,
                   itemCount: productList.length,
+                  padding: EdgeInsets.only(
+                    bottom: kBottomNavigationBarHeight + SizeConfig.paddingL
+                  ),
                   itemBuilder: (context, index) {
                     final productData = productList[index];
 
@@ -479,6 +521,64 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen>
 
       return tabContent;
     });
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        // 1. leading (back-arrow) – only if NOT from bottom-nav
+        if (!widget.fromBottomNavBar)
+          IconButton(
+            padding: EdgeInsets.zero,
+            onPressed: () => Navigator.of(context).pop(),
+            icon: LocalAssets(
+              imagePath: AppIconAssets.back_arrow,
+              height: SizeConfig.paddingL,
+              width: SizeConfig.paddingL,
+              imgColor: Colors.black,
+            ),
+          )
+        else
+          const SizedBox(width: 16),
+
+        // 2. trailing – Go-Live switch (always at the end)
+        if (accountTypeGlobal == AppConstants.individual)
+          Builder(builder: (_) {
+            final statusData = serviceProviderStatusGlobal.toUpperCase();
+            viewPersonalDetailsController.shopStatusOpenClose.value =
+                statusData == AppConstants.OPEN.toUpperCase();
+
+            return Container(
+              margin: EdgeInsets.only(
+                  left: SizeConfig.size10,
+                  right: SizeConfig.paddingL
+              ),
+              height: SizeConfig.size40,
+              decoration: BoxDecoration(
+                border: Border.all(color: AppColors.primaryColor),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  SizedBox(width: SizeConfig.size10),
+                  CustomText(
+                    AppStrings.goLive,
+                    color: AppColors.primaryColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  buildToggleSwitchChip(
+                    value: viewPersonalDetailsController.shopStatusOpenClose,
+                    onChanged: viewPersonalDetailsController.toggleShopStatus,
+                  ),
+                ],
+              ),
+            );
+          })
+        else
+          const SizedBox.shrink(),
+      ],
+    );
   }
 
 }

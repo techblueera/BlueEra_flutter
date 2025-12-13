@@ -989,9 +989,9 @@ extension InventoryMenuItemExt on InventoryMenuItem {
 }
 
 enum RentalServiceType {
-  homeStay("Home Stay"),
-  flatRoom("Flat/Room"),
-  vehicle("Vehicle");
+  homeStay(AppStrings.homeStay),
+  flatRoom(AppStrings.flatRoom),
+  vehicle(AppStrings.vehicle);
 
   final String label;
 
