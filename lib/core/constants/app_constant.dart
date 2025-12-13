@@ -30,6 +30,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../features/business/visit_business_profile/view/visit_business_profile_new.dart';
+import '../../features/chat/view/add_symbol/add_symbol_screen.dart';
 import '../../features/personal/personal_profile/view/widget/service_item.dart';
 
 class AppConstants {
@@ -748,6 +749,7 @@ List<PopupMenuEntry<String>> popupMenuOrderTabItems() {
 
 List<PopupMenuEntry<String>> popupMenuChatCardItems() {
   final items = <Map<String, dynamic>>[
+    {"id": "CREATE_SYMBOL", 'title': "Create Symbol"},
     {"id": "CREATE_GROUP", 'title': AppStrings.createGroup},
     {"id": "THEME", 'title': AppStrings.theme},
     {"id": "WALLPAPER", 'title': AppStrings.wallpaper},
@@ -762,7 +764,10 @@ List<PopupMenuEntry<String>> popupMenuChatCardItems() {
         height: SizeConfig.size35,
         value: items[i]['id'],
         onTap: () {
-          if (items[i]['id'] == "CREATE_GROUP") {
+          if (items[i]['id'] == "CREATE_SYMBOL") {
+            Get.to(AddChatSymbolScreen(
+            ));
+          }else if (items[i]['id'] == "CREATE_GROUP") {
             Get.to(ContactsPage(
               from: "group",
             ));

@@ -28,7 +28,12 @@ class BeAvailableContactsList extends StatefulWidget {
   final String? conversationId;
   final List<SharedAttachment?>? sharedFiles;
   final bool? isFromAddMember;
+  final int? maxSelectionCount;
+  final Function(List<ExistingNotConnected>)? onSelectedPersons;
+  final bool? tagPersonsSelection;
   final List<GroupMembersListModel>? members;
+  final List<ExistingNotConnected>? preSelectedUsers;
+
 
   BeAvailableContactsList(
       {super.key,
@@ -36,7 +41,9 @@ class BeAvailableContactsList extends StatefulWidget {
       this.sharedFiles,
       this.isFromAddMember,
       this.members,
-      this.conversationId});
+      this.conversationId, this.onSelectedPersons,
+        this.tagPersonsSelection, this.maxSelectionCount,
+        this.preSelectedUsers});
 
   @override
   State<BeAvailableContactsList> createState() =>
@@ -56,7 +63,7 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
   @override
   void initState() {
     super.initState();
-    widget.members;
+    // widget.members;
     // if (widget.from == "group") {
     //   chatViewController.loadGroupConnections();
     // } else {
@@ -285,29 +292,31 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
                               isGroupMode: isGroupMode,
                               selectedUserIds: _selectedUsers,
                               onSelect: (id) {
-                                if (widget.isFromAddMember == true) {
-                                  setState(() {
-                                    if (_selectedUsers.contains(id)) {
-                                      // If the same user is clicked again → unselect
-                                      _selectedUsers.remove(id);
-                                    } else {
-                                      // If another user is clicked → clear old selection and select new one
-                                      _selectedUsers..add(id!);
+                                if (id == null) return;
+
+                                setState(() {
+                                  if (_selectedUsers.contains(id)) {
+                                    // ✅ unselect
+                                    _selectedUsers.remove(id);
+                                  } else {
+                                    // 🚫 limit reached
+                                    if (widget.maxSelectionCount!=null&&_selectedUsers.length >= (widget.maxSelectionCount??10)) {
+                                      commonSnackBar(
+                                        message: "You can select only ${widget.maxSelectionCount} contacts",
+                                      );
+                                      return;
                                     }
-                                  });
-                                } else {
-                                  setState(() {
-                                    if (_selectedUsers.contains(id)) {
-                                      // If the same user is clicked again → unselect
-                                      _selectedUsers.remove(id);
+
+                                    // ✅ selection rules stay same
+                                    if (widget.isFromAddMember == true) {
+                                      _selectedUsers.add(id);
                                     } else {
-                                      // If another user is clicked → clear old selection and select new one
                                       _selectedUsers
                                         ..clear()
-                                        ..add(id!);
+                                        ..add(id);
                                     }
-                                  });
-                                }
+                                  }
+                                });
                               },
                               chatViewController: chatViewController,
                             );
@@ -338,7 +347,11 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
               onTap: _selectedUsers.isEmpty
                   ? null
                   : () async {
-                      if (widget.isFromAddMember == true) {
+                if(widget.tagPersonsSelection==true){
+                   widget.onSelectedPersons!(_selectedUsers.toList());
+                   Get.back();
+                  return ;
+                }else if (widget.isFromAddMember == true) {
                         List<String?> userId =
                             _selectedUsers.map((e) => e.id).toList();
                         Map<String, dynamic> data = {
@@ -346,7 +359,8 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
                           ApiKeys.conversation_users: userId
                         };
                         chatViewController.addGroupMember(params: data);
-                      } else {
+                        return ;
+                } else {
                         if (widget.sharedFiles != null) {
                           List<File> selectedFiles = [];
                           List<SharedAttachment?>? sharedList =
@@ -422,6 +436,7 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
                           contactNo: _selectedUsers.first.contactNo,
                           isFromContactList: true,
                         );
+                        return ;
                       }
                     },
               title: _selectedUsers.isEmpty

@@ -316,7 +316,8 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
             elevation: 8,
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10)),
-            onSelected: (value) {},
+            onSelected: (value) {
+            },
             icon: CachedAvatarWidget(
               imageUrl: Get.find<AuthController>().imgPath.value,
               size: SizeConfig.size30,
