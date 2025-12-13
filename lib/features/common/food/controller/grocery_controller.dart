@@ -47,6 +47,11 @@ class GroceryController extends GetxController {
   RxList<GroceryProductData> selectedGroceries = <GroceryProductData>[].obs;
 
   RxInt selectedTabIndex = 0.obs;
+  String get currentTabKey =>
+      selectedTabIndex.value == 0                    // “All” tab
+          ? selectedGrocery.value                    // top-level key
+          : arrChildrenOfGroceryCategory[selectedTabIndex.value - 1].key ?? '';
+
   int maxLimit = 10;
 
   bool get isMaxLimitHit => selectedGroceries.length == maxLimit;
@@ -56,7 +61,9 @@ class GroceryController extends GetxController {
   /// Main Grocery Categories
   final List<CollapsibleGridModel> biscuitFoods = [
     CollapsibleGridModel(
-        icon: "chips.png", label: "Chips &\nNamkeens", tagId: CHIPS_NAMKEEN),
+        icon: "chips.png",
+        label: "Chips &\nNamkeens",
+        tagId: CHIPS_NAMKEEN),
     CollapsibleGridModel(
         icon: "biscuits.png",
         label: "Biscuits\n& Cookies",
@@ -70,7 +77,9 @@ class GroceryController extends GetxController {
         label: "Indian\nSweets",
         tagId: INDIAN_SWEETS),
     CollapsibleGridModel(
-        icon: "drinks.png", label: "Drinks\n& Juices", tagId: DRINKS_JUICES),
+        icon: "drinks.png",
+        label: "Drinks\n& Juices",
+        tagId: DRINKS_JUICES),
     CollapsibleGridModel(
         icon: "cereals.png",
         label: "Breakfast\nCereals",
@@ -92,12 +101,16 @@ class GroceryController extends GetxController {
         label: "Pickles, Chutney\n& Flavouring",
         tagId: PICKLES),
     CollapsibleGridModel(
-        icon: "tea_and_coffee.png", label: "Tea & Coffee", tagId: TEA),
+        icon: "tea_and_coffee.png",
+        label: "Tea & Coffee",
+        tagId: TEA),
   ];
 
   final List<CollapsibleGridModel> fruitsVeg = [
     CollapsibleGridModel(
-        icon: "freshfruits.png", label: "Fresh Fruits", tagId: FRESH_FRUITS),
+        icon: "freshfruits.png",
+        label: "Fresh Fruits",
+        tagId: FRESH_FRUITS),
     CollapsibleGridModel(
         icon: "basicveg.png",
         label: "Basic\nVegetables",
@@ -109,12 +122,22 @@ class GroceryController extends GetxController {
   ];
 
   final List<CollapsibleGridModel> cookingEssentials = [
-    CollapsibleGridModel(icon: "rice.png", label: "Rice", tagId: RICE),
     CollapsibleGridModel(
-        icon: "dals.png", label: "Dals & Pulses", tagId: DALS_PULSES),
-    CollapsibleGridModel(icon: "ghee.png", label: "Ghee", tagId: GHEE),
+        icon: "rice.png",
+        label: "Rice",
+        tagId: RICE),
     CollapsibleGridModel(
-        icon: "wheat.png", label: "Wheat & Soya", tagId: WHEAT_SOYA),
+        icon: "dals.png",
+        label: "Dals & Pulses",
+        tagId: DALS_PULSES),
+    CollapsibleGridModel(
+        icon: "ghee.png",
+        label: "Ghee",
+        tagId: GHEE),
+    CollapsibleGridModel(
+        icon: "wheat.png",
+        label: "Wheat & Soya",
+        tagId: WHEAT_SOYA),
     CollapsibleGridModel(
         icon: "sugar.png",
         label: "Salt, Sugar\n& Jaggery",
@@ -124,43 +147,59 @@ class GroceryController extends GetxController {
         label: "Sabudana, Poha\n& Murmura",
         tagId: SNACK_BASES),
     CollapsibleGridModel(
-        icon: "atta.png", label: "Atta, Flours\n& Sooji", tagId: ATTA_FLOURS),
+        icon: "atta.png",
+        label: "Atta, Flours\n& Sooji",
+        tagId: ATTA_FLOURS),
     CollapsibleGridModel(
-        icon: "dryfruits.png", label: "Dry Fruits\n& Nuts", tagId: DRY_FRUITS),
+        icon: "dryfruits.png",
+        label: "Dry Fruits\n& Nuts",
+        tagId: DRY_FRUITS),
     CollapsibleGridModel(
-        icon: "millets_and_organic.png",
+        icon: "edible_oil.png",
         label: "Edible Oils",
         tagId: EDIBLE_OILS),
     CollapsibleGridModel(
-        icon: "edible_oil.png",
+        icon: "millets_and_organic.png",
         label: "Millets\n& Organic",
         tagId: MILLET_ORGANIC),
   ];
 
   final List<CollapsibleGridModel> dairyBakery = [
     CollapsibleGridModel(
-        icon: "milk.png", label: "Milk & Milk\nProducts", tagId: MILK_PRODUCTS),
+        icon: "milk.png",
+        label: "Milk & Milk\nProducts",
+        tagId: MILK_PRODUCTS),
     CollapsibleGridModel(
         icon: "paneer.png",
         label: "Cheese,\nPaneer & Tofu",
         tagId: CHEESE_PANEER_TOFU),
     CollapsibleGridModel(
-        icon: "batter.png", label: "Batter\n& Chutney", tagId: BUTTER_CHUTNEY),
+        icon: "batter.png",
+        label: "Batter\n& Chutney",
+        tagId: BUTTER_CHUTNEY),
     CollapsibleGridModel(
-        icon: "tasto.png", label: "Toast\n& Khari", tagId: TOAST_KHARI),
+        icon: "toast.png",
+        label: "Toast\n& Khari",
+        tagId: TOAST_KHARI),
     CollapsibleGridModel(
-        icon: "cakes.png", label: "Cakes &\nMuffins", tagId: CAKES_MUFFINS),
+        icon: "cakes.png",
+        label: "Cakes &\nMuffins",
+        tagId: CAKES_MUFFINS),
     CollapsibleGridModel(
         icon: "breads.png",
         label: "Breads\n& Chapatis",
         tagId: BREADS_CHAPATIS),
     CollapsibleGridModel(
-        icon: "snacks.png", label: "Bakery\n& Snacks", tagId: BAKERY_SNACKS),
+        icon: "snacks.png",
+        label: "Bakery\n& Snacks",
+        tagId: BAKERY_SNACKS),
   ];
 
   final List<CollapsibleGridModel> momBabyCare = [
     CollapsibleGridModel(
-        icon: "food.png", label: "Food\n& Feeding", tagId: BABY_FOOD),
+        icon: "food.png",
+        label: "Food\n& Feeding",
+        tagId: BABY_FOOD),
     CollapsibleGridModel(
         icon: "bath.png",
         label: "Bath, Hygiene\n& Grooming",
@@ -170,13 +209,20 @@ class GroceryController extends GetxController {
         label: "Bedding, Toys\n& Accessories",
         tagId: BABY_TOYS),
     CollapsibleGridModel(
-        icon: "health.png", label: "Health\n& Wellness", tagId: BABY_HEALTH),
+        icon: "health.png",
+        label: "Health\n& Wellness",
+        tagId: BABY_HEALTH),
     CollapsibleGridModel(
-        icon: "diapers.png", label: "Diapers\n& Wipes", tagId: DIAPERS_WIPES),
+        icon: "diapers.png",
+        label: "Diapers\n& Wipes",
+        tagId: DIAPERS_WIPES),
   ];
 
   final List<CollapsibleGridModel> kitchenware = [
-    CollapsibleGridModel(icon: "gas.png", label: "Gas Stove", tagId: GAS_STOVE),
+    CollapsibleGridModel(
+        icon: "gas.png",
+        label: "Gas Stove",
+        tagId: GAS_STOVE),
     CollapsibleGridModel(
         icon: "storage.png",
         label: "Containers &\nStorage",
@@ -190,22 +236,36 @@ class GroceryController extends GetxController {
         label: "Cutting\n& Chopping",
         tagId: CUTTING_CHOPPING),
     CollapsibleGridModel(
-        icon: "tools.png", label: "Kitchen Tools", tagId: KITCHEN_TOOLS),
+        icon: "tools.png",
+        label: "Kitchen Tools",
+        tagId: KITCHEN_TOOLS),
     CollapsibleGridModel(
-        icon: "bakeware.png", label: "Bakeware", tagId: BAKEWARE),
+        icon: "bakeware.png",
+        label: "Bakeware",
+        tagId: BAKEWARE),
   ];
 
   final List<CollapsibleGridModel> tableware = [
-    CollapsibleGridModel(icon: "dining.png", label: "Dining", tagId: DINING),
     CollapsibleGridModel(
-        icon: "serveware.png", label: "Serveware", tagId: SERVEWARE),
-    CollapsibleGridModel(icon: "barware.png", label: "Barware", tagId: BARWARE),
+        icon: "dining.png",
+        label: "Dining",
+        tagId: DINING),
+    CollapsibleGridModel(
+        icon: "serveware.png",
+        label: "Serveware",
+        tagId: SERVEWARE),
+    CollapsibleGridModel(
+        icon: "barware.png",
+        label: "Barware",
+        tagId: BARWARE),
     CollapsibleGridModel(
         icon: "tableacc.png",
         label: "Table Accessories",
         tagId: TABLE_ACCESSORIES),
     CollapsibleGridModel(
-        icon: "mugs.png", label: "Cups, Mugs &\nMore", tagId: CUPS_MUGS),
+        icon: "mugs.png",
+        label: "Cups, Mugs &\nMore",
+        tagId: CUPS_MUGS),
     CollapsibleGridModel(
         icon: "drinkware.png",
         label: "Glassware &\nDrinkware",
@@ -213,13 +273,18 @@ class GroceryController extends GetxController {
   ];
 
   final List<CollapsibleGridModel> giftsHampers = [
-    CollapsibleGridModel(icon: "tea.png", label: "Tea Gifts", tagId: TEA_GIFTS),
+    CollapsibleGridModel(
+        icon: "tea.png",
+        label: "Tea Gifts",
+        tagId: TEA_GIFTS),
     CollapsibleGridModel(
         icon: "chocogift.png",
         label: "Chocolate Gifts",
         tagId: CHOCOLATE_GIFTS),
     CollapsibleGridModel(
-        icon: "gourmet.png", label: "Gourmet Gifts", tagId: GOURMET_GIFTS),
+        icon: "gourmet.png",
+        label: "Gourmet Gifts",
+        tagId: GOURMET_GIFTS),
   ];
 
   final List<CollapsibleGridModel> homeCategory = [
@@ -240,22 +305,32 @@ class GroceryController extends GetxController {
         label: "Furnishing &\nPersonal Wear",
         tagId: FURNISHING),
     CollapsibleGridModel(
-        icon: "dishwash.png", label: "Dishwash", tagId: DISHWASH),
+        icon: "dishwash.png",
+        label: "Dishwash",
+        tagId: DISHWASH),
     CollapsibleGridModel(
-        icon: "pooja.png", label: "Pooja Needs", tagId: POOJA_NEEDS),
+        icon: "pooja.png",
+        label: "Pooja Needs",
+        tagId: POOJA_NEEDS),
     CollapsibleGridModel(
         icon: "electricals.png",
         label: "Basic Electricals",
         tagId: ELECTRICALS),
     CollapsibleGridModel(
-        icon: "shoecare.png", label: "Shoe Care", tagId: SHOE_CARE),
+        icon: "shoecare.png",
+        label: "Shoe Care",
+        tagId: SHOE_CARE),
     CollapsibleGridModel(
-        icon: "furniture.png", label: "Furniture", tagId: FURNITURE),
+        icon: "furniture.png",
+        label: "Furniture",
+        tagId: FURNITURE),
     CollapsibleGridModel(
         icon: "bags_luggage.png",
         label: "Bags &\nTravel Luggage",
         tagId: BAGS_TRAVEL),
   ];
+
+
 
   void toggleSelection(GroceryProductData p) {
     if (selectedGroceries.contains(p)) {
@@ -304,81 +379,6 @@ class GroceryController extends GetxController {
       }
     }
     return true;
-  }
-
-  RxBool isInitialLoading = false.obs;
-
-  Future<void> fetchBoth(String key) async {
-    try {
-      isInitialLoading.value = true;
-      await Future.wait([
-        fetchChildrenOfGroceryCategory(key: key),
-        fetchGroceryCategories(key: key),
-      ]);
-    } catch (e) {
-    } finally {
-      isInitialLoading.value = false;
-    }
-  }
-
-  RxBool isGrocerySubCategoryLoading = false.obs;
-  RxList<GroceryProductData> arrGroceryProducts = <GroceryProductData>[].obs;
-
-  Future<void> fetchGroceryCategories({required String key}) async {
-    try {
-      isGrocerySubCategoryLoading.value = true;
-      final response = await GroceryRepo()
-          .searchGroceryCategoryRepo(queryParam: {ApiKeys.key: key});
-
-      if (!response.isSuccess) {
-        commonSnackBar(
-          message: response.message ?? AppStrings.somethingWentWrong,
-        );
-        return;
-      }
-
-      final groceryProductModel =
-          GroceryProductModel.fromJson(response.response?.data);
-      arrGroceryProducts.value = groceryProductModel.data ?? [];
-      log('total grocery-- ${arrGroceryProducts.length}');
-      groceryCategoryResponse.value = ApiResponse.complete(response);
-      update();
-    } catch (e, s) {
-      groceryCategoryResponse.value = ApiResponse.error('error');
-      log('stack trace-- $s');
-    } finally {
-      isGrocerySubCategoryLoading.value = false;
-    }
-  }
-
-  RxBool isGroceryCategoryOfChildrenLoading = false.obs;
-  RxList<ChildrenOfGroceryCategoryResponse> arrChildrenOfGroceryCategory =
-      <ChildrenOfGroceryCategoryResponse>[].obs;
-
-  Future<void> fetchChildrenOfGroceryCategory({required String key}) async {
-    try {
-      isGroceryCategoryOfChildrenLoading.value = true;
-      final response =
-          await GroceryRepo().groceryCategoryOfChildrenRepo(key: key);
-
-      if (!response.isSuccess) {
-        commonSnackBar(
-          message: response.message ?? AppStrings.somethingWentWrong,
-        );
-        return;
-      }
-
-      final jsonData = response.response?.data;
-      arrChildrenOfGroceryCategory.value =
-          ChildrenOfGroceryCategoryResponse.fromJsonList(jsonData);
-      groceryCategoryOfChildrenResponse.value = ApiResponse.complete(response);
-      update();
-    } catch (e) {
-      groceryCategoryOfChildrenResponse.value = ApiResponse.error('error');
-      update();
-    } finally {
-      isGroceryCategoryOfChildrenLoading.value = false;
-    }
   }
 
   PriceResult getPriceDetails(List<Pricing>? v) {
@@ -494,6 +494,118 @@ class GroceryController extends GetxController {
         );
       },
     );
+  }
+
+  RxBool isInitialLoading = false.obs;
+
+  Future<void> fetchBoth() async {
+    try {
+      isInitialLoading.value = true;
+      await Future.wait([
+        fetchChildrenOfGroceryCategory(),
+        fetchGroceryCategoryProducts(),
+      ]);
+     } catch (e) {
+    } finally {
+      isInitialLoading.value = false;
+    }
+  }
+
+  RxBool isGroceryCategoryOfChildrenLoading = false.obs;
+  RxList<ChildrenOfGroceryCategoryResponse> arrChildrenOfGroceryCategory =
+      <ChildrenOfGroceryCategoryResponse>[].obs;
+
+  Future<void> fetchChildrenOfGroceryCategory() async {
+    try {
+
+      isGroceryCategoryOfChildrenLoading.value = true;
+      final response =
+      await GroceryRepo().groceryCategoryOfChildrenRepo(key: currentTabKey);
+
+      if (!response.isSuccess) {
+        commonSnackBar(
+          message: response.message ?? AppStrings.somethingWentWrong,
+        );
+        return;
+      }
+
+      final jsonData = response.response?.data;
+      arrChildrenOfGroceryCategory.value =
+          ChildrenOfGroceryCategoryResponse.fromJsonList(jsonData);
+      groceryCategoryOfChildrenResponse.value = ApiResponse.complete(response);
+      update();
+    } catch (e) {
+      groceryCategoryOfChildrenResponse.value = ApiResponse.error('error');
+      update();
+    } finally {
+      isGroceryCategoryOfChildrenLoading.value = false;
+    }
+  }
+
+  RxBool isGroceryCategoryProductsLoading = false.obs;
+  RxList<GroceryProductData> arrGroceryCategoryProducts = <GroceryProductData>[].obs;
+  RxBool isGroceryCategoryProductsLoadingMore = false.obs;
+  int groceryCategoryProductsPage = 1;
+  bool groceryCategoryProductsHasMore = true;
+
+  Future<void> fetchGroceryCategoryProducts({bool isLoadMore = false}) async {
+    try {
+      if (isLoadMore) {
+        // if (isGroceryCategoryProductsLoadingMore.value || !groceryCategoryProductsHasMore) return;
+        isGroceryCategoryProductsLoadingMore.value = true;
+      } else {
+        isGroceryCategoryProductsLoading.value = true;
+        groceryCategoryProductsPage = 1;
+        groceryCategoryProductsHasMore = true;
+      }
+
+      // log('current tab key-- $currentTabKey');
+      Map<String, dynamic> queryParams = {
+        ApiKeys.key: currentTabKey,
+        ApiKeys.page: groceryCategoryProductsPage,
+        ApiKeys.limit: pageLimit
+      };
+
+      final response = await GroceryRepo()
+          .searchGroceryCategoryRepo(queryParam: queryParams);
+
+      if (!response.isSuccess) {
+        commonSnackBar(
+          message: response.message ?? AppStrings.somethingWentWrong,
+        );
+        return;
+      }
+
+      groceryCategoryResponse.value = ApiResponse.complete(response);
+
+      final groceryProductModel = GroceryProductModel.fromJson(response.response?.data);
+      List<GroceryProductData> newItems = groceryProductModel.data ?? [];
+
+      if (newItems.isNotEmpty) {
+          if (isLoadMore) {
+            arrGroceryCategoryProducts.addAll(newItems);
+          } else {
+            arrGroceryCategoryProducts.clear();
+            arrGroceryCategoryProducts.assignAll(newItems);
+          }
+
+          groceryCategoryProductsPage++;
+      } else {
+        groceryCategoryProductsHasMore = false;
+      }
+
+      log('total grocery-- ${arrGroceryCategoryProducts.length}');
+      update();
+    } catch (e, s) {
+      groceryCategoryResponse.value = ApiResponse.error('error');
+      log('stack trace-- $s');
+    } finally {
+      if (isLoadMore) {
+        isGroceryCategoryProductsLoadingMore.value = false;
+      } else {
+        isGroceryCategoryProductsLoading.value = false;
+      }
+    }
   }
 
   RxBool isCreateNewGroceryProductNewVariantLoading = false.obs;

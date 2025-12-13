@@ -32,7 +32,8 @@ import 'package:BlueEra/features/common/food/view/food_upload_screen.dart';
 import 'package:BlueEra/features/common/food/view/grocery/add_grocery_screen.dart';
 import 'package:BlueEra/features/common/food/view/grocery/add_grocery_variant_screen.dart';
 import 'package:BlueEra/features/common/food/view/grocery/grocery_category_screen.dart';
-import 'package:BlueEra/features/common/food/view/grocery/grocery_subcategory_screen.dart';
+import 'package:BlueEra/features/common/food/view/grocery/grocery_listing/grocery_listing_screen.dart';
+import 'package:BlueEra/features/common/food/view/grocery/all_grocery_listing_screen.dart';
 import 'package:BlueEra/features/common/food/view/grocery/my_grocery_listing/grocery_screen.dart';
 import 'package:BlueEra/features/common/food/view/grocery/my_grocery_listing/my_grocery_category_screen.dart';
 import 'package:BlueEra/features/common/food/view/grocery/my_grocery_listing/my_grocery_screen.dart';
@@ -445,8 +446,8 @@ class RouteHelper {
   static String getGroceryCategoryScreenRoute() =>
       RouteConstant.groceryCategoryScreen;
 
-  static String getGrocerySubCategoryScreenRoute() =>
-      RouteConstant.grocerySubCategoryScreen;
+  static String getAllGroceryListingScreenRoute() =>
+      RouteConstant.allGroceryListingScreen;
 
   static String getAddGroceryScreenRoute() =>
       RouteConstant.addGroceryScreen;
@@ -459,6 +460,10 @@ class RouteHelper {
 
   static String getMyGroceryScreenRoute() =>
       RouteConstant.myGroceryScreen;
+
+  static String getGroceryListingScreenRoute() =>
+      RouteConstant.groceryListingScreen;
+
 
   ///REDIRECT ROUTING SETUP.....
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -1289,20 +1294,24 @@ class RouteHelper {
             settings: RouteSettings(name: getGroceryScreenRoute())
         );
       case RouteConstant.groceryCategoryScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        final bool argOwnGrocery = args[ApiKeys.argOwnGrocery] as bool;
         return MaterialPageRoute(
-            builder: (_) => GroceryCategoryScreen(),
+            builder: (_) => GroceryCategoryScreen(
+                isOwnGrocery: argOwnGrocery
+            ),
             settings: RouteSettings(name: getGroceryCategoryScreenRoute())
         );
-      case RouteConstant.grocerySubCategoryScreen:
+      case RouteConstant.allGroceryListingScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final List<CollapsibleGridModel> argGroceries = args[ApiKeys.argGroceries] as List<CollapsibleGridModel>;
         final CollapsibleGridModel argSelectedGroceryData = args[ApiKeys.argSelectedGroceryData] as CollapsibleGridModel;
         return MaterialPageRoute(
-            builder: (_) => GrocerySubCategoryScreen(
+            builder: (_) => AllGroceryListingScreen(
                 arrGroceries: argGroceries,
                 selectedGroceryData: argSelectedGroceryData
             ),
-            settings: RouteSettings(name: getGrocerySubCategoryScreenRoute())
+            settings: RouteSettings(name: getAllGroceryListingScreenRoute())
         );
       case RouteConstant.addGroceryScreen:
         return MaterialPageRoute(
@@ -1330,7 +1339,17 @@ class RouteHelper {
             ),
             settings: RouteSettings(name: getMyGroceryScreenRoute())
         );
-
+      case RouteConstant.groceryListingScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        final List<CollapsibleGridModel> argGroceries = args[ApiKeys.argGroceries] as List<CollapsibleGridModel>;
+        final CollapsibleGridModel argSelectedGroceryData = args[ApiKeys.argSelectedGroceryData] as CollapsibleGridModel;
+        return MaterialPageRoute(
+            builder: (_) => GroceryListingScreen(
+                arrGroceries: argGroceries,
+                selectedGroceryData: argSelectedGroceryData
+            ),
+            settings: RouteSettings(name: getGroceryListingScreenRoute())
+        );
       default:
         return MaterialPageRoute(
           builder: (_) => const Scaffold(

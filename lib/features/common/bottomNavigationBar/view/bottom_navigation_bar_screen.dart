@@ -13,15 +13,10 @@ import 'package:BlueEra/features/chat/view/ai_chat/ask_inventory_chat_screen.dar
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/auth/controller/ai_chat_guest_controller.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_widget.dart';
-import 'package:BlueEra/features/common/feed/view/all_message_post_screen.dart';
-import 'package:BlueEra/features/common/food/view/food/food_categroy.dart';
-import 'package:BlueEra/features/common/food/view/grocery/grocery_category_screen.dart';
 import 'package:BlueEra/features/common/food/view/grocery/my_grocery_listing/grocery_screen.dart';
 import 'package:BlueEra/features/common/home/view/home_screen.dart';
-import 'package:BlueEra/features/common/jobs/view/jobs_screen.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/more/controller/more_cards_screen_controller.dart';
-import 'package:BlueEra/features/common/ott/view/ott_screen.dart';
 import 'package:BlueEra/features/common/reel/models/channel_model.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/common/store/view/new_store/new_store_screen2.dart';
@@ -42,7 +37,6 @@ import '../../../../core/constants/snackbar_helper.dart';
 import '../../../../core/routes/route_helper.dart';
 import '../../../chat/auth/controller/chat_theme_controller.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
-import '../../../chat/view/chat_screen.dart';
 import '../../../chat/view/chat_screen_new.dart';
 import '../../delivery_partner/controller/delivery_partner_orders_controller.dart';
 import '../auth/controller/bottom_bar_controller.dart';
@@ -377,8 +371,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   Widget resolveBusinessScreen() {
     return BusinessType == BusinessType.Grocery
         ? GroceryScreen(fromBottomNavBar: true)
-        // : GroceryScreen(fromBottomNavBar: true);
-        : InventoryScreen(fromBottomNavBar: true);
+        : GroceryScreen(fromBottomNavBar: true);
+        // : InventoryScreen(fromBottomNavBar: true);
   }
 
   Widget resolveIndividualScreen() {

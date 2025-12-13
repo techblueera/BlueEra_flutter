@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -23,7 +24,6 @@ import 'package:BlueEra/features/common/auth/model/business_profile_category.dar
 import 'package:BlueEra/features/common/store/widget/icon_grid_item.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/create_profile_screen.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/gradient_floating_button.dart';
@@ -188,11 +188,11 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                             (1 - controller.headerOffset.value)),
                     child: SingleChildScrollView(
                       controller: controller.scrollController,
-                      // <-- ADD THIS
 
                       padding: EdgeInsets.symmetric(
                           horizontal: SizeConfig.size8,
-                          vertical: SizeConfig.size10),
+                          // vertical: SizeConfig.size10
+                      ),
                       child: Column(
                         children: [
                           InkWell(
@@ -211,7 +211,7 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                               decoration: BoxDecoration(
                                   color: AppColors.white,
                                   borderRadius: BorderRadius.circular(10.0),
-                                  border: Border.all(color: AppColors.greyE5),
+                                  border: Border.all(color: AppColors.greyE5, width: 1.2),
                                   boxShadow: [AppShadows.textFieldShadow]),
                               child: Row(
                                 children: [
@@ -699,12 +699,10 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
         break;
 
       case AppConstants.groceryVegetablesDairy:
-        Get.to(() => BusinessStoreScreen(
-              typeOfBusiness: AppConstants.food,
-              selectedStoreCategoryId: '68ce9917eac48e6b0d4973bf',
-              // selectedStoreCategoryId: category.categoryData?.id,
-              selectedStoreCategoryName: category.name,
-            ));
+        Get.toNamed(
+            RouteHelper.getGroceryCategoryScreenRoute(),
+            arguments: {ApiKeys.argOwnGrocery: false}
+        );
         break;
 
       case AppConstants.rentalServices:

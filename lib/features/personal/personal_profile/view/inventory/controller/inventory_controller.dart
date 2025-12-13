@@ -64,6 +64,8 @@ class InventoryController extends GetxController {
   bool hasMoreData = true;
   bool isLoadingMore = false;
 
+  RxInt businessCardsSelectedIndex = 0.obs;
+
   RxList<VariantData> searchProductVariantsList = <VariantData>[].obs;
   RxList<UnUsedProduct> searchProductsList = <UnUsedProduct>[].obs;
 

@@ -38,7 +38,6 @@ class _InventoryBusinessCardsScreenState extends State<InventoryBusinessCardsScr
   late List<String> _tabTypes = [];
 
   bool _isLoading = true;
-  int _localSelectedIndex = 0;
 
 
   @override
@@ -83,6 +82,7 @@ class _InventoryBusinessCardsScreenState extends State<InventoryBusinessCardsScr
 
   void _onTabChanged() {
     if (_tabController.indexIsChanging) return;
+    inventoryController.businessCardsSelectedIndex.value = _tabController.index;
     final currentType = _tabTypes[_tabController.index];
     _fetchTabData(currentType);
   }
@@ -151,24 +151,23 @@ class _InventoryBusinessCardsScreenState extends State<InventoryBusinessCardsScr
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
+          Obx(()=> Padding(
             padding: EdgeInsets.only(
-                left: SizeConfig.size15,
-                right: SizeConfig.size15,
-                top: SizeConfig.size15,
+              left: SizeConfig.size15,
+              right: SizeConfig.size15,
+              top: SizeConfig.size15,
             ),
             child: HorizontalTabSelector(
               tabs:  _tabs.map((t) => t.text ?? "").toList(),
-              selectedIndex:  _localSelectedIndex,
+              selectedIndex:   inventoryController.businessCardsSelectedIndex.value,
               horizontalMargin: 0.0,
               onTabSelected: (index, value) {
-                _localSelectedIndex = index;
+                inventoryController.businessCardsSelectedIndex.value = index;
                 _tabController.animateTo(index);
-                setState(() {});
               },
               labelBuilder: (label) => label,
             ),
-          ),
+          )),
 
           Expanded(
             child: TabBarView(
