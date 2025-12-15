@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../../auth/model/GetChatListModel.dart';
+import '../../auth/model/symbol_details_model.dart';
 
 class SymbolViewImages extends StatefulWidget {
-  final List<SymbolDataModel> data;
+  final List<SymbolDataModel>? data;
+  final List<SymbolDetailsModel>? mySymbols;
 
-  const SymbolViewImages({super.key, required this.data});
+  const SymbolViewImages({super.key, this.data,  this.mySymbols});
 
   @override
   State<SymbolViewImages> createState() => _SymbolViewImagesState();
@@ -25,11 +27,16 @@ class _SymbolViewImagesState extends State<SymbolViewImages>
     super.initState();
 
     _pageController = PageController();
+    for (int i = 0; i < (widget.mySymbols?.length ?? 0); i++) {
+      allImages.add(widget.mySymbols![i].content ?? '');
+    }
     /// Collect all images
-    for (var post in widget.data) {
+    for (var post in (widget.data??[])) {
       if (post.media != null) {
         allImages.addAll(post.media!);
       }
+
+
     }
 
     /// Smooth fade animation
@@ -42,6 +49,11 @@ class _SymbolViewImagesState extends State<SymbolViewImages>
       CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut),
     );
     _fadeController.forward();
+    Future.delayed(Duration(milliseconds: 300),(){
+      setState(() {
+
+      });
+    });
   }
 
   @override
@@ -71,6 +83,8 @@ class _SymbolViewImagesState extends State<SymbolViewImages>
 
   @override
   Widget build(BuildContext context) {
+
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(

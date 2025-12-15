@@ -1,45 +1,89 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
+import 'package:get_thumbnail_video/video_thumbnail.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import 'dart:io';
-
-import '../../../../core/api/apiService/response_model.dart';
-import '../../../../core/constants/app_strings.dart';
-import '../../../../core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/common/post/widget/video_trimmer_screen.dart';
+import 'package:get_thumbnail_video/index.dart';
+import 'package:permission_handler/permission_handler.dart';
+import '../model/Generate_Upload_Ulr_Model.dart';
 import '../model/contactListModel.dart';
+import '../model/symbol_details_model.dart';
+import '../repo/chat_view_repo.dart';
 import '../repo/symbol_repo.dart';
-enum PostType { image, video, text }
+
+enum PostType { image, video, text, link }
 
 enum PostVisibility { public, private, custom }
 
 class AddChatSymbolController extends GetxController {
   // Post type selection
+  final ImagePicker picker = ImagePicker();
+  RxList<File> imagesList = <File>[].obs;
+  RxList<SymbolDetailsModel> mySymbols = <SymbolDetailsModel>[].obs;
+  final SymbolRepo symbolRepo = SymbolRepo();
   Rx<PostType?> selectedPostType = Rx<PostType?>(null);
-  final SymbolRepo symbolRepo=SymbolRepo();
-  Rx<PostType?> selectedPostType = Rx<PostType?>(PostType.image);
+  RxMap<String, File> videoThumbnails = <String, File>{}.obs;
+
 
   // File picked
-  Rx<File?> selectedFile = Rx<File?>(null);
+
+  final linkTextSymbolController = TextEditingController();
+
+  /// WhatsApp-like background colors
+  final List<Color> bgColors = [
+    Color(0xFF25D366), // WhatsApp green
+    Color(0xFF075E54), // Dark green
+    Color(0xFF128C7E),
+    Color(0xFF34B7F1), // Blue
+    Color(0xFF1DA1F2),
+    Color(0xFF9B59B6), // Purple
+    Color(0xFFE74C3C), // Red
+    Color(0xFFF39C12), // Orange
+    Color(0xFF2C3E50), // Dark
+    Colors.black,
+  ];
+
+  /// Selected background color
+  Rx<Color> selectedBgColor = Color(0xFF25D366).obs;
+
+  void changeBgColorRandom() {
+    bgColors.shuffle();
+    selectedBgColor.value = bgColors.first;
+  }
 
   // For text post
-  TextEditingController textPostController = TextEditingController();
 
   // Caption
   TextEditingController captionController = TextEditingController();
 
   // Tag users
-  RxList<String> taggedUsers = <String>[].obs;
+  RxList<String?> taggedUsers = <String?>[].obs;
+  RxList<String?> exceptContactList = <String?>[].obs;
 
   // Visibility
   Rx<PostVisibility> visibility = PostVisibility.public.obs;
 
   // Duration Days
   RxInt selectedDays = 1.obs;
+  RxString VideoUploadProgress = ''.obs;
 
   // Loading
   RxBool isPosting = false.obs;
-  RxList<ExistingNotConnected> onTagSelectedList=<ExistingNotConnected>[].obs;
-  RxList<ExistingNotConnected> onExceptContactSelectedList=<ExistingNotConnected>[].obs;
+  RxList<ExistingNotConnected> onTagSelectedList = <ExistingNotConnected>[].obs;
+  RxList<ExistingNotConnected> onExceptContactSelectedList =
+      <ExistingNotConnected>[].obs;
+
   // --- FUNCTIONS ---
   final RxBool showDurationSelector = false.obs;
 
@@ -47,16 +91,10 @@ class AddChatSymbolController extends GetxController {
     showDurationSelector.toggle();
   }
 
-  void choosePostType(PostType type) {
+  void choosePostType(PostType? type) {
+    imagesList.clear();
+    linkTextSymbolController.clear();
     selectedPostType.value = type;
-
-    if (type == PostType.text) {
-      selectedFile.value = null; // No media
-    }
-  }
-
-  void pickFile(File file) {
-    selectedFile.value = file;
   }
 
   void setVisibility(PostVisibility v) {
@@ -77,46 +115,216 @@ class AddChatSymbolController extends GetxController {
     }
   }
 
-  Future<void> submitPost() async {
-    isPosting.value = true;
+  Future<void> pickMedia() async {
+    bool permissionGranted = false;
 
-    await Future.delayed(const Duration(seconds: 2));
+    if (Platform.isAndroid) {
+      final androidInfo = await DeviceInfoPlugin().androidInfo;
 
-    print("POST TYPE: ${selectedPostType.value}");
-    print("FILE: ${selectedFile.value}");
-    print("TEXT: ${textPostController.text}");
-    print("CAPTION: ${captionController.text}");
-    print("VISIBILITY: ${visibility.value}");
-    print("DURATION DAYS: ${selectedDays.value}");
-    print("TAGGED USERS: $taggedUsers");
+      // For Android 13+ (SDK 33)
+      if (androidInfo.version.sdkInt >= 33) {
+        // Use photos permission
+        var status = await Permission.photos.request();
+        permissionGranted = status.isGranted;
+      }
+      // For Android 11 (SDK 30) and below
+      else {
+        var status = await Permission.storage.request();
+        permissionGranted = status.isGranted;
+      }
+    } else {
+      // iOS logic
+      permissionGranted = true;
+    }
 
-    isPosting.value = false;
+    if (permissionGranted) {
+      final List<XFile> images = await picker.pickMultiImage();
+      if (images.isEmpty) return;
+      final files = images.map((e) => File(e.path)).toList();
+      choosePostType(PostType.image);
+      imagesList.addAll(files);
+      logs("imagesList    ${imagesList}");
+    } else {
+      print("Permission denied");
+    }
   }
-  Future<bool> createSymbol() async {
-    Map<String,dynamic> params={
-      ApiKeys.type: "photo",
-      ApiKeys.content: "string",
-      ApiKeys.caption: "string",
-      ApiKeys.duration_days: 1,
-      ApiKeys.visibility: "public",
-      ApiKeys.hidden_from: [
-        "string"
-      ],
-    ApiKeys.tagged_users: [
-        "string"
-      ]
-    };
+
+  Future<void> pickVideoMedia() async {
+    final XFile? result = await picker.pickVideo(
+      source: ImageSource.gallery, // 🎞️ opens gallery view
+    );
+
+    if (result == null) return;
+
+    final path = result.path;
+
+    final trimmedPath = await Get.to(VideoTrimmerPage(videoPath: path));
+
+    if (trimmedPath != null) {
+      print("✅ Trimmed Video Path: $trimmedPath");
+      // final files = result.paths.map((e) => File(e!)).toList();
+      final videoTriFile = File(trimmedPath);
+      choosePostType(PostType.video);
+
+      imagesList.value = [videoTriFile];
+      _generateThumbnail(videoTriFile);
+
+      // Upload / Save / Play trimmed video here
+    }
+    // <-- Add for video
+  }
+
+  void removeMedia(int index) {
+    selectedPostType.value = null;
+    imagesList.removeAt(index);
+    if (imagesList.isEmpty) selectedPostType.value = null;
+  }
+
+  Future<void> _generateThumbnail(File videoFile) async {
+    final tempDir = await getTemporaryDirectory();
+    final thumbPath = await VideoThumbnail.thumbnailFile(
+      video: videoFile.path,
+      thumbnailPath: tempDir.path,
+      imageFormat: ImageFormat.JPEG,
+      maxHeight: 400,
+      quality: 80,
+    );
+
+    videoThumbnails[videoFile.path] = File(thumbPath.path);
+  }
+
+  Future<GenerateUploadUlrModel?> generateUploadUrl(
+      {required Map<String, dynamic> params,
+      required List<File> listFile}) async {
     ResponseModel responseModel =
-    await symbolRepo.createSymbol(params);
+        await ChatViewRepo().generateUploadUrlsApi(params);
+    if (responseModel.isSuccess) {
+      final data = responseModel.response?.data;
+      final uploadModel = GenerateUploadUlrModel.fromJson(data);
+      final files = uploadModel.files;
+      if (files?.isEmpty ?? true) return null;
+
+      // Parallel Uploads using Future.wait
+      await Future.wait(List.generate(files!.length, (i) {
+        final file = listFile[i];
+        final url = files[i].uploadUrl ?? '';
+        final type = files[i].fileType ?? '';
+        return uploadFileToS3(file: file, fileType: type, preSignedUrl: url);
+      }));
+      return uploadModel;
+    } else {
+      commonSnackBar(
+          message: responseModel.message ?? AppStrings.somethingWentWrong);
+      return null;
+    }
+  }
+
+  Future<void> uploadFileToS3(
+      {required File file,
+      required String fileType,
+      required String preSignedUrl}) async {
+    try {
+      ResponseModel? response = await ChatViewRepo().uploadVideoToS3(
+          onProgress: (double progress) {
+            VideoUploadProgress.value = (progress * 100).toStringAsFixed(2);
+          },
+          file: file,
+          fileType: fileType,
+          preSignedUrl: preSignedUrl);
+      if (response?.isSuccess ?? false) {
+      } else {
+        commonSnackBar(
+            message: response?.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+  }
+
+  bool itTextOrLinkPost() {
+    return selectedPostType.value == PostType.text ||
+        selectedPostType.value == PostType.link;
+  }
+
+  bool itMediaPost() {
+    return selectedPostType.value == PostType.image ||
+        selectedPostType.value == PostType.video;
+  }
+
+  Future<bool> createSymbol() async {
+    isPosting.value = true;
+    GenerateUploadUlrModel? MediaUploadRes;
+    if (imagesList.isNotEmpty) {
+      List<String?> fileNames = [];
+      List<String?> fileTypes = [];
+      Map<String, String?> fileInfo = getFileInfo(imagesList.first);
+      fileNames.add(fileInfo['fileName']);
+      fileTypes.add(fileInfo['mimeType']);
+
+      final uploadParams = {
+        ApiKeys.fileName: fileNames,
+        ApiKeys.fileType: fileTypes,
+      };
+      MediaUploadRes =
+          await generateUploadUrl(params: uploadParams, listFile: imagesList);
+    }
+
+    taggedUsers.value = onTagSelectedList.map((e) => e.id).toList();
+    exceptContactList.value =
+        onExceptContactSelectedList.map((e) => e.id).toList();
+    Map<String, dynamic> params = {
+      ApiKeys.type: selectedPostType.value == PostType.image
+          ? "photo"
+          : selectedPostType.value == PostType.video
+              ? "video"
+              : selectedPostType.value == PostType.video
+                  ? "text"
+                  : "embeddedUrl",
+      ApiKeys.content: itTextOrLinkPost()
+          ? linkTextSymbolController.text
+          : MediaUploadRes?.files?.first.publicUrl,
+      ApiKeys.caption: "${captionController.text}",
+      ApiKeys.duration_days: selectedDays.value,
+      ApiKeys.visibility: visibility.value == PostVisibility.public
+          ? "public"
+          : visibility.value == PostVisibility.private
+              ? "private"
+              : "custom ",
+      if (visibility.value == PostVisibility.custom)
+        ApiKeys.hidden_from: exceptContactList,
+      if (taggedUsers.isNotEmpty) ApiKeys.tagged_users: taggedUsers
+    };
+    ResponseModel responseModel = await symbolRepo.createSymbol(params);
 
     if (responseModel.isSuccess) {
-
+      log("ksjdnclskmsdlc ${responseModel.response?.data}");
+      commonSnackBar(message: "Symbol Added Successfully");
+     await getSymbolsForPartUser(userId);
+      isPosting.value = false;
+      clearData();
+      Get.back();
       return true;
     } else {
-
       commonSnackBar(
           message: responseModel.message ?? AppStrings.somethingWentWrong);
       return false;
     }
+  }
+  Future<void> getSymbolsForPartUser(String userId)async{
+    ResponseModel responseModel = await symbolRepo.getAllSymbolsSingleUser(userId);
+    if(responseModel.isSuccess){
+     mySymbols.value =
+      (responseModel.response?.data as List)
+          .map((e) => SymbolDetailsModel.fromJson(e))
+          .toList();
+    }
+
+  }
+  void clearData(){
+   selectedPostType.value=null;
+   isPosting.value=false;
+   captionController.clear();
+   linkTextSymbolController.clear();
+   imagesList.clear();
   }
 }

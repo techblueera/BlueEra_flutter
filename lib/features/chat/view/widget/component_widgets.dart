@@ -371,41 +371,44 @@ Widget ChatListTile({
                   ],
                 ),
               ):null,
-              child: CircleAvatar(
-                backgroundColor: theme.colorScheme.primary,
-                radius: (chat?.symbolData?.isNotEmpty??false)?SizeConfig.size20:SizeConfig.size22,
-                child: (senderProfileImage == null || senderProfileImage == "null")
-                    ? Center(
-                  child: CustomText(
-                    "${groupName?.split('')[0]}",
-                    color: Colors.white,
-                    fontWeight: FontWeight.w800,
-                    fontSize: SizeConfig.size18,
-                  ),
-                )
-                    : (senderProfileImage.isNotEmpty)
-                    ? ClipOval(
-                  child: (senderProfileImage.startsWith('http'))
-                      ? CachedNetworkImage(
-                    imageUrl: senderProfileImage,
-                    fit: BoxFit.cover,
-                    width: SizeConfig.size44,
-                    height: SizeConfig.size44,
-                  )
-                      : Image.file(
-                    File(senderProfileImage),
-                    width: SizeConfig.size44,
-                    height: SizeConfig.size44,
-                    fit: BoxFit.cover,
-                  ),
-                )
-                    : Center(
-                  child: Text(
-                    senderName?.substring(0, 1) ?? '',
-                    style: TextStyle(
+              child: Padding(
+                padding:  EdgeInsets.all((chat?.symbolData?.isNotEmpty??false)?1.0:0),
+                child: CircleAvatar(
+                  backgroundColor: theme.colorScheme.primary,
+                  radius: (chat?.symbolData?.isNotEmpty??false)?SizeConfig.size20:SizeConfig.size22,
+                  child: (senderProfileImage == null || senderProfileImage == "null")
+                      ? Center(
+                    child: CustomText(
+                      "${groupName?.split('')[0]}",
                       color: Colors.white,
                       fontWeight: FontWeight.w800,
                       fontSize: SizeConfig.size18,
+                    ),
+                  )
+                      : (senderProfileImage.isNotEmpty)
+                      ? ClipOval(
+                    child: (senderProfileImage.startsWith('http'))
+                        ? CachedNetworkImage(
+                      imageUrl: senderProfileImage,
+                      fit: BoxFit.cover,
+                      width: SizeConfig.size44,
+                      height: SizeConfig.size44,
+                    )
+                        : Image.file(
+                      File(senderProfileImage),
+                      width: SizeConfig.size44,
+                      height: SizeConfig.size44,
+                      fit: BoxFit.cover,
+                    ),
+                  )
+                      : Center(
+                    child: Text(
+                      senderName?.substring(0, 1) ?? '',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        fontSize: SizeConfig.size18,
+                      ),
                     ),
                   ),
                 ),

@@ -21,10 +21,12 @@ import '../../../../widgets/common_search_bar.dart';
 import '../../../core/constants/snackbar_helper.dart';
 import '../../../core/routes/route_helper.dart';
 import '../../../widgets/custom_text_cm.dart';
+import '../auth/controller/add_chat_symbol_controller.dart';
 import '../auth/controller/chat_theme_controller.dart';
 import '../auth/controller/chat_view_controller.dart';
 import '../auth/model/GetListOfMessageData.dart';
 import '../contacts/view/contact_list_page.dart';
+import 'add_symbol/add_symbol_screen.dart';
 
 class NewChatMainScreen extends StatefulWidget {
   const NewChatMainScreen(
@@ -49,10 +51,13 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
     with SingleTickerProviderStateMixin {
   late ChatViewController chatViewController;
   late ChatThemeController chatThemeController;
-
+  final addSymbolController = Get.isRegistered<AddChatSymbolController>()
+      ? Get.find<AddChatSymbolController>()
+      : Get.put(AddChatSymbolController());
   @override
   void initState() {
     super.initState();
+    addSymbolController.getSymbolsForPartUser(userId);
     if (Get.isRegistered<ChatViewController>()) {
       chatViewController = Get.find<ChatViewController>();
     } else {
@@ -308,22 +313,71 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
           child: Icon(Icons.arrow_back_ios),
         )
             : Obx(() {
-          return PopupMenuButton<String>(
+          return Stack(
+            children: [
+          Container(
+            margin: EdgeInsets.only(top: 1),
+            child: PopupMenuButton<String>(
             padding: EdgeInsets.zero,
-            offset: Offset(-6, 36),
-            color: AppColors.white,
-            elevation: 8,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10)),
-            onSelected: (value) {
-            },
-            icon: CachedAvatarWidget(
-              imageUrl: Get.find<AuthController>().imgPath.value,
-              size: SizeConfig.size30,
-              borderRadius: 5.0,
-              showProfileOnFullScreen: false,
+              offset: Offset(-6, 36),
+              color: AppColors.white,
+              elevation: 8,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              onSelected: (value) {},
+              icon: Container(
+                padding: const EdgeInsets.all(2), // ⭐ creates border thickness
+                decoration: addSymbolController.mySymbols.isNotEmpty?BoxDecoration(
+                  borderRadius: BorderRadius.circular(6), // square with slight curve
+                  gradient: const SweepGradient(
+                    startAngle: 0.0,
+                    endAngle: 6.28319,
+                    colors: [
+                      AppColors.symbolBorderRed,
+                      AppColors.symbolBorderBlue,
+                      AppColors.symbolBorderYellow,
+                      AppColors.symbolBorderGreen,
+                      AppColors.symbolBorderRed,
+                    ],
+                  ),
+                ):null,
+                child: Container(
+                  padding: const EdgeInsets.all(1.5),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(5),
+                    color: Colors.white, // inner background
+                  ),
+                  child: CachedAvatarWidget(
+                    imageUrl: Get.find<AuthController>().imgPath.value,
+                    size: SizeConfig.size30,
+                    borderRadius: 5.0, // ⭐ square avatar
+                    showProfileOnFullScreen: false,
+                  ),
+                ),
+              ),
+              itemBuilder: (context) => popupMenuChatCardItems(),
             ),
-            itemBuilder: (context) => popupMenuChatCardItems(),
+          ),
+
+          Positioned(
+                  top: 0,
+                  right: 0,
+                  child: InkWell(
+                    onTap: (){
+                      Get.to(AddChatSymbolScreen(
+                      ));
+                    },
+                    child: Container(
+                                    decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(4),
+                                    color: AppColors.primaryColor
+                                    ),
+                                    padding: EdgeInsets.all(1.4),
+                                    child: Icon(Icons.add,color: AppColors.white,size: 14,),
+                                  ),
+                  ))
+            ],
           );
         }),
 
