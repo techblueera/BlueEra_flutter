@@ -186,6 +186,7 @@ class ProfessionChangeDialogHelper {
      }
 
     if (designation == DELIVERY_RIDER) {
+
       _handleDeliveryPartner();
     } else {
       await _navigateToAddServices(

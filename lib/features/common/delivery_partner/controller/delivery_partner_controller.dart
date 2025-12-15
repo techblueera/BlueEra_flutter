@@ -396,7 +396,7 @@ class DeliveryPartnerController extends GetxController{
 
   /// ridersOnboardingDrivingVerificationApi (Step 4)
   Future<void> ridersOnboardingDrivingVerificationApi() async {
-    if(formKeyStep3.currentState!.validate()) {
+    if(formKeyStep4.currentState!.validate()) {
       // ---------- 1️⃣ VALIDATION ----------
       if (rcFrontImage.value == null) {
         commonSnackBar(message: AppStrings.pleaseSelectRcFrontImage.tr);

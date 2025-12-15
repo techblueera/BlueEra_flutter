@@ -531,5 +531,9 @@ abstract class BaseService {
   String createNewProductVariant(String productId) => 'grocery-service/api/products/$productId/variants';
   final String myGroceryProducts = 'grocery-service/api/inventory/my-products';
   final String addGroceryProductVariant = 'grocery-service/api/inventory';
+  final String categoryTree = 'food-service/api/categories/tree';
+  final String createSymbolApi = 'chat-service/symbols';
+  String getAllSymbolOneUser(String orderId) => "chat-service/symbols/user/$orderId";
+
 
 }

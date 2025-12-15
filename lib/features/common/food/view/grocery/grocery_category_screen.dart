@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -11,7 +13,8 @@ import '../../../../../widgets/common_back_app_bar.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 
 class GroceryCategoryScreen extends StatefulWidget {
-  const GroceryCategoryScreen({super.key});
+  final bool isOwnGrocery;
+  const GroceryCategoryScreen({super.key, required this.isOwnGrocery});
 
   @override
   State<GroceryCategoryScreen> createState() => _GroceryCategoryScreenState();
@@ -26,11 +29,13 @@ class _GroceryCategoryScreenState extends State<GroceryCategoryScreen> with Sing
     Tab(text: 'Others')
   ];
   final groceryController = getOrPut(() => GroceryController());
+  late bool isOwnGrocery;
 
   @override
   void initState() {
-    super.initState();
+    isOwnGrocery = widget.isOwnGrocery;
     _tabController = TabController(length: _tabs.length, vsync: this);
+    super.initState();
   }
 
   @override
@@ -64,11 +69,16 @@ class _GroceryCategoryScreenState extends State<GroceryCategoryScreen> with Sing
                     title: "Biscuits, Drinks & Packaged Foods",
                     categories: groceryController.biscuitFoods,
                       onTap:(groceryCategoryModel){
-                        Get.toNamed(RouteHelper.getGrocerySubCategoryScreenRoute(),
-                            arguments: {
-                              ApiKeys.argGroceries: groceryController.biscuitFoods,
-                              ApiKeys.argSelectedGroceryData: groceryCategoryModel
-                            },
+                        final route = isOwnGrocery
+                            ? RouteHelper.getAllGroceryListingScreenRoute()
+                            : RouteHelper.getGroceryListingScreenRoute();
+
+                        Get.toNamed(
+                          route,
+                          arguments: {
+                            ApiKeys.argGroceries: groceryController.biscuitFoods,
+                            ApiKeys.argSelectedGroceryData: groceryCategoryModel,
+                          },
                         );
                       }
                   ),
@@ -77,12 +87,18 @@ class _GroceryCategoryScreenState extends State<GroceryCategoryScreen> with Sing
                     title: "Fruits & Vegetables",
                     categories: groceryController.fruitsVeg,
                     onTap:(groceryCategoryModel){
-                      Get.toNamed(RouteHelper.getGrocerySubCategoryScreenRoute(),
+                      final route = isOwnGrocery
+                          ? RouteHelper.getAllGroceryListingScreenRoute()
+                          : RouteHelper.getGroceryListingScreenRoute();
+
+                      Get.toNamed(
+                        route,
                         arguments: {
                           ApiKeys.argGroceries: groceryController.fruitsVeg,
-                          ApiKeys.argSelectedGroceryData: groceryCategoryModel
+                          ApiKeys.argSelectedGroceryData: groceryCategoryModel,
                         },
                       );
+
                     }
                   ),
 
@@ -90,12 +106,18 @@ class _GroceryCategoryScreenState extends State<GroceryCategoryScreen> with Sing
                     title: "Cooking Essentials",
                     categories: groceryController.cookingEssentials,
                       onTap:(groceryCategoryModel){
-                        Get.toNamed(RouteHelper.getGrocerySubCategoryScreenRoute(),
+                        final route = isOwnGrocery
+                            ? RouteHelper.getAllGroceryListingScreenRoute()
+                            : RouteHelper.getGroceryListingScreenRoute();
+
+                        Get.toNamed(
+                          route,
                           arguments: {
                             ApiKeys.argGroceries: groceryController.cookingEssentials,
-                            ApiKeys.argSelectedGroceryData: groceryCategoryModel
+                            ApiKeys.argSelectedGroceryData: groceryCategoryModel,
                           },
                         );
+
                       }
                   ),
 
@@ -103,10 +125,15 @@ class _GroceryCategoryScreenState extends State<GroceryCategoryScreen> with Sing
                     title: "Dairy & Bakery",
                     categories: groceryController.dairyBakery,
                     onTap:(groceryCategoryModel){
-                      Get.toNamed(RouteHelper.getGrocerySubCategoryScreenRoute(),
+                      final route = isOwnGrocery
+                          ? RouteHelper.getAllGroceryListingScreenRoute()
+                          : RouteHelper.getGroceryListingScreenRoute();
+
+                      Get.toNamed(
+                        route,
                         arguments: {
                           ApiKeys.argGroceries: groceryController.dairyBakery,
-                          ApiKeys.argSelectedGroceryData: groceryCategoryModel
+                          ApiKeys.argSelectedGroceryData: groceryCategoryModel,
                         },
                       );
 
@@ -117,12 +144,18 @@ class _GroceryCategoryScreenState extends State<GroceryCategoryScreen> with Sing
                     title: "Mom & Baby Care",
                     categories: groceryController.momBabyCare,
                     onTap:(groceryCategoryModel){
-                      Get.toNamed(RouteHelper.getGrocerySubCategoryScreenRoute(),
+                      final route = isOwnGrocery
+                          ? RouteHelper.getAllGroceryListingScreenRoute()
+                          : RouteHelper.getGroceryListingScreenRoute();
+
+                      Get.toNamed(
+                        route,
                         arguments: {
                           ApiKeys.argGroceries: groceryController.momBabyCare,
-                          ApiKeys.argSelectedGroceryData: groceryCategoryModel
+                          ApiKeys.argSelectedGroceryData: groceryCategoryModel,
                         },
                       );
+
                     }
                   ),
 
@@ -130,12 +163,18 @@ class _GroceryCategoryScreenState extends State<GroceryCategoryScreen> with Sing
                     title: "Kitchenware",
                     categories: groceryController.kitchenware,
                       onTap:(groceryCategoryModel){
-                        Get.toNamed(RouteHelper.getGrocerySubCategoryScreenRoute(),
+                        final route = isOwnGrocery
+                            ? RouteHelper.getAllGroceryListingScreenRoute()
+                            : RouteHelper.getGroceryListingScreenRoute();
+
+                        Get.toNamed(
+                          route,
                           arguments: {
                             ApiKeys.argGroceries: groceryController.cookingEssentials,
-                            ApiKeys.argSelectedGroceryData: groceryCategoryModel
+                            ApiKeys.argSelectedGroceryData: groceryCategoryModel,
                           },
                         );
+
                       }
                   ),
 
@@ -143,12 +182,18 @@ class _GroceryCategoryScreenState extends State<GroceryCategoryScreen> with Sing
                     title: "Tableware",
                     categories: groceryController.tableware,
                     onTap:(groceryCategoryModel){
-                      Get.toNamed(RouteHelper.getGrocerySubCategoryScreenRoute(),
+                      final route = isOwnGrocery
+                          ? RouteHelper.getAllGroceryListingScreenRoute()
+                          : RouteHelper.getGroceryListingScreenRoute();
+
+                      Get.toNamed(
+                        route,
                         arguments: {
                           ApiKeys.argGroceries: groceryController.tableware,
-                          ApiKeys.argSelectedGroceryData: groceryCategoryModel
+                          ApiKeys.argSelectedGroceryData: groceryCategoryModel,
                         },
                       );
+
                     }
 
                   ),
@@ -157,12 +202,18 @@ class _GroceryCategoryScreenState extends State<GroceryCategoryScreen> with Sing
                     title: "Gifts & Hampers",
                     categories: groceryController.giftsHampers,
                       onTap:(groceryCategoryModel){
-                        Get.toNamed(RouteHelper.getGrocerySubCategoryScreenRoute(),
+                        final route = isOwnGrocery
+                            ? RouteHelper.getAllGroceryListingScreenRoute()
+                            : RouteHelper.getGroceryListingScreenRoute();
+
+                        Get.toNamed(
+                          route,
                           arguments: {
                             ApiKeys.argGroceries: groceryController.giftsHampers,
-                            ApiKeys.argSelectedGroceryData: groceryCategoryModel
+                            ApiKeys.argSelectedGroceryData: groceryCategoryModel,
                           },
                         );
+
                       }
                   ),
 
@@ -170,12 +221,18 @@ class _GroceryCategoryScreenState extends State<GroceryCategoryScreen> with Sing
                     title: "Home",
                     categories: groceryController.homeCategory,
                     onTap:(groceryCategoryModel){
-                      Get.toNamed(RouteHelper.getGrocerySubCategoryScreenRoute(),
+                      final route = isOwnGrocery
+                          ? RouteHelper.getAllGroceryListingScreenRoute()
+                          : RouteHelper.getGroceryListingScreenRoute();
+
+                      Get.toNamed(
+                        route,
                         arguments: {
                           ApiKeys.argGroceries: groceryController.homeCategory,
-                          ApiKeys.argSelectedGroceryData: groceryCategoryModel
+                          ApiKeys.argSelectedGroceryData: groceryCategoryModel,
                         },
                       );
+
                       }
                   ),
 

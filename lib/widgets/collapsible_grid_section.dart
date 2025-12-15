@@ -49,7 +49,7 @@ class _CollapsibleGridSectionState extends State<CollapsibleGridSection> {
                 return Expanded(
                   child: IconGridItem(
                     label: item.label ?? '',
-                    icon: 'assets/category/${item.icon}',
+                    icon: 'assets/category/grocery/${item.icon}',
                     onTap: () => widget.onTap?.call(item),
                   ),
                 );

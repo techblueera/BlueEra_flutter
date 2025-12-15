@@ -214,7 +214,6 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
               ),
             ];
           },
-
           body: Column(
             children: [
               Expanded(

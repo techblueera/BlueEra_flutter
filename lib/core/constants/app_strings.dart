@@ -2151,7 +2151,4 @@ class AppStrings {
   static const selectRentalType = "selectRentalType";
   static const selectRentalTypeMessage = "selectRentalTypeMessage";
 
-
-
-
 }

@@ -1,14 +1,21 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 
+import '../../../../core/api/apiService/response_model.dart';
+import '../../../../core/constants/app_strings.dart';
+import '../../../../core/constants/snackbar_helper.dart';
 import '../model/contactListModel.dart';
+import '../repo/symbol_repo.dart';
 enum PostType { image, video, text }
 
 enum PostVisibility { public, private, custom }
 
 class AddChatSymbolController extends GetxController {
   // Post type selection
+  Rx<PostType?> selectedPostType = Rx<PostType?>(null);
+  final SymbolRepo symbolRepo=SymbolRepo();
   Rx<PostType?> selectedPostType = Rx<PostType?>(PostType.image);
 
   // File picked
@@ -84,5 +91,32 @@ class AddChatSymbolController extends GetxController {
     print("TAGGED USERS: $taggedUsers");
 
     isPosting.value = false;
+  }
+  Future<bool> createSymbol() async {
+    Map<String,dynamic> params={
+      ApiKeys.type: "photo",
+      ApiKeys.content: "string",
+      ApiKeys.caption: "string",
+      ApiKeys.duration_days: 1,
+      ApiKeys.visibility: "public",
+      ApiKeys.hidden_from: [
+        "string"
+      ],
+    ApiKeys.tagged_users: [
+        "string"
+      ]
+    };
+    ResponseModel responseModel =
+    await symbolRepo.createSymbol(params);
+
+    if (responseModel.isSuccess) {
+
+      return true;
+    } else {
+
+      commonSnackBar(
+          message: responseModel.message ?? AppStrings.somethingWentWrong);
+      return false;
+    }
   }
 }

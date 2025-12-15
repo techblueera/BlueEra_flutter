@@ -554,5 +554,9 @@ class ApiKeys {
   static const argSelectedGroceryData = 'argSelectedGroceryData';
   static const argCategoryId = 'argCategoryId';
   static const argIsShowInGrid = 'argIsShowInGrid';
+  static const argOwnGrocery = 'argOwnGrocery';
+  static const caption = 'caption';
+  static const duration_days = 'duration_days';
+  static const hidden_from = 'hidden_from';
 
 }

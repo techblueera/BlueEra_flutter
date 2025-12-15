@@ -145,8 +145,12 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
       ),
     );
 
-    Overlay.of(Get.overlayContext ?? context).insert(overlayEntry!);
+    final overlay = Overlay.of(context, rootOverlay: true);
+    if (overlay == null) return;
+
+    overlay.insert(overlayEntry!);
   }
+
 
   Widget _buildOverlayBody() {
     if (isLoading.value) {
@@ -213,11 +217,15 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
   }
 
   void _removeOverlay() {
-    if (overlayEntry != null) {
+    if (!mounted) return; // widget disposed
+
+    if (overlayEntry != null && overlayEntry!.mounted) {
       overlayEntry!.remove();
-      overlayEntry = null;
     }
+
+    overlayEntry = null;
   }
+
 
   @override
   Widget build(BuildContext context) {

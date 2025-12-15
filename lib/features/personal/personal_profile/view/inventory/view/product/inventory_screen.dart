@@ -3,6 +3,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -14,6 +15,9 @@ import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/p
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/product_screen.dart';
 import 'package:BlueEra/features/common/service/view/view_service_list.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/common_search_bar.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/widgets/tab_bar_delegate.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controller/inventory_controller.dart';
@@ -36,7 +40,6 @@ class _InventoryScreenState extends State<InventoryScreen>
   String _businessType = BusinessType.Product.name;
   bool _isLoading = true;
   late List<Tab> _tabs;
-
 
   final inventoryController = getOrPut(() => InventoryController());
   final serviceController = getOrPut(() => ServiceController());
@@ -125,37 +128,37 @@ class _InventoryScreenState extends State<InventoryScreen>
     }
 
     return Scaffold(
+      // appBar: PreferredSize(
+      //   preferredSize: Size.fromHeight(kToolbarHeight + 50),
+      //   child: CommonBackAppBar(
+      //     isLeading: !(widget.fromBottomNavBar),
+      //     controller: searchController,
+      //     searchHintText:
+      //     AppStrings.searchHintText,
+      //     // 'Search ${_tabController.index == 0 ? 'Product' : _tabController.index == 1 ? 'Service' : 'Food & Grocery'}...',
+      //     onClearCallback: () => searchController.clear(),
+      //     isSearch: true,
+      //     isInventoryPopUpMenu: true,
+      //     bottomWidget: TabBar(
+      //       controller: _tabController,
+      //       labelColor: AppColors.primaryColor,
+      //       unselectedLabelColor: Colors.grey[600],
+      //       indicatorColor: Colors.blue,
+      //       indicatorWeight: 2,
+      //       labelStyle: TextStyle(fontWeight: FontWeight.w600),
+      //       tabs: [
+      //         if (isShowProduct.contains(_businessType))
+      //           Tab(text: AppStrings.myProducts.tr),
+      //         if (isShowService.contains(_businessType))
+      //           Tab(text: AppStrings.myServices.tr),
+      //         if (isShowFood.contains(_businessType))
+      //           Tab(text: AppStrings.foodAndGrocery.tr),
+      //         Tab(text: AppStrings.businessCards.tr),
+      //       ],
+      //     ),
+      //   ),
+      // ),
       backgroundColor: AppColors.whiteF3,
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(kToolbarHeight + 50),
-        child: CommonBackAppBar(
-          isLeading: !(widget.fromBottomNavBar),
-          controller: searchController,
-          searchHintText:
-              AppStrings.searchHintText,
-              // 'Search ${_tabController.index == 0 ? 'Product' : _tabController.index == 1 ? 'Service' : 'Food & Grocery'}...',
-          onClearCallback: () => searchController.clear(),
-          isSearch: true,
-          isInventoryPopUpMenu: true,
-          bottomWidget: TabBar(
-            controller: _tabController,
-            labelColor: AppColors.primaryColor,
-            unselectedLabelColor: Colors.grey[600],
-            indicatorColor: Colors.blue,
-            indicatorWeight: 2,
-            labelStyle: TextStyle(fontWeight: FontWeight.w600),
-            tabs: [
-              if (isShowProduct.contains(_businessType))
-                 Tab(text: AppStrings.myProducts.tr),
-              if (isShowService.contains(_businessType))
-                 Tab(text: AppStrings.myServices.tr),
-              if (isShowFood.contains(_businessType))
-                 Tab(text: AppStrings.foodAndGrocery.tr),
-                 Tab(text: AppStrings.businessCards.tr),
-            ],
-          ),
-        ),
-      ),
       floatingActionButton: Builder(builder: (context) {
         return Padding(
           padding: EdgeInsets.only(
@@ -185,23 +188,66 @@ class _InventoryScreenState extends State<InventoryScreen>
         );
       }),
       body: SafeArea(
-        child: TabBarView(
-          controller: _tabController,
-          children: [
-            if ((isShowProduct.contains(_businessType)))
-              ProductScreen(),
-            if ((isShowService.contains(_businessType)))
-              ViewServiceList(
-                providerType: ProductServiceProviderType.business,
+        child: NestedScrollView(
+          headerSliverBuilder: (context, innerBoxIsScrolled) {
+            return [
+              SliverAppBar(
+                backgroundColor: Colors.white,
+                elevation: 0,
+                floating: true,   // appear on scroll up
+                snap: true,       // instantly snap down
+                pinned: false,    // don't keep the header fixed
+                automaticallyImplyLeading: false,
+                flexibleSpace: Padding(
+                  padding: EdgeInsets.symmetric(vertical: SizeConfig.size15),
+                  child: _buildHeader(context), // your header row
+                ),
+                expandedHeight: SizeConfig.size70,
               ),
-            if ((isShowFood.contains(_businessType)))
-              FoodAndGroceryScreen(
-                providerType: ProductServiceProviderType.business,
+
+              SliverPersistentHeader(
+                pinned: true,   // TabBar should always stay visible
+                delegate: TabBarDelegate(
+                  TabBar(
+                    controller: _tabController,
+                    labelColor: AppColors.primaryColor,
+                    unselectedLabelColor: Colors.grey[600],
+                    indicatorColor: Colors.blue,
+                    indicatorWeight: 2,
+                    labelStyle: TextStyle(fontWeight: FontWeight.w600),
+                    tabs: [
+                      if (isShowProduct.contains(_businessType))
+                        Tab(text: AppStrings.myProducts.tr),
+                      if (isShowService.contains(_businessType))
+                        Tab(text: AppStrings.myServices.tr),
+                      if (isShowFood.contains(_businessType))
+                        Tab(text: AppStrings.foodAndGrocery.tr),
+                      Tab(text: AppStrings.businessCards.tr),
+                    ],
+                  ),
+                ),
               ),
-            InventoryBusinessCardsScreen(
-              showBackAppBar: false,
-            )
-          ],
+            ];
+          },
+          body: TabBarView(
+            controller: _tabController,
+            children: [
+              if ((isShowProduct.contains(_businessType)))
+                ProductScreen(),
+              if ((isShowService.contains(_businessType)))
+                ViewServiceList(
+                  providerType: ProductServiceProviderType.business,
+                ),
+              if ((isShowFood.contains(_businessType)))
+                // FoodCategoryPage(),
+                FoodAndGroceryScreen(
+                  providerType: ProductServiceProviderType.business,
+                ),
+              InventoryBusinessCardsScreen(
+                showBackAppBar: false,
+              )
+            ],
+          ),
         ),
       ),
     );
@@ -283,5 +329,45 @@ class _InventoryScreenState extends State<InventoryScreen>
         );
       }
     }
+  }
+
+  Widget? _buildHeader(BuildContext context) {
+    return Row(
+      children: [
+        if (!widget.fromBottomNavBar)
+          IconButton(
+              padding: EdgeInsets.zero,
+              onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+              icon: LocalAssets(
+                imagePath: AppIconAssets.back_arrow,
+                height: SizeConfig.paddingL,
+                width: SizeConfig.paddingL,
+                imgColor:  Colors.black,
+              )),
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.only(
+                left:
+                (!widget.fromBottomNavBar) ? 0.0 : SizeConfig.size15),
+            child: CommonSearchBar(
+                controller: searchController,
+                onClearCallback: ()=> searchController.clear(),
+                hintText: AppStrings.searchHintText),
+          ),
+        ),
+        PopupMenuButton<String>(
+          padding: EdgeInsets.zero,
+          offset: const Offset(-6, 36),
+          color: AppColors.white,
+          elevation: 8,
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10)),
+          icon: Icon(Icons.more_vert),
+          itemBuilder: (context) => inventoryPopupMenuItems(),
+        ),
+      ],
+    );
   }
 }
