@@ -48,7 +48,7 @@ class BottomCaptionField extends StatelessWidget {
                                 isFromAddMember: true,
                                 onSelectedPersons: (selectedPersonsList) {
 
-                                  c.addTaggedPersonsList(selectedPersonsList);
+                                  c.onTagSelectedList.value=selectedPersonsList;
                                 },
                               ));
                         },

@@ -26,9 +26,9 @@ class _DeliveryPartnerOrdersState extends State<DeliveryPartnerOrders>  {
 
   @override
   void initState() {
-    if (deliveryPartnerController.riderVerificationState == RiderVerificationState.completed) {
+    // if (deliveryPartnerController.riderVerificationState == RiderVerificationState.completed) {
       controller.fetchStream();
-    }
+    // }
     super.initState();
   }
 
@@ -54,7 +54,7 @@ class _DeliveryPartnerOrdersState extends State<DeliveryPartnerOrders>  {
                   builder: (context) {
                     final state = deliveryPartnerController.riderVerificationState;
                     final allCompleted = deliveryPartnerController.stepStatus.values.every((s) => s == true);
-                    log('all steps Completed-- $allCompleted');
+                    log('all steps Completed-- $allCompleted ___ ${state}');
 
                     // ---- Rejected ----
                     if (allCompleted && state == RiderVerificationState.rejected) {

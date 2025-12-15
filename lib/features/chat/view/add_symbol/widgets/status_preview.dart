@@ -24,17 +24,31 @@ class StatusPreview extends StatelessWidget {
         return Container(
           width: double.infinity,
           height: double.infinity,
-          color:  AppColors.backgroundBlur,
+          color: Colors.transparent,
           padding: const EdgeInsets.all(20),
           child: Center(
-            child: Text(
-              controller.textPostController.text,
+            child: TextFormField(
+              controller: controller.textPostController,
+              maxLines: null,                 // unlimited lines
+              expands: true,                  // fill available space
+              textAlign: TextAlign.center,
+              textAlignVertical: TextAlignVertical.center,
+              cursorColor: Colors.black,
+              textInputAction: TextInputAction.done, // ✅ FINISH KEY
               style: const TextStyle(
                 color: Colors.black,
                 fontSize: 26,
                 fontWeight: FontWeight.w500,
               ),
-              textAlign: TextAlign.center,
+              decoration: const InputDecoration(
+                hintText: "Type something...",
+                hintStyle: TextStyle(
+                  color: Colors.black45,
+                  fontSize: 26,
+                  fontWeight: FontWeight.w400,
+                ),
+                border: InputBorder.none,      // no underline
+              ),
             ),
           ),
         );
@@ -44,23 +58,59 @@ class StatusPreview extends StatelessWidget {
       if (controller.selectedFile.value == null) {
         return GestureDetector(
           onTap: () {
-            _pickFromGallery(type == PostType.video,controller);
+            _pickFromGallery(type == PostType.video, controller);
           },
           child: Container(
             width: double.infinity,
             height: double.infinity,
             color: AppColors.backgroundBlur,
-            child: const Center(
-              child: Icon(Icons.add_a_photo, color: Colors.black, size: 80),
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    type == PostType.video
+                        ? Icons.video_camera_back_outlined
+                        : Icons.add_a_photo,
+                    color: Colors.black,
+                    size: 80,
+                  ),
+                  const SizedBox(height: 12),
+
+                  // 🔹 Main text
+                  Text(
+                    type == PostType.video ? "Select Video Symbol" : "Select Image Symbol",
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black,
+                    ),
+                  ),
+
+                  const SizedBox(height: 6),
+
+                  // 🔹 Helper text
+                  Text(
+                    type == PostType.video
+                        ? "Tap here to choose a video"
+                        : "Tap here to choose an image",
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Colors.black54,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-        );
+        )
+        ;
       }
 
       // IMAGE SELECTED
       return InkWell(
         onTap: ()async{
-
+          _pickFromGallery(type == PostType.video,controller);
         },
         child: Container(
           width: double.infinity,

@@ -9,7 +9,7 @@ enum PostVisibility { public, private, custom }
 
 class AddChatSymbolController extends GetxController {
   // Post type selection
-  Rx<PostType?> selectedPostType = Rx<PostType?>(null);
+  Rx<PostType?> selectedPostType = Rx<PostType?>(PostType.image);
 
   // File picked
   Rx<File?> selectedFile = Rx<File?>(null);
@@ -32,14 +32,12 @@ class AddChatSymbolController extends GetxController {
   // Loading
   RxBool isPosting = false.obs;
   RxList<ExistingNotConnected> onTagSelectedList=<ExistingNotConnected>[].obs;
+  RxList<ExistingNotConnected> onExceptContactSelectedList=<ExistingNotConnected>[].obs;
   // --- FUNCTIONS ---
   final RxBool showDurationSelector = false.obs;
 
   void toggleDurationSelector() {
     showDurationSelector.toggle();
-  }
-  void addTaggedPersonsList(List<ExistingNotConnected> list){
-    onTagSelectedList.addAll(list);
   }
 
   void choosePostType(PostType type) {

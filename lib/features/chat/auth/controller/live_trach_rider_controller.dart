@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:get/get_state_manager/src/simple/get_controllers.dart';
 
@@ -15,12 +16,13 @@ class LiveTrachRiderController extends GetxController {
     _stream = await riderLiveLocationOrderStream(riderId);
 
     _subscription = _stream.listen((event) {
-
+     log("sdkjcskldjcskldc $event lll _ $riderId");
       Map<String,dynamic> data=event;
 
       // LocationDataRider location=LocationDataRider.fromJson(data['location']);
       liveLat.value = data['location']['coordinates'][1];
       liveLng.value = data['location']['coordinates'][0];
+
     }, onError: (error) {
       print('❌ Stream error: $error');
     }, onDone: () {

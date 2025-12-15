@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -132,7 +133,6 @@ class DeliveryPartnerController extends GetxController{
       if (response.isSuccess) {
         ridersOnboardingStatusResponse.value = ApiResponse.complete(response);
         final riderOnboardingStatusResponse = RiderOnboardingStatusResponse.fromJson(response.response?.data);
-
         riderVerificationStatus = riderOnboardingStatusResponse.data?.verificationStatus;
         stepStatus.assignAll({
           RiderProfileStep.personalInfo: riderOnboardingStatusResponse.data?.personalInformation ?? false,
@@ -160,7 +160,7 @@ class DeliveryPartnerController extends GetxController{
     final status = riderVerificationStatus?.toLowerCase();
 
     switch (status) {
-      case 'completed':
+      case 'approved':
         return RiderVerificationState.completed;
 
       case 'rejected':
