@@ -13,6 +13,7 @@ import 'package:BlueEra/features/chat/view/ai_chat/ask_inventory_chat_screen.dar
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/auth/controller/ai_chat_guest_controller.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_widget.dart';
+import 'package:BlueEra/features/common/delivery_partner/view/rider_profile_status_screen.dart';
 import 'package:BlueEra/features/common/food/view/grocery/my_grocery_listing/grocery_screen.dart';
 import 'package:BlueEra/features/common/home/view/home_screen.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
@@ -254,7 +255,9 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
-
+      // floatingActionButton: FloatingActionButton(onPressed: () {
+      //   Get.to(RiderProfileStatusScreen());
+      // }),
       body: ValueListenableBuilder(
           valueListenable: bottomBarVisibleNotifier,
           builder: (context, isVisible, _) {
@@ -372,7 +375,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     return BusinessType == BusinessType.Grocery
         ? GroceryScreen(fromBottomNavBar: true)
         : GroceryScreen(fromBottomNavBar: true);
-        // : InventoryScreen(fromBottomNavBar: true);
+    // : InventoryScreen(fromBottomNavBar: true);
   }
 
   Widget resolveIndividualScreen() {

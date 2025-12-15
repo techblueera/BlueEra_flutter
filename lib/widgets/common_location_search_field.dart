@@ -14,7 +14,8 @@ class CommonLocationSearchField extends StatefulWidget {
   final TextEditingController controller;
   final String title;
   final String hintText;
-  final Function(String placeId, double lat, double lng, String address)? onSelected;
+  final Function(String placeId, double lat, double lng, String address)?
+      onSelected;
 
   const CommonLocationSearchField({
     super.key,
@@ -41,6 +42,7 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
   Timer? debounce;
 
   RxString currentAddress = ''.obs;
+
   // double latitude = 0.0;
   // double longitude = 0.0;
 
@@ -56,7 +58,7 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
     debounce?.cancel();
 
     debounce = Timer(const Duration(milliseconds: 600), () {
-       _fetchPredictions(query);
+      _fetchPredictions(query);
       _updateOverlay();
     });
   }
@@ -112,7 +114,7 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
     _removeOverlay();
 
     final renderBox =
-    textFieldKey.currentContext?.findRenderObject() as RenderBox?;
+        textFieldKey.currentContext?.findRenderObject() as RenderBox?;
     if (renderBox == null) return;
 
     final size = renderBox.size;
@@ -131,7 +133,7 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
             elevation: 4,
             borderRadius: BorderRadius.circular(10),
             child: Obx(
-                  () => Container(
+              () => Container(
                 constraints: const BoxConstraints(maxHeight: 300),
                 decoration: BoxDecoration(
                   color: AppColors.white,
@@ -151,7 +153,6 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
     overlay.insert(overlayEntry!);
   }
 
-
   Widget _buildOverlayBody() {
     if (isLoading.value) {
       return const Padding(
@@ -168,8 +169,7 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
           fontWeight: FontWeight.w600,
         ),
       );
-    } else if (predictions.isEmpty &&
-        widget.controller.text.isNotEmpty) {
+    } else if (predictions.isEmpty && widget.controller.text.isNotEmpty) {
       return Padding(
         padding: const EdgeInsets.all(16),
         child: CustomText(
@@ -187,7 +187,8 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
         child: ListView.builder(
           controller: scrollController,
           itemCount: predictions.length,
-          padding: EdgeInsets.symmetric(vertical: SizeConfig.size4, horizontal: SizeConfig.size20),
+          padding: EdgeInsets.symmetric(
+              vertical: SizeConfig.size4, horizontal: SizeConfig.size20),
           itemBuilder: (context, index) {
             final item = predictions[index];
             return ListTile(
@@ -204,7 +205,8 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
                 double latitude = item.lat ?? 0.0;
                 double longitude = item.lng ?? 0.0;
                 predictions.clear();
-                widget.onSelected?.call(placeId, latitude, longitude, currentAddress);
+                widget.onSelected
+                    ?.call(placeId, latitude, longitude, currentAddress);
                 _removeOverlay();
               },
             );
@@ -226,7 +228,6 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
     overlayEntry = null;
   }
 
-
   @override
   Widget build(BuildContext context) {
     return CompositedTransformTarget(
@@ -240,14 +241,14 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
         onChange: onSearchChanged,
         sIcon: Obx(() => currentAddress.isNotEmpty
             ? IconButton(
-          icon: const Icon(Icons.clear),
-          onPressed: () {
-            widget.controller.clear();
-            currentAddress.value = '';
-            predictions.clear();
-            _removeOverlay();
-          },
-        )
+                icon: const Icon(Icons.clear),
+                onPressed: () {
+                  widget.controller.clear();
+                  currentAddress.value = '';
+                  predictions.clear();
+                  _removeOverlay();
+                },
+              )
             : SizedBox.shrink()),
       ),
     );

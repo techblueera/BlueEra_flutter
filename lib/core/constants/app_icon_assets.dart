@@ -529,4 +529,5 @@ class AppIconAssets {
   static String removeOutlinedIcon = "${iconPath}remove_outlined_icon.svg";
 
   static String toggol_buttons = "${iconPath}toggol_buttons.svg";
+  static String green_tick_icon = "${iconPath}green_tick.svg";
 }

@@ -10,6 +10,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/food/controller/food_upload_controller.dart';
+import 'package:BlueEra/features/common/food/view/food/food_categroy.dart';
 import 'package:BlueEra/features/common/service/controller/service_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/inventory_business_cards_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/product_screen.dart';
@@ -239,10 +240,10 @@ class _InventoryScreenState extends State<InventoryScreen>
                   providerType: ProductServiceProviderType.business,
                 ),
               if ((isShowFood.contains(_businessType)))
-                // FoodCategoryPage(),
-                FoodAndGroceryScreen(
-                  providerType: ProductServiceProviderType.business,
-                ),
+                FoodCategoryPage(),
+                // FoodAndGroceryScreen(
+                //   providerType: ProductServiceProviderType.business,
+                // ),
               InventoryBusinessCardsScreen(
                 showBackAppBar: false,
               )

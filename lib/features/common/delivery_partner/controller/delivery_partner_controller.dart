@@ -27,16 +27,23 @@ enum RiderProfileStep {
   vehicleInfo
 }
 
-class DeliveryPartnerController extends GetxController{
+class DeliveryPartnerController extends GetxController {
   Rx<ApiResponse> uploadInitResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> uploadFileToS3Response = ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> ridersOnboardingPersonalInformationResponse = ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> ridersOnboardingAddressResponse = ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> ridersOnboardingPersonalIdentificationResponse = ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> ridersOnboardingDrivingVerificationResponse = ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> ridersOnboardingVehicleImagesResponse = ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> ridersOnboardingVehicleInformationResponse = ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> ridersOnboardingStatusResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> ridersOnboardingPersonalInformationResponse =
+      ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> ridersOnboardingAddressResponse =
+      ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> ridersOnboardingPersonalIdentificationResponse =
+      ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> ridersOnboardingDrivingVerificationResponse =
+      ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> ridersOnboardingVehicleImagesResponse =
+      ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> ridersOnboardingVehicleInformationResponse =
+      ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> ridersOnboardingStatusResponse =
+      ApiResponse.initial('Initial').obs;
 
   final stepStatus = <RiderProfileStep, bool>{}.obs;
   String? riderVerificationStatus;
@@ -99,18 +106,22 @@ class DeliveryPartnerController extends GetxController{
   final vehicleModelController = TextEditingController();
 
   final RxBool isTermsAccepted = false.obs;
-  Rx<VehicleRegistrationType?> selectedVehicleRegistrationType = Rx<VehicleRegistrationType?>(null);
+  Rx<VehicleRegistrationType?> selectedVehicleRegistrationType =
+      Rx<VehicleRegistrationType?>(null);
   Rx<VehicleType?> selectedVehicleType = Rx<VehicleType?>(null);
   Rx<FuelType?> selectedFuelType = Rx<FuelType?>(null);
 
   Future<RiderServiceUploadModel?> uploadInit(
       {required String fileType}) async {
     try {
-      ResponseModel response = await DeliveryPartnerRepo().initRiderServiceUploadRepo(fileType: fileType);;
+      ResponseModel response = await DeliveryPartnerRepo()
+          .initRiderServiceUploadRepo(fileType: fileType);
+      ;
 
       if (response.isSuccess) {
         uploadInitResponse.value = ApiResponse.complete(response);
-        final riderServiceUploadModel = RiderServiceUploadModel.fromJson(response.response?.data);
+        final riderServiceUploadModel =
+            RiderServiceUploadModel.fromJson(response.response?.data);
         return riderServiceUploadModel;
       }
     } catch (e) {
@@ -122,27 +133,36 @@ class DeliveryPartnerController extends GetxController{
   }
 
   RxBool isRiderStatusLoading = true.obs;
+  Rx<RiderOnboardingStatusData?> riderOnboardingStatusData =Rx<RiderOnboardingStatusData?>(null);
 
   /// ridersOnboardingStatusRepoApi
   Future<void> ridersOnboardingStatusRepoApi() async {
     try {
-
-      ResponseModel response = await DeliveryPartnerRepo().ridersOnboardingStatusRepo();
+      ResponseModel response =
+          await DeliveryPartnerRepo().ridersOnboardingStatusRepo();
 
       if (response.isSuccess) {
         ridersOnboardingStatusResponse.value = ApiResponse.complete(response);
-        final riderOnboardingStatusResponse = RiderOnboardingStatusResponse.fromJson(response.response?.data);
-
-        riderVerificationStatus = riderOnboardingStatusResponse.data?.verificationStatus;
+        final riderOnboardingStatusResponse =
+            RiderOnboardingStatusResponse.fromJson(response.response?.data);
+        riderOnboardingStatusData.value=riderOnboardingStatusResponse.data;
+        riderVerificationStatus =
+            riderOnboardingStatusResponse.data?.verificationStatus;
         stepStatus.assignAll({
-          RiderProfileStep.personalInfo: riderOnboardingStatusResponse.data?.personalInformation ?? false,
-          RiderProfileStep.addressInfo: riderOnboardingStatusResponse.data?.address ?? false,
-          RiderProfileStep.personalIdentificationInfo: riderOnboardingStatusResponse.data?.personalIdentification ?? false,
-          RiderProfileStep.drivingInfo: riderOnboardingStatusResponse.data?.drivingVerification ?? false,
-          RiderProfileStep.vehicleImagesInfo: riderOnboardingStatusResponse.data?.vehicleImages ?? false,
-          RiderProfileStep.vehicleInfo: riderOnboardingStatusResponse.data?.vehicleInformation ?? false,
+          RiderProfileStep.personalInfo:
+              riderOnboardingStatusResponse.data?.personalInformation ?? false,
+          RiderProfileStep.addressInfo:
+              riderOnboardingStatusResponse.data?.address ?? false,
+          RiderProfileStep.personalIdentificationInfo:
+              riderOnboardingStatusResponse.data?.personalIdentification ??
+                  false,
+          RiderProfileStep.drivingInfo:
+              riderOnboardingStatusResponse.data?.drivingVerification ?? false,
+          RiderProfileStep.vehicleImagesInfo:
+              riderOnboardingStatusResponse.data?.vehicleImages ?? false,
+          RiderProfileStep.vehicleInfo:
+              riderOnboardingStatusResponse.data?.vehicleInformation ?? false,
         });
-
       } else {
         ridersOnboardingStatusResponse.value = ApiResponse.error('error');
         commonSnackBar(
@@ -151,10 +171,49 @@ class DeliveryPartnerController extends GetxController{
     } catch (e) {
       ridersOnboardingStatusResponse.value = ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
-    }finally{
+    } finally {
       isRiderStatusLoading.value = false;
     }
   }
+  /*Future<void> ridersOnboardingStatusRepoApi() async {
+    try {
+      ResponseModel response =
+          await DeliveryPartnerRepo().ridersOnboardingStatusRepo();
+
+      if (response.isSuccess) {
+        ridersOnboardingStatusResponse.value = ApiResponse.complete(response);
+        final riderOnboardingStatusResponse =
+            RiderOnboardingStatusResponse.fromJson(response.response?.data);
+
+        riderVerificationStatus =
+            riderOnboardingStatusResponse.data?.verificationStatus;
+        stepStatus.assignAll({
+          RiderProfileStep.personalInfo:
+              riderOnboardingStatusResponse.data?.personalInformation ?? false,
+          RiderProfileStep.addressInfo:
+              riderOnboardingStatusResponse.data?.address ?? false,
+          RiderProfileStep.personalIdentificationInfo:
+              riderOnboardingStatusResponse.data?.personalIdentification ??
+                  false,
+          RiderProfileStep.drivingInfo:
+              riderOnboardingStatusResponse.data?.drivingVerification ?? false,
+          RiderProfileStep.vehicleImagesInfo:
+              riderOnboardingStatusResponse.data?.vehicleImages ?? false,
+          RiderProfileStep.vehicleInfo:
+              riderOnboardingStatusResponse.data?.vehicleInformation ?? false,
+        });
+      } else {
+        ridersOnboardingStatusResponse.value = ApiResponse.error('error');
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      ridersOnboardingStatusResponse.value = ApiResponse.error('error');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    } finally {
+      isRiderStatusLoading.value = false;
+    }
+  }*/
 
   RiderVerificationState get riderVerificationState {
     final status = riderVerificationStatus?.toLowerCase();
@@ -214,7 +273,8 @@ class DeliveryPartnerController extends GetxController{
         fileType: mimeType,
         preSignedUrl: initModel.uploadURL ?? '',
         onProgress: (progress) {
-          debugPrint(" Uploading ${file.path.split('/').last}: ${(progress * 100).toStringAsFixed(0)}%");
+          debugPrint(
+              " Uploading ${file.path.split('/').last}: ${(progress * 100).toStringAsFixed(0)}%");
         },
       );
 
@@ -229,7 +289,7 @@ class DeliveryPartnerController extends GetxController{
 
   /// ridersOnboardingPersonalInformationApi (Step 1)
   Future<void> ridersOnboardingPersonalInformationApi() async {
-    if(formKeyStep1.currentState!.validate()){
+    if (formKeyStep1.currentState!.validate()) {
       try {
         isPersonalInformationLoading.value = true;
         Map<String, dynamic> params = {
@@ -240,22 +300,26 @@ class DeliveryPartnerController extends GetxController{
           ApiKeys.email: emailController.text,
         };
 
-        ResponseModel response = await DeliveryPartnerRepo().ridersOnboardingPersonalInformationRepo(
+        ResponseModel response =
+            await DeliveryPartnerRepo().ridersOnboardingPersonalInformationRepo(
           params: params,
         );
 
         if (response.isSuccess) {
-          ridersOnboardingPersonalInformationResponse.value = ApiResponse.complete(response);
+          ridersOnboardingPersonalInformationResponse.value =
+              ApiResponse.complete(response);
           Get.toNamed(RouteHelper.getAddressLocationRidingScreenRoute());
         } else {
-          ridersOnboardingPersonalInformationResponse.value = ApiResponse.error('error');
+          ridersOnboardingPersonalInformationResponse.value =
+              ApiResponse.error('error');
           commonSnackBar(
               message: response.message ?? AppStrings.somethingWentWrong);
         }
       } catch (e) {
-        ridersOnboardingPersonalInformationResponse.value = ApiResponse.error('error');
+        ridersOnboardingPersonalInformationResponse.value =
+            ApiResponse.error('error');
         commonSnackBar(message: AppStrings.somethingWentWrong);
-      } finally{
+      } finally {
         isPersonalInformationLoading.value = false;
       }
     }
@@ -264,8 +328,8 @@ class DeliveryPartnerController extends GetxController{
   RxBool isRidersAddressLoading = false.obs;
 
   /// ridersOnboardingPersonalInformationApi (Step 2)
-  Future<void>  ridersOnboardingAddressApi() async {
-    if(formKeyStep2.currentState!.validate()){
+  Future<void> ridersOnboardingAddressApi() async {
+    if (formKeyStep2.currentState!.validate()) {
       try {
         isRidersAddressLoading.value = true;
         Map<String, dynamic> params = {
@@ -281,13 +345,18 @@ class DeliveryPartnerController extends GetxController{
           ApiKeys.locationPermission: enabledLiveLocation.value,
         };
 
-        ResponseModel response = await DeliveryPartnerRepo().ridersOnboardingAddressRepo(
+        ResponseModel response =
+            await DeliveryPartnerRepo().ridersOnboardingAddressRepo(
           params: params,
         );
 
         if (response.isSuccess) {
-          ridersOnboardingAddressResponse.value = ApiResponse.complete(response);
-          Get.toNamed(RouteHelper.getPersonalIdentificationRidingScreenRoute());
+          ridersOnboardingAddressResponse.value =
+              ApiResponse.complete(response);
+
+          Get.until((route) =>
+              route.settings.name ==
+              RouteHelper.getBottomNavigationBarScreenRoute());
         } else {
           ridersOnboardingAddressResponse.value = ApiResponse.error('error');
           commonSnackBar(
@@ -296,7 +365,7 @@ class DeliveryPartnerController extends GetxController{
       } catch (e) {
         ridersOnboardingAddressResponse.value = ApiResponse.error('error');
         commonSnackBar(message: AppStrings.somethingWentWrong);
-      } finally{
+      } finally {
         isRidersAddressLoading.value = false;
       }
     }
@@ -306,7 +375,7 @@ class DeliveryPartnerController extends GetxController{
 
   /// ridersOnboardingPersonalInformationApi (Step 3)
   Future<void> ridersOnboardingPersonalIdentificationApi() async {
-    if(formKeyStep3.currentState!.validate()){
+    if (formKeyStep3.currentState!.validate()) {
       // ---------- 1️⃣ VALIDATION ----------
       if (livePhoto.isEmpty) {
         commonSnackBar(message: AppStrings.pleaseSelectYourPhoto.tr);
@@ -386,17 +455,243 @@ class DeliveryPartnerController extends GetxController{
         ridersOnboardingPersonalIdentificationResponse.value =
             ApiResponse.error('error');
         commonSnackBar(message: AppStrings.somethingWentWrong);
-      } finally{
+      } finally {
         isRiderPersonalIdentificationLoading.value = false;
       }
+    }
+  }
+
+  Future<void> ridersPanCardApi() async {
+    // ---------- 1️⃣ VALIDATION ----------
+    if (panCardImage.value == null) {
+      commonSnackBar(message: AppStrings.pleaseSelectPanCardImage.tr);
+      return;
+    }
+
+    try {
+      isRiderPersonalIdentificationLoading.value = true;
+
+      // ---------- 2️⃣ INITIALIZE ----------
+      String? panCardImageUrl;
+
+      // ---------- 6️⃣ UPLOAD PAN CARD ----------
+      panCardImageUrl = await _uploadToS3(panCardImage.value!);
+
+      // ---------- 7️⃣ PREPARE PAYLOAD ----------
+      final params = {
+        ApiKeys.panNo: panNumberController.text,
+        ApiKeys.panImages: {
+          ApiKeys.front: panCardImageUrl,
+        },
+      };
+
+      // ---------- 8️⃣ API CALL ----------
+      final response = await DeliveryPartnerRepo()
+          .ridersOnboardingPersonalIdentificationRepo(params: params);
+
+      // ---------- 9️⃣ HANDLE RESPONSE ----------
+      if (response.isSuccess) {
+        ridersOnboardingPersonalIdentificationResponse.value =
+            ApiResponse.complete(response);
+        Get.back();
+      } else {
+        ridersOnboardingPersonalIdentificationResponse.value =
+            ApiResponse.error('error');
+        commonSnackBar(
+          message: response.message ?? AppStrings.somethingWentWrong,
+        );
+      }
+    } catch (e, s) {
+      debugPrint('❌ ridersOnboardingPersonalIdentificationApi error: $e\n$s');
+      ridersOnboardingPersonalIdentificationResponse.value =
+          ApiResponse.error('error');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    } finally {
+      isRiderPersonalIdentificationLoading.value = false;
+    }
+  }
+
+  Future<void> ridersAadharCardApi() async {
+    // ---------- 1️⃣ VALIDATION ----------
+
+    if (aadharFrontImage.value == null) {
+      commonSnackBar(message: AppStrings.pleaseSelectAadharFrontImage.tr);
+      return;
+    }
+    if (aadharBackImage.value == null) {
+      commonSnackBar(message: AppStrings.pleaseSelectAadharBackImage.tr);
+      return;
+    }
+
+    try {
+      isRiderPersonalIdentificationLoading.value = true;
+
+      // ---------- 2️⃣ INITIALIZE ----------
+      String? aadharFrontImageUrl;
+      String? aadharBackImageUrl;
+
+      // ---------- 4️⃣ UPLOAD AADHAR FRONT ----------
+      aadharFrontImageUrl = await _uploadToS3(aadharFrontImage.value!);
+
+      // ---------- 5️⃣ UPLOAD AADHAR BACK ----------
+      aadharBackImageUrl = await _uploadToS3(aadharBackImage.value!);
+
+      // ---------- 7️⃣ PREPARE PAYLOAD ----------
+      final params = {
+        ApiKeys.aadharNo: aadharController.text,
+        ApiKeys.aadharImages: {
+          ApiKeys.front: aadharFrontImageUrl,
+          ApiKeys.back: aadharBackImageUrl,
+        },
+      };
+
+      // ---------- 8️⃣ API CALL ----------
+      final response = await DeliveryPartnerRepo()
+          .ridersOnboardingPersonalIdentificationRepo(params: params);
+
+      // ---------- 9️⃣ HANDLE RESPONSE ----------
+      if (response.isSuccess) {
+        ridersOnboardingPersonalIdentificationResponse.value =
+            ApiResponse.complete(response);
+        Get.back();
+      } else {
+        ridersOnboardingPersonalIdentificationResponse.value =
+            ApiResponse.error('error');
+        commonSnackBar(
+          message: response.message ?? AppStrings.somethingWentWrong,
+        );
+      }
+    } catch (e, s) {
+      debugPrint('❌ ridersOnboardingPersonalIdentificationApi error: $e\n$s');
+      ridersOnboardingPersonalIdentificationResponse.value =
+          ApiResponse.error('error');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    } finally {
+      isRiderPersonalIdentificationLoading.value = false;
     }
   }
 
   RxBool isRiderDrivingVerificationLoading = false.obs;
 
   /// ridersOnboardingDrivingVerificationApi (Step 4)
+  Future<void> ridersDrivingLicenceVerificationApi() async {
+    if (drivingLicenseFrontImage.value == null) {
+      commonSnackBar(message: AppStrings.pleaseSelectDlFrontImage.tr);
+      return;
+    }
+    if (drivingLicenseBackImage.value == null) {
+      commonSnackBar(message: AppStrings.pleaseSelectDlBackImage.tr);
+      return;
+    }
+
+    try {
+      isRiderDrivingVerificationLoading.value = true;
+
+      // ---------- 2️⃣ INITIALIZE ----------
+
+      String? drivingLicenseFrontImageUrl;
+      String? drivingLicenseBackImageUrl;
+
+      // ---------- 4️⃣ UPLOAD DRIVING LICENSE IMAGES ----------
+      drivingLicenseFrontImageUrl =
+          await _uploadToS3(drivingLicenseFrontImage.value!);
+      drivingLicenseBackImageUrl =
+          await _uploadToS3(drivingLicenseBackImage.value!);
+
+      // ---------- 5️⃣ PREPARE PAYLOAD ----------
+      final params = {
+        ApiKeys.dlNo: drivingLicenseController.text,
+        ApiKeys.dlImages: {
+          ApiKeys.front: drivingLicenseFrontImageUrl,
+          ApiKeys.back: drivingLicenseBackImageUrl,
+        },
+      };
+
+      // ---------- 6️⃣ CALL API ----------
+      final response = await DeliveryPartnerRepo()
+          .ridersOnboardingDrivingVerificationRepo(params: params);
+
+      // ---------- 7️⃣ HANDLE RESPONSE ----------
+      if (response.isSuccess) {
+        ridersOnboardingDrivingVerificationResponse.value =
+            ApiResponse.complete(response);
+        Get.back();
+      } else {
+        ridersOnboardingDrivingVerificationResponse.value =
+            ApiResponse.error('error');
+        commonSnackBar(
+          message: response.message ?? AppStrings.somethingWentWrong,
+        );
+      }
+    } catch (e, s) {
+      debugPrint('❌ ridersOnboardingDrivingVerificationApi error: $e\n$s');
+      ridersOnboardingDrivingVerificationResponse.value =
+          ApiResponse.error('error');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    } finally {
+      isRiderDrivingVerificationLoading.value = false;
+    }
+  }
+
+  Future<void> ridersRcBookVerificationApi() async {
+      // ---------- 1️⃣ VALIDATION ----------
+      if (rcFrontImage.value == null) {
+        commonSnackBar(message: AppStrings.pleaseSelectRcFrontImage.tr);
+        return;
+      }
+      if (rcBackImage.value == null) {
+        commonSnackBar(message: AppStrings.pleaseSelectRcBackImage.tr);
+        return;
+      }
+
+      try {
+        isRiderDrivingVerificationLoading.value = true;
+
+        // ---------- 2️⃣ INITIALIZE ----------
+        String? rcFrontImageUrl;
+        String? rcBackImageUrl;
+
+        // ---------- 3️⃣ UPLOAD RC IMAGES ----------
+        rcFrontImageUrl = await _uploadToS3(rcFrontImage.value!);
+        rcBackImageUrl = await _uploadToS3(rcBackImage.value!);
+
+        // ---------- 5️⃣ PREPARE PAYLOAD ----------
+        final params = {
+          ApiKeys.rcNo: rcController.text,
+          ApiKeys.rcImages: {
+            ApiKeys.front: rcFrontImageUrl,
+            ApiKeys.back: rcBackImageUrl,
+          },
+        };
+
+        // ---------- 6️⃣ CALL API ----------
+        final response = await DeliveryPartnerRepo()
+            .ridersOnboardingDrivingVerificationRepo(params: params);
+
+        // ---------- 7️⃣ HANDLE RESPONSE ----------
+        if (response.isSuccess) {
+          ridersOnboardingDrivingVerificationResponse.value =
+              ApiResponse.complete(response);
+          Get.back();
+        } else {
+          ridersOnboardingDrivingVerificationResponse.value =
+              ApiResponse.error('error');
+          commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong,
+          );
+        }
+      } catch (e, s) {
+        debugPrint('❌ ridersOnboardingDrivingVerificationApi error: $e\n$s');
+        ridersOnboardingDrivingVerificationResponse.value =
+            ApiResponse.error('error');
+        commonSnackBar(message: AppStrings.somethingWentWrong);
+      } finally {
+        isRiderDrivingVerificationLoading.value = false;
+      }
+  }
+
   Future<void> ridersOnboardingDrivingVerificationApi() async {
-    if(formKeyStep4.currentState!.validate()) {
+    if (formKeyStep4.currentState!.validate()) {
       // ---------- 1️⃣ VALIDATION ----------
       if (rcFrontImage.value == null) {
         commonSnackBar(message: AppStrings.pleaseSelectRcFrontImage.tr);
@@ -429,8 +724,10 @@ class DeliveryPartnerController extends GetxController{
         rcBackImageUrl = await _uploadToS3(rcBackImage.value!);
 
         // ---------- 4️⃣ UPLOAD DRIVING LICENSE IMAGES ----------
-        drivingLicenseFrontImageUrl = await _uploadToS3(drivingLicenseFrontImage.value!);
-        drivingLicenseBackImageUrl = await _uploadToS3(drivingLicenseBackImage.value!);
+        drivingLicenseFrontImageUrl =
+            await _uploadToS3(drivingLicenseFrontImage.value!);
+        drivingLicenseBackImageUrl =
+            await _uploadToS3(drivingLicenseBackImage.value!);
 
         // ---------- 5️⃣ PREPARE PAYLOAD ----------
         final params = {
@@ -467,7 +764,7 @@ class DeliveryPartnerController extends GetxController{
         ridersOnboardingDrivingVerificationResponse.value =
             ApiResponse.error('error');
         commonSnackBar(message: AppStrings.somethingWentWrong);
-      }finally{
+      } finally {
         isRiderDrivingVerificationLoading.value = false;
       }
     }
@@ -498,7 +795,6 @@ class DeliveryPartnerController extends GetxController{
       commonSnackBar(message: AppStrings.pleaseSelectAtLeastTwoLeft.tr);
       return;
     }
-
 
     if (vehicleFrontImages.isEmpty) {
       commonSnackBar(message: AppStrings.pleaseSelectFrontImage.tr);
@@ -587,10 +883,9 @@ class DeliveryPartnerController extends GetxController{
       }
     } catch (e, s) {
       debugPrint('❌ ridersOnboardingVehicleImagesApi error: $e\n$s');
-      ridersOnboardingVehicleImagesResponse.value =
-          ApiResponse.error('error');
+      ridersOnboardingVehicleImagesResponse.value = ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
-    } finally{
+    } finally {
       isRiderVehicleImagesLoading.value = false;
     }
   }
@@ -598,8 +893,8 @@ class DeliveryPartnerController extends GetxController{
   RxBool isRiderVehicleInformationLoading = false.obs;
 
   /// ridersOnboardingPersonalInformationApi (Step 6)
-  Future<void>  ridersOnboardingVehicleInformationApi() async {
-    if(formKeyStep6.currentState!.validate()){
+  Future<void> ridersOnboardingVehicleInformationApi() async {
+    if (formKeyStep6.currentState!.validate()) {
       if (selectedVehicleRegistrationType.value == null) {
         commonSnackBar(message: AppStrings.pleaseSelectVehicleRegType.tr);
         return;
@@ -620,7 +915,6 @@ class DeliveryPartnerController extends GetxController{
         return;
       }
 
-
       try {
         isRiderVehicleInformationLoading.value = true;
 
@@ -633,38 +927,41 @@ class DeliveryPartnerController extends GetxController{
           ApiKeys.fuelType: selectedFuelType.value?.name,
         };
 
-        ResponseModel response = await DeliveryPartnerRepo().ridersOnboardingVehicleInformationRepo(
+        ResponseModel response =
+            await DeliveryPartnerRepo().ridersOnboardingVehicleInformationRepo(
           params: params,
         );
 
         if (response.isSuccess) {
-          ridersOnboardingVehicleInformationResponse.value = ApiResponse.complete(response);
+          ridersOnboardingVehicleInformationResponse.value =
+              ApiResponse.complete(response);
           await setRiderServiceOptData(true);
-          Get.until(
-                (route) =>
-            route.settings.name ==
-                RouteHelper.getEarnWithBlueEraNewScreenRoute(),
-          );
+          Get.back();
+          // Get.until(
+          //   (route) =>
+          //       route.settings.name ==
+          //       RouteHelper.getEarnWithBlueEraNewScreenRoute(),
+          // );
         } else {
-          ridersOnboardingVehicleInformationResponse.value = ApiResponse.error('error');
+          ridersOnboardingVehicleInformationResponse.value =
+              ApiResponse.error('error');
           commonSnackBar(
               message: response.message ?? AppStrings.somethingWentWrong);
         }
       } catch (e) {
-        ridersOnboardingVehicleInformationResponse.value = ApiResponse.error('error');
+        ridersOnboardingVehicleInformationResponse.value =
+            ApiResponse.error('error');
         commonSnackBar(message: AppStrings.somethingWentWrong);
-      }finally{
+      } finally {
         isRiderVehicleInformationLoading.value = false;
       }
     }
   }
 
   Future<void> addLivePhoto() async {
-    final selectedPath =
-        await SelectProfilePictureDialog.pickFromCamera(
+    final selectedPath = await SelectProfilePictureDialog.pickFromCamera(
         Get.context!,
-        cropAspectRatio: CropAspectRatio(width: 3, height: 4)
-      );
+        cropAspectRatio: CropAspectRatio(width: 3, height: 4));
     if (selectedPath != null) {
       livePhoto.add(File(selectedPath));
     }
@@ -675,5 +972,4 @@ class DeliveryPartnerController extends GetxController{
     livePhoto.removeAt(index);
     update([livePhotoImageId]);
   }
-
 }

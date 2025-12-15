@@ -80,14 +80,13 @@ class _PersonalInformationRidingScreenState extends State<PersonalInformationRid
     return Scaffold(
       appBar: CommonBackAppBar(
         title: AppStrings.personalInformation,
-        // onBackTap: onBackPressed,
         buildCustomWidget: ()=> Padding(
               padding: const EdgeInsets.only(right: 16),
               child: Center(
-                child: Text(
-                  "${AppStrings.stepLabel.tr}1/6",
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
+                child: CustomText(
+                  "${AppStrings.stepLabel.tr}1/2",
+                  fontWeight: FontWeight.w600),
+
               ),
             ),
       ),
@@ -121,7 +120,7 @@ class _PersonalInformationRidingScreenState extends State<PersonalInformationRid
                     SizedBox(height: SizeConfig.paddingM),
                     CustomText(
                       AppStrings.gender,
-                      fontSize: SizeConfig.small,
+                      fontSize: SizeConfig.medium,
                       fontWeight: FontWeight.w400,
                       color: AppColors.mainTextColor,
                     ),
@@ -139,8 +138,18 @@ class _PersonalInformationRidingScreenState extends State<PersonalInformationRid
                       },
                     ),
                     SizedBox(height: SizeConfig.paddingM),
+                    CustomText(
+                      AppStrings.dateOfBirth,
+                      fontSize: SizeConfig.medium,
+                      fontWeight: FontWeight.w400,
+                      color: AppColors.mainTextColor,
+
+
+                    ),
+                    SizedBox(height: SizeConfig.size8),
                     NewDatePicker(
                       isAgeValidation15: true,
+
                       selectedDay: controller
                           .selectedDay?.value,
                       selectedMonth: controller
@@ -167,7 +176,7 @@ class _PersonalInformationRidingScreenState extends State<PersonalInformationRid
                       children: [
                         CustomText(
                           AppStrings.contactNumber,
-                          fontSize: SizeConfig.small,
+                          fontSize: SizeConfig.medium,
                           fontWeight: FontWeight.w400,
                           color: AppColors.mainTextColor,
                         ),

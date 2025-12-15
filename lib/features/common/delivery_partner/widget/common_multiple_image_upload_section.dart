@@ -32,6 +32,7 @@ class CommonMultipleImageUploadSection extends StatelessWidget {
     final imageList = images ?? [];
 
     return CustomFormCard(
+      padding: EdgeInsets.only(bottom: SizeConfig.size20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -45,7 +46,7 @@ class CommonMultipleImageUploadSection extends StatelessWidget {
                   fontWeight: FontWeight.w400,
                 ),
               ),
-              if(minImages!=null)
+              if (minImages != null)
                 Padding(
                   padding: EdgeInsets.only(left: SizeConfig.size8),
                   child: CustomText(
@@ -53,8 +54,7 @@ class CommonMultipleImageUploadSection extends StatelessWidget {
                       // "Min-$minImages Images/Max-${maxImages}Images",
                       fontSize: SizeConfig.medium,
                       color: AppColors.mainTextColor,
-                      fontWeight: FontWeight.w400
-                  ),
+                      fontWeight: FontWeight.w400),
                 ),
             ],
           ),
@@ -132,11 +132,9 @@ class CommonMultipleImageUploadSection extends StatelessWidget {
       ),
     );
   }
-
 }
 
-class CommonMultipleImageSectionController extends GetxController{
-
+class CommonMultipleImageSectionController extends GetxController {
   // IDs for GetBuilder updates
   static const String vehicleNumberPlateImageId = 'vehicleNumberPlateImageId';
   static const String vehicleRightSideImageId = 'vehicleRightSideImageId';
@@ -150,10 +148,8 @@ class CommonMultipleImageSectionController extends GetxController{
   static const String otherImageId = 'bathroomImageId';
 
   Future<List<String>?> pickImages(String title) async {
-    final List<String>? selected = await SelectProductImageDialog.showLogoDialog(
-        Get.context!,
-        title
-    );
+    final List<String>? selected =
+        await SelectProductImageDialog.showLogoDialog(Get.context!, title);
     if (selected != null && selected.isNotEmpty) {
       return selected;
     }
@@ -161,19 +157,20 @@ class CommonMultipleImageSectionController extends GetxController{
   }
 
   /// Pick and add images
-  Future<void> addImages({
-    required String label,
-    required List<File> imageList,
-    required String updateId,
-    required int maxUploadImages
-  }) async {
+  Future<void> addImages(
+      {required String label,
+      required List<File> imageList,
+      required String updateId,
+      required int maxUploadImages}) async {
     final selectedImages = await pickImages(label);
     if (selectedImages == null || selectedImages.isEmpty) return;
 
     final newFiles = selectedImages.map((e) => File(e)).toList();
     final remaining = maxUploadImages - imageList.length;
     if (remaining <= 0) {
-      commonSnackBar(message: '${AppStrings.youCanOnlyUpload.tr} $maxUploadImages ${AppStrings.images.tr}');
+      commonSnackBar(
+          message:
+              '${AppStrings.youCanOnlyUpload.tr} $maxUploadImages ${AppStrings.images.tr}');
       return;
     }
 

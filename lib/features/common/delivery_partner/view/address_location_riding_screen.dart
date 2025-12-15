@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -21,10 +22,12 @@ class AddressLocationRidingScreen extends StatefulWidget {
   const AddressLocationRidingScreen({super.key});
 
   @override
-  State<AddressLocationRidingScreen> createState() => _AddressLocationRidingScreenState();
+  State<AddressLocationRidingScreen> createState() =>
+      _AddressLocationRidingScreenState();
 }
 
-class _AddressLocationRidingScreenState extends State<AddressLocationRidingScreen> {
+class _AddressLocationRidingScreenState
+    extends State<AddressLocationRidingScreen> {
   final controller = Get.put(DeliveryPartnerController());
 
   @override
@@ -33,13 +36,11 @@ class _AddressLocationRidingScreenState extends State<AddressLocationRidingScree
       appBar: CommonBackAppBar(
         title: AppStrings.addressAndLocation,
         // onBackTap: onBackPressed,
-        buildCustomWidget: ()=> Padding(
+        buildCustomWidget: () => Padding(
           padding: const EdgeInsets.only(right: 16),
           child: Center(
-            child: Text(
-              "${AppStrings.stepLabel.tr}2/6",
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
+            child: CustomText("${AppStrings.stepLabel.tr}2/2",
+                fontWeight: FontWeight.w600),
           ),
         ),
       ),
@@ -48,171 +49,173 @@ class _AddressLocationRidingScreenState extends State<AddressLocationRidingScree
         child: CustomFormCard(
           child: Form(
             key: controller.formKeyStep2,
-            child: Obx(()=> AbsorbPointer(
-              absorbing: controller.isRidersAddressLoading.value,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
+            child: Obx(
+              () => AbsorbPointer(
+                  absorbing: controller.isRidersAddressLoading.value,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: CommonLocationSearchField(
-                          controller: controller.locationController,
-                          title: AppStrings.homeLocation,
-                          hintText: AppStrings.egLucknowGomtiNagar,
-                          onSelected: (placeId, lat, lng, address) async {
-                            print("PlaceId: $placeId Selected: $address → ($lat, $lng)");
-                            controller.locationController.text = address;
-                            controller.currentAddress.value = address;
-                            controller.latitude = lat;
-                            controller.longitude = lng;
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: CommonLocationSearchField(
+                              controller: controller.locationController,
+                              title: AppStrings.homeLocation,
+                              hintText: AppStrings.egLucknowGomtiNagar,
+                              onSelected: (placeId, lat, lng, address) async {
+                                print(
+                                    "PlaceId: $placeId Selected: $address → ($lat, $lng)");
+                                controller.locationController.text = address;
+                                controller.currentAddress.value = address;
+                                controller.latitude = lat;
+                                controller.longitude = lng;
 
-                            controller.isFetchingAddressDetails.value = true;
+                                controller.isFetchingAddressDetails.value =
+                                    true;
 
-                            // Fetch and auto-fill details
-                            try {
-                              final detailsResponse = await PlaceRepo().getCompletePlaceDetails(placeId: placeId);
-                              final detailsData = detailsResponse.response?.data;
-                              logs("detailsResponse====== $detailsData");
+                                // Fetch and auto-fill details
+                                try {
+                                  final detailsResponse = await PlaceRepo()
+                                      .getCompletePlaceDetails(
+                                          placeId: placeId);
+                                  final detailsData =
+                                      detailsResponse.response?.data;
+                                  logs("detailsResponse====== $detailsData");
 
-                              final placeDetails = PlaceDetailsResponse.fromJson(detailsData);
-                              final components = placeDetails.result?.addressComponents ?? [];
+                                  final placeDetails =
+                                      PlaceDetailsResponse.fromJson(
+                                          detailsData);
+                                  final components =
+                                      placeDetails.result?.addressComponents ??
+                                          [];
 
-                              String city = '';
-                              String state = '';
-                              String postalCode = '';
+                                  String city = '';
+                                  String state = '';
+                                  String postalCode = '';
 
-                              for (var comp in components) {
-                                final types = comp.types ?? [];
-                                if (types.contains('locality')) {
-                                  city = comp.longName ?? '';
-                                } else if (types.contains('administrative_area_level_1')) {
-                                  state = comp.longName ?? '';
-                                } else if (types.contains('postal_code')) {
-                                  postalCode = comp.longName ?? '';
+                                  for (var comp in components) {
+                                    final types = comp.types ?? [];
+                                    if (types.contains('locality')) {
+                                      city = comp.longName ?? '';
+                                    } else if (types.contains(
+                                        'administrative_area_level_1')) {
+                                      state = comp.longName ?? '';
+                                    } else if (types.contains('postal_code')) {
+                                      postalCode = comp.longName ?? '';
+                                    }
+                                  }
+
+                                  controller.cityController.text = city;
+                                  controller.stateController.text = state;
+                                  controller.pinCodeController.text =
+                                      postalCode;
+                                } catch (e) {
+                                  print("Error fetching place details: $e");
+                                } finally {
+                                  controller.isFetchingAddressDetails.value =
+                                      false;
                                 }
-                              }
-
-                              controller.cityController.text = city;
-                              controller.stateController.text = state;
-                              controller.pinCodeController.text = postalCode;
-
-                            } catch (e) {
-                              print("Error fetching place details: $e");
-                            }finally {
-                              controller.isFetchingAddressDetails.value = false;
-                            }
-                          },
-                        ),
+                              },
+                            ),
+                          ),
+                          if (controller.currentAddress.isNotEmpty)
+                            Padding(
+                              padding: EdgeInsets.only(
+                                  left: SizeConfig.size8,
+                                  top: SizeConfig.size24),
+                              child: (controller.isFetchingAddressDetails.value)
+                                  ? SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                          strokeWidth: 2),
+                                    )
+                                  : Icon(Icons.check_circle,
+                                      color: Colors.green, size: 22),
+                            )
+                        ],
                       ),
-
-                     if(controller.currentAddress.isNotEmpty)
-                       Padding(
-                         padding: EdgeInsets.only(left: SizeConfig.size8, top: SizeConfig.size24),
-                         child: (controller.isFetchingAddressDetails.value) ?
-                         SizedBox(
-                           height: 20,
-                           width: 20,
-                           child: CircularProgressIndicator(strokeWidth: 2),
-                         ) :  Icon(Icons.check_circle, color: Colors.green, size: 22),
-                       )
-                    ],
-                  ),
-                  SizedBox(height: SizeConfig.paddingM),
-                  CommonTextField(
-                    textEditController: controller.landmarkController,
-                    title: AppStrings.houseNoAndLandMark,
-                    inputLength: AppConstants.inputCharterLimit30,
-                    fontSize: SizeConfig.small,
-                    fontWeight: FontWeight.w400,
-                    titleColor: AppColors.mainTextColor,
-                    hintText: AppStrings.egFlat21B,
-                    keyBoardType: TextInputType.text,
-                    isValidate: true,
-                  ),
-                  SizedBox(height: SizeConfig.paddingM),
-                  CommonTextField(
-                    textEditController: controller.pinCodeController,
-                    // readOnly: true,
-                    title: AppStrings.pincodeTitle,
-                    fontSize: SizeConfig.small,
-                    fontWeight: FontWeight.w400,
-                    titleColor: AppColors.mainTextColor,
-                    hintText: AppStrings.pincodeHint,
-                    keyBoardType: TextInputType.number,
-                    inputLength: AppConstants.inputCharterLimit6,
-                    validator: ValidationMethod().validatePin,
-                  ),
-                  SizedBox(height: SizeConfig.paddingM),
-                  CommonTextField(
-                    textEditController: controller.cityController,
-                    readOnly: true,
-                    title: AppStrings.city,
-                    fontSize: SizeConfig.small,
-                    fontWeight: FontWeight.w400,
-                    titleColor: AppColors.mainTextColor,
-                    hintText: AppStrings.egKolkata,
-                    keyBoardType: TextInputType.text,
-                    isValidate: true,
-                    inputLength: AppConstants.inputCharterLimit50,
-                  ),
-                  SizedBox(height: SizeConfig.paddingM),
-                  CommonTextField(
-                    textEditController: controller.stateController,
-                    readOnly: true,
-                    title: AppStrings.state,
-                    fontSize: SizeConfig.small,
-                    fontWeight: FontWeight.w400,
-                    titleColor: AppColors.mainTextColor,
-                    hintText: AppStrings.egWestBengal,
-                    keyBoardType: TextInputType.text,
-                    isValidate: true,
-                    inputLength: AppConstants.inputCharterLimit50,
-                  ),
-
-                  SizedBox(height: SizeConfig.paddingM),
-
-                  CustomText(
-                    AppStrings.enableLiveLocation,
-                    fontSize: SizeConfig.small,
-                    color: AppColors.mainTextColor,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  SizedBox(height: SizeConfig.size10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
+                      SizedBox(height: SizeConfig.paddingM),
+                      CommonTextField(
+                        textEditController: controller.landmarkController,
+                        title: AppStrings.houseNoAndLandMark,
+                        inputLength: AppConstants.inputCharterLimit30,
+                        hintText: AppStrings.egFlat21B,
+                        keyBoardType: TextInputType.text,
+                        isValidate: true,
+                      ),
+                      SizedBox(height: SizeConfig.paddingM),
+                      CommonTextField(
+                        textEditController: controller.pinCodeController,
+                        // readOnly: true,
+                        title: AppStrings.pincodeTitle,
+                        hintText: AppStrings.pincodeHint,
+                        keyBoardType: TextInputType.number,
+                        inputLength: AppConstants.inputCharterLimit6,
+                        validator: ValidationMethod().validatePin,
+                      ),
+                      SizedBox(height: SizeConfig.paddingM),
+                      CommonTextField(
+                        textEditController: controller.cityController,
+                        readOnly: true,
+                        title: AppStrings.city,
+                        hintText: AppStrings.egKolkata,
+                        keyBoardType: TextInputType.text,
+                        isValidate: true,
+                        inputLength: AppConstants.inputCharterLimit50,
+                      ),
+                      SizedBox(height: SizeConfig.paddingM),
+                      CommonTextField(
+                        textEditController: controller.stateController,
+                        readOnly: true,
+                        title: AppStrings.state,
+                        hintText: AppStrings.egWestBengal,
+                        keyBoardType: TextInputType.text,
+                        isValidate: true,
+                        inputLength: AppConstants.inputCharterLimit50,
+                      ),
+                      SizedBox(height: SizeConfig.paddingM),
                       CustomText(
-                        AppStrings.allowLocationAccess,
+                        AppStrings.enableLiveLocation,
                         fontSize: SizeConfig.medium,
-                        color: AppColors.secondaryTextColor,
-                        fontWeight: FontWeight.w400,
+                        color: AppColors.mainTextColor,
+                        fontWeight: FontWeight.w600,
                       ),
-                       CustomSwitch(
-                        value: controller.enabledLiveLocation.value,
-                        onChanged: (val) {
-                          controller.enabledLiveLocation.value = !controller.enabledLiveLocation.value;
-                        },
-                        containerHeight: SizeConfig.size24,
-                        containerWidth: SizeConfig.size50,
-                        circleSize: SizeConfig.size18,
+                      SizedBox(height: SizeConfig.size10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          CustomText(
+                            AppStrings.allowLocationAccess,
+                            fontSize: SizeConfig.medium,
+                            color: AppColors.mainTextColor,
+                            fontWeight: FontWeight.w400,
+                          ),
+                          CustomSwitch(
+                            value: controller.enabledLiveLocation.value,
+                            onChanged: (val) {
+                              controller.enabledLiveLocation.value =
+                                  !controller.enabledLiveLocation.value;
+                            },
+                            containerHeight: SizeConfig.size24,
+                            containerWidth: SizeConfig.size50,
+                            circleSize: SizeConfig.size18,
+                          ),
+                        ],
                       ),
+                      SizedBox(height: SizeConfig.paddingL),
+                      CustomBtn(
+                        title: controller.isRidersAddressLoading.value
+                            ? null
+                            : AppStrings.create,
+                        onTap: () => controller.ridersOnboardingAddressApi(),
+                        radius: 10.0,
+                        bgColor: AppColors.primaryColor,
+                        isLoading: controller.isRidersAddressLoading.value,
+                      )
                     ],
-                  ),
-                  SizedBox(height: SizeConfig.paddingL),
-                  CustomBtn(
-                    title: controller.isRidersAddressLoading.value
-                        ? null
-                        : AppStrings.nextButton,
-                    onTap: ()=> controller.ridersOnboardingAddressApi(),
-                    radius: 10.0,
-                    bgColor: AppColors.primaryColor,
-                    isLoading: controller.isRidersAddressLoading.value,
-                   )
-
-                ],
-              )),
+                  )),
             ),
           ),
         ),

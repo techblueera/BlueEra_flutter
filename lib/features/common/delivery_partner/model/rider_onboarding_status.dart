@@ -1,10 +1,10 @@
 class RiderOnboardingStatusResponse {
-  Data? data;
+  RiderOnboardingStatusData? data;
 
   RiderOnboardingStatusResponse({this.data});
 
   RiderOnboardingStatusResponse.fromJson(Map<String, dynamic> json) {
-    data = json['data'] != null ? new Data.fromJson(json['data']) : null;
+    data = json['data'] != null ? new RiderOnboardingStatusData.fromJson(json['data']) : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -16,29 +16,27 @@ class RiderOnboardingStatusResponse {
   }
 }
 
-class Data {
-  String? verificationStatus;
-  bool? personalInformation;
-  bool? address;
-  bool? personalIdentification;
-  bool? drivingVerification;
-  bool? vehicleImages;
-  bool? vehicleInformation;
-  bool? isOnboardingComplete;
+class RiderOnboardingStatusData {
+  RiderOnboardingStatusData({
+    this.personalInformation,
+    this.address,
+    this.personalIdentification,
+    this.drivingVerification,
+    this.vehicleImages,
+    this.vehicleInformation,
+    this.isOnboardingComplete,
+    this.verificationStatus,
+    this.aadhar,
+    this.pan,
+    this.rc,
+    this.dl,
+    this.aadharNo,
+    this.panNo,
+    this.rcNo,
+    this.vehicleNo,
+    this.dlNo,});
 
-  Data(
-      {
-        this.verificationStatus,
-        this.personalInformation,
-        this.address,
-        this.personalIdentification,
-        this.drivingVerification,
-        this.vehicleImages,
-        this.vehicleInformation,
-        this.isOnboardingComplete});
-
-  Data.fromJson(Map<String, dynamic> json) {
-    verificationStatus = json['verificationStatus'];
+  RiderOnboardingStatusData.fromJson(dynamic json) {
     personalInformation = json['personalInformation'];
     address = json['address'];
     personalIdentification = json['personalIdentification'];
@@ -46,18 +44,54 @@ class Data {
     vehicleImages = json['vehicleImages'];
     vehicleInformation = json['vehicleInformation'];
     isOnboardingComplete = json['isOnboardingComplete'];
+    verificationStatus = json['verificationStatus'];
+    aadhar = json['aadhar'];
+    pan = json['pan'];
+    rc = json['rc'];
+    dl = json['dl'];
+    aadharNo = json['aadharNo'];
+    panNo = json['panNo'];
+    rcNo = json['rcNo'];
+    dlNo = json['dlNo'];
+    vehicleNo = json['vehicleInformationData']['registrationNo'];
   }
+  bool? personalInformation;
+  bool? address;
+  bool? personalIdentification;
+  bool? drivingVerification;
+  bool? vehicleImages;
+  bool? vehicleInformation;
+  bool? isOnboardingComplete;
+  String? verificationStatus;
+  bool? aadhar;
+  bool? pan;
+  bool? rc;
+  bool? dl;
+  String? aadharNo;
+  String? panNo;
+  String? rcNo;
+  String? dlNo;
+  String? vehicleNo;
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['verificationStatus'] = this.verificationStatus;
-    data['personalInformation'] = this.personalInformation;
-    data['address'] = this.address;
-    data['personalIdentification'] = this.personalIdentification;
-    data['drivingVerification'] = this.drivingVerification;
-    data['vehicleImages'] = this.vehicleImages;
-    data['vehicleInformation'] = this.vehicleInformation;
-    data['isOnboardingComplete'] = this.isOnboardingComplete;
-    return data;
+    final map = <String, dynamic>{};
+    map['personalInformation'] = personalInformation;
+    map['address'] = address;
+    map['personalIdentification'] = personalIdentification;
+    map['drivingVerification'] = drivingVerification;
+    map['vehicleImages'] = vehicleImages;
+    map['vehicleInformation'] = vehicleInformation;
+    map['isOnboardingComplete'] = isOnboardingComplete;
+    map['verificationStatus'] = verificationStatus;
+    map['aadhar'] = aadhar;
+    map['pan'] = pan;
+    map['rc'] = rc;
+    map['dl'] = dl;
+    map['aadharNo'] = aadharNo;
+    map['panNo'] = panNo;
+    map['rcNo'] = rcNo;
+    map['dlNo'] = dlNo;
+    return map;
   }
+
 }
