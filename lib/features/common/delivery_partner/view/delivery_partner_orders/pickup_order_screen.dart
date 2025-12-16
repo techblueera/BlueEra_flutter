@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_orders_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/order_card.dart';
@@ -20,9 +21,7 @@ class PickupOrderScreen extends StatefulWidget {
 }
 
 class _PickupOrderScreenState extends State<PickupOrderScreen> {
-  final controller = Get.isRegistered<DeliverPartnerOrdersController>()
-      ? Get.find<DeliverPartnerOrdersController>()
-      : Get.put(DeliverPartnerOrdersController());
+  final controller = getOrPut(() => DeliverPartnerOrdersController());
 
   @override
   Widget build(BuildContext context) {

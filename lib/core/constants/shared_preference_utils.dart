@@ -431,9 +431,12 @@ setEarnServiceOptData(bool isEarnServiceUser) {
       SharedPreferenceUtils.isEarnServiceUser, isEarnServiceUser.toString());
 }
 
-getEarnServiceOptData() async {
+getRiderServiceOptData() async {
   isRiderServiceOpt = await SharedPreferenceUtils.getSecureValue(
       SharedPreferenceUtils.isRiderServiceUser);
-  isRiderServiceOpt = await SharedPreferenceUtils.getSecureValue(
+}
+
+getEarnServiceOptData() async {
+  isEarnServiceOpt = await SharedPreferenceUtils.getSecureValue(
       SharedPreferenceUtils.isEarnServiceUser);
 }

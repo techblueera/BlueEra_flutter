@@ -41,6 +41,8 @@ class DeliveryPartnerController extends GetxController{
   final stepStatus = <RiderProfileStep, bool>{}.obs;
   String? riderVerificationStatus;
 
+  RxString isRiderServiceOpt = ''.obs;
+
   /// step 1
   final fullNameController = TextEditingController();
   final mobileNumberController = TextEditingController();
@@ -643,7 +645,7 @@ class DeliveryPartnerController extends GetxController{
           Get.until(
                 (route) =>
             route.settings.name ==
-                RouteHelper.getEarnWithBlueEraNewScreenRoute(),
+                RouteHelper.getRiderServiceScreenRoute(),
           );
         } else {
           ridersOnboardingVehicleInformationResponse.value = ApiResponse.error('error');

@@ -99,12 +99,14 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       _handlePostFrameInitialization();
       FlutterCallkitIncoming.onEvent.listen((CallEvent? event) {
         if (event?.event == Event.actionCallAccept) {
-          Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
+          // Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
+          Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
           FlutterCallkitIncoming.endAllCalls();
           // handleAcceptOrder(event?.body['extra']['orderId']??''.toString());
         } else if (event?.event == Event.actionCallDecline) {
           commonSnackBar(message: "Your Order Rejected by You");
-          Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
+          Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
+          // Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
           FlutterCallkitIncoming.endAllCalls();
           // handleRejectOrder(event?.body['extra']['orderId']??''.toString());
         }
@@ -115,7 +117,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   Future<void> checkByRiderCall() async {
     String? orderId = await getCurrentCall();
     if (orderId != null) {
-      Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
+      // Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
+      Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
       FlutterCallkitIncoming.endAllCalls();
     }
   }

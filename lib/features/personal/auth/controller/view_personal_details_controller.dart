@@ -294,6 +294,7 @@ class ViewPersonalDetailsController extends GetxController {
         isEarnServiceUser.value =  personalProfileDetails.value.isEarnServiceUser ?? false;
         await setRiderServiceOptData(isRiderServiceUser.value);
         await setEarnServiceOptData(isEarnServiceUser.value);
+        await getRiderServiceOptData();
         await getEarnServiceOptData();
 
         /// need to verify (for checking is service exists or not)
@@ -504,7 +505,13 @@ class ViewPersonalDetailsController extends GetxController {
           MaterialPageRoute(
               builder: (context) => CreateProfileScreen()));
     } else {
-       Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
+      if(userWorkTypeGlobal == DELIVERY_RIDER){
+        Get.toNamed(RouteHelper
+            .getRiderServiceScreenRoute());
+      }else{
+        Get.toNamed(RouteHelper
+            .getEarnWithBlueEraNewScreenRoute());
+      }
 
       // Get.toNamed(
       //   RouteHelper.getAddServicesScreenRoute(),

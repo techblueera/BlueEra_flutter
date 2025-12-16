@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
@@ -35,9 +36,7 @@ class OrderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.isRegistered<DeliverPartnerOrdersController>()
-        ? Get.find<DeliverPartnerOrdersController>()
-        : Get.put(DeliverPartnerOrdersController());
+    final controller = getOrPut(() => DeliverPartnerOrdersController());
 
     return CustomFormCard(
       margin: EdgeInsets.only(bottom: SizeConfig.size10),

@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
@@ -21,8 +22,8 @@ class DeliveryPartnerOrders extends StatefulWidget {
 }
 
 class _DeliveryPartnerOrdersState extends State<DeliveryPartnerOrders>  {
-  final controller = Get.put(DeliverPartnerOrdersController());
-  final deliveryPartnerController = Get.find<DeliveryPartnerController>();
+  final controller = getOrPut(() => DeliverPartnerOrdersController());
+  final deliveryPartnerController = getOrPut(() => DeliveryPartnerController());
 
   @override
   void initState() {
@@ -43,7 +44,6 @@ class _DeliveryPartnerOrdersState extends State<DeliveryPartnerOrders>  {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.whiteFE,
       body: (userWorkTypeGlobal == DELIVERY_RIDER)
           ? Obx(
               ()=> deliveryPartnerController.isRiderStatusLoading.value ?
