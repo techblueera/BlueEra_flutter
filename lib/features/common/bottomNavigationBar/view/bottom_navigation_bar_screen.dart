@@ -22,6 +22,7 @@ import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/common/store/view/new_store/new_store_screen2.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/rider_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/inventory_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
@@ -380,8 +381,10 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
 
   Widget resolveIndividualScreen() {
     return (userProfessionGlobal == SELF_EMPLOYED)
-        ? EarnWithBlueEraNewScreen(fromBottomNavBar: true)
-        : PersonalProfileSetupNewScreen();
+        ? (userWorkTypeGlobal == DELIVERY_RIDER)
+          ? RiderServiceScreen(fromBottomNavBar: true)
+            : EarnWithBlueEraNewScreen(fromBottomNavBar: true)
+             : PersonalProfileSetupNewScreen();
   }
 
   void _checkAndShowDialog() async {

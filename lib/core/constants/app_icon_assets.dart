@@ -530,4 +530,7 @@ class AppIconAssets {
 
   static String toggol_buttons = "${iconPath}toggol_buttons.svg";
   static String clockIcon = "${iconPath}clock_icon.svg";
+
+  static String cartListIcon = "${iconPath}cart_list_icon.svg";
+  static String handPriceIcon = "${iconPath}hand_price_icon.svg";
 }

@@ -32,6 +32,7 @@ import 'package:BlueEra/features/common/food/view/food_upload_screen.dart';
 import 'package:BlueEra/features/common/food/view/grocery/add_grocery_screen.dart';
 import 'package:BlueEra/features/common/food/view/grocery/add_grocery_variant_screen.dart';
 import 'package:BlueEra/features/common/food/view/grocery/grocery_category_screen.dart';
+import 'package:BlueEra/features/common/food/view/grocery/grocery_listing/grocery_cart_screen.dart';
 import 'package:BlueEra/features/common/food/view/grocery/grocery_listing/grocery_listing_screen.dart';
 import 'package:BlueEra/features/common/food/view/grocery/all_grocery_listing_screen.dart';
 import 'package:BlueEra/features/common/food/view/grocery/my_grocery_listing/grocery_screen.dart';
@@ -467,6 +468,9 @@ class RouteHelper {
 
   static String getRiderServiceScreenRoute() =>
       RouteConstant.riderServiceScreen;
+
+  static String getGroceryCartScreenRoute() =>
+      RouteConstant.groceryCartScreen;
 
 
   ///REDIRECT ROUTING SETUP.....
@@ -1365,6 +1369,13 @@ class RouteHelper {
             ),
             settings: RouteSettings(name: getRiderServiceScreenRoute())
         );
+      case RouteConstant.groceryCartScreen:
+        return MaterialPageRoute(
+            builder: (_) => GroceryCartScreen(),
+            settings: RouteSettings(name: getGroceryCartScreenRoute())
+        );
+
+
 
       default:
         return MaterialPageRoute(

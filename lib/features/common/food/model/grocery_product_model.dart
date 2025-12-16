@@ -42,7 +42,7 @@ class GroceryProductData {
   String? createdAt;
   String? updatedAt;
   int? iV;
-  List<VariantsList>? variants;
+  List<VariantsData>? variants;
 
   GroceryProductData(
       {this.sId,
@@ -80,9 +80,9 @@ class GroceryProductData {
     updatedAt = json['updatedAt'];
     iV = json['__v'];
     if (json['variants'] != null) {
-      variants = <VariantsList>[];
+      variants = <VariantsData>[];
       json['variants'].forEach((v) {
-        variants!.add(new VariantsList.fromJson(v));
+        variants!.add(new VariantsData.fromJson(v));
       });
     }
   }
@@ -130,7 +130,7 @@ class Images {
   }
 }
 
-class VariantsList {
+class VariantsData {
   String? sId;
   String? product;
   String? variantName;
@@ -144,7 +144,7 @@ class VariantsList {
   String? sku;
   String? barcode;
 
-  VariantsList({
+  VariantsData({
     this.sId,
     this.product,
     this.variantName,
@@ -159,7 +159,7 @@ class VariantsList {
     this.barcode,
   });
 
-  VariantsList.fromJson(Map<String, dynamic> json) {
+  VariantsData.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
     product = json['product'];
     variantName = json['variantName'];
@@ -205,7 +205,7 @@ class VariantsList {
   }
 
   /// New - Helpful for updating data
-  VariantsList copyWith({
+  VariantsData copyWith({
     String? sId,
     String? product,
     String? variantName,
@@ -219,7 +219,7 @@ class VariantsList {
     String? sku,
     String? barcode,
   }) {
-    return VariantsList(
+    return VariantsData(
       sId: sId ?? this.sId,
       product: product ?? this.product,
       variantName: variantName ?? this.variantName,

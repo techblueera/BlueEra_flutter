@@ -25,6 +25,17 @@ class GroceryRepo extends BaseService {
     return response;
   }
 
+  Future<ResponseModel> userSearchGroceryCategoryRepo({Map<String, dynamic>? queryParam}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      userSearchGroceryCategory,
+      params: queryParam,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   /// Create New Grocery Product Variant
   Future<ResponseModel> createNewGroceryProductVariantRepo({ required String productId, Map<String, dynamic>? params}) async {
     final response = await ApiBaseHelper().postHTTP(

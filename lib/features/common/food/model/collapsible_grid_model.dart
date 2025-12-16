@@ -4,8 +4,8 @@ class CollapsibleGridModel {
   final String tagId;
 
   const CollapsibleGridModel({
-    required this.label,
-    required this.icon,
-    required this.tagId
+     required this.label,
+     required this.icon,
+     required this.tagId
   });
 }
