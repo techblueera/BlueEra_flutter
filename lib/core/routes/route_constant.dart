@@ -130,6 +130,7 @@ class RouteConstant {
   static const String myGroceryScreen = "/MyGroceryScreen";
 
   static const String groceryListingScreen = "/GroceryListingScreen";
+  static const String riderServiceScreen = "/RiderServiceScreen";
 
 
 }

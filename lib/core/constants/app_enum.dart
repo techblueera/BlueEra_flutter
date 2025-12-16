@@ -1031,3 +1031,14 @@ enum RiderVerificationState {
   rejected,
   pending
 }
+
+enum EarnServiceOrdersStatus {
+  newAndOnGoingOrder('New'),
+  // onGoing('On-Going'),
+  completed('Completed'),
+  cancelled("Cancelled");
+
+  final String label;
+
+  const EarnServiceOrdersStatus(this.label);
+}
