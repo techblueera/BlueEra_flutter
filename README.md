@@ -1,7 +1,6 @@
-
-
-Android Studio Narwhal 4 Feature Drop | 2025.1.4
-
+Android Studio Otter 2 Feature Drop | 2025.2.2
+Build #AI-252.27397.103.2522.14514259, built on December 1, 2025
+Runtime version: 21.0.8+-14196175-b1038.72 aarch64
 
 Doctor summary (to see all details, run flutter doctor -v):
 [✓] Flutter (Channel stable, 3.35.4, on macOS 26.0.1 25A362 darwin-arm64 (Rosetta), locale en-IN)

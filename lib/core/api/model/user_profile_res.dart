@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:BlueEra/core/api/model/personal_profile_details_model.dart';
 UserProfileRes userProfileResFromJson(String str) => UserProfileRes.fromJson(json.decode(str));
 String userProfileResToJson(UserProfileRes data) => json.encode(data.toJson());
 class UserProfileRes {

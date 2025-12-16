@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/food/controller/food_category_controller.dart';
 import 'package:BlueEra/features/common/food/model/food_tab_model.dart';
@@ -45,6 +46,7 @@ class _FoodCategoryPageState extends State<FoodCategoryPage>
   @override
   Widget build(BuildContext context) {
     return Material(
+      color: AppColors.appBackgroundColor,
       child: Obx(() {
         return SafeArea(
           child: SingleChildScrollView(

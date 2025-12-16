@@ -28,15 +28,14 @@ class CommonBottomSheet extends StatelessWidget {
       ),
       child: Column(
         children: [
-
           // Header
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               CustomText(
                 title,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
               ),
               InkWell(
                 onTap: () => Get.back(),
@@ -45,11 +44,16 @@ class CommonBottomSheet extends StatelessWidget {
             ],
           ),
 
-SizedBox(height: SizeConfig.size10,),
+          SizedBox(
+            height: SizeConfig.size10,
+          ),
           // Content
           Expanded(
             child: SingleChildScrollView(
-              child: child,
+              child: Padding(
+                padding:  EdgeInsets.only(bottom: SizeConfig.size60),
+                child: child,
+              ),
             ),
           ),
         ],

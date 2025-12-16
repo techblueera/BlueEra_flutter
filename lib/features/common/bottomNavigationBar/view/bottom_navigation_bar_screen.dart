@@ -14,6 +14,7 @@ import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_scree
 import 'package:BlueEra/features/common/bottomNavigationBar/auth/controller/ai_chat_guest_controller.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_widget.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/rider_profile_status_screen.dart';
+import 'package:BlueEra/features/common/food/view/food/food_categroy.dart';
 import 'package:BlueEra/features/common/food/view/grocery/my_grocery_listing/grocery_screen.dart';
 import 'package:BlueEra/features/common/home/view/home_screen.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
@@ -256,7 +257,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     return Scaffold(
       key: _scaffoldKey,
       // floatingActionButton: FloatingActionButton(onPressed: () {
-      //   Get.to(RiderProfileStatusScreen());
+      //   Get.to(FoodCategoryPage());
+      //   // Get.to(RiderProfileStatusScreen());
       // }),
       body: ValueListenableBuilder(
           valueListenable: bottomBarVisibleNotifier,

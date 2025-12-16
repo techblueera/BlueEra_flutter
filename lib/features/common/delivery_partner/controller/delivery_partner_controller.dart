@@ -133,7 +133,8 @@ class DeliveryPartnerController extends GetxController {
   }
 
   RxBool isRiderStatusLoading = true.obs;
-  Rx<RiderOnboardingStatusData?> riderOnboardingStatusData =Rx<RiderOnboardingStatusData?>(null);
+  Rx<RiderOnboardingStatusData?> riderOnboardingStatusData =
+      Rx<RiderOnboardingStatusData?>(null);
 
   /// ridersOnboardingStatusRepoApi
   Future<void> ridersOnboardingStatusRepoApi() async {
@@ -145,7 +146,7 @@ class DeliveryPartnerController extends GetxController {
         ridersOnboardingStatusResponse.value = ApiResponse.complete(response);
         final riderOnboardingStatusResponse =
             RiderOnboardingStatusResponse.fromJson(response.response?.data);
-        riderOnboardingStatusData.value=riderOnboardingStatusResponse.data;
+        riderOnboardingStatusData.value = riderOnboardingStatusResponse.data;
         riderVerificationStatus =
             riderOnboardingStatusResponse.data?.verificationStatus;
         stepStatus.assignAll({
@@ -175,6 +176,7 @@ class DeliveryPartnerController extends GetxController {
       isRiderStatusLoading.value = false;
     }
   }
+
   /*Future<void> ridersOnboardingStatusRepoApi() async {
     try {
       ResponseModel response =
@@ -501,6 +503,7 @@ class DeliveryPartnerController extends GetxController {
           message: response.message ?? AppStrings.somethingWentWrong,
         );
       }
+      await ridersOnboardingStatusRepoApi();
     } catch (e, s) {
       debugPrint('❌ ridersOnboardingPersonalIdentificationApi error: $e\n$s');
       ridersOnboardingPersonalIdentificationResponse.value =
@@ -634,60 +637,60 @@ class DeliveryPartnerController extends GetxController {
   }
 
   Future<void> ridersRcBookVerificationApi() async {
-      // ---------- 1️⃣ VALIDATION ----------
-      if (rcFrontImage.value == null) {
-        commonSnackBar(message: AppStrings.pleaseSelectRcFrontImage.tr);
-        return;
-      }
-      if (rcBackImage.value == null) {
-        commonSnackBar(message: AppStrings.pleaseSelectRcBackImage.tr);
-        return;
-      }
+    // ---------- 1️⃣ VALIDATION ----------
+    if (rcFrontImage.value == null) {
+      commonSnackBar(message: AppStrings.pleaseSelectRcFrontImage.tr);
+      return;
+    }
+    if (rcBackImage.value == null) {
+      commonSnackBar(message: AppStrings.pleaseSelectRcBackImage.tr);
+      return;
+    }
 
-      try {
-        isRiderDrivingVerificationLoading.value = true;
+    try {
+      isRiderDrivingVerificationLoading.value = true;
 
-        // ---------- 2️⃣ INITIALIZE ----------
-        String? rcFrontImageUrl;
-        String? rcBackImageUrl;
+      // ---------- 2️⃣ INITIALIZE ----------
+      String? rcFrontImageUrl;
+      String? rcBackImageUrl;
 
-        // ---------- 3️⃣ UPLOAD RC IMAGES ----------
-        rcFrontImageUrl = await _uploadToS3(rcFrontImage.value!);
-        rcBackImageUrl = await _uploadToS3(rcBackImage.value!);
+      // ---------- 3️⃣ UPLOAD RC IMAGES ----------
+      rcFrontImageUrl = await _uploadToS3(rcFrontImage.value!);
+      rcBackImageUrl = await _uploadToS3(rcBackImage.value!);
 
-        // ---------- 5️⃣ PREPARE PAYLOAD ----------
-        final params = {
-          ApiKeys.rcNo: rcController.text,
-          ApiKeys.rcImages: {
-            ApiKeys.front: rcFrontImageUrl,
-            ApiKeys.back: rcBackImageUrl,
-          },
-        };
+      // ---------- 5️⃣ PREPARE PAYLOAD ----------
+      final params = {
+        ApiKeys.rcNo: rcController.text,
+        ApiKeys.rcImages: {
+          ApiKeys.front: rcFrontImageUrl,
+          ApiKeys.back: rcBackImageUrl,
+        },
+      };
 
-        // ---------- 6️⃣ CALL API ----------
-        final response = await DeliveryPartnerRepo()
-            .ridersOnboardingDrivingVerificationRepo(params: params);
+      // ---------- 6️⃣ CALL API ----------
+      final response = await DeliveryPartnerRepo()
+          .ridersOnboardingDrivingVerificationRepo(params: params);
 
-        // ---------- 7️⃣ HANDLE RESPONSE ----------
-        if (response.isSuccess) {
-          ridersOnboardingDrivingVerificationResponse.value =
-              ApiResponse.complete(response);
-          Get.back();
-        } else {
-          ridersOnboardingDrivingVerificationResponse.value =
-              ApiResponse.error('error');
-          commonSnackBar(
-            message: response.message ?? AppStrings.somethingWentWrong,
-          );
-        }
-      } catch (e, s) {
-        debugPrint('❌ ridersOnboardingDrivingVerificationApi error: $e\n$s');
+      // ---------- 7️⃣ HANDLE RESPONSE ----------
+      if (response.isSuccess) {
+        ridersOnboardingDrivingVerificationResponse.value =
+            ApiResponse.complete(response);
+        Get.back();
+      } else {
         ridersOnboardingDrivingVerificationResponse.value =
             ApiResponse.error('error');
-        commonSnackBar(message: AppStrings.somethingWentWrong);
-      } finally {
-        isRiderDrivingVerificationLoading.value = false;
+        commonSnackBar(
+          message: response.message ?? AppStrings.somethingWentWrong,
+        );
       }
+    } catch (e, s) {
+      debugPrint('❌ ridersOnboardingDrivingVerificationApi error: $e\n$s');
+      ridersOnboardingDrivingVerificationResponse.value =
+          ApiResponse.error('error');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    } finally {
+      isRiderDrivingVerificationLoading.value = false;
+    }
   }
 
   Future<void> ridersOnboardingDrivingVerificationApi() async {
@@ -948,6 +951,7 @@ class DeliveryPartnerController extends GetxController {
           commonSnackBar(
               message: response.message ?? AppStrings.somethingWentWrong);
         }
+        await ridersOnboardingStatusRepoApi();
       } catch (e) {
         ridersOnboardingVehicleInformationResponse.value =
             ApiResponse.error('error');
