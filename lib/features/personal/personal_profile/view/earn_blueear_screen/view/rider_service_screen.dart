@@ -1,9 +1,11 @@
 import 'dart:developer';
+import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -11,6 +13,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/delivery_partner_orders/delivery_partner_orders.dart';
+import 'package:BlueEra/features/common/delivery_partner/view/rider_profile_status_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/account_setting_screen/account_settings_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/controller/earn_with_blueera_controller.dart';
@@ -33,6 +36,7 @@ import 'package:get/get.dart';
 
 class RiderServiceScreen extends StatefulWidget {
   final bool fromBottomNavBar;
+
   const RiderServiceScreen({super.key, this.fromBottomNavBar = false});
 
   @override
@@ -45,14 +49,17 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
 
   final earnWithBlueEraController = getOrPut(() => EarnWithBlueEraController());
   final deliveryPartnerController = getOrPut(() => DeliveryPartnerController());
-  final viewPersonalDetailsController = getOrPut(() => ViewPersonalDetailsController());
+  final viewPersonalDetailsController =
+      getOrPut(() => ViewPersonalDetailsController());
+  bool allCompleted = false;
 
   @override
   void initState() {
-    log('user designation global -- $userWorkTypeGlobal');
-    _tabController = TabController(length: 3, vsync: this);
     _checkRiderStatus();
     _checkRiderServiceStatus();
+
+    _tabController = TabController(length: 3, vsync: this);
+
     super.initState();
   }
 
@@ -71,7 +78,6 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     _checkRiderServiceStatus();
   }
 
-
   @override
   void dispose() {
     Get.delete<EarnWithBlueEraController>();
@@ -80,25 +86,25 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     super.dispose();
   }
 
-  void _checkRiderStatus(){
+  void _checkRiderStatus() {
     /// check riding status
-    if(userProfessionGlobal == SELF_EMPLOYED && userWorkTypeGlobal == DELIVERY_RIDER) {
-      deliveryPartnerController.ridersOnboardingStatusRepoApi();
-    }
+    deliveryPartnerController.ridersOnboardingStatusRepoApi();
   }
 
   Future<void> _checkRiderServiceStatus() async {
     await getRiderServiceOptData();
     deliveryPartnerController.isRiderServiceOpt.value = isRiderServiceOpt;
-    print('isRiderServiceUser -- ${deliveryPartnerController.isRiderServiceOpt.value}');
+    print(
+        'isRiderServiceUser -- ${deliveryPartnerController.isRiderServiceOpt.value}');
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if(deliveryPartnerController.isRiderServiceOpt.value.toLowerCase() == 'true'){
+      if (deliveryPartnerController.isRiderServiceOpt.value.toLowerCase() ==
+          'false') {
         _openEarnWithBlueEraSheet();
       }
     });
   }
 
-  void _openEarnWithBlueEraSheet(){
+  void _openEarnWithBlueEraSheet() {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -109,17 +115,24 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      final riderOpt = deliveryPartnerController.isRiderServiceOpt.value;
+      if (deliveryPartnerController
+              .ridersOnboardingStatusResponse.value.status ==
+          Status.COMPLETE) {
+        final stepStatus = deliveryPartnerController.stepStatus;
+        // Check if all completed
+        allCompleted = stepStatus.values.every((status) => status == true);
+        final riderOpt = deliveryPartnerController.isRiderServiceOpt.value;
+        if (riderOpt.isEmpty) {
+          return _buildLoading();
+        }
 
-      if (riderOpt.isEmpty) {
-        return _buildLoading();
+        if (riderOpt.toLowerCase() == 'true') {
+          return _buildRiderEnabled(context);
+        }
+
+        return _buildRiderDisabled(context);
       }
-
-      if (riderOpt.toLowerCase() == 'true') {
-        return _buildRiderEnabled(context);
-      }
-
-      return _buildRiderDisabled(context);
+      return SizedBox.shrink();
     });
   }
 
@@ -146,7 +159,11 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
           body: TabBarView(
             controller: _tabController,
             children: [
-              DeliveryPartnerOrders(),
+              allCompleted
+                  ? DeliveryPartnerOrders()
+                  : RiderProfileStatusScreen(
+                      screeName: 'from_tab_view',
+                    ),
               const Center(child: CustomText(AppStrings.comingSoon)),
               const Center(child: CustomText(AppStrings.comingSoon)),
             ],
@@ -203,7 +220,10 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
           indicatorWeight: 2,
           labelStyle: const TextStyle(fontWeight: FontWeight.w600),
           tabs: [
-            Tab(text: AppStrings.myOrder.tr),
+            Tab(
+                text: allCompleted
+                    ? AppStrings.myOrder.tr
+                    : AppStrings.document.tr),
             Tab(text: AppStrings.myStore.tr),
             Tab(text: AppStrings.linkedShops.tr),
           ],
@@ -320,9 +340,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
 
             return Container(
               margin: EdgeInsets.only(
-                  left: SizeConfig.size10,
-                  right: SizeConfig.paddingL
-              ),
+                  left: SizeConfig.size10, right: SizeConfig.paddingL),
               height: SizeConfig.size40,
               decoration: BoxDecoration(
                 border: Border.all(color: AppColors.primaryColor),
@@ -349,5 +367,4 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
       ],
     );
   }
-
 }

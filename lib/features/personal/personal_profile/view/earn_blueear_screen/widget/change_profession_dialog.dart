@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -17,36 +18,35 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class ProfessionChangeDialogHelper {
-  final viewPersonalDetailsController = Get.isRegistered<ViewPersonalDetailsController>()
-      ? Get.find<ViewPersonalDetailsController>()
-      : Get.put(ViewPersonalDetailsController());
+  final viewPersonalDetailsController =
+      Get.isRegistered<ViewPersonalDetailsController>()
+          ? Get.find<ViewPersonalDetailsController>()
+          : Get.put(ViewPersonalDetailsController());
 
   final controller = Get.isRegistered<PersonalCreateProfileController>()
       ? Get.find<PersonalCreateProfileController>()
       : Get.put(PersonalCreateProfileController());
 
-
-   void shouldShowUpdateDesignationDialog({
+  void shouldShowUpdateDesignationDialog({
     required BuildContext context,
     required String designation,
     EarnWithBlueEraServiceTypes? serviceSubType,
   }) {
-     // Debug prints
-     print("👉 shouldShowUpdateDesignationDialog CALLED");
-     print("➡ designation: $designation");
-     print("➡ serviceSubType: $serviceSubType");
-     print("➡ userWorkTypeGlobal: $userWorkTypeGlobal");
+    // Debug prints
+    print("👉 shouldShowUpdateDesignationDialog CALLED");
+    print("➡ designation: $designation");
+    print("➡ serviceSubType: $serviceSubType");
+    print("➡ userWorkTypeGlobal: $userWorkTypeGlobal");
 
     // Don't show dialog if already self-employed with same designation
     if (designation.toLowerCase() == userWorkTypeGlobal.toLowerCase()) {
       _handleUpdateAction(
-        controller: controller,
-        designation: designation,
-        serviceSubType: serviceSubType,
-        viewPersonalDetailsController: viewPersonalDetailsController,
-        isRequiredUpdateDestination: false
-      );
-    }else{
+          controller: controller,
+          designation: designation,
+          serviceSubType: serviceSubType,
+          viewPersonalDetailsController: viewPersonalDetailsController,
+          isRequiredUpdateDestination: false);
+    } else {
       // Show dialog if changing to self-employed
       ProfessionChangeDialogHelper().showProfessionChangeDialog(
         context: context,
@@ -56,13 +56,11 @@ class ProfessionChangeDialogHelper {
     }
   }
 
-   Future<void> showProfessionChangeDialog({
+  Future<void> showProfessionChangeDialog({
     required BuildContext context,
     required String designation,
     EarnWithBlueEraServiceTypes? serviceSubType,
   }) async {
-
-
     await showDialog(
       context: context,
       barrierDismissible: false,
@@ -134,21 +132,23 @@ class ProfessionChangeDialogHelper {
                                 onTap: isLoading
                                     ? null
                                     : () async {
-                                  _handleUpdateAction(
-                                    controller: controller,
-                                    designation: designation,
-                                    serviceSubType: serviceSubType,
-                                    viewPersonalDetailsController: viewPersonalDetailsController,
-                                    isRequiredUpdateDestination: true
-                                  );
-                                },
-                                title: isLoading ? AppStrings.updating : AppStrings.update,
+                                        _handleUpdateAction(
+                                            controller: controller,
+                                            designation: designation,
+                                            serviceSubType: serviceSubType,
+                                            viewPersonalDetailsController:
+                                                viewPersonalDetailsController,
+                                            isRequiredUpdateDestination: true);
+                                      },
+                                title: isLoading
+                                    ? AppStrings.updating
+                                    : AppStrings.update,
                               ),
                             ),
                             SizedBox(width: SizeConfig.size10),
                             Expanded(
                               child: PositiveCustomBtn(
-                                onTap: ()=> _handleCancelAction(isLoading),
+                                onTap: () => _handleCancelAction(isLoading),
                                 title: AppStrings.cancel,
                               ),
                             ),
@@ -175,15 +175,12 @@ class ProfessionChangeDialogHelper {
     required ViewPersonalDetailsController viewPersonalDetailsController,
     required bool isRequiredUpdateDestination,
   }) async {
-     if(isRequiredUpdateDestination){
-       await controller.updateUserProfileDetails(
-         params: {
-           ApiKeys.profession: SELF_EMPLOYED,
-           ApiKeys.designation: designation,
-         },
-         showProgress: false
-       );
-     }
+    if (isRequiredUpdateDestination) {
+      await controller.updateUserProfileDetails(params: {
+        ApiKeys.profession: SELF_EMPLOYED,
+        ApiKeys.designation: designation,
+      }, showProgress: false);
+    }
 
     if (designation == DELIVERY_RIDER) {
       _handleDeliveryPartner();
@@ -241,28 +238,36 @@ class ProfessionChangeDialogHelper {
 
     // Find first incomplete step
     final firstIncompleteEntry =
-    stepStatus.entries.firstWhere((entry) => entry.value == false);
+        stepStatus.entries.firstWhere((entry) => entry.value == false);
+    logs("firstIncompleteEntry=== ${firstIncompleteEntry.key}");
 
-    switch (firstIncompleteEntry.key) {
-      case RiderProfileStep.personalInfo:
-        Get.toNamed(RouteHelper.getPersonalInformationRidingScreenRoute());
-        break;
-      case RiderProfileStep.addressInfo:
-        Get.toNamed(RouteHelper.getAddressLocationRidingScreenRoute());
-        break;
-      case RiderProfileStep.personalIdentificationInfo:
-        Get.toNamed(RouteHelper.getPersonalIdentificationRidingScreenRoute());
-        break;
-      case RiderProfileStep.drivingInfo:
-        Get.toNamed(RouteHelper.getDrivingVerificationRidingScreenRoute());
-        break;
-      case RiderProfileStep.vehicleImagesInfo:
-        Get.toNamed(RouteHelper.getVehicleImagesRidingScreenRoute());
-        break;
-      case RiderProfileStep.vehicleInfo:
-        Get.toNamed(RouteHelper.getVehicleInformationRidingScreenRoute());
-        break;
+    if (firstIncompleteEntry.key == RiderProfileStep.personalInfo) {
+      Get.toNamed(RouteHelper.getPersonalInformationRidingScreenRoute());
+    } else if (firstIncompleteEntry.key == RiderProfileStep.addressInfo) {
+      Get.toNamed(RouteHelper.getAddressLocationRidingScreenRoute());
+    } else {
+      Get.toNamed(RouteHelper.getRiderProfileStatusScreenRoute());
     }
-  }
 
+    // switch (firstIncompleteEntry.key) {
+    //   case RiderProfileStep.personalInfo:
+    //     Get.toNamed(RouteHelper.getPersonalInformationRidingScreenRoute());
+    //     break;
+    //   case RiderProfileStep.addressInfo:
+    //     Get.toNamed(RouteHelper.getAddressLocationRidingScreenRoute());
+    //     break;
+    //   case RiderProfileStep.personalIdentificationInfo:
+    //     Get.toNamed(RouteHelper.getPersonalIdentificationRidingScreenRoute());
+    //     break;
+    //   case RiderProfileStep.drivingInfo:
+    //     Get.toNamed(RouteHelper.getDrivingVerificationRidingScreenRoute());
+    //     break;
+    //   case RiderProfileStep.vehicleImagesInfo:
+    //     Get.toNamed(RouteHelper.getVehicleImagesRidingScreenRoute());
+    //     break;
+    //   case RiderProfileStep.vehicleInfo:
+    //     Get.toNamed(RouteHelper.getVehicleInformationRidingScreenRoute());
+    //     break;
+    // }
+  }
 }

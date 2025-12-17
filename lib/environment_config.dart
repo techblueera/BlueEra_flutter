@@ -30,6 +30,8 @@ String googleGeoCode =
 String googleCountryCode = "&language=en&components=country:IN";
 
 
+
+String takeFranchise ="https://bluecs.in/partner";
 String privacyLink =
     "https://www.freeprivacypolicy.com/live/f1d1be8d-4563-43e0-9275-c439f46390ad";
 String tncLink =

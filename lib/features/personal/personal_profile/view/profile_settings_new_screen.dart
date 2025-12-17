@@ -51,6 +51,11 @@ class ProfileSettingsNewScreen extends StatelessWidget {
                            onTap: () => Get.to(() => AccountSettingScreen())
                        ),
                        _buildTile(
+                           AppIconAssets.takeFranchiseIcon,
+                          "Franchise",
+                           onTap: () => Get.to(() => CommonWebView(urlLink: "https://bluecs.in/partner", urlTitle: "Franchise"))
+                       ),
+                       _buildTile(
                            AppIconAssets.referral,
                            AppStrings.referral,
                            onTap: () => Get.to(() => ReferralPage())

@@ -124,7 +124,7 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
 
   List<FeedBlock> _buildBlocks(List<Post> items) {
     final List<FeedBlock> blocks = [];
-    final Set<String> gridTypes = {'image_post', 'short_video'};
+    // final Set<String> gridTypes = {'image_post', 'short_video'};
 
     List<Post> buffer = [];
 
@@ -141,14 +141,14 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
     }
 
     for (final item in items) {
-      if (gridTypes.contains(item.type)) {
-        buffer.add(item);
-        // keep buffering consecutive grid-type items
-      } else {
+      // if (gridTypes.contains(item.type)) {
+      //   buffer.add(item);
+      //   // keep buffering consecutive grid-type items
+      // } else {
         // encountered a normal item -> flush any grid buffer first
         flushBuffer();
         blocks.add(FeedBlock(isGrid: false, items: [item]));
-      }
+      // }
     }
 
     // end: flush remaining buffer
@@ -204,7 +204,7 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
             int index = indexFeed;
             final block = blocks[index];
 
-            if (block.isGrid) {
+           /* if (block.isGrid) {
               // Render a 4-column grid of thumbnails inside the list
               // We use shrinkWrap + NeverScrollableScrollPhysics so ListView handles scrolling
               return Padding(
@@ -403,12 +403,12 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
                       );
                     }
 
-                    ;
+
                     return null;
                   },
                 ),
               );
-            }
+            }*/
 
             // Single full-width item
             final item = block.items.first;

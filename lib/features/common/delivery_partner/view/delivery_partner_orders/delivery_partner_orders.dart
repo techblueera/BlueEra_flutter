@@ -21,13 +21,14 @@ class DeliveryPartnerOrders extends StatefulWidget {
   State<DeliveryPartnerOrders> createState() => _DeliveryPartnerOrdersState();
 }
 
-class _DeliveryPartnerOrdersState extends State<DeliveryPartnerOrders>  {
+class _DeliveryPartnerOrdersState extends State<DeliveryPartnerOrders> {
   final controller = getOrPut(() => DeliverPartnerOrdersController());
   final deliveryPartnerController = getOrPut(() => DeliveryPartnerController());
 
   @override
   void initState() {
-    if (deliveryPartnerController.riderVerificationState == RiderVerificationState.completed) {
+    if (deliveryPartnerController.riderVerificationState ==
+        RiderVerificationState.completed) {
       controller.fetchStream();
     }
     super.initState();
@@ -35,7 +36,8 @@ class _DeliveryPartnerOrdersState extends State<DeliveryPartnerOrders>  {
 
   @override
   void dispose() {
-    if (deliveryPartnerController.riderVerificationState == RiderVerificationState.completed){
+    if (deliveryPartnerController.riderVerificationState ==
+        RiderVerificationState.completed) {
       controller.subscription?.cancel();
     }
     super.dispose();
@@ -44,20 +46,22 @@ class _DeliveryPartnerOrdersState extends State<DeliveryPartnerOrders>  {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: (userWorkTypeGlobal == DELIVERY_RIDER)
-          ? Obx(
-              ()=> deliveryPartnerController.isRiderStatusLoading.value ?
-              Center(
-                child: CircularProgressIndicator(),
-              )
-                  : Builder(
-                  builder: (context) {
-                    final state = deliveryPartnerController.riderVerificationState;
-                    final allCompleted = deliveryPartnerController.stepStatus.values.every((s) => s == true);
-                    log('all steps Completed-- $allCompleted');
+        body: (userWorkTypeGlobal == DELIVERY_RIDER)
+            ? Obx(() => deliveryPartnerController.isRiderStatusLoading.value
+                ? Center(
+                    child: CircularProgressIndicator(),
+                  )
+                : Builder(builder: (context) {
+                    final state =
+                        deliveryPartnerController.riderVerificationState;
+                    final allCompleted = deliveryPartnerController
+                        .stepStatus.values
+                        .every((s) => s == true);
+                    log('all steps Completed-- $allCompleted state ==== $state');
 
                     // ---- Rejected ----
-                    if (allCompleted && state == RiderVerificationState.rejected) {
+                    if (allCompleted &&
+                        state == RiderVerificationState.rejected) {
                       // showStatusDialog(
                       //   context,
                       //   "Verification Rejected",
@@ -76,7 +80,8 @@ class _DeliveryPartnerOrdersState extends State<DeliveryPartnerOrders>  {
                     }
 
                     // ---- Pending ----
-                    if (allCompleted && state == RiderVerificationState.pending) {
+                    if (allCompleted &&
+                        state == RiderVerificationState.pending) {
                       // showStatusDialog(
                       //   context,
                       //   "Verification Pending",
@@ -94,13 +99,11 @@ class _DeliveryPartnerOrdersState extends State<DeliveryPartnerOrders>  {
                       );
                     }
 
-
                     // ---- Completed ----
                     if (state == RiderVerificationState.completed) {
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-
                           Padding(
                             padding: EdgeInsets.all(SizeConfig.size15),
                             child: HorizontalTabSelector(
@@ -109,30 +112,29 @@ class _DeliveryPartnerOrdersState extends State<DeliveryPartnerOrders>  {
                                   .selectedDeliveryPartnerOrderIndex.value,
                               onTabSelected: (index, value) {
                                 if (mounted) {
-                                  controller.selectedDeliveryPartnerOrderIndex.value =
-                                      index;
+                                  controller.selectedDeliveryPartnerOrderIndex
+                                      .value = index;
                                 }
                               },
                               labelBuilder: (value) => value.label,
                             ),
                           ),
-
                           Expanded(
                             child: Builder(
                               builder: (context) {
-                                switch (controller.selectedDeliveryPartnerOrderIndex
-                                    .value) {
+                                switch (controller
+                                    .selectedDeliveryPartnerOrderIndex.value) {
                                   case 0:
                                     return PickupOrderScreen();
                                   case 1:
                                     return CustomText(AppStrings.comingSoon);
-                                // return GroceryOrderScreen();
+                                  // return GroceryOrderScreen();
                                   case 2:
                                     return CustomText(AppStrings.comingSoon);
-                                // return ParcelOrderScreen();
+                                  // return ParcelOrderScreen();
                                   case 3:
                                     return CustomText(AppStrings.comingSoon);
-                                // return IncomeScreen();
+                                  // return IncomeScreen();
                                   default:
                                     return SizedBox.shrink(); // fallback
                                 }
@@ -144,11 +146,11 @@ class _DeliveryPartnerOrdersState extends State<DeliveryPartnerOrders>  {
                     }
 
                     // ================================
-                    final firstIncomplete = deliveryPartnerController.stepStatus.entries
+                    final firstIncomplete = deliveryPartnerController
+                        .stepStatus.entries
                         .firstWhere((e) => e.value == false);
 
                     log('firstIncomplete -- $firstIncomplete');
-
 
                     String title = AppStrings.stepIncompleteTitle;
                     String message = "";
@@ -172,6 +174,15 @@ class _DeliveryPartnerOrdersState extends State<DeliveryPartnerOrders>  {
                       case RiderProfileStep.vehicleInfo:
                         message = AppStrings.vehicleInfoMsg;
                         break;
+                      case RiderProfileStep.aadharInfo:
+                        // TODO: Handle this case.
+                        message = AppStrings.aadharNumber;
+                      case RiderProfileStep.rcInfo:
+                        // TODO: Handle this case.
+                        message = AppStrings.rcNumber;
+                      case RiderProfileStep.panInfo:
+                        // TODO: Handle this case.
+                        message = AppStrings.panNumber;
                     }
 
                     // showStatusDialog(context, title, message);
@@ -185,19 +196,16 @@ class _DeliveryPartnerOrdersState extends State<DeliveryPartnerOrders>  {
                         ),
                       ),
                     );
-
-                  }
-              )
-      ) : Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Center(
-          child: CustomText(
-            AppStrings.ridersOnlyMsg,
-            textAlign: TextAlign.center,
-          ),
-        ),
-      )
-    );
+                  }))
+            : Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Center(
+                  child: CustomText(
+                    AppStrings.ridersOnlyMsg,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ));
   }
 
   void showStatusDialog(BuildContext context, String title, String message) {
@@ -217,6 +225,4 @@ class _DeliveryPartnerOrdersState extends State<DeliveryPartnerOrders>  {
       );
     });
   }
-
-
 }

@@ -53,7 +53,7 @@ class RiderOnboardingStatusData {
     panNo = json['panNo'];
     rcNo = json['rcNo'];
     dlNo = json['dlNo'];
-    vehicleNo = json['vehicleInformationData']['registrationNo'];
+    vehicleNo = json['vehicleInformationData']?['registrationNo'] ?? '';
   }
   bool? personalInformation;
   bool? address;

@@ -705,9 +705,9 @@ enum VideoStatus {
 enum PostCreationMenu {
   message,
   poll,
-  photos,
-  jobPost,
-  travel;
+  // photos,
+  jobPost;
+  // travel;
 }
 
 enum PostVia { profile, channel }

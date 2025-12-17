@@ -24,7 +24,10 @@ enum RiderProfileStep {
   personalIdentificationInfo,
   drivingInfo,
   vehicleImagesInfo,
-  vehicleInfo
+  vehicleInfo,
+  aadharInfo,
+  rcInfo,
+  panInfo
 }
 
 class DeliveryPartnerController extends GetxController {
@@ -68,6 +71,7 @@ class DeliveryPartnerController extends GetxController {
   double longitude = 0.0;
   RxBool enabledLiveLocation = false.obs;
   RxBool isFetchingAddressDetails = false.obs;
+  RxString isRiderServiceOpt = ''.obs;
 
   /// step 3
   final GlobalKey<FormState> formKeyStep3 = GlobalKey<FormState>();
@@ -151,6 +155,23 @@ class DeliveryPartnerController extends GetxController {
             riderOnboardingStatusResponse.data?.verificationStatus;
         stepStatus.assignAll({
           RiderProfileStep.personalInfo:
+              riderOnboardingStatusData.value?.personalInformation ?? false,
+          RiderProfileStep.addressInfo:
+              riderOnboardingStatusData.value?.address ?? false,
+          RiderProfileStep.aadharInfo:
+              riderOnboardingStatusData.value?.aadhar ?? false,
+          RiderProfileStep.panInfo:
+              riderOnboardingStatusData.value?.pan ?? false,
+          RiderProfileStep.drivingInfo:
+              riderOnboardingStatusData.value?.dl ?? false,
+          RiderProfileStep.rcInfo: riderOnboardingStatusData.value?.rc ?? false,
+          RiderProfileStep.vehicleImagesInfo:
+              riderOnboardingStatusData.value?.vehicleImages ?? false,
+          RiderProfileStep.vehicleInfo:
+              riderOnboardingStatusData.value?.vehicleInformation ?? false,
+        });
+        /*     stepStatus.assignAll({
+          RiderProfileStep.personalInfo:
               riderOnboardingStatusResponse.data?.personalInformation ?? false,
           RiderProfileStep.addressInfo:
               riderOnboardingStatusResponse.data?.address ?? false,
@@ -163,7 +184,7 @@ class DeliveryPartnerController extends GetxController {
               riderOnboardingStatusResponse.data?.vehicleImages ?? false,
           RiderProfileStep.vehicleInfo:
               riderOnboardingStatusResponse.data?.vehicleInformation ?? false,
-        });
+        });*/
       } else {
         ridersOnboardingStatusResponse.value = ApiResponse.error('error');
         commonSnackBar(
@@ -219,9 +240,8 @@ class DeliveryPartnerController extends GetxController {
 
   RiderVerificationState get riderVerificationState {
     final status = riderVerificationStatus?.toLowerCase();
-
     switch (status) {
-      case 'completed':
+      case 'approved':
         return RiderVerificationState.completed;
 
       case 'rejected':
@@ -355,6 +375,7 @@ class DeliveryPartnerController extends GetxController {
         if (response.isSuccess) {
           ridersOnboardingAddressResponse.value =
               ApiResponse.complete(response);
+          await setRiderServiceOptData(true);
 
           Get.until((route) =>
               route.settings.name ==
@@ -564,7 +585,7 @@ class DeliveryPartnerController extends GetxController {
           message: response.message ?? AppStrings.somethingWentWrong,
         );
       }
-    } catch (e, s) {
+      checkStatusManageRoute();    } catch (e, s) {
       debugPrint('❌ ridersOnboardingPersonalIdentificationApi error: $e\n$s');
       ridersOnboardingPersonalIdentificationResponse.value =
           ApiResponse.error('error');
@@ -626,7 +647,7 @@ class DeliveryPartnerController extends GetxController {
           message: response.message ?? AppStrings.somethingWentWrong,
         );
       }
-    } catch (e, s) {
+      checkStatusManageRoute();    } catch (e, s) {
       debugPrint('❌ ridersOnboardingDrivingVerificationApi error: $e\n$s');
       ridersOnboardingDrivingVerificationResponse.value =
           ApiResponse.error('error');
@@ -683,7 +704,7 @@ class DeliveryPartnerController extends GetxController {
           message: response.message ?? AppStrings.somethingWentWrong,
         );
       }
-    } catch (e, s) {
+      checkStatusManageRoute();    } catch (e, s) {
       debugPrint('❌ ridersOnboardingDrivingVerificationApi error: $e\n$s');
       ridersOnboardingDrivingVerificationResponse.value =
           ApiResponse.error('error');
@@ -876,7 +897,8 @@ class DeliveryPartnerController extends GetxController {
       if (response.isSuccess) {
         ridersOnboardingVehicleImagesResponse.value =
             ApiResponse.complete(response);
-        Get.toNamed(RouteHelper.getVehicleInformationRidingScreenRoute());
+
+        // Get.toNamed(RouteHelper.getVehicleInformationRidingScreenRoute());
       } else {
         ridersOnboardingVehicleImagesResponse.value =
             ApiResponse.error('error');
@@ -938,7 +960,6 @@ class DeliveryPartnerController extends GetxController {
         if (response.isSuccess) {
           ridersOnboardingVehicleInformationResponse.value =
               ApiResponse.complete(response);
-          await setRiderServiceOptData(true);
           Get.back();
           // Get.until(
           //   (route) =>
@@ -951,8 +972,7 @@ class DeliveryPartnerController extends GetxController {
           commonSnackBar(
               message: response.message ?? AppStrings.somethingWentWrong);
         }
-        await ridersOnboardingStatusRepoApi();
-      } catch (e) {
+        checkStatusManageRoute();      } catch (e) {
         ridersOnboardingVehicleInformationResponse.value =
             ApiResponse.error('error');
         commonSnackBar(message: AppStrings.somethingWentWrong);
@@ -976,4 +996,21 @@ class DeliveryPartnerController extends GetxController {
     livePhoto.removeAt(index);
     update([livePhotoImageId]);
   }
+
+
+  checkStatusManageRoute()
+  async {
+    await ridersOnboardingStatusRepoApi();
+    final allCompleted =
+    stepStatus.values.every((status) => status == true);
+    // if (allCompleted) {
+      Get.until((route) =>
+      route.settings.name ==
+          RouteHelper.getBottomNavigationBarScreenRoute());
+    // } else {
+    //   Get.back();
+    // }
+  }
+
+
 }

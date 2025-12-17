@@ -479,7 +479,7 @@ List<PopupMenuEntry<PostCreationMenu>> popupMenuItems() {
   final List<PostCreationMenu> items = [
     PostCreationMenu.message,
     PostCreationMenu.poll,
-    PostCreationMenu.photos,
+    // PostCreationMenu.photos,
     // if (isBusiness || channelId.isNotEmpty) PostCreationMenu.videos,
 
     /// for individual user if user has channel then only video section will shown
@@ -491,19 +491,19 @@ List<PopupMenuEntry<PostCreationMenu>> popupMenuItems() {
   const iconMap = {
     PostCreationMenu.message: AppIconAssets.message_post,
     PostCreationMenu.poll: AppIconAssets.qa_ask_questionOutlinedIcon,
-    PostCreationMenu.photos: AppIconAssets.photosOutlinedIcon,
+    // PostCreationMenu.photos: AppIconAssets.photosOutlinedIcon,
     // PostCreationMenu.videos: AppIconAssets.videoOutlinedIcon,
     PostCreationMenu.jobPost: AppIconAssets.uilSuitcaseOutlinedIcon,
     // PostCreationMenu.place: AppIconAssets.locationOutlineIconGreyIcon,
-    PostCreationMenu.travel: AppIconAssets.travelOutlinedIcon,
+    // PostCreationMenu.travel: AppIconAssets.travelOutlinedIcon,
   };
 
   const titleMap = {
     PostCreationMenu.message: AppStrings.lekha,
     PostCreationMenu.poll: AppStrings.poll,
-    PostCreationMenu.photos: AppStrings.symbol,
+    // PostCreationMenu.photos: AppStrings.symbol,
     PostCreationMenu.jobPost: AppStrings.jobPost,
-    PostCreationMenu.travel: AppStrings.travel,
+    // PostCreationMenu.travel: AppStrings.travel,
   };
 
   final List<PopupMenuEntry<PostCreationMenu>> entries = [];

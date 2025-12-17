@@ -381,8 +381,8 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                 onSelected: (value) async {
                   if (isGuestUser()) {
                     createProfileScreen();
-                  } else if (/*value == PostCreationMenu.videos ||*/
-                      value == PostCreationMenu.photos ||
+                  } else if (/*value == PostCreationMenu.videos ||
+                      value == PostCreationMenu.photos ||*/
                           value == PostCreationMenu.message ||
                           value == PostCreationMenu.poll) {
                     postVia(context, value);
