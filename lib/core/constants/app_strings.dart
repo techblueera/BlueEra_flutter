@@ -1952,6 +1952,8 @@ class AppStrings {
   static const sayNamaste = "sayNamaste";
   static const typeYourMessage = "typeYourMessage";
 
+  static const linkedShops = "linkedShops";
+
   ///BHAVESH START
 
   static const String clearAllNotifications = 'clearAllNotifications';

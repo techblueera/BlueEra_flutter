@@ -9,6 +9,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/rental/view/rent
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
+import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
@@ -45,40 +46,30 @@ class _RentalServiceScreenState extends State<RentalServiceScreen> {
 
   Widget _filterButtons() {
     return Obx(() {
-      return SingleChildScrollView(
-        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: [
-            LocalAssets(imagePath: AppIconAssets.channelFilterIcon),
-            SizedBox(width: SizeConfig.size10),
-            Row(
-              children: controller.rentalTabs.map((tab) {
-                final isSelected = controller.selectedRentalTabs.value == tab;
-                return Padding(
-                  padding: EdgeInsets.only(right: SizeConfig.size14),
-                  child: GestureDetector(
-                    onTap: () {
-                      controller.selectedRentalTabs.value = tab;
-                      controller.callApi();
-                    },
-                    child: CustomText(
-                      tab.label,
-                      decoration: TextDecoration.underline,
-                      color: isSelected ? AppColors.primaryColor : AppColors.secondaryTextColor,
-                      decorationColor:
-                      isSelected ? AppColors.primaryColor : AppColors.secondaryTextColor,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ],
+      final selectedTab = controller.selectedRentalTabs.value;
+
+      return Padding(
+        padding: EdgeInsets.all(SizeConfig.size15),
+        child: HorizontalTabSelector(
+          tabs: controller.rentalTabs.map((e) => e.label).toList(),
+          selectedIndex: controller.rentalTabs.indexOf(selectedTab),
+          horizontalMargin: 0.0,
+          onTabSelected: (index, _) {
+            final selectedEnum = controller.rentalTabs[index];
+
+            if (controller.selectedRentalTabs.value == selectedEnum) return;
+
+            controller.selectedRentalTabs.value = selectedEnum;
+            controller.callApi();
+          },
+          labelBuilder: (label) => label,
+          unSelectedBackgroundColor: AppColors.white,
         ),
       );
     });
   }
+
+
 
   Widget _buildTabViews() {
     return Obx(()=> Expanded(

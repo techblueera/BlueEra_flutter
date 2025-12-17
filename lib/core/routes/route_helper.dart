@@ -32,6 +32,7 @@ import 'package:BlueEra/features/common/food/view/food_upload_screen.dart';
 import 'package:BlueEra/features/common/food/view/grocery/add_grocery_screen.dart';
 import 'package:BlueEra/features/common/food/view/grocery/add_grocery_variant_screen.dart';
 import 'package:BlueEra/features/common/food/view/grocery/grocery_category_screen.dart';
+import 'package:BlueEra/features/common/food/view/grocery/grocery_listing/grocery_cart_screen.dart';
 import 'package:BlueEra/features/common/food/view/grocery/grocery_listing/grocery_listing_screen.dart';
 import 'package:BlueEra/features/common/food/view/grocery/all_grocery_listing_screen.dart';
 import 'package:BlueEra/features/common/food/view/grocery/my_grocery_listing/grocery_screen.dart';
@@ -81,6 +82,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/booking_enquirie
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/send_enquiry_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/earn_blueera_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/rider_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/add_product_screen.dart';
@@ -463,6 +465,12 @@ class RouteHelper {
 
   static String getGroceryListingScreenRoute() =>
       RouteConstant.groceryListingScreen;
+
+  static String getRiderServiceScreenRoute() =>
+      RouteConstant.riderServiceScreen;
+
+  static String getGroceryCartScreenRoute() =>
+      RouteConstant.groceryCartScreen;
 
 
   ///REDIRECT ROUTING SETUP.....
@@ -1350,6 +1358,25 @@ class RouteHelper {
             ),
             settings: RouteSettings(name: getGroceryListingScreenRoute())
         );
+      case RouteConstant.riderServiceScreen:
+        // final args = settings.arguments as Map<String, dynamic>;
+        // final List<CollapsibleGridModel> argGroceries = args[ApiKeys.argGroceries] as List<CollapsibleGridModel>;
+        // final CollapsibleGridModel argSelectedGroceryData = args[ApiKeys.argSelectedGroceryData] as CollapsibleGridModel;
+        return MaterialPageRoute(
+            builder: (_) => RiderServiceScreen(
+                // arrGroceries: argGroceries,
+                // selectedGroceryData: argSelectedGroceryData
+            ),
+            settings: RouteSettings(name: getRiderServiceScreenRoute())
+        );
+      case RouteConstant.groceryCartScreen:
+        return MaterialPageRoute(
+            builder: (_) => GroceryCartScreen(),
+            settings: RouteSettings(name: getGroceryCartScreenRoute())
+        );
+
+
+
       default:
         return MaterialPageRoute(
           builder: (_) => const Scaffold(

@@ -42,21 +42,25 @@ class GroceryController extends GetxController {
   Rx<ApiResponse> fetchMyGroceryProductsResponse =
       ApiResponse.initial('Initial').obs;
 
-  RxString selectedGrocery = ''.obs;
+  Rx<CollapsibleGridModel> selectedGroceryData = CollapsibleGridModel(
+      icon: "chips.png",
+      label: "Chips &\nNamkeens",
+      tagId: CHIPS_NAMKEEN
+  ).obs;
 
   RxList<GroceryProductData> selectedGroceries = <GroceryProductData>[].obs;
 
   RxInt selectedTabIndex = 0.obs;
   String get currentTabKey =>
       selectedTabIndex.value == 0                    // “All” tab
-          ? selectedGrocery.value                    // top-level key
+          ? selectedGroceryData.value.tagId                    // top-level key
           : arrChildrenOfGroceryCategory[selectedTabIndex.value - 1].key ?? '';
 
   int maxLimit = 10;
 
   bool get isMaxLimitHit => selectedGroceries.length == maxLimit;
 
-  Map<String, List<VariantsList>> selectedProductVariants = {};
+  Map<String, List<VariantsData>> selectedProductVariants = {};
 
   /// Main Grocery Categories
   final List<CollapsibleGridModel> biscuitFoods = [
@@ -345,7 +349,7 @@ class GroceryController extends GetxController {
     }
   }
 
-  void toggleVariant(String productId, VariantsList variant) {
+  void toggleVariant(String productId, VariantsData variant) {
     selectedProductVariants.putIfAbsent(productId, () => []);
 
     final selectedList = selectedProductVariants[productId]!;
@@ -451,7 +455,7 @@ class GroceryController extends GetxController {
   void openEditVariantDialog({
     required BuildContext context,
     required String title,
-    required VariantsList variant,
+    required VariantsData variant,
   }) {
     showDialog(
       context: context,
@@ -554,6 +558,7 @@ class GroceryController extends GetxController {
         // if (isGroceryCategoryProductsLoadingMore.value || !groceryCategoryProductsHasMore) return;
         isGroceryCategoryProductsLoadingMore.value = true;
       } else {
+        arrGroceryCategoryProducts.clear();
         isGroceryCategoryProductsLoading.value = true;
         groceryCategoryProductsPage = 1;
         groceryCategoryProductsHasMore = true;
@@ -585,7 +590,6 @@ class GroceryController extends GetxController {
           if (isLoadMore) {
             arrGroceryCategoryProducts.addAll(newItems);
           } else {
-            arrGroceryCategoryProducts.clear();
             arrGroceryCategoryProducts.assignAll(newItems);
           }
 
@@ -647,7 +651,7 @@ class GroceryController extends GetxController {
       createNewGroceryProductNewVariantResponse.value = ApiResponse.complete(response);
       final jsonData = response.response?.data;
       log('id-- > ${jsonData['_id']}');
-      final newVariant = VariantsList(
+      final newVariant = VariantsData(
         weight: int.tryParse(weight),
         sId: jsonData['_id'],
         product: productId,

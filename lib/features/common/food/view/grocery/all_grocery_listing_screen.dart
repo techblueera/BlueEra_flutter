@@ -33,14 +33,12 @@ class AllGroceryListingScreen extends StatefulWidget {
 class _AllGroceryListingScreenState extends State<AllGroceryListingScreen> {
   final controller = getOrPut(() => GroceryController());
   final ScrollController scrollController = ScrollController();
-  late CollapsibleGridModel selectedGroceryData;
 
   @override
   void initState() {
-    selectedGroceryData = widget.selectedGroceryData;
     scrollController.addListener(_onScrollListener);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      controller.selectedGrocery.value = selectedGroceryData.tagId;
+      controller.selectedGroceryData.value = widget.selectedGroceryData;
       controller.fetchBoth();
     });
     super.initState();
@@ -65,9 +63,9 @@ class _AllGroceryListingScreenState extends State<AllGroceryListingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return  Obx(()=> Scaffold(
       appBar: CommonBackAppBar(
-        title: widget.selectedGroceryData.label,
+        title: controller.selectedGroceryData.value.label,
         isShadowShow: false,
         buildCustomWidget:()=>
         Obx(()=> controller.selectedGroceries.isEmpty
@@ -146,7 +144,7 @@ class _AllGroceryListingScreenState extends State<AllGroceryListingScreen> {
           ),
         ],
        ),
-      );
+      ));
   }
 
   Widget  leftCategoryList() {
@@ -160,11 +158,11 @@ class _AllGroceryListingScreenState extends State<AllGroceryListingScreen> {
           return Obx(()=> _categoryItem(
             widget.arrGroceries[index].icon,
             widget.arrGroceries[index].label,
-            selected: controller.selectedGrocery.value == widget.arrGroceries[index].tagId,
+            selected: controller.selectedGroceryData.value.tagId == widget.arrGroceries[index].tagId,
             onTap: () {
-              controller.selectedGrocery.value = widget.arrGroceries[index].tagId;
+              controller.selectedGroceryData.value = widget.arrGroceries[index];
               controller.selectedTabIndex.value = 0;
-              log('new selection ${controller.selectedGrocery.value}');
+              log('new selection ${controller.selectedGroceryData.value}');
 
               /// api call
               controller.fetchBoth();

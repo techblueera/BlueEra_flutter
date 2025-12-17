@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -1382,7 +1383,16 @@ class _PersonalProfileSetupNewScreenState
                   MaterialPageRoute(
                       builder: (context) => CreateProfileScreen()));
             } else {
-              Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
+              log('user work type-- $userWorkTypeGlobal');
+              if(userWorkTypeGlobal == DELIVERY_RIDER
+                  // || userWorkTypeGlobal == 'Delivery Partner'
+              ){
+                Get.toNamed(RouteHelper
+                    .getRiderServiceScreenRoute());
+              }else{
+                Get.toNamed(RouteHelper
+                    .getEarnWithBlueEraNewScreenRoute());
+              }
             }
           },
           bgColor: AppColors.primaryColor,

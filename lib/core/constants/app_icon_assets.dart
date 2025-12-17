@@ -529,5 +529,9 @@ class AppIconAssets {
   static String removeOutlinedIcon = "${iconPath}remove_outlined_icon.svg";
 
   static String toggol_buttons = "${iconPath}toggol_buttons.svg";
+  static String clockIcon = "${iconPath}clock_icon.svg";
+
+  static String cartListIcon = "${iconPath}cart_list_icon.svg";
+  static String handPriceIcon = "${iconPath}hand_price_icon.svg";
   static String green_tick_icon = "${iconPath}green_tick.svg";
 }

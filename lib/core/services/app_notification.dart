@@ -439,7 +439,8 @@ class AppNotificationHandler {
       // }
 
     }else if(data.operation=="RIDE_ORDER_RECEIVED"){
-      Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
+      Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
+      // Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
     }
 
     ///CLEAR ALL NOTIFICATION...

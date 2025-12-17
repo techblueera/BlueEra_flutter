@@ -160,7 +160,7 @@ class _ProductCardState extends State<ProductCardBusiness> {
                       ),
                       Flexible(
                         child: CustomText(
-                          '${discountProduct}% Off',
+                          '${discountProduct}% ${AppStrings.offCaps.tr}',
                           fontSize: SizeConfig.size10,
                           color: AppColors.greenShade,
                           maxLines: 1,
