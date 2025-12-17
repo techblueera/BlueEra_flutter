@@ -105,13 +105,11 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
           // Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
           Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
           FlutterCallkitIncoming.endAllCalls();
-          // handleAcceptOrder(event?.body['extra']['orderId']??''.toString());
         } else if (event?.event == Event.actionCallDecline) {
           commonSnackBar(message: "Your Order Rejected by You");
           Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
           // Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
           FlutterCallkitIncoming.endAllCalls();
-          // handleRejectOrder(event?.body['extra']['orderId']??''.toString());
         }
       });
     });

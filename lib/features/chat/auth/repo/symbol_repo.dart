@@ -7,11 +7,11 @@ class SymbolRepo extends BaseService {
   Future<ResponseModel> createSymbol(Map<String, dynamic> params) async {
     final response = await ApiBaseHelper().postHTTP(
         createSymbolApi,
-        showProgress: false,
+        showProgress: true,
         params: params, onError: (error) {}, onSuccess: (data) {});
     return response;
   }
-  Future<ResponseModel> getAllSymbolSingleUser(String id) async {
+  Future<ResponseModel> getAllSymbolsSingleUser(String id) async {
     final response = await ApiBaseHelper().getHTTP(
         getAllSymbolOneUser(id),
         showProgress: false,

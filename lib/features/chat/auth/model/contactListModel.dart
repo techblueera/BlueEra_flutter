@@ -147,6 +147,13 @@ class ExistingNotConnected {
       this.createdAt, 
       this.updatedAt, 
       this.v,});
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+          other is ExistingNotConnected && id == other.id;
+
+  @override
+  int get hashCode => id.hashCode;
 
   ExistingNotConnected.fromJson(dynamic json) {
     id = json['id'];

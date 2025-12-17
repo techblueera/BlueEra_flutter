@@ -280,6 +280,7 @@ class ChatViewController extends GetxController {
       await chatSocket.connectToSocket();
       socketConnected.value = true;
       chatSocket.listenEvent(ChatEmitEvents.ChatList, (data) async {
+        log("sdvsdvsvsdfvsdvsdvnnkks ${data}");
         final parsedData = GetChatListModel.fromJson(data);
         loadChatListWithType(chatListModel: parsedData);
         getPersonalFilteredChatListModel?.value = parsedData;

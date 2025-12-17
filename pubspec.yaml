@@ -118,5 +118,15 @@ flutter:
           weight: 400
         - asset: assets/fonts/OpenSans-Bold.ttf
           weight: 700
+    - family: Arizonia
+
+      fonts:
+        - asset: assets/fonts/Arizonia.ttf
+    - family: Artifika
+      fonts:
+        - asset: assets/fonts/Artifika.ttf
+    - family: AsapCondensed
+      fonts:
+        - asset: assets/fonts/AsapCondensed.ttf
 
 
