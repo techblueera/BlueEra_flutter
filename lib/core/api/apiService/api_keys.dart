@@ -558,5 +558,9 @@ class ApiKeys {
   static const caption = 'caption';
   static const duration_days = 'duration_days';
   static const hidden_from = 'hidden_from';
+  static const backgroundColor = 'backgroundColor';
+  static const fontFamily = 'fontFamily';
+  static const fontSize = 'fontSize';
+  static const fontWeight = 'fontWeight';
 
 }

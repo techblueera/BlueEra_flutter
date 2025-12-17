@@ -4,6 +4,13 @@ class SymbolDetailsModel {
   String? type;
   String? content;
   String? caption;
+
+  /// 🆕 UI STYLE FIELDS
+  String? backgroundColor;   // store as HEX string → "#25D366"
+  String? fontFamily;        // "AsapCondensed"
+  double? fontSize;          // 18
+  String? fontWeight;        // "Medium"
+
   DateTime? expiresAt;
   String? visibility;
   List<String>? hiddenFrom;
@@ -11,7 +18,6 @@ class SymbolDetailsModel {
   int? likesCount;
   int? commentsCount;
   int? seenCount;
-
   DateTime? createdAt;
   DateTime? updatedAt;
   int? v;
@@ -27,6 +33,13 @@ class SymbolDetailsModel {
     this.type,
     this.content,
     this.caption,
+
+    /// 🆕
+    this.backgroundColor,
+    this.fontFamily,
+    this.fontSize,
+    this.fontWeight,
+
     this.expiresAt,
     this.visibility,
     this.hiddenFrom,
@@ -51,6 +64,15 @@ class SymbolDetailsModel {
       type: json['type'],
       content: json['content'],
       caption: json['caption'],
+
+      /// 🆕 UI STYLE
+      backgroundColor: json['backgroundColor'],
+      fontFamily: json['fontFamily'],
+      fontSize: json['fontSize'] != null
+          ? (json['fontSize'] as num).toDouble()
+          : null,
+      fontWeight: json['fontWeight'],
+
       expiresAt: json['expires_at'] != null
           ? DateTime.parse(json['expires_at'])
           : null,
@@ -88,6 +110,13 @@ class SymbolDetailsModel {
       'type': type,
       'content': content,
       'caption': caption,
+
+      /// 🆕 UI STYLE
+      'background_color': backgroundColor,
+      'font_family': fontFamily,
+      'font_size': fontSize,
+      'font_weight': fontWeight,
+
       'expires_at': expiresAt?.toIso8601String(),
       'visibility': visibility,
       'hidden_from': hiddenFrom,
@@ -105,6 +134,7 @@ class SymbolDetailsModel {
       'user': user?.toJson(),
     };
   }
+
 }
 class UserModel {
   String? id;

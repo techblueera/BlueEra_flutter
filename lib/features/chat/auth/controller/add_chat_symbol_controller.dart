@@ -34,11 +34,55 @@ class AddChatSymbolController extends GetxController {
   final SymbolRepo symbolRepo = SymbolRepo();
   Rx<PostType?> selectedPostType = Rx<PostType?>(null);
   RxMap<String, File> videoThumbnails = <String, File>{}.obs;
-
-
-  // File picked
+  RxString selectedBgImage = ''.obs,
+      selectedFontFamily = 'OpenSans'.obs,
+      uploadMsgPostUrl = "".obs;
+  RxDouble selectedFontSize=16.0.obs;
+  RxString selectedFontWeight='Medium'.obs;
+  final List<String> fontWeightList=[
+    "Medium","Bold","Large"
+  ];
+  void changeFontFamily(String family) {
+    selectedFontFamily.value = family;
+  }
+  void changeFontSize(double size) {
+    selectedFontSize.value = size;
+  }
+  void changeFontWeight(String weight) {
+    selectedFontWeight.value = weight;
+  }
 
   final linkTextSymbolController = TextEditingController();
+  final List<Map<String, String>> fontStyles = [
+    {'name': 'Style', 'family': 'OpenSans'},
+    {'name': 'Style', 'family': 'Arizonia'},
+    {'name': 'Style', 'family': 'Artifika'},
+    {'name': 'Style', 'family': 'AsapCondensed'},
+  ];
+  final List<double> fontSizeList=[
+    16.0,18.0,20.0,22.0,24.0,26.0,
+  ];
+  FontWeight getFontWeight(String selectedFontWeight) {
+    switch (selectedFontWeight) {
+      // case "Small":
+      //   return FontWeight.w200;
+
+      case "Medium":
+        return FontWeight.normal;
+
+      case "Bold":
+        return FontWeight.bold;
+
+      case "Large":
+        return FontWeight.w900;
+
+      // case "Extra Large":
+      //   return FontWeight.w900;
+
+      default:
+        return FontWeight.normal;
+    }
+  }
 
   /// WhatsApp-like background colors
   final List<Color> bgColors = [
@@ -277,12 +321,20 @@ class AddChatSymbolController extends GetxController {
           ? "photo"
           : selectedPostType.value == PostType.video
               ? "video"
-              : selectedPostType.value == PostType.video
+              : selectedPostType.value == PostType.text
                   ? "text"
                   : "embeddedUrl",
       ApiKeys.content: itTextOrLinkPost()
           ? linkTextSymbolController.text
           : MediaUploadRes?.files?.first.publicUrl,
+      if(selectedPostType.value == PostType.text)
+        ApiKeys.backgroundColor : "#${selectedBgColor.value.value.toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}",
+      if(selectedPostType.value == PostType.text)
+        ApiKeys.fontFamily: selectedFontFamily.value,
+      if(selectedPostType.value == PostType.text)
+        ApiKeys.fontSize: selectedFontSize.value,
+      if(selectedPostType.value == PostType.text)
+        ApiKeys.fontWeight: "${selectedFontWeight.value}",
       ApiKeys.caption: "${captionController.text}",
       ApiKeys.duration_days: selectedDays.value,
       ApiKeys.visibility: visibility.value == PostVisibility.public
@@ -297,7 +349,7 @@ class AddChatSymbolController extends GetxController {
     ResponseModel responseModel = await symbolRepo.createSymbol(params);
 
     if (responseModel.isSuccess) {
-      log("ksjdnclskmsdlc ${responseModel.response?.data}");
+
       commonSnackBar(message: "Symbol Added Successfully");
      await getSymbolsForPartUser(userId);
       isPosting.value = false;
@@ -313,10 +365,22 @@ class AddChatSymbolController extends GetxController {
   Future<void> getSymbolsForPartUser(String userId)async{
     ResponseModel responseModel = await symbolRepo.getAllSymbolsSingleUser(userId);
     if(responseModel.isSuccess){
-     mySymbols.value =
+      mySymbols.value =
       (responseModel.response?.data as List)
           .map((e) => SymbolDetailsModel.fromJson(e))
           .toList();
+    }
+
+  }
+  Future<List<SymbolDetailsModel>?> getSymbolsForOtherUser(String userId)async{
+    ResponseModel responseModel = await symbolRepo.getAllSymbolsSingleUser(userId);
+    if(responseModel.isSuccess){
+
+      return (responseModel.response?.data as List)
+          .map((e) => SymbolDetailsModel.fromJson(e))
+          .toList();
+    }else{
+      return null;
     }
 
   }

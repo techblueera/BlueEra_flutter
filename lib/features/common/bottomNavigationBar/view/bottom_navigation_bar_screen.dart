@@ -101,12 +101,10 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         if (event?.event == Event.actionCallAccept) {
           Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
           FlutterCallkitIncoming.endAllCalls();
-          // handleAcceptOrder(event?.body['extra']['orderId']??''.toString());
         } else if (event?.event == Event.actionCallDecline) {
           commonSnackBar(message: "Your Order Rejected by You");
           Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
           FlutterCallkitIncoming.endAllCalls();
-          // handleRejectOrder(event?.body['extra']['orderId']??''.toString());
         }
       });
     });

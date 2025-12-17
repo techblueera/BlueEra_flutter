@@ -770,7 +770,8 @@ List<PopupMenuEntry<String>> popupMenuChatCardItems() {
             final addSymbolController = Get.isRegistered<AddChatSymbolController>()
                 ? Get.find<AddChatSymbolController>()
                 : Get.put(AddChatSymbolController());
-            Get.to(()=>SymbolViewImages(mySymbols: addSymbolController.mySymbols,
+            Get.to(()=>SymbolViewImages(
+              mySymbols: addSymbolController.mySymbols,
             ));
           }else
             if (items[i]['id'] == "CREATE_GROUP") {
