@@ -294,12 +294,9 @@ Future<void> onShareButtonPressed(Post? post) async {
   try {
     _isSharing = true;
     final shareUrl = postDeepLink(postId: post?.id.toString());
-    final combineText = "${post?.subTitle}\n $shareUrl ";
-
     await SharePlus.instance.share(
       ShareParams(
-        text: combineText,
-        title: post?.subTitle,
+        text: shareUrl,
       ),
     );
   } catch (e) {
