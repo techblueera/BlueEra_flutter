@@ -2154,5 +2154,6 @@ class AppStrings {
   static const earnWithRentalServices = "earnWithRentalServices";
   static const selectRentalType = "selectRentalType";
   static const selectRentalTypeMessage = "selectRentalTypeMessage";
+  static const applyForFranchise = "applyForFranchise";
 
 }
