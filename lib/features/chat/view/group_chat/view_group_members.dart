@@ -4,6 +4,8 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/widgets/commom_textfield.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -43,8 +45,135 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
     Map<String, dynamic> data = {
       ApiKeys.conversation_id: widget.conversationId
     };
+    chatViewController.groupNameController.text=widget.name??"";
     chatViewController.getGroupMembersApi(data);
     super.initState();
+  }
+  void showEditGroupDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: StatefulBuilder(
+            builder: (context, setState) {
+              return Padding(
+                padding: const EdgeInsets.all(16),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+
+                      /// 🔹 GROUP IMAGE STACK (FIRST)
+                      Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          CircleAvatar(
+                            radius: 45,
+                            backgroundColor: Theme.of(context).colorScheme.primary,
+                            backgroundImage:
+                            (chatViewController.editedGroupFile!=null)?
+                            FileImage(chatViewController.editedGroupFile!) as ImageProvider:(widget.profileImage != null &&
+                                widget.profileImage!.trim().isNotEmpty)
+                                ? (widget.profileImage!.startsWith('http')
+                                ? NetworkImage(widget.profileImage!)
+                                : (File(widget.profileImage!).existsSync()
+                                ? FileImage(File(widget.profileImage!)) as ImageProvider
+                                : null))
+                                : null,
+                            child: (chatViewController.editedGroupFile == null &&
+                                (widget.profileImage == null ||
+                                    widget.profileImage!.isEmpty))
+                                ? Text(
+                              widget.name != null && widget.name!.isNotEmpty
+                                  ? widget.name![0].toUpperCase()
+                                  : '',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 36,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            )
+                                : null,
+                          ),
+
+                          /// ✏️ EDIT ICON
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: InkWell(
+                              onTap: () async {
+                                final newPath =
+                                await SelectProfilePictureDialog.showLogoDialog(
+                                    context, "Change Group Profile");
+
+                                if (newPath != null && newPath.isNotEmpty) {
+                                  chatViewController.editedGroupFile =
+                                      File(newPath);
+                                  setState(() {});
+                                }
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: AppColors.primaryColor,
+                                  border:
+                                  Border.all(color: Colors.white, width: 2),
+                                ),
+                                child: Icon(
+                                  Icons.edit,
+                                  size: 16,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      /// 🔹 GROUP NAME FIELD
+                      CommonTextField(
+                        title: "Group Name",
+                        textEditController:chatViewController.groupNameController,
+                        // controller: chatViewController.groupNameController,
+                        hintText: "Group Name",
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      /// 🔹 GROUP DESCRIPTION FIELD
+                      CommonTextField(
+                        title: "Group Description",
+                        textEditController:chatViewController.groupDescriptionController,
+                        // controller: chatViewController.groupDescriptionController,
+                        hintText: "Enter Group Description",
+                        // maxLines: 3,
+                      ),
+                      const SizedBox(height: 20),
+                      /// 🔹 SUBMIT BUTTON
+                      SizedBox(
+                        width: double.infinity,
+                        child: CustomBtn(
+                          isValidate: true,
+                            onTap: (){
+
+                        }, title: "Edit"),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -89,16 +218,48 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                               onTap: (){
                                 Navigator.pop(context);
                               },
-                              child: Row(
-                                children: [
-                                  const SizedBox(width: 20,),
-                                  Icon(Icons.arrow_back_ios,size: 22,),
-                                  const SizedBox(width: 2,),
-                                  CustomText(AppStrings.groupInfo,
-                                    fontSize: SizeConfig.extraLarge-2,
-                                  fontWeight: FontWeight.bold,
-                                  )
-                                ],
+                              child: Padding(
+                                padding: const EdgeInsets.only(right: 10.0),
+                                child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        const SizedBox(width: 20,),
+                                        Icon(Icons.arrow_back_ios,size: 22,),
+                                        const SizedBox(width: 2,),
+                                        CustomText(AppStrings.groupInfo,
+                                          fontSize: SizeConfig.extraLarge-2,
+                                        fontWeight: FontWeight.bold,
+                                        )
+                                      ],
+                                    ),
+                                    InkWell(
+                                      onTap: (){
+                                        chatViewController.editedGroupFile=null;
+                                        showEditGroupDialog(context);
+                                      },
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(6),
+                                          color: AppColors.primaryColor
+                                        ),
+                                        padding: EdgeInsets.symmetric(horizontal: 8,vertical: 4),
+                                        child: Row(
+                                          children: [
+                                            LocalAssets(
+                                              imagePath: AppIconAssets.editIcon,
+                                              height: SizeConfig.size14,
+                                              width: SizeConfig.size14,
+                                              imgColor: Colors.white,
+                                            ),
+                                            SizedBox(width: 6,),
+                                            CustomText("Edit",color: AppColors.white,),
+                                          ],
+                                        ),
+                                      ),
+                                    )
+                                  ],
+                                ),
                               ),
                             ),
                             SizedBox(
@@ -122,7 +283,8 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                                             CircleAvatar(
                                               backgroundColor: theme.colorScheme.primary,
                                               radius: radius,
-                                              backgroundImage: (widget.profileImage != null &&
+                                              backgroundImage:  (chatViewController.editedGroupFile!=null)?
+                                              FileImage(chatViewController.editedGroupFile!) as ImageProvider:(widget.profileImage != null &&
                                                   widget.profileImage!.trim().isNotEmpty)
                                                   ? (widget.profileImage!.startsWith('http')
                                                   ? NetworkImage(widget.profileImage!)
@@ -130,7 +292,7 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                                                   ? FileImage(File(widget.profileImage!)) as ImageProvider
                                                   : null))
                                                   : null,
-                                              child: (widget.profileImage != null &&
+                                              child:(widget.profileImage != null &&
                                                   widget.profileImage!.trim().isNotEmpty &&
                                                   (widget.profileImage!.startsWith('http') ||
                                                       File(widget.profileImage!).existsSync()))
@@ -159,6 +321,11 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                                             //     onTap: ()async{
                                             //       var newPath= await SelectProfilePictureDialog.showLogoDialog(
                                             //       context, "Change Group Profile");
+                                            //       chatViewController.editedGroupFile=File(newPath);
+                                            //       setState(() {
+                                            //
+                                            //       });
+                                            //
                                             //     },
                                             //     child: Container(
                                             //       decoration: BoxDecoration(
@@ -167,7 +334,7 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                                             //       ),
                                             //       child: Container(
                                             //
-                                            //         padding: EdgeInsets.all(6),
+                                            //         padding: EdgeInsets.all(8),
                                             //         decoration: BoxDecoration(
                                             //           shape: BoxShape.circle,
                                             //           color: AppColors.primaryColor,

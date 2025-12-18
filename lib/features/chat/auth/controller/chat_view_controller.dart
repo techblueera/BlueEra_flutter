@@ -140,6 +140,7 @@ class ChatViewController extends GetxController {
   RxInt businessTabIndexSelected = 0.obs;
   RxBool chatBotReading = false.obs;
   RxBool viewAllMembers = false.obs;
+  File? editedGroupFile;
 
   final List<String> tabs = [
     'Chat',
@@ -834,10 +835,12 @@ class ChatViewController extends GetxController {
 
   Future<void> uploadContacts(List<Map<String, dynamic>> params) async {
     // try {
+    log("sldkcmlskdcmsldkc ))))))");
     paramsData = params;
     if (contactsListModel?.value.data == null) {
       ResponseModel responseModel =
           await ChatViewRepo().getConnectionsSync(params);
+      log("sldkcmlskdcmsldkc ${responseModel.response?.data}");
       if (responseModel.isSuccess) {
         final data = responseModel.response?.data;
 
@@ -1160,6 +1163,8 @@ class ChatViewController extends GetxController {
       }
     }
   }
+  final groupNameController=TextEditingController();
+  final groupDescriptionController=TextEditingController();
 
   Future<void> getGroupMembersApi(
     Map<String, dynamic> params,
@@ -1207,6 +1212,28 @@ class ChatViewController extends GetxController {
     try {
       ResponseModel responseModel =
           await ChatViewRepo().updateSingleMessage(params);
+      clearMessageControllerCommon();
+      if (responseModel.isSuccess) {
+        clearMessageControllerCommon();
+        return true;
+      } else {
+        clearMessageControllerCommon();
+        commonSnackBar(
+            message: responseModel.message ?? AppStrings.somethingWentWrong);
+
+        return false;
+      }
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<bool> updateGroupInfo(
+    Map<String, dynamic> params,
+  ) async {
+    try {
+      ResponseModel responseModel =
+          await ChatViewRepo().updateGroupApi(params);
       clearMessageControllerCommon();
       if (responseModel.isSuccess) {
         clearMessageControllerCommon();

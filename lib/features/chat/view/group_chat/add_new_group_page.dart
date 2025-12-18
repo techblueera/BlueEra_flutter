@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -63,13 +64,11 @@ class _AddNewGroupPageState extends State<AddNewGroupPage> {
     }
 
     final updatedDetails = chatViewController.contactsListModel?.value.data;
-
     if (updatedDetails != null) {
       for (String userId in widget.selectedUserIds) {
         final existingContact = updatedDetails.existingNotConnected
             ?.where((contact) => contact.id == userId)
             .firstOrNull;
-
         if (existingContact != null) {
           final chatList = ChatList(
             sender: Sender(

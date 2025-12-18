@@ -46,11 +46,11 @@ class _ContactsPageState extends State<ContactsPage> {
   @override
   void initState() {
     super.initState();
-    if (widget.from == "group") {
+    // if (widget.from == "group") {
       chatViewController.loadGroupConnections();
-    } else {
+    // } else {
       _loadContactsFromStorage();
-    }
+    // }
     _searchController.addListener(_onSearchChanged);
   }
 
