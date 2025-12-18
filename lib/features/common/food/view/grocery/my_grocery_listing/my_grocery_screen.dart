@@ -32,14 +32,19 @@ class _MyGroceryScreenState extends State<MyGroceryScreen> {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_){
-      controller.fetchMyGroceryProducts(categoryId: widget.categoryId);
+      controller.fetchMyGroceryProducts(
+          categoryId: widget.categoryId,
+          isSubCategoryProducts: true
+      );
 
       scrollController.addListener(() {
         if (scrollController.position.pixels >=
             scrollController.position.maxScrollExtent - 200) {
           controller.fetchMyGroceryProducts(
               isLoadMore: true,
-              categoryId: widget.categoryId);
+              categoryId: widget.categoryId,
+              isSubCategoryProducts: true
+          );
         }
       });
     });

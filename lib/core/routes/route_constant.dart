@@ -123,7 +123,7 @@ class RouteConstant {
 
   static const String groceryScreen = "/GroceryScreen";
   static const String groceryCategoryScreen = "/GroceryCategoryScreen";
-  static const String allGroceryListingScreen = "/AllGroceryListingScreen";
+  static const String grocerySubCategoryScreen = "/GrocerySubCategoryScreen";
   static const String addGroceryScreen = "/AddGroceryScreen";
   static const String addGroceryVariantScreen = "/AddGroceryVariantScreen";
   static const String myGroceryCategoryScreen = "/MyGroceryCategoryScreen";
@@ -133,6 +133,7 @@ class RouteConstant {
   static const String riderServiceScreen = "/RiderServiceScreen";
   static const String groceryCartScreen = "/GroceryCartScreen";
   static const String RiderProfileStatusScreen = "/RiderProfileStatusScreen";
+  static const String grocerySuperCategoryScreen = "/GrocerySuperCategoryScreen";
 
 
 }

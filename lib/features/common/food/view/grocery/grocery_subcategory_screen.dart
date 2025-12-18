@@ -16,21 +16,21 @@ import '../../../../../core/constants/app_colors.dart';
 import '../../../../../widgets/local_assets.dart';
 import '../../../../../widgets/common_back_app_bar.dart';
 
-class AllGroceryListingScreen extends StatefulWidget {
+class GrocerySubCategoryScreen extends StatefulWidget {
   final List<CollapsibleGridModel> arrGroceries;
   final CollapsibleGridModel selectedGroceryData;
 
-   AllGroceryListingScreen({
+   GrocerySubCategoryScreen({
      super.key,
      required this.arrGroceries,
      required this.selectedGroceryData
    });
 
   @override
-  State<AllGroceryListingScreen> createState() => _AllGroceryListingScreenState();
+  State<GrocerySubCategoryScreen> createState() => _GrocerySubCategoryScreenState();
 }
 
-class _AllGroceryListingScreenState extends State<AllGroceryListingScreen> {
+class _GrocerySubCategoryScreenState extends State<GrocerySubCategoryScreen> {
   final controller = getOrPut(() => GroceryController());
   final ScrollController scrollController = ScrollController();
 
@@ -105,7 +105,6 @@ class _AllGroceryListingScreenState extends State<AllGroceryListingScreen> {
                       ),
             ),
         )
-
       ),
       bottomNavigationBar:
       Obx((){

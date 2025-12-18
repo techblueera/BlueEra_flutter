@@ -1773,6 +1773,7 @@ class AppStrings {
   static const foodRestriction = "foodRestriction";
   static const noFoodRestrictions = "noFoodRestrictions";
   static const youCanOptOnlyOneService = "youCanOptOnlyOneService";
+  static const statistics = "statistics";
 
 
   ///BHAVESH START
@@ -1953,6 +1954,7 @@ class AppStrings {
   static const typeYourMessage = "typeYourMessage";
 
   static const linkedShops = "linkedShops";
+  static const pickUpOTP  = "pickUpOTP";
 
   ///BHAVESH START
 

@@ -563,4 +563,7 @@ class ApiKeys {
   static const fontSize = 'fontSize';
   static const fontWeight = 'fontWeight';
 
+  static const argArrGroceryCat = 'argArrGroceryCat';
+  static const argCategoryName = 'argCategoryName';
+  static const argPageHeading = 'argPageHeading';
 }

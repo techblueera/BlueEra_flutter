@@ -12,6 +12,7 @@ import 'package:BlueEra/features/common/food/model/children_of_grocery_category_
 import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
 import 'package:BlueEra/features/common/food/model/grocery_product_model.dart';
 import 'package:BlueEra/features/common/food/model/my_grocery_products_reponse.dart';
+import 'package:BlueEra/features/common/food/model/my_grocery_super_category_model.dart';
 import 'package:BlueEra/features/common/food/repo/grocery_repo.dart';
 import 'package:BlueEra/features/common/food/view/grocery/edit_grocery_varient_dialog.dart';
 import 'package:BlueEra/features/common/food/view/grocery/grocery_varient_dialog.dart';
@@ -41,6 +42,8 @@ class GroceryController extends GetxController {
       ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> fetchMyGroceryProductsResponse =
       ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> fetchMyGroceryCategoryResponse =
+      ApiResponse.initial('Initial').obs;
 
   Rx<CollapsibleGridModel> selectedGroceryData = CollapsibleGridModel(
       icon: "chips.png",
@@ -62,7 +65,56 @@ class GroceryController extends GetxController {
 
   Map<String, List<VariantsData>> selectedProductVariants = {};
 
-  /// Main Grocery Categories
+  /// Super Grocery Categories
+  final List<CollapsibleGridModel> grocerySuperCategories = [
+    CollapsibleGridModel(
+        icon: "grocery_items.svg",
+        label: "Grocery Items",
+        tagId: GROCERY_ITEMS),
+    CollapsibleGridModel(
+        icon: "vegetable.svg",
+        label: "Vegetable",
+        tagId: VEGETABLE),
+    CollapsibleGridModel(
+        icon: "vegetable.svg",
+        label: "Fruit",
+        tagId: FRUIT),
+    CollapsibleGridModel(
+        icon: "bakery.svg",
+        label: "Bakery & Bread Items",
+        tagId: BAKERY_BREAD_ITEMS),
+    CollapsibleGridModel(
+        icon: "dairy_products.svg",
+        label: "Dairy Products",
+        tagId: DAIRY_PRODUCTS),
+    CollapsibleGridModel(
+        icon: "home_essentials.svg",
+        label: "Home Essentials",
+        tagId: HOME_ESSENTIALS),
+    CollapsibleGridModel(
+        icon: "packed_sweets.svg",
+        label: "Packed Sweets & Namkeens",
+        tagId: PACKED_SWEETS_NAMKEENS),
+    CollapsibleGridModel(
+        icon: "crockery.svg",
+        label: "Crockery",
+        tagId: CROCKERY),
+    CollapsibleGridModel(
+        icon: "medical_items.svg",
+        label: "Medical Items",
+        tagId: MEDICAL_ITEMS),
+    CollapsibleGridModel(
+        icon: "beauty_body_care.svg",
+        label: "Beauty & Body Care",
+        tagId: BEAUTY_BODY_CARE),
+
+    CollapsibleGridModel(
+        icon: "stationary.svg",
+        label: "Stationary",
+        tagId: STATIONARY),
+  ];
+
+  // Grocery Item
   final List<CollapsibleGridModel> biscuitFoods = [
     CollapsibleGridModel(
         icon: "chips.png",
@@ -109,22 +161,6 @@ class GroceryController extends GetxController {
         label: "Tea & Coffee",
         tagId: TEA),
   ];
-
-  final List<CollapsibleGridModel> fruitsVeg = [
-    CollapsibleGridModel(
-        icon: "freshfruits.png",
-        label: "Fresh Fruits",
-        tagId: FRESH_FRUITS),
-    CollapsibleGridModel(
-        icon: "basicveg.png",
-        label: "Basic\nVegetables",
-        tagId: BASIC_VEGETABLES),
-    CollapsibleGridModel(
-        icon: "premiumveg.png",
-        label: "Premium Fruits\n& Vegetables",
-        tagId: PREMIUM_FV),
-  ];
-
   final List<CollapsibleGridModel> cookingEssentials = [
     CollapsibleGridModel(
         icon: "rice.png",
@@ -167,8 +203,652 @@ class GroceryController extends GetxController {
         label: "Millets\n& Organic",
         tagId: MILLET_ORGANIC),
   ];
+  final List<CollapsibleGridModel> spicesNdMasala = [
+    CollapsibleGridModel(
+        icon: "rice.png",
+        label: "Powdered\nSpices",
+        tagId: RICE),
+    CollapsibleGridModel(
+        icon: "dals.png",
+        label: "Whole Spices",
+        tagId: DALS_PULSES),
+    CollapsibleGridModel(
+        icon: "ghee.png",
+        label: "Blended\nMasalas",
+        tagId: GHEE),
+    CollapsibleGridModel(
+        icon: "wheat.png",
+        label: "Regional\nMasalas",
+        tagId: WHEAT_SOYA),
+    CollapsibleGridModel(
+        icon: "sugar.png",
+        label: "Specialty\nMasalas",
+        tagId: SALT_SUGAR_JAGGERY),
+    CollapsibleGridModel(
+        icon: "poha.png",
+        label: "Herbs &\nSeasonings",
+        tagId: SNACK_BASES),
+    CollapsibleGridModel(
+        icon: "atta.png",
+        label: "Paste & Wet\nMasalas",
+        tagId: ATTA_FLOURS),
+    CollapsibleGridModel(
+        icon: "dryfruits.png",
+        label: "Whole Dry\nChillies & Leaves",
+        tagId: DRY_FRUITS),
+  ];
+  final List<CollapsibleGridModel> dailyDrinks = [
+    CollapsibleGridModel(
+        icon: "rice.png",
+        label: "Tea",
+        tagId: RICE),
+    CollapsibleGridModel(
+        icon: "dals.png",
+        label: "Coffee",
+        tagId: DALS_PULSES),
+    CollapsibleGridModel(
+        icon: "ghee.png",
+        label: "Health Drinks",
+        tagId: GHEE),
+    CollapsibleGridModel(
+        icon: "wheat.png",
+        label: "Fruit Juice",
+        tagId: WHEAT_SOYA),
+    CollapsibleGridModel(
+        icon: "sugar.png",
+        label: "Soft Drinks",
+        tagId: SALT_SUGAR_JAGGERY),
+    CollapsibleGridModel(
+        icon: "poha.png",
+        label: "Energy Drinks",
+        tagId: SNACK_BASES),
+    CollapsibleGridModel(
+        icon: "atta.png",
+        label: "Flavoured Drinks",
+        tagId: ATTA_FLOURS),
+    CollapsibleGridModel(
+        icon: "dryfruits.png",
+        label: "Instant Drink Mix",
+        tagId: DRY_FRUITS),
+  ];
 
-  final List<CollapsibleGridModel> dairyBakery = [
+  // VEGETABLE
+  final List<CollapsibleGridModel> freshVegetable = [
+    CollapsibleGridModel(
+        icon: "freshfruits.png",
+        label: "Potato, Onion\n& Tomato",
+        tagId: FRESH_FRUITS),
+    CollapsibleGridModel(
+        icon: "basicveg.png",
+        label: "Leafy\nVegetables",
+        tagId: BASIC_VEGETABLES),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Root\nVegetables",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Gourds\n& Pumpkins",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Beans & Peas",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Cabbage, Cauli\n& Broccoli",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Capsicum, Chilli\n& Corn",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Exotic\nVegetables",
+        tagId: PREMIUM_FV),
+  ];
+  final List<CollapsibleGridModel> greenLeafy = [
+    CollapsibleGridModel(
+        icon: "freshfruits.png",
+        label: "Spinach\n(Palak)",
+        tagId: FRESH_FRUITS),
+    CollapsibleGridModel(
+        icon: "basicveg.png",
+        label: "Fenugreek\n(Methi)",
+        tagId: BASIC_VEGETABLES),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Coriander\n& Mint",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Lettuce &\nSalad Greens",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Spring Onion",
+        tagId: PREMIUM_FV),
+  ];
+  final List<CollapsibleGridModel> seasonalVegetable = [
+    CollapsibleGridModel(
+        icon: "freshfruits.png",
+        label: "Summer\nVegetables",
+        tagId: FRESH_FRUITS),
+    CollapsibleGridModel(
+        icon: "basicveg.png",
+        label: "Winter\nVegetables",
+        tagId: BASIC_VEGETABLES),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Monsoon Vegetables",
+        tagId: PREMIUM_FV),
+  ];
+  final List<CollapsibleGridModel> exoticVegetable = [
+    CollapsibleGridModel(
+        icon: "freshfruits.png",
+        label: "Broccoli",
+        tagId: FRESH_FRUITS),
+    CollapsibleGridModel(
+        icon: "basicveg.png",
+        label: "Zucchini",
+        tagId: BASIC_VEGETABLES),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Bell Peppers",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Cherry Tomato",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Lettuce Iceberg",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Baby Corn",
+        tagId: PREMIUM_FV),
+  ];
+  final List<CollapsibleGridModel> cutNdPackedVegetable = [
+    CollapsibleGridModel(
+        icon: "freshfruits.png",
+        label: "Cut Onion",
+        tagId: FRESH_FRUITS),
+    CollapsibleGridModel(
+        icon: "basicveg.png",
+        label: "Cut Mixed\nVegetables",
+        tagId: BASIC_VEGETABLES),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Chopped Leafy\nVegetables",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Peeled Garlic",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Ready-to-Cook\nVeg Packs",
+        tagId: PREMIUM_FV),
+  ];
+  final List<CollapsibleGridModel> organicVegetable = [
+    CollapsibleGridModel(
+        icon: "freshfruits.png",
+        label: "Organic Potato",
+        tagId: FRESH_FRUITS),
+    CollapsibleGridModel(
+        icon: "basicveg.png",
+        label: "Organic Onion",
+        tagId: BASIC_VEGETABLES),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Organic Tomato",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Organic Gourds",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Organic Root\nVeg",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Organic Leafy\nVeg",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Organic Cabbage\n& Cauli",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Organic Mixed\nVeg",
+        tagId: PREMIUM_FV),
+  ];
+
+  // FRUIT
+  final List<CollapsibleGridModel> dailyFruit = [
+    CollapsibleGridModel(
+        icon: "freshfruits.png",
+        label: "Apple",
+        tagId: FRESH_FRUITS),
+    CollapsibleGridModel(
+        icon: "basicveg.png",
+        label: "Banana",
+        tagId: BASIC_VEGETABLES),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Orange",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Papaya",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Guava",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Pomegranate",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Grapes",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Pear",
+        tagId: PREMIUM_FV),
+  ];
+  final List<CollapsibleGridModel> seasonalPicks = [
+    CollapsibleGridModel(
+        icon: "freshfruits.png",
+        label: "Summer Fruits",
+        tagId: FRESH_FRUITS),
+    CollapsibleGridModel(
+        icon: "basicveg.png",
+        label: "Winter Fruits",
+        tagId: BASIC_VEGETABLES),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Monsoon Fruits",
+        tagId: PREMIUM_FV),
+  ];
+  final List<CollapsibleGridModel> premiumFruit = [
+    CollapsibleGridModel(
+        icon: "freshfruits.png",
+        label: "Imported Apple",
+        tagId: FRESH_FRUITS),
+    CollapsibleGridModel(
+        icon: "basicveg.png",
+        label: "Kiwi",
+        tagId: BASIC_VEGETABLES),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Dragon Fruit",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Avocado",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Blueberry",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Cherry",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Pear Imported",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Plum",
+        tagId: PREMIUM_FV),
+  ];
+  final List<CollapsibleGridModel> citrusFruit = [
+    CollapsibleGridModel(
+        icon: "freshfruits.png",
+        label: "Mosambi",
+        tagId: FRESH_FRUITS),
+    CollapsibleGridModel(
+        icon: "basicveg.png",
+        label: "Grapefruit",
+        tagId: BASIC_VEGETABLES),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Lemon",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Sweet Orange",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Pomelo",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Tangerine",
+        tagId: PREMIUM_FV),
+  ];
+  final List<CollapsibleGridModel> tropicalFruit = [
+    CollapsibleGridModel(
+        icon: "freshfruits.png",
+        label: "Mango",
+        tagId: FRESH_FRUITS),
+    CollapsibleGridModel(
+        icon: "basicveg.png",
+        label: "Coconut",
+        tagId: BASIC_VEGETABLES),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Jackfruit",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Pineapple",
+        tagId: PREMIUM_FV),
+  ];
+
+  // BAKERY_BREAD_ITEMS
+  final List<CollapsibleGridModel> bakery = [
+    CollapsibleGridModel(
+        icon: "freshfruits.png",
+        label: "Puffs",
+        tagId: FRESH_FRUITS),
+    CollapsibleGridModel(
+        icon: "basicveg.png",
+        label: "Patties",
+        tagId: BASIC_VEGETABLES),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Sandwiches",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Croissants",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Garlic Bread",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Rolls / Wraps",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Mini Pizzas",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Cheese Sticks",
+        tagId: PREMIUM_FV),
+  ];
+  final List<CollapsibleGridModel> bread = [
+    CollapsibleGridModel(
+        icon: "freshfruits.png",
+        label: "White Bread",
+        tagId: FRESH_FRUITS),
+    CollapsibleGridModel(
+        icon: "basicveg.png",
+        label: "Brown Bread",
+        tagId: BASIC_VEGETABLES),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Multigrain Bread",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Milk Bread",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Sandwich Bread",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Garlic Bread Loaf",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Buns & Pav",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Artisan Bread",
+        tagId: PREMIUM_FV),
+
+  ];
+  final List<CollapsibleGridModel> cakesNdMuffins = [
+    CollapsibleGridModel(
+        icon: "freshfruits.png",
+        label: "Cupcakes",
+        tagId: FRESH_FRUITS),
+    CollapsibleGridModel(
+        icon: "basicveg.png",
+        label: "Muffins",
+        tagId: BASIC_VEGETABLES),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Slice Cakes",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Pastries",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Pound Cake",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Plum Cake",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Mini Cakes",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Celebration Cake",
+        tagId: PREMIUM_FV),
+  ];
+  final List<CollapsibleGridModel> cookiesNdBiscuit = [
+    CollapsibleGridModel(
+        icon: "freshfruits.png",
+        label: "Butter Cookies",
+        tagId: FRESH_FRUITS),
+    CollapsibleGridModel(
+        icon: "basicveg.png",
+        label: "Choco Chip\nCookies",
+        tagId: BASIC_VEGETABLES),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Oats Cookies",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Shortbread",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Jeera Biscuits",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Digestive Cookies",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Dry Cake Rusks",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Assorted Cookies",
+        tagId: PREMIUM_FV),
+  ];
+  final List<CollapsibleGridModel> desertSweets = [
+    CollapsibleGridModel(
+        icon: "freshfruits.png",
+        label: "Donuts",
+        tagId: FRESH_FRUITS),
+    CollapsibleGridModel(
+        icon: "basicveg.png",
+        label: "Brownies",
+        tagId: BASIC_VEGETABLES),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Cheesecake Slices",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Tarts",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Tarts",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Eclairs",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Puddings",
+        tagId: PREMIUM_FV),
+    CollapsibleGridModel(
+        icon: "premiumveg.png",
+        label: "Dessert Jars",
+        tagId: PREMIUM_FV),
+  ];
+
+  // DAIRY_PRODUCTS
+  final List<CollapsibleGridModel> milkProduct = [
+    CollapsibleGridModel(
+        icon: "milk.png",
+        label: "Milk & Milk\nProducts",
+        tagId: MILK_PRODUCTS),
+    CollapsibleGridModel(
+        icon: "paneer.png",
+        label: "Cheese,\nPaneer & Tofu",
+        tagId: CHEESE_PANEER_TOFU),
+    CollapsibleGridModel(
+        icon: "batter.png",
+        label: "Batter\n& Chutney",
+        tagId: BUTTER_CHUTNEY),
+    CollapsibleGridModel(
+        icon: "toast.png",
+        label: "Toast\n& Khari",
+        tagId: TOAST_KHARI),
+    CollapsibleGridModel(
+        icon: "cakes.png",
+        label: "Cakes &\nMuffins",
+        tagId: CAKES_MUFFINS),
+    CollapsibleGridModel(
+        icon: "breads.png",
+        label: "Breads\n& Chapatis",
+        tagId: BREADS_CHAPATIS),
+    CollapsibleGridModel(
+        icon: "snacks.png",
+        label: "Bakery\n& Snacks",
+        tagId: BAKERY_SNACKS),
+  ];
+  final List<CollapsibleGridModel> curdNdYogurt = [
+    CollapsibleGridModel(
+        icon: "milk.png",
+        label: "Milk & Milk\nProducts",
+        tagId: MILK_PRODUCTS),
+    CollapsibleGridModel(
+        icon: "paneer.png",
+        label: "Cheese,\nPaneer & Tofu",
+        tagId: CHEESE_PANEER_TOFU),
+    CollapsibleGridModel(
+        icon: "batter.png",
+        label: "Batter\n& Chutney",
+        tagId: BUTTER_CHUTNEY),
+    CollapsibleGridModel(
+        icon: "toast.png",
+        label: "Toast\n& Khari",
+        tagId: TOAST_KHARI),
+    CollapsibleGridModel(
+        icon: "cakes.png",
+        label: "Cakes &\nMuffins",
+        tagId: CAKES_MUFFINS),
+    CollapsibleGridModel(
+        icon: "breads.png",
+        label: "Breads\n& Chapatis",
+        tagId: BREADS_CHAPATIS),
+    CollapsibleGridModel(
+        icon: "snacks.png",
+        label: "Bakery\n& Snacks",
+        tagId: BAKERY_SNACKS),
+  ];
+  final List<CollapsibleGridModel> cheeseNdPaneer = [
+    CollapsibleGridModel(
+        icon: "milk.png",
+        label: "Milk & Milk\nProducts",
+        tagId: MILK_PRODUCTS),
+    CollapsibleGridModel(
+        icon: "paneer.png",
+        label: "Cheese,\nPaneer & Tofu",
+        tagId: CHEESE_PANEER_TOFU),
+    CollapsibleGridModel(
+        icon: "batter.png",
+        label: "Batter\n& Chutney",
+        tagId: BUTTER_CHUTNEY),
+    CollapsibleGridModel(
+        icon: "toast.png",
+        label: "Toast\n& Khari",
+        tagId: TOAST_KHARI),
+    CollapsibleGridModel(
+        icon: "cakes.png",
+        label: "Cakes &\nMuffins",
+        tagId: CAKES_MUFFINS),
+    CollapsibleGridModel(
+        icon: "breads.png",
+        label: "Breads\n& Chapatis",
+        tagId: BREADS_CHAPATIS),
+    CollapsibleGridModel(
+        icon: "snacks.png",
+        label: "Bakery\n& Snacks",
+        tagId: BAKERY_SNACKS),
+  ];
+  final List<CollapsibleGridModel> butterNdGhee = [
+    CollapsibleGridModel(
+        icon: "milk.png",
+        label: "Milk & Milk\nProducts",
+        tagId: MILK_PRODUCTS),
+    CollapsibleGridModel(
+        icon: "paneer.png",
+        label: "Cheese,\nPaneer & Tofu",
+        tagId: CHEESE_PANEER_TOFU),
+    CollapsibleGridModel(
+        icon: "batter.png",
+        label: "Batter\n& Chutney",
+        tagId: BUTTER_CHUTNEY),
+    CollapsibleGridModel(
+        icon: "toast.png",
+        label: "Toast\n& Khari",
+        tagId: TOAST_KHARI),
+    CollapsibleGridModel(
+        icon: "cakes.png",
+        label: "Cakes &\nMuffins",
+        tagId: CAKES_MUFFINS),
+    CollapsibleGridModel(
+        icon: "breads.png",
+        label: "Breads\n& Chapatis",
+        tagId: BREADS_CHAPATIS),
+    CollapsibleGridModel(
+        icon: "snacks.png",
+        label: "Bakery\n& Snacks",
+        tagId: BAKERY_SNACKS),
+  ];
+  final List<CollapsibleGridModel> iceCreamNdFrozen = [
     CollapsibleGridModel(
         icon: "milk.png",
         label: "Milk & Milk\nProducts",
@@ -199,6 +879,7 @@ class GroceryController extends GetxController {
         tagId: BAKERY_SNACKS),
   ];
 
+  // HOME_ESSENTIALS
   final List<CollapsibleGridModel> momBabyCare = [
     CollapsibleGridModel(
         icon: "food.png",
@@ -221,7 +902,6 @@ class GroceryController extends GetxController {
         label: "Diapers\n& Wipes",
         tagId: DIAPERS_WIPES),
   ];
-
   final List<CollapsibleGridModel> kitchenware = [
     CollapsibleGridModel(
         icon: "gas.png",
@@ -248,7 +928,6 @@ class GroceryController extends GetxController {
         label: "Bakeware",
         tagId: BAKEWARE),
   ];
-
   final List<CollapsibleGridModel> tableware = [
     CollapsibleGridModel(
         icon: "dining.png",
@@ -275,23 +954,7 @@ class GroceryController extends GetxController {
         label: "Glassware &\nDrinkware",
         tagId: GLASSWARE),
   ];
-
-  final List<CollapsibleGridModel> giftsHampers = [
-    CollapsibleGridModel(
-        icon: "tea.png",
-        label: "Tea Gifts",
-        tagId: TEA_GIFTS),
-    CollapsibleGridModel(
-        icon: "chocogift.png",
-        label: "Chocolate Gifts",
-        tagId: CHOCOLATE_GIFTS),
-    CollapsibleGridModel(
-        icon: "gourmet.png",
-        label: "Gourmet Gifts",
-        tagId: GOURMET_GIFTS),
-  ];
-
-  final List<CollapsibleGridModel> homeCategory = [
+  final List<CollapsibleGridModel> homeCare = [
     CollapsibleGridModel(
         icon: "detergents.png",
         label: "Detergents\n& Cleaners",
@@ -334,7 +997,309 @@ class GroceryController extends GetxController {
         tagId: BAGS_TRAVEL),
   ];
 
+  // PACKED_SWEETS_NAMKEENS
+  final List<CollapsibleGridModel> indianSweets = [
+    CollapsibleGridModel(
+        icon: "tea.png",
+        label: "Tea Gifts",
+        tagId: TEA_GIFTS),
+    CollapsibleGridModel(
+        icon: "chocogift.png",
+        label: "Chocolate Gifts",
+        tagId: CHOCOLATE_GIFTS),
+    CollapsibleGridModel(
+        icon: "gourmet.png",
+        label: "Gourmet Gifts",
+        tagId: GOURMET_GIFTS),
+  ];
+  final List<CollapsibleGridModel> milkBasedSweets = [
+    CollapsibleGridModel(
+        icon: "tea.png",
+        label: "Tea Gifts",
+        tagId: TEA_GIFTS),
+    CollapsibleGridModel(
+        icon: "chocogift.png",
+        label: "Chocolate Gifts",
+        tagId: CHOCOLATE_GIFTS),
+    CollapsibleGridModel(
+        icon: "gourmet.png",
+        label: "Gourmet Gifts",
+        tagId: GOURMET_GIFTS),
+  ];
+  final List<CollapsibleGridModel> DryNdPremiumSweets = [
+    CollapsibleGridModel(
+        icon: "tea.png",
+        label: "Tea Gifts",
+        tagId: TEA_GIFTS),
+    CollapsibleGridModel(
+        icon: "chocogift.png",
+        label: "Chocolate Gifts",
+        tagId: CHOCOLATE_GIFTS),
+    CollapsibleGridModel(
+        icon: "gourmet.png",
+        label: "Gourmet Gifts",
+        tagId: GOURMET_GIFTS),
+  ];
+  final List<CollapsibleGridModel> namkeens = [
+    CollapsibleGridModel(
+        icon: "tea.png",
+        label: "Tea Gifts",
+        tagId: TEA_GIFTS),
+    CollapsibleGridModel(
+        icon: "chocogift.png",
+        label: "Chocolate Gifts",
+        tagId: CHOCOLATE_GIFTS),
+    CollapsibleGridModel(
+        icon: "gourmet.png",
+        label: "Gourmet Gifts",
+        tagId: GOURMET_GIFTS),
+  ];
 
+  // CROCKERY
+  final List<CollapsibleGridModel> platesNdDinnerWare = [
+    CollapsibleGridModel(
+        icon: "tea.png",
+        label: "Tea Gifts",
+        tagId: TEA_GIFTS),
+    CollapsibleGridModel(
+        icon: "chocogift.png",
+        label: "Chocolate Gifts",
+        tagId: CHOCOLATE_GIFTS),
+    CollapsibleGridModel(
+        icon: "gourmet.png",
+        label: "Gourmet Gifts",
+        tagId: GOURMET_GIFTS),
+  ];
+  final List<CollapsibleGridModel> bowsNdServiceWare = [
+    CollapsibleGridModel(
+        icon: "tea.png",
+        label: "Tea Gifts",
+        tagId: TEA_GIFTS),
+    CollapsibleGridModel(
+        icon: "chocogift.png",
+        label: "Chocolate Gifts",
+        tagId: CHOCOLATE_GIFTS),
+    CollapsibleGridModel(
+        icon: "gourmet.png",
+        label: "Gourmet Gifts",
+        tagId: GOURMET_GIFTS),
+  ];
+  final List<CollapsibleGridModel> cupsNdGlassWare = [
+    CollapsibleGridModel(
+        icon: "tea.png",
+        label: "Tea Gifts",
+        tagId: TEA_GIFTS),
+    CollapsibleGridModel(
+        icon: "chocogift.png",
+        label: "Chocolate Gifts",
+        tagId: CHOCOLATE_GIFTS),
+    CollapsibleGridModel(
+        icon: "gourmet.png",
+        label: "Gourmet Gifts",
+        tagId: GOURMET_GIFTS),
+  ];
+  final List<CollapsibleGridModel> servingNdTableAccessories = [
+    CollapsibleGridModel(
+        icon: "tea.png",
+        label: "Tea Gifts",
+        tagId: TEA_GIFTS),
+    CollapsibleGridModel(
+        icon: "chocogift.png",
+        label: "Chocolate Gifts",
+        tagId: CHOCOLATE_GIFTS),
+    CollapsibleGridModel(
+        icon: "gourmet.png",
+        label: "Gourmet Gifts",
+        tagId: GOURMET_GIFTS),
+  ];
+
+  // MEDICAL_ITEMS
+  final List<CollapsibleGridModel> firstAidCare = [
+    CollapsibleGridModel(
+        icon: "tea.png",
+        label: "Tea Gifts",
+        tagId: TEA_GIFTS),
+    CollapsibleGridModel(
+        icon: "chocogift.png",
+        label: "Chocolate Gifts",
+        tagId: CHOCOLATE_GIFTS),
+    CollapsibleGridModel(
+        icon: "gourmet.png",
+        label: "Gourmet Gifts",
+        tagId: GOURMET_GIFTS),
+  ];
+  final List<CollapsibleGridModel> commonMedicines = [
+    CollapsibleGridModel(
+        icon: "tea.png",
+        label: "Tea Gifts",
+        tagId: TEA_GIFTS),
+    CollapsibleGridModel(
+        icon: "chocogift.png",
+        label: "Chocolate Gifts",
+        tagId: CHOCOLATE_GIFTS),
+    CollapsibleGridModel(
+        icon: "gourmet.png",
+        label: "Gourmet Gifts",
+        tagId: GOURMET_GIFTS),
+  ];
+  final List<CollapsibleGridModel> healthNdHygieneEsse = [
+    CollapsibleGridModel(
+        icon: "tea.png",
+        label: "Tea Gifts",
+        tagId: TEA_GIFTS),
+    CollapsibleGridModel(
+        icon: "chocogift.png",
+        label: "Chocolate Gifts",
+        tagId: CHOCOLATE_GIFTS),
+    CollapsibleGridModel(
+        icon: "gourmet.png",
+        label: "Gourmet Gifts",
+        tagId: GOURMET_GIFTS),
+  ];
+  final List<CollapsibleGridModel> digestiveNdWellnessProducts = [
+    CollapsibleGridModel(
+        icon: "tea.png",
+        label: "Tea Gifts",
+        tagId: TEA_GIFTS),
+    CollapsibleGridModel(
+        icon: "chocogift.png",
+        label: "Chocolate Gifts",
+        tagId: CHOCOLATE_GIFTS),
+    CollapsibleGridModel(
+        icon: "gourmet.png",
+        label: "Gourmet Gifts",
+        tagId: GOURMET_GIFTS),
+  ];
+
+  // BEAUTY_BODY_CARE
+  final List<CollapsibleGridModel> bathNdBodyCare = [
+    CollapsibleGridModel(
+        icon: "tea.png",
+        label: "Tea Gifts",
+        tagId: TEA_GIFTS),
+    CollapsibleGridModel(
+        icon: "chocogift.png",
+        label: "Chocolate Gifts",
+        tagId: CHOCOLATE_GIFTS),
+    CollapsibleGridModel(
+        icon: "gourmet.png",
+        label: "Gourmet Gifts",
+        tagId: GOURMET_GIFTS),
+  ];
+  final List<CollapsibleGridModel> hairCare = [
+    CollapsibleGridModel(
+        icon: "tea.png",
+        label: "Tea Gifts",
+        tagId: TEA_GIFTS),
+    CollapsibleGridModel(
+        icon: "chocogift.png",
+        label: "Chocolate Gifts",
+        tagId: CHOCOLATE_GIFTS),
+    CollapsibleGridModel(
+        icon: "gourmet.png",
+        label: "Gourmet Gifts",
+        tagId: GOURMET_GIFTS),
+  ];
+  final List<CollapsibleGridModel> oralNdPersonalHygiene = [
+    CollapsibleGridModel(
+        icon: "tea.png",
+        label: "Tea Gifts",
+        tagId: TEA_GIFTS),
+    CollapsibleGridModel(
+        icon: "chocogift.png",
+        label: "Chocolate Gifts",
+        tagId: CHOCOLATE_GIFTS),
+    CollapsibleGridModel(
+        icon: "gourmet.png",
+        label: "Gourmet Gifts",
+        tagId: GOURMET_GIFTS),
+  ];
+  final List<CollapsibleGridModel> skinCareNdDailyBeauty = [
+    CollapsibleGridModel(
+        icon: "tea.png",
+        label: "Tea Gifts",
+        tagId: TEA_GIFTS),
+    CollapsibleGridModel(
+        icon: "chocogift.png",
+        label: "Chocolate Gifts",
+        tagId: CHOCOLATE_GIFTS),
+    CollapsibleGridModel(
+        icon: "gourmet.png",
+        label: "Gourmet Gifts",
+        tagId: GOURMET_GIFTS),
+  ];
+
+  // STATIONARY
+  final List<CollapsibleGridModel> writingEsse = [
+    CollapsibleGridModel(
+        icon: "tea.png",
+        label: "Tea Gifts",
+        tagId: TEA_GIFTS),
+    CollapsibleGridModel(
+        icon: "chocogift.png",
+        label: "Chocolate Gifts",
+        tagId: CHOCOLATE_GIFTS),
+    CollapsibleGridModel(
+        icon: "gourmet.png",
+        label: "Gourmet Gifts",
+        tagId: GOURMET_GIFTS),
+  ];
+  final List<CollapsibleGridModel> paperProduct = [
+    CollapsibleGridModel(
+        icon: "tea.png",
+        label: "Tea Gifts",
+        tagId: TEA_GIFTS),
+    CollapsibleGridModel(
+        icon: "chocogift.png",
+        label: "Chocolate Gifts",
+        tagId: CHOCOLATE_GIFTS),
+    CollapsibleGridModel(
+        icon: "gourmet.png",
+        label: "Gourmet Gifts",
+        tagId: GOURMET_GIFTS),
+  ];
+  final List<CollapsibleGridModel> schoolNdStudyEsse = [
+    CollapsibleGridModel(
+        icon: "tea.png",
+        label: "Tea Gifts",
+        tagId: TEA_GIFTS),
+    CollapsibleGridModel(
+        icon: "chocogift.png",
+        label: "Chocolate Gifts",
+        tagId: CHOCOLATE_GIFTS),
+    CollapsibleGridModel(
+        icon: "gourmet.png",
+        label: "Gourmet Gifts",
+        tagId: GOURMET_GIFTS),
+  ];
+  final List<CollapsibleGridModel> officeNdDeskEsse = [
+    CollapsibleGridModel(
+        icon: "tea.png",
+        label: "Tea Gifts",
+        tagId: TEA_GIFTS),
+    CollapsibleGridModel(
+        icon: "chocogift.png",
+        label: "Chocolate Gifts",
+        tagId: CHOCOLATE_GIFTS),
+    CollapsibleGridModel(
+        icon: "gourmet.png",
+        label: "Gourmet Gifts",
+        tagId: GOURMET_GIFTS),
+  ];
+  final List<CollapsibleGridModel> artNdCraft = [
+    CollapsibleGridModel(
+        icon: "tea.png",
+        label: "Tea Gifts",
+        tagId: TEA_GIFTS),
+    CollapsibleGridModel(
+        icon: "chocogift.png",
+        label: "Chocolate Gifts",
+        tagId: CHOCOLATE_GIFTS),
+    CollapsibleGridModel(
+        icon: "gourmet.png",
+        label: "Gourmet Gifts",
+        tagId: GOURMET_GIFTS),
+  ];
 
   void toggleSelection(GroceryProductData p) {
     if (selectedGroceries.contains(p)) {
@@ -749,6 +1714,35 @@ class GroceryController extends GetxController {
   }
 
   /// Fetch Grocery Products
+  RxBool myGroceryCategoryLoading = true.obs;
+  RxList<MyGrocerySuperCategoryModel> myGroceryCategoryList = <MyGrocerySuperCategoryModel>[].obs;
+
+  Future<void> fetchMyGroceryCategory() async {
+    try {
+      myGroceryCategoryLoading.value = true;
+      ResponseModel responseModel = await GroceryRepo().fetchGroceryCategoryRepo();
+      if (responseModel.isSuccess) {
+        fetchMyGroceryCategoryResponse.value = ApiResponse.complete(responseModel);
+        final List listData = responseModel.response?.data ?? [];
+
+        myGroceryCategoryList.value = listData
+            .map((e) => MyGrocerySuperCategoryModel.fromJson(e))
+            .toList();
+
+        log("Loaded ${myGroceryCategoryList.length}");
+      } else {
+        fetchMyGroceryCategoryResponse.value = ApiResponse.error('error');
+      }
+    } catch (e) {
+      fetchMyGroceryCategoryResponse.value = ApiResponse.error('error');
+      log("ERROR===== $e");
+    } finally{
+      myGroceryCategoryLoading.value = false;
+    }
+  }
+
+
+  /// Fetch Grocery Products
   RxList<MyGroceryProductsData> myGroceryProductsList = <MyGroceryProductsData>[].obs;
   RxList<Variants> myGroceryProductsVariantsList = <Variants>[].obs;
   RxBool isMyGroceryDataFirstLoading = false.obs;
@@ -757,7 +1751,11 @@ class GroceryController extends GetxController {
   bool myGroceryDataHasMore = true;
   int pageLimit = 20;
 
-  Future<void> fetchMyGroceryProducts({bool isLoadMore = false, String? categoryId}) async {
+  Future<void> fetchMyGroceryProducts({
+    required String categoryId,
+    required bool isSubCategoryProducts,
+    bool isLoadMore = false,
+  }) async {
     if (isLoadMore) {
       if (isMyGroceryDataLoadingMore.value || !myGroceryDataHasMore) return;
       isMyGroceryDataLoadingMore.value = true;
@@ -770,9 +1768,9 @@ class GroceryController extends GetxController {
     try {
       Map<String, dynamic> params = {
         ApiKeys.page: myGroceryDataPage,
-        ApiKeys.limit: pageLimit
+        ApiKeys.limit: pageLimit,
+        ApiKeys.categoryId: categoryId
       };
-      if(categoryId != null) params[ApiKeys.categoryId] = categoryId;
 
       ResponseModel responseModel = await GroceryRepo().fetchMyGroceryProductsRepo(queryParam: params);
       if (responseModel.isSuccess) {
@@ -782,7 +1780,7 @@ class GroceryController extends GetxController {
         List<MyGroceryProductsData> newItems = myGroceryProductsModel.data ?? [];
 
         if (newItems.isNotEmpty) {
-          if(categoryId==null){
+          if(!isSubCategoryProducts){
             if (isLoadMore) {
               myGroceryProductsList.addAll(newItems);
             } else {
@@ -802,7 +1800,7 @@ class GroceryController extends GetxController {
           myGroceryDataHasMore = false;
         }
 
-        log("Loaded ${newItems.length} items | Total: ${(categoryId==null)
+        log("Loaded ${newItems.length} items | Total: ${(!isSubCategoryProducts)
             ? myGroceryProductsList.length
         : myGroceryProductsVariantsList.length}");
       } else {

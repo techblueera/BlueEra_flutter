@@ -134,6 +134,7 @@ class AppConstants {
   static const POLL_POST = "POLL_POST";
   static const PHOTO_POST = "PHOTO_POST";
   static const EDIT = "EDIT";
+  static const ADD = "ADD";
   static const PUBLISH = "PUBLISH";
   static const DIRECTION = "DIRECTION";
   static const JOB_POST = "JOB_POST";
@@ -1302,6 +1303,18 @@ const VEHICLE = "VEHICLE";
 
 
 /// GROCERY
+const String GROCERY_ITEMS       = 'GROCERY_ITEMS';
+const String VEGETABLE       = 'VEGETABLE';
+const String FRUIT       = 'FRUIT';
+const String BAKERY_BREAD_ITEMS       = 'BAKERY_BREAD_ITEMS';
+const String DAIRY_PRODUCTS       = 'DAIRY_PRODUCTS';
+const String HOME_ESSENTIALS       = 'HOME_ESSENTIALS';
+const String PACKED_SWEETS_NAMKEENS       = 'PACKED_SWEETS_NAMKEENS';
+const String CROCKERY       = 'CROCKERY';
+const String MEDICAL_ITEMS       = 'MEDICAL_ITEMS';
+const String BEAUTY_BODY_CARE       = 'BEAUTY_BODY_CARE';
+const String STATIONARY       = 'STATIONARY';
+
 // biscuit & foods
  const String CHIPS_NAMKEEN       = 'CHIPS_NAMKEEN';
  const String BISCUITS_COOKIES    = 'BISCUITS_COOKIES';
@@ -2407,5 +2420,70 @@ List<PopupMenuEntry<String>> groceryPopupMenuItems() {
   return entries;
 }
 
+List<PopupMenuEntry<String>> groceryPopUpMenuItems() {
+  final items = <Map<String, dynamic>>[
+    {
+      "id": AppConstants.ADD,
+      'title': 'Add Manually'
+    },
+  ];
+
+  final List<PopupMenuEntry<String>> entries = [];
+
+  for (int i = 0; i < items.length; i++) {
+    entries.add(
+      PopupMenuItem<String>(
+        height: SizeConfig.size35,
+        value: items[i]['id'],
+        onTap: () {
+          if (items[i]['id'] == AppConstants.ADD) {
+            // Get.toNamed(RouteHelper.getCreateResumeScreenRoute());
+           }
+          },
+        child: CustomText(
+          items[i]['title'],
+          fontSize: SizeConfig.medium,
+          color: AppColors.black30,
+        ),
+
+        // Row(
+        //   mainAxisSize: MainAxisSize.min,
+        //   children: [
+        //     LocalAssets(
+        //         imagePath: items[i]['icon'],
+        //         height: SizeConfig.size20,
+        //         width: SizeConfig.size20),
+        //     SizedBox(width: SizeConfig.size5),
+        //     CustomText(
+        //       items[i]['title'],
+        //       fontSize: SizeConfig.medium,
+        //       color: AppColors.black30,
+        //     ),
+        //   ],
+        // ),
+
+      ),
+    );
+
+    if (i != items.length - 1) {
+      entries.add(
+        const PopupMenuItem<String>(
+          enabled: false,
+          padding: EdgeInsets.zero,
+          height: 1,
+          child: Divider(
+            indent: 10,
+            endIndent: 10,
+            height: 1,
+            thickness: 0.2,
+            color: AppColors.grey99,
+          ),
+        ),
+      );
+    }
+  }
+
+  return entries;
+}
 
 

@@ -8,6 +8,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
@@ -52,10 +53,14 @@ class _StoreProductPreviewScreenProductState
       CarouselSliderController();
   final ProductController controller = Get.put(ProductController());
   int _currentIndex = 0;
+  bool isOwnProduct = false;
 
   @override
   void initState() {
     if (widget.productStore != null) {
+      // Check Who's prdouct
+      isOwnProduct = widget.productStore?.sellerClassification?.owner?.id == userId;
+
       controller.step2Images.value =
           widget.productStore?.details?.media ?? [];
       controller.productNameController.text =
@@ -1024,220 +1029,6 @@ class _StoreProductPreviewScreenProductState
       ),
     );
 
-    // final Map<int, int> _currentIndices = {};
-    // final Map<int, CarouselSliderController> _controllers = {};
-    //
-    // return  Obx(()=>
-    // controller.listedProducts.isNotEmpty ?
-    // CustomFormCard(
-    //   margin: EdgeInsets.symmetric(vertical: SizeConfig.size20),
-    //   child: Column(
-    //     crossAxisAlignment: CrossAxisAlignment.start,
-    //     children: [
-    //       CustomText(
-    //         'Listing',
-    //         fontWeight: FontWeight.bold,
-    //         fontSize: SizeConfig.large,
-    //         color: AppColors.mainTextColor,
-    //       ),
-    //       SizedBox(height: SizeConfig.size10),
-    //       ListView.builder(
-    //         shrinkWrap: true,
-    //         itemCount: controller.listedProducts.length,
-    //         physics: NeverScrollableScrollPhysics(),
-    //         itemBuilder: (context, productIndex) {
-    //           final product = controller.listedProducts[productIndex];
-    //
-    //           // init default values
-    //           _currentIndices.putIfAbsent(productIndex, () => 0);
-    //           _controllers.putIfAbsent(productIndex, () => CarouselSliderController());
-    //
-    //           return Container(
-    //             margin: EdgeInsets.only(bottom: 16),
-    //             decoration: BoxDecoration(
-    //                 color: AppColors.whiteFE,
-    //                 borderRadius: BorderRadius.circular(10),
-    //                 border: Border.all(
-    //                   color: AppColors.whiteE5,
-    //                 )
-    //             ),
-    //             child: Row(
-    //               crossAxisAlignment: CrossAxisAlignment.start,
-    //               children: [
-    //
-    //                 SizedBox(
-    //                   width: 120,
-    //                   height: 120,
-    //                   child: Stack(
-    //                     children: [
-    //                       CarouselSlider.builder(
-    //                         carouselController: _controllers[productIndex],
-    //                         itemCount: product.image.length,
-    //                         options: CarouselOptions(
-    //                           height: 120,
-    //                           viewportFraction: 1.0,
-    //                           enlargeCenterPage: false,
-    //                           enableInfiniteScroll: false,
-    //                           onPageChanged: (index, reason) {
-    //                             setState(() {
-    //                               _currentIndices[productIndex] = index;
-    //                             });
-    //                           },
-    //                         ),
-    //                         itemBuilder: (context, imgIndex, realIdx) {
-    //                           return ClipRRect(
-    //                             borderRadius: BorderRadius.horizontal(left: Radius.circular(10)),
-    //                             child: CachedNetworkImage(
-    //                               imageUrl: product.image[imgIndex],
-    //                               width: 120,
-    //                               height: 120,
-    //                               fit: BoxFit.cover,
-    //                               placeholder: (context, url) => Container(
-    //                                 color: Colors.grey[200],
-    //                                 child: const Center(
-    //                                   child: CircularProgressIndicator(strokeWidth: 2),
-    //                                 ),
-    //                               ),
-    //                               errorWidget: (context, url, error) => Container(
-    //                                 color: Colors.grey[200],
-    //                                 child: const Icon(Icons.broken_image),
-    //                               ),
-    //                             ),
-    //                           );
-    //                         },
-    //
-    //                       ),
-    //
-    //                       Positioned(
-    //                         bottom: 6,
-    //                         left: 0,
-    //                         right: 0,
-    //                         child: Row(
-    //                           mainAxisAlignment: MainAxisAlignment.center,
-    //                           children: List.generate(product.image.length, (dotIndex) {
-    //                             final isActive = _currentIndices[productIndex] == dotIndex;
-    //                             return AnimatedContainer(
-    //                               duration: const Duration(milliseconds: 300),
-    //                               margin: const EdgeInsets.symmetric(horizontal: 3.0),
-    //                               width: isActive ? 8 : 6,
-    //                               height: isActive ? 8 : 6,
-    //                               decoration: BoxDecoration(
-    //                                 color: isActive ? AppColors.primaryColor : Colors.grey,
-    //                                 shape: BoxShape.circle,
-    //                               ),
-    //                             );
-    //                           }),
-    //                         ),
-    //                       ),
-    //                     ],
-    //                   ),
-    //                 ),
-    //
-    //
-    //                 // ClipRRect(
-    //                 //   borderRadius: BorderRadius.horizontal(left: Radius.circular(10.0)),
-    //                 //   child: Container(
-    //                 //     color: AppColors.whiteF1,
-    //                 //     child: Image.file(
-    //                 //       File(product.image[0]),
-    //                 //       width: 120,
-    //                 //       height: 120,
-    //                 //       fit: BoxFit.cover,
-    //                 //     ),
-    //                 //   ),
-    //                 // ),
-    //
-    //                 SizedBox(width: 12),
-    //                 Flexible(
-    //                   child: Padding(
-    //                     padding: const EdgeInsets.symmetric(vertical: 8),
-    //                     child: Column(
-    //                       crossAxisAlignment: CrossAxisAlignment.start,
-    //                       mainAxisAlignment: MainAxisAlignment.start,
-    //                       children: [
-    //                         CustomText(
-    //                           product.name,
-    //                           fontWeight: FontWeight.bold,
-    //                           fontSize: SizeConfig.large,
-    //                           color: AppColors.mainTextColor,
-    //                         ),
-    //                         SizedBox(height: 8),
-    //
-    //                         Row(
-    //                           children: [
-    //                             CustomText(
-    //                               '₹${product.price}',
-    //                               fontWeight: FontWeight.bold,
-    //                               fontSize: SizeConfig.large,
-    //                               color: AppColors.mainTextColor,
-    //                             ),
-    //                             SizedBox(width: 8),
-    //                             CustomText(
-    //                               '₹${product.mrp}',
-    //                               fontWeight: FontWeight.bold,
-    //                               fontSize: SizeConfig.medium,
-    //                               color: AppColors.secondaryTextColor,
-    //                               decoration: TextDecoration.lineThrough,
-    //                             ),
-    //                             SizedBox(width: 8),
-    //                             CustomText(
-    //                               '${product.discount}% off',
-    //                               fontWeight: FontWeight.bold,
-    //                               fontSize: SizeConfig.medium,
-    //                               color: Colors.green,
-    //                             ),
-    //                           ],
-    //                         )
-    //
-    //                         // product.discount != null
-    //                         //     ? Row(
-    //                         //   children: [
-    //                         //     CustomText(
-    //                         //       '₹${product.price}',
-    //                         //       fontWeight: FontWeight.bold,
-    //                         //       fontSize: SizeConfig.large,
-    //                         //       color: AppColors.mainTextColor,
-    //                         //     ),
-    //                         //     SizedBox(width: 8),
-    //                         //     CustomText(
-    //                         //       '₹${product.mrp}',
-    //                         //       fontWeight: FontWeight.bold,
-    //                         //       fontSize: SizeConfig.medium,
-    //                         //       color: AppColors.secondaryTextColor,
-    //                         //       decoration: TextDecoration.lineThrough,
-    //                         //     ),
-    //                         //     SizedBox(width: 8),
-    //                         //     CustomText(
-    //                         //       '${product.discount}% off',
-    //                         //       fontWeight: FontWeight.bold,
-    //                         //       fontSize: SizeConfig.medium,
-    //                         //       color: Colors.green,
-    //                         //     ),
-    //                         //   ],
-    //                         // ) : Row(
-    //                         //   children: [
-    //                         //     CustomText(
-    //                         //       '₹${product.minPrice}-${product.maxPrice}',
-    //                         //       fontWeight: FontWeight.bold,
-    //                         //       fontSize: SizeConfig.large,
-    //                         //       color: AppColors.secondaryTextColor
-    //                         //     )
-    //                         //   ],
-    //                         // ),
-    //                       ],
-    //                     ),
-    //                   ),
-    //                 ),
-    //               ],
-    //             ),
-    //           );
-    //         },
-    //       ),
-    //     ],
-    //   ),
-    // )
-    //     : SizedBox()
-    // );
   }
 
   Widget ProductCard(
@@ -1354,8 +1145,12 @@ class _StoreProductPreviewScreenProductState
                   ],
                 ),
               ),
+
+              if(!isOwnProduct)
               InkWell(
-                onTap: () async {
+                onTap:
+                // (!isOwnProduct) ?
+                    () async {
                   if (isGuestUser()) {
                     createProfileScreen();
 
@@ -1436,8 +1231,8 @@ class _StoreProductPreviewScreenProductState
                     contactNo: widget.productStore?.mobile_no,
                   );
                 },
+                // : null,
                 child: Container(
-
                   // width: Get.width,
                   padding: EdgeInsets.symmetric(
                       horizontal: SizeConfig.size15,
@@ -1456,7 +1251,11 @@ class _StoreProductPreviewScreenProductState
                   decoration: BoxDecoration(
                       color: AppColors.primaryColor,
                       borderRadius: BorderRadius.circular(5),
-                      border: Border.all(color: AppColors.primaryColor)),
+                      border: Border.all(color: AppColors.primaryColor)
+                      // color: (!isOwnProduct) ? AppColors.primaryColor : Colors.grey,
+                      // borderRadius: BorderRadius.circular(5),
+                      // border: Border.all(color: (!isOwnProduct) ? AppColors.primaryColor : Colors.grey)
+                  ),
                 ),
               ),
             ],

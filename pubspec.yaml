@@ -108,7 +108,7 @@ flutter:
     - assets/category/grocery/
     - assets/category/dal/
     - assets/category/foods/all_food_category/
-
+    - assets/svg/grocery/
 
 
   fonts:
