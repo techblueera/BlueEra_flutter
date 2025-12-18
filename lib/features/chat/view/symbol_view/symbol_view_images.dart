@@ -13,6 +13,7 @@ import '../../../../core/constants/app_icon_assets.dart';
 import '../../auth/controller/add_chat_symbol_controller.dart';
 import '../../auth/model/GetChatListModel.dart';
 import '../../auth/model/symbol_details_model.dart';
+import '../widget/custom_video_player.dart';
 
 class SymbolViewImages extends StatefulWidget {
   final List<SymbolDataModel>? data;
@@ -130,17 +131,16 @@ class _SymbolViewImagesState extends State<SymbolViewImages>
 
                     if(url?.type=='photo'||url?.type=="video"){
                       final isVideo = url?.content?.toLowerCase().contains('.mp4');
-                      if (isVideo??false) {
-                        _videoController?.dispose();
-                        _videoController =
-                        VideoPlayerController.networkUrl(Uri.parse(url?.content??''))
-                          ..initialize().then((_) {
-                            setState(() {});
-                            _videoController!.play();
-                            isPlaying = true;
-                          })
-                          ..setLooping(true);
-                      }
+                      // if (isVideo??false) {
+                      //   // _videoController?.dispose();
+                      //   _videoController =
+                      //   VideoPlayerController.network(url?.content??'')
+                      //     ..initialize().then((_) {
+                      //       setState(() {
+                      //         _videoController?.play();
+                      //       });
+                      //     });
+                      // }
 
 
                       /// IMAGE (unchanged)
@@ -148,11 +148,9 @@ class _SymbolViewImagesState extends State<SymbolViewImages>
                         children: [
                           if(isVideo??false)
                             Center(
-                              child: AspectRatio(
-                                aspectRatio: _videoController!.value.isInitialized
-                                    ? _videoController!.value.aspectRatio
-                                    : 16 / 9,
-                                child: VideoPlayer(_videoController!),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                child: ChatCustomVideoPlayer(videoUrl: url?.content??"",),
                               ),
                             )
                           else
@@ -170,38 +168,40 @@ class _SymbolViewImagesState extends State<SymbolViewImages>
                                 ),
                               ),
                             ),
-                          if(isVideo??false)
-                            Center(
-                              child: GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    if (_videoController!.value.isPlaying) {
-                                      _videoController!.pause();
-                                      isPlaying = false;
-                                    } else {
-                                      _videoController!.play();
-                                      isPlaying = true;
-                                    }
-                                  });
-                                },
-                                child: AnimatedOpacity(
-                                  opacity: isPlaying ? 0.0 : 1.0,
-                                  duration: const Duration(milliseconds: 300),
-                                  child: Container(
-                                    padding: const EdgeInsets.all(14),
-                                    decoration: BoxDecoration(
-                                      color: Colors.black54,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Icon(
-                                      isPlaying ? Icons.pause : Icons.play_arrow,
-                                      size: 48,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
+                          // if(isVideo??false)
+                          //   Container(
+                          //     child: Center(
+                          //       child: GestureDetector(
+                          //         onTap: () {
+                          //           setState(() {
+                          //             if (_videoController!.value.isPlaying) {
+                          //               _videoController!.pause();
+                          //               isPlaying = false;
+                          //             } else {
+                          //               _videoController!.play();
+                          //               isPlaying = true;
+                          //             }
+                          //           });
+                          //         },
+                          //         child: AnimatedOpacity(
+                          //           opacity: isPlaying ? 0.0 : 1.0,
+                          //           duration: const Duration(milliseconds: 300),
+                          //           child: Container(
+                          //             padding: const EdgeInsets.all(14),
+                          //             decoration: BoxDecoration(
+                          //               color: Colors.black54,
+                          //               shape: BoxShape.circle,
+                          //             ),
+                          //             child: Icon(
+                          //               isPlaying ? Icons.pause : Icons.play_arrow,
+                          //               size: 48,
+                          //               color: Colors.white,
+                          //             ),
+                          //           ),
+                          //         ),
+                          //       ),
+                          //     ),
+                          //   ),
 
                           Positioned(
                             left: 0,
@@ -300,18 +300,27 @@ class _SymbolViewImagesState extends State<SymbolViewImages>
             Positioned.fill(
               child: Row(
                 children: [
-                  /// LEFT invisible tap area
+                  /// LEFT EDGE (20% width)
                   Expanded(
-                    flex: 1,
+                    flex: 2,
                     child: GestureDetector(
                       behavior: HitTestBehavior.translucent,
                       onTap: goPrev,
                     ),
                   ),
 
-                  /// RIGHT invisible tap area
+                  /// CENTER (60%) → let video receive taps
                   Expanded(
-                    flex: 1,
+                    flex: 6,
+                    child: IgnorePointer(
+                      ignoring: true,
+                      child: Container(),
+                    ),
+                  ),
+
+                  /// RIGHT EDGE (20% width)
+                  Expanded(
+                    flex: 2,
                     child: GestureDetector(
                       behavior: HitTestBehavior.translucent,
                       onTap: goNext,
@@ -320,6 +329,7 @@ class _SymbolViewImagesState extends State<SymbolViewImages>
                 ],
               ),
             ),
+
 
             // /// Back button - modern glass effect
             Positioned(
@@ -374,21 +384,37 @@ class _SymbolViewImagesState extends State<SymbolViewImages>
       right: 24,
       child: InkWell(
         onTap: ()async{
-          allImages= await addSymbolController.deleteSymbol(symbolData: symbol);
-          if(allImages?.isEmpty??false){
-            Get.back();
-          }
-          setState(() {
+            final deletedIndex = currentIndex;
 
-          });
+            allImages =
+            await addSymbolController.deleteSymbol(symbolData: symbol);
+
+            if (allImages == null || allImages!.isEmpty) {
+              Get.back();
+              return;
+            }
+
+            // Decide new index
+            if (deletedIndex >= allImages!.length) {
+              // Deleted last item → go to previous
+              currentIndex = allImages!.length - 1;
+            } else {
+              // Deleted middle or first → stay at same index
+              currentIndex = deletedIndex;
+            }
+
+            setState(() {});
+
+            _pageController.jumpToPage(currentIndex);
+
         },
         child: ClipRRect(
           borderRadius: BorderRadius.circular(50),
           child: Container(
-            color:Colors.white,
+            color:Colors.black87,
             child: Padding(
               padding: const EdgeInsets.all(11.0),
-              child: Icon(Icons.delete,color: AppColors.red,size: 22,),
+              child: Icon(Icons.delete,color: AppColors.white,size: 22,),
             ),
           ),
         ),

@@ -57,8 +57,7 @@ class _AddChatSymbolScreenState extends State<AddChatSymbolScreen> {
                 isValidate: (
                     (controller.itTextOrLinkPost() ? true : controller
                         .imagesList.length >= 1)),
-                onTap: (controller.itTextOrLinkPost() ? controller
-                    .linkTextSymbolController.text.isNotEmpty : controller
+                onTap: (controller.itTextOrLinkPost() ? true : controller
                     .imagesList.length >= 1)
                     ? () async {
                   controller.createSymbol();
