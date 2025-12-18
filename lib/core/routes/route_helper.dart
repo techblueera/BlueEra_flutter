@@ -1365,9 +1365,8 @@ class RouteHelper {
       case RouteConstant.RiderProfileStatusScreen:
         return MaterialPageRoute(
           builder: (_) => RiderProfileStatusScreen(screeName: '',),
-        );
-            settings: RouteSettings(name: getGroceryCartScreenRoute())
-        );
+         settings: RouteSettings(name: getGroceryCartScreenRoute())
+    );
       case RouteConstant.grocerySuperCategoryScreen:
         return MaterialPageRoute(
             builder: (_) => GrocerySuperCategoryScreen(),
