@@ -37,201 +37,188 @@ class ProfileSettingsNewScreen extends StatelessWidget {
             vertical: SizeConfig.size20,
             horizontal: SizeConfig.size15,
           ),
-          child: Column(
-            children: [
-              CustomFormCard(
+          child: Column(children: [
+            CustomFormCard(
                 padding: EdgeInsets.symmetric(
                   horizontal: SizeConfig.size15,
                 ),
+                child: Column(
+                  children: [
+                    _buildTile(AppIconAssets.accountSetting,
+                        AppStrings.accountSettings,
+                        onTap: () => Get.to(() => AccountSettingScreen())),
+                    _buildTile(AppIconAssets.takeFranchiseIcon,
+                        AppStrings.applyForFranchise,
+                        onTap: () => Get.to(() => CommonWebView(
+                              urlLink: takeFranchise,
+                              urlTitle: AppStrings.applyForFranchise,
+                            ))),
+                    _buildTile(AppIconAssets.referral, AppStrings.referral,
+                        onTap: () => Get.to(() => ReferralPage())),
+                    _buildTile(
+                      AppIconAssets.helpSupport,
+                      AppStrings.helpSupport,
+                      onTap: () => Get.to(() => HelpAndSupportScreen()),
+                    ),
+                    // _buildTile(
+                    //     AppIconAssets.cards, "My Cards",
+                    //     onTap: () => Get.toNamed(RouteHelper.getMoreCardsScreenRoute(),
+                    //         arguments: {ApiKeys.isFromHomeScreen: false})
+                    // ),
+                    // _buildTile(
+                    //     AppIconAssets.accountSetting,
+                    //     AppStrings.appSettings,
+                    //     onTap: () => Get.to(() => AccountSettingScreen())
+                    // ),
+
+                    // _buildTile(
+                    //     AppIconAssets.accountSetting,
+                    //     "Account Settings",
+                    //     "Language/Delete Account & More",
+                    //     onTap: () => Get.to(() => AccountSettingScreen())
+                    // ),
+                    // _buildTile(
+                    //     AppIconAssets.accountSetting,
+                    //     "Account Settings",
+                    //     "Language/Delete Account & More",
+                    //     onTap: () => Get.to(() => AccountSettingScreen())
+                    // ),
+                    // _buildTile(
+                    //     AppIconAssets.accountSetting,
+                    //     "Account Settings",
+                    //     "Language/Delete Account & More",
+                    //     onTap: () => Get.to(() => AccountSettingScreen())
+                    // ),
+                  ],
+                )),
+            SizedBox(height: SizeConfig.size10),
+            CustomFormCard(
+                child: Column(
+              children: [
+                CustomBtn(
+                    onTap: () async {
+                      await showCommonDialog(
+                          context: context,
+                          text: AppStrings.logoutConfirmationMessage,
+                          confirmCallback: () async {
+                            Get.delete<ChatViewController>();
+                            await SharedPreferenceUtils.clearPreference();
+                            Navigator.of(context).pushNamedAndRemoveUntil(
+                                RouteHelper.getMobileNumberLoginRoute(),
+                                (Route<dynamic> route) => false);
+                          },
+                          cancelCallback: () {
+                            Navigator.of(context).pop(); // Close the dialog
+                          },
+                          confirmText: AppStrings.yes,
+                          cancelText: AppStrings.no);
+                    },
+                    title: AppStrings.logout,
+                    bgColor: Colors.white,
+                    textColor: AppColors.primaryColor,
+                    borderColor: AppColors.primaryColor,
+                    radius: 10.0),
+                SizedBox(height: 20),
+                CustomBtn(
+                    onTap: () async {
+                      await showCommonDialog(
+                          context: context,
+                          text: AppStrings.deleteAccountConfirmationMessage,
+                          confirmCallback: () async {
+                            await SharedPreferenceUtils.clearPreference();
+                            Navigator.of(context).pushNamedAndRemoveUntil(
+                                RouteHelper.getMobileNumberLoginRoute(),
+                                (Route<dynamic> route) => false);
+                          },
+                          cancelCallback: () {
+                            Navigator.of(context).pop(); // Close the dialog
+                          },
+                          confirmText: AppStrings.yes,
+                          cancelText: AppStrings.no);
+                    },
+                    title: AppStrings.deleteAccount,
+                    bgColor: Colors.white,
+                    textColor: AppColors.red00,
+                    borderColor: AppColors.red00,
+                    radius: 10.0),
+                SizedBox(height: 20),
+                Center(
                   child: Column(
-                     children: [
-                       _buildTile(
-                           AppIconAssets.accountSetting,
-                           AppStrings.accountSettings,
-                           onTap: () => Get.to(() => AccountSettingScreen())
-                       ),
-                       _buildTile(
-                           AppIconAssets.takeFranchiseIcon,
-                          "Franchise",
-                           onTap: () => Get.to(() => CommonWebView(urlLink: "https://bluecs.in/partner", urlTitle: "Franchise"))
-                       ),
-                       _buildTile(
-                           AppIconAssets.referral,
-                           AppStrings.referral,
-                           onTap: () => Get.to(() => ReferralPage())
-                       ),
-                       _buildTile(
-                         AppIconAssets.helpSupport,
-                       AppStrings.helpSupport,
-                         onTap: () => Get.to(() => HelpAndSupportScreen()),
-                       ),
-                       // _buildTile(
-                       //     AppIconAssets.cards, "My Cards",
-                       //     onTap: () => Get.toNamed(RouteHelper.getMoreCardsScreenRoute(),
-                       //         arguments: {ApiKeys.isFromHomeScreen: false})
-                       // ),
-                       // _buildTile(
-                       //     AppIconAssets.accountSetting,
-                       //     AppStrings.appSettings,
-                       //     onTap: () => Get.to(() => AccountSettingScreen())
-                       // ),
-
-                       // _buildTile(
-                       //     AppIconAssets.accountSetting,
-                       //     "Account Settings",
-                       //     "Language/Delete Account & More",
-                       //     onTap: () => Get.to(() => AccountSettingScreen())
-                       // ),
-                       // _buildTile(
-                       //     AppIconAssets.accountSetting,
-                       //     "Account Settings",
-                       //     "Language/Delete Account & More",
-                       //     onTap: () => Get.to(() => AccountSettingScreen())
-                       // ),
-                       // _buildTile(
-                       //     AppIconAssets.accountSetting,
-                       //     "Account Settings",
-                       //     "Language/Delete Account & More",
-                       //     onTap: () => Get.to(() => AccountSettingScreen())
-                       // ),
-
-                     ],
-                  )
-              ),
-              SizedBox(height: SizeConfig.size10),
-              CustomFormCard(
-                 child: Column(
-                   children: [
-                     CustomBtn(
-                       onTap: () async {
-                         await showCommonDialog(
-                             context: context,
-                             text:
-                            AppStrings.logoutConfirmationMessage,
-                             confirmCallback: () async {
-                               Get.delete<ChatViewController>();
-                               await SharedPreferenceUtils.clearPreference();
-                               Navigator.of(context).pushNamedAndRemoveUntil(
-                                   RouteHelper.getMobileNumberLoginRoute(),
-                                       (Route<dynamic> route) => false);
-                             },
-                             cancelCallback: () {
-                               Navigator.of(context).pop(); // Close the dialog
-                             },
-                             confirmText: AppStrings.yes,
-                             cancelText: AppStrings.no);
-                       },
-                       title:AppStrings.logout,
-                       bgColor: Colors.white,
-                       textColor: AppColors.primaryColor,
-                       borderColor: AppColors.primaryColor,
-                       radius: 10.0
-                     ),
-                     SizedBox(height: 20),
-                     CustomBtn(
-                       onTap: () async {
-                         await showCommonDialog(
-                             context: context,
-                             text: AppStrings.deleteAccountConfirmationMessage,
-                             confirmCallback: () async {
-                               await SharedPreferenceUtils.clearPreference();
-                               Navigator.of(context).pushNamedAndRemoveUntil(
-                                   RouteHelper.getMobileNumberLoginRoute(),
-                                       (Route<dynamic> route) => false);
-                             },
-                             cancelCallback: () {
-                               Navigator.of(context).pop(); // Close the dialog
-                             },
-                             confirmText:AppStrings.yes,
-                             cancelText: AppStrings.no);
-                       },
-                       title: AppStrings.deleteAccount,
-                       bgColor: Colors.white,
-                       textColor: AppColors.red00,
-                       borderColor: AppColors.red00,
-                       radius: 10.0
-                     ),
-                     SizedBox(height: 20),
-                     Center(
-                       child: Column(
-                         children: [
-                           SizedBox(height: 8),
-                           Center(
-                             child: RichText(
-                               textAlign: TextAlign.center,
-                               text: TextSpan(
-                                 style: const TextStyle(
-                                   fontSize: 12,
-                                   color: Colors.black87,
-                                 ),
-                                 children: [
-                                   TextSpan(
-                                     text: AppStrings.termsConditions.tr,
-                                     style: const TextStyle(
-                                       color: AppColors.primaryColor,
-                                       fontFamily: AppConstants.OpenSans,
-                                     ),
-                                     recognizer: TapGestureRecognizer()
-                                       ..onTap = () {
-                                         Get.to(()=> CommonWebView(
-                                           urlLink: tncLink,
-                                           urlTitle: AppStrings.termsConditions.tr,
-                                         ));
-                                         // Handle Terms & Conditions tap
-                                       },
-                                   ),
-                                   const TextSpan(text: ' & '),
-                                   TextSpan(
-                                     text: AppStrings.privacyPolicy.tr,
-                                     style: TextStyle(
-                                       color: AppColors.primaryColor,
-                                       fontFamily: AppConstants.OpenSans,
-                                     ),
-                                     recognizer: TapGestureRecognizer()
-                                       ..onTap = () {
-                                         Get.to(CommonWebView(
-                                           urlLink: privacyLink,
-                                           urlTitle: AppStrings.privacyPolicy.tr,
-                                         ));
-
-                                       },
-                                   ),
-                                 ],
-                               ),
-                             ),
-                           ),
-                           SizedBox(height: 10),
-                           Row(
-                             mainAxisAlignment: MainAxisAlignment.center,
-                             children: [
-                               CustomText(
-                                 "v ${appVersion} | ",
-                                 fontSize: 12,
-                               ),
-                               LocalAssets(imagePath: AppIconAssets.india_flag),
-                               CustomText(
-                                 " ${AppStrings.makeInIndia.tr}",
-                                 fontSize: 12,
-                               ),
-                             ],
-                           ),
-                         ],
-                       ),
-                     )
-                   ],
-                 )
-             ),
-           ]
-          ),
+                    children: [
+                      SizedBox(height: 8),
+                      Center(
+                        child: RichText(
+                          textAlign: TextAlign.center,
+                          text: TextSpan(
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.black87,
+                            ),
+                            children: [
+                              TextSpan(
+                                text: AppStrings.termsConditions.tr,
+                                style: const TextStyle(
+                                  color: AppColors.primaryColor,
+                                  fontFamily: AppConstants.OpenSans,
+                                ),
+                                recognizer: TapGestureRecognizer()
+                                  ..onTap = () {
+                                    Get.to(() => CommonWebView(
+                                          urlLink: tncLink,
+                                          urlTitle:
+                                              AppStrings.termsConditions.tr,
+                                        ));
+                                    // Handle Terms & Conditions tap
+                                  },
+                              ),
+                              const TextSpan(text: ' & '),
+                              TextSpan(
+                                text: AppStrings.privacyPolicy.tr,
+                                style: TextStyle(
+                                  color: AppColors.primaryColor,
+                                  fontFamily: AppConstants.OpenSans,
+                                ),
+                                recognizer: TapGestureRecognizer()
+                                  ..onTap = () {
+                                    Get.to(CommonWebView(
+                                      urlLink: privacyLink,
+                                      urlTitle: AppStrings.privacyPolicy.tr,
+                                    ));
+                                  },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CustomText(
+                            "v ${appVersion} | ",
+                            fontSize: 12,
+                          ),
+                          LocalAssets(imagePath: AppIconAssets.india_flag),
+                          CustomText(
+                            " ${AppStrings.makeInIndia.tr}",
+                            fontSize: 12,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                )
+              ],
+            )),
+          ]),
         ),
       ),
     );
   }
 
-  Widget _buildTile(String icon, String title,
-      {VoidCallback? onTap}) {
+  Widget _buildTile(String icon, String title, {VoidCallback? onTap}) {
     return Padding(
-      padding:  EdgeInsets.symmetric(vertical: SizeConfig.size18),
+      padding: EdgeInsets.symmetric(vertical: SizeConfig.size18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -242,8 +229,7 @@ class ProfileSettingsNewScreen extends StatelessWidget {
                 LocalAssets(
                     imagePath: icon,
                     height: SizeConfig.size24,
-                    width: SizeConfig.size24
-                ),
+                    width: SizeConfig.size24),
                 SizedBox(width: SizeConfig.size10),
                 CustomText(
                   title,
@@ -265,5 +251,4 @@ class ProfileSettingsNewScreen extends StatelessWidget {
       ),
     );
   }
-
 }
