@@ -535,6 +535,7 @@ abstract class BaseService {
   final String categoryTree = 'food-service/api/categories/tree';
   final String createSymbolApi = 'chat-service/symbols';
   String getAllSymbolOneUser(String orderId) => "chat-service/symbols/user/$orderId";
+  final String groceryCategoryWithVariant = 'grocery-service/api/categories/with-inventory';
 
 
 }

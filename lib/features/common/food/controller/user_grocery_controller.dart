@@ -73,7 +73,7 @@ class UserGroceryController extends GetxController{
   //   return double.tryParse(clean) ?? 0.0;
   // }
 
-  Future<void> fetchUserGrocery() async {
+  Future<void>  fetchUserGrocery() async {
     try {
       isInitialLoading.value = true;
       await Future.wait([

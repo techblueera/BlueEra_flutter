@@ -558,5 +558,7 @@ class ApiKeys {
   static const caption = 'caption';
   static const duration_days = 'duration_days';
   static const hidden_from = 'hidden_from';
-
+  static const argArrGroceryCat = 'argArrGroceryCat';
+  static const argCategoryName = 'argCategoryName';
+  static const argPageHeading = 'argPageHeading';
 }

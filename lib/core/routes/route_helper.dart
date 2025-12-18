@@ -34,7 +34,8 @@ import 'package:BlueEra/features/common/food/view/grocery/add_grocery_variant_sc
 import 'package:BlueEra/features/common/food/view/grocery/grocery_category_screen.dart';
 import 'package:BlueEra/features/common/food/view/grocery/grocery_listing/grocery_cart_screen.dart';
 import 'package:BlueEra/features/common/food/view/grocery/grocery_listing/grocery_listing_screen.dart';
-import 'package:BlueEra/features/common/food/view/grocery/all_grocery_listing_screen.dart';
+import 'package:BlueEra/features/common/food/view/grocery/grocery_subcategory_screen.dart';
+import 'package:BlueEra/features/common/food/view/grocery/grocery_super_category_screen.dart';
 import 'package:BlueEra/features/common/food/view/grocery/my_grocery_listing/grocery_screen.dart';
 import 'package:BlueEra/features/common/food/view/grocery/my_grocery_listing/my_grocery_category_screen.dart';
 import 'package:BlueEra/features/common/food/view/grocery/my_grocery_listing/my_grocery_screen.dart';
@@ -448,8 +449,8 @@ class RouteHelper {
   static String getGroceryCategoryScreenRoute() =>
       RouteConstant.groceryCategoryScreen;
 
-  static String getAllGroceryListingScreenRoute() =>
-      RouteConstant.allGroceryListingScreen;
+  static String getGrocerySubCategoryScreenRoute() =>
+      RouteConstant.grocerySubCategoryScreen;
 
   static String getAddGroceryScreenRoute() =>
       RouteConstant.addGroceryScreen;
@@ -471,6 +472,9 @@ class RouteHelper {
 
   static String getGroceryCartScreenRoute() =>
       RouteConstant.groceryCartScreen;
+
+  static String getGrocerySuperCategoryScreenRoute() =>
+      RouteConstant.grocerySuperCategoryScreen;
 
 
   ///REDIRECT ROUTING SETUP.....
@@ -1304,22 +1308,27 @@ class RouteHelper {
       case RouteConstant.groceryCategoryScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final bool argOwnGrocery = args[ApiKeys.argOwnGrocery] as bool;
+        final String pageHeading = args[ApiKeys.argPageHeading] as String;
+        final Map<String, List<CollapsibleGridModel>> argArrGroceryCat =
+              args[ApiKeys.argArrGroceryCat] as Map<String, List<CollapsibleGridModel>>;
         return MaterialPageRoute(
             builder: (_) => GroceryCategoryScreen(
+                arrGroceryCat: argArrGroceryCat,
+                pageHeading: pageHeading,
                 isOwnGrocery: argOwnGrocery
             ),
             settings: RouteSettings(name: getGroceryCategoryScreenRoute())
         );
-      case RouteConstant.allGroceryListingScreen:
+      case RouteConstant.grocerySubCategoryScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final List<CollapsibleGridModel> argGroceries = args[ApiKeys.argGroceries] as List<CollapsibleGridModel>;
         final CollapsibleGridModel argSelectedGroceryData = args[ApiKeys.argSelectedGroceryData] as CollapsibleGridModel;
         return MaterialPageRoute(
-            builder: (_) => AllGroceryListingScreen(
+            builder: (_) => GrocerySubCategoryScreen(
                 arrGroceries: argGroceries,
                 selectedGroceryData: argSelectedGroceryData
             ),
-            settings: RouteSettings(name: getAllGroceryListingScreenRoute())
+            settings: RouteSettings(name: getGrocerySubCategoryScreenRoute())
         );
       case RouteConstant.addGroceryScreen:
         return MaterialPageRoute(
@@ -1332,8 +1341,14 @@ class RouteHelper {
             settings: RouteSettings(name: getAddGroceryVariantScreenRoute())
         );
       case RouteConstant.myGroceryCategoryScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        final String argCategoryId = args[ApiKeys.argCategoryId] as String;
+        final String argCategoryName = args[ApiKeys.argCategoryName] as String;
         return MaterialPageRoute(
-            builder: (_) => MyGroceryCategoryScreen(),
+            builder: (_) => MyGroceryCategoryScreen(
+                categoryId: argCategoryId,
+                categoryName: argCategoryName,
+            ),
             settings: RouteSettings(name: getMyGroceryCategoryScreenRoute())
         );
       case RouteConstant.myGroceryScreen:
@@ -1374,8 +1389,11 @@ class RouteHelper {
             builder: (_) => GroceryCartScreen(),
             settings: RouteSettings(name: getGroceryCartScreenRoute())
         );
-
-
+      case RouteConstant.grocerySuperCategoryScreen:
+        return MaterialPageRoute(
+            builder: (_) => GrocerySuperCategoryScreen(),
+            settings: RouteSettings(name: getGrocerySuperCategoryScreenRoute())
+        );
 
       default:
         return MaterialPageRoute(

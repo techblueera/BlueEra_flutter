@@ -218,7 +218,7 @@ class OrderCard extends StatelessWidget {
         Row(
           children: [
             CustomText(
-              AppStrings.pickUp,
+              '${AppStrings.pickUpOTP.tr}: ',
               fontSize: SizeConfig.small11,
               fontWeight: FontWeight.w400,
               color: AppColors.secondaryTextColor,
@@ -244,6 +244,7 @@ class OrderCard extends StatelessWidget {
         SizedBox(height: SizeConfig.size8),
         InkWell(
           onTap: () => _handleCancelOrder(controller),
+          borderRadius: BorderRadius.circular(100.0),
           child: Container(
             padding: EdgeInsets.symmetric(
               horizontal: SizeConfig.size10,

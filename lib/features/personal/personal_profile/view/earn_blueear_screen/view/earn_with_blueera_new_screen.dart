@@ -104,9 +104,9 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen>
 
   @override
   void dispose() {
+    RouteHelper.routeObserver.unsubscribe(this);
     Get.delete<EarnWithBlueEraController>();
     _tabController.dispose();
-    RouteHelper.routeObserver.unsubscribe(this);
     super.dispose();
   }
 
@@ -115,9 +115,7 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen>
      earnWithBlueEraController.isEarnServiceOpt.value = isEarnServiceOpt;
      print('isEarnServiceOpt -- ${earnWithBlueEraController.isEarnServiceOpt.value}');
      WidgetsBinding.instance.addPostFrameCallback((_) {
-       if(earnWithBlueEraController.isEarnServiceOpt.value.toLowerCase() == 'true'){
-         _openEarnWithBlueEraSheet();
-       }
+       if(earnWithBlueEraController.isEarnServiceOpt.value.toLowerCase() == 'false') ()=> _openEarnWithBlueEraSheet();
      });
   }
 
