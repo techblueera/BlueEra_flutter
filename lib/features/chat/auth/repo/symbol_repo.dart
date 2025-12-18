@@ -18,5 +18,12 @@ class SymbolRepo extends BaseService {
          onError: (error) {}, onSuccess: (data) {});
     return response;
   }
+  Future<ResponseModel> deleteSymbol(String sumbolId) async {
+    final response = await ApiBaseHelper().deleteHTTP(
+        deleteSymbolApi(sumbolId),
+        showProgress: true,
+         onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
 
 }

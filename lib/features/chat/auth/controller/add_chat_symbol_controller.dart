@@ -372,6 +372,16 @@ class AddChatSymbolController extends GetxController {
     }
 
   }
+  Future<List<SymbolDetailsModel>?> deleteSymbol({required SymbolDetailsModel symbolData})async{
+    ResponseModel responseModel = await symbolRepo.deleteSymbol(symbolData.id??'');
+    if(responseModel.isSuccess){
+      mySymbols.remove(symbolData);
+      return mySymbols;
+    }else{
+      return null;
+    }
+
+  }
   Future<List<SymbolDetailsModel>?> getSymbolsForOtherUser(String userId)async{
     ResponseModel responseModel = await symbolRepo.getAllSymbolsSingleUser(userId);
     if(responseModel.isSuccess){

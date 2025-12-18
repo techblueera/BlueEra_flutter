@@ -1,11 +1,15 @@
 import 'dart:developer';
 
+import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:video_player/video_player.dart';
 
+import '../../../../core/constants/app_icon_assets.dart';
 import '../../auth/controller/add_chat_symbol_controller.dart';
 import '../../auth/model/GetChatListModel.dart';
 import '../../auth/model/symbol_details_model.dart';
@@ -105,10 +109,12 @@ class _SymbolViewImagesState extends State<SymbolViewImages>
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
+
       body: SafeArea(
         child: Stack(
           children: [
@@ -121,6 +127,7 @@ class _SymbolViewImagesState extends State<SymbolViewImages>
                 onPageChanged: (i) => setState(() => currentIndex = i),
                 itemBuilder: (_, index) {
                   final url = allImages?[index];
+
                     if(url?.type=='photo'||url?.type=="video"){
                       final isVideo = url?.content?.toLowerCase().contains('.mp4');
                       if (isVideo??false) {
@@ -208,7 +215,7 @@ class _SymbolViewImagesState extends State<SymbolViewImages>
                                   begin: Alignment.topCenter,
                                   end: Alignment.bottomCenter,
                                   colors: [
-                                    Colors.black12,
+                                    Colors.transparent,
                                     Colors.black87,
                                   ],
                                 ),
@@ -226,7 +233,7 @@ class _SymbolViewImagesState extends State<SymbolViewImages>
 
                                       color: Colors.white,
                                       fontSize: 16,
-
+                                      fontWeight: FontWeight.w600,
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -235,9 +242,12 @@ class _SymbolViewImagesState extends State<SymbolViewImages>
                               ),
                             ):SizedBox(),
                           ),
+
                         ],
                       );
-                    }else if(url?.type=="text"){
+                    }
+                    else
+                      if(url?.type=="text"||url?.type=="embeddedUrl"){
                       Color hexToColor(String? hex) {
                         if (hex == null) return Colors.transparent;
 
@@ -278,7 +288,9 @@ class _SymbolViewImagesState extends State<SymbolViewImages>
                           ),
                         ),
                       );
-                    }
+                    }else{
+                        return SizedBox();
+                      }
 
                 },
               ),
@@ -309,7 +321,7 @@ class _SymbolViewImagesState extends State<SymbolViewImages>
               ),
             ),
 
-            /// Back button - modern glass effect
+            // /// Back button - modern glass effect
             Positioned(
               top: 14,
               left: 14,
@@ -324,6 +336,8 @@ class _SymbolViewImagesState extends State<SymbolViewImages>
                 ),
               ),
             ),
+            if(widget.mySymbols?.isNotEmpty??false)
+              deleteWidget(allImages![currentIndex]),
 
             /// Modern page indicator (dots)
             Positioned(
@@ -350,6 +364,33 @@ class _SymbolViewImagesState extends State<SymbolViewImages>
               ),
             )
           ],
+        ),
+      ),
+    );
+  }
+  Widget deleteWidget(SymbolDetailsModel symbol){
+    return  Positioned(
+      top: 58,
+      right: 24,
+      child: InkWell(
+        onTap: ()async{
+          allImages= await addSymbolController.deleteSymbol(symbolData: symbol);
+          if(allImages?.isEmpty??false){
+            Get.back();
+          }
+          setState(() {
+
+          });
+        },
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(50),
+          child: Container(
+            color:Colors.white,
+            child: Padding(
+              padding: const EdgeInsets.all(11.0),
+              child: Icon(Icons.delete,color: AppColors.red,size: 22,),
+            ),
+          ),
         ),
       ),
     );
