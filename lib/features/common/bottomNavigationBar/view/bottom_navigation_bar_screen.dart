@@ -383,6 +383,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   }
 
   Widget resolveIndividualScreen() {
+    logs("userProfessionGlobal==== ${userProfessionGlobal}");
+    logs("userWorkTypeGlobal==== ${userWorkTypeGlobal}");
     return (userProfessionGlobal == SELF_EMPLOYED)
         ? (userWorkTypeGlobal == DELIVERY_RIDER)
           ? RiderServiceScreen(fromBottomNavBar: true)

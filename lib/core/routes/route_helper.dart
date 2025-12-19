@@ -436,8 +436,8 @@ class RouteHelper {
 
   static String getGroceryCartScreenRoute() => RouteConstant.groceryCartScreen;
 
-  static String getRiderProfileStatusScreenRoute() =>
-      RouteConstant.RiderProfileStatusScreen;
+  // static String getRiderProfileStatusScreenRoute() =>
+  //     RouteConstant.RiderProfileStatusScreen;
   static String getGrocerySuperCategoryScreenRoute() =>
       RouteConstant.grocerySuperCategoryScreen;
 
@@ -1143,12 +1143,12 @@ class RouteHelper {
                 RouteSettings(name: getAddFlatRoomRentalServiceScreenRoute()));
       case RouteConstant.personalInformationRidingScreen:
         return MaterialPageRoute(
-            builder: (_) => PersonalInformationRidingScreen(),
+            builder: (_) => PersonalInformationRidingScreen(screeName: '',),
             settings:
                 RouteSettings(name: getPersonalInformationRidingScreenRoute()));
       case RouteConstant.addressLocationRidingScreen:
         return MaterialPageRoute(
-            builder: (_) => AddressLocationRidingScreen(),
+            builder: (_) => AddressLocationRidingScreen(screeName: '',),
             settings:
                 RouteSettings(name: getAddressLocationRidingScreenRoute()));
       case RouteConstant.personalIdentificationRidingScreen:
@@ -1362,11 +1362,11 @@ class RouteHelper {
             builder: (_) => GroceryCartScreen(),
             settings: RouteSettings(name: getGroceryCartScreenRoute()));
 
-      case RouteConstant.RiderProfileStatusScreen:
-        return MaterialPageRoute(
-          builder: (_) => RiderProfileStatusScreen(screeName: '',),
-         settings: RouteSettings(name: getGroceryCartScreenRoute())
-    );
+    //   case RouteConstant.RiderProfileStatusScreen:
+    //     return MaterialPageRoute(
+    //       builder: (_) => RiderProfileStatusScreen(screeName: '', isAllComplete: false: ''lStepsCompleted: null,),
+    //      settings: RouteSettings(name: getGroceryCartScreenRoute())
+    // );
       case RouteConstant.grocerySuperCategoryScreen:
         return MaterialPageRoute(
             builder: (_) => GrocerySuperCategoryScreen(),

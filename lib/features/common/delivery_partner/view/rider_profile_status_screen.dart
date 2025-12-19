@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -17,13 +18,17 @@ import 'package:BlueEra/features/common/delivery_partner/view/rc_book_card_widge
 import 'package:BlueEra/features/common/delivery_partner/view/vehicle_images_riding_widget.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/vehicle_information_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class RiderProfileStatusScreen extends StatefulWidget {
-  RiderProfileStatusScreen({super.key, required this.screeName});
+  RiderProfileStatusScreen({
+    super.key,
+    required this.screeName,
+  });
 
   final String screeName;
 
@@ -49,16 +54,23 @@ class _RiderProfileStatusScreenState extends State<RiderProfileStatusScreen> {
             appBar: CommonBackAppBar(
               title: AppStrings.deliveryPartner,
             ),
-            body: RiderFormWidget(deliveryPartnerController: controller),
+            body: RiderFormWidget(
+              deliveryPartnerController: controller,
+            ),
           )
         : Material(
             color: AppColors.appBackgroundColor,
-            child: RiderFormWidget(deliveryPartnerController: controller));
+            child: RiderFormWidget(
+              deliveryPartnerController: controller,
+            ));
   }
 }
 
 class RiderFormWidget extends StatefulWidget {
-  RiderFormWidget({super.key, required this.deliveryPartnerController});
+  RiderFormWidget({
+    super.key,
+    required this.deliveryPartnerController,
+  });
 
   final DeliveryPartnerController deliveryPartnerController;
 
@@ -78,9 +90,47 @@ class _RiderFormWidgetState extends State<RiderFormWidget> {
         riderOnboardingStatusData =
             widget.deliveryPartnerController.riderOnboardingStatusData.value ??
                 RiderOnboardingStatusData();
+
+        final state = widget.deliveryPartnerController.riderVerificationState;
+        final allCompleted = widget.deliveryPartnerController.stepStatus.values
+            .every((s) => s == true);
         return SingleChildScrollView(
           child: Column(
             children: [
+              if (state == RiderVerificationState.pending && allCompleted)
+                Padding(
+                  padding: EdgeInsets.only(top: SizeConfig.size10),
+                  child: SizedBox(
+                    width: Get.width,
+                    child: CommonCardWidget(
+                        bgColor: AppColors.primaryColor,
+                        child: CustomText(
+                          AppStrings.verificationPending,
+                          color: AppColors.white,
+                          fontWeight: FontWeight.bold,
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        )),
+                  ),
+                ),
+              if (state == RiderVerificationState.rejected && allCompleted)
+                Padding(
+                  padding: EdgeInsets.only(top: SizeConfig.size10),
+                  child: SizedBox(
+                    width: Get.width,
+                    child: CommonCardWidget(
+                        bgColor: AppColors.red00,
+                        child: CustomText(
+                          textAlign: TextAlign.center,
+                          AppStrings.verificationRejected,
+                          color: AppColors.white,
+                          fontWeight: FontWeight.bold,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        )),
+                  ),
+                ),
               InfoDisplayCard(
                 title: AppStrings.vehicleInformation,
                 value:

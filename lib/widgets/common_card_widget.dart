@@ -8,8 +8,9 @@ class CommonCardWidget extends StatelessWidget {
   final double? borderRadius;
   final double? cardMargin;
   final Color? shadowColor;
+  final Color? bgColor;
 
-  const CommonCardWidget({super.key, required this.child, this.padding, this.borderRadius, this.shadowColor, this.cardMargin});
+  const CommonCardWidget({super.key, required this.child, this.padding, this.borderRadius, this.shadowColor, this.cardMargin, this.bgColor});
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +25,7 @@ class CommonCardWidget extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.all(padding ?? SizeConfig.size15),
         decoration: BoxDecoration(
-            color: AppColors.white,
+            color:bgColor?? AppColors.white,
             borderRadius: BorderRadius.circular(10.0),
         ),
         child: child,
