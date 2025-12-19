@@ -97,7 +97,7 @@
 //
 //   @override
 //   void dispose() {
-//     Get.delete<AddProductViaAiController>();
+//       deleteIfRegistered<AddProductViaAiController>();
 //     super.dispose();
 //   }
 //

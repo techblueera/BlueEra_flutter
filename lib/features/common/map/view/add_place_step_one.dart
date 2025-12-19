@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -36,10 +37,10 @@ class _AddPlaceStepOneScreenState extends State<AddPlaceStepOneScreen> {
   @override
   void dispose() {
     // TODO: implement dispose
-    Get.delete<AddPlaceStepOneController>();
-    Get.delete<AddPlaceStepTwoController>();
-    Get.delete<VisitingHoursSelector>();
-    Get.delete<CategoryController>();
+    deleteIfRegistered<AddPlaceStepOneController>();
+    deleteIfRegistered<AddPlaceStepOneController>();
+    deleteIfRegistered<VisitingHoursSelector>();
+    deleteIfRegistered<CategoryController>();
     super.dispose();
   }
 

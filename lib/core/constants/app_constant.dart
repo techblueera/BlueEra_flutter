@@ -1302,18 +1302,7 @@ const Flat_ROOM = "Flat_ROOM";
 const VEHICLE = "VEHICLE";
 
 
-/// GROCERY
-const String GROCERY_ITEMS       = 'GROCERY_ITEMS';
-const String VEGETABLE       = 'VEGETABLE';
-const String FRUIT       = 'FRUIT';
-const String BAKERY_BREAD_ITEMS       = 'BAKERY_BREAD_ITEMS';
-const String DAIRY_PRODUCTS       = 'DAIRY_PRODUCTS';
-const String HOME_ESSENTIALS       = 'HOME_ESSENTIALS';
-const String PACKED_SWEETS_NAMKEENS       = 'PACKED_SWEETS_NAMKEENS';
-const String CROCKERY       = 'CROCKERY';
-const String MEDICAL_ITEMS       = 'MEDICAL_ITEMS';
-const String BEAUTY_BODY_CARE       = 'BEAUTY_BODY_CARE';
-const String STATIONARY       = 'STATIONARY';
+
 
 // biscuit & foods
  const String CHIPS_NAMKEEN       = 'CHIPS_NAMKEEN';

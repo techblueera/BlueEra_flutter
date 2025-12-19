@@ -2,11 +2,13 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/environment_config.dart';
+import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/account_setting_screen/account_settings_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/help_and_support_screen/help_and_support_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -101,7 +103,7 @@ class ProfileSettingsNewScreen extends StatelessWidget {
                           context: context,
                           text: AppStrings.logoutConfirmationMessage,
                           confirmCallback: () async {
-                            Get.delete<ChatViewController>();
+                            deleteIfRegistered<ChatViewController>();
                             await SharedPreferenceUtils.clearPreference();
                             Navigator.of(context).pushNamedAndRemoveUntil(
                                 RouteHelper.getMobileNumberLoginRoute(),

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
@@ -27,7 +28,7 @@ class _AddProductViaAiStep1State extends State<AddProductViaAiStep1> {
 
   @override
   void dispose() {
-    Get.delete<ProductController>();
+    deleteIfRegistered<ProductController>();
     super.dispose();
   }
 

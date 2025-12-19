@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
@@ -63,7 +64,7 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
 
   @override
   void dispose() {
-    Get.delete<ServiceController>();
+    deleteIfRegistered<ServiceController>();
     super.dispose();
   }
 
