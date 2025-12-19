@@ -41,6 +41,7 @@ import '../../../../core/routes/route_helper.dart';
 import '../../../chat/auth/controller/chat_theme_controller.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../chat/view/chat_screen_new.dart';
+import '../../../me/laboratory/view/laboratory_main.dart';
 import '../../delivery_partner/controller/delivery_partner_orders_controller.dart';
 import '../auth/controller/bottom_bar_controller.dart';
 
@@ -367,12 +368,14 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   }
 
   Widget getHomeScreen() {
-    if (isGuestUser()) return GuestDashBoardScreen();
-    if (isBusinessUser()) return resolveBusinessScreen();
-    if (isIndividualUser()) return resolveIndividualScreen();
-
-    // Fallback (required)
-    return PersonalProfileSetupNewScreen();
+    // if (isGuestUser()) return GuestDashBoardScreen();
+    // if (isBusinessUser()) return resolveBusinessScreen();
+    // if (isIndividualUser()) return resolveIndividualScreen();
+    //
+    // // Fallback (required)
+    // return PersonalProfileSetupNewScreen();
+    log("lkvldkfvmdfv ${userProfessionGlobal == SELF_EMPLOYED} __ ${userWorkTypeGlobal == DELIVERY_RIDER} ___ ${isIndividualUser()}");
+    return LaboratoryMain();
   }
 
   Widget resolveBusinessScreen() {
@@ -383,6 +386,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   }
 
   Widget resolveIndividualScreen() {
+
     return (userProfessionGlobal == SELF_EMPLOYED)
         ? (userWorkTypeGlobal == DELIVERY_RIDER)
           ? RiderServiceScreen(fromBottomNavBar: true)

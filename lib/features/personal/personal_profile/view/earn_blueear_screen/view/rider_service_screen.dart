@@ -147,6 +147,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     );
   }
 
+
   Widget _buildRiderEnabled(BuildContext context) {
     return Scaffold(
       floatingActionButton: _buildFAB(),
