@@ -54,8 +54,7 @@ class _FoodUploadScreenState extends State<FoodUploadScreen> {
 
   @override
   void dispose() {
-    log('done, now deleted');
-    Get.delete<FoodUploadController>();
+    deleteIfRegistered<FoodUploadController>();
     super.dispose();
   }
 

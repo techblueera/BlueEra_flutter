@@ -7,6 +7,7 @@ import 'package:BlueEra/core/common_singleton_class/user_session.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -45,9 +46,7 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
     super.initState();
 
     // Initialize controller with proper disposal of existing instance
-    if (Get.isRegistered<CreateJobPostController>()) {
-      Get.delete<CreateJobPostController>();
-    }
+    deleteIfRegistered<CreateJobPostController>();
     createJobPostController = Get.put(CreateJobPostController());
 
     // Always reset controller state first to ensure clean state
@@ -184,7 +183,7 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
       createJobPostController.jobDescriptionController.dispose();
 
       // Clean up controller to prevent memory leaks
-      Get.delete<CreateJobPostController>();
+      deleteIfRegistered<CreateJobPostController>();
     }
 
     super.dispose();

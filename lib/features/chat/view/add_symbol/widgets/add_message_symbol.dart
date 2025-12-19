@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/post/controller/message_post_controller.dart';
 import 'package:BlueEra/features/common/post/controller/tag_user_controller.dart';
@@ -50,8 +51,8 @@ class _CreateMessagePostScreenState extends State<CreateMessagePostScreen> {
 
   @override
   void dispose() {
-    Get.delete<MessagePostController>();
-    Get.delete<TagUserController>();
+    deleteIfRegistered<MessagePostController>();
+    deleteIfRegistered<TagUserController>();
     super.dispose();
   }
 

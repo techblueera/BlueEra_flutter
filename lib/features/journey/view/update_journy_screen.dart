@@ -4,6 +4,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -58,7 +59,7 @@ class _UpdateJourneyScreenState extends State<UpdateJourneyScreen> {
   @override
   void dispose() {
     // TODO: implement dispose
-    Get.delete<JourneyUpdatePlanningController>();
+    deleteIfRegistered<JourneyUpdatePlanningController>();
     super.dispose();
   }
 

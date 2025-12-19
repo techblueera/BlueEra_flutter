@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
@@ -50,7 +51,7 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
 
   @override
   void dispose() {
-    Get.delete<HomeStayRentalServiceController>();
+    deleteIfRegistered<HomeStayRentalServiceController>();
     super.dispose();
   }
 

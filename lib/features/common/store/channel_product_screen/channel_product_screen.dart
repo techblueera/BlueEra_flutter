@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/features/common/store/channel_product_screen/product_card_widget.dart';
 import 'package:BlueEra/features/common/store/controller/channel_product_controller.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
@@ -35,9 +36,7 @@ class _ChannelProductScreenState extends State<ChannelProductScreen> {
 
   @override
   void dispose() {
-    if (Get.isRegistered<ChannelProductController>(tag: uniqueTag)) {
-      Get.delete<ChannelProductController>(tag: uniqueTag);
-    }
+    deleteIfRegistered<ChannelProductController>(tag: uniqueTag);
     super.dispose();
   }
 

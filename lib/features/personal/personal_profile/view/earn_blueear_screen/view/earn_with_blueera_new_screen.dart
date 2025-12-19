@@ -105,7 +105,7 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen>
   @override
   void dispose() {
     RouteHelper.routeObserver.unsubscribe(this);
-    Get.delete<EarnWithBlueEraController>();
+    deleteIfRegistered<EarnWithBlueEraController>();
     _tabController.dispose();
     super.dispose();
   }

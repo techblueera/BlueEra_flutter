@@ -230,7 +230,7 @@ class _GroceryScreenState extends State<GroceryScreen> with SingleTickerProvider
           child: InkWell(
             onTap:()=> Get.toNamed(
                RouteHelper.getGrocerySuperCategoryScreenRoute(),
-               // arguments: {ApiKeys.argOwnGrocery: true}
+               arguments: {ApiKeys.argOwnGrocery: true}
             ),
             // onTap:()=> Get.toNamed(
             //     RouteHelper.getGroceryCategoryScreenRoute(),

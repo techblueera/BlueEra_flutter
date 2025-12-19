@@ -60,9 +60,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
   void initState() {
     _checkRiderStatus();
     _checkRiderServiceStatus();
-
     _tabController = TabController(length: 3, vsync: this);
-
     super.initState();
   }
 
@@ -83,7 +81,9 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
 
   @override
   void dispose() {
-    Get.delete<EarnWithBlueEraController>();
+    print('disposed');
+    deleteIfRegistered<EarnWithBlueEraController>();
+    deleteIfRegistered<DeliveryPartnerController>();
     _tabController.dispose();
     RouteHelper.routeObserver.unsubscribe(this);
     super.dispose();
@@ -176,7 +176,7 @@ logs("riderOpt==== $riderOpt");
     logs("firstIncompleteEntry=== ${firstIncompleteEntry?.key}");
 
     return Scaffold(
-      floatingActionButton: _buildFAB(),
+      // floatingActionButton: _buildFAB(),
       body: SafeArea(
         child: NestedScrollView(
           headerSliverBuilder: (_, __) => [
