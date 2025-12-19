@@ -61,7 +61,6 @@ class GroceryCategoryItem extends StatelessWidget {
   }
 
   Widget _buildImage(String path) {
-    log('isNetworkImage: ${isNetworkImage(path)}');
 
     if (isNetworkImage(path)) {
       // Network image
