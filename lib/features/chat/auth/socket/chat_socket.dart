@@ -35,6 +35,7 @@ class ChatSocketService {
       _socket.onConnect((_) {
         _isConnected = true;
         _socket.emit(ChatEmitEvents.screenRoom, {ApiKeys.conversation_id: "online"});
+        _socket.emit(ChatEmitEvents.isOnlineFromChatList, {});
         _socket.emit(ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.personal_Chat_Type});
       });
 

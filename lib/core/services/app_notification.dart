@@ -161,21 +161,19 @@ class AppNotificationHandler {
   ///show notification msg
   Future<void> showMsg(RemoteMessage message)async {
     // callUnreadCount();
-
-
       if(message.data["operation"]=='RIDE_ORDER_RECEIVED'){
         NotificationData rideNotification=NotificationData.fromJson(message.data);
         showFullCallScreen(rideNotification);
         // callShow(orderId: '${rideNotification.metadata?.orderId}',lng: double.parse(rideNotification.deliveryLong.toString()),lat: double.parse(rideNotification.deliveryLat.toString()) );
       }
     ///FOR GROUND....
-
     showNotification(message);
   }
   Future<void> showFullCallScreen(NotificationData rideNotification )async{
     String? pickupLocation=await getAddressFromLatLngAsString(lat:double.parse(rideNotification.deliveryLat.toString()),lng:double.parse(rideNotification.deliveryLong.toString()));
     String? dropLocation=await getAddressFromLatLngAsString(lat:double.parse(rideNotification.metadata?.dropAddress?.lat.toString()??''),lng:double.parse(rideNotification.metadata?.dropAddress?.long.toString()??''));
-    Get.to(()=> NewDeliveryRequestScreen(notificationData: rideNotification,
+    Get.to(()=> NewDeliveryRequestScreen(
+      notificationData: rideNotification,
       orderId: '${rideNotification.metadata?.orderId}',
       customerImage: ''
       , distance: '${rideNotification.deliveryLong}',

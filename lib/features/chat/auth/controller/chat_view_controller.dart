@@ -292,6 +292,9 @@ class ChatViewController extends GetxController {
         getMediaMsgCommentsModel?.value =
             GetMediaMsgCommentsModel.fromJson(data);
       });
+      chatSocket.listenEvent(ChatEmitEvents.isOnlineFromChatList, (data) {
+       log("lkjfvlkdfsmvlkdfv $data");
+      });
       chatSocket.listenEvent(ChatEmitEvents.messageReceived, (data) async {
         final parsedData = GetListOfMessageData.fromJson(data);
 

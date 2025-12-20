@@ -1797,6 +1797,7 @@ class ChatEmitEvents{
   static const screenRoom = "screenRoom";
   static const messageReceived = "messageReceived";
   static const messageViewed = "messageViewed";
+  static const isOnlineFromChatList = "isOnlineFromChatList";
   static const newMessageReceived = "newMessageReceived";
   static const isOnLine = "isOnLine";
   static const messageStatusUpdate = "messageStatusUpdate";
