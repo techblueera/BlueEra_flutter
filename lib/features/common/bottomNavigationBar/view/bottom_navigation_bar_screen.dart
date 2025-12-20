@@ -41,6 +41,9 @@ import '../../../../core/routes/route_helper.dart';
 import '../../../chat/auth/controller/chat_theme_controller.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../chat/view/chat_screen_new.dart';
+import '../../../me/hospital/view/hospital_main.dart';
+import '../../../me/laboratory/view/laboratory_main.dart';
+import '../../../me/medical/view/medical_main.dart';
 import '../../delivery_partner/controller/delivery_partner_orders_controller.dart';
 import '../auth/controller/bottom_bar_controller.dart';
 
@@ -367,12 +370,13 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   }
 
   Widget getHomeScreen() {
-    if (isGuestUser()) return GuestDashBoardScreen();
-    if (isBusinessUser()) return resolveBusinessScreen();
-    if (isIndividualUser()) return resolveIndividualScreen();
-
-    // Fallback (required)
-    return PersonalProfileSetupNewScreen();
+    // if (isGuestUser()) return GuestDashBoardScreen();
+    // if (isBusinessUser()) return resolveBusinessScreen();
+    // if (isIndividualUser()) return resolveIndividualScreen();
+    //
+    // // Fallback (required)
+    // return PersonalProfileSetupNewScreen();
+    return HospitalMain();
   }
 
   Widget resolveBusinessScreen() {

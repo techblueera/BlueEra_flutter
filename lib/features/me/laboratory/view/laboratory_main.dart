@@ -1,41 +1,15 @@
-import 'dart:developer';
-import 'package:BlueEra/core/api/apiService/api_response.dart';
+
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_enum.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
-import 'package:BlueEra/features/common/delivery_partner/view/delivery_partner_orders/delivery_partner_orders.dart';
-import 'package:BlueEra/features/common/delivery_partner/view/rider_profile_status_screen.dart';
 import 'package:BlueEra/features/me/laboratory/view/widgets/add_lab_services.dart';
-import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/account_setting_screen/account_settings_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/controller/earn_with_blueera_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
-import 'package:BlueEra/features/common/food/view/food_and_grocery_screen.dart';
-import 'package:BlueEra/features/common/service/view/view_service_list.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/own_product_card.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/rental/view/rental_service_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/widget/earn_with_blue_era_bottom_sheet.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/widget/horizonatal_video_player.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/empty_state_widget.dart';
-import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:BlueEra/widgets/tab_bar_delegate.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../widgets/common_search_bar.dart';
+import '../../medical/view/widget/otc_items.dart';
+
 
 class LaboratoryMain extends StatefulWidget {
 
@@ -118,8 +92,10 @@ class _LaboratoryMainState extends State<LaboratoryMain>
               controller: _tabController,
               labelColor: AppColors.primaryColor,
               unselectedLabelColor: Colors.grey[600],
-              indicatorColor: Colors.blue,
-              indicatorWeight: 2,
+              indicatorColor: AppColors.primaryColor,
+              indicatorWeight: 4,
+              tabAlignment: TabAlignment.fill,
+              indicatorSize: TabBarIndicatorSize.tab,
               labelStyle: const TextStyle(fontWeight: FontWeight.w600),
               tabs: [
                 Tab(text: AppStrings.myStore.tr),
@@ -129,7 +105,7 @@ class _LaboratoryMainState extends State<LaboratoryMain>
             Expanded(child: TabBarView(
               controller: _tabController,
               children: [
-                Container(),
+                CategoryListView(),
                 const Center(child: CustomText(AppStrings.comingSoon)),
               ],
             ))
