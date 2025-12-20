@@ -376,9 +376,12 @@ class DeliveryPartnerController extends GetxController {
           ridersOnboardingAddressResponse.value =
               ApiResponse.complete(response);
           await setRiderServiceOptData(true);
+          await getRiderServiceOptData();
+
+          await ridersOnboardingStatusRepoApi();
 
           Get.until((route) =>
-              route.settings.name ==
+          route.settings.name ==
               RouteHelper.getBottomNavigationBarScreenRoute());
         } else {
           ridersOnboardingAddressResponse.value = ApiResponse.error('error');
@@ -897,7 +900,7 @@ class DeliveryPartnerController extends GetxController {
       if (response.isSuccess) {
         ridersOnboardingVehicleImagesResponse.value =
             ApiResponse.complete(response);
-
+        checkStatusManageRoute();
         // Get.toNamed(RouteHelper.getVehicleInformationRidingScreenRoute());
       } else {
         ridersOnboardingVehicleImagesResponse.value =
@@ -1003,13 +1006,17 @@ class DeliveryPartnerController extends GetxController {
     await ridersOnboardingStatusRepoApi();
     final allCompleted =
     stepStatus.values.every((status) => status == true);
-    // if (allCompleted) {
-      Get.until((route) =>
-      route.settings.name ==
-          RouteHelper.getBottomNavigationBarScreenRoute());
-    // } else {
-    //   Get.back();
-    // }
+    if (allCompleted) {
+      Get.offNamedUntil(
+        RouteHelper.getBottomNavigationBarScreenRoute(),
+            (route) => false,
+      );
+      // Get.until((route) =>
+      // route.settings.name ==
+      //     RouteHelper.getBottomNavigationBarScreenRoute());
+    } else {
+      Get.back();
+    }
   }
 
 

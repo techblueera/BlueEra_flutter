@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/auth/model/get_job_details_byId_model.dart';
@@ -54,9 +55,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
     super.initState();
     JOBID = widget.jobId;
     // Initialize controller with proper disposal of existing instance
-    if (Get.isRegistered<JobDetailsScreenController>()) {
-      Get.delete<JobDetailsScreenController>();
-    }
+    deleteIfRegistered<JobDetailsScreenController>();
     controller = Get.put(JobDetailsScreenController());
 
     // Use post-frame callback to ensure widget is fully built before making API call
@@ -70,9 +69,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
   @override
   void dispose() {
     // Clean up controllers to prevent memory leaks
-    if (Get.isRegistered<JobDetailsScreenController>()) {
-      Get.delete<JobDetailsScreenController>();
-    }
+    deleteIfRegistered<JobDetailsScreenController>();
     super.dispose();
   }
 

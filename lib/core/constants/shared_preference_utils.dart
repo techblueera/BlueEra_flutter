@@ -38,7 +38,7 @@ String serviceProviderStatusGlobal = '';
 String earnServiceCreatedStatusGlobal = 'false';
 String businessTypeGlobal = '';
 
-String isRiderServiceOpt = 'false';
+String isRiderServiceOpt = '';
 String isEarnServiceOpt = '';
 
 class SharedPreferenceUtils {
@@ -222,7 +222,7 @@ class SharedPreferenceUtils {
       serviceProviderStatusGlobal = '';
       earnServiceCreatedStatusGlobal = '"false"';
       businessTypeGlobal = '';
-      isRiderServiceOpt = 'false';
+      isRiderServiceOpt = '';
       isEarnServiceOpt = '';
       Get.find<AuthController>().imgPath.value = "";
       await SharedPreferenceUtils.setBaseUrlSecureValue(workManagerBaseUrl);

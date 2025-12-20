@@ -919,6 +919,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
   required String? contactNo,
   String? profileImage,
   bool? isGroupAppBar,
+  bool? isGroupPrivate,
 }) {
   final theme = Theme.of(context);
   final chatViewController = Get.find<ChatViewController>();
@@ -959,6 +960,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
               transitionDuration: const Duration(milliseconds: 400),
               pageBuilder: (context, animation, secondaryAnimation) =>
                   ViewGroupMembers(
+                    publicGroup: isGroupPrivate??false,
                     conversationId: conversationId,
                     type: type,
                     name: name,
@@ -1105,6 +1107,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
                     transitionDuration: const Duration(milliseconds: 400),
                     pageBuilder: (context, animation, secondaryAnimation) =>
                         ViewGroupMembers(
+                          publicGroup: isGroupPrivate??false,
                           conversationId: conversationId,
                           type: type,
                           name: name,

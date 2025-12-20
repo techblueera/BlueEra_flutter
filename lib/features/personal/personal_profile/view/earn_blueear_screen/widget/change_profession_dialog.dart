@@ -9,9 +9,11 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
+import 'package:BlueEra/features/common/delivery_partner/view/rider_profile_status_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/rider_service_screen.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -220,7 +222,10 @@ class ProfessionChangeDialogHelper {
   }
 
   static void _handleDeliveryPartner() {
-    final controller = Get.find<DeliveryPartnerController>();
+    final DeliveryPartnerController controller =
+    Get.isRegistered<DeliveryPartnerController>()
+        ? Get.find<DeliveryPartnerController>()
+        : Get.put(DeliveryPartnerController());
     final stepStatus = controller.stepStatus;
 
     if (stepStatus.isEmpty) {
@@ -246,7 +251,10 @@ class ProfessionChangeDialogHelper {
     } else if (firstIncompleteEntry.key == RiderProfileStep.addressInfo) {
       Get.toNamed(RouteHelper.getAddressLocationRidingScreenRoute());
     } else {
-      Get.toNamed(RouteHelper.getRiderProfileStatusScreenRoute());
+      Get.to(RiderProfileStatusScreen(
+        screeName: '',
+      ));
+      // Get.toNamed(RouteHelper.getRiderProfileStatusScreenRoute());
     }
 
     // switch (firstIncompleteEntry.key) {

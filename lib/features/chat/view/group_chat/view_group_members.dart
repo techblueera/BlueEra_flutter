@@ -11,6 +11,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import '../../../../core/constants/common_methods.dart' as cmd;
 
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_colors.dart';
@@ -26,6 +27,7 @@ class ViewGroupMembers extends StatefulWidget {
       {required this.conversationId,
       this.profileImage,
       required this.type,
+      required this.publicGroup,
       this.name,
       super.key});
 
@@ -33,6 +35,7 @@ class ViewGroupMembers extends StatefulWidget {
   final String? profileImage;
   final String? name;
   final String? type;
+  final bool publicGroup;
 
   @override
   State<ViewGroupMembers> createState() => _ViewGroupMembersState();
@@ -40,11 +43,14 @@ class ViewGroupMembers extends StatefulWidget {
 
 class _ViewGroupMembersState extends State<ViewGroupMembers> {
   final chatViewController = Get.find<ChatViewController>();
+  bool publicGroup = false;
+
   @override
   void initState() {
     Map<String, dynamic> data = {
       ApiKeys.conversation_id: widget.conversationId
     };
+    publicGroup=widget.publicGroup;
     chatViewController.groupNameController.text=widget.name??"";
     chatViewController.getGroupMembersApi(data);
     super.initState();
@@ -67,7 +73,7 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
 
-                      /// 🔹 GROUP IMAGE STACK (FIRST)
+
                       Stack(
                         alignment: Alignment.center,
                         children: [
@@ -136,6 +142,32 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                       ),
 
                       const SizedBox(height: 20),
+                      // Divider(color: AppColors.grey9B),
+
+                      ListTile(contentPadding: EdgeInsets.symmetric(horizontal: 6),
+                        leading: Icon(
+                          (!publicGroup) ? Icons.lock_outline : Icons.lock_open,
+                          color: AppColors.black,
+                          size: 22,
+                        ),
+                        title: CustomText(
+                          (!publicGroup) ? "Private group" : "Public group",
+                          color: AppColors.black,
+                          fontSize: 16,
+                        ),
+                        trailing: CustomText(
+                          (!publicGroup) ? "On" : "Off",
+                          color: AppColors.black,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        onTap: () {
+                          setState(() {
+                            publicGroup = !publicGroup;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 12),
 
                       /// 🔹 GROUP NAME FIELD
                       CommonTextField(
@@ -161,7 +193,58 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                         width: double.infinity,
                         child: CustomBtn(
                           isValidate: true,
-                            onTap: (){
+                            onTap: ()async{
+                              Map<String, dynamic> data = {};
+
+                              if (chatViewController.editedGroupFile != null) {
+                                String path = chatViewController.editedGroupFile!.path;
+                                File selectedFiles = File(path);
+
+                                List<String?> fileNames = [];
+                                List<String?> fileTypes = [];
+
+                                Map<String, String?> info = cmd.getFileInfo(selectedFiles);
+                                fileNames.add(info['fileName']);
+                                fileTypes.add(info['mimeType']);
+
+                                Map<String, dynamic> uploadParams = {
+                                  ApiKeys.fileName: fileNames,
+                                  ApiKeys.fileType: fileTypes,
+                                };
+
+                                data = {
+                                  ApiKeys.group_name: chatViewController.groupNameController.text,
+                                  ApiKeys.description:chatViewController.groupDescriptionController.text,
+                                  ApiKeys.public_group:true,
+                                  ApiKeys.conversation_id:widget.conversationId,
+                                };
+
+                                bool value = await chatViewController.updateGroupInfo(
+                                  data,
+                                  isFromFile: true,
+                                  fileParams: uploadParams,
+                                  fileSended: selectedFiles,
+                                );
+
+                                if (value == true) {
+                                  Navigator.pop(context);
+                                  Navigator.pop(context);
+                                  Navigator.pop(context);
+                                }
+                              }else{
+                                 data={
+                                  ApiKeys.group_name:chatViewController.groupNameController.text,
+                                  ApiKeys.description:chatViewController.groupDescriptionController.text,
+                                  ApiKeys.public_group:true,
+                                  ApiKeys.conversation_id:widget.conversationId,
+                                };
+                                 bool value = await chatViewController.updateGroupInfo(data);
+                                 if (value == true) {
+                                   Navigator.pop(context);
+                                   Navigator.pop(context);
+                                   Navigator.pop(context);
+                                 }
+                              }
 
                         }, title: "Edit"),
                       ),
@@ -362,9 +445,10 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                               height: SizeConfig.size15,
                             ),
                             SizedBox(
-                              //width: 160,
                               child: CustomText(
-                                '${widget.name?.capitalize}',
+                                widget.name != null
+                                    ? GetStringUtils(widget.name!).capitalize
+                                    : '',
                                 color: Colors.black,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,

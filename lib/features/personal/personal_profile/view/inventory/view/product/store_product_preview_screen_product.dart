@@ -8,6 +8,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -129,7 +130,7 @@ class _StoreProductPreviewScreenProductState
 
   @override
   void dispose() {
-    Get.delete<ProductController>();
+    deleteIfRegistered<ProductController>();
     super.dispose();
   }
 

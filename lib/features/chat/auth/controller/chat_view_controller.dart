@@ -1232,20 +1232,72 @@ class ChatViewController extends GetxController {
 
   Future<bool> updateGroupInfo(
     Map<String, dynamic> params,
+  {
+  bool? isFromFile,
+  Map<String, dynamic>? fileParams,
+  File? fileSended
+  }
   ) async {
     try {
-      ResponseModel responseModel =
-          await ChatViewRepo().updateGroupApi(params);
-      clearMessageControllerCommon();
-      if (responseModel.isSuccess) {
+      if (isFromFile != null) {
+        ResponseModel responseModel =
+        await ChatViewRepo().generateUploadUrlsApi(fileParams!);
         clearMessageControllerCommon();
-        return true;
-      } else {
-        clearMessageControllerCommon();
-        commonSnackBar(
-            message: responseModel.message ?? AppStrings.somethingWentWrong);
 
-        return false;
+        if (!responseModel.isSuccess) {
+          commonSnackBar(
+              message: responseModel.message ?? AppStrings.somethingWentWrong);
+          return false;
+        }
+
+        final data = responseModel.response?.data;
+        final uploadModel = GenerateUploadUlrModel.fromJson(data);
+        generateUploadUlrModel?.value = uploadModel;
+
+        final files = uploadModel.files;
+
+        // Parallel Uploads using Future.wait
+        await Future.wait(List.generate(files!.length, (i) {
+          final file = fileSended;
+          final url = files[i].uploadUrl ?? '';
+          final type = files[i].fileType ?? '';
+          return uploadFileToS3(file: file!, fileType: type, preSignedUrl: url);
+        }));
+        List<String> sharedFile = uploadModel.files?.map((element) {
+          return element.publicUrl ?? '';
+        }).toList() ??
+            [];
+        params.addAll({
+          ApiKeys.group_profile_image: sharedFile,
+        });
+        ResponseModel responseModelCreas =
+        await ChatViewRepo().createNewGroupApi(params);
+        if (responseModelCreas.isSuccess) {
+          emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.group_Chat_Type});
+          return true;
+        } else {
+          commonSnackBar(
+              message:
+              responseModelCreas.message ?? AppStrings.somethingWentWrong);
+          return false;
+        }
+      }else{
+        ResponseModel responseModel =
+        await ChatViewRepo().updateGroupApi(params);
+        clearMessageControllerCommon();
+        emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.group_Chat_Type});
+
+        if (responseModel.isSuccess) {
+          clearMessageControllerCommon();
+          return true;
+        } else {
+          clearMessageControllerCommon();
+          commonSnackBar(
+              message: responseModel.message ?? AppStrings.somethingWentWrong);
+
+          return false;
+      }
+
       }
     } catch (e) {
       return false;

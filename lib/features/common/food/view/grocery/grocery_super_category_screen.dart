@@ -7,6 +7,8 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/food/controller/grocery_controller.dart';
 import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
 import 'package:BlueEra/features/common/food/view/grocery/widget/grocery_category_item.dart';
+import 'package:BlueEra/features/common/food/view/grocery/widget/grocery_constant.dart';
+import 'package:BlueEra/features/common/food/view/grocery/widget/grocery_data.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -14,12 +16,14 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class GrocerySuperCategoryScreen extends StatelessWidget {
-  GrocerySuperCategoryScreen({super.key});
+  final bool isOwnGrocery;
+  GrocerySuperCategoryScreen({super.key, required this.isOwnGrocery});
 
   final controller = getOrPut(() => GroceryController());
 
   @override
   Widget build(BuildContext context) {
+    final List<CollapsibleGridModel> superCategories = GroceryData.grocerySuperCategories;
     return Scaffold(
       backgroundColor: AppColors.whiteFE,
       appBar: CommonBackAppBar(
@@ -38,7 +42,7 @@ class GrocerySuperCategoryScreen extends StatelessWidget {
               ),
       ),
       body: ListView.builder(
-        itemCount: controller. grocerySuperCategories.length,
+        itemCount: superCategories.length,
         padding: EdgeInsets.only(
             left: SizeConfig.size8,
             right: SizeConfig.size8,
@@ -47,17 +51,17 @@ class GrocerySuperCategoryScreen extends StatelessWidget {
         ),
         itemBuilder: (context, index) {
           return GroceryCategoryItem(
-            url: controller.grocerySuperCategories[index].icon,
-            label: controller.grocerySuperCategories[index].label,
+            url: superCategories[index].icon,
+            label: superCategories[index].label,
             onTap: () {
               final categoryMap
-                  = getCategoriesByTag(controller.grocerySuperCategories[index].tagId);
+                  = getCategoriesByTag(superCategories[index].tagId);
 
               Get.toNamed(
                 RouteHelper.getGroceryCategoryScreenRoute(),
                 arguments: {
                   ApiKeys.argOwnGrocery: false,
-                  ApiKeys.argPageHeading: controller.grocerySuperCategories[index].label,
+                  ApiKeys.argPageHeading: superCategories[index].label,
                   ApiKeys.argArrGroceryCat: categoryMap,
                 },
               );
@@ -70,34 +74,43 @@ class GrocerySuperCategoryScreen extends StatelessWidget {
 
   Map<String, List<CollapsibleGridModel>> getCategoriesByTag(String tagId) {
     switch (tagId) {
-      case GROCERY_ITEMS:
+      case GroceryConstant.GROCERY_ITEMS:
         return {
-          'Biscuits, Drinks & Packaged Foods': controller.biscuitFoods,
-          'Cooking Essentials': controller.cookingEssentials,
-          'Spices & Masala': controller.spicesNdMasala,
-          'Daily Drinks': controller.dailyDrinks,
+          'Rice and Rice Products': GroceryData.riceProducts,
+          'Wheat Atta and Flours': GroceryData.wheatAndFlours,
+          'Dals Pulses and Beans': GroceryData.dalNdBeans,
+          'Millets and Traditional Grains': GroceryData.milletsNdTraditionalGrains,
+          'Breakfast and Light Staples': GroceryData.breakfastStaples,
+          'Spices and Masala': GroceryData.spicesAndMasala,
+          'Salt Sugar and Sweeteners': GroceryData.saltNdSweeteners,
+          'Oils Ghee and Fats': GroceryData.oilsAndFats,
+          'Tea Coffee and Beverages': GroceryData.teaCoffeeBeverages,
+          'Dry Fruits Seeds Baby and Ready Food': GroceryData.dryFruitsAndReadyFood,
         };
 
-      case VEGETABLE:
+      case GroceryConstant.VEGETABLE:
         return {
-          'Fresh Vegetables': controller.freshVegetable,
-          'Green & Leafy': controller.greenLeafy,
-          'Seasonal Vegetables': controller.seasonalVegetable,
-          'Exotic Vegetables': controller.exoticVegetable,
-          'Cut & Packed Vegetables': controller.cutNdPackedVegetable,
-          'Organic Vegetables': controller.organicVegetable,
+          'Leafy Vegetables': GroceryData.leafyVegetables,
+          'Root Vegetables': GroceryData.rootVegetables,
+          'Bulb and Stem Vegetables': GroceryData.bulbNdStemVegetables,
+          'Fruit Vegetables': GroceryData.fruitVegetables,
+          'Pods and Beans': GroceryData.podNdBeansVegetables,
+          'Flower Vegetables': GroceryData.flowerVegetables,
+          'Fungi and Special Indian Items': GroceryData.fungiNdSpecialIndianItems,
+          'Exotic but India-Available Vegetables': GroceryData.exoticAndSpecialty,
         };
 
-      case FRUIT:
+      case GroceryConstant.FRUIT:
         return {
-          'Daily Fruits': controller.dailyFruit,
-          'Seasonal Picks': controller.seasonalPicks,
-          'Premium Fruits': controller.citrusFruit,
-          'Citrus Fruits': controller.citrusFruit,
-          'Tropical Fruits': controller.tropicalFruit,
+          'Daily Fruits': GroceryData.dailyFruits,
+          'Desi Fruits': GroceryData.desiFruits,
+          'Sour & Stone Fruits': GroceryData.sourAndStoneFruits,
+          'Small & Seasonal Fruits': GroceryData.smallNdSeasonalFruits,
+          'Forest & Coastal Fruits': GroceryData.forestNdCoastalFruits,
+          'Special Exotic Fruits': GroceryData.specialNdExoticFruits,
         };
 
-      case BAKERY_BREAD_ITEMS:
+      case GroceryConstant.BAKERY_BREAD_ITEMS:
         return {
           'Bakery': controller.bakery,
           'Bread': controller.bread,
@@ -106,7 +119,7 @@ class GrocerySuperCategoryScreen extends StatelessWidget {
           'Dessert / Bakery Sweets': controller.desertSweets,
         };
 
-      case DAIRY_PRODUCTS:
+      case GroceryConstant.DAIRY_PRODUCTS:
         return {
           'Milk & Milk Products': controller.milkProduct,
           'Curd & Yogurt': controller.curdNdYogurt,
@@ -115,7 +128,7 @@ class GrocerySuperCategoryScreen extends StatelessWidget {
           'Ice Cream & Frozen Dairy': controller.iceCreamNdFrozen,
         };
 
-      case HOME_ESSENTIALS:
+      case GroceryConstant.HOME_ESSENTIALS:
         return {
           'Mom & Baby Care': controller.momBabyCare,
           'Kitchenware': controller.kitchenware,
@@ -123,7 +136,7 @@ class GrocerySuperCategoryScreen extends StatelessWidget {
           'Home': controller.homeCare,
         };
 
-      case PACKED_SWEETS_NAMKEENS:
+      case GroceryConstant.PACKED_SWEETS_NAMKEENS:
         return {
           'Indian Sweets': controller.indianSweets,
           'Milk-Based Sweets': controller.milkBasedSweets,
@@ -131,7 +144,7 @@ class GrocerySuperCategoryScreen extends StatelessWidget {
           'Namkeens': controller.namkeens,
         };
 
-      case CROCKERY:
+      case GroceryConstant.CROCKERY:
         return {
           'Plates & Dinnerware': controller.platesNdDinnerWare,
           'Bowls & Serving Ware': controller.bowsNdServiceWare,
@@ -139,7 +152,7 @@ class GrocerySuperCategoryScreen extends StatelessWidget {
           'Serving & Table Accessories': controller.servingNdTableAccessories,
         };
 
-      case MEDICAL_ITEMS:
+      case GroceryConstant.MEDICAL_ITEMS:
         return {
           'First Aid & Basic Care': controller.firstAidCare,
           'Common Medicines': controller.commonMedicines,
@@ -147,7 +160,7 @@ class GrocerySuperCategoryScreen extends StatelessWidget {
           'Digestive & Wellness Products': controller.digestiveNdWellnessProducts,
         };
 
-      case BEAUTY_BODY_CARE:
+      case GroceryConstant.BEAUTY_BODY_CARE:
         return {
           'Bath & Body Care': controller.bathNdBodyCare,
           'Hair Care': controller.hairCare,
@@ -155,7 +168,7 @@ class GrocerySuperCategoryScreen extends StatelessWidget {
           'Skin Care & Daily Beauty': controller.skinCareNdDailyBeauty,
         };
 
-      case STATIONARY:
+      case GroceryConstant.STATIONARY:
         return {
           'Writing Essentials': controller.writingEsse,
           'Paper Products': controller.paperProduct,

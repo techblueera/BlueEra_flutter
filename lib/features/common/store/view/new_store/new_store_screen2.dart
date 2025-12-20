@@ -706,7 +706,7 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
 
       case AppConstants.groceryVegetablesDairy:
         Get.toNamed(
-            RouteHelper.getGroceryCategoryScreenRoute(),
+          RouteHelper.getGrocerySuperCategoryScreenRoute(),
             arguments: {ApiKeys.argOwnGrocery: false}
         );
         break;

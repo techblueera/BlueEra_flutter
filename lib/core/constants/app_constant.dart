@@ -67,6 +67,7 @@ class AppConstants {
   ///CHANGE NAME : arial to open sans some conflict are there
   // static const String arial = "OpenSans";
   static const String OpenSans = "Open Sans";
+  static const String Regular = "Regular";
 
   // static const String arial = "Arial";
   static const String androidDownloadPath = "/storage/emulated/0/Download/";
@@ -1302,18 +1303,7 @@ const Flat_ROOM = "Flat_ROOM";
 const VEHICLE = "VEHICLE";
 
 
-/// GROCERY
-const String GROCERY_ITEMS       = 'GROCERY_ITEMS';
-const String VEGETABLE       = 'VEGETABLE';
-const String FRUIT       = 'FRUIT';
-const String BAKERY_BREAD_ITEMS       = 'BAKERY_BREAD_ITEMS';
-const String DAIRY_PRODUCTS       = 'DAIRY_PRODUCTS';
-const String HOME_ESSENTIALS       = 'HOME_ESSENTIALS';
-const String PACKED_SWEETS_NAMKEENS       = 'PACKED_SWEETS_NAMKEENS';
-const String CROCKERY       = 'CROCKERY';
-const String MEDICAL_ITEMS       = 'MEDICAL_ITEMS';
-const String BEAUTY_BODY_CARE       = 'BEAUTY_BODY_CARE';
-const String STATIONARY       = 'STATIONARY';
+
 
 // biscuit & foods
  const String CHIPS_NAMKEEN       = 'CHIPS_NAMKEEN';

@@ -19,7 +19,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class AddressLocationRidingScreen extends StatefulWidget {
-  const AddressLocationRidingScreen({super.key});
+  const AddressLocationRidingScreen({super.key, required this.screeName});
+
+  final String screeName;
 
   @override
   State<AddressLocationRidingScreen> createState() =>
@@ -33,7 +35,8 @@ class _AddressLocationRidingScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(
+      appBar:widget.screeName != "from_tab_view"
+          ? CommonBackAppBar(
         title: AppStrings.addressAndLocation,
         // onBackTap: onBackPressed,
         buildCustomWidget: () => Padding(
@@ -43,7 +46,7 @@ class _AddressLocationRidingScreenState
                 fontWeight: FontWeight.w600),
           ),
         ),
-      ),
+      ):null,
       body: SingleChildScrollView(
         padding: EdgeInsets.all(SizeConfig.size15),
         child: CustomFormCard(

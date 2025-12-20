@@ -12,7 +12,9 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
+import 'package:BlueEra/features/common/delivery_partner/view/address_location_riding_screen.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/delivery_partner_orders/delivery_partner_orders.dart';
+import 'package:BlueEra/features/common/delivery_partner/view/personal_information_riding_screen.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/rider_profile_status_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/account_setting_screen/account_settings_screen.dart';
@@ -52,14 +54,13 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
   final viewPersonalDetailsController =
       getOrPut(() => ViewPersonalDetailsController());
   bool allCompleted = false;
+  bool allStepsCompleted = false;
 
   @override
   void initState() {
     _checkRiderStatus();
     _checkRiderServiceStatus();
-
     _tabController = TabController(length: 3, vsync: this);
-
     super.initState();
   }
 
@@ -80,7 +81,9 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
 
   @override
   void dispose() {
-    Get.delete<EarnWithBlueEraController>();
+    print('disposed');
+    deleteIfRegistered<EarnWithBlueEraController>();
+    deleteIfRegistered<DeliveryPartnerController>();
     _tabController.dispose();
     RouteHelper.routeObserver.unsubscribe(this);
     super.dispose();
@@ -120,12 +123,15 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
           Status.COMPLETE) {
         final stepStatus = deliveryPartnerController.stepStatus;
         // Check if all completed
-        allCompleted = stepStatus.values.every((status) => status == true);
+        allCompleted = deliveryPartnerController
+                .riderOnboardingStatusData.value?.verificationStatus ==
+            "approved";
+        allStepsCompleted = stepStatus.values.every((status) => status == true);
         final riderOpt = deliveryPartnerController.isRiderServiceOpt.value;
         if (riderOpt.isEmpty) {
           return _buildLoading();
         }
-
+logs("riderOpt==== $riderOpt");
         if (riderOpt.toLowerCase() == 'true') {
           return _buildRiderEnabled(context);
         }
@@ -149,8 +155,29 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
 
 
   Widget _buildRiderEnabled(BuildContext context) {
+    final stepStatus = deliveryPartnerController.stepStatus;
+
+    // Check if all completed
+    final allCompleted = stepStatus.values.every((status) => status == true);
+    // Find first incomplete step
+    logs("stepStatus==== $stepStatus");
+    final firstIncompleteEntry = stepStatus.entries
+        .where((entry) => entry.value == false)
+        .cast<MapEntry<RiderProfileStep, bool>>()
+        .toList()
+        .firstOrNull;
+
+    // final firstIncompleteEntry = stepStatus.entries.firstWhere(
+    //       (entry) => entry.value == false,
+    //   orElse: () =>  MapEntry(RiderProfileStep.none, true),
+    // );
+
+    // final firstIncompleteEntry =
+    //     stepStatus.entries.firstWhere((entry) => entry.value == false);
+    logs("firstIncompleteEntry=== ${firstIncompleteEntry?.key}");
+
     return Scaffold(
-      floatingActionButton: _buildFAB(),
+      // floatingActionButton: _buildFAB(),
       body: SafeArea(
         child: NestedScrollView(
           headerSliverBuilder: (_, __) => [
@@ -160,11 +187,21 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
           body: TabBarView(
             controller: _tabController,
             children: [
-              allCompleted
-                  ? DeliveryPartnerOrders()
-                  : RiderProfileStatusScreen(
+              (firstIncompleteEntry?.key == RiderProfileStep.personalInfo)
+                  ? PersonalInformationRidingScreen(
                       screeName: 'from_tab_view',
-                    ),
+                    )
+                  : (firstIncompleteEntry?.key == RiderProfileStep.addressInfo)
+                      ? AddressLocationRidingScreen(
+                          screeName: 'from_tab_view',
+                        )
+                      : deliveryPartnerController.riderOnboardingStatusData
+                                  .value?.verificationStatus ==
+                              "approved"
+                          ? DeliveryPartnerOrders()
+                          : RiderProfileStatusScreen(
+                              screeName: 'from_tab_view',
+                            ),
               const Center(child: CustomText(AppStrings.comingSoon)),
               const Center(child: CustomText(AppStrings.comingSoon)),
             ],
