@@ -67,6 +67,7 @@ class AppConstants {
   ///CHANGE NAME : arial to open sans some conflict are there
   // static const String arial = "OpenSans";
   static const String OpenSans = "Open Sans";
+  static const String Regular = "Regular";
 
   // static const String arial = "Arial";
   static const String androidDownloadPath = "/storage/emulated/0/Download/";

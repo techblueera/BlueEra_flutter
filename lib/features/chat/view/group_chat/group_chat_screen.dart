@@ -21,6 +21,7 @@ import '../widget/group_message_card.dart';
 class GroupChatScreen extends StatefulWidget {
   GroupChatScreen({
     required this.conversationId,
+    required this.isGroupPrivate,
     this.profileImage,
     required this.type,
     this.name,
@@ -29,6 +30,7 @@ class GroupChatScreen extends StatefulWidget {
   final String? conversationId;
   final String? profileImage;
   final String? name;
+  final bool isGroupPrivate;
   final String? type;
 
   @override
@@ -116,6 +118,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                   name: widget.name,
                   contactNo: '')
               : getChatTitleAppBar(
+            isGroupPrivate: widget.isGroupPrivate,
                   socketType: "group",
                   context,
                   userId: '',

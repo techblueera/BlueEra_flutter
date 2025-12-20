@@ -66,6 +66,7 @@ class _GroupChatListTabPageState extends State<GroupChatListTabPage> {
                               context,
                               MaterialPageRoute(
                                   builder: (context) => GroupChatScreen(
+                                    isGroupPrivate: chat?.publicGroup??false ,
                                         type: AppConstants.group_Chat_Type,
                                         conversationId: chat?.conversationId,
                                         profileImage: chat?.groupProfileImage
