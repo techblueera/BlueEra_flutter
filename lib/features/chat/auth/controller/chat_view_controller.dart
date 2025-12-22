@@ -358,15 +358,30 @@ class ChatViewController extends GetxController {
           scrollDown();
         }
       });
-      chatSocket.listenEvent(ChatEmitEvents.isOnLine, (data) {
-        if (userOpenUserId.value == data['user_id']) {
-          if (data['is_online']) {
-            userOnlineStatus.value = "Online";
-          }
-        } else {
-          userOnlineStatus.value = "Offline";
-        }
+      // chatSocket.listenEvent(ChatEmitEvents.isOnLine, (data) {
+      //   if (userOpenUserId.value == data['user_id']) {
+      //     if (data['is_online']) {
+      //       userOnlineStatus.value = "Online";
+      //     }
+      //   } else {
+      //     userOnlineStatus.value = "Offline";
+      //   }
+      // });
+      chatSocket.listenEvent(ChatEmitEvents.isOnlineFromChatList, (data) {
+        log("isOnlineFromChatList: $data");
+
+        final List<Map<String, dynamic>> datas =
+        List<Map<String, dynamic>>.from(data);
+
+        final Map<String, dynamic> user = datas.firstWhere(
+              (e) => e['user_id'] == userOpenUserId.value,
+          orElse: () => <String, dynamic>{},
+        );
+
+        userOnlineStatus.value =
+        user['is_online'] == true ? "Online" : "Offline";
       });
+
       chatSocket.listenEvent(ChatEmitEvents.messageStatusUpdate, (data) {
         if (data['conversation_id'] == userOpenConversationId.value) {
           readMessageStatus.value = data['status'];

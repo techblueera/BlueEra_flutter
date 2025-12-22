@@ -1789,6 +1789,7 @@ class ChatEmitEvents{
   static const messageViewed = "messageViewed";
   static const newMessageReceived = "newMessageReceived";
   static const isOnLine = "isOnLine";
+  static const isOnlineFromChatList = "isOnlineFromChatList";
   static const messageStatusUpdate = "messageStatusUpdate";
   static const update_data = "update_data";
 }

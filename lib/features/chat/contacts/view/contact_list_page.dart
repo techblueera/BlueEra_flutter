@@ -172,7 +172,10 @@ class _ContactsPageState extends State<ContactsPage> {
     PermissionStatus status = await Permission.contacts.status;
     if (status.isGranted) {
       List<Contact> contacts =
-          await FlutterContacts.getContacts(withProperties: true);
+      await FlutterContacts.getContacts(
+        withProperties: true,
+        withAccounts: true, // REQUIRED for newer Android
+      );
 
       // Convert Contacts → plain JSON-safe map
       List<Map<String, dynamic>> rawContacts = contacts.map((c) {
