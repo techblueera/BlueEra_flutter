@@ -112,20 +112,23 @@ class GrocerySuperCategoryScreen extends StatelessWidget {
 
       case GroceryConstant.BAKERY_BREAD_ITEMS:
         return {
-          'Bakery': controller.bakery,
-          'Bread': controller.bread,
-          'Cakes & Muffins': controller.cakesNdMuffins,
-          'Cookies & Biscuits': controller.cookiesNdBiscuit,
-          'Dessert / Bakery Sweets': controller.desertSweets,
+          'Namkeen & Mixture': GroceryData.namkeenAndMixture,
+          'Chips, Papad & Fryums': GroceryData.chipsPapadFryums,
+          'Biscuits & Cookies': GroceryData.biscuitsCookies,
+          'Bread, Bakery & Sweet Items': GroceryData.bakeryItems,
+          'Fried & Hot Snacks': GroceryData.friedHotSnacks,
         };
 
       case GroceryConstant.DAIRY_PRODUCTS:
         return {
-          'Milk & Milk Products': controller.milkProduct,
-          'Curd & Yogurt': controller.curdNdYogurt,
-          'Cheese & Paneer': controller.cheeseNdPaneer,
-          'Butter & Ghee': controller.butterNdGhee,
-          'Ice Cream & Frozen Dairy': controller.iceCreamNdFrozen,
+          'Milk': GroceryData.milkList,
+          'Curd, Buttermilk and Cream': GroceryData.curdButtermilkCreamList,
+          'Butter, Cheese and Paneer': GroceryData.butterCheesePaneerList,
+          'Ghee and Dairy Fats': GroceryData.gheeAndDairyFatsList,
+          'Ice Cream and Frozen Desserts': GroceryData.iceCreamFrozenDessertsList,
+          'Frozen Vegetables': GroceryData.frozenVegetablesList,
+          'Frozen Snacks and Frozen Foods': GroceryData.frozenSnacksMealsList,
+          'Milk Powders and Dairy Alternatives': GroceryData.milkPowdersAlternativesList,
         };
 
       case GroceryConstant.HOME_ESSENTIALS:

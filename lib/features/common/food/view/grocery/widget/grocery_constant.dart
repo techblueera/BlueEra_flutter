@@ -308,4 +308,166 @@ class GroceryConstant{
   static const String FRUIT_EXOTIC_RAMBUTAN = "fruit_exotic_rambutan";
   static const String FRUIT_EXOTIC_DURIAN = "fruit_exotic_durian";
 
+  // Namkeen & Mixture
+  static const String SNACK_NAMKEEN_ALOO_BHUJIA = "snack_namkeen_aloo_bhujia";
+  static const String SNACK_NAMKEEN_SEV = "snack_namkeen_sev";
+  static const String SNACK_NAMKEEN_MIXTURE = "snack_namkeen_mixture";
+  static const String SNACK_NAMKEEN_BOONDI = "snack_namkeen_boondi";
+  static const String SNACK_NAMKEEN_MOONG_DAL = "snack_namkeen_moong_dal";
+  static const String SNACK_NAMKEEN_CHANA_DAL = "snack_namkeen_chana_dal";
+  static const String SNACK_NAMKEEN_PEANUTS = "snack_namkeen_peanuts";
+  static const String SNACK_GHATIYA = "snack_ghatiya";
+  static const String SNACK_NAMKEEN_FARSAN = "snack_namkeen_farsan";
+
+  // Chips, Papad & Fryums
+  static const String SNACK_CHIPS_POTATO = "snack_chips_potato";
+  static const String SNACK_CHIPS_BANANA = "snack_chips_banana";
+  static const String SNACK_CHIPS_TAPIOCA = "snack_chips_tapioca";
+  static const String SNACK_CHIPS_CORN = "snack_chips_corn";
+  static const String SNACK_CHIPS_MULTIGRAIN = "snack_chips_multigrain";
+  static const String SNACK_CHIPS_NACHO = "snack_chips_nacho";
+  static const String SNACK_PAPAD_URAD = "snack_papad_urad";
+  static const String SNACK_PAPAD_RICE = "snack_papad_rice";
+  static const String SNACK_PAPAD_SABUDANA = "snack_papad_sabudana";
+  static const String SNACK_PAPAD_APPALAM = "snack_papad_appalam";
+  static const String SNACK_FRYUMS = "snack_fryums";
+
+  // Biscuits & Cookies
+  static const String BISCUIT_GLUCOSE = "biscuit_glucose";
+  static const String BISCUIT_MARIE = "biscuit_marie";
+  static const String BISCUIT_MILK = "biscuit_milk";
+  static const String BISCUIT_CREAM = "biscuit_cream";
+  static const String BISCUIT_ARROWROOT = "biscuit_arrowroot";
+  static const String BISCUIT_SANDWICH = "biscuit_sandwich";
+  static const String BISCUIT_MULTIGRAIN = "biscuit_multigrain";
+  static const String BISCUIT_DIGESTIVE = "biscuit_digestive";
+  static const String BISCUIT_JEERA = "biscuit_jeera";
+  static const String BISCUIT_BUTTER = "biscuit_butter";
+  static const String BISCUIT_JAM = "biscuit_jam";
+
+  // Bread, Bakery & Sweet Items
+  static const String BAKERY_WHITE_BREAD = "bakery_white_bread";
+  static const String BAKERY_BROWN_BREAD = "bakery_brown_bread";
+  static const String BAKERY_MULTIGRAIN_BREAD = "bakery_multigrain_bread";
+  static const String BAKERY_PAV = "bakery_pav";
+  static const String BAKERY_BURGER_BUNS = "bakery_burger_buns";
+  static const String BAKERY_PIZZA_BASE = "bakery_pizza_base";
+  static const String BAKERY_BREAD_CRUMBS = "bakery_bread_crumbs";
+  static const String BAKERY_KHARI = "bakery_khari";
+  static const String BAKERY_RUSK = "bakery_rusk";
+  static const String BAKERY_CAKE = "bakery_cake";
+  static const String BAKERY_CUP_CAKE = "bakery_cup_cake";
+  static const String BAKERY_MUFFINS = "bakery_muffins";
+  static const String BAKERY_SWISS_ROLL = "bakery_swiss_roll";
+
+  // Fried & Hot Snacks
+  static const String SNACK_HOT_SAMOSA = "snack_hot_samosa";
+  static const String SNACK_HOT_VEG_PUFF = "snack_hot_veg_puff";
+  static const String SNACK_HOT_VEG_PATTIES = "snack_hot_veg_patties";
+  static const String SNACK_HOT_PIZZA_PATTIES = "snack_hot_pizza_patties";
+  static const String SNACK_HOT_VEG_CUTLET = "snack_hot_veg_cutlet";
+  static const String SNACK_HOT_BREAD_ROLL = "snack_hot_bread_roll";
+  static const String SNACK_HOT_SPRING_ROLL = "snack_hot_spring_roll";
+  static const String SNACK_HOT_DRY_KACHORI = "snack_hot_dry_kachori";
+  static const String SNACK_DRY_KHAKHRA = "snack_dry_khakhra";
+  static const String SNACK_DRY_CHAKLI = "snack_dry_chakli";
+  static const String SNACK_DRY_MURUKKU = "snack_dry_murukku";
+  static const String SNACK_DRY_POPCORN = "snack_dry_popcorn";
+
+  // Milk
+  static const String DAIRY_MILK_FULL_CREAM = "dairy_milk_full_cream";
+  static const String DAIRY_MILK_TONED = "dairy_milk_toned";
+  static const String DAIRY_MILK_DOUBLE_TONED = "dairy_milk_double_toned";
+  static const String DAIRY_MILK_SKIMMED = "dairy_milk_skimmed";
+  static const String DAIRY_MILK_COW = "dairy_milk_cow";
+  static const String DAIRY_MILK_BUFFALO = "dairy_milk_buffalo";
+  static const String DAIRY_MILK_FLAVOURED = "dairy_milk_flavoured";
+  static const String DAIRY_MILK_LACTOSE_FREE = "dairy_milk_lactose_free";
+
+  // Curd, Buttermilk & Cream
+  static const String DAIRY_CURD_FRESH = "dairy_curd_fresh";
+  static const String DAIRY_CURD_SET = "dairy_curd_set";
+  static const String DAIRY_YOGURT_GREEK = "dairy_yogurt_greek";
+  static const String DAIRY_YOGURT_FLAVOURED = "dairy_yogurt_flavoured";
+  static const String DAIRY_BUTTER_MILK = "dairy_butter_milk";
+  static const String DAIRY_CHAAS_NAMKEEN = "dairy_chaas_namkeen";
+  static const String DAIRY_LASSI = "dairy_lassi";
+  static const String DAIRY_CREAM_FRESH = "dairy_cream_fresh";
+  static const String DAIRY_CREAM_COOKING = "dairy_cream_cooking";
+  static const String DAIRY_CREAM_WHIPPING = "dairy_cream_whipping";
+
+  // Butter, Cheese & Paneer
+  static const String DAIRY_BUTTER_TABLE = "dairy_butter_table";
+  static const String DAIRY_BUTTER_WHITE = "dairy_butter_white";
+  static const String DAIRY_BUTTER_SALTED = "dairy_butter_salted";
+  static const String DAIRY_BUTTER_UNSALTED = "dairy_butter_unsalted";
+  static const String DAIRY_CHEESE_SLICES = "dairy_cheese_slices";
+  static const String DAIRY_CHEESE_BLOCKS = "dairy_cheese_blocks";
+  static const String DAIRY_CHEESE_SPREAD = "dairy_cheese_spread";
+  static const String DAIRY_PANEER_FRESH = "dairy_paneer_fresh";
+  static const String DAIRY_PANEER_MALAI = "dairy_paneer_malai";
+  static const String DAIRY_PANEER_FROZEN = "dairy_paneer_frozen";
+
+  // Ghee and Dairy Fats
+  static const String DAIRY_GHEE_COW = "dairy_ghee_cow";
+  static const String DAIRY_GHEE_BUFFALO = "dairy_ghee_buffalo";
+  static const String DAIRY_GHEE_A2 = "dairy_ghee_a2";
+  static const String DAIRY_GHEE_ORGANIC = "dairy_ghee_organic";
+  static const String DAIRY_GHEE_DESI = "dairy_ghee_desi";
+  static const String DAIRY_GHEE_VANASPATI = "dairy_ghee_vanaspati";
+
+  // Ice Cream and Frozen Desserts
+  static const String FROZEN_ICE_CREAM_CUPS = "frozen_ice_cream_cups";
+  static const String FROZEN_ICE_CREAM_FAMILY_PACKS = "frozen_ice_cream_family_packs";
+  static const String FROZEN_ICE_CREAM_BARS = "frozen_ice_cream_bars";
+  static const String FROZEN_ICE_CREAM_CONES = "frozen_ice_cream_cones";
+  static const String FROZEN_KULFI = "frozen_kulfi";
+  static const String FROZEN_MALAI_KULFI = "frozen_malai_kulfi";
+  static const String FROZEN_MATKA_KULFI = "frozen_matka_kulfi";
+  static const String FROZEN_YOGURT = "frozen_yogurt";
+  static const String FROZEN_DESSERT = "frozen_dessert";
+  static const String FROZEN_ICE_LOLLIES = "frozen_ice_lollies";
+  static const String FROZEN_CASSATA = "frozen_cassata";
+  static const String FROZEN_ICE_CREAM_SANDWICH = "frozen_ice_cream_sandwich";
+  static const String FROZEN_FRUIT_SORBET = "frozen_fruit_sorbet";
+  static const String FROZEN_GELATO = "frozen_gelato";
+
+  // Frozen Vegetables
+  static const String FROZEN_VEG_GREEN_PEAS = "frozen_veg_green_peas";
+  static const String FROZEN_VEG_SWEET_CORN = "frozen_veg_sweet_corn";
+  static const String FROZEN_VEG_MIXED = "frozen_veg_mixed";
+  static const String FROZEN_VEG_FRENCH_BEANS = "frozen_veg_french_beans";
+  static const String FROZEN_VEG_CARROT = "frozen_veg_carrot";
+  static const String FROZEN_VEG_SPINACH = "frozen_veg_spinach";
+
+  // Frozen Snacks & Meals
+  static const String FROZEN_SNACK_FRIES = "frozen_snack_french_fries";
+  static const String FROZEN_SNACK_VEG_NUGGETS = "frozen_snack_veg_nuggets";
+  static const String FROZEN_SNACK_CHICKEN_NUGGETS = "frozen_snack_chicken_nuggets";
+  static const String FROZEN_SNACK_SPRING_ROLLS = "frozen_snack_spring_rolls";
+  static const String FROZEN_SNACK_SAMOSA = "frozen_snack_samosa";
+  static const String FROZEN_SNACK_PARATHA = "frozen_snack_paratha";
+  static const String FROZEN_SNACK_MOMOS = "frozen_snack_momos";
+  static const String FROZEN_SNACK_VEG_CUTLET = "frozen_snack_veg_cutlet";
+
+  // Tea, Coffee & Health Drinks
+  static const String DRINK_TEA_LEAVES = "drink_tea_leaves";
+  static const String DRINK_GREEN_TEA = "drink_green_tea";
+  static const String DRINK_TEA_BAGS = "drink_tea_bags";
+  static const String DRINK_INSTANT_COFFEE = "drink_instant_coffee";
+  static const String DRINK_GROUND_COFFEE = "drink_ground_coffee";
+  static const String DRINK_COFFEE_BEANS = "drink_coffee_beans";
+  static const String DRINK_HEALTH_POWDER = "drink_health_powder";
+  static const String DRINK_CHOCOLATE_DRINK = "drink_chocolate_drink";
+
+  // Milk Powders and Dairy Alternatives
+  static const String DAIRY_SKIMMED_MILK_POWDER = "dairy_skimmed_milk_powder";
+  static const String DAIRY_FULL_CREAM_MILK_POWDER = "dairy_full_cream_milk_powder";
+  static const String DAIRY_INFANT_MILK_FORMULA = "dairy_infant_milk_formula";
+  static const String DAIRY_CONDENSED_MILK = "dairy_condensed_milk";
+  static const String DAIRY_EVAPORATED_MILK = "dairy_evaporated_milk";
+  static const String DAIRY_ALT_SOY_MILK = "dairy_alt_soy_milk";
+  static const String DAIRY_ALT_ALMOND_MILK = "dairy_alt_almond_milk";
+  static const String DAIRY_ALT_OATS_MILK = "dairy_alt_oats_milk";
+
 }

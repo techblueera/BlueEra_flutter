@@ -1335,7 +1335,7 @@ const VEHICLE = "VEHICLE";
  const String EDIBLE_OILS         = 'EDIBLE_OILS';
  const String MILLET_ORGANIC      = 'MILLET_ORGANIC';
 
-// dairy & bakery
+// dairy_items & bakery
  const String MILK_PRODUCTS       = 'MILK_PRODUCTS';
  const String CHEESE_PANEER_TOFU  = 'CHEESE_PANEER_TOFU';
  const String BUTTER_CHUTNEY      = 'BUTTER_CHUTNEY';

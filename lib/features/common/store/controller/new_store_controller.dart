@@ -74,6 +74,7 @@ class NewStoreController extends GetxController{
 
 
   RxBool isBannerVisible = false.obs;
+
   @override
   void onInit() {
     super.onInit();

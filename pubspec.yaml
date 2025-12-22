@@ -105,13 +105,17 @@ flutter:
     - assets/video/
     - assets/store/
     - assets/sound/
-    - assets/category/grocery/
+
     - assets/category/dal/
     - assets/category/foods/all_food_category/
     - assets/category/medical/
 
-    - assets/svg/grocery/
+    - assets/category/grocery/
+    - assets/category/grocery/grocery_items/
     - assets/category/grocery/fruits/
+    - assets/category/grocery/vegetables/
+    - assets/category/grocery/dairy_items/
+    - assets/category/grocery/bakery_snacks_items/
 
 
   fonts:

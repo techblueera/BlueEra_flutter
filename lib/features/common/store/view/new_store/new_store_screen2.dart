@@ -22,7 +22,7 @@ import 'package:BlueEra/features/common/store/view/new_store/all_food_store_scre
 import 'package:BlueEra/features/common/store/view/new_store/all_product_store_screen.dart';
 import 'package:BlueEra/features/common/store/view/new_store/business_store_screen.dart';
 import 'package:BlueEra/features/common/auth/model/business_profile_category.dart';
-import 'package:BlueEra/features/common/store/widget/icon_grid_item.dart';
+import 'package:BlueEra/widgets/circle_icon_grid_item.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/create_profile_screen.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -651,7 +651,7 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                   final item = rowItems[itemIndex];
 
                   return Expanded(
-                    child: IconGridItem(
+                    child: CircleIconGridItem(
                       label: labelBuilder(item),
                       icon: iconBuilder(item),
                       imgColor: AppColors.blue6B,
@@ -661,10 +661,10 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                     ),
                   );
                 } else {
-                  return const Expanded(child: SizedBox());
+                  return const Expanded(child: SizedBox.shrink());
                 }
               } else {
-                return SizedBox(width: SizeConfig.size8);
+                return SizedBox(width: SizeConfig.size20);
               }
             }),
           ),

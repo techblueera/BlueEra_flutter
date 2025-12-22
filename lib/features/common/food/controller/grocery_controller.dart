@@ -267,7 +267,7 @@ class GroceryController extends GetxController {
         label: "Breads\n& Chapatis",
         tagId: BREADS_CHAPATIS),
     CollapsibleGridModel(
-        icon: "snacks.png",
+        icon: "bakery_snacks_items.png",
         label: "Bakery\n& Snacks",
         tagId: BAKERY_SNACKS),
   ];
@@ -297,7 +297,7 @@ class GroceryController extends GetxController {
         label: "Breads\n& Chapatis",
         tagId: BREADS_CHAPATIS),
     CollapsibleGridModel(
-        icon: "snacks.png",
+        icon: "bakery_snacks_items.png",
         label: "Bakery\n& Snacks",
         tagId: BAKERY_SNACKS),
   ];
@@ -327,7 +327,7 @@ class GroceryController extends GetxController {
         label: "Breads\n& Chapatis",
         tagId: BREADS_CHAPATIS),
     CollapsibleGridModel(
-        icon: "snacks.png",
+        icon: "bakery_snacks_items.png",
         label: "Bakery\n& Snacks",
         tagId: BAKERY_SNACKS),
   ];
@@ -357,7 +357,7 @@ class GroceryController extends GetxController {
         label: "Breads\n& Chapatis",
         tagId: BREADS_CHAPATIS),
     CollapsibleGridModel(
-        icon: "snacks.png",
+        icon: "bakery_snacks_items.png",
         label: "Bakery\n& Snacks",
         tagId: BAKERY_SNACKS),
   ];
@@ -387,7 +387,7 @@ class GroceryController extends GetxController {
         label: "Breads\n& Chapatis",
         tagId: BREADS_CHAPATIS),
     CollapsibleGridModel(
-        icon: "snacks.png",
+        icon: "bakery_snacks_items.png",
         label: "Bakery\n& Snacks",
         tagId: BAKERY_SNACKS),
   ];

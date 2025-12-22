@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
-import 'package:BlueEra/features/common/store/widget/icon_grid_item.dart';
+import 'package:BlueEra/widgets/circle_icon_grid_item.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -44,18 +45,19 @@ class _CollapsibleGridSectionState extends State<CollapsibleGridSection> {
           children: List.generate(crossAxisCount * 2 - 1, (i) {
             if (i.isEven) {
               final index = i ~/ 2;
-              if (index < rowItems.length) {
-                final item = rowItems[index];
-                return Expanded(
-                  child: IconGridItem(
-                    label: item.label,
-                    icon: 'assets/category/grocery/${item.icon}',
-                    onTap: () => widget.onTap?.call(item),
-                  ),
-                );
-              }
+
+              return Expanded(
+                child: index < rowItems.length
+                    ? CircleIconGridItem(
+                  label: rowItems[index].label,
+                  icon: 'assets/category/grocery/${rowItems[index].icon}',
+                  onTap: () => widget.onTap?.call(rowItems[index]),
+                )
+                    : const SizedBox.shrink(),
+              );
+            } else {
+              return SizedBox(width: SizeConfig.size20);
             }
-            return const Expanded(child: SizedBox());
           }),
         ),
       );
