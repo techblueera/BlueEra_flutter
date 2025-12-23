@@ -1356,6 +1356,12 @@ class ChatViewController extends GetxController {
           await ChatViewRepo().deleteSingleMessage(params);
       clearMessageControllerCommon();
       if (responseModel.isSuccess) {
+     emitEvent(ChatEmitEvents.messageReceived, {
+      ApiKeys.conversation_id: params[ApiKeys.conversation_id],
+      ApiKeys.page: 1,
+      ApiKeys.is_online_user: userId,
+      ApiKeys.per_page_message: 30,
+    });
       } else {
         clearMessageControllerCommon();
         commonSnackBar(

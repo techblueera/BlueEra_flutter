@@ -1215,6 +1215,7 @@ PreferredSize getChatOptionsAppBar(BuildContext context, {
                             await chatViewController.deleteChatMessage(
                                 data, userId ?? '');
                             chatThemeController.resetSelection();
+                            chatThemeController.deActivateSelection();
                             Navigator.pop(context);
                           },
                           child: Container(
@@ -1248,6 +1249,7 @@ PreferredSize getChatOptionsAppBar(BuildContext context, {
                             await chatViewController.deleteChatMessage(
                                 data, userId ?? '');
                             chatThemeController.resetSelection();
+                            chatThemeController.deActivateSelection();
                             Navigator.pop(context);
                           },
                           child: Container(
