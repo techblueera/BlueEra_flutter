@@ -1774,6 +1774,8 @@ class AppStrings {
   static const noFoodRestrictions = "noFoodRestrictions";
   static const youCanOptOnlyOneService = "youCanOptOnlyOneService";
   static const statistics = "statistics";
+  static const addProducts = "Add Products";
+  static const addManually = "Add Manually";
 
 
   ///BHAVESH START
@@ -2127,6 +2129,7 @@ class AppStrings {
   static const storesNearMe = "storesNearMe";
   static const foodAndRestaurant = "foodAndRestaurant";
   static const seeMore = "seeMore";
+  static const seeLess = "seeLess";
   static const downloadLanguagePack = "downloadLanguagePack";
   static const downloadLanguageDescription = "downloadLanguageDescription";
 
@@ -2155,5 +2158,891 @@ class AppStrings {
   static const selectRentalType = "selectRentalType";
   static const selectRentalTypeMessage = "selectRentalTypeMessage";
   static const applyForFranchise = "applyForFranchise";
+
+
+  /// Grocery Strings (Himanshu Dev)
+
+// Category Headers
+  static const headerRiceRiceProducts = "headerRiceRiceProducts";
+  static const headerWheatAttaFlours = "headerWheatAttaFlours";
+  static const headerDalsPulsesBeans = "headerDalsPulsesBeans";
+  static const headerMilletsTraditionalGrains = "headerMilletsTraditionalGrains";
+  static const headerBreakfastLightStaples = "headerBreakfastLightStaples";
+  static const headerSpicesMasala = "headerSpicesMasala";
+  static const headerSaltSugarSweeteners = "headerSaltSugarSweeteners";
+  static const headerOilsGheeFats = "headerOilsGheeFats";
+  static const headerTeaCoffeeBeverages = "headerTeaCoffeeBeverages";
+  static const headerDryFruitsReadyFood = "headerDryFruitsReadyFood";
+
+  static const headerLeafyVegetables = "headerLeafyVegetables";
+  static const headerRootVegetables = "headerRootVegetables";
+  static const headerBulbStemVegetables = "headerBulbStemVegetables";
+  static const headerFruitVegetables = "headerFruitVegetables";
+  static const headerPodsBeans = "headerPodsBeans";
+  static const headerFlowerVegetables = "headerFlowerVegetables";
+  static const headerSpecialIndianItems = "headerSpecialIndianItems";
+  static const headerExoticVegetables = "headerExoticVegetables";
+
+  static const headerDailyFruits = "headerDailyFruits";
+  static const headerDesiFruits = "headerDesiFruits";
+  static const headerSourStoneFruits = "headerSourStoneFruits";
+  static const headerSmallSeasonalFruits = "headerSmallSeasonalFruits";
+  static const headerForestCoastalFruits = "headerForestCoastalFruits";
+  static const headerSpecialExoticFruits = "headerSpecialExoticFruits";
+
+  static const headerNamkeenMixture = "headerNamkeenMixture";
+  static const headerChipsPapadFryums = "headerChipsPapadFryums";
+  static const headerBiscuitsCookies = "headerBiscuitsCookies";
+  static const headerBakerySweetItems = "headerBakerySweetItems";
+  static const headerFriedHotSnacks = "headerFriedHotSnacks";
+
+  static const headerMilk = "headerMilk";
+  static const headerCurdCream = "headerCurdCream";
+  static const headerButterCheesePaneer = "headerButterCheesePaneer";
+  static const headerGheeDairyFats = "headerGheeDairyFats";
+  static const headerIceCreamFrozen = "headerIceCreamFrozen";
+  static const headerFrozenVegetables = "headerFrozenVegetables";
+  static const headerFrozenSnacks = "headerFrozenSnacks";
+  static const headerMilkPowderAlts = "headerMilkPowderAlts";
+
+  // Grocery Super Categories
+  static const labelGroceryItems = "labelGroceryItems";
+  static const labelVegetable = "labelVegetable";
+  static const labelFruit = "labelFruit";
+  static const labelBakeryBreadItems = "labelBakeryBreadItems";
+  static const labelDairyProducts = "labelDairyProducts";
+  static const labelHomeEssentials = "labelHomeEssentials";
+  static const labelPackedSweetsNamkeens = "labelPackedSweetsNamkeens";
+  static const labelCrockery = "labelCrockery";
+  static const labelMedicalItems = "labelMedicalItems";
+  static const labelBeautyBodyCare = "labelBeautyBodyCare";
+  static const labelStationary = "labelStationary";
+
+  // Rice Products
+  static const labelBasmatiRice = "labelBasmatiRice";
+  static const labelRedRice = "labelRedRice";
+  static const labelKolamRice = "labelKolamRice";
+  static const labelPonniRice = "labelPonniRice";
+  static const labelParboiledRice = "labelParboiledRice";
+  static const labelBrownRice = "labelBrownRice";
+  static const labelSonaMasooriRice = "labelSonaMasooriRice";
+  static const labelBlackRice = "labelBlackRice";
+
+// Wheat & Flours
+  static const labelWholeWheatAtta = "labelWholeWheatAtta";
+  static const labelChakkiAtta = "labelChakkiAtta";
+  static const labelSharbatiAtta = "labelSharbatiAtta";
+  static const labelMultigrainAtta = "labelMultigrainAtta";
+  static const labelDiabeticFriendlyAtta = "labelDiabeticFriendlyAtta";
+  static const labelMaida = "labelMaida";
+  static const labelBesan = "labelBesan";
+  static const labelRiceFlour = "labelRiceFlour";
+  static const labelRagiFlour = "labelRagiFlour";
+
+// Dal & Beans
+  static const labelToorDal = "labelToorDal";
+  static const labelMoongDal = "labelMoongDal";
+  static const labelMasoorDal = "labelMasoorDal";
+  static const labelUradDal = "labelUradDal";
+  static const labelChanaDal = "labelChanaDal";
+  static const labelKabuliChana = "labelKabuliChana";
+  static const labelKalaChana = "labelKalaChana";
+  static const labelRajma = "labelRajma";
+  static const labelDryGreenPeas = "labelDryGreenPeas";
+
+// Millets & Grains
+  static const labelRagi = "labelRagi";
+  static const labelJowar = "labelJowar";
+  static const labelBajra = "labelBajra";
+  static const labelFoxtailMillet = "labelFoxtailMillet";
+  static const labelLittleMillet = "labelLittleMillet";
+  static const labelKodoMillet = "labelKodoMillet";
+  static const labelBarnyardMillet = "labelBarnyardMillet";
+  static const labelSamakRice = "labelSamakRice";
+
+// Breakfast Staples
+  static const labelPoha = "labelPoha";
+  static const labelAvalRiceFlakes = "labelAvalRiceFlakes";
+  static const labelDaliaBrokenWheat = "labelDaliaBrokenWheat";
+  static const labelOats = "labelOats";
+  static const labelCornGrits = "labelCornGrits";
+  static const labelWheatBran = "labelWheatBran";
+
+// Spices & Masala
+  static const labelCuminSeeds = "labelCuminSeeds";
+  static const labelCorianderSeeds = "labelCorianderSeeds";
+  static const labelBlackPepper = "labelBlackPepper";
+  static const labelGreenCardamom = "labelGreenCardamom";
+  static const labelCloves = "labelCloves";
+  static const labelCinnamon = "labelCinnamon";
+  static const labelTurmericPowder = "labelTurmericPowder";
+  static const labelRedChilliPowder = "labelRedChilliPowder";
+  static const labelCorianderPowder = "labelCorianderPowder";
+  static const labelGaramMasala = "labelGaramMasala";
+  static const labelChaatMasala = "labelChaatMasala";
+  static const labelSambharMasala = "labelSambharMasala";
+  static const labelBiryaniMasala = "labelBiryaniMasala";
+  static const labelCholeMasala = "labelCholeMasala";
+
+// Salt & Sweeteners
+  static const labelIodizedSalt = "labelIodizedSalt";
+  static const labelRockSalt = "labelRockSalt";
+  static const labelPinkSalt = "labelPinkSalt";
+  static const labelWhiteSugar = "labelWhiteSugar";
+  static const labelBrownSugar = "labelBrownSugar";
+  static const labelJaggery = "labelJaggery";
+  static const labelHoney = "labelHoney";
+  static const labelSugarFreeSweetener = "labelSugarFreeSweetener";
+
+// Oils & Fats
+  static const labelSunflowerOil = "labelSunflowerOil";
+  static const labelRiceBranOil = "labelRiceBranOil";
+  static const labelMustardOil = "labelMustardOil";
+  static const labelGroundnutOil = "labelGroundnutOil";
+  static const labelSesameOil = "labelSesameOil";
+  static const labelCoconutOil = "labelCoconutOil";
+  static const labelOliveOil = "labelOliveOil";
+  static const labelCowGhee = "labelCowGhee";
+  static const labelDesiGhee = "labelDesiGhee";
+
+// Tea, Coffee & Beverages
+  static const labelAssamTea = "labelAssamTea";
+  static const labelGreenTeaBeverage = "labelGreenTeaBeverage";
+  static const labelMasalaTea = "labelMasalaTea";
+  static const labelInstantCoffee = "labelInstantCoffeeStaple";
+  static const labelFilterCoffee = "labelFilterCoffeeStaple";
+  static const labelMaltHealthDrink = "labelMaltHealthDrink";
+  static const labelGlucoseDrinkPowder = "labelGlucoseDrinkPowder";
+  static const labelCoconutWater = "labelCoconutWaterStaple";
+  static const labelPackagedDrinkingWater = "labelPackagedDrinkingWater";
+
+// Dry Fruits, Baby Food & Ready Food
+  static const labelAlmonds = "labelAlmonds";
+  static const labelCashewNuts = "labelCashewNuts";
+  static const labelRaisins = "labelRaisins";
+  static const labelDates = "labelDatesStaple";
+  static const labelDryFig = "labelDryFig";
+  static const labelChiaSeeds = "labelChiaSeeds";
+  static const labelFlaxSeeds = "labelFlaxSeeds";
+  static const labelPumpkinSeeds = "labelPumpkinSeeds";
+  static const labelBabyMilkPowder = "labelBabyMilkPowder";
+  static const labelRiceCereal = "labelRiceCereal";
+  static const labelKhichdiMix = "labelKhichdiMix";
+  static const labelBabyBiscuits = "labelBabyBiscuits";
+  static const labelReadyPoha = "labelReadyPoha";
+  static const labelReadyUpma = "labelReadyUpma";
+  static const labelReadyDal = "labelReadyDal";
+  static const labelPapadStaple = "labelPapadStaple";
+  static const labelTomatoKetchup = "labelTomatoKetchup";
+  static const labelMangoPickle = "labelMangoPickle";
+  static const labelLemonPickle = "labelLemonPickle";
+  static const labelMixedVegetablePickle = "labelMixedVegetablePickle";
+
+  // Leafy Vegetables
+  static const labelSpinach = "labelSpinach";
+  static const labelFenugreek = "labelFenugreek";
+  static const labelMustardGreens = "labelMustardGreens";
+  static const labelMint = "labelMint";
+  static const labelCorianderLeaves = "labelCorianderLeaves";
+  static const labelAmaranth = "labelAmaranth";
+  static const labelBathua = "labelBathua";
+  static const labelMalabarSpinach = "labelMalabarSpinach";
+  static const labelDrumstickLeaves = "labelDrumstickLeaves";
+  static const labelDillLeaves = "labelDillLeaves";
+  static const labelTaroLeaves = "labelTaroLeaves";
+  static const labelCurryLeaves = "labelCurryLeaves";
+  static const labelLettuceIndian = "labelLettuceIndian";
+
+// Root Vegetables
+  static const labelPotato = "labelPotato";
+  static const labelSweetPotato = "labelSweetPotato";
+  static const labelCarrot = "labelCarrot";
+  static const labelRadish = "labelRadish";
+  static const labelBeetroot = "labelBeetroot";
+  static const labelTurnip = "labelTurnip";
+  static const labelYam = "labelYam";
+  static const labelTaroRoot = "labelTaroRoot";
+  static const labelElephantFootYam = "labelElephantFootYam";
+  static const labelCassava = "labelCassava";
+  static const labelLotusRoot = "labelLotusRoot";
+
+// Bulb & Stem
+  static const labelOnion = "labelOnion";
+  static const labelGarlic = "labelGarlic";
+  static const labelLeek = "labelLeek";
+  static const labelSpringOnion = "labelSpringOnion";
+  static const labelBananaStem = "labelBananaStem";
+  static const labelColocasiaStem = "labelColocasiaStem";
+
+// Fruit Vegetables & Gourds
+  static const labelTomato = "labelTomato";
+  static const labelBrinjalEggplant = "labelBrinjalEggplant";
+  static const labelBottleGourd = "labelBottleGourd";
+  static const labelBitterGourd = "labelBitterGourd";
+  static const labelRidgeGourd = "labelRidgeGourd";
+  static const labelSpongeGourd = "labelSpongeGourd";
+  static const labelSnakeGourd = "labelSnakeGourd";
+  static const labelPumpkin = "labelPumpkin";
+  static const labelCucumber = "labelCucumber";
+  static const labelAshGourd = "labelAshGourd";
+  static const labelPointedGourd = "labelPointedGourd";
+  static const labelIvyGourd = "labelIvyGourd";
+  static const labelTinda = "labelTinda";
+  static const labelChowChowChayote = "labelChowChowChayote";
+  static const labelRawBanana = "labelRawBanana";
+  static const labelRawPapaya = "labelRawPapaya";
+  static const labelCapsicumBellPepper = "labelCapsicumBellPepper";
+
+// Pods & Beans
+  static const labelGreenPeas = "labelGreenPeas";
+  static const labelFrenchBeans = "labelFrenchBeans";
+  static const labelClusterBeans = "labelClusterBeans";
+  static const labelCowpea = "labelCowpea";
+  static const labelHyacinthBeans = "labelHyacinthBeans";
+  static const labelBroadBeans = "labelBroadBeans";
+  static const labelWingedBeans = "labelWingedBeans";
+  static const labelYardlongBeans = "labelYardlongBeans";
+
+// Flower Vegetables
+  static const labelCauliflower = "labelCauliflower";
+  static const labelBroccoli = "labelBroccoli";
+  static const labelBananaFlower = "labelBananaFlower";
+  static const labelPumpkinFlower = "labelPumpkinFlower";
+  static const labelDrumstickFlower = "labelDrumstickFlower";
+
+// Fungi & Specialty
+  static const labelMushroom = "labelMushroom";
+  static const labelGreenChilli = "labelGreenChilli";
+  static const labelGinger = "labelGinger";
+  static const labelTurmericFresh = "labelTurmericFresh";
+  static const labelDrumstick = "labelDrumstick";
+  static const labelRawJackfruit = "labelRawJackfruit";
+  static const labelBambooShoot = "labelBambooShoot";
+  static const labelKokum = "labelKokum";
+  static const labelSundakkaiTurkeyBerry = "labelSundakkaiTurkeyBerry";
+
+// Exotic
+  static const labelZucchini = "labelZucchini";
+  static const labelCelery = "labelCelery";
+  static const labelAsparagus = "labelAsparagus";
+  static const labelBokChoy = "labelBokChoy";
+  static const labelLettuceIcebergRomaine = "labelLettuceIcebergRomaine";
+  static const labelKale = "labelKale";
+  static const labelChineseCabbage = "labelChineseCabbage";
+
+  // Daily Fruits
+  static const labelApple = "labelApple";
+  static const labelBanana = "labelBanana";
+  static const labelOrange = "labelOrange";
+  static const labelMosambiSweetLime = "labelMosambiSweetLime";
+  static const labelGrapes = "labelGrapes";
+  static const labelPapaya = "labelPapaya";
+  static const labelPomegranate = "labelPomegranate";
+  static const labelGuava = "labelGuava";
+  static const labelPear = "labelPear";
+  static const labelChikooSapota = "labelChikooSapota";
+  static const labelPineapple = "labelPineapple";
+  static const labelWatermelon = "labelWatermelon";
+  static const labelMuskmelon = "labelMuskmelon";
+
+// Desi Fruits
+  static const labelMango = "labelMango";
+  static const labelJackfruit = "labelJackfruit";
+  static const labelJamun = "labelJamun";
+  static const labelCustardApple = "labelCustardApple";
+  static const labelBerIndianJujube = "labelBerIndianJujube";
+  static const labelSoursop = "labelSoursop";
+  static const labelWoodAppleBael = "labelWoodAppleBael";
+  static const labelTamarind = "labelTamarind";
+  static const labelMonkeyJack = "labelMonkeyJack";
+  static const labelIndianFigAnjeer = "labelIndianFigAnjeer";
+  static const labelKhirniRayan = "labelKhirniRayan";
+  static const labelKaronda = "labelKaronda";
+  static const labelIndianGooseberryAmla = "labelIndianGooseberryAmla";
+
+// Sour & Stone Fruits
+  static const labelLemon = "labelLemon";
+  static const labelLime = "labelLime";
+  static const labelKinnow = "labelKinnow";
+  static const labelPomelo = "labelPomelo";
+  static const labelCitron = "labelCitron";
+  static const labelGalgal = "labelGalgal";
+  static const labelPeach = "labelPeach";
+  static const labelPlum = "labelPlum";
+  static const labelApricot = "labelApricot";
+  static const labelCherry = "labelCherry";
+
+// Small & Seasonal Fruits
+  static const labelStrawberry = "labelStrawberry";
+  static const labelMulberry = "labelMulberry";
+  static const labelRaspberry = "labelRaspberry";
+  static const labelBlueberry = "labelBlueberry";
+  static const labelPhalsa = "labelPhalsa";
+  static const labelLitchi = "labelLitchi";
+  static const labelLoquat = "labelLoquat";
+  static const labelStarFruitCarambola = "labelStarFruitCarambola";
+  // static const labelCapsicumBellPepper = "labelCapsicumBellPepper";
+
+// Forest & Coastal Fruits
+  static const labelCoconut = "labelCoconut";
+  static const labelTenderCoconut = "labelTenderCoconut";
+  static const labelIceApple = "labelIceApple";
+  static const labelToddyPalmFruit = "labelToddyPalmFruit";
+  static const labelNungu = "labelNungu";
+  static const labelDate = "labelDate";
+  static const labelMahuaFruit = "labelMahuaFruit";
+  static const labelChironjiFruit = "labelChironjiFruit";
+  static const labelTenduFruit = "labelTenduFruit";
+  static const labelKaafal = "labelKaafal";
+  static const labelWildJamun = "labelWildJamun";
+  static const labelWildBanana = "labelWildBanana";
+  static const labelBreadfruit = "labelBreadfruit";
+
+// Special & Exotic Fruits
+  static const labelKiwi = "labelKiwi";
+  static const labelDragonFruit = "labelDragonFruit";
+  static const labelAvocado = "labelAvocado";
+  static const labelPassionFruit = "labelPassionFruit";
+  static const labelMangosteen = "labelMangosteen";
+  static const labelLongan = "labelLongan";
+  static const labelRambutan = "labelRambutan";
+  static const labelDurian = "labelDurian";
+
+
+  // Namkeen & Mixture
+  static const labelAlooBhujia = "labelAlooBhujia";
+  static const labelSev = "labelSev";
+  static const labelMixture = "labelMixture";
+  static const labelBoondi = "labelBoondi";
+  static const labelMoongDalNamkeen = "labelMoongDalNamkeen";
+  static const labelChanaDalNamkeen = "labelChanaDalNamkeen";
+  static const labelPeanutsNamkeen = "labelPeanutsNamkeen";
+  static const labelGhatiya = "labelGhatiya";
+  static const labelFarsanMix = "labelFarsanMix";
+
+// Chips, Papad & Fryums
+  static const labelPotatoChips = "labelPotatoChips";
+  static const labelBananaChips = "labelBananaChips";
+  static const labelTapiocaChips = "labelTapiocaChips";
+  static const labelCornChips = "labelCornChips";
+  static const labelMultigrainChips = "labelMultigrainChips";
+  static const labelNachoChips = "labelNachoChips";
+  static const labelUradPapad = "labelUradPapad";
+  static const labelRicePapad = "labelRicePapad";
+  static const labelSabudanaPapad = "labelSabudanaPapad";
+  static const labelAppalam = "labelAppalam";
+  static const labelFryums = "labelFryums";
+
+// Biscuits & Cookies
+  static const labelGlucoseBiscuits = "labelGlucoseBiscuits";
+  static const labelMarieBiscuits = "labelMarieBiscuits";
+  static const labelMilkBiscuits = "labelMilkBiscuits";
+  static const labelCreamBiscuits = "labelCreamBiscuits";
+  static const labelArrowrootBiscuits = "labelArrowrootBiscuits";
+  static const labelSandwichBiscuits = "labelSandwichBiscuits";
+  static const labelMultigrainBiscuits = "labelMultigrainBiscuits";
+  static const labelDigestiveBiscuits = "labelDigestiveBiscuits";
+  static const labelJeeraBiscuits = "labelJeeraBiscuits";
+  static const labelButterBiscuits = "labelButterBiscuits";
+  static const labelJamBiscuits = "labelJamBiscuits";
+
+// Bread & Bakery
+  static const labelWhiteBread = "labelWhiteBread";
+  static const labelBrownBread = "labelBrownBread";
+  static const labelMultigrainBread = "labelMultigrainBread";
+  static const labelPavBread = "labelPavBread";
+  static const labelBurgerBuns = "labelBurgerBuns";
+  static const labelPizzaBase = "labelPizzaBase";
+  static const labelBreadCrumbs = "labelBreadCrumbs";
+  static const labelKhariBiscuit = "labelKhariBiscuit";
+  static const labelRusk = "labelRusk";
+  static const labelCake = "labelCake";
+  static const labelCupCake = "labelCupCake";
+  static const labelMuffins = "labelMuffins";
+  static const labelSwissRoll = "labelSwissRoll";
+
+// Fried & Hot Snacks
+  static const labelSamosa = "labelSamosa";
+  static const labelVegPuff = "labelVegPuff";
+  static const labelVegPatties = "labelVegPatties";
+  static const labelPizzaPatties = "labelPizzaPatties";
+  static const labelVegCutlet = "labelVegCutlet";
+  static const labelBreadRoll = "labelBreadRoll";
+  static const labelSpringRoll = "labelSpringRoll";
+  static const labelDryKachori = "labelDryKachori";
+  static const labelKhakhra = "labelKhakhra";
+  static const labelChakli = "labelChakli";
+  static const labelMurukku = "labelMurukku";
+  static const labelPopcorn = "labelPopcorn";
+
+
+// Dairy & Milk
+  static const labelFullCreamMilk = "labelFullCreamMilk";
+  static const labelTonedMilk = "labelTonedMilk";
+  static const labelDoubleTonedMilk = "labelDoubleTonedMilk";
+  static const labelSkimmedMilk = "labelSkimmedMilk";
+  static const labelCowMilk = "labelCowMilk";
+  static const labelBuffaloMilk = "labelBuffaloMilk";
+  static const labelFlavouredMilk = "labelFlavouredMilk";
+  static const labelLactoseFreeMilk = "labelLactoseFreeMilk";
+
+// Curd, Buttermilk & Cream
+  static const labelFreshCurd = "labelFreshCurd";
+  static const labelSetCurd = "labelSetCurd";
+  static const labelGreekYogurt = "labelGreekYogurt";
+  static const labelFlavouredYogurt = "labelFlavouredYogurt";
+  static const labelButterMilk = "labelButterMilk";
+  static const labelNamkeenChhaach = "labelNamkeenChhaach";
+  static const labelLassi = "labelLassi";
+  static const labelFreshCream = "labelFreshCream";
+  static const labelCookingCream = "labelCookingCream";
+  static const labelWhippingCream = "labelWhippingCream";
+
+// Butter, Cheese & Paneer
+  static const labelTableButter = "labelTableButter";
+  static const labelWhiteButter = "labelWhiteButter";
+  static const labelSaltedButter = "labelSaltedButter";
+  static const labelUnsaltedButter = "labelUnsaltedButter";
+  static const labelCheeseSlices = "labelCheeseSlices";
+  static const labelCheeseBlocks = "labelCheeseBlocks";
+  static const labelCheeseSpread = "labelCheeseSpread";
+  static const labelFreshPaneer = "labelFreshPaneer";
+  static const labelMalaiPaneer = "labelMalaiPaneer";
+  static const labelFrozenPaneer = "labelFrozenPaneer";
+
+// Ghee & Fats
+//   static const labelCowGhee = "labelCowGhee";
+  static const labelBuffaloGhee = "labelBuffaloGhee";
+  static const labelA2Ghee = "labelA2Ghee";
+  static const labelOrganicGhee = "labelOrganicGhee";
+  // static const labelDesiGhee = "labelDesiGhee";
+  static const labelVanaspati = "labelVanaspati";
+
+// Ice Cream & Frozen Desserts
+  static const labelIceCreamCups = "labelIceCreamCups";
+  static const labelIceCreamFamilyPacks = "labelIceCreamFamilyPacks";
+  static const labelIceCreamBars = "labelIceCreamBars";
+  static const labelIceCreamCones = "labelIceCreamCones";
+  static const labelKulfi = "labelKulfi";
+  static const labelMalaiKulfi = "labelMalaiKulfi";
+  static const labelMatkaKulfi = "labelMatkaKulfi";
+  static const labelFrozenYogurt = "labelFrozenYogurt";
+  static const labelFrozenDessert = "labelFrozenDessert";
+  static const labelIceLollies = "labelIceLollies";
+  static const labelCassataIceCream = "labelCassataIceCream";
+  static const labelIceCreamSandwich = "labelIceCreamSandwich";
+  static const labelFruitSorbet = "labelFruitSorbet";
+  static const labelGelato = "labelGelato";
+
+// Frozen Vegetables
+  static const labelFrozenGreenPeas = "labelFrozenGreenPeas";
+  static const labelFrozenSweetCorn = "labelFrozenSweetCorn";
+  static const labelFrozenMixedVegetables = "labelFrozenMixedVegetables";
+  static const labelFrozenFrenchBeans = "labelFrozenFrenchBeans";
+  static const labelFrozenCarrot = "labelFrozenCarrot";
+  static const labelFrozenSpinach = "labelFrozenSpinach";
+
+// Frozen Snacks
+  static const labelFrozenFrenchFries = "labelFrozenFrenchFries";
+  static const labelFrozenVegNuggets = "labelFrozenVegNuggets";
+  static const labelFrozenChickenNuggets = "labelFrozenChickenNuggets";
+  static const labelFrozenSpringRolls = "labelFrozenSpringRolls";
+  static const labelFrozenSamosa = "labelFrozenSamosa";
+  static const labelFrozenParatha = "labelFrozenParatha";
+  static const labelFrozenMomos = "labelFrozenMomos";
+  static const labelFrozenVegCutlet = "labelFrozenVegCutlet";
+
+// Milk Powders & Alternatives
+  static const labelSkimmedMilkPowder = "labelSkimmedMilkPowder";
+  static const labelFullCreamMilkPowder = "labelFullCreamMilkPowder";
+  static const labelInfantMilkFormula = "labelInfantMilkFormula";
+  static const labelCondensedMilk = "labelCondensedMilk";
+  static const labelEvaporatedMilk = "labelEvaporatedMilk";
+  static const labelSoyMilk = "labelSoyMilk";
+  static const labelAlmondMilk = "labelAlmondMilk";
+  static const labelOatsMilk = "labelOatsMilk";
+
+
+  // {
+  // "labelGroceryItems": "Grocery Items",
+  // "labelVegetable": "Vegetable",
+  // "labelFruit": "Fruit",
+  // "labelBakeryBreadItems": "Bakery & Bread Items",
+  // "labelDairyProducts": "Dairy Products",
+  // "labelHomeEssentials": "Home Essentials",
+  // "labelPackedSweetsNamkeens": "Packed Sweets & Namkeens",
+  // "labelCrockery": "Crockery",
+  // "labelMedicalItems": "Medical Items",
+  // "labelBeautyBodyCare": "Beauty & Body Care",
+  // "labelStationary": "Stationary"
+  // "labelBasmatiRice": "Basmati Rice",
+  // "labelRedRice": "Red Rice",
+  // "labelKolamRice": "Kolam Rice",
+  // "labelPonniRice": "Ponni Rice",
+  // "labelParboiledRice": "Parboiled Rice",
+  // "labelBrownRice": "Brown Rice",
+  // "labelSonaMasooriRice": "Sona Masoori Rice",
+  // "labelBlackRice": "Black Rice",
+  // "labelWholeWheatAtta": "Whole Wheat Atta",
+  // "labelChakkiAtta": "Chakki Atta",
+  // "labelSharbatiAtta": "Sharbati Atta",
+  // "labelMultigrainAtta": "Multigrain Atta",
+  // "labelDiabeticFriendlyAtta": "Diabetic Friendly Atta",
+  // "labelMaida": "Maida",
+  // "labelBesan": "Besan",
+  // "labelRiceFlour": "Rice Flour",
+  // "labelRagiFlour": "Ragi Flour",
+  // "labelToorDal": "Toor Dal",
+  // "labelMoongDal": "Moong Dal",
+  // "labelMasoorDal": "Masoor Dal",
+  // "labelUradDal": "Urad Dal",
+  // "labelChanaDal": "Chana Dal",
+  // "labelKabuliChana": "Kabuli Chana",
+  // "labelKalaChana": "Kala Chana",
+  // "labelRajma": "Rajma",
+  // "labelDryGreenPeas": "Dry Green Peas",
+  // "labelRagi": "Ragi",
+  // "labelJowar": "Jowar",
+  // "labelBajra": "Bajra",
+  // "labelFoxtailMillet": "Foxtail Millet",
+  // "labelLittleMillet": "Little Millet",
+  // "labelKodoMillet": "Kodo Millet",
+  // "labelBarnyardMillet": "Barnyard Millet",
+  // "labelSamakRice": "Samak Rice",
+  // "labelPoha": "Poha",
+  // "labelAvalRiceFlakes": "Aval Rice Flakes",
+  // "labelDaliaBrokenWheat": "Dalia Broken Wheat",
+  // "labelOats": "Oats",
+  // "labelCornGrits": "Corn Grits",
+  // "labelWheatBran": "Wheat Bran",
+  // "labelCuminSeeds": "Cumin Seeds",
+  // "labelCorianderSeeds": "Coriander Seeds",
+  // "labelBlackPepper": "Black Pepper",
+  // "labelGreenCardamom": "Green Cardamom",
+  // "labelCloves": "Cloves",
+  // "labelCinnamon": "Cinnamon",
+  // "labelTurmericPowder": "Turmeric Powder",
+  // "labelRedChilliPowder": "Red Chilli Powder",
+  // "labelCorianderPowder": "Coriander Powder",
+  // "labelGaramMasala": "Garam Masala",
+  // "labelChaatMasala": "Chaat Masala",
+  // "labelSambharMasala": "Sambhar Masala",
+  // "labelBiryaniMasala": "Biryani Masala",
+  // "labelCholeMasala": "Chole Masala",
+  // "labelIodizedSalt": "Iodized Salt",
+  // "labelRockSalt": "Rock Salt",
+  // "labelPinkSalt": "Pink Salt",
+  // "labelWhiteSugar": "White Sugar",
+  // "labelBrownSugar": "Brown Sugar",
+  // "labelJaggery": "Jaggery",
+  // "labelHoney": "Honey",
+  // "labelSugarFreeSweetener": "Sugar Free Sweetener",
+  // "labelSunflowerOil": "Sunflower Oil",
+  // "labelRiceBranOil": "Rice Bran Oil",
+  // "labelMustardOil": "Mustard Oil",
+  // "labelGroundnutOil": "Groundnut Oil",
+  // "labelSesameOil": "Sesame Oil",
+  // "labelCoconutOil": "Coconut Oil",
+  // "labelOliveOil": "Olive Oil",
+  // "labelCowGheeStaple": "Cow Ghee",
+  // "labelDesiGheeStaple": "Desi Ghee",
+  // "labelAssamTea": "Assam Tea",
+  // "labelGreenTeaBeverage": "Green Tea",
+  // "labelMasalaTea": "Masala Tea",
+  // "labelInstantCoffeeStaple": "Instant Coffee",
+  // "labelFilterCoffeeStaple": "Filter Coffee",
+  // "labelMaltHealthDrink": "Malt Health Drink",
+  // "labelGlucoseDrinkPowder": "Glucose Drink Powder",
+  // "labelCoconutWaterStaple": "Coconut Water",
+  // "labelPackagedDrinkingWater": "Packaged Drinking Water",
+  // "labelAlmonds": "Almonds",
+  // "labelCashewNuts": "Cashew Nuts",
+  // "labelRaisins": "Raisins",
+  // "labelDatesStaple": "Dates",
+  // "labelDryFig": "Dry Fig",
+  // "labelChiaSeeds": "Chia Seeds",
+  // "labelFlaxSeeds": "Flax Seeds",
+  // "labelPumpkinSeeds": "Pumpkin Seeds",
+  // "labelBabyMilkPowder": "Baby Milk Powder",
+  // "labelRiceCereal": "Rice Cereal",
+  // "labelKhichdiMix": "Khichdi Mix",
+  // "labelBabyBiscuits": "Baby Biscuits",
+  // "labelReadyPoha": "Ready Poha",
+  // "labelReadyUpma": "Ready Upma",
+  // "labelReadyDal": "Ready Dal",
+  // "labelPapadStaple": "Papad",
+  // "labelTomatoKetchup": "Tomato Ketchup",
+  // "labelMangoPickle": "Mango Pickle",
+  // "labelLemonPickle": "Lemon Pickle",
+  // "labelMixedVegetablePickle": "Mixed Vegetable Pickle"
+  // "labelSpinach": "Spinach",
+  // "labelFenugreek": "Fenugreek",
+  // "labelMustardGreens": "Mustard Greens",
+  // "labelMint": "Mint",
+  // "labelCorianderLeaves": "Coriander Leaves",
+  // "labelAmaranth": "Amaranth",
+  // "labelBathua": "Bathua",
+  // "labelMalabarSpinach": "Malabar Spinach",
+  // "labelDrumstickLeaves": "Drumstick Leaves",
+  // "labelDillLeaves": "Dill Leaves",
+  // "labelTaroLeaves": "Taro Leaves",
+  // "labelCurryLeaves": "Curry Leaves",
+  // "labelLettuceIndian": "Lettuce Indian",
+  // "labelPotato": "Potato",
+  // "labelSweetPotato": "Sweet Potato",
+  // "labelCarrot": "Carrot",
+  // "labelRadish": "Radish",
+  // "labelBeetroot": "Beetroot",
+  // "labelTurnip": "Turnip",
+  // "labelYam": "Yam",
+  // "labelTaroRoot": "Taro Root",
+  // "labelElephantFootYam": "Elephant Foot Yam",
+  // "labelCassava": "Cassava",
+  // "labelLotusRoot": "Lotus Root",
+  // "labelOnion": "Onion",
+  // "labelGarlic": "Garlic",
+  // "labelLeek": "Leek",
+  // "labelSpringOnion": "Spring Onion",
+  // "labelBananaStem": "Banana Stem",
+  // "labelColocasiaStem": "Colocasia Stem",
+  // "labelTomato": "Tomato",
+  // "labelBrinjalEggplant": "Brinjal Eggplant",
+  // "labelBottleGourd": "Bottle Gourd",
+  // "labelBitterGourd": "Bitter Gourd",
+  // "labelRidgeGourd": "Ridge Gourd",
+  // "labelSpongeGourd": "Sponge Gourd",
+  // "labelSnakeGourd": "Snake Gourd",
+  // "labelPumpkin": "Pumpkin",
+  // "labelCucumber": "Cucumber",
+  // "labelAshGourd": "Ash Gourd",
+  // "labelPointedGourd": "Pointed Gourd",
+  // "labelIvyGourd": "Ivy Gourd",
+  // "labelTinda": "Tinda",
+  // "labelChowChowChayote": "Chow Chow Chayote",
+  // "labelRawBanana": "Raw Banana",
+  // "labelRawPapaya": "Raw Papaya",
+  // "labelCapsicumBellPepper": "Capsicum Bell Pepper",
+  // "labelGreenPeas": "Green Peas",
+  // "labelFrenchBeans": "French Beans",
+  // "labelClusterBeans": "Cluster Beans",
+  // "labelCowpea": "Cowpea",
+  // "labelHyacinthBeans": "Hyacinth Beans",
+  // "labelBroadBeans": "Broad Beans",
+  // "labelWingedBeans": "Winged Beans",
+  // "labelYardlongBeans": "Yardlong Beans",
+  // "labelCauliflower": "Cauliflower",
+  // "labelBroccoli": "Broccoli",
+  // "labelBananaFlower": "Banana Flower",
+  // "labelPumpkinFlower": "Pumpkin Flower",
+  // "labelDrumstickFlower": "Drumstick Flower",
+  // "labelMushroom": "Mushroom",
+  // "labelGreenChilli": "Green Chilli",
+  // "labelGinger": "Ginger",
+  // "labelTurmericFresh": "Turmeric Fresh",
+  // "labelDrumstick": "Drumstick",
+  // "labelRawJackfruit": "Raw Jackfruit",
+  // "labelBambooShoot": "Bamboo Shoot",
+  // "labelKokum": "Kokum",
+  // "labelSundakkaiTurkeyBerry": "Sundakkai Turkey Berry",
+  // "labelZucchini": "Zucchini",
+  // "labelCelery": "Celery",
+  // "labelAsparagus": "Asparagus",
+  // "labelBokChoy": "Bok Choy",
+  // "labelLettuceIcebergRomaine": "Lettuce Iceberg Romaine",
+  // "labelKale": "Kale",
+  // "labelChineseCabbage": "Chinese Cabbage"
+  // "labelApple": "Apple",
+  // "labelBanana": "Banana",
+  // "labelOrange": "Orange",
+  // "labelMosambiSweetLime": "Mosambi Sweet Lime",
+  // "labelGrapes": "Grapes",
+  // "labelPapaya": "Papaya",
+  // "labelPomegranate": "Pomegranate",
+  // "labelGuava": "Guava",
+  // "labelPear": "Pear",
+  // "labelChikooSapota": "Chikoo Sapota",
+  // "labelPineapple": "Pineapple",
+  // "labelWatermelon": "Watermelon",
+  // "labelMuskmelon": "Muskmelon",
+  // "labelMango": "Mango",
+  // "labelJackfruit": "Jackfruit",
+  // "labelJamun": "Jamun",
+  // "labelCustardApple": "Custard Apple",
+  // "labelBerIndianJujube": "Ber Indian Jujube",
+  // "labelSoursop": "Soursop",
+  // "labelWoodAppleBael": "Wood Apple Bael",
+  // "labelTamarind": "Tamarind",
+  // "labelMonkeyJack": "Monkey Jack",
+  // "labelIndianFigAnjeer": "Indian Fig Anjeer",
+  // "labelKhirniRayan": "Khirni Rayan",
+  // "labelKaronda": "Karonda",
+  // "labelIndianGooseberryAmla": "Indian Gooseberry Amla",
+  // "labelLemon": "Lemon",
+  // "labelLime": "Lime",
+  // "labelKinnow": "Kinnow",
+  // "labelPomelo": "Pomelo",
+  // "labelCitron": "Citron",
+  // "labelGalgal": "Galgal",
+  // "labelPeach": "Peach",
+  // "labelPlum": "Plum",
+  // "labelApricot": "Apricot",
+  // "labelCherry": "Cherry",
+  // "labelStrawberry": "Strawberry",
+  // "labelMulberry": "Mulberry",
+  // "labelRaspberry": "Raspberry",
+  // "labelBlueberry": "Blueberry",
+  // "labelPhalsa": "Phalsa",
+  // "labelLitchi": "Litchi",
+  // "labelLoquat": "Loquat",
+  // "labelStarFruitCarambola": "Star Fruit Carambola",
+  // "labelCoconut": "Coconut",
+  // "labelTenderCoconut": "Tender Coconut",
+  // "labelIceApple": "Palmyra Fruit Ice Apple",
+  // "labelToddyPalmFruit": "Toddy Palm Fruit",
+  // "labelNungu": "Nungu",
+  // "labelDate": "Date",
+  // "labelMahuaFruit": "Mahua Fruit",
+  // "labelChironjiFruit": "Chironji Fruit",
+  // "labelTenduFruit": "Tendu Fruit",
+  // "labelKaafal": "Kaafal",
+  // "labelWildJamun": "Wild Jamun",
+  // "labelWildBanana": "Wild Banana",
+  // "labelBreadfruit": "Breadfruit",
+  // "labelKiwi": "Kiwi",
+  // "labelDragonFruit": "Dragon Fruit",
+  // "labelAvocado": "Avocado",
+  // "labelPassionFruit": "Passion Fruit",
+  // "labelMangosteen": "Mangosteen",
+  // "labelLongan": "Longan",
+  // "labelRambutan": "Rambutan",
+  // "labelDurian": "Durian"
+  // "labelAlooBhujia": "Aloo Bhujia",
+  // "labelSev": "Sev",
+  // "labelMixture": "Mixture",
+  // "labelBoondi": "Boondi",
+  // "labelMoongDalNamkeen": "Moong Dal Namkeen",
+  // "labelChanaDalNamkeen": "Chana Dal Namkeen",
+  // "labelPeanutsNamkeen": "Peanuts Namkeen",
+  // "labelGhatiya": "Ghatiya",
+  // "labelFarsanMix": "Farsan Mix",
+  // "labelPotatoChips": "Potato Chips",
+  // "labelBananaChips": "Banana Chips",
+  // "labelTapiocaChips": "Tapioca Chips",
+  // "labelCornChips": "Corn Chips",
+  // "labelMultigrainChips": "Multigrain Chips",
+  // "labelNachoChips": "Nacho Chips",
+  // "labelUradPapad": "Urad Papad",
+  // "labelRicePapad": "Rice Papad",
+  // "labelSabudanaPapad": "Sabudana Papad",
+  // "labelAppalam": "Appalam",
+  // "labelFryums": "Fryums",
+  // "labelGlucoseBiscuits": "Glucose Biscuits",
+  // "labelMarieBiscuits": "Marie Biscuits",
+  // "labelMilkBiscuits": "Milk Biscuits",
+  // "labelCreamBiscuits": "Cream Biscuits",
+  // "labelArrowrootBiscuits": "Arrowroot Biscuits",
+  // "labelSandwichBiscuits": "Sandwich Biscuits",
+  // "labelMultigrainBiscuits": "Multigrain Biscuits",
+  // "labelDigestiveBiscuits": "Digestive Biscuits",
+  // "labelJeeraBiscuits": "Jeera Biscuits",
+  // "labelButterBiscuits": "Butter Biscuits",
+  // "labelJamBiscuits": "Jam Biscuits",
+  // "labelWhiteBread": "White Bread",
+  // "labelBrownBread": "Brown Bread",
+  // "labelMultigrainBread": "Multigrain Bread",
+  // "labelPavBread": "Pav Bread",
+  // "labelBurgerBuns": "Burger Buns",
+  // "labelPizzaBase": "Pizza Base",
+  // "labelBreadCrumbs": "Bread Crumbs",
+  // "labelKhariBiscuit": "Khari Biscuit",
+  // "labelRusk": "Rusk",
+  // "labelCake": "Cake",
+  // "labelCupCake": "Cup Cake",
+  // "labelMuffins": "Muffins",
+  // "labelSwissRoll": "Swiss Roll",
+  // "labelSamosa": "Samosa",
+  // "labelVegPuff": "Veg Puff",
+  // "labelVegPatties": "Veg Patties",
+  // "labelPizzaPatties": "Pizza Patties",
+  // "labelVegCutlet": "Veg Cutlet",
+  // "labelBreadRoll": "Bread Roll",
+  // "labelSpringRoll": "Spring Roll",
+  // "labelDryKachori": "Dry Kachori",
+  // "labelKhakhra": "Khakhra",
+  // "labelChakli": "Chakli",
+  // "labelMurukku": "Murukku",
+  // "labelPopcorn": "Popcorn"
+  // "labelFullCreamMilk": "Full Cream Milk",
+  // "labelTonedMilk": "Toned Milk",
+  // "labelDoubleTonedMilk": "Double Toned Milk",
+  // "labelSkimmedMilk": "Skimmed Milk",
+  // "labelCowMilk": "Cow Milk",
+  // "labelBuffaloMilk": "Buffalo Milk",
+  // "labelFlavouredMilk": "Flavoured Milk",
+  // "labelLactoseFreeMilk": "Lactose Free Milk",
+  // "labelFreshCurd": "Fresh Curd",
+  // "labelSetCurd": "Set Curd",
+  // "labelGreekYogurt": "Greek Yogurt",
+  // "labelFlavouredYogurt": "Flavoured Yogurt",
+  // "labelButterMilk": "Butter Milk",
+  // "labelNamkeenChhaach": "Namkeen Chhaach",
+  // "labelLassi": "Lassi",
+  // "labelFreshCream": "Fresh Cream",
+  // "labelCookingCream": "Cooking Cream",
+  // "labelWhippingCream": "Whipping Cream",
+  // "labelTableButter": "Table Butter",
+  // "labelWhiteButter": "White Butter",
+  // "labelSaltedButter": "Salted Butter",
+  // "labelUnsaltedButter": "Unsalted Butter",
+  // "labelCheeseSlices": "Cheese Slices",
+  // "labelCheeseBlocks": "Cheese Blocks",
+  // "labelCheeseSpread": "Cheese Spread",
+  // "labelFreshPaneer": "Fresh Paneer",
+  // "labelMalaiPaneer": "Malai Paneer",
+  // "labelFrozenPaneer": "Frozen Paneer",
+  // "labelBuffaloGhee": "Buffalo Ghee",
+  // "labelA2Ghee": "A2 Ghee",
+  // "labelOrganicGhee": "Organic Ghee",
+  // "labelDesiGhee": "Desi Ghee",
+  // "labelVanaspati": "Vanaspati",
+  // "labelIceCreamCups": "Ice Cream Cups",
+  // "labelIceCreamFamilyPacks": "Ice Cream Family Packs",
+  // "labelIceCreamBars": "Ice Cream Bars",
+  // "labelIceCreamCones": "Ice Cream Cones",
+  // "labelKulfi": "Kulfi",
+  // "labelMalaiKulfi": "Malai Kulfi",
+  // "labelMatkaKulfi": "Matka Kulfi",
+  // "labelFrozenYogurt": "Frozen Yogurt",
+  // "labelFrozenDessert": "Frozen Dessert",
+  // "labelIceLollies": "Ice Lollies",
+  // "labelCassataIceCream": "Cassata Ice Cream",
+  // "labelIceCreamSandwich": "Ice Cream Sandwich",
+  // "labelFruitSorbet": "Fruit Sorbet",
+  // "labelGelato": "Gelato",
+  // "labelFrozenGreenPeas": "Frozen Green Peas",
+  // "labelFrozenSweetCorn": "Frozen Sweet Corn",
+  // "labelFrozenMixedVegetables": "Frozen Mixed Vegetables",
+  // "labelFrozenFrenchBeans": "Frozen French Beans",
+  // "labelFrozenCarrot": "Frozen Carrot",
+  // "labelFrozenSpinach": "Frozen Spinach",
+  // "labelFrozenFrenchFries": "Frozen French Fries",
+  // "labelFrozenVegNuggets": "Frozen Veg Nuggets",
+  // "labelFrozenChickenNuggets": "Frozen Chicken Nuggets",
+  // "labelFrozenSpringRolls": "Frozen Spring Rolls",
+  // "labelFrozenSamosa": "Frozen Samosa",
+  // "labelFrozenParatha": "Frozen Paratha",
+  // "labelFrozenMomos": "Frozen Momos",
+  // "labelFrozenVegCutlet": "Frozen Veg Cutlet",
+  // "labelSkimmedMilkPowder": "Skimmed Milk Powder",
+  // "labelFullCreamMilkPowder": "Full Cream Milk Powder",
+  // "labelInfantMilkFormula": "Infant Milk Formula",
+  // "labelCondensedMilk": "Condensed Milk",
+  // "labelEvaporatedMilk": "Evaporated Milk",
+  // "labelSoyMilk": "Soy Milk",
+  // "labelAlmondMilk": "Almond Milk",
+  // "labelOatsMilk": "Oats Milk"
+  // }
+
+   /// -----****(Grocery End)****------
 
 }

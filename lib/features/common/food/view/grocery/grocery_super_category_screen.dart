@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -27,7 +28,7 @@ class GrocerySuperCategoryScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.whiteFE,
       appBar: CommonBackAppBar(
-          title: 'Add Products',
+          title: AppStrings.addProducts,
           buildCustomWidget:()=>
               PopupMenuButton<String>(
                 padding: EdgeInsets.zero,
@@ -76,59 +77,59 @@ class GrocerySuperCategoryScreen extends StatelessWidget {
     switch (tagId) {
       case GroceryConstant.GROCERY_ITEMS:
         return {
-          'Rice and Rice Products': GroceryData.riceProducts,
-          'Wheat Atta and Flours': GroceryData.wheatAndFlours,
-          'Dals Pulses and Beans': GroceryData.dalNdBeans,
-          'Millets and Traditional Grains': GroceryData.milletsNdTraditionalGrains,
-          'Breakfast and Light Staples': GroceryData.breakfastStaples,
-          'Spices and Masala': GroceryData.spicesAndMasala,
-          'Salt Sugar and Sweeteners': GroceryData.saltNdSweeteners,
-          'Oils Ghee and Fats': GroceryData.oilsAndFats,
-          'Tea Coffee and Beverages': GroceryData.teaCoffeeBeverages,
-          'Dry Fruits Seeds Baby and Ready Food': GroceryData.dryFruitsAndReadyFood,
+          AppStrings.headerRiceRiceProducts: GroceryData.riceProducts,
+          AppStrings.headerWheatAttaFlours: GroceryData.wheatAndFlours,
+          AppStrings.headerDalsPulsesBeans: GroceryData.dalNdBeans,
+          AppStrings.headerMilletsTraditionalGrains: GroceryData.milletsNdTraditionalGrains,
+          AppStrings.headerBreakfastLightStaples: GroceryData.breakfastStaples,
+          AppStrings.headerSpicesMasala: GroceryData.spicesAndMasala,
+          AppStrings.headerSaltSugarSweeteners: GroceryData.saltNdSweeteners,
+          AppStrings.headerOilsGheeFats: GroceryData.oilsAndFats,
+          AppStrings.headerTeaCoffeeBeverages: GroceryData.teaCoffeeBeverages,
+          AppStrings.headerDryFruitsReadyFood: GroceryData.dryFruitsAndReadyFood,
         };
 
       case GroceryConstant.VEGETABLE:
         return {
-          'Leafy Vegetables': GroceryData.leafyVegetables,
-          'Root Vegetables': GroceryData.rootVegetables,
-          'Bulb and Stem Vegetables': GroceryData.bulbNdStemVegetables,
-          'Fruit Vegetables': GroceryData.fruitVegetables,
-          'Pods and Beans': GroceryData.podNdBeansVegetables,
-          'Flower Vegetables': GroceryData.flowerVegetables,
-          'Fungi and Special Indian Items': GroceryData.fungiNdSpecialIndianItems,
-          'Exotic but India-Available Vegetables': GroceryData.exoticAndSpecialty,
+          AppStrings.headerLeafyVegetables: GroceryData.leafyVegetables,
+          AppStrings.headerRootVegetables: GroceryData.rootVegetables,
+          AppStrings.headerBulbStemVegetables: GroceryData.bulbNdStemVegetables,
+          AppStrings.headerFruitVegetables: GroceryData.fruitVegetables,
+          AppStrings.headerPodsBeans: GroceryData.podNdBeansVegetables,
+          AppStrings.headerFlowerVegetables: GroceryData.flowerVegetables,
+          AppStrings.headerSpecialIndianItems: GroceryData.fungiNdSpecialIndianItems,
+          AppStrings.headerExoticVegetables: GroceryData.exoticAndSpecialty,
         };
 
       case GroceryConstant.FRUIT:
         return {
-          'Daily Fruits': GroceryData.dailyFruits,
-          'Desi Fruits': GroceryData.desiFruits,
-          'Sour & Stone Fruits': GroceryData.sourAndStoneFruits,
-          'Small & Seasonal Fruits': GroceryData.smallNdSeasonalFruits,
-          'Forest & Coastal Fruits': GroceryData.forestNdCoastalFruits,
-          'Special Exotic Fruits': GroceryData.specialNdExoticFruits,
+          AppStrings.headerDailyFruits: GroceryData.dailyFruits,
+          AppStrings.headerDesiFruits: GroceryData.desiFruits,
+          AppStrings.headerSourStoneFruits: GroceryData.sourAndStoneFruits,
+          AppStrings.headerSmallSeasonalFruits: GroceryData.smallNdSeasonalFruits,
+          AppStrings.headerForestCoastalFruits: GroceryData.forestNdCoastalFruits,
+          AppStrings.headerSpecialExoticFruits: GroceryData.specialNdExoticFruits,
         };
 
       case GroceryConstant.BAKERY_BREAD_ITEMS:
         return {
-          'Namkeen & Mixture': GroceryData.namkeenAndMixture,
-          'Chips, Papad & Fryums': GroceryData.chipsPapadFryums,
-          'Biscuits & Cookies': GroceryData.biscuitsCookies,
-          'Bread, Bakery & Sweet Items': GroceryData.bakeryItems,
-          'Fried & Hot Snacks': GroceryData.friedHotSnacks,
+          AppStrings.headerNamkeenMixture: GroceryData.namkeenAndMixture,
+          AppStrings.headerChipsPapadFryums: GroceryData.chipsPapadFryums,
+          AppStrings.headerBiscuitsCookies: GroceryData.biscuitsCookies,
+          AppStrings.headerBakerySweetItems: GroceryData.bakeryItems,
+          AppStrings.headerFriedHotSnacks: GroceryData.friedHotSnacks,
         };
 
       case GroceryConstant.DAIRY_PRODUCTS:
         return {
-          'Milk': GroceryData.milkList,
-          'Curd, Buttermilk and Cream': GroceryData.curdButtermilkCreamList,
-          'Butter, Cheese and Paneer': GroceryData.butterCheesePaneerList,
-          'Ghee and Dairy Fats': GroceryData.gheeAndDairyFatsList,
-          'Ice Cream and Frozen Desserts': GroceryData.iceCreamFrozenDessertsList,
-          'Frozen Vegetables': GroceryData.frozenVegetablesList,
-          'Frozen Snacks and Frozen Foods': GroceryData.frozenSnacksMealsList,
-          'Milk Powders and Dairy Alternatives': GroceryData.milkPowdersAlternativesList,
+          AppStrings.headerMilk: GroceryData.milkList,
+          AppStrings.headerCurdCream: GroceryData.curdButtermilkCreamList,
+          AppStrings.headerButterCheesePaneer: GroceryData.butterCheesePaneerList,
+          AppStrings.headerGheeDairyFats: GroceryData.gheeAndDairyFatsList,
+          AppStrings.headerIceCreamFrozen: GroceryData.iceCreamFrozenDessertsList,
+          AppStrings.headerFrozenVegetables: GroceryData.frozenVegetablesList,
+          AppStrings.headerFrozenSnacks: GroceryData.frozenSnacksMealsList,
+          AppStrings.headerMilkPowderAlts: GroceryData.milkPowdersAlternativesList,
         };
 
       case GroceryConstant.HOME_ESSENTIALS:

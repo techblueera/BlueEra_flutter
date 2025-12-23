@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
 import 'package:BlueEra/widgets/circle_icon_grid_item.dart';
@@ -99,7 +100,7 @@ class _CollapsibleGridSectionState extends State<CollapsibleGridSection> {
                     InkWell(
                       onTap: () => isExpanded.value = !isExpanded.value,
                       child: CustomText(
-                        expanded ? 'See Less'.tr : 'See More'.tr,
+                        expanded ? AppStrings.seeLess.tr : AppStrings.seeMore.tr,
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: AppColors.primaryColor,

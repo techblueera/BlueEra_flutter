@@ -2415,7 +2415,7 @@ List<PopupMenuEntry<String>> groceryPopUpMenuItems() {
   final items = <Map<String, dynamic>>[
     {
       "id": AppConstants.ADD,
-      'title': 'Add Manually'
+      'title': AppStrings.addManually
     },
   ];
 
