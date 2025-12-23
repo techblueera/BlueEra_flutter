@@ -837,7 +837,7 @@ class ChatViewController extends GetxController {
 
   Future<void> uploadContacts(List<Map<String, dynamic>> params) async {
     // try {
-    log("sldkcmlskdcmsldkc ))))))");
+
     paramsData = params;
     if (contactsListModel?.value.data == null) {
       ResponseModel responseModel =
@@ -850,7 +850,6 @@ class ChatViewController extends GetxController {
           SharedPreferenceUtils.saved_contacts,
           json.encode(data),
         );
-
         contactsListModel?.value = ContactListModel.fromJson(data);
         viewContactsListResponse.value = ApiResponse.complete(responseModel);
       } else {
