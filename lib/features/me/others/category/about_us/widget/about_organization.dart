@@ -9,21 +9,21 @@ import 'package:flutter/material.dart';
 
 import '../../../../../../../core/constants/app_colors.dart';
 import '../../../../../../../widgets/custom_text_cm.dart';
-import '../../../../../core/constants/app_strings.dart';
-class SchoolNoticeAndNews extends StatefulWidget {
-  const SchoolNoticeAndNews({super.key});
+import '../../../../../../core/constants/app_strings.dart';
+class AboutOrganization extends StatefulWidget {
+  const AboutOrganization({super.key});
 
   @override
-  State<SchoolNoticeAndNews> createState() => _SchoolNoticeAndNewsState();
+  State<AboutOrganization> createState() => _AboutOrganizationState();
 }
-class _SchoolNoticeAndNewsState extends State<SchoolNoticeAndNews> {
+class _AboutOrganizationState extends State<AboutOrganization> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
         showRightTextButton: true,
         isShowMoreInfoIcon: true,
-        title: "Notices & News",
+        title: "About Organization",
         isShadowShow: false,
       ),
       body: SingleChildScrollView(
@@ -52,7 +52,7 @@ class _SchoolNoticeAndNewsState extends State<SchoolNoticeAndNews> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     padding: EdgeInsets.symmetric(
-                      vertical: 16
+                        vertical: 16
                     ),
                     child: Center(
                       child: Row(mainAxisAlignment: MainAxisAlignment.center,

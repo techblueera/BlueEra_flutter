@@ -9,6 +9,7 @@ import '../../../../../widgets/custom_text_cm.dart';
 import '../../../laboratory/view/widgets/me_menu_card_design.dart';
 import '../category/about_school/school_about_us.dart';
 import '../category/acadamics/school_academics_page.dart';
+import '../category/campus_life/school_compus_life.dart';
 import '../category/school_contact_us.dart';
 import '../category/school_gallery.dart';
 import '../category/school_notice_and_news.dart';
@@ -25,7 +26,7 @@ class _AddSchoolServiceState extends State<AddSchoolService> {
     "About Us": () => SchoolAboutUs(),
     "Academics": () => SchoolAcademicsPage(),
     "Student Corner": () => SchoolStudentCorner(),
-    "Campus Life": () => Container(),
+    "Campus Life": () => CampusLifePage(),
     "Notices & News": () => SchoolNoticeAndNews(),
     "Gallery": () => SchoolGallery(),
     "Career / Jobs": () => Container(),

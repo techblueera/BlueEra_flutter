@@ -45,6 +45,7 @@ import '../../../me/hospital/view/hospital_main.dart';
 import '../../../me/hotel/view/hotel_main.dart';
 import '../../../me/laboratory/view/laboratory_main.dart';
 import '../../../me/medical/view/medical_main.dart';
+import '../../../me/others/others_main.dart';
 import '../../../me/school/view/school_main.dart';
 import '../../delivery_partner/controller/delivery_partner_orders_controller.dart';
 import '../auth/controller/bottom_bar_controller.dart';
@@ -378,7 +379,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     //
     // // Fallback (required)
     // return PersonalProfileSetupNewScreen();
-    return HotelMain();
+    return OthersMain();
   }
 
   Widget resolveBusinessScreen() {
