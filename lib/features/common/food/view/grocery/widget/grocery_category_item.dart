@@ -73,7 +73,7 @@ class GroceryCategoryItem extends StatelessWidget {
     } else {
       // Local asset (svg or png/jpg)
       return LocalAssets(
-        imagePath: 'assets/svg/$path',
+        imagePath: path,
         width: SizeConfig.size30,
         height: SizeConfig.size30,
         boxFix: BoxFit.contain,

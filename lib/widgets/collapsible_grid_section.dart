@@ -51,7 +51,7 @@ class _CollapsibleGridSectionState extends State<CollapsibleGridSection> {
                 child: index < rowItems.length
                     ? CircleIconGridItem(
                   label: rowItems[index].label,
-                  icon: 'assets/category/grocery/${rowItems[index].icon}',
+                  icon: rowItems[index].icon,
                   onTap: () => widget.onTap?.call(rowItems[index]),
                 )
                     : const SizedBox.shrink(),

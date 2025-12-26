@@ -11,8 +11,6 @@ import 'package:BlueEra/features/common/food/view/grocery/widget/grocery_categor
 import 'package:BlueEra/features/common/food/view/grocery/widget/grocery_constant.dart';
 import 'package:BlueEra/features/common/food/view/grocery/widget/grocery_data.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -61,7 +59,7 @@ class GrocerySuperCategoryScreen extends StatelessWidget {
               Get.toNamed(
                 RouteHelper.getGroceryCategoryScreenRoute(),
                 arguments: {
-                  ApiKeys.argOwnGrocery: false,
+                  ApiKeys.argOwnGrocery: true,
                   ApiKeys.argPageHeading: superCategories[index].label,
                   ApiKeys.argArrGroceryCat: categoryMap,
                 },
@@ -89,7 +87,7 @@ class GrocerySuperCategoryScreen extends StatelessWidget {
           AppStrings.headerDryFruitsReadyFood: GroceryData.dryFruitsAndReadyFood,
         };
 
-      case GroceryConstant.VEGETABLE:
+      case GroceryConstant.VEGETABLES:
         return {
           AppStrings.headerLeafyVegetables: GroceryData.leafyVegetables,
           AppStrings.headerRootVegetables: GroceryData.rootVegetables,
@@ -101,7 +99,7 @@ class GrocerySuperCategoryScreen extends StatelessWidget {
           AppStrings.headerExoticVegetables: GroceryData.exoticAndSpecialty,
         };
 
-      case GroceryConstant.FRUIT:
+      case GroceryConstant.FRUITS:
         return {
           AppStrings.headerDailyFruits: GroceryData.dailyFruits,
           AppStrings.headerDesiFruits: GroceryData.desiFruits,
@@ -111,7 +109,7 @@ class GrocerySuperCategoryScreen extends StatelessWidget {
           AppStrings.headerSpecialExoticFruits: GroceryData.specialNdExoticFruits,
         };
 
-      case GroceryConstant.BAKERY_BREAD_ITEMS:
+      case GroceryConstant.BAKERY_NAMKEEN_ITEMS:
         return {
           AppStrings.headerNamkeenMixture: GroceryData.namkeenAndMixture,
           AppStrings.headerChipsPapadFryums: GroceryData.chipsPapadFryums,
@@ -120,65 +118,72 @@ class GrocerySuperCategoryScreen extends StatelessWidget {
           AppStrings.headerFriedHotSnacks: GroceryData.friedHotSnacks,
         };
 
-      case GroceryConstant.DAIRY_PRODUCTS:
+      case GroceryConstant.DAIRY_FROZEN_ITEMS:
         return {
           AppStrings.headerMilk: GroceryData.milkList,
           AppStrings.headerCurdCream: GroceryData.curdButtermilkCreamList,
           AppStrings.headerButterCheesePaneer: GroceryData.butterCheesePaneerList,
           AppStrings.headerGheeDairyFats: GroceryData.gheeAndDairyFatsList,
           AppStrings.headerIceCreamFrozen: GroceryData.iceCreamFrozenDessertsList,
+          AppStrings.headerDairySweetNdChocolate: GroceryData.sweetsChocolatesList,
           AppStrings.headerFrozenVegetables: GroceryData.frozenVegetablesList,
           AppStrings.headerFrozenSnacks: GroceryData.frozenSnacksMealsList,
           AppStrings.headerMilkPowderAlts: GroceryData.milkPowdersAlternativesList,
         };
 
-      case GroceryConstant.HOME_ESSENTIALS:
-        return {
-          'Mom & Baby Care': controller.momBabyCare,
-          'Kitchenware': controller.kitchenware,
-          'Tableware': controller.tableware,
-          'Home': controller.homeCare,
-        };
-
-      case GroceryConstant.PACKED_SWEETS_NAMKEENS:
-        return {
-          'Indian Sweets': controller.indianSweets,
-          'Milk-Based Sweets': controller.milkBasedSweets,
-          'Dry Fruit & Premium Sweets': controller.DryNdPremiumSweets,
-          'Namkeens': controller.namkeens,
-        };
-
       case GroceryConstant.CROCKERY:
         return {
-          'Plates & Dinnerware': controller.platesNdDinnerWare,
-          'Bowls & Serving Ware': controller.bowsNdServiceWare,
-          'Cups, Mugs & Glassware': controller.cupsNdGlassWare,
-          'Serving & Table Accessories': controller.servingNdTableAccessories,
+          AppStrings.headerCookingUtensils: GroceryData.cookingUtensilsList,
+          AppStrings.headerDiningUtensils: GroceryData.diningUtensilsList,
+          AppStrings.headerServingUtensils: GroceryData.servingUtensilsList,
+          AppStrings.headerKitchenHandTools: GroceryData.kitchenToolsList,
+          AppStrings.headerKitchenAppliances: GroceryData.kitchenAppliancesList,
+          AppStrings.headerStorageCarry: GroceryData.storageCarryList,
+          AppStrings.headerGasWaterUtility: GroceryData.utilityItemsList,
+          AppStrings.headerCleaningSetup: GroceryData.cleaningSetupList,
         };
 
-      case GroceryConstant.MEDICAL_ITEMS:
+      case GroceryConstant.HOME_ESSENTIALS:
         return {
-          'First Aid & Basic Care': controller.firstAidCare,
-          'Common Medicines': controller.commonMedicines,
-          'Health & Hygiene Essentials': controller.healthNdHygieneEsse,
-          'Digestive & Wellness Products': controller.digestiveNdWellnessProducts,
+          AppStrings.headerElectricalSafety: GroceryData.electricalSafetyList,
+          AppStrings.headerWaterStorage: GroceryData.waterStorageList,
+          AppStrings.headerHomeUtility: GroceryData.homeUtilityList,
+          AppStrings.headerPujaItems: GroceryData.pujaItemsList,
         };
 
-      case GroceryConstant.BEAUTY_BODY_CARE:
+      case GroceryConstant.CLEANING_MAINTENANCE:
         return {
-          'Bath & Body Care': controller.bathNdBodyCare,
-          'Hair Care': controller.hairCare,
-          'Oral & Personal Hygiene': controller.oralNdPersonalHygiene,
-          'Skin Care & Daily Beauty': controller.skinCareNdDailyBeauty,
+          AppStrings.headerLaundryCare: GroceryData.laundryCareList,
+          AppStrings.headerBathroomCare: GroceryData.bathroomCareList,
+          AppStrings.headerKitchenCare: GroceryData.kitchenCareList,
+          AppStrings.headerFloorSurface: GroceryData.floorSurfaceList,
+          AppStrings.headerCleaningTools: GroceryData.cleaningToolsList,
+          AppStrings.headerPestAirCare: GroceryData.pestAirCareList,
+          AppStrings.headerSafetyRepair: GroceryData.safetyRepairList,
+        };
+
+      case GroceryConstant.BEAUTY_HEALTH_CARE:
+        return {
+          AppStrings.headerBathBodyCare: GroceryData.bathBodyCareList,
+          AppStrings.headerSkinCare: GroceryData.skinCareList,
+          AppStrings.headerHairCare: GroceryData.hairCareList,
+          AppStrings.headerOralCare: GroceryData.oralCareList,
+          AppStrings.headerMenGrooming: GroceryData.menGroomingList,
+          AppStrings.headerWomenHygiene: GroceryData.womenHygieneList,
+          AppStrings.headerBeautyCosmetics: GroceryData.beautyCosmeticsList,
+          AppStrings.headerBathroomHygiene: GroceryData.bathroomHygieneList,
+          AppStrings.headerBabyCare: GroceryData.babyCareList,
+          AppStrings.headerMedicalEssentials: GroceryData.medicalEssentialsList,
         };
 
       case GroceryConstant.STATIONARY:
         return {
-          'Writing Essentials': controller.writingEsse,
-          'Paper Products': controller.paperProduct,
-          'School & Study Essentials': controller.schoolNdStudyEsse,
-          'Office & Desk Essentials': controller.officeNdDeskEsse,
-          'Art & Craft': controller.artNdCraft,
+          AppStrings.headerWritingNotebooks: GroceryData.writingPaperNotebooksList,
+          AppStrings.headerSchoolEssentials: GroceryData.schoolEssentialsList,
+          AppStrings.headerOfficeUtility: GroceryData.officeDeskUtilityList,
+          AppStrings.headerArtCraftWork: GroceryData.artCraftProjectList,
+          AppStrings.headerCuttingPacking: GroceryData.cuttingFixingPackingList,
+          AppStrings.headerPrintingGifts: GroceryData.printingGiftsDecorList,
         };
 
       default:

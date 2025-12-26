@@ -438,6 +438,7 @@ class RouteHelper {
 
   // static String getRiderProfileStatusScreenRoute() =>
   //     RouteConstant.RiderProfileStatusScreen;
+
   static String getGrocerySuperCategoryScreenRoute() =>
       RouteConstant.grocerySuperCategoryScreen;
 

@@ -210,7 +210,7 @@ class _GrocerySubCategoryScreenState extends State<GrocerySubCategoryScreen> {
                       color: selected ? null : AppColors.skyBlueE4),
                   padding: EdgeInsets.all(selected ? 0 : 6),
                   child: LocalAssets(
-                    imagePath: 'assets/category/grocery/$icon',
+                    imagePath: icon,
                     // boxFix: BoxFit.cover,
                     height: 40,
                     width: 40,
@@ -348,6 +348,7 @@ class _GrocerySubCategoryScreenState extends State<GrocerySubCategoryScreen> {
               ),
               padding: EdgeInsets.only(bottom: SizeConfig.size30),
               itemBuilder: (_, i) {
+                log('coming');
                 if (i == controller.arrGroceryCategoryProducts.length) {
                   return const Center(
                     child: Padding(

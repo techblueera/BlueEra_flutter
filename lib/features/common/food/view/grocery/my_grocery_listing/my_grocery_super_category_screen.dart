@@ -9,6 +9,7 @@ import 'package:BlueEra/features/common/food/model/my_grocery_super_category_mod
 import 'package:BlueEra/features/common/food/view/grocery/my_grocery_listing/grocery_category_card.dart';
 import 'package:BlueEra/features/common/food/view/grocery/widget/grocery_category_item.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -47,11 +48,13 @@ class _MyGrocerySuperCategoryScreenState extends State<MyGrocerySuperCategoryScr
           // Empty state
           if (groceryCategoryList.isEmpty) {
             return Center(
-              child: CustomText(
-                  'Not found any grocery',
-                  fontSize: SizeConfig.large,
-                  color: AppColors.mainTextColor,
-                  fontWeight: FontWeight.w700
+              child: EmptyStateWidget(
+                   message: 'You Have Nor Post any Product',
+                   actionText: 'Add Product Now!',
+                   actionCallback: ()=> Get.toNamed(
+                       RouteHelper.getGrocerySuperCategoryScreenRoute(),
+                       arguments: {ApiKeys.argOwnGrocery: true}
+                   ),
               ),
             );
           }

@@ -50,48 +50,6 @@ class _GroceryScreenState extends State<GroceryScreen> with SingleTickerProvider
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.whiteF3,
-      // appBar: PreferredSize(
-      //   preferredSize: Size.fromHeight(kToolbarHeight + 50),
-      //   child: CommonBackAppBar(
-      //     isLeading: !(widget.fromBottomNavBar??false),
-      //     controller: searchController,
-      //     searchHintText: AppStrings.searchHintText,
-      //     onClearCallback: () => searchController.clear(),
-      //     isSearch: true,
-      //     buildCustomWidget: ()=> Padding(
-      //       padding: EdgeInsets.only(
-      //           right: SizeConfig.paddingL,
-      //           bottom: SizeConfig.paddingXSL
-      //       ),
-      //       child: InkWell(
-      //         onTap:()=> Get.toNamed(
-      //             RouteHelper.getGroceryCategoryScreenRoute(),
-      //             arguments: {ApiKeys.argOwnGrocery: true}
-      //         ),
-      //         child: Container(
-      //           height: SizeConfig.size40,
-      //           width: SizeConfig.size40,
-      //           decoration: BoxDecoration(
-      //             borderRadius: BorderRadius.circular(SizeConfig.size8),
-      //             color: AppColors.primaryColor
-      //           ),
-      //           alignment: Alignment.center,
-      //           padding: EdgeInsets.all(6.0),
-      //           child: LocalAssets(imagePath: AppIconAssets.add),
-      //         ),
-      //       ),
-      //     ),
-      //     bottomWidget: TabBar(
-      //       controller: _tabController,
-      //       labelColor: AppColors.primaryColor,
-      //       unselectedLabelColor: Colors.grey[600],
-      //       indicatorColor: Colors.blue,
-      //       indicatorWeight: 2,
-      //       labelStyle: TextStyle(fontWeight: FontWeight.w600),
-      //       tabs: _tabs,
-      //     ),
-      //   ),
-      // ),
       body: SafeArea(
           child: NestedScrollView(
             headerSliverBuilder: (context, innerBoxIsScrolled) {
@@ -211,8 +169,8 @@ class _GroceryScreenState extends State<GroceryScreen> with SingleTickerProvider
                       ]
                     ),
                     child: LocalAssets(
-                        imagePath: AppIconAssets.add,
-                        imgColor: AppColors.secondaryTextColor,
+                      imagePath: AppIconAssets.add,
+                      imgColor: AppColors.secondaryTextColor,
                       width: SizeConfig.size12,
                       height: SizeConfig.size12,
                     ),
@@ -228,14 +186,10 @@ class _GroceryScreenState extends State<GroceryScreen> with SingleTickerProvider
               right: SizeConfig.paddingL
           ),
           child: InkWell(
-            onTap:()=> Get.toNamed(
+            onTap: ()=> Get.toNamed(
                RouteHelper.getGrocerySuperCategoryScreenRoute(),
-               arguments: {ApiKeys.argOwnGrocery: true}
+               arguments: {ApiKeys.argOwnGrocery: false}
             ),
-            // onTap:()=> Get.toNamed(
-            //     RouteHelper.getGroceryCategoryScreenRoute(),
-            //     arguments: {ApiKeys.argOwnGrocery: true}
-            // ),
             child: Container(
               height: SizeConfig.size40,
               width: SizeConfig.size40,

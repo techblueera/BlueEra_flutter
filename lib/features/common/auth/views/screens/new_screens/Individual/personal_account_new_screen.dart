@@ -509,6 +509,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                         //   return null;
                         // }
                       ),
+
                     ],
 
                     if ((_selectedProfessionTagId == SENIOR_CITIZEN)) ...[
@@ -607,52 +608,6 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                           // }
                         ),
                       ],
-                    ],
-
-                    if (_selectedProfessionTagId == OTHERS) ...[
-                      SizedBox(
-                        height: SizeConfig.paddingL,
-                      ),
-
-                      CommonTextField(
-                        isValidate: false,
-                        textEditController: _otherProfessionTextController,
-                        inputLength: 13,
-                        keyBoardType: TextInputType.text,
-                        regularExpression:
-                        RegularExpressionUtils.alphabetSpacePattern,
-                        titleColor: Colors.black,
-                        hintText: 'Please specify (if other)',
-                        // autovalidateMode: _autoValidate,
-                        // validator: (value) {
-                        //   if (value == null || value.isEmpty) {
-                        //     return 'Please enter other profession name';
-                        //   }
-                        //   return null;
-                        // }
-                      ),
-                      SizedBox(height: SizeConfig.size20),
-                      CommonTextField(
-                        isValidate: false,
-
-                        textEditController: _designationTextController,
-                        inputLength: 24,
-                        keyBoardType: TextInputType.text,
-                        regularExpression:
-                        RegularExpressionUtils.alphabetSpacePattern,
-                        title: "Designation / Expertise",
-                        hintText: "Enter your designation/expertise",
-                        // autovalidateMode: _autoValidate,
-                        // validator: (value) {
-                        //   if (value == null || value.isEmpty) {
-                        //     return 'Please enter your designation or expertise';
-                        //   }
-                        //   return null;
-                        // },
-                      ),
-                      SizedBox(
-                        height: SizeConfig.size20,
-                      ),
                     ],
 
                     if (_selectedProfessionTagId == POLITICIAN) ...[
@@ -756,6 +711,52 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                           }
                           return null;
                         }
+                      ),
+                      SizedBox(height: SizeConfig.size18)
+                    ],
+
+                    if (_selectedProfessionTagId == OTHERS) ...[
+                      SizedBox(
+                        height: SizeConfig.paddingL,
+                      ),
+
+                      CommonTextField(
+                        isValidate: false,
+                        textEditController: _otherProfessionTextController,
+                        inputLength: 24,
+                        keyBoardType: TextInputType.text,
+                        regularExpression:
+                        RegularExpressionUtils.alphabetSpacePattern,
+                        titleColor: Colors.black,
+                        hintText: 'Please specify (if other)',
+                        // autovalidateMode: _autoValidate,
+                        // validator: (value) {
+                        //   if (value == null || value.isEmpty) {
+                        //     return 'Please enter other profession name';
+                        //   }
+                        //   return null;
+                        // }
+                      ),
+                      SizedBox(height: SizeConfig.size20),
+                      CommonTextField(
+                        isValidate: false,
+                        textEditController: _designationTextController,
+                        inputLength: 24,
+                        keyBoardType: TextInputType.text,
+                        regularExpression:
+                        RegularExpressionUtils.alphabetSpacePattern,
+                        title: "Designation / Expertise",
+                        hintText: "Enter your designation/expertise",
+                        // autovalidateMode: _autoValidate,
+                        // validator: (value) {
+                        //   if (value == null || value.isEmpty) {
+                        //     return 'Please enter your designation or expertise';
+                        //   }
+                        //   return null;
+                        // },
+                      ),
+                      SizedBox(
+                        height: SizeConfig.size20,
                       ),
                     ],
 

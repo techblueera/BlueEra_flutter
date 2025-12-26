@@ -535,4 +535,17 @@ class AppIconAssets {
   static String handPriceIcon = "${iconPath}hand_price_icon.svg";
   static String green_tick_icon = "${iconPath}green_tick.svg";
   static String takeFranchiseIcon = "${iconPath}franchise.svg";
+
+  /// Grocery Super Category svg
+  static const String groceryItems = "${iconPath}grocery_items.svg";
+  static const String vegetables = "${iconPath}vegetables.svg";
+  static const String fruits = "${iconPath}fruits.svg";
+  static const String bakeryNamkeenItems = "${iconPath}bakery.svg";
+  static const String dairyFrozenItems = "${iconPath}dairy_products.svg";
+  static const String crockery = "${iconPath}crockery.svg";
+  static const String homeEssentials = "${iconPath}home_essentials.svg";
+  static const String cleaningMaintenance = "${iconPath}cleaning_maintenance.svg";
+  static const String beautyHealthCare = "${iconPath}beauty_body_care.svg";
+  static const String stationary = "${iconPath}stationary.svg";
+
 }

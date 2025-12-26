@@ -583,9 +583,11 @@ clearSubCategoryData()
     }
   }
 
+
+  RxBool isIndividualProfessionLoading = false.obs;
   Future<void> getAllIndividualProfessionController() async {
     try {
-
+      isIndividualProfessionLoading.value = true;
       ResponseModel responseModel = await AuthRepo().getAllProfessionsRepo();
 
       if (responseModel.isSuccess) {
@@ -606,11 +608,14 @@ clearSubCategoryData()
       professionListingResponse = ApiResponse.error('error');
       update();
     }finally{
+      isIndividualProfessionLoading.value = false;
     }
   }
 
+  RxBool isAllBusinessCategoriesLoading = false.obs;
   Future<void> getAllBusinessCategories() async {
     try {
+      isAllBusinessCategoriesLoading.value = true;
 
       final response = await AuthRepo().getBusinessCategoriesRepo();
 
@@ -646,6 +651,7 @@ clearSubCategoryData()
       businessCategoryResponse = ApiResponse.error('error');
       update();
     }finally{
+      isAllBusinessCategoriesLoading.value = false;
     }
   }
 

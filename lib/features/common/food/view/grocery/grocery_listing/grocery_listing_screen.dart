@@ -232,7 +232,7 @@ class _GroceryListingScreenState extends State<GroceryListingScreen> {
                       color: selected ? null : AppColors.skyBlueE4),
                   padding: EdgeInsets.all(selected ? 0 : 6),
                   child: LocalAssets(
-                    imagePath: 'assets/category/grocery/$icon',
+                    imagePath: icon,
                     // boxFix: BoxFit.cover,
                     height: 40,
                     width: 40,
