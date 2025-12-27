@@ -1,15 +1,14 @@
 import 'dart:math';
-
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/payment_setting_screen/add_account_screen/get_account_model.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/payment/controller/payment_setting_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/payment/model/get_account_model.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import 'payment_setting_controller.dart';
 
 class PaymentSettingScreen extends StatelessWidget {
   const PaymentSettingScreen({super.key});
@@ -33,6 +32,8 @@ class PaymentSettingScreen extends StatelessWidget {
                 children: [
                   // All Bank Accounts Section
                   _buildBankAccountsSection(controller),
+
+
                   SizedBox(height: SizeConfig.size24),
 
                   // UPI ID Section
@@ -377,7 +378,7 @@ class PaymentSettingScreen extends StatelessWidget {
                     color: AppColors.primaryColor,
                     // onTap: () => controller.editBankAccount(account.id ?? ""),
                     onTap: () {
-                      Get.toNamed(RouteHelper.getAddAccountScreenRoute(),
+                      Get.toNamed(RouteHelper.getAddBankAccountScreenRoute(),
                           arguments: {
                             "BankName": account.bankName ?? "",
                             "Account": account.accountNumber,

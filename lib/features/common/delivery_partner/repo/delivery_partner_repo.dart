@@ -90,7 +90,7 @@ class DeliveryPartnerRepo extends BaseService {
   }
 
   /// initRiderServiceUploadRepo
-  Future<ResponseModel> initRiderServiceUploadRepo({required String fileType}) async {
+  Future<ResponseModel> initRiderServiceFileUploadRepo({required String fileType}) async {
     var response = await ApiBaseHelper().getHTTP(
       initRiderServiceUpload,
       params: {

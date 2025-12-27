@@ -535,6 +535,8 @@ class AppIconAssets {
   static String handPriceIcon = "${iconPath}hand_price_icon.svg";
   static String green_tick_icon = "${iconPath}green_tick.svg";
   static String takeFranchiseIcon = "${iconPath}franchise.svg";
+  static String outlinedDocument = "${iconPath}outlined_document.svg";
+  static String uploadOutlinedIcon = "${iconPath}upload_outlined_icon.svg";
 
   /// Grocery Super Category svg
   static const String groceryItems = "${iconPath}grocery_items.svg";

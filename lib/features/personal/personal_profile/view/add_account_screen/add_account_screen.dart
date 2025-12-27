@@ -12,7 +12,7 @@
 // import 'package:flutter/services.dart';
 // import 'package:get/get.dart';
 
-// import 'add_account_controller.dart';
+// import 'add_bank_account_controller.dart';
 
 // class AddAccountScreen extends StatefulWidget {
 //   final String channelId;

@@ -1,7 +1,7 @@
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/payment_setting_screen/add_account_screen/get_account_model.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/payment_setting_screen/repo/payment_repo.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/payment/model/get_account_model.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/payment/repo/payment_repo.dart';
 import 'package:get/get.dart';
 
 class PaymentSettingController extends GetxController {
@@ -29,11 +29,11 @@ class PaymentSettingController extends GetxController {
 
   void addBankAccount() {
     Get.toNamed(
-      RouteHelper.getAddAccountScreenRoute(),
+      RouteHelper.getAddBankAccountScreenRoute(),
     )?.then(
       (value) => getAccountApi(),
     );
-    print('Add bank account');
+    print('Add payment account');
   }
 
   void addUpiAccount() {
@@ -83,7 +83,7 @@ class PaymentSettingController extends GetxController {
   //     "isDefault": true,
   //   });
   //   if (response.isSuccess) {
-  //     print("Default bank set successfully: ${response.data}");
+  //     print("Default payment set successfully: ${response.data}");
   //   }
   // }
 }

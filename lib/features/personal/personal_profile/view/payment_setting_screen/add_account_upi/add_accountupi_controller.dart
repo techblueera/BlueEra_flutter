@@ -1,6 +1,6 @@
 import 'package:BlueEra/core/api/apiService/response_model.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/payment_setting_screen/add_account_screen/add_account_modal.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/payment_setting_screen/repo/payment_repo.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/payment/model/add_account_modal.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/payment/repo/payment_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -108,8 +108,6 @@ class AddAccountupiController extends GetxController {
       isLoading.value = false;
     }
   }
-
-
 
 
   Future<void> updateUpiAccount({required String id}) async {
