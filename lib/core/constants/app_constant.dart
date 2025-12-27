@@ -233,6 +233,13 @@ class AppConstants {
 
 ///IS GUEST USER...
 bool isGuestUser() => (accountTypeGlobal.toUpperCase() == AppConstants.guest);
+A getOrPutController<A>(A Function() create) {
+  if (Get.isRegistered<A>()) {
+    return Get.find<A>();
+  } else {
+    return Get.put<A>(create());
+  }
+}
 
 ///IS individual USER...
 bool isIndividualUser() =>

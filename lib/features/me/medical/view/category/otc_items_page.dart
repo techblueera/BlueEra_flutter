@@ -1,76 +1,84 @@
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../../widgets/common_back_app_bar.dart';
+import '../../../auth/model/medical_lab_details.dart';
 import '../../../laboratory/model/lab_content_list_view_model.dart';
 import '../../../laboratory/view/widgets/lab_category_selection_widget.dart';
+
 class OTCItemsPage extends StatefulWidget {
-  const OTCItemsPage({super.key});
+  const OTCItemsPage({
+    super.key,
+    this.children,
+  });
+
+  /// API data (GROUP + LEAF)
+  final List<MedicalLabDataListModel>? children;
 
   @override
   State<OTCItemsPage> createState() => _OTCItemsPageState();
 }
 
 class _OTCItemsPageState extends State<OTCItemsPage> {
+  /// UI-ready list
   List<LabContentListViewModel> otcItemsList = [];
-  final List<Map<String, dynamic>> otcItemsStaticList = [
-    {
-      "name": "Pain, Fever & Cold Relief",
-      "children": [
-        {"key": "pain_relief", "name": "Pain Relief Tablets"},
-        {"key": "fever", "name": "Fever Tablets"},
-        {"key": "headache", "name": "Headache Tablets"},
-        {"key": "body_pain", "name": "Body Pain Tablets"},
-        {"key": "beans_peas", "name": "Beans & Peas"},
-        {"key": "cabbage", "name": "Cabbage, Cauli & Broccoli"},
-        {"key": "capsicum", "name": "Capsicum, Chilli & Corn"},
-        {"key": "exotic_veg", "name": "Exotic Vegetables"},
-      ]
-    },
-    {
-      "name": "Green & Leafy",
-      "children": [
-        {"key": "spinach", "name": "Spinach (Palak)"},
-        {"key": "fenugreek", "name": "Fenugreek (Methi)"},
-        {"key": "coriander", "name": "Coriander & Mint"},
-        {"key": "lettuce", "name": "Lettuce & Salad Greens"},
-        {"key": "spring_onion", "name": "Spring Onion"},
-      ]
-    },
-    {
-      "name": "Seasonal Vegetables",
-      "children": [
-        {"key": "summer", "name": "Summer Vegetables"},
-        {"key": "winter", "name": "Winter Vegetables"},
-        {"key": "monsoon", "name": "Monsoon Vegetables"},
-      ]
-    },
-  ];
-
-  void loadStaticData() {
-    otcItemsList = otcItemsStaticList
-        .map((e) => LabContentListViewModel.fromJson(e))
-        .toList();
-  }
 
   @override
   void initState() {
     super.initState();
-    loadStaticData();
+    loadDynamicOTCData();
+  }
+
+  /// Converts MedicalLabDataListModel → LabContentListViewModel
+  void loadDynamicOTCData() {
+    if (widget.children == null || widget.children!.isEmpty) {
+      otcItemsList = [];
+      return;
+    }
+
+    otcItemsList = widget.children!
+    // Only GROUP level items
+    //     .where((group) => group.type == 'GROUP')
+        .map((group) {
+      return LabContentListViewModel(
+        name: group.name,
+        children: group.children
+            // ?.where((child) => child.type == 'LEAF')
+            ?.map((leaf) {
+          return LabContentListViewChild(
+            key: leaf.key,
+            name: leaf.name,
+          );
+        }).toList(),
+      );
+    }).toList();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const CommonBackAppBar(title: "OTC Items"),
-      body: ListView.builder(
+      body: otcItemsList.isEmpty
+          ? const Center(
+        child: CustomText(
+          "No OTC items available",
+          fontSize: 14
+        ),
+      )
+          : ListView.builder(
         padding: const EdgeInsets.all(12),
         itemCount: otcItemsList.length,
         itemBuilder: (context, index) {
           final category = otcItemsList[index];
-          if (category.children == null || category.children!.isEmpty) {
+
+          if (category.children == null ||
+              category.children!.isEmpty) {
             return const SizedBox.shrink();
           }
-          return CategorySectionWidget(category: category);
+
+          return CategorySectionWidget(
+            category: category,
+          );
         },
       ),
     );

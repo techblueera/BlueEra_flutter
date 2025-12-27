@@ -8,7 +8,9 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../core/constants/app_constant.dart';
 import '../../../../widgets/common_search_bar.dart';
+import '../../auth/controller/medical_model_controller.dart';
 
 class MedicalMain extends StatefulWidget {
 
@@ -22,12 +24,15 @@ class MedicalMain extends StatefulWidget {
 class _MedicalMainState extends State<MedicalMain>
     with SingleTickerProviderStateMixin, RouteAware {
   late TabController _tabController;
+  final controller = getOrPutController<MedicalModelController>(
+  () => MedicalModelController(),
+  );
 
 
 
   @override
   void initState() {
-
+    controller.fetchMedicalCategoryData('PHARMACY');
     _tabController = TabController(length: 2, vsync: this);
 
     super.initState();

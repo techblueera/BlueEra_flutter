@@ -1,11 +1,15 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 
 import '../../../../../core/constants/app_colors.dart';
+import '../../../../../core/constants/app_constant.dart';
 import '../../../../../widgets/custom_text_cm.dart';
+import '../../../auth/controller/medical_model_controller.dart';
 import '../../../laboratory/view/widgets/me_menu_card_design.dart';
 import '../category/otc_items_page.dart';
 class AddMedicalService extends StatefulWidget {
@@ -15,7 +19,9 @@ class AddMedicalService extends StatefulWidget {
   State<AddMedicalService> createState() => _AddMedicalServiceState();
 }
 class _AddMedicalServiceState extends State<AddMedicalService> {
-
+  final controller = getOrPutController<MedicalModelController>(
+        () => MedicalModelController(),
+  );
   final Map<String, Widget Function()> servicePages = {
     "OTC Items": () => OTCItemsPage(),
     "Herbal/Ayurved": () => OTCItemsPage(),
@@ -36,16 +42,16 @@ class _AddMedicalServiceState extends State<AddMedicalService> {
       body: Column(
         children: [
           SizedBox(height: 12),
-          ...servicePages.keys.map((title) {
+          ...controller.medicalCategoryDataList.map((title) {
             return InkWell(
               onTap: () {
-                final pageBuilder = servicePages[title];
-                if (pageBuilder != null) {
-                  Get.to(() => pageBuilder());
-                }
+                Get.toNamed(RouteHelper.getMedicalOtcItemsScreen(),
+                arguments: {
+                  ApiKeys.medicalOtcChildren:title.children
+                });
               },
               child: MeMenuCardDesign(
-                title: title,
+                title: title.name??'',
                 icon: 'assets/icons/service_icon.svg',
               ),
             );
