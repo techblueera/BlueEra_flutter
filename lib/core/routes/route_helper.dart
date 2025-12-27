@@ -96,8 +96,9 @@ import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/product_preview_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/store_product_preview_screen_product.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/inventory_business_cards_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/my_documents_screen/add_document_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/payment_setting_screen/add_account_screen/add_account_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/my_documents/view/add_document_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/payment/view/add_bank_account_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/payment/view/payment_setting_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/payment_setting_screen/add_account_upi/add_accountupi_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/product_listing_screen/product_listing_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/model/rental_service_response.dart';
@@ -303,7 +304,7 @@ class RouteHelper {
   static String getAppointmentBookingScreenRoute() =>
       RouteConstant.AppointmentBookingScreen;
 
-  static String getAddAccountScreenRoute() => RouteConstant.addAccountScreen;
+  static String getAddBankAccountScreenRoute() => RouteConstant.addBankAccountScreen;
 
   static String getAddAccountUpiScreenRoute() =>
       RouteConstant.addAccountUpiScreen;
@@ -441,6 +442,9 @@ class RouteHelper {
 
   static String getGrocerySuperCategoryScreenRoute() =>
       RouteConstant.grocerySuperCategoryScreen;
+
+  static String getPaymentSettingScreenRoute() =>
+      RouteConstant.paymentSettingScreen;
 
 
   ///REDIRECT ROUTING SETUP.....
@@ -918,11 +922,11 @@ class RouteHelper {
           settings:
               RouteSettings(name: RouteHelper.getAddUpdateProductScreenRoute()),
         );
-      case RouteConstant.addAccountScreen:
+      case RouteConstant.addBankAccountScreen:
         return MaterialPageRoute(
-            builder: (_) => AddAccountScreen(),
+            builder: (_) => AddBankAccountScreen(),
             settings: RouteSettings(
-                name: RouteHelper.getAddAccountScreenRoute(),
+                name: RouteHelper.getAddBankAccountScreenRoute(),
                 arguments: settings.arguments));
       case RouteConstant.addAccountUpiScreen:
         return MaterialPageRoute(
@@ -1377,6 +1381,12 @@ class RouteHelper {
             ),
             settings: RouteSettings(name: getGrocerySuperCategoryScreenRoute())
         );
+      case RouteConstant.paymentSettingScreen:
+        return MaterialPageRoute(
+            builder: (_) => PaymentSettingScreen(),
+            settings: RouteSettings(name: getPaymentSettingScreenRoute())
+        );
+
 
       default:
         return MaterialPageRoute(

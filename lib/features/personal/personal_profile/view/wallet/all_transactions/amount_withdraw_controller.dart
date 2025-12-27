@@ -108,7 +108,7 @@ class AmountWithdrawScreenController extends GetxController {
                 content: Column(
                   children: [
                     CustomText(
-                      "Your withdrawal request has been submitted successfully. Once approved, the amount will be credited to your bank account.",
+                      "Your withdrawal request has been submitted successfully. Once approved, the amount will be credited to your payment account.",
                       fontSize: SizeConfig.medium15,
                       textAlign: TextAlign.center,
                       fontWeight: FontWeight.w400,

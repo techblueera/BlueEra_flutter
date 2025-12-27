@@ -386,7 +386,7 @@ abstract class BaseService {
   final String getStoreListing = "map-service/api/stores";
   final String userUploadInit = "user-service/upload/init";
   String bankDetails(String channelId) =>
-      'channel-service/channels/$channelId/bank-details';
+      'channel-service/channels/$channelId/payment-details';
   final String checkUsername = "user-service/user/checkUsername";
   final String followersList = "user-service/followers/followers/";
   final String followingList = "user-service/followers/following/";

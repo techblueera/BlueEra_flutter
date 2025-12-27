@@ -163,7 +163,7 @@ class WalletScreen extends StatelessWidget {
                                   child: GestureDetector(
                                 onTap: () {
                                   Get.toNamed(
-                                      RouteHelper.getAddAccountScreenRoute());
+                                      RouteHelper.getAddBankAccountScreenRoute());
                                 },
                                 child: Container(
                                   height: SizeConfig.size45,

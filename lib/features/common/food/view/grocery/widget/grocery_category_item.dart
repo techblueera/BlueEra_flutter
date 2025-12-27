@@ -77,8 +77,7 @@ class GroceryCategoryItem extends StatelessWidget {
         width: SizeConfig.size30,
         height: SizeConfig.size30,
         boxFix: BoxFit.contain,
-      )
-      ;
+      );
     }
   }
 
