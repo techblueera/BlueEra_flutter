@@ -264,10 +264,10 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
-      // floatingActionButton: FloatingActionButton(onPressed: () {
-      //   Get.to(FoodCategoryPage());
-      //   // Get.to(RiderProfileStatusScreen());
-      // }),
+      floatingActionButton: FloatingActionButton(onPressed: () {
+        Get.to(SchoolMain());
+        // Get.to(RiderProfileStatusScreen());
+      }),
       body: ValueListenableBuilder(
           valueListenable: bottomBarVisibleNotifier,
           builder: (context, isVisible, _) {

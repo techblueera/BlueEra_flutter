@@ -143,7 +143,7 @@ class CommonTextField extends StatelessWidget {
               ),
         title == null || (title?.isEmpty ?? false)
             ? const SizedBox.shrink()
-            : SizedBox(height: SizeConfig.paddingXSL),
+              : SizedBox(height: SizeConfig.paddingXSL),
         Container(
           width: SizeConfig.screenWidth,
           decoration: BoxDecoration(

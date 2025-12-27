@@ -1,9 +1,18 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/widget/circular_progress_painter.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+
 class MeMenuCardDesign extends StatelessWidget {
-  const MeMenuCardDesign({super.key, required this.title, required this.icon, this.showCount, this.count, this.showToggleButton});
+  const MeMenuCardDesign(
+      {super.key,
+      required this.title,
+      required this.icon,
+      this.showCount,
+      this.count,
+      this.showToggleButton});
+
   final String title;
   final String icon;
   final bool? showCount;
@@ -13,42 +22,54 @@ class MeMenuCardDesign extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 8,vertical: 5),
+      margin: EdgeInsets.symmetric(horizontal: 8, vertical: 5),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color:AppColors.greyE5
-        ),
-        color: AppColors.white
-      ),
-      padding: EdgeInsets.symmetric(horizontal: 14,vertical: 18),
-      child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: AppColors.greyE5),
+          color: AppColors.white),
+      padding: EdgeInsets.symmetric(horizontal: 14, vertical: 18),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
             children: [
-              Icon(Icons.store, color: AppColors.secondaryTextColor,),
+              Icon(
+                Icons.store,
+                color: AppColors.secondaryTextColor,
+              ),
               SizedBox(
                 width: SizeConfig.size12,
               ),
               CustomText(
-                  "${title}",
-                fontSize: 18,
-                fontWeight: FontWeight.normal,
+                "${title}",
+                fontSize: SizeConfig.size18,
                 color: AppColors.secondaryTextColor,
-          
               )
             ],
           ),
-          if(showCount??false)
-          CustomText("${count}",
-          fontSize: 18,),
-          if(showToggleButton??false)
-          CustomToggleSwitch()
+          if (showCount ?? false)
+            SizedBox(
+              width: 25,
+              height: 25,
+              child: CustomPaint(
+                painter: CircleProgressPainter(0.50),
+                child: Center(
+                  child: CustomText(
+                    "${(0.50 * 100).toInt()}%",
+                    fontSize: 8,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.mainTextColor,
+                  ),
+                ),
+              ),
+            ),
+          if (showToggleButton ?? false) CustomToggleSwitch()
         ],
       ),
     );
   }
 }
+
 class CustomToggleSwitch extends StatefulWidget {
   const CustomToggleSwitch({super.key});
 

@@ -41,9 +41,10 @@ class CommonMultipleImageUploadSection extends StatelessWidget {
               Expanded(
                 child: CustomText(
                   title,
-                  fontSize: SizeConfig.small,
+                  fontSize: SizeConfig.medium,
                   color: AppColors.mainTextColor,
-                  fontWeight: FontWeight.w400,
+
+
                 ),
               ),
               if (minImages != null)
@@ -146,6 +147,7 @@ class CommonMultipleImageSectionController extends GetxController {
   static const String bathroomImageId = 'bathroomImageId';
   static const String roadSideImageId = 'bathroomImageId';
   static const String otherImageId = 'bathroomImageId';
+  static const String addMoreDepartment = 'addMoreDepartment';
 
   Future<List<String>?> pickImages(String title) async {
     final List<String>? selected =

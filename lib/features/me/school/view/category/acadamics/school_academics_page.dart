@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/me/school/view/category/acadamics/department_screen.dart';
 import 'package:BlueEra/features/me/school/view/category/acadamics/widgets/acadamic_cours_and_programs.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +18,7 @@ class SchoolAcademicsPage extends StatefulWidget {
 class _SchoolAcademicsPageState extends State<SchoolAcademicsPage> {
 
   final Map<String, Widget Function()> servicePages = {
-    "Departments": () => Container(),
+    "Departments": () => DepartmentScreen(),
     "Courses / Programs": () => AcadamicCoursAndPrograms(),
     "Faculty Details": () => Container(),
     "Academic Calendar": () => Container(),
