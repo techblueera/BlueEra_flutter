@@ -41,6 +41,12 @@ import '../../../../core/routes/route_helper.dart';
 import '../../../chat/auth/controller/chat_theme_controller.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../chat/view/chat_screen_new.dart';
+import '../../../me/hospital/view/hospital_main.dart';
+import '../../../me/hotel/view/hotel_main.dart';
+import '../../../me/laboratory/view/laboratory_main.dart';
+import '../../../me/medical/view/medical_main.dart';
+import '../../../me/others/others_main.dart';
+import '../../../me/school/view/school_main.dart';
 import '../../delivery_partner/controller/delivery_partner_orders_controller.dart';
 import '../auth/controller/bottom_bar_controller.dart';
 

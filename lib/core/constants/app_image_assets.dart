@@ -31,6 +31,7 @@ class AppImageAssets {
   static String roadsideViewImage = "${imgPath}roadside_view_image.png";
 
   static String searchJobImage = "${imgPath}search_job_image.png";
+  static String noMeContent = "${imgPath}no_me_content.png";
 
 }
 

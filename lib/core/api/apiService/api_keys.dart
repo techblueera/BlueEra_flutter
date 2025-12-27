@@ -566,4 +566,5 @@ class ApiKeys {
   static const argArrGroceryCat = 'argArrGroceryCat';
   static const argCategoryName = 'argCategoryName';
   static const argPageHeading = 'argPageHeading';
+  static const medicalOtcChildren = 'medicalOtcItems';
 }

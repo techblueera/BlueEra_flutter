@@ -116,6 +116,8 @@ import 'package:flutter/material.dart';
 import '../../features/chat/contacts/view/contact_list_page.dart';
 import '../../features/common/store/add_update_product/add_update_product_screen.dart';
 import '../../features/common/store/models/get_channel_product_model.dart';
+import '../../features/me/auth/model/medical_lab_details.dart';
+import '../../features/me/medical/view/category/otc_items_page.dart';
 import '../../features/personal/personal_profile/view/booking_enquiries_screen/appointment_booking_form.dart';
 import '../../features/personal/personal_profile/view/booking_enquiries_screen/bookings_enquiries.dart';
 import '../../features/personal/personal_profile/view/booking_enquiries_screen/my_booking_screen.dart';
@@ -442,6 +444,8 @@ class RouteHelper {
   static String getGrocerySuperCategoryScreenRoute() =>
       RouteConstant.grocerySuperCategoryScreen;
 
+  static String getMedicalOtcItemsScreen() =>
+      RouteConstant.medicalOtcItemsScreen;
 
   ///REDIRECT ROUTING SETUP.....
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -1377,7 +1381,15 @@ class RouteHelper {
             ),
             settings: RouteSettings(name: getGrocerySuperCategoryScreenRoute())
         );
-
+        case RouteConstant.medicalOtcItemsScreen:
+          final args = settings.arguments as Map<String, dynamic>;
+          List<MedicalLabDataListModel>? children=args[ApiKeys.medicalOtcChildren] as List<MedicalLabDataListModel>?;
+          return MaterialPageRoute(
+              builder: (_) => OTCItemsPage(
+                  children: children
+              ),
+              settings: RouteSettings(name: getMedicalOtcItemsScreen())
+          );
       default:
         return MaterialPageRoute(
           builder: (_) => const Scaffold(

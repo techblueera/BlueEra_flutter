@@ -153,22 +153,20 @@ class CategoryListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: ListView.builder(
-        itemCount: items.length,
-        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8,vertical: SizeConfig.size10),
-        itemBuilder: (context, index) {
-          return _CategoryListCard(
-            item: items[index],
-            onTap: () {
+    return ListView.builder(
+      itemCount: items.length,
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8,vertical: SizeConfig.size10),
+      itemBuilder: (context, index) {
+        return _CategoryListCard(
+          item: items[index],
+          onTap: () {
 
-            },
-            onMenuTap: () {
-              _showMenu(context);
-            },
-          );
-        },
-      ),
+          },
+          onMenuTap: () {
+            _showMenu(context);
+          },
+        );
+      },
     );
   }
 

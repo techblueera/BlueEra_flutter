@@ -399,19 +399,19 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
             controller: TextEditingController(),
           ),
         ),
-        const SizedBox(width: 16),
-        if (!_isFromForward())
-          InkWell(
-            onTap: () {
-              showDialog(
-                context: context,
-                builder: (context) => ReceivedRequestsDialog(),
-              );
-            },
-            child: SvgPicture.asset(AppIconAssets.chat_receive_req,
-                color: Colors.black),
-          ),
-        if (!_isFromForward()) SizedBox(width: 18),
+        const SizedBox(width: 18),
+        // if (!_isFromForward())
+        //   InkWell(
+        //     onTap: () {
+        //       showDialog(
+        //         context: context,
+        //         builder: (context) => ReceivedRequestsDialog(),
+        //       );
+        //     },
+        //     child: SvgPicture.asset(AppIconAssets.chat_receive_req,
+        //         color: Colors.black),
+        //   ),
+        // if (!_isFromForward()) SizedBox(width: 18),
       ],
     );
   }

@@ -234,6 +234,13 @@ class AppConstants {
 
 ///IS GUEST USER...
 bool isGuestUser() => (accountTypeGlobal.toUpperCase() == AppConstants.guest);
+A getOrPutController<A>(A Function() create) {
+  if (Get.isRegistered<A>()) {
+    return Get.find<A>();
+  } else {
+    return Get.put<A>(create());
+  }
+}
 
 ///IS individual USER...
 bool isIndividualUser() =>
@@ -1788,6 +1795,7 @@ class ChatEmitEvents{
   static const screenRoom = "screenRoom";
   static const messageReceived = "messageReceived";
   static const messageViewed = "messageViewed";
+  static const isOnlineFromChatList = "isOnlineFromChatList";
   static const newMessageReceived = "newMessageReceived";
   static const isOnLine = "isOnLine";
   static const isOnlineFromChatList = "isOnlineFromChatList";

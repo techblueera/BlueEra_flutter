@@ -153,6 +153,7 @@ logs("riderOpt==== $riderOpt");
     );
   }
 
+
   Widget _buildRiderEnabled(BuildContext context) {
     final stepStatus = deliveryPartnerController.stepStatus;
 

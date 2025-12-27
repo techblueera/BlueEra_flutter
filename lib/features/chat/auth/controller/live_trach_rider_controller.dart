@@ -16,7 +16,6 @@ class LiveTrachRiderController extends GetxController {
     _stream = await riderLiveLocationOrderStream(riderId);
 
     _subscription = _stream.listen((event) {
-     log("sdkjcskldjcskldc $event lll _ $riderId");
       Map<String,dynamic> data=event;
 
       // LocationDataRider location=LocationDataRider.fromJson(data['location']);
