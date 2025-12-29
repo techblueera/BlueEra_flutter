@@ -17,6 +17,7 @@ class CommonImageUploadTile extends StatelessWidget {
   final Rxn<File> imageFile;
   final BuildContext context;
   final VoidCallback? onImageSelected;
+  final VoidCallback? onImageRemove;
 
   const CommonImageUploadTile({
     super.key,
@@ -24,6 +25,7 @@ class CommonImageUploadTile extends StatelessWidget {
     required this.imageFile,
     required this.context,
     this.onImageSelected,
+    this.onImageRemove,
   });
 
   @override
@@ -33,11 +35,11 @@ class CommonImageUploadTile extends StatelessWidget {
 
       return InkWell(
         onTap: () {
-          if(file == null){
+          if (file == null) {
             onImageSelected?.call();
-          }else{
-            Get.to(()=>
-              ImageViewScreen(
+          } else {
+            Get.to(
+              () => ImageViewScreen(
                 appBarTitle: title,
                 imageUrls: [file.path],
                 initialIndex: 0,
@@ -54,51 +56,55 @@ class CommonImageUploadTile extends StatelessWidget {
           ),
           child: file == null
               ? Padding(
-                padding: EdgeInsets.all(SizeConfig.size12),
-                child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                LocalAssets(imagePath: AppIconAssets.documentUploadIcon),
-                SizedBox(width: SizeConfig.size8),
-                CustomText(
-                  title,
-                  fontSize: SizeConfig.medium,
-                  color: AppColors.secondaryTextColor,
-                  fontWeight: FontWeight.w400,
-                ),
-                            ],
-                          ),
-              )
-              : SizedBox(
-            height: SizeConfig.size150,
-            child: Stack(
-              clipBehavior: Clip.none,
+                  padding: EdgeInsets.all(SizeConfig.size12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.file(file, fit: BoxFit.cover, width: double.infinity),
-                ),
-                Positioned(
-                  top: 6,
-                  right: 6,
-                  child: GestureDetector(
-                    onTap: () {
-                      imageFile.value = null; // remove image
-                    },
-                    child: Container(
-                      width: 24,
-                      height: 24,
-                      decoration: const BoxDecoration(
-                        color: Colors.black54,
-                        shape: BoxShape.circle,
+                      LocalAssets(imagePath: AppIconAssets.documentUploadIcon),
+                      SizedBox(width: SizeConfig.size8),
+                      CustomText(
+                        title,
+                        fontSize: SizeConfig.medium,
+                        color: AppColors.secondaryTextColor,
+                        fontWeight: FontWeight.w400,
                       ),
-                      child: const Icon(Icons.close, size: 16, color: Colors.white),
-                    ),
+                    ],
+                  ),
+                )
+              : SizedBox(
+                  height: SizeConfig.size150,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.file(file,
+                            fit: BoxFit.cover, width: double.infinity),
+                      ),
+                      Positioned(
+                        top: 6,
+                        right: 6,
+                        child: GestureDetector(
+                          onTap: onImageRemove ??
+                              () {
+                                // onImageRemove?.call();
+                                imageFile.value = null; // remove image
+                              },
+                          child: Container(
+                            width: 24,
+                            height: 24,
+                            decoration: const BoxDecoration(
+                              color: Colors.black54,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.close,
+                                size: 16, color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                            ],
-                          ),
-              ),
         ),
       );
     });
@@ -120,7 +126,7 @@ class CommonImageUploadTile extends StatelessWidget {
         return null;
       }
     } catch (e) {
-        commonSnackBar(message: "${AppStrings.errorSelectingImage.tr} $e");
+      commonSnackBar(message: "${AppStrings.errorSelectingImage.tr} $e");
       return null;
     }
   }

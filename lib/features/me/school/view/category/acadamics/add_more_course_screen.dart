@@ -9,28 +9,45 @@ import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
-class AddMoreCourseScreen extends StatelessWidget {
+class AddMoreCourseScreen extends StatefulWidget {
   AddMoreCourseScreen({super.key});
 
+  @override
+  State<AddMoreCourseScreen> createState() => _AddMoreCourseScreenState();
+}
+
+class _AddMoreCourseScreenState extends State<AddMoreCourseScreen> {
   final aboutUsController = Get.find<AboutUsController>();
 
   final courseNameEditController = TextEditingController();
+
   final admissionProcessEditController = TextEditingController();
+
   final eligibilityEditController = TextEditingController();
+
   final courseFeeEditController = TextEditingController();
+
   final courseDurationEditController = TextEditingController();
+
   final descriptionEditController = TextEditingController();
 
   @override
-  Widget build(BuildContext context) {
+  void initState() {
+    // TODO: implement initState
     courseNameEditController.addListener(_runValidation);
     admissionProcessEditController.addListener(_runValidation);
     eligibilityEditController.addListener(_runValidation);
     courseFeeEditController.addListener(_runValidation);
     courseDurationEditController.addListener(_runValidation);
     descriptionEditController.addListener(_runValidation);
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
         showRightTextButton: true,
@@ -47,6 +64,7 @@ class AddMoreCourseScreen extends StatelessWidget {
                   textEditController: courseNameEditController,
                   hintText: "E.g. B.Sc. Geography Honours....",
                   title: "Course Name",
+                  maxLength: 100,
                   onChange: (_) => _runValidation(),
                 ),
                 SizedBox(height: SizeConfig.paddingM),
@@ -54,7 +72,7 @@ class AddMoreCourseScreen extends StatelessWidget {
                   textEditController: admissionProcessEditController,
                   hintText: "E.g. Direct Admission ",
                   title: "Admission Process",
-                  // onChange is another way to trigger validation
+                  maxLength: 50,
                   onChange: (_) => _runValidation(),
                 ),
                 SizedBox(height: SizeConfig.paddingM),
@@ -62,6 +80,7 @@ class AddMoreCourseScreen extends StatelessWidget {
                   textEditController: eligibilityEditController,
                   hintText: "E.g. 10th Pass",
                   title: "Eligibility",
+                  maxLength: 30,
                   // onChange is another way to trigger validation
                   onChange: (_) => _runValidation(),
                 ),
@@ -102,7 +121,11 @@ class AddMoreCourseScreen extends StatelessWidget {
                   title: '',
                   textEditController: courseFeeEditController,
                   hintText: "E.g. ₹90,000",
-                  // onChange is another way to trigger validation
+                  keyBoardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(9),
+                  ],
                   onChange: (_) => _runValidation(),
                 ),
                 SizedBox(height: SizeConfig.paddingM),
@@ -110,7 +133,7 @@ class AddMoreCourseScreen extends StatelessWidget {
                   textEditController: courseDurationEditController,
                   hintText: "E.g. 4 Years",
                   title: "Course Duration",
-                  // onChange is another way to trigger validation
+                  maxLength: 30,
                   onChange: (_) => _runValidation(),
                 ),
                 SizedBox(height: SizeConfig.paddingM),
@@ -126,7 +149,7 @@ class AddMoreCourseScreen extends StatelessWidget {
                   textInputAction: TextInputAction.newline,
                   onChange: (value) {
                     String newVal = value.replaceAll(RegExp(r'\n{3,}'), '\n\n');
-                    aboutUsController.departmentDescriptionText.value = newVal;
+                    aboutUsController.courseDescriptionText.value = newVal;
                     _runValidation();
                   },
                 ),
@@ -135,7 +158,7 @@ class AddMoreCourseScreen extends StatelessWidget {
                 Align(
                   alignment: Alignment.centerRight,
                   child: Obx(() => CustomText(
-                        "${aboutUsController.departmentDescriptionText.value.length}/1000",
+                        "${aboutUsController.courseDescriptionText.value.length}/1000",
                         color: Colors.grey,
                         fontSize: 12,
                       )),
@@ -144,12 +167,7 @@ class AddMoreCourseScreen extends StatelessWidget {
 
                 // THE BUTTON
                 Obx(() => CustomBtn(
-                      // Logic: If not valid, onTap is null (disables button)
-                      onTap: aboutUsController.isFormValid.value
-                          ? () {
-                              /* Your Submit Logic */
-                            }
-                          : null,
+                      onTap: aboutUsController.isFormValid.value ? () {} : null,
                       title: AppStrings.add,
                       // Pass the validation state to change button color/opacity
                       isValidate: aboutUsController.isFormValid.value,
@@ -165,12 +183,13 @@ class AddMoreCourseScreen extends StatelessWidget {
 
 // Helper to trigger validation
   void _runValidation() {
-    aboutUsController.validateForm(
-      deptName: departmentNameEditController.text,
-      hodName: hodEditController.text,
-      staffNames: staffEditController.text,
+    aboutUsController.courseValidateForm(
+      courseName: courseNameEditController.text,
+      courseDuration: courseDurationEditController.text,
+      courseFee: courseFeeEditController.text,
+      eligibility: eligibilityEditController.text,
+      admissionProcess: admissionProcessEditController.text,
       description: descriptionEditController.text,
-      images: aboutUsController.addMoreImages,
     );
   }
 }

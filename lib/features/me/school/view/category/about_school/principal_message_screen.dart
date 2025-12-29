@@ -22,7 +22,14 @@ class PrincipalMessageScreen extends StatefulWidget {
 
 class _PrincipalMessageScreenState extends State<PrincipalMessageScreen> {
   final aboutUsController = Get.find<AboutUsController>();
+  final descriptionEditController = TextEditingController();
+  @override
+  void initState() {
+    // TODO: implement initState
+    aboutUsController.isFormValid.value=false;
 
+    super.initState();
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -57,22 +64,29 @@ class _PrincipalMessageScreenState extends State<PrincipalMessageScreen> {
                   SizedBox(height: SizeConfig.size10),
                   CommonImageUploadTile(
                     title: "Upload Photo",
-                    imageFile: aboutUsController.historyImageFile,
+                    imageFile: aboutUsController.directorMessageImageFile,
                     context: context,
+                    onImageRemove: () {
+                      aboutUsController.directorMessageImageFile.value = null;
+
+                      _runValidation();
+                    },
                     onImageSelected: () async {
                       final selectedPath =
                           await CommonImageUploadTile.pickImage(
                               context: context);
                       if (selectedPath != null) {
-                        aboutUsController.historyImageFile.value =
+                        aboutUsController.directorMessageImageFile.value =
                             File(selectedPath);
                       }
+                      _runValidation();
                     },
                   ),
                   SizedBox(height: SizeConfig.size20),
 
                   /// Apply Button
                   CommonTextField(
+                    textEditController: descriptionEditController,
                     title: "Principal / Director Message",
                     hintText:
                         "Hello Everyone @India User Now I am Using https://blueera.ai It’s Amazing, I suggest to Join Me.",
@@ -85,6 +99,7 @@ class _PrincipalMessageScreenState extends State<PrincipalMessageScreen> {
                       String newVal =
                           value.replaceAll(RegExp(r'\n{3,}'), '\n\n');
                       aboutUsController.directorMessageText.value = newVal;
+                      _runValidation();
                     },
                   ),
                   Align(
@@ -96,7 +111,13 @@ class _PrincipalMessageScreenState extends State<PrincipalMessageScreen> {
                         )),
                   ),
                   SizedBox(height: SizeConfig.size30),
-                  PositiveCustomBtn(onTap: () {}, title: AppStrings.submit),
+                  Obx(() => CustomBtn(
+                        onTap:
+                            aboutUsController.isFormValid.value ? () {} : null,
+                        title: AppStrings.submit,
+                        // Pass the validation state to change button color/opacity
+                        isValidate: aboutUsController.isFormValid.value,
+                      )),
                 ],
               ),
             ),
@@ -104,5 +125,12 @@ class _PrincipalMessageScreenState extends State<PrincipalMessageScreen> {
         ),
       ),
     );
+  }
+
+  void _runValidation() {
+    aboutUsController.noticesNewsValidateForm(
+        noticeDescription: descriptionEditController.text,
+        uploadPhoto:
+            aboutUsController.directorMessageImageFile.value?.path ?? "");
   }
 }

@@ -45,7 +45,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.onBackTap,
     this.appBarColor,
     this.isTextButton = false,
-    this.isShadowShow=true,
+    this.isShadowShow = true,
     this.actionText,
     this.actionTextColor,
     this.isShareButton,
@@ -106,6 +106,8 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.isInventoryPopUpMenu = false,
     this.isStoreProfile,
     this.isCurrentAddress,
+    this.isRejectButton,
+    this.rejectButton,
   });
 
   // final AppBar? appBar;
@@ -181,12 +183,14 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool? isInventoryPopUpMenu;
   final bool? isStoreProfile;
   final bool? isCurrentAddress;
+  final bool? isRejectButton;
+  final Widget Function()? rejectButton;
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
       elevation: 4,
-      shadowColor: (isShadowShow==true)?Colors.black26:null,
+      shadowColor: (isShadowShow == true) ? Colors.black26 : null,
       surfaceTintColor: AppColors.white,
       backgroundColor: appBarColor ?? Colors.white,
       automaticallyImplyLeading: false,
@@ -212,7 +216,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                     imagePath: AppIconAssets.back_arrow,
                     height: SizeConfig.paddingL,
                     width: SizeConfig.paddingL,
-                    imgColor:  Colors.black,
+                    imgColor: Colors.black,
                   )),
 
             // if (isLeading ?? false) SizedBox(width: SizeConfig.paddingXSL),
@@ -385,7 +389,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                     createProfileScreen();
                   } else if (/*value == PostCreationMenu.videos ||
                       value == PostCreationMenu.photos ||*/
-                          value == PostCreationMenu.message ||
+                      value == PostCreationMenu.message ||
                           value == PostCreationMenu.poll) {
                     postVia(context, value);
                   } else if (value == PostCreationMenu.jobPost) {
@@ -461,6 +465,10 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
       ),
       actions: [
+        if (isRejectButton ?? false)
+          Builder(
+            builder: (context) => rejectButton!(),
+          ),
         if (isFollowRefresh ?? false)
           Builder(
             builder: (context) => isFollowRefreshWidget!(),
@@ -693,10 +701,14 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
           ),
-        if(isShowMoreInfoIcon??false)
+        if (isShowMoreInfoIcon ?? false)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14.0),
-            child: SvgPicture.asset(AppIconAssets.chat_info_pop,height: 24,width: 24,),
+            child: SvgPicture.asset(
+              AppIconAssets.chat_info_pop,
+              height: 24,
+              width: 24,
+            ),
           ),
       ],
       bottom: bottomWidget,

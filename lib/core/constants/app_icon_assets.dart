@@ -549,5 +549,30 @@ class AppIconAssets {
   static const String cleaningMaintenance = "${iconPath}cleaning_maintenance.svg";
   static const String beautyHealthCare = "${iconPath}beauty_body_care.svg";
   static const String stationary = "${iconPath}stationary.svg";
+  static const String time_table = "${iconPath}time_table.svg";
+  static const String  management_trust= "${iconPath}management_trust.svg";
+  static const String  about_us= "${iconPath}about_us.svg";
+  static const String student_corner = "${iconPath}student_corner.svg";
+  static const String courses_programs = "${iconPath}courses_programs.svg";
+  static const String academics = "${iconPath}academics.svg";
+  static const String  website_click= "${iconPath}website_click.svg";
+  static const String  principal_director_message= "${iconPath}principal_director_message.svg";
+  static const String  vision_mission= "${iconPath}vision_mission.svg";
+  static const String principal = "${iconPath}principal.svg";
+  static const String  result= "${iconPath}result.svg";
+  static const String  notices_news= "${iconPath}notices_news.svg";
+  static const String  gallery_round= "${iconPath}gallery_round.svg";
+  static const String campus_life = "${iconPath}campus_life.svg";
+  static const String  career_jobs= "${iconPath}career_jobs.svg";
+  static const String contact_us = "${iconPath}contact_us.svg";
+  static const String green_tick_rounded = "${iconPath}green_tick_rounded.svg";
+  static const String history = "${iconPath}history.svg";
+  static const String  departments= "${iconPath}departments.svg";
+  static const String  faculty_details= "${iconPath}faculty_details.svg";
+  static const String  academic_calendar= "${iconPath}academic_calendar.svg";
+  static const String syllabus = "${iconPath}syllabus.svg";
+  static const String  exam_schedule= "${iconPath}exam_schedule.svg";
+  static const String downloads_new = "${iconPath}downloads_new.svg";
+  // static const String  = "${iconPath}.svg";
 
 }

@@ -22,7 +22,14 @@ class HistoryScreen extends StatefulWidget {
 
 class _HistoryScreenState extends State<HistoryScreen> {
   final aboutUsController = Get.find<AboutUsController>();
+  final descriptionEditController = TextEditingController();
+  @override
+  void initState() {
+    // TODO: implement initState
+    aboutUsController.isFormValid.value=false;
 
+    super.initState();
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -50,6 +57,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 children: [
                   /// Apply Button
                   CommonTextField(
+                    textEditController: descriptionEditController,
                     title: "Our History",
                     hintText:
                         "Hello Everyone @India User Now I am Using https://blueera.ai It’s Amazing, I suggest to Join Me.",
@@ -62,6 +70,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       String newVal =
                           value.replaceAll(RegExp(r'\n{3,}'), '\n\n');
                       aboutUsController.historyText.value = newVal;
+                      _runValidation();
                     },
                   ),
                   Align(
@@ -84,6 +93,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     title: "Upload Photo",
                     imageFile: aboutUsController.historyImageFile,
                     context: context,
+                    onImageRemove: () {
+                      aboutUsController.historyImageFile.value = null;
+                      _runValidation();
+                    },
                     onImageSelected: () async {
                       final selectedPath =
                           await CommonImageUploadTile.pickImage(
@@ -92,11 +105,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         aboutUsController.historyImageFile.value =
                             File(selectedPath);
                       }
+                      _runValidation();
                     },
                   ),
 
                   SizedBox(height: SizeConfig.size30),
-                  PositiveCustomBtn(onTap: () {}, title: AppStrings.submit),
+                  Obx(() => CustomBtn(
+                        onTap:
+                            aboutUsController.isFormValid.value ? () {} : null,
+                        title: AppStrings.submit,
+                        // Pass the validation state to change button color/opacity
+                        isValidate: aboutUsController.isFormValid.value,
+                      )),
                 ],
               ),
             ),
@@ -104,5 +124,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
         ),
       ),
     );
+  }
+
+  // Helper to trigger validation
+  void _runValidation() {
+    aboutUsController.noticesNewsValidateForm(
+        noticeDescription: descriptionEditController.text,
+        uploadPhoto: aboutUsController.historyImageFile.value?.path ?? "");
   }
 }

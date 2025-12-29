@@ -21,7 +21,6 @@ import 'package:BlueEra/features/common/delivery_partner/view/address_location_r
 import 'package:BlueEra/features/common/delivery_partner/view/driving_verification_riding_screen.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/personal_identification_riding_screen.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/personal_information_riding_screen.dart';
-import 'package:BlueEra/features/common/delivery_partner/view/rider_profile_status_screen.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/vehicle_images_riding_screen.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/vehicle_information_riding_screen.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';

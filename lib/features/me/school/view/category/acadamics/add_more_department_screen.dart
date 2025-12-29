@@ -10,24 +10,40 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class AddMoreDepartmentScreen extends StatelessWidget {
+class AddMoreDepartmentScreen extends StatefulWidget {
   AddMoreDepartmentScreen({super.key});
 
+  @override
+  State<AddMoreDepartmentScreen> createState() => _AddMoreDepartmentScreenState();
+}
+
+class _AddMoreDepartmentScreenState extends State<AddMoreDepartmentScreen> {
   final aboutUsController = Get.find<AboutUsController>();
 
   final multipleImageSectionController =
   Get.put(CommonMultipleImageSectionController());
+
   final departmentNameEditController = TextEditingController();
+
   final hodEditController = TextEditingController();
+
   final staffEditController = TextEditingController();
+
   final descriptionEditController = TextEditingController();
 
   @override
-  Widget build(BuildContext context) {
+  void initState() {
+    // TODO: implement initState
     departmentNameEditController.addListener(_runValidation);
     hodEditController.addListener(_runValidation);
     staffEditController.addListener(_runValidation);
     descriptionEditController.addListener(_runValidation);
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: CommonBackAppBar(
         showRightTextButton: true,

@@ -2,6 +2,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/circular_progress_painter.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 
 class MeMenuCardDesign extends StatelessWidget {
@@ -33,9 +34,8 @@ class MeMenuCardDesign extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(
-                Icons.store,
-                color: AppColors.secondaryTextColor,
+              LocalAssets(
+                imagePath: icon,
               ),
               SizedBox(
                 width: SizeConfig.size12,

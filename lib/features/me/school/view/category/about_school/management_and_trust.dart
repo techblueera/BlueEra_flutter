@@ -1,6 +1,8 @@
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/me/school/view/category/about_school/managment_trust_form_screen.dart';
 import 'package:BlueEra/features/me/school/view/widget/add_more_icon_button.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../../../../../core/constants/app_colors.dart';
 import '../../../../../../core/constants/app_icon_assets.dart';
@@ -186,7 +188,9 @@ class ManagementAndTrust extends StatelessWidget {
             Padding(
               padding:  EdgeInsets.symmetric(horizontal: SizeConfig.size5,vertical: SizeConfig.size10),
               child: AddMoreIconButton(
-                onTapEvent: () {},
+                onTapEvent: () {
+                  Get.to(ManagementTrustFormScreen());
+                },
               ),
             ),
             SizedBox(height: SizeConfig.size16,)

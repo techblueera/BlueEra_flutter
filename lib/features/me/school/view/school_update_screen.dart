@@ -1,52 +1,85 @@
+import 'package:BlueEra/core/api/model/service_option_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/laboratory/view/widgets/me_menu_card_design.dart';
 import 'package:BlueEra/features/me/school/controller/about_us_controller.dart';
 import 'package:BlueEra/features/me/school/view/category/about_school/school_about_us.dart';
 import 'package:BlueEra/features/me/school/view/category/acadamics/school_academics_page.dart';
 import 'package:BlueEra/features/me/school/view/category/campus_life/school_compus_life.dart';
-import 'package:BlueEra/features/me/school/view/category/school_contact_us.dart';
-import 'package:BlueEra/features/me/school/view/category/school_gallery.dart';
+import 'package:BlueEra/features/me/school/view/category/school_contact_us/school_contact_us.dart';
+import 'package:BlueEra/features/me/school/view/category/school_gallery/school_gallery.dart';
 import 'package:BlueEra/features/me/school/view/category/school_notice_and_news.dart';
 import 'package:BlueEra/features/me/school/view/category/school_student_corner.dart';
+import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+
+
 class SchoolUpdateScreen extends StatelessWidget {
   SchoolUpdateScreen({super.key});
-  final aboutUsController = Get.put(AboutUsController());
 
-  final Map<String, Widget Function()> servicePages = {
-    "About Us": () => SchoolAboutUs(),
-    "Academics": () => SchoolAcademicsPage(),
-    "Student Corner": () => SchoolStudentCorner(),
-    "Campus Life": () => CampusLifePage(),
-    "Notices & News": () => SchoolNoticeAndNews(),
-    "Gallery": () => SchoolGallery(),
-    "Career / Jobs": () => Container(),
-    "Contact Us": () => SchoolContactUs(),
-  };
+  final aboutUsController = Get.put(AboutUsController());
+  final List<ServiceMenuItem> serviceMenus = [
+    ServiceMenuItem(
+      title: "About Us",
+      icon: AppIconAssets.about_us,
+      page: () => SchoolAboutUs(),
+    ),
+    ServiceMenuItem(
+      title: "Academics",
+      icon: AppIconAssets.academics,
+      page: () => SchoolAcademicsPage(),
+    ),
+    ServiceMenuItem(
+      title: "Student Corner",
+      icon: AppIconAssets.student_corner,
+      page: () => SchoolStudentCorner(),
+    ),
+    ServiceMenuItem(
+      title: "Campus Life",
+      icon: AppIconAssets.campus_life,
+      page: () => CampusLifePage(),
+    ),
+    ServiceMenuItem(
+      title: "Notices & News",
+      icon: AppIconAssets.notices_news,
+      page: () => SchoolNoticeAndNews(),
+    ),
+    ServiceMenuItem(
+      title: "Gallery",
+      icon: AppIconAssets.gallery_round,
+      page: () => SchoolGallery(),
+    ),
+    ServiceMenuItem(
+      title: "Career / Jobs",
+      icon: AppIconAssets.career_jobs,
+      page: () => ComingSoon(),
+    ),
+    ServiceMenuItem(
+      title: "Contact Us",
+      icon: AppIconAssets.contact_us,
+      page: () => SchoolContactUs(),
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Material(
       color: AppColors.whiteE91.withValues(alpha: 0.5),
-
       child: Column(
         children: [
           SizedBox(height: 12),
-          ...servicePages.keys.map((title) {
+          ...serviceMenus.map((item) {
             return InkWell(
               onTap: () {
-                final pageBuilder = servicePages[title];
-                if (pageBuilder != null) {
-                  Get.to(() => pageBuilder());
-                }
+                Get.to(item.page); // 👈 recommended GetX syntax
               },
               child: MeMenuCardDesign(
-                title: title,
-                icon: 'assets/icons/service_icon.svg',
+                title: item.title,
+                icon: item.icon,
               ),
             );
           }).toList(),
@@ -79,4 +112,11 @@ class SchoolUpdateScreen extends StatelessWidget {
       ),
     );
   }
+}
+class ComingSoon extends StatelessWidget {
+  const ComingSoon({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+  return Scaffold(appBar: CommonBackAppBar(title: "",),body: Center(child: CustomText("Coming soon...")),);  }
 }

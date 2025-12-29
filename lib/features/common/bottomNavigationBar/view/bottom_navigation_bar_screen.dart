@@ -28,6 +28,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_scr
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/inventory_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
+import 'package:BlueEra/features/rider_order_collect/items_screen.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/service_provider_dialoge.dart';
 import 'package:flutter/material.dart';
@@ -265,7 +266,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     return Scaffold(
       key: _scaffoldKey,
       floatingActionButton: FloatingActionButton(onPressed: () {
-        Get.to(SchoolMain());
+        Get.to(ItemsScreen());
+        // Get.to(SchoolMain());
         // Get.to(RiderProfileStatusScreen());
       }),
       body: ValueListenableBuilder(

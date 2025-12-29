@@ -19,7 +19,13 @@ class VisionAndMission extends StatefulWidget {
 
 class _VisionAndMissionState extends State<VisionAndMission> {
   final aboutUsController = Get.find<AboutUsController>();
+@override
+  void initState() {
+    // TODO: implement initState
+  aboutUsController.isFormValid.value=false;
 
+  super.initState();
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -45,11 +51,10 @@ class _VisionAndMissionState extends State<VisionAndMission> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
                   CommonTextField(
                     title: "Our Vision & Mission",
                     hintText:
-                    "Hello Everyone @India User Now I am Using https://blueera.ai It’s Amazing, I suggest to Join Me.",
+                        "Hello Everyone @India User Now I am Using https://blueera.ai It’s Amazing, I suggest to Join Me.",
                     maxLine: 5,
                     maxLength: 1000,
                     isValidate: false,
@@ -57,24 +62,31 @@ class _VisionAndMissionState extends State<VisionAndMission> {
                     textInputAction: TextInputAction.newline,
                     onChange: (value) {
                       String newVal =
-                      value.replaceAll(RegExp(r'\n{3,}'), '\n\n');
+                          value.replaceAll(RegExp(r'\n{3,}'), '\n\n');
                       aboutUsController.historyText.value = newVal;
+                      setState(() {});
                     },
                   ),
                   SizedBox(height: SizeConfig.size10),
-
                   Align(
                     alignment: Alignment.centerRight,
                     child: Obx(() => CustomText(
-                      "${aboutUsController.historyText.value.length}/1000",
-                      color: Colors.grey,
-                      fontSize: 12,
-                    )),
+                          "${aboutUsController.historyText.value.length}/1000",
+                          color: Colors.grey,
+                          fontSize: 12,
+                        )),
                   ),
                   SizedBox(height: SizeConfig.size10),
-                  PositiveCustomBtn(onTap: () {}, title: AppStrings.submit),
+                  Obx(() => CustomBtn(
+                        onTap: aboutUsController.historyText.value.isNotEmpty
+                            ? () {}
+                            : null,
+                        title: AppStrings.submit,
+                        // Pass the validation state to change button color/opacity
+                        isValidate:
+                            aboutUsController.historyText.value.isNotEmpty,
+                      )),
                   SizedBox(height: SizeConfig.size10),
-
                 ],
               ),
             ),
