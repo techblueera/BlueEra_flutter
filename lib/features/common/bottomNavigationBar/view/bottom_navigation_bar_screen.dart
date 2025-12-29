@@ -384,8 +384,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   Widget resolveBusinessScreen() {
     return BusinessType == BusinessType.Grocery
         ? GroceryScreen(fromBottomNavBar: true)
-        : GroceryScreen(fromBottomNavBar: true);
-    // : InventoryScreen(fromBottomNavBar: true);
+        // : GroceryScreen(fromBottomNavBar: true);
+    : InventoryScreen(fromBottomNavBar: true);
   }
 
   Widget resolveIndividualScreen() {
