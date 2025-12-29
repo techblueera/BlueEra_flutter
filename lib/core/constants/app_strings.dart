@@ -1778,9 +1778,29 @@ class AppStrings {
   static const noFoodRestrictions = "noFoodRestrictions";
   static const youCanOptOnlyOneService = "youCanOptOnlyOneService";
   static const statistics = "statistics";
+
+  static const linkedShops = "linkedShops";
+  static const pickUpOTP  = "pickUpOTP";
+  static const aadharCard  = "Aadhar Card";
+  static const panCard  = "Pan Card";
+  static const addressProof   = "Address Proof";
+  static const withdraw   = "Withdraw";
+  static const bookYourGroceryNdFood   = "Book Your Grocery & Food";
+  static const yourPreviousRider   = "Your Previous Rider";
+  static const restaurantNearMe   = "Restaurant Near Me";
   static const addProducts = "Add Products";
   static const addManually = "Add Manually";
-
+  static const yourCart = "Your Cart";
+  static const billDetails = "Bill Details";
+  static const totalItems = "Total Items";
+  static const totalMRP = "Total MRP";
+  static const savingsDiscount = "Savings (Discount)";
+  static const grandTotalPayInINR = "Grand total (pay INR)";
+  static const addMoreItems = "Add More Items";
+  static const groceryNdStationary = "Grocery & Stationary";
+  static const foodNearMe = "Food Near Me";
+  static const cashOnDelivery = "Cash On Delivery";
+  static const prePaid = "Pre Paid";
 
   ///BHAVESH START
   static const ownerDetail = "owner_detail";
@@ -1958,15 +1978,6 @@ class AppStrings {
   static const noConversationYet = "noConversationYet";
   static const sayNamaste = "sayNamaste";
   static const typeYourMessage = "typeYourMessage";
-
-  static const linkedShops = "linkedShops";
-  static const pickUpOTP  = "pickUpOTP";
-  static const aadharCard  = "Aadhar Card";
-  static const panCard  = "Pan Card";
-  static const addressProof   = "Address Proof";
-  static const withdraw   = "Withdraw";
-
-  ///BHAVESH START
 
   static const String clearAllNotifications = 'clearAllNotifications';
   static const String clearNotification = 'clearNotification';

@@ -20,13 +20,12 @@ class UserGroceryController extends GetxController{
   Rx<ApiResponse> userGroceryCategoryResponse =
       ApiResponse.initial('Initial').obs;
 
-  RxList<VariantsData> selectedGroceriesVariants = <VariantsData>[].obs;
-
   Rx<CollapsibleGridModel> selectedGroceryData = CollapsibleGridModel(
       icon: "chips.png",
       label: "Chips &\nNamkeens",
       tagId: CHIPS_NAMKEEN
   ).obs;
+
   RxBool isInitialLoading = false.obs;
 
   RxInt selectedTabIndex = 0.obs;
@@ -35,43 +34,79 @@ class UserGroceryController extends GetxController{
           ? selectedGroceryData.value.tagId                    // top-level key
           : arrChildrenOfGroceryCategory[selectedTabIndex.value - 1].key ?? '';
 
-  void addGroceryVariants(VariantsData v){
-    selectedGroceriesVariants.add(v);
+  RxList<VariantsData> selectedGroceriesVariants = <VariantsData>[].obs;
+
+  // Map to store quantity for each variant ID: { "variant_id": quantity }
+  var cartQuantities = <String, int>{}.obs;
+
+  // --- Actions ---
+  void addToCart(VariantsData variant) {
+    if (variant.sId == null) return;
+
+    if (cartQuantities.containsKey(variant.sId)) {
+      cartQuantities[variant.sId!] = cartQuantities[variant.sId]! + 1;
+    } else {
+      selectedGroceriesVariants.add(variant);
+      cartQuantities[variant.sId!] = 1;
+    }
   }
 
-  void removeGroceryVariants(int index){
-    selectedGroceriesVariants.removeAt(index);
+  void removeFromCart(VariantsData variant) {
+    if (variant.sId == null || !cartQuantities.containsKey(variant.sId)) return;
+
+    int currentQty = cartQuantities[variant.sId]!;
+
+    if (currentQty > 1) {
+      cartQuantities[variant.sId!] = currentQty - 1;
+    } else {
+      // Quantity is 1, so remove completely
+      cartQuantities.remove(variant.sId);
+      selectedGroceriesVariants.removeWhere((v) => v.sId == variant.sId);
+    }
   }
 
-  double get totalSelectedVariantsSellingPrice {
-    return selectedGroceriesVariants.fold<double>(
-      0.0,
-          (sum, variant) {
-       // final groceryController = getOrPut(() => GroceryController());
-
-        // final price = groceryController.getPriceDetails(variant.pricing);
-
-        // final minSellingPrice = _minPriceFromRange(price.sellingRange);
-
-        // return sum + minSellingPrice;
-        return sum + (variant.pricing?[0].sellingPrice??0.0);
-      },
-    );
+  int getQuantity(String? variantId) {
+    if (variantId == null) return 0;
+    return cartQuantities[variantId] ?? 0;
   }
 
-  // double _minPriceFromRange(String range) {
-  //   // Examples:
-  //   // "₹100" → 100
-  //   // "₹90 - ₹120" → 90
-  //
-  //   final clean = range.replaceAll('₹', '').trim();
-  //
-  //   if (clean.contains('-')) {
-  //     return double.tryParse(clean.split('-').first.trim()) ?? 0.0;
-  //   }
-  //
-  //   return double.tryParse(clean) ?? 0.0;
-  // }
+  // --- Computed Bill Details ---
+
+  double get totalMRP {
+    double total = 0;
+    for (var variant in selectedGroceriesVariants) {
+      int qty = cartQuantities[variant.sId] ?? 0;
+      double mrp = double.tryParse(variant.pricing?.first.mrp.toString() ?? '0') ?? 0;
+      total += (mrp * qty);
+    }
+    return total;
+  }
+
+  double get totalSellingPrice {
+    double total = 0;
+    for (var variant in selectedGroceriesVariants) {
+      int qty = cartQuantities[variant.sId] ?? 0;
+      double sp = double.tryParse(variant.pricing?.first.sellingPrice.toString() ?? '0') ?? 0;
+      total += (sp * qty);
+    }
+    return total;
+  }
+
+  double get totalSavings => totalMRP - totalSellingPrice;
+  double get discountPercentage {
+    if (totalMRP == 0) return 0.0;
+
+    double percentage = (totalSavings / totalMRP) * 100;
+    return percentage;
+  }
+
+  int get totalItemsCount {
+    int count = 0;
+    cartQuantities.forEach((key, value) {
+      count += value;
+    });
+    return count;
+  }
 
   Future<void>  fetchUserGrocery() async {
     try {

@@ -206,7 +206,7 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                             },
                             child: Container(
                               padding: EdgeInsets.symmetric(
-                                vertical: SizeConfig.size8,
+                                vertical: SizeConfig.size10,
                                 horizontal: SizeConfig.size10,
                               ),
                               decoration: BoxDecoration(
@@ -233,62 +233,129 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
 
                           SizedBox(height: SizeConfig.size10),
 
-                          /// Mapple map
-                          ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: SizedBox(
-                                width: double.infinity,
-                                height: SizeConfig.size160,
-                                child: Stack(
+                          // /// Mapple map
+                          // ClipRRect(
+                          //     borderRadius: BorderRadius.circular(10),
+                          //     child: SizedBox(
+                          //       width: double.infinity,
+                          //       height: SizeConfig.size160,
+                          //       child: Stack(
+                          //         children: [
+                          //           MapplsMap(
+                          //             onMapCreated: _onMapCreated,
+                          //             initialCameraPosition: CameraPosition(
+                          //               target: LatLng(userLat, userLng),
+                          //               zoom: 14.0,
+                          //             ),
+                          //             myLocationEnabled: false,
+                          //             compassEnabled: false,
+                          //             rotateGesturesEnabled: true,
+                          //             tiltGesturesEnabled: true,
+                          //             zoomGesturesEnabled: true,
+                          //             scrollGesturesEnabled: true,
+                          //             onStyleLoadedCallback:
+                          //                 _onStyleLoadedCallback,
+                          //           ),
+                          //           Positioned(
+                          //             right: SizeConfig.size10,
+                          //             bottom: SizeConfig.size10,
+                          //             child: InkWell(
+                          //               onTap: () async {
+                          //                 openGoogleMaps(
+                          //                     latitude: userLat,
+                          //                     longitude: userLng);
+                          //               },
+                          //               child: Container(
+                          //                 padding:
+                          //                     EdgeInsets.all(SizeConfig.size8),
+                          //                 decoration: BoxDecoration(
+                          //                   color: AppColors.white,
+                          //                   shape: BoxShape.circle,
+                          //                   border: Border.all(
+                          //                       color: AppColors.skyBlueDF,
+                          //                       width: 1),
+                          //                 ),
+                          //                 child: Transform.rotate(
+                          //                   angle: -0.6,
+                          //                   child: const Icon(
+                          //                     Icons.send_outlined,
+                          //                     color: AppColors.skyBlueDF,
+                          //                     size: 20,
+                          //                   ),
+                          //                 ),
+                          //               ),
+                          //             ),
+                          //           ),
+                          //         ],
+                          //       ),
+                          //     )
+                          // ),
+
+                          CustomFormCard(
+                              padding: EdgeInsets.all(
+                                  SizeConfig.size10
+                              ),
+                              child: InkWell(
+                                onTap: ()=> Get.toNamed(RouteHelper.getRiderStoreScreenRoute()),
+                                child: Column(
                                   children: [
-                                    MapplsMap(
-                                      onMapCreated: _onMapCreated,
-                                      initialCameraPosition: CameraPosition(
-                                        target: LatLng(userLat, userLng),
-                                        zoom: 14.0,
-                                      ),
-                                      myLocationEnabled: false,
-                                      compassEnabled: false,
-                                      rotateGesturesEnabled: true,
-                                      tiltGesturesEnabled: true,
-                                      zoomGesturesEnabled: true,
-                                      scrollGesturesEnabled: true,
-                                      onStyleLoadedCallback:
-                                          _onStyleLoadedCallback,
-                                    ),
-                                    Positioned(
-                                      right: SizeConfig.size10,
-                                      bottom: SizeConfig.size10,
-                                      child: InkWell(
-                                        onTap: () async {
-                                          openGoogleMaps(
-                                              latitude: userLat,
-                                              longitude: userLng);
-                                        },
-                                        child: Container(
-                                          padding:
-                                              EdgeInsets.all(SizeConfig.size8),
-                                          decoration: BoxDecoration(
-                                            color: AppColors.white,
-                                            shape: BoxShape.circle,
-                                            border: Border.all(
-                                                color: AppColors.skyBlueDF,
-                                                width: 1),
-                                          ),
-                                          child: Transform.rotate(
-                                            angle: -0.6,
-                                            child: const Icon(
-                                              Icons.send_outlined,
-                                              color: AppColors.skyBlueDF,
-                                              size: 20,
-                                            ),
-                                          ),
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(10),
+                                      child: Container(
+                                        height: SizeConfig.size190,
+                                        width: SizeConfig.screenWidth,
+                                        child: LocalAssets(
+                                          imagePath: AppImageAssets.riderBanner,
+                                          boxFix: BoxFit.cover,
                                         ),
                                       ),
                                     ),
+                                
+                                    SizedBox(height: SizeConfig.size10),
+                                
+                                    Row(
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                        Expanded(
+                                          child: CustomText(
+                                              AppStrings.bookYourGroceryNdFood,
+                                              fontSize: SizeConfig.large,
+                                              color: AppColors.mainTextColor,
+                                              fontWeight: FontWeight.w600),
+                                        ),
+                                
+                                        SizedBox(width: SizeConfig.size10),
+                                
+                                        // Obx(() {
+                                        //   return Stack(
+                                        //     clipBehavior: Clip.none,
+                                        //     children: List.generate(controller.riderList.length, (index) {
+                                        //       return Padding(
+                                        //         // Each image shifts by 15 pixels multiplied by its index
+                                        //         padding: EdgeInsets.only(left: index * 15.0),
+                                        //         child: _buildRiderImageWidget(controller.riderList[index]),
+                                        //       );
+                                        //     }),
+                                        //   );
+                                        // })
+                                
+                                
+                                        Stack(
+                                          clipBehavior: Clip.none,
+                                          children: List.generate(3, (index) {
+                                            return Padding(
+                                              padding: EdgeInsets.only(left: index * 15.0),
+                                              child: _buildRiderImageWidget(),
+                                            );
+                                          }),
+                                        )
+                                      ],
+                                    )
                                   ],
                                 ),
-                              )),
+                              )
+                          ),
+                          
                           SizedBox(height: SizeConfig.size10),
 
                           /// Near Me
@@ -707,7 +774,7 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
       case AppConstants.groceryVegetablesDairy:
         Get.toNamed(
           RouteHelper.getGrocerySuperCategoryScreenRoute(),
-            arguments: {ApiKeys.argOwnGrocery: false}
+            arguments: {ApiKeys.argMyGrocery: false}
         );
         break;
 
@@ -728,5 +795,18 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
       default:
         print("⚠ Unknown category tapped: ${category.name}");
     }
+  }
+
+  Widget _buildRiderImageWidget() {
+    return Container(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: AppColors.greyE5, width: 1.5),
+      ),
+      child: CircleAvatar(
+        radius: 15,
+        backgroundImage: NetworkImage("https://picsum.photos/200"),
+      ),
+    );
   }
 }

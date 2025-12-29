@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
+import 'package:BlueEra/widgets/common_rating_row.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
@@ -58,32 +59,11 @@ class ProfileSummaryCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 SizedBox(height: SizeConfig.size1),
-                Row(
-                  children: [
-                    Icon(Icons.star, size: 10, color: AppColors.yellow00),
-                    SizedBox(width: 2),
-                    CustomText(
-                      rating != 0.0 ? "$rating " : 'N/A',
-                      fontSize: SizeConfig.extraSmall,
-                      color: AppColors.yellow00,
-                    ),
-                    SizedBox(width: 4),
-                    CustomText(
-                      "(${formatNumberLikePost(reviews)} reviews) ",
-                      fontSize: SizeConfig.extraSmall,
-                      color: AppColors.grey6D,
-                    ),
-                    if(distance.isNotEmpty)...[
-                      LocalAssets(imagePath: AppIconAssets.distanceLocation),
-                      CustomText(
-                        distance,
-                        fontSize: SizeConfig.extraSmall,
-                        color: AppColors.black30,
-                      ),
-                    ],
-
-                  ],
-                ),
+                CommonRatingRow(
+                  rating: rating,
+                  reviews: reviews,
+                  distance: distance,
+                )
               ],
             ),
           ),

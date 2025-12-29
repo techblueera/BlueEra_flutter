@@ -25,6 +25,7 @@ class AppImageAssets {
   static const String sampleStoreImage2 = "${imgPath}sample_store_image2.png";
   static const String sampleStoreImage3 = "${imgPath}sample_store_image3.png";
   static const String sampleStoreImage4 = "${imgPath}sample_store_image3.png";
+  static const String riderBanner = "${imgPath}rider_banner.png";
 
   static String frontDeskImage = "${imgPath}front_desk_image.png";
   static String officeImage = "${imgPath}office_image.png";

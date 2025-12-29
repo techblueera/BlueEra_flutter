@@ -22,6 +22,7 @@ import 'package:BlueEra/features/common/delivery_partner/view/driving_verificati
 import 'package:BlueEra/features/common/delivery_partner/view/personal_identification_riding_screen.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/personal_information_riding_screen.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/rider_profile_status_screen.dart';
+import 'package:BlueEra/features/common/delivery_partner/view/rider_store/rider_store_screen.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/vehicle_images_riding_screen.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/vehicle_information_riding_screen.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
@@ -34,6 +35,7 @@ import 'package:BlueEra/features/common/food/view/grocery/add_grocery_screen.dar
 import 'package:BlueEra/features/common/food/view/grocery/add_grocery_variant_screen.dart';
 import 'package:BlueEra/features/common/food/view/grocery/grocery_category_screen.dart';
 import 'package:BlueEra/features/common/food/view/grocery/grocery_listing/grocery_cart_screen.dart';
+import 'package:BlueEra/features/common/food/view/grocery/grocery_listing/grocery_confirm_screen.dart';
 import 'package:BlueEra/features/common/food/view/grocery/grocery_listing/grocery_listing_screen.dart';
 import 'package:BlueEra/features/common/food/view/grocery/grocery_subcategory_screen.dart';
 import 'package:BlueEra/features/common/food/view/grocery/grocery_super_category_screen.dart';
@@ -421,7 +423,8 @@ class RouteHelper {
   static String getGrocerySubCategoryScreenRoute() =>
       RouteConstant.grocerySubCategoryScreen;
 
-  static String getAddGroceryScreenRoute() => RouteConstant.addGroceryScreen;
+  static String getAddGroceryScreenRoute() =>
+      RouteConstant.addGroceryScreen;
 
   static String getAddGroceryVariantScreenRoute() =>
       RouteConstant.addGroceryVariantScreen;
@@ -429,7 +432,8 @@ class RouteHelper {
   static String getMyGroceryCategoryScreenRoute() =>
       RouteConstant.myGroceryCategoryScreen;
 
-  static String getMyGroceryScreenRoute() => RouteConstant.myGroceryScreen;
+  static String getMyGroceryScreenRoute() =>
+      RouteConstant.myGroceryScreen;
 
   static String getGroceryListingScreenRoute() =>
       RouteConstant.groceryListingScreen;
@@ -437,7 +441,8 @@ class RouteHelper {
   static String getRiderServiceScreenRoute() =>
       RouteConstant.riderServiceScreen;
 
-  static String getGroceryCartScreenRoute() => RouteConstant.groceryCartScreen;
+  static String getGroceryCartScreenRoute() =>
+      RouteConstant.groceryCartScreen;
 
   // static String getRiderProfileStatusScreenRoute() =>
   //     RouteConstant.RiderProfileStatusScreen;
@@ -450,6 +455,13 @@ class RouteHelper {
 
   static String getMedicalOtcItemsScreen() =>
       RouteConstant.medicalOtcItemsScreen;
+
+  static String getRiderStoreScreenRoute() =>
+      RouteConstant.riderStoreScreen;
+
+  static String getGroceryConfirmScreenRoute() =>
+      RouteConstant.groceryConfirmScreen;
+
 
   ///REDIRECT ROUTING SETUP.....
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -1290,7 +1302,7 @@ class RouteHelper {
             settings: RouteSettings(name: getGroceryScreenRoute()));
       case RouteConstant.groceryCategoryScreen:
         final args = settings.arguments as Map<String, dynamic>;
-        final bool argOwnGrocery = args[ApiKeys.argOwnGrocery] as bool;
+        final bool argMyGrocery = args[ApiKeys.argMyGrocery] as bool;
         final String pageHeading = args[ApiKeys.argPageHeading] as String;
         final Map<String, List<CollapsibleGridModel>> argArrGroceryCat =
               args[ApiKeys.argArrGroceryCat] as Map<String, List<CollapsibleGridModel>>;
@@ -1298,7 +1310,7 @@ class RouteHelper {
             builder: (_) => GroceryCategoryScreen(
                 arrGroceryCat: argArrGroceryCat,
                 pageHeading: pageHeading,
-                isOwnGrocery: argOwnGrocery
+                isMyGrocery: argMyGrocery
             ),
             settings: RouteSettings(name: getGroceryCategoryScreenRoute())
         );
@@ -1378,10 +1390,10 @@ class RouteHelper {
     // );
       case RouteConstant.grocerySuperCategoryScreen:
       final args = settings.arguments as Map<String, dynamic>;
-        final bool argOwnGrocery = args[ApiKeys.argOwnGrocery] as bool;
+        final bool argMyGrocery = args[ApiKeys.argMyGrocery] as bool;
         return MaterialPageRoute(
             builder: (_) => GrocerySuperCategoryScreen(
-                isOwnGrocery: argOwnGrocery
+                isMyGrocery: argMyGrocery
             ),
             settings: RouteSettings(name: getGrocerySuperCategoryScreenRoute())
         );
@@ -1401,6 +1413,17 @@ class RouteHelper {
               ),
               settings: RouteSettings(name: getMedicalOtcItemsScreen())
           );
+      case RouteConstant.riderStoreScreen:
+        return MaterialPageRoute(
+            builder: (_) => RiderStoreScreen(
+            ),
+            settings: RouteSettings(name: getRiderStoreScreenRoute())
+        );
+        case RouteConstant.groceryConfirmScreen:
+        return MaterialPageRoute(
+            builder: (_) => GroceryConfirmScreen(),
+            settings: RouteSettings(name: getGroceryConfirmScreenRoute())
+        );
       default:
         return MaterialPageRoute(
           builder: (_) => const Scaffold(

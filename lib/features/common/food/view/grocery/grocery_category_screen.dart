@@ -13,13 +13,13 @@ import '../../../../../widgets/common_back_app_bar.dart';
 class GroceryCategoryScreen extends StatefulWidget {
   final Map<String, List<CollapsibleGridModel>> arrGroceryCat;
   final String pageHeading;
-  final bool isOwnGrocery;
+  final bool isMyGrocery;
 
   const GroceryCategoryScreen({
     super.key,
     required this.arrGroceryCat,
     required this.pageHeading,
-    required this.isOwnGrocery
+    required this.isMyGrocery
   });
 
   @override
@@ -35,13 +35,13 @@ class _GroceryCategoryScreenState extends State<GroceryCategoryScreen> with Sing
   //   Tab(text: 'Others')
   // ];
   final groceryController = getOrPut(() => GroceryController());
-  late bool isOwnGrocery;
+  late bool isMyGrocery;
   late String _pageHeading;
   late Map<String, List<CollapsibleGridModel>> _argArrGroceryCat;
 
   @override
   void initState() {
-    isOwnGrocery = widget.isOwnGrocery;
+    isMyGrocery = widget.isMyGrocery;
     _pageHeading = widget.pageHeading;
     _argArrGroceryCat = widget.arrGroceryCat;
     // _tabController = TabController(length: _tabs.length, vsync: this);
@@ -71,7 +71,7 @@ class _GroceryCategoryScreenState extends State<GroceryCategoryScreen> with Sing
                     title: title,
                     categories: categories,
                     onTap: (groceryCategoryModel) {
-                      final route = isOwnGrocery
+                      final route = isMyGrocery
                           ? RouteHelper.getGrocerySubCategoryScreenRoute()
                           : RouteHelper.getGroceryListingScreenRoute();
 

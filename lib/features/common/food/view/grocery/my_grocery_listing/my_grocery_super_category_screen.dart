@@ -53,7 +53,7 @@ class _MyGrocerySuperCategoryScreenState extends State<MyGrocerySuperCategoryScr
                    actionText: 'Add Product Now!',
                    actionCallback: ()=> Get.toNamed(
                        RouteHelper.getGrocerySuperCategoryScreenRoute(),
-                       arguments: {ApiKeys.argOwnGrocery: true}
+                       arguments: {ApiKeys.argMyGrocery: true}
                    ),
               ),
             );

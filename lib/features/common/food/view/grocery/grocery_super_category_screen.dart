@@ -15,8 +15,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class GrocerySuperCategoryScreen extends StatelessWidget {
-  final bool isOwnGrocery;
-  GrocerySuperCategoryScreen({super.key, required this.isOwnGrocery});
+  final bool isMyGrocery;
+  GrocerySuperCategoryScreen({super.key, required this.isMyGrocery});
 
   final controller = getOrPut(() => GroceryController());
 
@@ -49,18 +49,20 @@ class GrocerySuperCategoryScreen extends StatelessWidget {
             bottom: SizeConfig.size30,
         ),
         itemBuilder: (context, index) {
+          var groceryData = superCategories[index];
+
           return GroceryCategoryItem(
-            url: superCategories[index].icon,
-            label: superCategories[index].label,
+            url: groceryData.icon,
+            label: groceryData.label,
             onTap: () {
               final categoryMap
-                  = getCategoriesByTag(superCategories[index].tagId);
+                  = getCategoriesByTag(groceryData.tagId);
 
               Get.toNamed(
                 RouteHelper.getGroceryCategoryScreenRoute(),
                 arguments: {
-                  ApiKeys.argOwnGrocery: true,
-                  ApiKeys.argPageHeading: superCategories[index].label,
+                  ApiKeys.argMyGrocery: isMyGrocery,
+                  ApiKeys.argPageHeading: groceryData.label,
                   ApiKeys.argArrGroceryCat: categoryMap,
                 },
               );

@@ -8,43 +8,43 @@ class GroceryData {
   /// Super Grocery Categories
   static const List<CollapsibleGridModel> grocerySuperCategories = [
     CollapsibleGridModel(
-        icon: AppIconAssets.groceryItems,
+        icon: AppIconAssets.groceryItemsGrey,
         label: AppStrings.labelGroceryItems,
         tagId: GroceryConstant.GROCERY_ITEMS),
     CollapsibleGridModel(
-        icon: AppIconAssets.vegetables,
+        icon: AppIconAssets.vegetablesGrey,
         label: AppStrings.labelVegetable,
         tagId: GroceryConstant.VEGETABLES),
     CollapsibleGridModel(
-        icon: AppIconAssets.fruits,
+        icon: AppIconAssets.fruitsGrey,
         label: AppStrings.labelFruit,
         tagId: GroceryConstant.FRUITS),
     CollapsibleGridModel(
-        icon: AppIconAssets.bakeryNamkeenItems,
+        icon: AppIconAssets.bakeryNamkeenItemsGrey,
         label: AppStrings.labelBakeryBreadItems,
         tagId: GroceryConstant.BAKERY_NAMKEEN_ITEMS),
     CollapsibleGridModel(
-        icon: AppIconAssets.dairyFrozenItems,
+        icon: AppIconAssets.dairyFrozenItemsGrey,
         label: AppStrings.labelDairyProducts,
         tagId: GroceryConstant.DAIRY_FROZEN_ITEMS),
     CollapsibleGridModel(
-        icon: AppIconAssets.crockery,
+        icon: AppIconAssets.crockeryGrey,
         label: AppStrings.labelCrockery,
         tagId: GroceryConstant.CROCKERY),
     CollapsibleGridModel(
-        icon: AppIconAssets.homeEssentials,
+        icon: AppIconAssets.homeEssentialsGrey,
         label: AppStrings.labelHomeEssentials,
         tagId: GroceryConstant.HOME_ESSENTIALS),
     CollapsibleGridModel(
-        icon: AppIconAssets.cleaningMaintenance,
+        icon: AppIconAssets.cleaningMaintenanceGrey,
         label: AppStrings.labelCleaningMaintenance,
         tagId: GroceryConstant.CLEANING_MAINTENANCE),
     CollapsibleGridModel(
-        icon: AppIconAssets.beautyHealthCare,
+        icon: AppIconAssets.beautyHealthCareGrey,
         label: AppStrings.labelBeautyHealthCare,
         tagId: GroceryConstant.BEAUTY_HEALTH_CARE),
     CollapsibleGridModel(
-        icon: AppIconAssets.stationary,
+        icon: AppIconAssets.stationaryGrey,
         label: AppStrings.labelStationary,
         tagId: GroceryConstant.STATIONARY),
   ];

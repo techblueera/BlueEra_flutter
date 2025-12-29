@@ -1,15 +1,19 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/food/controller/user_grocery_controller.dart';
 import 'package:BlueEra/features/common/food/model/grocery_product_model.dart';
+import 'package:BlueEra/features/common/food/view/grocery/widget/grocery_bill_details.dart';
 import 'package:BlueEra/features/common/jobs/create_job_post/create_job.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_horizontal_divider.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
@@ -29,140 +33,99 @@ class _GroceryCartScreenState extends State<GroceryCartScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: 'Your Cart',
+        title: AppStrings.yourCart,
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.symmetric(
-          horizontal: SizeConfig.size15,
-          vertical: SizeConfig.size8
-        ),
-        child: Column(
-          children: [
-            CustomFormCard(
-              padding: EdgeInsets.all(SizeConfig.size10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CustomText(
-                      '₹${controller.totalSelectedVariantsSellingPrice}, ${controller.selectedGroceriesVariants.length} Products',
-                      fontSize: SizeConfig.large,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.secondaryTextColor,
-                    ),
-                    ListView.builder(
-                        itemCount: controller.selectedGroceriesVariants.length,
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        padding: EdgeInsets.symmetric(
-                          vertical: SizeConfig.size15
-                        ),
-                        itemBuilder: (context, index){
-                          final variant = controller.selectedGroceriesVariants[index];
+      body: Obx((){
+        // If cart is empty, show a message (Optional)
+        if (controller.selectedGroceriesVariants.isEmpty) {
+          return Center(child: CustomText("Your cart is empty", color: AppColors.secondaryTextColor));
+        }
 
-                          return _variantItem(
-                            variant: variant,
-                            onAdd: () {
-                              // onAdd(variant);
-                              // Navigator.pop(context);
-                            },
-                          );
-                        }
-                    ),
-                  ],
-                )
-             ),
-            SizedBox(height: SizeConfig.paddingXSL),
-            CustomFormCard(
-                padding: EdgeInsets.all(SizeConfig.size10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CustomText(
-                      'Bill Details',
-                      fontSize: SizeConfig.large,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.secondaryTextColor,
-                    ),
-                    SizedBox(height: SizeConfig.size15),
-                    Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10.0),
-                        border: Border.all(color: AppColors.greyE5),
+        return  SingleChildScrollView(
+          padding: EdgeInsets.symmetric(
+              horizontal: SizeConfig.size15,
+              vertical: SizeConfig.size8
+          ),
+          child: Column(
+            children: [
+              CustomFormCard(
+                  padding: EdgeInsets.all(SizeConfig.size10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomText(
+                        '₹${controller.totalSellingPrice.toStringAsFixed(2)}, ${controller.selectedGroceriesVariants.length} Products',                        fontSize: SizeConfig.large,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.secondaryTextColor,
                       ),
-                      child: Column(
+                      ListView.builder(
+                          itemCount: controller.selectedGroceriesVariants.length,
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          padding: EdgeInsets.symmetric(
+                              vertical: SizeConfig.size15
+                          ),
+                          itemBuilder: (context, index){
+                            final variant = controller.selectedGroceriesVariants[index];
+
+                            return _variantItem(
+                              variant: variant,
+                            );
+                          }
+                      ),
+                      SizedBox(height: SizeConfig.size5),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          commonIconTextRow(
-                              imagePath: AppIconAssets.cartListIcon,
-                              leftText: 'Total Items',
-                              rightText: '06'
+                          PositiveCustomBtn(
+                              onTap: ()=> Get.back(),
+                              height: SizeConfig.size30,
+                              width: SizeConfig.size100,
+                              title: AppStrings.addMoreItems,
+                              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size6),
+                              textColor: AppColors.secondaryTextColor,
+                              isLeadingShow: true,
+                              leadingIconPath: AppIconAssets.add,
+                              leadingIconColor: AppColors.secondaryTextColor,
+                              bgColor: Colors.transparent,
+                              borderColor: AppColors.secondaryTextColor,
                           ),
-                          CommonHorizontalDivider(
-                           height: 0.5,
-                            color: AppColors.greyE5,
-                          ),
-                          commonIconTextRow(
-                              imagePath: AppIconAssets.handPriceIcon,
-                              leftText: 'Total MRP',
-                              rightText: '₹2100'
-                          ),
-                          CommonHorizontalDivider(
-                            height: 0.5,
-                            color: AppColors.greyE5,
-                          ),
-                          commonIconTextRow(
-                              imagePath: AppIconAssets.handPriceIcon,
-                              leftText: 'Savings (Discount)',
-                              rightText: '₹900'
+                          SizedBox(width: SizeConfig.paddingXSL),
+                          CustomBtn(
+                              onTap: ()=> Get.toNamed(RouteHelper.getGroceryConfirmScreenRoute()),
+                              height: SizeConfig.size30,
+                              width: SizeConfig.size100,
+                              title: AppStrings.submit,
+                              bgColor: AppColors.primaryColor,
                           ),
                         ],
-                      ),
-                    ),
-                    SizedBox(
-                      height: SizeConfig.size10,
-                    ),
+                      )
+                    ],
+                  )
+              ),
 
-                    DashedBorderContainer(
-                        borderColor: AppColors.primaryColor,
-                        strokeWidth: 0.5,
-                        borderRadius: 10.0,
-                        child: Container(
-                          padding: EdgeInsets.all(SizeConfig.size10),
-                          color: AppColors.primaryColor.withValues(alpha: 0.1),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              CustomText(
-                                'Grand total (pay INR)',
-                                fontSize: SizeConfig.small,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.secondaryTextColor,
-                              ),
-                              CustomText(
-                                '₹1,200',
-                                fontSize: SizeConfig.small,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.mainTextColor,
-                              ),
-                            ],
-                          ),
-                        )
-                    )
-                  ],
-                )
-            ),
-            SizedBox(height: SizeConfig.paddingXSL),
+              SizedBox(height: SizeConfig.paddingXSL),
 
-          ],
-        ),
-      ),
+             // Bill Details
+              GroceryBillDetails(controller: controller),
+
+              SizedBox(height: SizeConfig.paddingXSL),
+
+            ],
+          ),
+        );
+
+      })
+
     );
   }
 
   Widget _variantItem({
     required VariantsData variant,
-    required VoidCallback onAdd,
   }) {
     // final price = groceryController.getPriceDetails(variant.pricing);
+    final sellingPrice = variant.pricing?.first.sellingPrice ?? 0;
+    final mrp = variant.pricing?.first.mrp ?? 0;
 
     return Container(
       padding: EdgeInsets.all(SizeConfig.size10),
@@ -193,19 +156,8 @@ class _GroceryCartScreenState extends State<GroceryCartScreen> {
             ),
           ),
 
-          // ClipRRect(
-          //   borderRadius: BorderRadius.circular(6),
-          //   child: CachedNetworkImage(
-          //     imageUrl: variant.images?.first.url ?? '',
-          //     width: SizeConfig.size50,
-          //     height: SizeConfig.size50,
-          //     fit: BoxFit.cover,
-          //     errorWidget: (_, __, ___) =>
-          //         LocalAssets(imagePath: AppIconAssets.place_holder_image),
-          //   ),
-          // ),
 
-          SizedBox(width: SizeConfig.size10),
+          SizedBox(width: SizeConfig.paddingXSL),
 
           /// Details
           Expanded(
@@ -233,14 +185,14 @@ class _GroceryCartScreenState extends State<GroceryCartScreen> {
                       ),
                       SizedBox(width: SizeConfig.size6),
                       CustomText(
-                          '₹${variant.pricing?[0].sellingPrice}',
+                          '₹$sellingPrice',
                           fontSize: SizeConfig.medium,
                           fontWeight: FontWeight.w600,
                           color: AppColors.mainTextColor
                       ),
                       SizedBox(width: SizeConfig.size6),
                       CustomText(
-                          '₹${variant.pricing?[0].mrp}',
+                          '₹$mrp',
                           fontSize: SizeConfig.small,
                           fontWeight: FontWeight.w400,
                           color: AppColors.secondaryTextColor
@@ -250,7 +202,8 @@ class _GroceryCartScreenState extends State<GroceryCartScreen> {
               ],
             ),
           ),
-          SizedBox(width: SizeConfig.size10),
+
+          SizedBox(width: SizeConfig.paddingXSL),
 
           /// Dashed Border Container
           DashedBorderContainer(
@@ -264,25 +217,22 @@ class _GroceryCartScreenState extends State<GroceryCartScreen> {
           ),
           SizedBox(width: SizeConfig.size10),
 
-          /// Add Button
+          /// Actions Button
           Obx(() {
-            final bool isAdded = controller.selectedGroceriesVariants
-                .any((v) => v.sId == variant.sId);
-
             return Column(
               children: [
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     CustomText(
-                      '₹${variant.pricing?[0].sellingPrice}',
+                      '₹$sellingPrice',
                       fontSize: SizeConfig.medium,
                       fontWeight: FontWeight.w600,
                       color: AppColors.mainTextColor,
                     ),
                     SizedBox(width: SizeConfig.size4),
                     CustomText(
-                      '₹${variant.pricing?[0].mrp}',
+                      '₹$mrp',
                       fontSize: SizeConfig.small,
                       fontWeight: FontWeight.w400,
                       color: AppColors.secondaryTextColor,
@@ -305,22 +255,94 @@ class _GroceryCartScreenState extends State<GroceryCartScreen> {
                   ),
                   child: Row(
                     children: [
-                      IconButton(
-                          onPressed: () {  },
-                          visualDensity: VisualDensity.compact,
-                          icon: Icon(Icons.remove, color: AppColors.secondaryTextColor, size: SizeConfig.size12)
+                      Padding(
+                        padding: const EdgeInsets.all(2.0),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: ()=> controller.removeFromCart(variant),
+                            borderRadius: BorderRadius.circular(20),
+                            splashColor: AppColors.primaryColor.withValues(alpha: 0.2),
+                            highlightColor: AppColors.primaryColor.withValues(alpha: 0.1),
+                            child: SizedBox(
+                              width: 30,   // tap area
+                              height: 30,  // tap area
+                              child: Center(
+                                child: Icon(
+                                    Icons.remove,
+                                    color: AppColors.secondaryTextColor,
+                                    size: SizeConfig.size12
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
+                      // IconButton(
+                      //     onPressed: () {
+                      //       controller.removeFromCart(variant);
+                      //     },
+                      //     padding: EdgeInsets.zero,
+                      //     visualDensity: VisualDensity.compact,
+                      //     constraints: const BoxConstraints(
+                      //       maxWidth: 40,
+                      //       maxHeight: 40,
+                      //     ),
+                      //     icon: Icon(
+                      //         Icons.remove,
+                      //         color: AppColors.secondaryTextColor,
+                      //         size: SizeConfig.size12
+                      //     )
+                      // ),
                       CustomText(
-                        '2',
+                        '${controller.getQuantity(variant.sId)}',
                         fontSize: SizeConfig.small,
                         fontWeight: FontWeight.w400,
                         color: AppColors.secondaryTextColor,
                       ),
-                      IconButton(
-                          onPressed: () {  },
-                          visualDensity: VisualDensity.compact,
-                          icon: Icon(Icons.add, color: AppColors.secondaryTextColor, size: SizeConfig.size12)
-                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(2.0),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () {
+                              controller.addToCart(variant);
+                            },
+                            borderRadius: BorderRadius.circular(20),
+                            splashColor: AppColors.primaryColor.withValues(alpha: 0.2),
+                            highlightColor: AppColors.primaryColor.withValues(alpha: 0.1),
+                            child: SizedBox(
+                              width: 30,   // tap area
+                              height: 30,  // tap area
+                              child: Center(
+                                child: Icon(
+                                  Icons.add,
+                                  size: SizeConfig.size12, // visual size
+                                  color: AppColors.secondaryTextColor,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      )
+
+
+                      // IconButton(
+                      //     onPressed: () {
+                      //       controller.addToCart(variant);
+                      //     },
+                      //     padding: EdgeInsets.zero,
+                      //     visualDensity: VisualDensity.compact,
+                      //     constraints: const BoxConstraints(
+                      //       maxWidth: 40,
+                      //       maxHeight: 40,
+                      //     ),
+                      //     icon: Icon(
+                      //         Icons.add,
+                      //         color: AppColors.secondaryTextColor,
+                      //         size: SizeConfig.size12
+                      //     )
+                      // ),
                    ]
 
                   ),
@@ -335,39 +357,6 @@ class _GroceryCartScreenState extends State<GroceryCartScreen> {
     );
   }
 
-  Widget commonIconTextRow({
-    required String imagePath,
-    required String leftText,
-    required String rightText,
-    EdgeInsetsGeometry padding = const EdgeInsets.all(10.0),
-  }) {
-    return Padding(
-      padding: padding,
-      child: Row(
-        children: [
-          LocalAssets(imagePath: imagePath),
-
-          SizedBox(width: SizeConfig.size8),
-
-          Expanded(
-            child: CustomText(
-              leftText,
-              fontSize: SizeConfig.small,
-              fontWeight: FontWeight.w400,
-              color: AppColors.secondaryTextColor,
-            ),
-          ),
-
-          CustomText(
-            rightText,
-            fontSize: SizeConfig.small,
-            fontWeight: FontWeight.w600,
-            color: AppColors.secondaryTextColor,
-          ),
-        ],
-      ),
-    );
-  }
 
 
 }

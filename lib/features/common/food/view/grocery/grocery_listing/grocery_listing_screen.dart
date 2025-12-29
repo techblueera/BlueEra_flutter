@@ -8,7 +8,6 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/features/common/food/controller/grocery_controller.dart';
 import 'package:BlueEra/features/common/food/controller/user_grocery_controller.dart';
 import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
 import 'package:BlueEra/features/common/food/model/grocery_product_model.dart';
@@ -87,7 +86,9 @@ class _GroceryListingScreenState extends State<GroceryListingScreen> {
                     Get.toNamed(RouteHelper.getGroceryCartScreenRoute()),
                 child: Padding(
                   padding: const EdgeInsets.only(right: 20.0),
-                  child: Stack(clipBehavior: Clip.none, children: [
+                  child: Stack(
+                      clipBehavior: Clip.none,
+                    children: [
                     LocalAssets(
                       imagePath: AppIconAssets.cartIcon,
                     ),
@@ -129,7 +130,7 @@ class _GroceryListingScreenState extends State<GroceryListingScreen> {
                               onTap: null,
                               isValidate: false,
                               radius: SizeConfig.size10,
-                              title: '₹${controller.totalSelectedVariantsSellingPrice}, ${controller.selectedGroceriesVariants.length} Products',
+                              title: '₹${controller.totalSellingPrice.toStringAsFixed(2)}, ${controller.selectedGroceriesVariants.length} Products',
                               // isLoading: authController.isAddBusinessUserLoading.value
                               borderColor: AppColors.primaryColor,
                               textColor: AppColors.primaryColor,
@@ -462,38 +463,54 @@ class _GroceryListingScreenState extends State<GroceryListingScreen> {
                 ),
               ),
               Positioned(
-                  top: 0,
-                  right: 0,
-                  child: Center(
-                    child: IconButton(
-                      onPressed: () {
-                        if (groceryProductData.variants == null ||
-                            groceryProductData.variants!.isEmpty) {
-                          commonSnackBar(message: 'No variants available');
-                          return;
-                        }
+                top: 0,
+                right: 0,
+                child: Obx(() {
+                  final bool isAdded =
+                      groceryProductData.variants?.any((variant) =>
+                          controller.selectedGroceriesVariants
+                              .any((selected) => selected.sId == variant.sId)
+                      ) ?? false;
+                  log('isAdded-- $isAdded');
 
-                        showEditProductBottomSheet(
-                          context,
-                          allVariants: groceryProductData.variants!,
-                          onAdd: (variant) {
-                            controller.addGroceryVariants(variant);
-                          },
-                        );
-                      },
-                      icon: Container(
-                        padding: EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                            color: AppColors.blackMite,
-                            borderRadius: BorderRadius.circular(20)),
-                        child: Icon(
-                          Icons.add,
-                          size: SizeConfig.size16,
-                          color: AppColors.white,
-                        ),
+                  return IconButton(
+                    onPressed:
+                    // isAdded
+                    //     ? null // disable if already added
+                    //     :
+                        () {
+                      if (groceryProductData.variants == null ||
+                          groceryProductData.variants!.isEmpty) {
+                        commonSnackBar(message: 'No variants available');
+                        return;
+                      }
+
+                      showEditProductBottomSheet(
+                        context,
+                        allVariants: groceryProductData.variants!,
+                        onAdd: (variant) {
+                          controller.addToCart(variant);
+                        },
+                      );
+                    },
+                    icon: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: isAdded
+                            ? AppColors.greenShade
+                            : AppColors.blackMite,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Icon(
+                        !isAdded ? Icons.add : Icons.check,
+                        size: SizeConfig.size16,
+                        color: AppColors.white,
                       ),
                     ),
-                  ))
+                  );
+                }),
+              )
+
             ],
           ),
           Padding(

@@ -1,10 +1,9 @@
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/features/chat/auth/controller/order_controllar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
-import 'package:url_launcher/url_launcher.dart';
-
 import '../../../../../core/api/apiService/api_keys.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/app_icon_assets.dart';
@@ -151,7 +150,7 @@ class _RiderDetailsMsgCardState extends State<RiderDetailsMsgCard> {
                         Expanded(
                           child: TextButton.icon(
                             onPressed: () {
-                              launchDialPad(rider?.contactNo ?? '');
+                              openDialer(rider?.contactNo ?? '');
                             },
                             icon:
                                 SvgPicture.asset(AppIconAssets.rider_call_icon),
@@ -165,7 +164,7 @@ class _RiderDetailsMsgCardState extends State<RiderDetailsMsgCard> {
                         Container(
                           height: 12,
                           width: 1,
-                          color: AppColors.grayText.withOpacity(0.4),
+                          color: AppColors.grayText.withValues(alpha: 0.4),
                         ),
                         Expanded(
                           child: TextButton.icon(
@@ -188,7 +187,7 @@ class _RiderDetailsMsgCardState extends State<RiderDetailsMsgCard> {
                         Expanded(
                           child: TextButton.icon(
                             onPressed: () {
-                              launchDialPad(rider?.contactNo ?? '');
+                              openDialer(rider?.contactNo ?? '');
                             },
                             icon:
                                 SvgPicture.asset(AppIconAssets.rider_call_icon),
@@ -202,7 +201,7 @@ class _RiderDetailsMsgCardState extends State<RiderDetailsMsgCard> {
                         Container(
                           height: 12,
                           width: 1,
-                          color: AppColors.grayText.withOpacity(0.4),
+                          color: AppColors.grayText.withValues(alpha: 0.4),
                         ),
                         Expanded(
                           child: TextButton.icon(
@@ -225,16 +224,6 @@ class _RiderDetailsMsgCardState extends State<RiderDetailsMsgCard> {
         ),
       ),
     );
-  }
-
-  void launchDialPad(String phoneNumber) async {
-    final Uri url = Uri(scheme: 'tel', path: phoneNumber);
-
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url);
-    } else {
-      throw 'Could not launch dialer';
-    }
   }
 
   void _openBusinessToRiderOTP(BuildContext context, Messages message) {
