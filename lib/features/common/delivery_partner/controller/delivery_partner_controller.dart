@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/api/model/image_upload_response_model.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -11,7 +12,6 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/common/delivery_partner/model/rider_onboarding_status.dart';
-import 'package:BlueEra/features/common/delivery_partner/model/rider_service_upload_model.dart';
 import 'package:BlueEra/features/common/delivery_partner/repo/delivery_partner_repo.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:croppy/croppy.dart';
@@ -115,18 +115,17 @@ class DeliveryPartnerController extends GetxController {
   Rx<VehicleType?> selectedVehicleType = Rx<VehicleType?>(null);
   Rx<FuelType?> selectedFuelType = Rx<FuelType?>(null);
 
-  Future<RiderServiceUploadModel?> uploadInit(
+  Future<ImageUploadResponseModel?> uploadInit(
       {required String fileType}) async {
     try {
       ResponseModel response = await DeliveryPartnerRepo()
-          .initRiderServiceUploadRepo(fileType: fileType);
-      ;
+          .initRiderServiceFileUploadRepo(fileType: fileType);
 
       if (response.isSuccess) {
         uploadInitResponse.value = ApiResponse.complete(response);
-        final riderServiceUploadModel =
-            RiderServiceUploadModel.fromJson(response.response?.data);
-        return riderServiceUploadModel;
+        final imageUploadResponseModel =
+        ImageUploadResponseModel.fromJson(response.response?.data);
+        return imageUploadResponseModel;
       }
     } catch (e) {
       uploadInitResponse.value = ApiResponse.error('error');
@@ -293,7 +292,7 @@ class DeliveryPartnerController extends GetxController {
       await uploadFileToS3Api(
         file: file,
         fileType: mimeType,
-        preSignedUrl: initModel.uploadURL ?? '',
+        preSignedUrl: initModel.uploadUrl ?? '',
         onProgress: (progress) {
           debugPrint(
               " Uploading ${file.path.split('/').last}: ${(progress * 100).toStringAsFixed(0)}%");

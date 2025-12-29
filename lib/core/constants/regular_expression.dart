@@ -326,6 +326,92 @@ class ValidationMethod {
     return null;
   }
 
+  static String? validateName(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Name is required';
+    }
+
+    // Optional: Validates that the name contains only alphabets and spaces
+    // Allows for names like "John Doe" or "D'souza" if you adjust the regex
+    bool isValid = RegExp(r"^[a-zA-Z\s']+$").hasMatch(value);
+
+    if (!isValid) {
+      return 'Please enter a valid name (letters only)';
+    }
+
+    // Optional: Check for minimum length
+    if (value.trim().length < 2) {
+      return 'Name must be at least 2 characters long';
+    }
+
+    return null;
+  }
+
+  static String? validateBankHolderName(String? value) {
+    final nameRegExp = RegExp(r'^[a-zA-Z\s]+$');
+    if (value == null || value.trim().isEmpty) {
+      return 'Enter Bank Holder name';
+    }
+    if (!nameRegExp.hasMatch(value.trim())) {
+      return 'Name should only Alphabetically';
+    }
+    return null;
+  }
+
+  static String? validateBankName(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Bank name is required';
+    }
+    if (value.trim().length < 2) {
+      return 'Bank name must be at least 2 characters';
+    }
+    return null;
+  }
+
+  static String? validateAccountNumber(String? value) {
+    // 1. Check if null or empty
+    if (value == null || value.trim().isEmpty) {
+      return 'Account number is required';
+    }
+
+    final cleanValue = value.trim();
+
+    // 2. Length check (Standard Indian bank accounts are usually 9-18 digits)
+    if (cleanValue.length < 9 || cleanValue.length > 18) {
+      return 'Enter a valid account number (9 to 18 digits)';
+    }
+
+    // 3. Ensure numeric only
+    if (!RegExp(r'^[0-9]+$').hasMatch(cleanValue)) {
+      return 'Account number must contain only digits';
+    }
+
+    return null;
+  }
+
+  static String? validateIfscCode(String? value) {
+    // 1. Check if null or empty
+    if (value == null || value.trim().isEmpty) {
+      return 'IFSC code is required';
+    }
+
+    // 2. Clean input (remove spaces and convert to uppercase)
+    final cleanValue = value.trim().toUpperCase();
+
+    // 3. Length check
+    if (cleanValue.length != 11) {
+      return 'IFSC code must be exactly 11 characters long';
+    }
+
+    // 4. Pattern check (4 letters, a zero, 6 alpha-numeric)
+    // Enforcing the 5th character as '0' is crucial.
+    if (!RegExp(r'^[A-Z]{4}0[A-Z0-9]{6}$').hasMatch(cleanValue)) {
+      return 'Invalid format. Example: SBIN0001234';
+    }
+
+    return null;
+  }
+
 }
 
 

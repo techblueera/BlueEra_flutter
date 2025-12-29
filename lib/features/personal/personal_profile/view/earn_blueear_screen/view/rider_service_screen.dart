@@ -370,8 +370,7 @@ logs("riderOpt==== $riderOpt");
           const SizedBox(width: 16),
 
         // 2. trailing – Go-Live switch (always at the end)
-        if (accountTypeGlobal == AppConstants.individual)
-          Builder(builder: (_) {
+        Builder(builder: (_) {
             final statusData = serviceProviderStatusGlobal.toUpperCase();
             viewPersonalDetailsController.shopStatusOpenClose.value =
                 statusData == AppConstants.OPEN.toUpperCase();
@@ -400,8 +399,7 @@ logs("riderOpt==== $riderOpt");
               ),
             );
           })
-        else
-          const SizedBox.shrink(),
+
       ],
     );
   }

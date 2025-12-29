@@ -1,6 +1,5 @@
 import 'dart:developer';
 import 'dart:io';
-
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -25,7 +24,9 @@ import 'package:BlueEra/features/personal/personal_profile/controller/perosonal_
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/controller/booking_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/create_profile_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/my_documents_screen/my_documents_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/my_documents/controller/my_documents_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/my_documents/widget/common_document_bottom_sheet.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/my_documents/widget/view_document_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/testimonials_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/circular_progress_painter.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/count_clock_widget.dart';
@@ -402,8 +403,6 @@ class _PersonalProfileSetupNewScreenState
 
           _buildEarnWithBlueEraWidget(),
 
-          // SizedBox(height: SizeConfig.size10),
-          // _buildBookingAndaAvailabilityWidget(),
           if (Platform.isAndroid) ...[
             SizedBox(height: SizeConfig.size10),
             _buildPaymentAccountWidget(),
@@ -1407,7 +1406,8 @@ class _PersonalProfileSetupNewScreenState
 
   Widget _buildPaymentAccountWidget() {
     return CustomFormCard(
-        child: Column(children: [
+        child: Column(
+            children: [
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -1420,7 +1420,7 @@ class _PersonalProfileSetupNewScreenState
           ),
           SizedBox(width: SizeConfig.size6),
           InkWell(
-            onTap: () {},
+            onTap: () => Get.toNamed(RouteHelper.getPaymentSettingScreenRoute()),
             child: LocalAssets(
               height: 18,
               imagePath: AppIconAssets.pen_line,
@@ -1437,14 +1437,14 @@ class _PersonalProfileSetupNewScreenState
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 CustomText(
-                  AppStrings.myWallet,
-                  fontSize: SizeConfig.small,
+                  "${AppStrings.myWallet.tr}: ",
+                  fontSize: SizeConfig.medium,
                   fontWeight: FontWeight.w600,
                   color: AppColors.secondaryTextColor,
                 ),
                 CustomText(
-                  ' ₹ 0',
-                  fontSize: SizeConfig.small,
+                  '₹ 0',
+                  fontSize: SizeConfig.medium,
                   fontWeight: FontWeight.w700,
                   color: AppColors.primaryColor,
                 ),
@@ -1458,14 +1458,14 @@ class _PersonalProfileSetupNewScreenState
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 CustomText(
-                  AppStrings.totalEarning,
-                  fontSize: SizeConfig.small,
+                  "${AppStrings.totalEarning.tr}: ",
+                  fontSize: SizeConfig.medium,
                   fontWeight: FontWeight.w600,
                   color: AppColors.secondaryTextColor,
                 ),
                 CustomText(
-                  ' ₹ 0',
-                  fontSize: SizeConfig.small,
+                  '₹ 0',
+                  fontSize: SizeConfig.medium,
                   fontWeight: FontWeight.w700,
                   color: AppColors.secondaryTextColor,
                 ),
@@ -1480,47 +1480,59 @@ class _PersonalProfileSetupNewScreenState
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
           CustomText(
-            '${AppStrings.bankAccount}',
-            fontSize: SizeConfig.small,
+            '${AppStrings.bankAccount.tr}: ',
+            fontSize: SizeConfig.medium,
             fontWeight: FontWeight.w600,
             color: AppColors.secondaryTextColor,
           ),
           CustomText(
-            ' State bank Of India',
-            fontSize: SizeConfig.small,
-            fontWeight: FontWeight.w700,
+            'State payment Of India',
+            fontSize: SizeConfig.medium,
+            fontWeight: FontWeight.w400,
             color: AppColors.secondaryTextColor,
           ),
         ],
       )),
       SizedBox(height: SizeConfig.size10),
-      _buildContainerOverlay(
-          child: InkWell(
-        onTap: () => Get.to(() => SubscriptionScreen()),
-        child: Row(
-          children: [
-            LocalAssets(
-              imagePath: AppIconAssets.subscription,
-              width: SizeConfig.size18,
-              height: SizeConfig.size18,
-            ),
-            SizedBox(width: SizeConfig.size10),
-            CustomText(
-              AppStrings.manageSubscription,
-              fontSize: SizeConfig.small,
-              fontWeight: FontWeight.w700,
-              color: AppColors.secondaryTextColor,
-            ),
-            Spacer(),
-            CustomText(
-              AppStrings.freePlan,
-              fontSize: SizeConfig.small,
-              fontWeight: FontWeight.w600,
-              color: AppColors.primaryColor,
-            ),
-          ],
+      Align(
+        alignment: Alignment.centerRight,
+        child: CustomBtn(
+            onTap: (){},
+            height: SizeConfig.size30,
+            width: SizeConfig.size90,
+            title: AppStrings.withdraw,
+            bgColor: AppColors.primaryColor,
+            radius: 10.0,
         ),
-      ))
+      )
+      // _buildContainerOverlay(
+      //     child: InkWell(
+      //   onTap: () => Get.to(() => SubscriptionScreen()),
+      //   child: Row(
+      //     children: [
+      //       LocalAssets(
+      //         imagePath: AppIconAssets.subscription,
+      //         width: SizeConfig.size18,
+      //         height: SizeConfig.size18,
+      //       ),
+      //       SizedBox(width: SizeConfig.size10),
+      //       CustomText(
+      //         AppStrings.manageSubscription,
+      //         fontSize: SizeConfig.small,
+      //         fontWeight: FontWeight.w700,
+      //         color: AppColors.secondaryTextColor,
+      //       ),
+      //       Spacer(),
+      //       CustomText(
+      //         AppStrings.freePlan,
+      //         fontSize: SizeConfig.small,
+      //         fontWeight: FontWeight.w600,
+      //         color: AppColors.primaryColor,
+      //       ),
+      //     ],
+      //   ),
+      // )
+      // )
     ]));
   }
 
@@ -1922,22 +1934,22 @@ class _PersonalProfileSetupNewScreenState
       child: Row(
         children: [
           Container(
-            padding: EdgeInsets.all(SizeConfig.size8),
+            padding: EdgeInsets.all(SizeConfig.size6),
             decoration: BoxDecoration(
-                color: AppColors.white,
+                color: AppColors.whiteFE,
                 borderRadius: BorderRadius.circular(6),
                 border: Border.all(
-                  color: AppColors.whiteFE,
+                  color: AppColors.greyE5,
                   width: 1,
                 ),
                 boxShadow: [AppShadows.textFieldShadow]),
-            child: Icon(
-              Icons.description_outlined,
-              color: AppColors.primaryColor,
-              size: 24,
+            child: LocalAssets(
+              imagePath: AppIconAssets.outlinedDocument,
+              width: SizeConfig.size20,
+              height: SizeConfig.size20,
             ),
           ),
-          SizedBox(width: SizeConfig.size16),
+          SizedBox(width: SizeConfig.size10),
 
           // Document Details
           Expanded(
@@ -1950,9 +1962,9 @@ class _PersonalProfileSetupNewScreenState
                   fontWeight: FontWeight.w400,
                   color: AppColors.mainTextColor,
                 ),
-                SizedBox(height: SizeConfig.size4),
+                SizedBox(height: SizeConfig.size6),
                 CustomText(
-                  document.size,
+                  document.date,
                   fontSize: SizeConfig.extraSmall,
                   fontWeight: FontWeight.w400,
                   color: AppColors.secondaryTextColor,
@@ -1963,50 +1975,25 @@ class _PersonalProfileSetupNewScreenState
           SizedBox(width: SizeConfig.size12),
 
           // Action Buttons
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Delete Button
-              GestureDetector(
-                onTap: () => controller.deleteDocument(document),
-                child: Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.red),
-                    color: Colors.red.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.delete_outline,
-                    color: Colors.red,
-                    size: 16,
+          GestureDetector(
+            onTap: () {
+              Get.bottomSheet(
+                CommonDocumentBottomSheet(
+                  title: document.name,
+                  child: ViewDocumentWidget(
+                    document: document,
                   ),
                 ),
-              ),
-              SizedBox(width: SizeConfig.size8),
-
-              // Edit Button
-              GestureDetector(
-                onTap: () => controller.editDocument(document),
-                child: Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: AppColors.primaryColor),
-                    color: AppColors.primaryColor.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  alignment: Alignment.center,
-                  child: LocalAssets(
-                    imagePath: AppIconAssets.pen_line,
-                    imgColor: AppColors.primaryColor,
-                    height: 16,
-                    width: 16,
-                  ),
-                ),
-              ),
-            ],
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+              );
+            },
+            child: LocalAssets(
+              imagePath: AppIconAssets.eyeIcon,
+              height: 20,
+              width: 20,
+              imgColor: AppColors.secondaryTextColor,
+            ),
           ),
         ],
       ),

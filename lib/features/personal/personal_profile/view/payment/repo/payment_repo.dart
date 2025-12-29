@@ -9,6 +9,7 @@ class PaymentRepo extends BaseService {
       addAccountApi,
       params: params,
       isMultipart: false,
+      showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );
@@ -33,9 +34,9 @@ class PaymentRepo extends BaseService {
     dynamic params,
   }) async {
     final response = await ApiBaseHelper().putHTTP(
-      // "$updateAccountIdApi/$userId",
       updateAccountIdApi + Id,
       params: params,
+      showProgress: false,
       onError: (error) {
         print("Update user failed: $error");
       },

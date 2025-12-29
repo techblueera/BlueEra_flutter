@@ -1305,6 +1305,10 @@ class AppStrings {
       'pleaseSelectAadharFrontImage';
   static const String pleaseSelectAadharBackImage =
       'pleaseSelectAadharBackImage';
+  static const String pleaseSelectAddressProofIdFrontImage =
+      'pleaseSelectAddressProofIdFrontImage';
+  static const String pleaseSelectAddressProofIdBackImage =
+      'pleaseSelectAddressProofIdBackImage';
   static const String pleaseSelectPanCardImage = 'pleaseSelectPanCardImage';
   static const String pleaseSelectDlFrontImage = 'pleaseSelectDlFrontImage';
   static const String pleaseSelectDlBackImage = 'pleaseSelectDlBackImage';
@@ -1957,6 +1961,10 @@ class AppStrings {
 
   static const linkedShops = "linkedShops";
   static const pickUpOTP  = "pickUpOTP";
+  static const aadharCard  = "Aadhar Card";
+  static const panCard  = "Pan Card";
+  static const addressProof   = "Address Proof";
+  static const withdraw   = "Withdraw";
 
   ///BHAVESH START
 
