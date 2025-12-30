@@ -1,6 +1,6 @@
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
-import 'package:BlueEra/features/me/school/controller/about_us_controller.dart';
+import 'package:BlueEra/features/me/school/controller/school_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
@@ -15,7 +15,7 @@ class BranchOnlyScreen extends StatefulWidget {
 }
 
 class _BranchOnlyScreenState extends State<BranchOnlyScreen> {
-  final aboutUsController = Get.find<AboutUsController>();
+  final aboutUsController = Get.find<SchoolController>();
 
   // Main Branch Controllers
   final branchNameController = TextEditingController();

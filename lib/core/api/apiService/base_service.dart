@@ -539,6 +539,8 @@ abstract class BaseService {
   String deleteSymbolApi(String symbolId) => "chat-service/symbols/$symbolId";
   final String groceryCategoryWithVariant = 'grocery-service/api/categories/with-inventory';
   String getMedicalCategoryApi(String orderId) => "api/modules/tree/module/$orderId";
+  final String aiInstitutionFetchDetails = 'ai-service/api/ai-institution/fetch-details';
+  final String aiCreateSchool = 'ai/create-school';
 
 
 }

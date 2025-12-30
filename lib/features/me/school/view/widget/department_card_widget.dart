@@ -4,7 +4,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/me/school/controller/about_us_controller.dart';
+import 'package:BlueEra/features/me/school/controller/school_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
@@ -14,7 +14,7 @@ import 'package:image_picker/image_picker.dart';
 class DepartmentCard extends StatelessWidget {
   DepartmentCard({super.key});
 
-  final aboutUsController = Get.find<AboutUsController>();
+  final aboutUsController = Get.find<SchoolController>();
 
   @override
   Widget build(BuildContext context) {
@@ -157,7 +157,7 @@ class DepartmentCard extends StatelessWidget {
     );
   }
 
-  Widget _buildAddPlaceholder(AboutUsController aboutUsController) {
+  Widget _buildAddPlaceholder(SchoolController aboutUsController) {
     return GestureDetector(
       onTap: () => aboutUsController.pickImages(ImageSource.camera),
       child: Container(

@@ -1,7 +1,7 @@
 import 'package:BlueEra/core/api/model/service_option_model.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/me/school/controller/about_us_controller.dart';
+import 'package:BlueEra/features/me/school/controller/school_controller.dart';
 import 'package:BlueEra/features/me/school/view/category/about_school/history_screen.dart';
 import 'package:BlueEra/features/me/school/view/category/about_school/management_and_trust.dart';
 import 'package:BlueEra/features/me/school/view/category/about_school/principal_message_screen.dart';

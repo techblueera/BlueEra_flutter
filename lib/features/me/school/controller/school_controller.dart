@@ -1,11 +1,19 @@
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/api/apiService/api_response.dart';
+import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/api/model/institution_fetch_model.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/me/school/repo/school_repo.dart';
+import 'package:BlueEra/features/me/school/view/category/school_preview_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
-class AboutUsController extends GetxController {
+class SchoolController extends GetxController {
   final Rxn<File> directorMessageImageFile = Rxn<File>();
   final Rxn<File> historyImageFile = Rxn<File>();
   final Rxn<File> noticeNewsImageFile = Rxn<File>();
@@ -107,14 +115,12 @@ class AboutUsController extends GetxController {
   ///Only Department Validation
 
   void departmentValidateForm({
-
     required String departmentRole,
     required String departmentEmailAddress,
     required String departmentPhoneNo,
   }) {
     // Condition: All text fields not empty AND at least 1 image
-    isFormValid.value =
-        departmentRole.isNotEmpty &&
+    isFormValid.value = departmentRole.isNotEmpty &&
         departmentPhoneNo.isNotEmpty &&
         departmentEmailAddress.isNotEmpty;
   }
@@ -189,15 +195,13 @@ class AboutUsController extends GetxController {
     return true;
   }
 
-
   ///Only Branch Validation
   void noticesNewsValidateForm({
     required String uploadPhoto,
     required String noticeDescription,
   }) {
     // Condition: All text fields not empty AND at least 1 image
-    isFormValid.value = noticeDescription.isNotEmpty &&
-        uploadPhoto.isNotEmpty;
+    isFormValid.value = noticeDescription.isNotEmpty && uploadPhoto.isNotEmpty;
   }
 
   ///Only Gallery Validation
@@ -206,7 +210,89 @@ class AboutUsController extends GetxController {
     required String title,
   }) {
     // Condition: All text fields not empty AND at least 1 image
-    isFormValid.value = title.isNotEmpty &&
-        uploadPhoto.isNotEmpty;
+    isFormValid.value = title.isNotEmpty && uploadPhoto.isNotEmpty;
+  }
+
+  ///GENERATE VIA AI SCHOOL DETAILS....
+  final searchController = TextEditingController();
+  final websiteController = TextEditingController();
+  final fullSchoolAddressController = TextEditingController();
+
+  clearAiGenerateFiled() {
+    searchController.clear();
+    websiteController.clear();
+    fullSchoolAddressController.clear();
+  }
+
+  @override
+  void onClose() {
+    searchController.dispose();
+    websiteController.dispose();
+    fullSchoolAddressController.dispose();
+    super.onClose();
+  }
+
+  Rx<InstitutionFetchModel>? institutionFetchModel =
+      InstitutionFetchModel().obs;
+  Rx<ApiResponse> generateSchoolViaAIResponse =
+      ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> createSchoolResponse = ApiResponse.initial('Initial').obs;
+
+  Future<void> aiInstitutionFetchDetailsController() async {
+    String school = searchController.text;
+    String website = websiteController.text;
+    String fullSchoolAddress = fullSchoolAddressController.text;
+    // Logic for AI generation goes here
+    Get.back();
+    try {
+      // ResponseModel response =
+      //     await SchoolRepo().aiInstitutionFetchDetailsRepo(reqBody: {
+      //       "name": "Parul University",
+      //       "url": "https://paruluniversity.ac.in",
+      //       "address": "Private university in Gujarat"
+      //     });
+      ResponseModel response =
+          await SchoolRepo().aiInstitutionFetchDetailsRepo(reqBody: {
+        ApiKeys.name: school,
+        ApiKeys.url: website,
+        ApiKeys.address: fullSchoolAddress,
+      });
+      if (response.isSuccess) {
+        final data = response.response?.data;
+        institutionFetchModel?.value = InstitutionFetchModel.fromJson(data);
+        generateSchoolViaAIResponse.value =
+            ApiResponse.complete(institutionFetchModel);
+        Get.to(SchoolPreviewScreen());
+      } else {
+        commonSnackBar(message: AppStrings.somethingWentWrong);
+        generateSchoolViaAIResponse.value =
+            ApiResponse.error(AppStrings.somethingWentWrong);
+      }
+    } on Exception catch (e) {
+      // TODO
+      generateSchoolViaAIResponse.value =
+          ApiResponse.error(AppStrings.somethingWentWrong);
+    }
+  }
+
+  Future<void> createSchoolController() async {
+    // Logic for AI generation goes here
+    try {
+      ResponseModel response = await SchoolRepo().createSchoolRepo(
+          reqBody: (institutionFetchModel?.value.data ?? {}));
+      if (response.isSuccess) {
+        commonSnackBar(message: "School create successfully");
+        createSchoolResponse.value =
+            ApiResponse.complete(institutionFetchModel);
+      } else {
+        commonSnackBar(message: AppStrings.somethingWentWrong);
+        createSchoolResponse.value =
+            ApiResponse.error(AppStrings.somethingWentWrong);
+      }
+    } on Exception catch (e) {
+      // TODO
+      createSchoolResponse.value =
+          ApiResponse.error(AppStrings.somethingWentWrong);
+    }
   }
 }

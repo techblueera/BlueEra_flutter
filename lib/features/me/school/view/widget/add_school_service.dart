@@ -1,5 +1,5 @@
 // import 'package:BlueEra/core/constants/size_config.dart';
-// import 'package:BlueEra/features/me/school/controller/about_us_controller.dart';
+// import 'package:BlueEra/features/me/school/controller/school_controller.dart';
 // import 'package:BlueEra/features/me/school/view/widget/add_more_icon_button.dart';
 // import 'package:BlueEra/widgets/common_back_app_bar.dart';
 // import 'package:flutter/material.dart';
