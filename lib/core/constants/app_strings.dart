@@ -1783,6 +1783,8 @@ class AppStrings {
   static const pickUpOTP  = "pickUpOTP";
   static const aadharCard  = "Aadhar Card";
   static const panCard  = "Pan Card";
+  static const rc  = "RC";
+  static const drivingLicence  = "Driving Licence";
   static const addressProof   = "Address Proof";
   static const withdraw   = "Withdraw";
   static const bookYourGroceryNdFood   = "Book Your Grocery & Food";
@@ -1801,6 +1803,21 @@ class AppStrings {
   static const foodNearMe = "Food Near Me";
   static const cashOnDelivery = "Cash On Delivery";
   static const prePaid = "Pre Paid";
+  static const personalDocument = "Personal Document";
+  static const businessDocument = "Business Document";
+  static const uploadAadhar = "Upload Aadhar";
+  static const uploadDrivingLicense = "Upload Driving License";
+  static const uploadVehicleRC = "Upload Vehicle RC";
+  static const uploadAddressProof = "Upload Address Proof";
+  static const uploadNOC = "Upload NOC";
+  static const uploadBankerCancelCheck = "Upload Banker Cancel Check";
+  static const uploadGSTCertificate = "Upload GST Certificate";
+  static const uploadFoodLicense = "Upload Food License";
+  static const uploadMedicalLicense = "Upload Medical License";
+  static const uploadFireSafetyCertificate = "Upload Fire/Safety Certificate";
+  static const uploadMunicipalCorpCertificate = "Upload Municipal Corp. Certificate";
+  static const uploadMSMECertificate = "Upload MSME Certificate";
+  static const uploadShopActCertificate = "Upload Shop Act Certificate";
 
   ///BHAVESH START
   static const ownerDetail = "owner_detail";

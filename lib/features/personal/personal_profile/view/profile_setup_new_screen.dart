@@ -25,6 +25,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/booking_enquirie
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/create_profile_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/controller/my_documents_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/my_documents/model/upload_document_response.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/widget/common_document_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/widget/view_document_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/testimonials_screen.dart';
@@ -33,7 +34,6 @@ import 'package:BlueEra/features/personal/personal_profile/view/widget/count_clo
 import 'package:BlueEra/features/personal/personal_profile/view/widget/horizonatal_video_player.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/introduction_video_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/update_profile_view.dart';
-import 'package:BlueEra/features/subscription/view/subscription_screen.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/common_horizontal_divider.dart';
@@ -44,7 +44,6 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../../widgets/common_back_app_bar.dart';
@@ -102,22 +101,12 @@ class PersonalProfileSetupNewScreen extends StatefulWidget {
 
 class _PersonalProfileSetupNewScreenState
     extends State<PersonalProfileSetupNewScreen> with TickerProviderStateMixin {
-  final viewProfileController = Get.put(ViewPersonalDetailsController());
+  final viewProfileController = getOrPut(() => ViewPersonalDetailsController());
+  final personalCreateProfileController = getOrPut(() => PersonalCreateProfileController());
+  final bookingTabController = getOrPut(() => BookingTabController());
+  final myDocumentsController = getOrPut(() => MyDocumentsController());
+  final introVideoController = getOrPut(() => IntroductionVideoController());
 
-  final personalCreateProfileController =
-      Get.isRegistered<PersonalCreateProfileController>()
-          ? Get.find<PersonalCreateProfileController>()
-          : Get.put(PersonalCreateProfileController());
-
-  final myDocumentsController = Get.isRegistered<MyDocumentsController>()
-      ? Get.find<MyDocumentsController>()
-      : Get.put(MyDocumentsController());
-
-  final bookingTabController = Get.isRegistered<BookingTabController>()
-      ? Get.find<BookingTabController>()
-      : Get.put(BookingTabController());
-
-  final introVideoController = Get.put(IntroductionVideoController());
   final youtubeController = TextEditingController();
 
   // List<String> postTab = [];
@@ -167,6 +156,7 @@ class _PersonalProfileSetupNewScreenState
     await viewProfileController.UserFollowersAndPostsCount(userId);
     // viewProfileController.isChannelCreated.value = channelId.isNotEmpty;
     checkAndGetAvailabilityBookingData();
+    getAllDocumentsData();
     _updateTextControllers();
   }
 
@@ -184,6 +174,10 @@ class _PersonalProfileSetupNewScreenState
         }
       });
     }
+  }
+
+  Future<void> getAllDocumentsData() async {
+    myDocumentsController.fetchAllDocumentApi();
   }
 
   // after update availability we call this method
@@ -833,9 +827,9 @@ class _PersonalProfileSetupNewScreenState
                               debugPrint("Error while sharing profile: $e");
                             }
                           },
-                          child: SvgPicture.asset(
-                            AppIconAssets.shareIcon,
-                            color: Colors.black,
+                          child: LocalAssets(
+                            imagePath: AppIconAssets.shareIcon,
+                            imgColor: Colors.black,
                           ),
                         )
                       ],
@@ -872,7 +866,7 @@ class _PersonalProfileSetupNewScreenState
                             //     params: reqProfile, isFromProfileOnly: true);
                           },
                           child: CircleAvatar(
-                            backgroundColor: AppColors.black.withOpacity(0.3),
+                            backgroundColor: AppColors.black.withValues(alpha: 0.3),
                             child: LocalAssets(
                                 imagePath: 'assets/diwali_card/image.png'),
                           )))
@@ -1580,6 +1574,7 @@ class _PersonalProfileSetupNewScreenState
           child: (myDocumentsController.documents.isEmpty)
               ? ListTile(
                   dense: true,
+                  onTap: ()=> Get.toNamed(RouteHelper.getAddDocumentScreenRoute()),
                   leading: Icon(
                     Icons.folder_open,
                     color: AppColors.primaryColor,
@@ -1927,7 +1922,7 @@ class _PersonalProfileSetupNewScreenState
   }
 
   Widget _buildDocumentCard(
-      Document document, MyDocumentsController controller) {
+      DocumentsResponse document, MyDocumentsController controller) {
     return Container(
       padding: EdgeInsets.symmetric(
           vertical: SizeConfig.size12, horizontal: SizeConfig.size15),
@@ -1957,14 +1952,14 @@ class _PersonalProfileSetupNewScreenState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomText(
-                  document.name,
+                  document.documentType,
                   fontSize: SizeConfig.small,
                   fontWeight: FontWeight.w400,
                   color: AppColors.mainTextColor,
                 ),
                 SizedBox(height: SizeConfig.size6),
                 CustomText(
-                  document.date,
+                  document.createdAt,
                   fontSize: SizeConfig.extraSmall,
                   fontWeight: FontWeight.w400,
                   color: AppColors.secondaryTextColor,
@@ -1979,7 +1974,7 @@ class _PersonalProfileSetupNewScreenState
             onTap: () {
               Get.bottomSheet(
                 CommonDocumentBottomSheet(
-                  title: document.name,
+                  title: document.documentType??'',
                   child: ViewDocumentWidget(
                     document: document,
                   ),

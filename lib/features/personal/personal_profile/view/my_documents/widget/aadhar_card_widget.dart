@@ -11,6 +11,7 @@ import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class AadharCardWidget extends StatelessWidget {
   AadharCardWidget({super.key});
@@ -19,80 +20,83 @@ class AadharCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomFormCard(
-        padding: EdgeInsets.zero,
-        child: Form(
-          key: controller.formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              /// Aadhar
-              CommonTextField(
-                textEditController: controller.aadharController,
-                title: AppStrings.aadharNumber,
-                hintText: 'E.g. 5678 1234 6679 9012',
-                keyBoardType: TextInputType.number,
-                validator: ValidationMethod.validateAadhaar,
-                maxLength: 12,
-              ),
-              SizedBox(height: SizeConfig.paddingM),
-              CustomText(
-                AppStrings.uploadAadharBothSide,
-                fontSize: SizeConfig.medium,
-                color: AppColors.mainTextColor,
-                fontWeight: FontWeight.w400,
-              ),
-              SizedBox(height: SizeConfig.size8),
-              Row(
-                children: [
-                  Expanded(
-                    child: CommonImageUploadTile(
-                      title: AppStrings.aadharFront,
-                      imageFile: controller.aadharFrontImage,
-                      context: context,
-                      onImageSelected: () async {
-                        final selectedPath =
-                        await CommonImageUploadTile.pickImage(
-                            context: context);
-                        if (selectedPath != null) {
-                          controller.aadharFrontImage.value = File(selectedPath);
-                        }
-                      },
+    return Obx(()=> AbsorbPointer(
+      absorbing: controller.isAadharUploadLoading.value,
+      child: CustomFormCard(
+          padding: EdgeInsets.zero,
+          child: Form(
+            key: controller.formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                /// Aadhar
+                CommonTextField(
+                  textEditController: controller.aadharController,
+                  title: AppStrings.aadharNumber,
+                  hintText: 'E.g. 5678 1234 6679 9012',
+                  keyBoardType: TextInputType.number,
+                  validator: ValidationMethod.validateAadhaar,
+                  maxLength: 12,
+                ),
+                SizedBox(height: SizeConfig.paddingM),
+                CustomText(
+                  AppStrings.uploadAadharBothSide,
+                  fontSize: SizeConfig.medium,
+                  color: AppColors.mainTextColor,
+                  fontWeight: FontWeight.w400,
+                ),
+                SizedBox(height: SizeConfig.size8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: CommonImageUploadTile(
+                        title: AppStrings.aadharFront,
+                        imageFile: controller.aadharFrontImage,
+                        context: context,
+                        onImageSelected: () async {
+                          final selectedPath =
+                          await CommonImageUploadTile.pickImage(
+                              context: context);
+                          if (selectedPath != null) {
+                            controller.aadharFrontImage.value = File(selectedPath);
+                          }
+                        },
+                      ),
                     ),
-                  ),
-                  SizedBox(width: SizeConfig.size8),
-                  Expanded(
-                    child: CommonImageUploadTile(
-                      title: AppStrings.aadharBack,
-                      imageFile: controller.aadharBackImage,
-                      context: context,
-                      onImageSelected: () async {
-                        final selectedPath =
-                        await CommonImageUploadTile.pickImage(
-                            context: context);
-                        if (selectedPath != null) {
-                          controller.aadharBackImage.value = File(selectedPath);
-                        }
-                      },
+                    SizedBox(width: SizeConfig.size8),
+                    Expanded(
+                      child: CommonImageUploadTile(
+                        title: AppStrings.aadharBack,
+                        imageFile: controller.aadharBackImage,
+                        context: context,
+                        onImageSelected: () async {
+                          final selectedPath =
+                          await CommonImageUploadTile.pickImage(
+                              context: context);
+                          if (selectedPath != null) {
+                            controller.aadharBackImage.value = File(selectedPath);
+                          }
+                        },
+                      ),
                     ),
-                  ),
-                ],
-              ),
-
-              SizedBox(height: SizeConfig.paddingL),
-
-              CustomBtn(
-                title: controller.isAadharUploadLoading.value
-                    ? null
-                    : "Upload",
-                onTap: () => controller.aadharCardApi(),
-                radius: 10.0,
-                bgColor: AppColors.primaryColor,
-                isLoading: controller.isAadharUploadLoading.value,
-              ),
-            ],
-          ),
-        ));
+                  ],
+                ),
+      
+                SizedBox(height: SizeConfig.paddingL),
+      
+                CustomBtn(
+                  title: controller.isAadharUploadLoading.value
+                      ? null
+                      : "Upload",
+                  onTap: () => controller.aadharCardApi(),
+                  radius: 10.0,
+                  bgColor: AppColors.primaryColor,
+                  isLoading: controller.isAadharUploadLoading.value,
+                ),
+              ],
+            ),
+          )),
+    ));
   }
 }

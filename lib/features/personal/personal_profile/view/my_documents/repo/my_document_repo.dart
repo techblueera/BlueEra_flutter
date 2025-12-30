@@ -5,10 +5,24 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 
 class MyDocumentRepo extends BaseService {
 
+  /// initRiderServiceUploadRepo
+  Future<ResponseModel> initDocumentFileUploadRepo({required String fileType}) async {
+    var response = await ApiBaseHelper().getHTTP(
+      initDocumentServiceUpload,
+      params: {
+        ApiKeys.fileType: fileType
+      },
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   /// ridersOnboardingPersonalIdentificationRepo
-  Future<ResponseModel> documentIdentificationRepo({required Map<String, dynamic> params}) async {
-    var response = await ApiBaseHelper().putHTTP(
-      ridersOnboardingPersonalIdentification,
+  Future<ResponseModel> addDocument({required Map<String, dynamic> params}) async {
+    var response = await ApiBaseHelper().postHTTP(
+      documents,
       params: params,
       showProgress: false,
       onError: (error) {},
@@ -18,12 +32,20 @@ class MyDocumentRepo extends BaseService {
   }
 
   /// initRiderServiceUploadRepo
-  Future<ResponseModel> initDocumentFileUploadRepo({required String fileType}) async {
+  Future<ResponseModel> getAllDocument() async {
     var response = await ApiBaseHelper().getHTTP(
-      initRiderServiceUpload,
-      params: {
-        ApiKeys.fileType: fileType
-      },
+      documents,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  /// initRiderServiceUploadRepo
+  Future<ResponseModel> getAllDocumentStatus() async {
+    var response = await ApiBaseHelper().getHTTP(
+      documentsStatus,
       showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},

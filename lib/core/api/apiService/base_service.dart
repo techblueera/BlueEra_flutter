@@ -540,5 +540,8 @@ abstract class BaseService {
   final String groceryCategoryWithVariant = 'grocery-service/api/categories/with-inventory';
   String getMedicalCategoryApi(String orderId) => "api/modules/tree/module/$orderId";
 
+  final String documents = 'document-service/documents';
+  final String documentsStatus = 'document-service/documents/status';
+  final String initDocumentServiceUpload = "document-service/s3/presigned-url";
 
 }

@@ -230,6 +230,26 @@ class AppConstants {
 
   static const storeAi = "StoreAi";
 
+
+}
+
+class DocumentKeys {
+  static const aadhar = "aadhar";
+  static const pan = "pan";
+  static const drivingLicense = "drivingLicense";
+  static const vehicleRC = "vehicleRC";
+  static const addressProof = "addressProof";
+  static const noc = "noc";
+  static const bankersCancelledCheque = "bankersCancelledCheque";
+
+  // Business Keys
+  static const gstCertificate = "gstCertificate";
+  static const fssaiLicense = "fssaiLicense";
+  static const medicalLicense = "medicalLicense";
+  static const fireSafetyCertificate = "fireSafetyCertificate";
+  static const municipalCorpCertificate = "municipalCorpCertificate";
+  static const msmeCertificate = "msmeCertificate";
+  static const shopActCertificate  = "shopActCertificate"; // Removed trailing space
 }
 
 ///IS GUEST USER...
