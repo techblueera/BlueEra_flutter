@@ -27,6 +27,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/create_profile_s
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/controller/my_documents_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/model/upload_document_response.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/widget/common_document_bottom_sheet.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/my_documents/widget/doc_verification_pending_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/widget/view_document_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/testimonials_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/circular_progress_painter.dart';
@@ -1975,8 +1976,10 @@ class _PersonalProfileSetupNewScreenState
               Get.bottomSheet(
                 CommonDocumentBottomSheet(
                   title: document.documentType??'',
-                  child: ViewDocumentWidget(
+                  child: (document.isVerified ?? false) ? ViewDocumentWidget(
                     document: document,
+                  ) : DocumentVerificationPendingWidget(
+                      documentName: document.documentType??'',
                   ),
                 ),
                 isScrollControlled: true,

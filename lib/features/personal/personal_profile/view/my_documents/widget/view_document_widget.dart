@@ -73,7 +73,6 @@ class ViewDocumentWidget extends StatelessWidget {
                 boxFix: BoxFit.cover,
               ),
             )
-
           ],
         ));
   }
