@@ -12,7 +12,7 @@ import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/auth/model/business_profile_category.dart';
 import 'package:BlueEra/features/common/auth/model/individual_profiile_category.dart';
-import 'package:BlueEra/features/common/store/widget/icon_grid_item.dart';
+import 'package:BlueEra/widgets/circle_icon_grid_item.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -518,7 +518,7 @@ class _CreateNewAccountScreenState extends State<CreateNewAccountScreen> {
                   final item = rowItems[itemIndex];
 
                   return Expanded(
-                    child: IconGridItem(
+                    child: CircleIconGridItem(
                       label: labelBuilder(item),
                       icon: iconBuilder(item),
                       imgColor: AppColors.blue6B,
@@ -531,7 +531,7 @@ class _CreateNewAccountScreenState extends State<CreateNewAccountScreen> {
                   return const Expanded(child: SizedBox());
                 }
               } else {
-                return SizedBox(width: SizeConfig.size8);
+                return SizedBox(width: SizeConfig.size20);
               }
             }),
           ),

@@ -18,7 +18,9 @@ class _CommonWebViewState extends State<CommonWebView> {
   @override
   void initState() {
     super.initState();
-    controller = WebViewController()..loadRequest(Uri.parse(widget.urlLink));
+    controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..loadRequest(Uri.parse(widget.urlLink));
   }
 
   @override

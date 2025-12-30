@@ -705,9 +705,9 @@ enum VideoStatus {
 enum PostCreationMenu {
   message,
   poll,
-  photos,
-  jobPost,
-  travel;
+  // photos,
+  jobPost;
+  // travel;
 }
 
 enum PostVia { profile, channel }
@@ -1030,4 +1030,45 @@ enum RiderVerificationState {
   completed,
   rejected,
   pending
+}
+
+enum EarnServiceOrdersStatus {
+  newAndOnGoingOrder('New'),
+  // onGoing('On-Going'),
+  completed('Completed'),
+  cancelled("Cancelled");
+
+  final String label;
+
+  const EarnServiceOrdersStatus(this.label);
+}
+
+enum BankAccountType {
+  savings('Saving'),
+  current('Current');
+  // overdraft('Overdraft'),
+  // salary('Salary'),
+  // fixedDeposit('FixedDeposit'),
+  // recurringDeposit('RecurringDeposit');
+
+  final String displayName;
+
+  const BankAccountType(this.displayName);
+
+}
+
+extension BankAccountTypeExtension on BankAccountType {
+  /// Converts a dynamic string from an API to a [BankAccountType]
+  static BankAccountType fromString(String? value) {
+    if (value == null) return BankAccountType.savings; // Default fallback
+
+    // Normalizing the string to lowercase and removing spaces/underscores
+    // to match enum values robustly
+    final normalizedValue = value.toLowerCase().replaceAll('_', '').replaceAll(' ', '');
+
+    return BankAccountType.values.firstWhere(
+          (type) => type.name.toLowerCase() == normalizedValue,
+      orElse: () => BankAccountType.savings, // Fallback if no match found
+    );
+  }
 }

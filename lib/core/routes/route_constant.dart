@@ -77,7 +77,7 @@ class RouteConstant {
   static const String SetAvailabilityScreen = "/SetAvailabilityScreen";
   static const String AppointmentBookingScreen = "/AppointmentBookingScreen";
   static const String EnquiryForm = "/EnquiryFormScreen";
-  static const String addAccountScreen = "/AddAccountScreen";
+  static const String addBankAccountScreen = "/AddBankAccountScreen";
   static const String addAccountUpiScreen = "/AddAccountUpiScreen";
   static const String walletScreen = "/WalleScreen";
   static const String allTransactionsScreen = "/allTransactionsScreen";
@@ -123,13 +123,21 @@ class RouteConstant {
 
   static const String groceryScreen = "/GroceryScreen";
   static const String groceryCategoryScreen = "/GroceryCategoryScreen";
-  static const String allGroceryListingScreen = "/AllGroceryListingScreen";
+  static const String grocerySubCategoryScreen = "/GrocerySubCategoryScreen";
   static const String addGroceryScreen = "/AddGroceryScreen";
   static const String addGroceryVariantScreen = "/AddGroceryVariantScreen";
   static const String myGroceryCategoryScreen = "/MyGroceryCategoryScreen";
   static const String myGroceryScreen = "/MyGroceryScreen";
 
   static const String groceryListingScreen = "/GroceryListingScreen";
+  static const String riderServiceScreen = "/RiderServiceScreen";
+  static const String groceryCartScreen = "/GroceryCartScreen";
+  // static const String RiderProfileStatusScreen = "/RiderProfileStatusScreen";
+  static const String grocerySuperCategoryScreen = "/GrocerySuperCategoryScreen";
+  static const String paymentSettingScreen = "/PaymentSettingScreen";
+  static const String medicalOtcItemsScreen = "/MedicalOtcItemsScreen";
+  static const String riderStoreScreen = "/RiderStoreScreen";
+  static const String groceryConfirmScreen = "/GroceryConfirmScreen";
 
 
 }

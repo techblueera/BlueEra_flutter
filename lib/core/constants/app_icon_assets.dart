@@ -529,5 +529,42 @@ class AppIconAssets {
   static String removeOutlinedIcon = "${iconPath}remove_outlined_icon.svg";
 
   static String toggol_buttons = "${iconPath}toggol_buttons.svg";
+  static String clockIcon = "${iconPath}clock_icon.svg";
+
+  static String cartListIcon = "${iconPath}cart_list_icon.svg";
+  static String handPriceIcon = "${iconPath}hand_price_icon.svg";
   static String green_tick_icon = "${iconPath}green_tick.svg";
+  static String takeFranchiseIcon = "${iconPath}franchise.svg";
+  static String outlinedDocument = "${iconPath}outlined_document.svg";
+  static String uploadOutlinedIcon = "${iconPath}upload_outlined_icon.svg";
+
+  /// Grocery Super Category svg
+  static const String groceryItemsGrey = "${iconPath}grocery_items_grey.svg";
+  static const String vegetablesGrey = "${iconPath}vegetables_grey.svg";
+  static const String fruitsGrey = "${iconPath}fruits_grey.svg";
+  static const String bakeryNamkeenItemsGrey = "${iconPath}bakery_grey.svg";
+  static const String dairyFrozenItemsGrey = "${iconPath}dairy_products_grey.svg";
+  static const String crockeryGrey = "${iconPath}crockery_grey.svg";
+  static const String homeEssentialsGrey = "${iconPath}home_essentials_grey.svg";
+  static const String cleaningMaintenanceGrey = "${iconPath}cleaning_maintenance_grey.svg";
+  static const String beautyHealthCareGrey = "${iconPath}beauty_body_care_grey.svg";
+  static const String stationaryGrey = "${iconPath}stationary_grey.svg";
+
+  static const String groceryItemsColorful = "${iconPath}grocery_items_colorful.svg";
+  static const String vegetablesColorful = "${iconPath}vegetables_colorful.svg";
+  static const String fruitsColorful = "${iconPath}fruits_colorful.svg";
+  static const String bakeryNamkeenItemsColorful = "${iconPath}bakery_colorful.svg";
+  static const String dairyFrozenItemsColorful = "${iconPath}dairy_products_colorful.svg";
+  static const String crockeryColorful = "${iconPath}crockery_colorful.svg";
+  static const String homeEssentialsColorful = "${iconPath}home_essentials_colorful.svg";
+  static const String cleaningMaintenanceColorful = "${iconPath}cleaning_maintenance_colorful.svg";
+  static const String beautyHealthCareColorful = "${iconPath}beauty_body_care_colorful.svg";
+  static const String stationaryColorful = "${iconPath}stationary_colorful.svg";
+  static const String tiffinColorful = "${iconPath}tiffin_colorful.svg";
+  static const String breakfastColorful = "${iconPath}breakfast_colorful.svg";
+  static const String lunchDinnerColorful = "${iconPath}lunch_dinner_colorful.svg";
+  static const String fastFoodColorful = "${iconPath}fast_food_colorful.svg";
+  static const String sweetsColorful = "${iconPath}sweets_colorful.svg";
+  static const String restaurantColorful = "${iconPath}restaurant_colorful.svg";
+
 }

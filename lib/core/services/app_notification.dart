@@ -1,5 +1,6 @@
 // ignore_for_file: avoid_print, unnecessary_null_comparison, unnecessary_new, unrelated_type_equality_checks, unused_local_variable
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -24,6 +25,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import '../../features/chat/view/ai_chat/ai_chat_screen.dart';
 import '../../features/chat/view/orders_chat/widget/order_call_alert_page.dart';
 import '../routes/route_helper.dart';
 import 'notifications/ride_notification_data_model.dart';
@@ -161,21 +163,19 @@ class AppNotificationHandler {
   ///show notification msg
   Future<void> showMsg(RemoteMessage message)async {
     // callUnreadCount();
-
-
       if(message.data["operation"]=='RIDE_ORDER_RECEIVED'){
         NotificationData rideNotification=NotificationData.fromJson(message.data);
         showFullCallScreen(rideNotification);
         // callShow(orderId: '${rideNotification.metadata?.orderId}',lng: double.parse(rideNotification.deliveryLong.toString()),lat: double.parse(rideNotification.deliveryLat.toString()) );
       }
     ///FOR GROUND....
-
     showNotification(message);
   }
   Future<void> showFullCallScreen(NotificationData rideNotification )async{
     String? pickupLocation=await getAddressFromLatLngAsString(lat:double.parse(rideNotification.deliveryLat.toString()),lng:double.parse(rideNotification.deliveryLong.toString()));
     String? dropLocation=await getAddressFromLatLngAsString(lat:double.parse(rideNotification.metadata?.dropAddress?.lat.toString()??''),lng:double.parse(rideNotification.metadata?.dropAddress?.long.toString()??''));
-    Get.to(()=> NewDeliveryRequestScreen(notificationData: rideNotification,
+    Get.to(()=> NewDeliveryRequestScreen(
+      notificationData: rideNotification,
       orderId: '${rideNotification.metadata?.orderId}',
       customerImage: ''
       , distance: '${rideNotification.deliveryLong}',
@@ -412,6 +412,19 @@ class AppNotificationHandler {
     }
     OneSignalNotificationDetailsModel data =
         OneSignalNotificationDetailsModel.fromJson(dataNotificationResponse);
+    if(data.operation =='SEND_NIGHTLY_GREETING'){
+      final chat = ChatViewController.personalAiChatModule;
+
+      Get.to(()=> AiChatScreen(
+        profileImage: chat?.sender?.profileImage,
+        name: chat?.sender?.name,
+        contactNo: chat?.sender?.contactNo,
+        conversationId: '',
+        userId: '',
+        businessId: '',
+        type: chat?.sender?.accountType,
+        isInitialMessage: false,));
+    }else
     if (data.operation == "sent_message") {
       OpenedMessageDataModel resModel=OpenedMessageDataModel.fromJson(dataNotificationResponse);
       // if(resModel.conversationType==AppConstants.group_Chat_Type){
@@ -439,7 +452,8 @@ class AppNotificationHandler {
       // }
 
     }else if(data.operation=="RIDE_ORDER_RECEIVED"){
-      Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
+      Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
+      // Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
     }
 
     ///CLEAR ALL NOTIFICATION...
@@ -530,7 +544,7 @@ class AppNotificationHandler {
                 const SizedBox(height: 10),
                 InkWell(
                   onTap: (){
-                    Get.back(); 
+                    Get.back();
                   },
                   child: CustomText(
                     "Skip",

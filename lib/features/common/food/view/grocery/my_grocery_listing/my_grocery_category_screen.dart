@@ -4,12 +4,18 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/food/controller/grocery_controller.dart';
 import 'package:BlueEra/features/common/food/model/my_grocery_products_reponse.dart';
 import 'package:BlueEra/features/common/food/view/grocery/my_grocery_listing/grocery_category_card.dart';
+import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class MyGroceryCategoryScreen extends StatefulWidget {
-  const MyGroceryCategoryScreen({super.key});
+  final String categoryId;
+  final String categoryName;
+  const MyGroceryCategoryScreen({
+    super.key,
+    required this.categoryId,
+    required this.categoryName});
 
   @override
   State<MyGroceryCategoryScreen> createState() => _MyGroceryCategoryScreenState();
@@ -18,17 +24,28 @@ class MyGroceryCategoryScreen extends StatefulWidget {
 class _MyGroceryCategoryScreenState extends State<MyGroceryCategoryScreen> {
   final controller = getOrPut(() => GroceryController());
   final ScrollController scrollController = ScrollController();
+  late String categoryId;
+  late String categoryName;
 
   @override
   void initState() {
     super.initState();
+    categoryId = widget.categoryId;
+    categoryName = widget.categoryName;
     WidgetsBinding.instance.addPostFrameCallback((_){
-      controller.fetchMyGroceryProducts();
+      controller.fetchMyGroceryProducts(
+          categoryId: categoryId,
+          isSubCategoryProducts: false
+      );
 
       scrollController.addListener(() {
         if (scrollController.position.pixels >=
             scrollController.position.maxScrollExtent - 200) {
-          controller.fetchMyGroceryProducts(isLoadMore: true);
+          controller.fetchMyGroceryProducts(
+              categoryId: categoryId,
+              isSubCategoryProducts: false,
+              isLoadMore: true
+          );
         }
       });
     });
@@ -43,6 +60,9 @@ class _MyGroceryCategoryScreenState extends State<MyGroceryCategoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: CommonBackAppBar(
+        title: categoryName,
+      ),
       body: Obx((){
         // First time loading
         if (controller.isMyGroceryDataFirstLoading.value) {

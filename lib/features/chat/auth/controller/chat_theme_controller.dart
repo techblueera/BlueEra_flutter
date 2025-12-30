@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -14,6 +16,7 @@ class ChatThemeController extends GetxController {
   RxBool isDeleteForEveryOneAvailable = true.obs;
   RxList<String> selectedId = <String>[].obs;
   Rx<Messages?>? selectedFirstMessage = Messages().obs;
+  RxList<Messages> selectedMessages = <Messages>[].obs;
 
   final Map<String, Color> senderColorMap = {}; // senderId → color map
 
@@ -50,36 +53,63 @@ class ChatThemeController extends GetxController {
   }
   void resetSelection() {
     isMessageSelectionActive.value = false;
-    selectedId.clear();
+    selectedMessages.clear();
   }
 
   void activateSelection(Messages? message) {
-      isDeleteForEveryOneAvailable.value=message?.myMessage??true;
-    selectedFirstMessage?.value=message;
-    String ids = (message?.forwardId==null)?message?.id:message?.forwardId;
-    selectedId.add(ids);
+    if (message == null) return;
+
     isMessageSelectionActive.value = true;
+
+    // First selected message
+    selectedFirstMessage?.value = message;
+
+    // Add message object
+    selectedMessages.add(message);
+
+    // Add id
+    String id = message.forwardId ?? message.id;
+    selectedId.add(id);
+
+    // Initial delete-for-everyone state
+    isDeleteForEveryOneAvailable.value = message.myMessage == true;
   }
-  void selectMoreMessage(Messages? message){
-    if(isDeleteForEveryOneAvailable.value==false){
-      isDeleteForEveryOneAvailable.value=message?.myMessage??true;
-    }
-    String id = (message?.forwardId==null)?message?.id:message?.forwardId;
-    if(selectedId.contains(id)){
+
+
+  void selectMoreMessage(Messages? message) {
+    if (message == null) return;
+
+    String id = message.forwardId ?? message.id;
+
+    // Select / Deselect
+    if (selectedMessages.any((e) => (e.forwardId ?? e.id) == id)) {
+      // REMOVE
+      selectedMessages.removeWhere((e) => (e.forwardId ?? e.id) == id);
       selectedId.remove(id);
-    }else{
+    } else {
+      // ADD
+      selectedMessages.add(message);
       selectedId.add(id);
     }
-    if(selectedId.length==0){
-      isDeleteForEveryOneAvailable.value=true;
+
+    // No selection
+    if (selectedMessages.isEmpty) {
+      isDeleteForEveryOneAvailable.value = true;
       isMessageSelectionActive.value = false;
-      selectedFirstMessage=null;
+      selectedFirstMessage = null;
+      return;
     }
+
+    // 🔥 Recalculate every time
+    isDeleteForEveryOneAvailable.value =
+        selectedMessages.every((e) => e.myMessage == true);
   }
+
+
   void deActivateSelection() {
     isDeleteForEveryOneAvailable.value=true;
     selectedFirstMessage=null;
     selectedId.clear();
-    isMessageSelectionActive.value = true;
+    selectedMessages.clear();
   }
 }

@@ -1,0 +1,61 @@
+import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
+import '../../../laboratory/view/widgets/me_menu_card_design.dart';
+import '../category/emergency_and_critical_care.dart';
+import '../category/ipd_in_patient_department_page.dart';
+import '../category/opd_out_patient_page.dart';
+
+class AddHospitalService extends StatefulWidget {
+  const AddHospitalService({super.key});
+
+  @override
+  State<AddHospitalService> createState() => _AddHospitalServiceState();
+}
+class _AddHospitalServiceState extends State<AddHospitalService> {
+
+  final Map<String, Widget Function()> servicePages = {
+    "OPD (Out-Patient Departments)": () => OpdOutPatientPage(),
+    "IPD (In-Patient Departments /...": () => IpdInPatientDepartmentPage(),
+    "Emergency & Critical Care": () => EmergencyAndCriticalCare(),
+    "Diagnostic Departments": () => OpdOutPatientPage(),
+    "Medical Store": () => OpdOutPatientPage(),
+    "Other Facilities": () => OpdOutPatientPage(),
+    "Careers": () => OpdOutPatientPage(),
+    "Management": () => OpdOutPatientPage(),
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: CommonBackAppBar(
+        showRightTextButton: true,
+        isShowMoreInfoIcon: true,
+        title: "Add Hospital Service",
+        isShadowShow: false,
+      ),
+      body: Column(
+        children: [
+          SizedBox(height: 12),
+          ...servicePages.keys.map((title) {
+            return InkWell(
+              onTap: () {
+                final pageBuilder = servicePages[title];
+                if (pageBuilder != null) {
+                  Get.to(() => pageBuilder());
+                }
+              },
+              child: MeMenuCardDesign(
+                title: title,
+                icon: 'assets/icons/service_icon.svg',
+              ),
+            );
+          }).toList(),
+          SizedBox(height: SizeConfig.size14),
+        ],
+      ),
+    );
+  }
+}

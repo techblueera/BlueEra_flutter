@@ -172,6 +172,7 @@ abstract class BaseService {
 
   final String forwardMessage = 'chat-service/chat/forward-messages';
   final String createGroup = 'chat-service/group/create';
+  final String updateGroup = 'chat-service/group/update';
   final String getGroupMembersChat = 'chat-service/group/members';
   final String addGroupMember = "chat-service/group/add-members";
   final String checkChatConnection = 'chat-service/connections/check-connection';
@@ -385,7 +386,7 @@ abstract class BaseService {
   final String getStoreListing = "map-service/api/stores";
   final String userUploadInit = "user-service/upload/init";
   String bankDetails(String channelId) =>
-      'channel-service/channels/$channelId/bank-details';
+      'channel-service/channels/$channelId/payment-details';
   final String checkUsername = "user-service/user/checkUsername";
   final String followersList = "user-service/followers/followers/";
   final String followingList = "user-service/followers/following/";
@@ -528,9 +529,16 @@ abstract class BaseService {
 
   final String searchGroceryCategory = 'grocery-service/api/products/search';
   String GroceryCategoryOfChildren(String key) => 'grocery-service/api/categories/key/$key/children';
+  final String userSearchGroceryCategory = 'grocery-service/api/products/user/search';
   String createNewProductVariant(String productId) => 'grocery-service/api/products/$productId/variants';
   final String myGroceryProducts = 'grocery-service/api/inventory/my-products';
   final String addGroceryProductVariant = 'grocery-service/api/inventory';
   final String categoryTree = 'food-service/api/categories/tree';
+  final String createSymbolApi = 'chat-service/symbols';
+  String getAllSymbolOneUser(String orderId) => "chat-service/symbols/user/$orderId";
+  String deleteSymbolApi(String symbolId) => "chat-service/symbols/$symbolId";
+  final String groceryCategoryWithVariant = 'grocery-service/api/categories/with-inventory';
+  String getMedicalCategoryApi(String orderId) => "api/modules/tree/module/$orderId";
+
 
 }

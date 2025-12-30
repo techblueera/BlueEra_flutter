@@ -38,8 +38,8 @@ String serviceProviderStatusGlobal = '';
 String earnServiceCreatedStatusGlobal = 'false';
 String businessTypeGlobal = '';
 
-String isRiderServiceOpt = 'false';
-String isEarnServiceOpt = 'false';
+String isRiderServiceOpt = '';
+String isEarnServiceOpt = '';
 
 class SharedPreferenceUtils {
   static const FlutterSecureStorage _secureStorage = FlutterSecureStorage(
@@ -222,8 +222,8 @@ class SharedPreferenceUtils {
       serviceProviderStatusGlobal = '';
       earnServiceCreatedStatusGlobal = '"false"';
       businessTypeGlobal = '';
-      isRiderServiceOpt = 'false';
-      isEarnServiceOpt = 'false';
+      isRiderServiceOpt = '';
+      isEarnServiceOpt = '';
       Get.find<AuthController>().imgPath.value = "";
       await SharedPreferenceUtils.setBaseUrlSecureValue(workManagerBaseUrl);
       AppNotificationHandler.getFcmToken();
@@ -431,9 +431,12 @@ setEarnServiceOptData(bool isEarnServiceUser) {
       SharedPreferenceUtils.isEarnServiceUser, isEarnServiceUser.toString());
 }
 
-getEarnServiceOptData() async {
+getRiderServiceOptData() async {
   isRiderServiceOpt = await SharedPreferenceUtils.getSecureValue(
       SharedPreferenceUtils.isRiderServiceUser);
-  isRiderServiceOpt = await SharedPreferenceUtils.getSecureValue(
+}
+
+getEarnServiceOptData() async {
+  isEarnServiceOpt = await SharedPreferenceUtils.getSecureValue(
       SharedPreferenceUtils.isEarnServiceUser);
 }

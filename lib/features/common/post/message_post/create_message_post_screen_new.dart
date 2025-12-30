@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -76,8 +77,8 @@ class _CreateMessagePostScreenNewState
 
   @override
   void dispose() {
-    Get.delete<MessagePostController>();
-    Get.delete<TagUserController>();
+    deleteIfRegistered<MessagePostController>();
+    deleteIfRegistered<TagUserController>();
     super.dispose();
   }
 

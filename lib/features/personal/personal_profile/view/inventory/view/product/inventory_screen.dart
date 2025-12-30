@@ -12,6 +12,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/food/controller/food_upload_controller.dart';
 import 'package:BlueEra/features/common/food/view/food/food_categroy.dart';
 import 'package:BlueEra/features/common/service/controller/service_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/inventory_business_cards_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/product_screen.dart';
 import 'package:BlueEra/features/common/service/view/view_service_list.dart';
@@ -111,8 +112,8 @@ class _InventoryScreenState extends State<InventoryScreen>
 
   @override
   void dispose() {
-    // Get.delete<ProductController>();
-    // Get.delete<InventoryController>();
+    // deleteIfRegistered<ProductController>();
+    // deleteIfRegistered<InventoryController>();
     RouteHelper.routeObserver.unsubscribe(this);
     _tabController?.dispose();
     _searchFocusNode.dispose();

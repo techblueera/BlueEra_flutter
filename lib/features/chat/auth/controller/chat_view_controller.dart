@@ -140,6 +140,7 @@ class ChatViewController extends GetxController {
   RxInt businessTabIndexSelected = 0.obs;
   RxBool chatBotReading = false.obs;
   RxBool viewAllMembers = false.obs;
+  File? editedGroupFile;
 
   final List<String> tabs = [
     'Chat',
@@ -291,6 +292,9 @@ class ChatViewController extends GetxController {
         getMediaMsgCommentsModel?.value =
             GetMediaMsgCommentsModel.fromJson(data);
       });
+      chatSocket.listenEvent(ChatEmitEvents.isOnlineFromChatList, (data) {
+       log("lkjfvlkdfsmvlkdfv $data");
+      });
       chatSocket.listenEvent(ChatEmitEvents.messageReceived, (data) async {
         final parsedData = GetListOfMessageData.fromJson(data);
 
@@ -357,15 +361,30 @@ class ChatViewController extends GetxController {
           scrollDown();
         }
       });
-      chatSocket.listenEvent(ChatEmitEvents.isOnLine, (data) {
-        if (userOpenUserId.value == data['user_id']) {
-          if (data['is_online']) {
-            userOnlineStatus.value = "Online";
-          }
-        } else {
-          userOnlineStatus.value = "Offline";
-        }
+      // chatSocket.listenEvent(ChatEmitEvents.isOnLine, (data) {
+      //   if (userOpenUserId.value == data['user_id']) {
+      //     if (data['is_online']) {
+      //       userOnlineStatus.value = "Online";
+      //     }
+      //   } else {
+      //     userOnlineStatus.value = "Offline";
+      //   }
+      // });
+      chatSocket.listenEvent(ChatEmitEvents.isOnlineFromChatList, (data) {
+        log("isOnlineFromChatList: $data");
+
+        final List<Map<String, dynamic>> datas =
+        List<Map<String, dynamic>>.from(data);
+
+        final Map<String, dynamic> user = datas.firstWhere(
+              (e) => e['user_id'] == userOpenUserId.value,
+          orElse: () => <String, dynamic>{},
+        );
+
+        userOnlineStatus.value =
+        user['is_online'] == true ? "Online" : "Offline";
       });
+
       chatSocket.listenEvent(ChatEmitEvents.messageStatusUpdate, (data) {
         if (data['conversation_id'] == userOpenConversationId.value) {
           readMessageStatus.value = data['status'];
@@ -833,10 +852,12 @@ class ChatViewController extends GetxController {
 
   Future<void> uploadContacts(List<Map<String, dynamic>> params) async {
     // try {
+
     paramsData = params;
     if (contactsListModel?.value.data == null) {
       ResponseModel responseModel =
           await ChatViewRepo().getConnectionsSync(params);
+      log("sldkcmlskdcmsldkc ${responseModel.response?.data}");
       if (responseModel.isSuccess) {
         final data = responseModel.response?.data;
 
@@ -844,7 +865,6 @@ class ChatViewController extends GetxController {
           SharedPreferenceUtils.saved_contacts,
           json.encode(data),
         );
-
         contactsListModel?.value = ContactListModel.fromJson(data);
         viewContactsListResponse.value = ApiResponse.complete(responseModel);
       } else {
@@ -1159,6 +1179,8 @@ class ChatViewController extends GetxController {
       }
     }
   }
+  final groupNameController=TextEditingController();
+  final groupDescriptionController=TextEditingController();
 
   Future<void> getGroupMembersApi(
     Map<String, dynamic> params,
@@ -1222,6 +1244,80 @@ class ChatViewController extends GetxController {
     }
   }
 
+  Future<bool> updateGroupInfo(
+    Map<String, dynamic> params,
+  {
+  bool? isFromFile,
+  Map<String, dynamic>? fileParams,
+  File? fileSended
+  }
+  ) async {
+    try {
+      if (isFromFile != null) {
+        ResponseModel responseModel =
+        await ChatViewRepo().generateUploadUrlsApi(fileParams!);
+        clearMessageControllerCommon();
+
+        if (!responseModel.isSuccess) {
+          commonSnackBar(
+              message: responseModel.message ?? AppStrings.somethingWentWrong);
+          return false;
+        }
+
+        final data = responseModel.response?.data;
+        final uploadModel = GenerateUploadUlrModel.fromJson(data);
+        generateUploadUlrModel?.value = uploadModel;
+
+        final files = uploadModel.files;
+
+        // Parallel Uploads using Future.wait
+        await Future.wait(List.generate(files!.length, (i) {
+          final file = fileSended;
+          final url = files[i].uploadUrl ?? '';
+          final type = files[i].fileType ?? '';
+          return uploadFileToS3(file: file!, fileType: type, preSignedUrl: url);
+        }));
+        List<String> sharedFile = uploadModel.files?.map((element) {
+          return element.publicUrl ?? '';
+        }).toList() ??
+            [];
+        params.addAll({
+          ApiKeys.group_profile_image: sharedFile,
+        });
+        ResponseModel responseModelCreas =
+        await ChatViewRepo().createNewGroupApi(params);
+        if (responseModelCreas.isSuccess) {
+          emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.group_Chat_Type});
+          return true;
+        } else {
+          commonSnackBar(
+              message:
+              responseModelCreas.message ?? AppStrings.somethingWentWrong);
+          return false;
+        }
+      }else{
+        ResponseModel responseModel =
+        await ChatViewRepo().updateGroupApi(params);
+        clearMessageControllerCommon();
+        emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.group_Chat_Type});
+
+        if (responseModel.isSuccess) {
+          clearMessageControllerCommon();
+          return true;
+        } else {
+          clearMessageControllerCommon();
+          commonSnackBar(
+              message: responseModel.message ?? AppStrings.somethingWentWrong);
+
+          return false;
+      }
+
+      }
+    } catch (e) {
+      return false;
+    }
+  }
+
   String getCurrentIsoTime() {
     return DateTime.now().toUtc().toIso8601String();
   }
@@ -1262,6 +1358,12 @@ class ChatViewController extends GetxController {
           await ChatViewRepo().deleteSingleMessage(params);
       clearMessageControllerCommon();
       if (responseModel.isSuccess) {
+     emitEvent(ChatEmitEvents.messageReceived, {
+      ApiKeys.conversation_id: params[ApiKeys.conversation_id],
+      ApiKeys.page: 1,
+      ApiKeys.is_online_user: userId,
+      ApiKeys.per_page_message: 30,
+    });
       } else {
         clearMessageControllerCommon();
         commonSnackBar(

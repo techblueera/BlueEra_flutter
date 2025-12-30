@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
@@ -21,7 +22,7 @@ import 'package:BlueEra/features/common/store/view/new_store/all_food_store_scre
 import 'package:BlueEra/features/common/store/view/new_store/all_product_store_screen.dart';
 import 'package:BlueEra/features/common/store/view/new_store/business_store_screen.dart';
 import 'package:BlueEra/features/common/auth/model/business_profile_category.dart';
-import 'package:BlueEra/features/common/store/widget/icon_grid_item.dart';
+import 'package:BlueEra/widgets/circle_icon_grid_item.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/create_profile_screen.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -205,7 +206,7 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                             },
                             child: Container(
                               padding: EdgeInsets.symmetric(
-                                vertical: SizeConfig.size8,
+                                vertical: SizeConfig.size10,
                                 horizontal: SizeConfig.size10,
                               ),
                               decoration: BoxDecoration(
@@ -232,62 +233,129 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
 
                           SizedBox(height: SizeConfig.size10),
 
-                          /// Mapple map
-                          ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: SizedBox(
-                                width: double.infinity,
-                                height: SizeConfig.size160,
-                                child: Stack(
+                          // /// Mapple map
+                          // ClipRRect(
+                          //     borderRadius: BorderRadius.circular(10),
+                          //     child: SizedBox(
+                          //       width: double.infinity,
+                          //       height: SizeConfig.size160,
+                          //       child: Stack(
+                          //         children: [
+                          //           MapplsMap(
+                          //             onMapCreated: _onMapCreated,
+                          //             initialCameraPosition: CameraPosition(
+                          //               target: LatLng(userLat, userLng),
+                          //               zoom: 14.0,
+                          //             ),
+                          //             myLocationEnabled: false,
+                          //             compassEnabled: false,
+                          //             rotateGesturesEnabled: true,
+                          //             tiltGesturesEnabled: true,
+                          //             zoomGesturesEnabled: true,
+                          //             scrollGesturesEnabled: true,
+                          //             onStyleLoadedCallback:
+                          //                 _onStyleLoadedCallback,
+                          //           ),
+                          //           Positioned(
+                          //             right: SizeConfig.size10,
+                          //             bottom: SizeConfig.size10,
+                          //             child: InkWell(
+                          //               onTap: () async {
+                          //                 openGoogleMaps(
+                          //                     latitude: userLat,
+                          //                     longitude: userLng);
+                          //               },
+                          //               child: Container(
+                          //                 padding:
+                          //                     EdgeInsets.all(SizeConfig.size8),
+                          //                 decoration: BoxDecoration(
+                          //                   color: AppColors.white,
+                          //                   shape: BoxShape.circle,
+                          //                   border: Border.all(
+                          //                       color: AppColors.skyBlueDF,
+                          //                       width: 1),
+                          //                 ),
+                          //                 child: Transform.rotate(
+                          //                   angle: -0.6,
+                          //                   child: const Icon(
+                          //                     Icons.send_outlined,
+                          //                     color: AppColors.skyBlueDF,
+                          //                     size: 20,
+                          //                   ),
+                          //                 ),
+                          //               ),
+                          //             ),
+                          //           ),
+                          //         ],
+                          //       ),
+                          //     )
+                          // ),
+
+                          CustomFormCard(
+                              padding: EdgeInsets.all(
+                                  SizeConfig.size10
+                              ),
+                              child: InkWell(
+                                onTap: ()=> Get.toNamed(RouteHelper.getRiderStoreScreenRoute()),
+                                child: Column(
                                   children: [
-                                    MapplsMap(
-                                      onMapCreated: _onMapCreated,
-                                      initialCameraPosition: CameraPosition(
-                                        target: LatLng(userLat, userLng),
-                                        zoom: 14.0,
-                                      ),
-                                      myLocationEnabled: false,
-                                      compassEnabled: false,
-                                      rotateGesturesEnabled: true,
-                                      tiltGesturesEnabled: true,
-                                      zoomGesturesEnabled: true,
-                                      scrollGesturesEnabled: true,
-                                      onStyleLoadedCallback:
-                                          _onStyleLoadedCallback,
-                                    ),
-                                    Positioned(
-                                      right: SizeConfig.size10,
-                                      bottom: SizeConfig.size10,
-                                      child: InkWell(
-                                        onTap: () async {
-                                          openGoogleMaps(
-                                              latitude: userLat,
-                                              longitude: userLng);
-                                        },
-                                        child: Container(
-                                          padding:
-                                              EdgeInsets.all(SizeConfig.size8),
-                                          decoration: BoxDecoration(
-                                            color: AppColors.white,
-                                            shape: BoxShape.circle,
-                                            border: Border.all(
-                                                color: AppColors.skyBlueDF,
-                                                width: 1),
-                                          ),
-                                          child: Transform.rotate(
-                                            angle: -0.6,
-                                            child: const Icon(
-                                              Icons.send_outlined,
-                                              color: AppColors.skyBlueDF,
-                                              size: 20,
-                                            ),
-                                          ),
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(10),
+                                      child: Container(
+                                        height: SizeConfig.size190,
+                                        width: SizeConfig.screenWidth,
+                                        child: LocalAssets(
+                                          imagePath: AppImageAssets.riderBanner,
+                                          boxFix: BoxFit.cover,
                                         ),
                                       ),
                                     ),
+                                
+                                    SizedBox(height: SizeConfig.size10),
+                                
+                                    Row(
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                        Expanded(
+                                          child: CustomText(
+                                              AppStrings.bookYourGroceryNdFood,
+                                              fontSize: SizeConfig.large,
+                                              color: AppColors.mainTextColor,
+                                              fontWeight: FontWeight.w600),
+                                        ),
+                                
+                                        SizedBox(width: SizeConfig.size10),
+                                
+                                        // Obx(() {
+                                        //   return Stack(
+                                        //     clipBehavior: Clip.none,
+                                        //     children: List.generate(controller.riderList.length, (index) {
+                                        //       return Padding(
+                                        //         // Each image shifts by 15 pixels multiplied by its index
+                                        //         padding: EdgeInsets.only(left: index * 15.0),
+                                        //         child: _buildRiderImageWidget(controller.riderList[index]),
+                                        //       );
+                                        //     }),
+                                        //   );
+                                        // })
+                                
+                                
+                                        Stack(
+                                          clipBehavior: Clip.none,
+                                          children: List.generate(3, (index) {
+                                            return Padding(
+                                              padding: EdgeInsets.only(left: index * 15.0),
+                                              child: _buildRiderImageWidget(),
+                                            );
+                                          }),
+                                        )
+                                      ],
+                                    )
                                   ],
                                 ),
-                              )),
+                              )
+                          ),
+                          
                           SizedBox(height: SizeConfig.size10),
 
                           /// Near Me
@@ -562,8 +630,13 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                                         false) {
                                       Get.to(() => CreateProfileScreen());
                                     } else {
-                                      Get.toNamed(RouteHelper
-                                          .getEarnWithBlueEraNewScreenRoute());
+                                      if(userWorkTypeGlobal == DELIVERY_RIDER){
+                                        Get.toNamed(RouteHelper
+                                            .getRiderServiceScreenRoute());
+                                      }else{
+                                        Get.toNamed(RouteHelper
+                                            .getEarnWithBlueEraNewScreenRoute());
+                                      }
                                     }
                                   }
                                 },
@@ -645,7 +718,7 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                   final item = rowItems[itemIndex];
 
                   return Expanded(
-                    child: IconGridItem(
+                    child: CircleIconGridItem(
                       label: labelBuilder(item),
                       icon: iconBuilder(item),
                       imgColor: AppColors.blue6B,
@@ -655,10 +728,10 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                     ),
                   );
                 } else {
-                  return const Expanded(child: SizedBox());
+                  return const Expanded(child: SizedBox.shrink());
                 }
               } else {
-                return SizedBox(width: SizeConfig.size8);
+                return SizedBox(width: SizeConfig.size20);
               }
             }),
           ),
@@ -700,8 +773,8 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
 
       case AppConstants.groceryVegetablesDairy:
         Get.toNamed(
-            RouteHelper.getGroceryCategoryScreenRoute(),
-            arguments: {ApiKeys.argOwnGrocery: false}
+          RouteHelper.getGrocerySuperCategoryScreenRoute(),
+            arguments: {ApiKeys.argMyGrocery: false}
         );
         break;
 
@@ -722,5 +795,18 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
       default:
         print("⚠ Unknown category tapped: ${category.name}");
     }
+  }
+
+  Widget _buildRiderImageWidget() {
+    return Container(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: AppColors.greyE5, width: 1.5),
+      ),
+      child: CircleAvatar(
+        radius: 15,
+        backgroundImage: NetworkImage("https://picsum.photos/200"),
+      ),
+    );
   }
 }

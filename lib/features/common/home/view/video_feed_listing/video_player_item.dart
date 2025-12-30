@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -463,30 +464,31 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                         try {
                           _isSharing =
                               true; // Set flag to prevent multiple calls
-                          XFile? xFile;
-                          if ((widget.video.thumbnail.isNotEmpty)) {
-                            // Safely handle first media
-                            xFile = await urlToCachedXFile(
-                                widget.video.thumbnail);
-                          }
-
-                          final shareUrl =
-                              postDeepLink(postId: widget.video.id.toString());
-                          final combinedText = shareUrl;
-
-                          await SharePlus.instance.share(ShareParams(
-                              text: combinedText,
-                              title: widget.video.title,
-                              previewThumbnail: xFile,
-                              files: [xFile ?? XFile("")]));
-
-                          if (xFile != null) {
-                            final file = File(xFile.path);
-                            if (await file.exists()) {
-                              await file.delete();
-                              print("🗑️ File deleted from cache.");
-                            }
-                          }
+                          onShareButtonPressed(Post(id: widget.video.id.toString(),subTitle:  widget.video.subTitle, ));
+                          // XFile? xFile;
+                          // if ((widget.video.thumbnail.isNotEmpty)) {
+                          //   // Safely handle first media
+                          //   xFile = await urlToCachedXFile(
+                          //       widget.video.thumbnail);
+                          // }
+                          //
+                          // final shareUrl =
+                          //     postDeepLink(postId: widget.video.id.toString());
+                          // final combinedText = shareUrl;
+                          //
+                          // await SharePlus.instance.share(ShareParams(
+                          //     text: combinedText,
+                          //     title: widget.video.title,
+                          //     previewThumbnail: xFile,
+                          //     files: [xFile ?? XFile("")]));
+                          //
+                          // if (xFile != null) {
+                          //   final file = File(xFile.path);
+                          //   if (await file.exists()) {
+                          //     await file.delete();
+                          //     print("🗑️ File deleted from cache.");
+                          //   }
+                          // }
                         } catch (e) {
                           print(
                               "feed card share failed inside _onShareButtonPressed $e");

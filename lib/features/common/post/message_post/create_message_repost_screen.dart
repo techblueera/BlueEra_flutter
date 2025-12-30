@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/progrss_dialog.dart';
@@ -44,7 +45,7 @@ class _CreateMessagePostScreenNewState
 
   @override
   void dispose() {
-    Get.delete<MessagePostController>();
+    deleteIfRegistered<MessagePostController>();
     super.dispose();
   }
 

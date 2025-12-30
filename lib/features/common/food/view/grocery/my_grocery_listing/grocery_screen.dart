@@ -6,7 +6,9 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/food/view/grocery/grocery_category_screen.dart';
 import 'package:BlueEra/features/common/food/view/grocery/my_grocery_listing/my_grocery_category_screen.dart';
+import 'package:BlueEra/features/common/food/view/grocery/my_grocery_listing/my_grocery_super_category_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_search_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -27,9 +29,8 @@ class _GroceryScreenState extends State<GroceryScreen> with SingleTickerProvider
   TabController? _tabController;
   final TextEditingController searchController = TextEditingController();
   final List<Tab> _tabs = [
-    Tab(text: 'Grocery & Veg'),
-    Tab(text: 'Stationery'),
-    Tab(text: 'Business Cards')
+    Tab(text: AppStrings.myStore.tr),
+    Tab(text: AppStrings.statistics.tr),
   ];
 
   @override
@@ -49,48 +50,6 @@ class _GroceryScreenState extends State<GroceryScreen> with SingleTickerProvider
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.whiteF3,
-      // appBar: PreferredSize(
-      //   preferredSize: Size.fromHeight(kToolbarHeight + 50),
-      //   child: CommonBackAppBar(
-      //     isLeading: !(widget.fromBottomNavBar??false),
-      //     controller: searchController,
-      //     searchHintText: AppStrings.searchHintText,
-      //     onClearCallback: () => searchController.clear(),
-      //     isSearch: true,
-      //     buildCustomWidget: ()=> Padding(
-      //       padding: EdgeInsets.only(
-      //           right: SizeConfig.paddingL,
-      //           bottom: SizeConfig.paddingXSL
-      //       ),
-      //       child: InkWell(
-      //         onTap:()=> Get.toNamed(
-      //             RouteHelper.getGroceryCategoryScreenRoute(),
-      //             arguments: {ApiKeys.argOwnGrocery: true}
-      //         ),
-      //         child: Container(
-      //           height: SizeConfig.size40,
-      //           width: SizeConfig.size40,
-      //           decoration: BoxDecoration(
-      //             borderRadius: BorderRadius.circular(SizeConfig.size8),
-      //             color: AppColors.primaryColor
-      //           ),
-      //           alignment: Alignment.center,
-      //           padding: EdgeInsets.all(6.0),
-      //           child: LocalAssets(imagePath: AppIconAssets.add),
-      //         ),
-      //       ),
-      //     ),
-      //     bottomWidget: TabBar(
-      //       controller: _tabController,
-      //       labelColor: AppColors.primaryColor,
-      //       unselectedLabelColor: Colors.grey[600],
-      //       indicatorColor: Colors.blue,
-      //       indicatorWeight: 2,
-      //       labelStyle: TextStyle(fontWeight: FontWeight.w600),
-      //       tabs: _tabs,
-      //     ),
-      //   ),
-      // ),
       body: SafeArea(
           child: NestedScrollView(
             headerSliverBuilder: (context, innerBoxIsScrolled) {
@@ -128,7 +87,7 @@ class _GroceryScreenState extends State<GroceryScreen> with SingleTickerProvider
             body: TabBarView(
               controller: _tabController,
               children: [
-                MyGroceryCategoryScreen(),
+                MyGrocerySuperCategoryScreen(),
                 Center(child: CustomText(AppStrings.comingSoon)),
                 Center(child: CustomText(AppStrings.comingSoon))
               ]
@@ -167,12 +126,69 @@ class _GroceryScreenState extends State<GroceryScreen> with SingleTickerProvider
         Padding(
           padding: EdgeInsets.only(
               left: SizeConfig.paddingXSL,
+          ),
+          child: InkWell(
+            onTap:() {
+
+            },
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  height: SizeConfig.size40,
+                  width: SizeConfig.size40,
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(SizeConfig.size8),
+                      color: AppColors.white,
+                      border: Border.all(
+                        color: AppColors.greyE5
+                      ),
+                     boxShadow: [AppShadows.textFieldShadow]
+                  ),
+                  alignment: Alignment.center,
+                  padding: EdgeInsets.all(6.0),
+                  child: LocalAssets(
+                      imagePath: AppIconAssets.riderIcon,
+                      imgColor: AppColors.black,
+                  ),
+                ),
+                Positioned(
+                   top: -(SizeConfig.size6),
+                   right: -(SizeConfig.size6),
+                  child: Container(
+                    padding: EdgeInsets.all(SizeConfig.size4),
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                          BoxShadow(
+                            color: AppColors.black.withValues(alpha: 0.1),
+                            blurRadius: 3.0,
+                            offset: Offset(0, 1.5)
+                          )
+                      ]
+                    ),
+                    child: LocalAssets(
+                      imagePath: AppIconAssets.add,
+                      imgColor: AppColors.secondaryTextColor,
+                      width: SizeConfig.size12,
+                      height: SizeConfig.size12,
+                    ),
+                  ),
+                )
+              ],
+            ),
+          ),
+        ),
+        Padding(
+          padding: EdgeInsets.only(
+              left: SizeConfig.paddingXSL,
               right: SizeConfig.paddingL
           ),
           child: InkWell(
-            onTap:()=> Get.toNamed(
-                RouteHelper.getGroceryCategoryScreenRoute(),
-                arguments: {ApiKeys.argOwnGrocery: true}
+            onTap: ()=> Get.toNamed(
+               RouteHelper.getGrocerySuperCategoryScreenRoute(),
+               arguments: {ApiKeys.argMyGrocery: true}
             ),
             child: Container(
               height: SizeConfig.size40,

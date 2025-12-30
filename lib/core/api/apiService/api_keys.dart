@@ -554,6 +554,17 @@ class ApiKeys {
   static const argSelectedGroceryData = 'argSelectedGroceryData';
   static const argCategoryId = 'argCategoryId';
   static const argIsShowInGrid = 'argIsShowInGrid';
-  static const argOwnGrocery = 'argOwnGrocery';
+  static const argMyGrocery = 'argMyGrocery';
+  static const caption = 'caption';
+  static const duration_days = 'duration_days';
+  static const hidden_from = 'hidden_from';
+  static const backgroundColor = 'backgroundColor';
+  static const fontFamily = 'fontFamily';
+  static const fontSize = 'fontSize';
+  static const fontWeight = 'fontWeight';
 
+  static const argArrGroceryCat = 'argArrGroceryCat';
+  static const argCategoryName = 'argCategoryName';
+  static const argPageHeading = 'argPageHeading';
+  static const medicalOtcChildren = 'medicalOtcItems';
 }

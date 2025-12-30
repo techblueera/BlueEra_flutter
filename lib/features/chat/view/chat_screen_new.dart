@@ -21,19 +21,21 @@ import '../../../../widgets/common_search_bar.dart';
 import '../../../core/constants/snackbar_helper.dart';
 import '../../../core/routes/route_helper.dart';
 import '../../../widgets/custom_text_cm.dart';
+import '../auth/controller/add_chat_symbol_controller.dart';
 import '../auth/controller/chat_theme_controller.dart';
 import '../auth/controller/chat_view_controller.dart';
 import '../auth/model/GetListOfMessageData.dart';
 import '../contacts/view/contact_list_page.dart';
+import 'add_symbol/add_symbol_screen.dart';
 
 class NewChatMainScreen extends StatefulWidget {
   const NewChatMainScreen(
       {super.key,
-        this.forwardId,
-        this.isNewGroupUI,
-        this.message,
-        this.isForwardUI,
-        this.onHeaderVisibilityChanged});
+      this.forwardId,
+      this.isNewGroupUI,
+      this.message,
+      this.isForwardUI,
+      this.onHeaderVisibilityChanged});
 
   final String? forwardId;
   final bool? isForwardUI;
@@ -49,10 +51,14 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
     with SingleTickerProviderStateMixin {
   late ChatViewController chatViewController;
   late ChatThemeController chatThemeController;
+  final addSymbolController = Get.isRegistered<AddChatSymbolController>()
+      ? Get.find<AddChatSymbolController>()
+      : Get.put(AddChatSymbolController());
 
   @override
   void initState() {
     super.initState();
+    addSymbolController.getSymbolsForPartUser(userId);
     if (Get.isRegistered<ChatViewController>()) {
       chatViewController = Get.find<ChatViewController>();
     } else {
@@ -76,21 +82,26 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
     );
 
     chatViewController.chatMainTabController?.addListener(() {
-      if (!(chatViewController.chatMainTabController?.indexIsChanging??false) &&
+      if (!(chatViewController.chatMainTabController?.indexIsChanging ??
+              false) &&
           chatViewController.chatMainTabController?.index ==
               chatViewController.chatMainTabController?.animation?.value
                   .round()) {
         final index = chatViewController.chatMainTabController?.index;
-        chatViewController.onSelectChatTab(index??0);
+        chatViewController.onSelectChatTab(index ?? 0);
 
         if (index == 0) {
-          chatViewController.emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.personal_Chat_Type});
+          chatViewController.emitEvent(ChatEmitEvents.ChatList,
+              {ApiKeys.type: AppConstants.personal_Chat_Type});
         } else if (index == 1) {
-          chatViewController.emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.business_Chat_Type});
+          chatViewController.emitEvent(ChatEmitEvents.ChatList,
+              {ApiKeys.type: AppConstants.business_Chat_Type});
         } else if (index == 2) {
-          chatViewController.emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.group_Chat_Type});
+          chatViewController.emitEvent(ChatEmitEvents.ChatList,
+              {ApiKeys.type: AppConstants.group_Chat_Type});
         } else if (index == 3) {
-          chatViewController.emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.order_Chat_Type});
+          chatViewController.emitEvent(ChatEmitEvents.ChatList,
+              {ApiKeys.type: AppConstants.order_Chat_Type});
         }
       }
     });
@@ -113,7 +124,7 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
         SharedPreferenceUtils.saved_contacts);
     if (storedData != null) {
       Map<String, dynamic> decoded =
-      await compute(jsonDecode, storedData) as Map<String, dynamic>;
+          await compute(jsonDecode, storedData) as Map<String, dynamic>;
       chatViewController.loadContactsFromLocalStorage(decoded);
     } else {
       // await _refreshContacts();
@@ -125,13 +136,11 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
     return rawContacts
         .where((c) => (c["phones"] as List).isNotEmpty)
         .map((c) => {
-      ApiKeys.contact_no: (c["phones"] as List).first as String,
-      ApiKeys.name: c["displayName"] as String,
-    })
+              ApiKeys.contact_no: (c["phones"] as List).first as String,
+              ApiKeys.name: c["displayName"] as String,
+            })
         .toList();
   }
-
-
 
   bool _isFromForward() {
     return (widget.isForwardUI != null && (widget.isForwardUI ?? false));
@@ -144,28 +153,29 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
 
     return Scaffold(
       floatingActionButton: (_isFromForward()) ||
-          chatViewController.chatMainTabController?.index == 1
+              chatViewController.chatMainTabController?.index == 1
           ? SizedBox()
           : SafeArea(
-        child: Padding(
-            padding:
-            const EdgeInsets.only(bottom: kBottomNavigationBarHeight),
-            child: FloatingActionButton(
-              child: Icon(Icons.add),
-              backgroundColor: AppColors.primaryColor,
-              foregroundColor: Colors.white,
-              onPressed: () {
-                if (chatViewController.chatMainTabController?.index == 2) {
-                  Get.to(ContactsPage(
-                    from: "group",
-                  ));
-                } else {
-                  Get.toNamed(RouteHelper.getChatContactsRoute());
-                }
-                //
-              },
-            )),
-      ),
+              child: Padding(
+                  padding:
+                      const EdgeInsets.only(bottom: kBottomNavigationBarHeight),
+                  child: FloatingActionButton(
+                    child: Icon(Icons.add),
+                    backgroundColor: AppColors.primaryColor,
+                    foregroundColor: Colors.white,
+                    onPressed: () {
+                      if (chatViewController.chatMainTabController?.index ==
+                          2) {
+                        Get.to(ContactsPage(
+                          from: "group",
+                        ));
+                      } else {
+                        Get.toNamed(RouteHelper.getChatContactsRoute());
+                      }
+                      //
+                    },
+                  )),
+            ),
       body: SafeArea(
         child: NestedScrollView(
           headerSliverBuilder: (context, innerBoxIsScrolled) {
@@ -173,28 +183,31 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
               SliverAppBar(
                 backgroundColor: Colors.white,
                 elevation: 0,
-                floating: true,   // appear on scroll up
-                snap: true,       // instantly snap down
-                pinned: false,    // don't keep the header fixed
+                floating: true,
+                // appear on scroll up
+                snap: true,
+                // instantly snap down
+                pinned: false,
+                // don't keep the header fixed
                 automaticallyImplyLeading: false,
                 flexibleSpace: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   child: _buildHeader(context), // your header row
                 ),
                 expandedHeight: 72,
               ),
-
               SliverPersistentHeader(
-                pinned: true,   // TabBar should always stay visible
+                pinned: true, // TabBar should always stay visible
                 delegate: _TabBarDelegate(
                   TabBar(
-                    onTap: (index){
+                    onTap: (index) {
                       if (widget.isNewGroupUI != null &&
                           widget.isNewGroupUI == true) {
                         if (chatViewController.selectedChatList.isNotEmpty) {
                           commonSnackBar(
                               message:
-                              "You can't select personal & business both");
+                                  "You can't select personal & business both");
                           chatViewController.selectedUserIds.clear();
                         }
                       }
@@ -229,69 +242,72 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
               ),
               (widget.isForwardUI != null && (widget.isForwardUI ?? false))
                   ? Positioned(
-                  right: 30,
-                  bottom: 28,
-                  child: InkWell(
-                    onTap: () async {
-                      if (widget.isNewGroupUI != null &&
-                          (widget.isNewGroupUI ?? false)) {
-                        // Navigator.push(
-                        //     context,
-                        //     MaterialPageRoute(
-                        //         builder: (context) => AddNewGroupPage(selectedUserIds: se,)));
-                      } else {
-                        Map<String, dynamic> data = {
-                          ApiKeys.forward_id: chatThemeController.selectedId,
-                          ApiKeys.forward_to_conversations:
-                          chatViewController.selectedUserIds,
-                          // ApiKeys.additional_message: "${widget.message?.messageType}"
-                          // ApiKeys.additional_message: "${widget.message?.messageType}"
-                        };
+                      right: 30,
+                      bottom: 28,
+                      child: InkWell(
+                        onTap: () async {
+                          if (widget.isNewGroupUI != null &&
+                              (widget.isNewGroupUI ?? false)) {
+                            // Navigator.push(
+                            //     context,
+                            //     MaterialPageRoute(
+                            //         builder: (context) => AddNewGroupPage(selectedUserIds: se,)));
+                          } else {
+                            Map<String, dynamic> data = {
+                              ApiKeys.forward_id:
+                                  chatThemeController.selectedId,
+                              ApiKeys.forward_to_conversations:
+                                  chatViewController.selectedUserIds,
+                              // ApiKeys.additional_message: "${widget.message?.messageType}"
+                              // ApiKeys.additional_message: "${widget.message?.messageType}"
+                            };
 
-                        bool value =
-                        await chatViewController.forwardMessageApi(data);
+                            bool value = await chatViewController
+                                .forwardMessageApi(data);
 
-                        if (value) {
-                          chatViewController.emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: "personal"});
-                          Navigator.pop(context);
-                          Navigator.pop(context);
-                        }
-                      }
-                    },
-                    child: Container(
-                      padding: EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                          color: chatThemeController.myMessageBgColor.value,
-                          borderRadius: BorderRadius.circular(10)),
-                      child: Center(
-                        child: Row(
-                          children: [
-                            CustomText(
-                              (widget.isNewGroupUI != null &&
-                                  (widget.isNewGroupUI ?? false))
-                                  ? ""
-                                  : "Forward",
-                              color: Colors.white,
+                            if (value) {
+                              chatViewController.emitEvent(
+                                  ChatEmitEvents.ChatList,
+                                  {ApiKeys.type: "personal"});
+                              Navigator.pop(context);
+                              Navigator.pop(context);
+                            }
+                          }
+                        },
+                        child: Container(
+                          padding: EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                              color: chatThemeController.myMessageBgColor.value,
+                              borderRadius: BorderRadius.circular(10)),
+                          child: Center(
+                            child: Row(
+                              children: [
+                                CustomText(
+                                  (widget.isNewGroupUI != null &&
+                                          (widget.isNewGroupUI ?? false))
+                                      ? ""
+                                      : "Forward",
+                                  color: Colors.white,
+                                ),
+                                const SizedBox(
+                                  width: 4,
+                                ),
+                                (widget.isNewGroupUI != null &&
+                                        (widget.isNewGroupUI ?? false))
+                                    ? Icon(
+                                        Icons.arrow_right_alt,
+                                        size: 26,
+                                        color: Colors.white,
+                                      )
+                                    : SvgPicture.asset(
+                                        height: 18,
+                                        width: 18,
+                                        AppIconAssets.send_message_chat),
+                              ],
                             ),
-                            const SizedBox(
-                              width: 4,
-                            ),
-                            (widget.isNewGroupUI != null &&
-                                (widget.isNewGroupUI ?? false))
-                                ? Icon(
-                              Icons.arrow_right_alt,
-                              size: 26,
-                              color: Colors.white,
-                            )
-                                : SvgPicture.asset(
-                                height: 18,
-                                width: 18,
-                                AppIconAssets.send_message_chat),
-                          ],
+                          ),
                         ),
-                      ),
-                    ),
-                  ))
+                      ))
                   : SizedBox()
             ],
           ),
@@ -299,36 +315,82 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
       ),
     );
   }
+
   Widget _buildHeader(BuildContext context) {
     return Row(
       children: [
         (_isFromForward())
             ? InkWell(
-          onTap: () => Navigator.pop(context),
-          child: Icon(Icons.arrow_back_ios),
-        )
+                onTap: () => Navigator.pop(context),
+                child: Icon(Icons.arrow_back_ios),
+              )
             : Obx(() {
-          return PopupMenuButton<String>(
-            padding: EdgeInsets.zero,
-            offset: Offset(-6, 36),
-            color: AppColors.white,
-            elevation: 8,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10)),
-            onSelected: (value) {
-            },
-            icon: CachedAvatarWidget(
-              imageUrl: Get.find<AuthController>().imgPath.value,
-              size: SizeConfig.size30,
-              borderRadius: 5.0,
-              showProfileOnFullScreen: false,
-            ),
-            itemBuilder: (context) => popupMenuChatCardItems(),
-          );
-        }),
-
+                return Stack(
+                  children: [
+                Padding(
+                  padding: const EdgeInsets.only(right: 1.0,top: 3),
+                  child: PopupMenuButton<String>(
+                  padding: EdgeInsets.zero,
+                    offset: const Offset(-6, 42),
+                    onSelected: (value) {},
+                    icon: Container(
+                      padding: const EdgeInsets.all(2.4), // ⭐ ONLY THIS makes big outer circle
+                      decoration: addSymbolController.mySymbols.isNotEmpty
+                          ? const BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: SweepGradient(
+                          startAngle: 0.0,
+                          endAngle: 6.28319,
+                          colors: [
+                            AppColors.symbolBorderRed,
+                            AppColors.symbolBorderBlue,
+                            AppColors.symbolBorderYellow,
+                            AppColors.symbolBorderGreen,
+                            AppColors.symbolBorderRed,
+                          ],
+                        ),
+                      )
+                          : null,
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white,
+                        ),
+                        child: CachedAvatarWidget(
+                          imageUrl: Get.find<AuthController>().imgPath.value,
+                          size: SizeConfig.size36, // ⛔ unchanged
+                          borderRadius: SizeConfig.size34 / 2,
+                          showProfileOnFullScreen: false,
+                        ),
+                      ),
+                    ),
+                    itemBuilder: (context) => popupMenuChatCardItems(),
+                  ),
+                ),
+                    Positioned(
+                        top: 0,
+                        right: 0,
+                        child: InkWell(
+                          onTap: () {
+                            Get.to(AddChatSymbolScreen());
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(4),
+                                color: AppColors.primaryColor),
+                            padding: EdgeInsets.all(1.4),
+                            child: Icon(
+                              Icons.add,
+                              color: AppColors.white,
+                              size: 15,
+                            ),
+                          ),
+                        ))
+                  ],
+                );
+              }),
         SizedBox(width: SizeConfig.size8),
-
         Expanded(
           child: CommonSearchBar(
             onChange: (value) => chatViewController.onSearchChatList(value),
@@ -337,34 +399,32 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
             controller: TextEditingController(),
           ),
         ),
-
-        const SizedBox(width: 16),
-
-        if (!_isFromForward())
-          InkWell(
-            onTap: () {
-              showDialog(
-                context: context,
-                builder: (context) => ReceivedRequestsDialog(),
-              );
-            },
-            child: SvgPicture.asset(AppIconAssets.chat_receive_req,
-                color: Colors.black),
-          ),
-
-        if (!_isFromForward()) SizedBox(width: 18),
+        const SizedBox(width: 18),
+        // if (!_isFromForward())
+        //   InkWell(
+        //     onTap: () {
+        //       showDialog(
+        //         context: context,
+        //         builder: (context) => ReceivedRequestsDialog(),
+        //       );
+        //     },
+        //     child: SvgPicture.asset(AppIconAssets.chat_receive_req,
+        //         color: Colors.black),
+        //   ),
+        // if (!_isFromForward()) SizedBox(width: 18),
       ],
     );
   }
-
 }
+
 class _TabBarDelegate extends SliverPersistentHeaderDelegate {
   final TabBar _tabBar;
 
   _TabBarDelegate(this._tabBar);
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
     return Container(
       color: Colors.white,
       child: _tabBar,

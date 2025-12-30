@@ -30,7 +30,9 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../features/business/visit_business_profile/view/visit_business_profile_new.dart';
+import '../../features/chat/auth/controller/add_chat_symbol_controller.dart';
 import '../../features/chat/view/add_symbol/add_symbol_screen.dart';
+import '../../features/chat/view/symbol_view/symbol_view_images.dart';
 import '../../features/personal/personal_profile/view/widget/service_item.dart';
 
 class AppConstants {
@@ -55,6 +57,7 @@ class AppConstants {
   static const String dev = 'Dev';
   static const String baseImageAssetsPath = "assets/images/";
   static const String baseImageAssetsCategoryPath = "assets/category/";
+  static const String baseImageAssetsGroceryCategoryPath = "assets/category/grocery/";
   static const String baseIconAssetsPath = "assets/icons/";
   static const String baseSvgAssetsPath = "assets/svg/";
   static const String baseGifsAssetsPath = "assets/gifs/";
@@ -65,6 +68,7 @@ class AppConstants {
   ///CHANGE NAME : arial to open sans some conflict are there
   // static const String arial = "OpenSans";
   static const String OpenSans = "Open Sans";
+  static const String Regular = "Regular";
 
   // static const String arial = "Arial";
   static const String androidDownloadPath = "/storage/emulated/0/Download/";
@@ -132,6 +136,7 @@ class AppConstants {
   static const POLL_POST = "POLL_POST";
   static const PHOTO_POST = "PHOTO_POST";
   static const EDIT = "EDIT";
+  static const ADD = "ADD";
   static const PUBLISH = "PUBLISH";
   static const DIRECTION = "DIRECTION";
   static const JOB_POST = "JOB_POST";
@@ -229,6 +234,13 @@ class AppConstants {
 
 ///IS GUEST USER...
 bool isGuestUser() => (accountTypeGlobal.toUpperCase() == AppConstants.guest);
+A getOrPutController<A>(A Function() create) {
+  if (Get.isRegistered<A>()) {
+    return Get.find<A>();
+  } else {
+    return Get.put<A>(create());
+  }
+}
 
 ///IS individual USER...
 bool isIndividualUser() =>
@@ -479,7 +491,7 @@ List<PopupMenuEntry<PostCreationMenu>> popupMenuItems() {
   final List<PostCreationMenu> items = [
     PostCreationMenu.message,
     PostCreationMenu.poll,
-    PostCreationMenu.photos,
+    // PostCreationMenu.photos,
     // if (isBusiness || channelId.isNotEmpty) PostCreationMenu.videos,
 
     /// for individual user if user has channel then only video section will shown
@@ -491,19 +503,19 @@ List<PopupMenuEntry<PostCreationMenu>> popupMenuItems() {
   const iconMap = {
     PostCreationMenu.message: AppIconAssets.message_post,
     PostCreationMenu.poll: AppIconAssets.qa_ask_questionOutlinedIcon,
-    PostCreationMenu.photos: AppIconAssets.photosOutlinedIcon,
+    // PostCreationMenu.photos: AppIconAssets.photosOutlinedIcon,
     // PostCreationMenu.videos: AppIconAssets.videoOutlinedIcon,
     PostCreationMenu.jobPost: AppIconAssets.uilSuitcaseOutlinedIcon,
     // PostCreationMenu.place: AppIconAssets.locationOutlineIconGreyIcon,
-    PostCreationMenu.travel: AppIconAssets.travelOutlinedIcon,
+    // PostCreationMenu.travel: AppIconAssets.travelOutlinedIcon,
   };
 
   const titleMap = {
     PostCreationMenu.message: AppStrings.lekha,
     PostCreationMenu.poll: AppStrings.poll,
-    PostCreationMenu.photos: AppStrings.symbol,
+    // PostCreationMenu.photos: AppStrings.symbol,
     PostCreationMenu.jobPost: AppStrings.jobPost,
-    PostCreationMenu.travel: AppStrings.travel,
+    // PostCreationMenu.travel: AppStrings.travel,
   };
 
   final List<PopupMenuEntry<PostCreationMenu>> entries = [];
@@ -749,7 +761,7 @@ List<PopupMenuEntry<String>> popupMenuOrderTabItems() {
 
 List<PopupMenuEntry<String>> popupMenuChatCardItems() {
   final items = <Map<String, dynamic>>[
-    {"id": "CREATE_SYMBOL", 'title': "Create Symbol"},
+    {"id": "VIEW_SYMBOL", 'title': "View Symbol"},
     {"id": "CREATE_GROUP", 'title': AppStrings.createGroup},
     {"id": "THEME", 'title': AppStrings.theme},
     {"id": "WALLPAPER", 'title': AppStrings.wallpaper},
@@ -764,11 +776,16 @@ List<PopupMenuEntry<String>> popupMenuChatCardItems() {
         height: SizeConfig.size35,
         value: items[i]['id'],
         onTap: () {
-          if (items[i]['id'] == "CREATE_SYMBOL") {
-            Get.to(AddChatSymbolScreen(
+          if (items[i]['id'] == "VIEW_SYMBOL") {
+            final addSymbolController = Get.isRegistered<AddChatSymbolController>()
+                ? Get.find<AddChatSymbolController>()
+                : Get.put(AddChatSymbolController());
+            Get.to(()=>SymbolViewImages(
+              mySymbols: addSymbolController.mySymbols,
             ));
-          }else if (items[i]['id'] == "CREATE_GROUP") {
-            Get.to(ContactsPage(
+          }else
+            if (items[i]['id'] == "CREATE_GROUP") {
+            Get.to(()=>ContactsPage(
               from: "group",
             ));
           } else if (items[i]['id'] == "THEME") {
@@ -1294,7 +1311,8 @@ const Flat_ROOM = "Flat_ROOM";
 const VEHICLE = "VEHICLE";
 
 
-/// GROCERY
+
+
 // biscuit & foods
  const String CHIPS_NAMKEEN       = 'CHIPS_NAMKEEN';
  const String BISCUITS_COOKIES    = 'BISCUITS_COOKIES';
@@ -1325,7 +1343,7 @@ const VEHICLE = "VEHICLE";
  const String EDIBLE_OILS         = 'EDIBLE_OILS';
  const String MILLET_ORGANIC      = 'MILLET_ORGANIC';
 
-// dairy & bakery
+// dairy_items & bakery
  const String MILK_PRODUCTS       = 'MILK_PRODUCTS';
  const String CHEESE_PANEER_TOFU  = 'CHEESE_PANEER_TOFU';
  const String BUTTER_CHUTNEY      = 'BUTTER_CHUTNEY';
@@ -1777,6 +1795,7 @@ class ChatEmitEvents{
   static const screenRoom = "screenRoom";
   static const messageReceived = "messageReceived";
   static const messageViewed = "messageViewed";
+  static const isOnlineFromChatList = "isOnlineFromChatList";
   static const newMessageReceived = "newMessageReceived";
   static const isOnLine = "isOnLine";
   static const messageStatusUpdate = "messageStatusUpdate";
@@ -2400,5 +2419,70 @@ List<PopupMenuEntry<String>> groceryPopupMenuItems() {
   return entries;
 }
 
+List<PopupMenuEntry<String>> groceryPopUpMenuItems() {
+  final items = <Map<String, dynamic>>[
+    {
+      "id": AppConstants.ADD,
+      'title': AppStrings.addManually
+    },
+  ];
+
+  final List<PopupMenuEntry<String>> entries = [];
+
+  for (int i = 0; i < items.length; i++) {
+    entries.add(
+      PopupMenuItem<String>(
+        height: SizeConfig.size35,
+        value: items[i]['id'],
+        onTap: () {
+          if (items[i]['id'] == AppConstants.ADD) {
+            // Get.toNamed(RouteHelper.getCreateResumeScreenRoute());
+           }
+          },
+        child: CustomText(
+          items[i]['title'],
+          fontSize: SizeConfig.medium,
+          color: AppColors.black30,
+        ),
+
+        // Row(
+        //   mainAxisSize: MainAxisSize.min,
+        //   children: [
+        //     LocalAssets(
+        //         imagePath: items[i]['icon'],
+        //         height: SizeConfig.size20,
+        //         width: SizeConfig.size20),
+        //     SizedBox(width: SizeConfig.size5),
+        //     CustomText(
+        //       items[i]['title'],
+        //       fontSize: SizeConfig.medium,
+        //       color: AppColors.black30,
+        //     ),
+        //   ],
+        // ),
+
+      ),
+    );
+
+    if (i != items.length - 1) {
+      entries.add(
+        const PopupMenuItem<String>(
+          enabled: false,
+          padding: EdgeInsets.zero,
+          height: 1,
+          child: Divider(
+            indent: 10,
+            endIndent: 10,
+            height: 1,
+            thickness: 0.2,
+            color: AppColors.grey99,
+          ),
+        ),
+      );
+    }
+  }
+
+  return entries;
+}
 
 

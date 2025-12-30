@@ -27,6 +27,7 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/post_via_dialog.dart';
 import 'package:BlueEra/widgets/update_live_photo_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import '../../../../../core/constants/shared_preference_utils.dart';
 import '../features/business/visiting_card/view/business_own_profile_screen.dart';
@@ -37,6 +38,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.title,
     this.isLeading = true,
     this.isFilter = false,
+    this.isShowMoreInfoIcon = false,
     this.isNotification = false,
     this.bellIconNotEmpty = false,
     this.onNotificationTap,
@@ -117,6 +119,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool? isTextButton;
   final bool? isShadowShow;
   final bool? isChangeToEditMode;
+  final bool? isShowMoreInfoIcon;
   final bool? isDownloadButton;
   final bool? isLogout;
   final bool? isGuestLogout;
@@ -369,7 +372,6 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                   ),
                 ),
               ),
-
             if (isMore ?? false)
               PopupMenuButton<PostCreationMenu>(
                 padding: EdgeInsets.zero,
@@ -381,8 +383,8 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                 onSelected: (value) async {
                   if (isGuestUser()) {
                     createProfileScreen();
-                  } else if (/*value == PostCreationMenu.videos ||*/
-                      value == PostCreationMenu.photos ||
+                  } else if (/*value == PostCreationMenu.videos ||
+                      value == PostCreationMenu.photos ||*/
                           value == PostCreationMenu.message ||
                           value == PostCreationMenu.poll) {
                     postVia(context, value);
@@ -690,6 +692,11 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ]),
               ),
             ),
+          ),
+        if(isShowMoreInfoIcon??false)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14.0),
+            child: SvgPicture.asset(AppIconAssets.chat_info_pop,height: 24,width: 24,),
           ),
       ],
       bottom: bottomWidget,

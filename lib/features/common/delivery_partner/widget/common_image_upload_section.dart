@@ -58,7 +58,7 @@ class CommonImageUploadTile extends StatelessWidget {
                 child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                LocalAssets(imagePath: AppIconAssets.uploadIcon),
+                LocalAssets(imagePath: AppIconAssets.uploadOutlinedIcon),
                 SizedBox(width: SizeConfig.size8),
                 CustomText(
                   title,

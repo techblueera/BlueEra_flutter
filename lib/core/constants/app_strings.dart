@@ -1305,6 +1305,10 @@ class AppStrings {
       'pleaseSelectAadharFrontImage';
   static const String pleaseSelectAadharBackImage =
       'pleaseSelectAadharBackImage';
+  static const String pleaseSelectAddressProofIdFrontImage =
+      'pleaseSelectAddressProofIdFrontImage';
+  static const String pleaseSelectAddressProofIdBackImage =
+      'pleaseSelectAddressProofIdBackImage';
   static const String pleaseSelectPanCardImage = 'pleaseSelectPanCardImage';
   static const String pleaseSelectDlFrontImage = 'pleaseSelectDlFrontImage';
   static const String pleaseSelectDlBackImage = 'pleaseSelectDlBackImage';
@@ -1773,7 +1777,30 @@ class AppStrings {
   static const foodRestriction = "foodRestriction";
   static const noFoodRestrictions = "noFoodRestrictions";
   static const youCanOptOnlyOneService = "youCanOptOnlyOneService";
+  static const statistics = "statistics";
 
+  static const linkedShops = "linkedShops";
+  static const pickUpOTP  = "pickUpOTP";
+  static const aadharCard  = "Aadhar Card";
+  static const panCard  = "Pan Card";
+  static const addressProof   = "Address Proof";
+  static const withdraw   = "Withdraw";
+  static const bookYourGroceryNdFood   = "Book Your Grocery & Food";
+  static const yourPreviousRider   = "Your Previous Rider";
+  static const restaurantNearMe   = "Restaurant Near Me";
+  static const addProducts = "Add Products";
+  static const addManually = "Add Manually";
+  static const yourCart = "Your Cart";
+  static const billDetails = "Bill Details";
+  static const totalItems = "Total Items";
+  static const totalMRP = "Total MRP";
+  static const savingsDiscount = "Savings (Discount)";
+  static const grandTotalPayInINR = "Grand total (pay INR)";
+  static const addMoreItems = "Add More Items";
+  static const groceryNdStationary = "Grocery & Stationary";
+  static const foodNearMe = "Food Near Me";
+  static const cashOnDelivery = "Cash On Delivery";
+  static const prePaid = "Pre Paid";
 
   ///BHAVESH START
   static const ownerDetail = "owner_detail";
@@ -1952,8 +1979,6 @@ class AppStrings {
   static const sayNamaste = "sayNamaste";
   static const typeYourMessage = "typeYourMessage";
 
-  ///BHAVESH START
-
   static const String clearAllNotifications = 'clearAllNotifications';
   static const String clearNotification = 'clearNotification';
   static const String clearAllDescription = 'clearAllDescription';
@@ -2123,6 +2148,7 @@ class AppStrings {
   static const storesNearMe = "storesNearMe";
   static const foodAndRestaurant = "foodAndRestaurant";
   static const seeMore = "seeMore";
+  static const seeLess = "seeLess";
   static const downloadLanguagePack = "downloadLanguagePack";
   static const downloadLanguageDescription = "downloadLanguageDescription";
 
@@ -2150,5 +2176,963 @@ class AppStrings {
   static const earnWithRentalServices = "earnWithRentalServices";
   static const selectRentalType = "selectRentalType";
   static const selectRentalTypeMessage = "selectRentalTypeMessage";
+  static const applyForFranchise = "applyForFranchise";
+
+
+  /// Grocery Strings (Himanshu Dev)
+
+// Category Headers
+  static const headerRiceRiceProducts = "headerRiceRiceProducts";
+  static const headerWheatAttaFlours = "headerWheatAttaFlours";
+  static const headerDalsPulsesBeans = "headerDalsPulsesBeans";
+  static const headerMilletsTraditionalGrains = "headerMilletsTraditionalGrains";
+  static const headerBreakfastLightStaples = "headerBreakfastLightStaples";
+  static const headerSpicesMasala = "headerSpicesMasala";
+  static const headerSaltSugarSweeteners = "headerSaltSugarSweeteners";
+  static const headerOilsGheeFats = "headerOilsGheeFats";
+  static const headerTeaCoffeeBeverages = "headerTeaCoffeeBeverages";
+  static const headerDryFruitsReadyFood = "headerDryFruitsReadyFood";
+
+  static const headerLeafyVegetables = "headerLeafyVegetables";
+  static const headerRootVegetables = "headerRootVegetables";
+  static const headerBulbStemVegetables = "headerBulbStemVegetables";
+  static const headerFruitVegetables = "headerFruitVegetables";
+  static const headerPodsBeans = "headerPodsBeans";
+  static const headerFlowerVegetables = "headerFlowerVegetables";
+  static const headerSpecialIndianItems = "headerSpecialIndianItems";
+  static const headerExoticVegetables = "headerExoticVegetables";
+
+  static const headerDailyFruits = "headerDailyFruits";
+  static const headerDesiFruits = "headerDesiFruits";
+  static const headerSourStoneFruits = "headerSourStoneFruits";
+  static const headerSmallSeasonalFruits = "headerSmallSeasonalFruits";
+  static const headerForestCoastalFruits = "headerForestCoastalFruits";
+  static const headerSpecialExoticFruits = "headerSpecialExoticFruits";
+
+  static const headerNamkeenMixture = "headerNamkeenMixture";
+  static const headerChipsPapadFryums = "headerChipsPapadFryums";
+  static const headerBiscuitsCookies = "headerBiscuitsCookies";
+  static const headerBakerySweetItems = "headerBakerySweetItems";
+  static const headerFriedHotSnacks = "headerFriedHotSnacks";
+
+  static const headerMilk = "headerMilk";
+  static const headerCurdCream = "headerCurdCream";
+  static const headerButterCheesePaneer = "headerButterCheesePaneer";
+  static const headerGheeDairyFats = "headerGheeDairyFats";
+  static const headerIceCreamFrozen = "headerIceCreamFrozen";
+  static const headerDairySweetNdChocolate = "headerDairySweetNdChocolate";
+  static const headerFrozenVegetables = "headerFrozenVegetables";
+  static const headerFrozenSnacks = "headerFrozenSnacks";
+  static const headerMilkPowderAlts = "headerMilkPowderAlts";
+
+  // Crockery Headers
+  static const headerCookingUtensils = "headerCookingUtensils";
+  static const headerDiningUtensils = "headerDiningUtensils";
+  static const headerServingUtensils = "headerServingUtensils";
+  static const headerKitchenHandTools = "headerKitchenHandTools";
+  static const headerKitchenAppliances = "headerKitchenAppliances";
+  static const headerStorageCarry = "headerStorageCarry";
+  static const headerGasWaterUtility = "headerGasWaterUtility";
+  static const headerCleaningSetup = "headerCleaningSetup";
+
+// Home Essentials Headers
+  static const headerElectricalSafety = "headerElectricalSafety";
+  static const headerWaterStorage = "headerWaterStorage";
+  static const headerHomeUtility = "headerHomeUtility";
+  static const headerPujaItems = "headerPujaItems";
+
+// Cleaning & Maintenance Headers
+  static const headerLaundryCare = "headerLaundryCare";
+  static const headerBathroomCare = "headerBathroomCare";
+  static const headerKitchenCare = "headerKitchenCare";
+  static const headerFloorSurface = "headerFloorSurface";
+  static const headerCleaningTools = "headerCleaningTools";
+  static const headerPestAirCare = "headerPestAirCare";
+  static const headerSafetyRepair = "headerSafetyRepair";
+
+// Beauty & Body Care Headers
+  static const headerBathBodyCare = "headerBathBodyCare";
+  static const headerSkinCare = "headerSkinCare";
+  static const headerHairCare = "headerHairCare";
+  static const headerOralCare = "headerOralCare";
+  static const headerMenGrooming = "headerMenGrooming";
+  static const headerWomenHygiene = "headerWomenHygiene";
+  static const headerBeautyCosmetics = "headerBeautyCosmetics";
+  static const headerBathroomHygiene = "headerBathroomHygiene";
+  static const headerBabyCare = "headerBabyCare";
+  static const headerMedicalEssentials = "headerMedicalEssentials";
+
+// Stationary Headers
+  static const headerWritingNotebooks = "headerWritingNotebooks";
+  static const headerSchoolEssentials = "headerSchoolEssentials";
+  static const headerOfficeUtility = "headerOfficeUtility";
+  static const headerArtCraftWork = "headerArtCraftWork";
+  static const headerCuttingPacking = "headerCuttingPacking";
+  static const headerPrintingGifts = "headerPrintingGifts";
+
+  // Grocery Super Categories
+  static const labelGroceryItems = "labelGroceryItems";
+  static const labelVegetable = "labelVegetable";
+  static const labelFruit = "labelFruit";
+  static const labelBakeryBreadItems = "labelBakeryBreadItems";
+  static const labelDairyProducts = "labelDairyProducts";
+  static const labelCrockery = "labelCrockery";
+  static const labelHomeEssentials = "labelHomeEssentials";
+  static const labelCleaningMaintenance = "labelCleaningMaintenance";
+  static const labelBeautyHealthCare = "labelBeautyHealthCare";
+  static const labelStationary = "labelStationary";
+
+  // Rice Products
+  static const labelBasmatiRice = "labelBasmatiRice";
+  static const labelRedRice = "labelRedRice";
+  static const labelKolamRice = "labelKolamRice";
+  static const labelPonniRice = "labelPonniRice";
+  static const labelParboiledRice = "labelParboiledRice";
+  static const labelBrownRice = "labelBrownRice";
+  static const labelSonaMasooriRice = "labelSonaMasooriRice";
+  static const labelBlackRice = "labelBlackRice";
+
+// Wheat & Flours
+  static const labelWholeWheatAtta = "labelWholeWheatAtta";
+  static const labelChakkiAtta = "labelChakkiAtta";
+  static const labelSharbatiAtta = "labelSharbatiAtta";
+  static const labelMultigrainAtta = "labelMultigrainAtta";
+  static const labelDiabeticFriendlyAtta = "labelDiabeticFriendlyAtta";
+  static const labelMaida = "labelMaida";
+  static const labelBesan = "labelBesan";
+  static const labelRiceFlour = "labelRiceFlour";
+  static const labelRagiFlour = "labelRagiFlour";
+
+// Dal & Beans
+  static const labelToorDal = "labelToorDal";
+  static const labelMoongDal = "labelMoongDal";
+  static const labelMasoorDal = "labelMasoorDal";
+  static const labelUradDal = "labelUradDal";
+  static const labelChanaDal = "labelChanaDal";
+  static const labelKabuliChana = "labelKabuliChana";
+  static const labelKalaChana = "labelKalaChana";
+  static const labelRajma = "labelRajma";
+  static const labelDryGreenPeas = "labelDryGreenPeas";
+
+// Millets & Grains
+  static const labelRagi = "labelRagi";
+  static const labelJowar = "labelJowar";
+  static const labelBajra = "labelBajra";
+  static const labelFoxtailMillet = "labelFoxtailMillet";
+  static const labelLittleMillet = "labelLittleMillet";
+  static const labelKodoMillet = "labelKodoMillet";
+  static const labelBarnyardMillet = "labelBarnyardMillet";
+  static const labelSamakRice = "labelSamakRice";
+
+// Breakfast Staples
+  static const labelPoha = "labelPoha";
+  static const labelAvalRiceFlakes = "labelAvalRiceFlakes";
+  static const labelDaliaBrokenWheat = "labelDaliaBrokenWheat";
+  static const labelOats = "labelOats";
+  static const labelCornGrits = "labelCornGrits";
+  static const labelWheatBran = "labelWheatBran";
+
+// Spices & Masala
+  static const labelCuminSeeds = "labelCuminSeeds";
+  static const labelCorianderSeeds = "labelCorianderSeeds";
+  static const labelBlackPepper = "labelBlackPepper";
+  static const labelGreenCardamom = "labelGreenCardamom";
+  static const labelCloves = "labelCloves";
+  static const labelCinnamon = "labelCinnamon";
+  static const labelTurmericPowder = "labelTurmericPowder";
+  static const labelRedChilliPowder = "labelRedChilliPowder";
+  static const labelCorianderPowder = "labelCorianderPowder";
+  static const labelGaramMasala = "labelGaramMasala";
+  static const labelChaatMasala = "labelChaatMasala";
+  static const labelSambharMasala = "labelSambharMasala";
+  static const labelBiryaniMasala = "labelBiryaniMasala";
+  static const labelCholeMasala = "labelCholeMasala";
+
+// Salt & Sweeteners
+  static const labelIodizedSalt = "labelIodizedSalt";
+  static const labelRockSalt = "labelRockSalt";
+  static const labelPinkSalt = "labelPinkSalt";
+  static const labelWhiteSugar = "labelWhiteSugar";
+  static const labelBrownSugar = "labelBrownSugar";
+  static const labelJaggery = "labelJaggery";
+  static const labelHoney = "labelHoney";
+  static const labelSugarFreeSweetener = "labelSugarFreeSweetener";
+
+// Oils & Fats
+  static const labelSunflowerOil = "labelSunflowerOil";
+  static const labelRiceBranOil = "labelRiceBranOil";
+  static const labelMustardOil = "labelMustardOil";
+  static const labelGroundnutOil = "labelGroundnutOil";
+  static const labelSesameOil = "labelSesameOil";
+  static const labelCoconutOil = "labelCoconutOil";
+  static const labelOliveOil = "labelOliveOil";
+  static const labelCowGheeStaple = "labelCowGhee";
+  static const labelDesiGheeStaple = "labelDesiGhee";
+
+// Tea, Coffee & Beverages
+  static const labelAssamTea = "labelAssamTea";
+  static const labelGreenTeaBeverage = "labelGreenTeaBeverage";
+  static const labelMasalaTea = "labelMasalaTea";
+  static const labelInstantCoffee = "labelInstantCoffeeStaple";
+  static const labelFilterCoffee = "labelFilterCoffeeStaple";
+  static const labelMaltHealthDrink = "labelMaltHealthDrink";
+  static const labelGlucoseDrinkPowder = "labelGlucoseDrinkPowder";
+  static const labelCoconutWater = "labelCoconutWaterStaple";
+  static const labelPackagedDrinkingWater = "labelPackagedDrinkingWater";
+
+// Dry Fruits, Baby Food & Ready Food
+  static const labelAlmonds = "labelAlmonds";
+  static const labelCashewNuts = "labelCashewNuts";
+  static const labelRaisins = "labelRaisins";
+  static const labelDates = "labelDatesStaple";
+  static const labelDryFig = "labelDryFig";
+  static const labelChiaSeeds = "labelChiaSeeds";
+  static const labelFlaxSeeds = "labelFlaxSeeds";
+  static const labelPumpkinSeeds = "labelPumpkinSeeds";
+  static const labelBabyMilkPowder = "labelBabyMilkPowder";
+  static const labelRiceCereal = "labelRiceCereal";
+  static const labelKhichdiMix = "labelKhichdiMix";
+  static const labelBabyBiscuits = "labelBabyBiscuits";
+  static const labelReadyPoha = "labelReadyPoha";
+  static const labelReadyUpma = "labelReadyUpma";
+  static const labelReadyDal = "labelReadyDal";
+  static const labelPapadStaple = "labelPapadStaple";
+  static const labelTomatoKetchup = "labelTomatoKetchup";
+  static const labelMangoPickle = "labelMangoPickle";
+  static const labelLemonPickle = "labelLemonPickle";
+  static const labelMixedVegetablePickle = "labelMixedVegetablePickle";
+
+
+  /// VEGETABLES
+
+  // Leafy Vegetables
+  static const labelSpinach = "labelSpinach";
+  static const labelFenugreek = "labelFenugreek";
+  static const labelMustardGreens = "labelMustardGreens";
+  static const labelMint = "labelMint";
+  static const labelCorianderLeaves = "labelCorianderLeaves";
+  static const labelAmaranth = "labelAmaranth";
+  static const labelBathua = "labelBathua";
+  static const labelMalabarSpinach = "labelMalabarSpinach";
+  static const labelDrumstickLeaves = "labelDrumstickLeaves";
+  static const labelDillLeaves = "labelDillLeaves";
+  static const labelTaroLeaves = "labelTaroLeaves";
+  static const labelCurryLeaves = "labelCurryLeaves";
+  static const labelLettuceIndian = "labelLettuceIndian";
+
+// Root Vegetables
+  static const labelPotato = "labelPotato";
+  static const labelSweetPotato = "labelSweetPotato";
+  static const labelCarrot = "labelCarrot";
+  static const labelRadish = "labelRadish";
+  static const labelBeetroot = "labelBeetroot";
+  static const labelTurnip = "labelTurnip";
+  static const labelYam = "labelYam";
+  static const labelTaroRoot = "labelTaroRoot";
+  static const labelElephantFootYam = "labelElephantFootYam";
+  static const labelCassava = "labelCassava";
+  static const labelLotusRoot = "labelLotusRoot";
+
+// Bulb & Stem
+  static const labelOnion = "labelOnion";
+  static const labelGarlic = "labelGarlic";
+  static const labelLeek = "labelLeek";
+  static const labelSpringOnion = "labelSpringOnion";
+  static const labelBananaStem = "labelBananaStem";
+  static const labelColocasiaStem = "labelColocasiaStem";
+
+// Fruit Vegetables & Gourds
+  static const labelTomato = "labelTomato";
+  static const labelBrinjalEggplant = "labelBrinjalEggplant";
+  static const labelBottleGourd = "labelBottleGourd";
+  static const labelBitterGourd = "labelBitterGourd";
+  static const labelRidgeGourd = "labelRidgeGourd";
+  static const labelSpongeGourd = "labelSpongeGourd";
+  static const labelSnakeGourd = "labelSnakeGourd";
+  static const labelPumpkin = "labelPumpkin";
+  static const labelCucumber = "labelCucumber";
+  static const labelAshGourd = "labelAshGourd";
+  static const labelPointedGourd = "labelPointedGourd";
+  static const labelIvyGourd = "labelIvyGourd";
+  static const labelTinda = "labelTinda";
+  static const labelChowChowChayote = "labelChowChowChayote";
+  static const labelRawBanana = "labelRawBanana";
+  static const labelRawPapaya = "labelRawPapaya";
+  static const labelCapsicumBellPepper = "labelCapsicumBellPepper";
+
+// Pods & Beans
+  static const labelGreenPeas = "labelGreenPeas";
+  static const labelFrenchBeans = "labelFrenchBeans";
+  static const labelClusterBeans = "labelClusterBeans";
+  static const labelCowpea = "labelCowpea";
+  static const labelHyacinthBeans = "labelHyacinthBeans";
+  static const labelBroadBeans = "labelBroadBeans";
+  static const labelWingedBeans = "labelWingedBeans";
+  static const labelYardlongBeans = "labelYardlongBeans";
+
+// Flower Vegetables
+  static const labelCauliflower = "labelCauliflower";
+  static const labelBroccoli = "labelBroccoli";
+  static const labelBananaFlower = "labelBananaFlower";
+  static const labelPumpkinFlower = "labelPumpkinFlower";
+  static const labelDrumstickFlower = "labelDrumstickFlower";
+
+// Fungi & Specialty
+  static const labelMushroom = "labelMushroom";
+  static const labelGreenChilli = "labelGreenChilli";
+  static const labelGinger = "labelGinger";
+  static const labelTurmericFresh = "labelTurmericFresh";
+  static const labelDrumstick = "labelDrumstick";
+  static const labelRawJackfruit = "labelRawJackfruit";
+  static const labelBambooShoot = "labelBambooShoot";
+  static const labelKokum = "labelKokum";
+  static const labelSundakkaiTurkeyBerry = "labelSundakkaiTurkeyBerry";
+
+// Exotic
+  static const labelZucchini = "labelZucchini";
+  static const labelCelery = "labelCelery";
+  static const labelAsparagus = "labelAsparagus";
+  static const labelBokChoy = "labelBokChoy";
+  static const labelLettuceIcebergRomaine = "labelLettuceIcebergRomaine";
+  static const labelKale = "labelKale";
+  static const labelChineseCabbage = "labelChineseCabbage";
+
+  // Daily Fruits
+  static const labelApple = "labelApple";
+  static const labelBanana = "labelBanana";
+  static const labelOrange = "labelOrange";
+  static const labelMosambiSweetLime = "labelMosambiSweetLime";
+  static const labelGrapes = "labelGrapes";
+  static const labelPapaya = "labelPapaya";
+  static const labelPomegranate = "labelPomegranate";
+  static const labelGuava = "labelGuava";
+  static const labelPear = "labelPear";
+  static const labelChikooSapota = "labelChikooSapota";
+  static const labelPineapple = "labelPineapple";
+  static const labelWatermelon = "labelWatermelon";
+  static const labelMuskmelon = "labelMuskmelon";
+
+// Desi Fruits
+  static const labelMango = "labelMango";
+  static const labelJackfruit = "labelJackfruit";
+  static const labelJamun = "labelJamun";
+  static const labelCustardApple = "labelCustardApple";
+  static const labelBerIndianJujube = "labelBerIndianJujube";
+  static const labelSoursop = "labelSoursop";
+  static const labelWoodAppleBael = "labelWoodAppleBael";
+  static const labelTamarind = "labelTamarind";
+  static const labelMonkeyJack = "labelMonkeyJack";
+  static const labelIndianFigAnjeer = "labelIndianFigAnjeer";
+  static const labelKhirniRayan = "labelKhirniRayan";
+  static const labelKaronda = "labelKaronda";
+  static const labelIndianGooseberryAmla = "labelIndianGooseberryAmla";
+
+// Sour & Stone Fruits
+  static const labelLemon = "labelLemon";
+  static const labelLime = "labelLime";
+  static const labelKinnow = "labelKinnow";
+  static const labelPomelo = "labelPomelo";
+  static const labelCitron = "labelCitron";
+  static const labelGalgal = "labelGalgal";
+  static const labelPeach = "labelPeach";
+  static const labelPlum = "labelPlum";
+  static const labelApricot = "labelApricot";
+  static const labelCherry = "labelCherry";
+
+// Small & Seasonal Fruits
+  static const labelStrawberry = "labelStrawberry";
+  static const labelMulberry = "labelMulberry";
+  static const labelRaspberry = "labelRaspberry";
+  static const labelBlueberry = "labelBlueberry";
+  static const labelPhalsa = "labelPhalsa";
+  static const labelLitchi = "labelLitchi";
+  static const labelLoquat = "labelLoquat";
+  static const labelStarFruitCarambola = "labelStarFruitCarambola";
+  // static const labelCapsicumBellPepper = "labelCapsicumBellPepper";
+
+// Forest & Coastal Fruits
+  static const labelCoconut = "labelCoconut";
+  static const labelTenderCoconut = "labelTenderCoconut";
+  static const labelIceApple = "labelIceApple";
+  static const labelToddyPalmFruit = "labelToddyPalmFruit";
+  static const labelNungu = "labelNungu";
+  static const labelDate = "labelDate";
+  static const labelMahuaFruit = "labelMahuaFruit";
+  static const labelChironjiFruit = "labelChironjiFruit";
+  static const labelTenduFruit = "labelTenduFruit";
+  static const labelKaafal = "labelKaafal";
+  static const labelWildJamun = "labelWildJamun";
+  static const labelWildBanana = "labelWildBanana";
+  static const labelBreadfruit = "labelBreadfruit";
+
+// Special & Exotic Fruits
+  static const labelKiwi = "labelKiwi";
+  static const labelDragonFruit = "labelDragonFruit";
+  static const labelAvocado = "labelAvocado";
+  static const labelPassionFruit = "labelPassionFruit";
+  static const labelMangosteen = "labelMangosteen";
+  static const labelLongan = "labelLongan";
+  static const labelRambutan = "labelRambutan";
+  static const labelDurian = "labelDurian";
+
+
+  // Namkeen & Mixture
+  static const labelAlooBhujia = "labelAlooBhujia";
+  static const labelSev = "labelSev";
+  static const labelMixture = "labelMixture";
+  static const labelBoondi = "labelBoondi";
+  static const labelMoongDalNamkeen = "labelMoongDalNamkeen";
+  static const labelChanaDalNamkeen = "labelChanaDalNamkeen";
+  static const labelPeanutsNamkeen = "labelPeanutsNamkeen";
+  static const labelGhatiya = "labelGhatiya";
+  static const labelFarsanMix = "labelFarsanMix";
+
+// Chips, Papad & Fryums
+  static const labelPotatoChips = "labelPotatoChips";
+  static const labelBananaChips = "labelBananaChips";
+  static const labelTapiocaChips = "labelTapiocaChips";
+  static const labelCornChips = "labelCornChips";
+  static const labelMultigrainChips = "labelMultigrainChips";
+  static const labelNachoChips = "labelNachoChips";
+  static const labelUradPapad = "labelUradPapad";
+  static const labelRicePapad = "labelRicePapad";
+  static const labelSabudanaPapad = "labelSabudanaPapad";
+  static const labelAppalam = "labelAppalam";
+  static const labelFryums = "labelFryums";
+
+// Biscuits & Cookies
+  static const labelGlucoseBiscuits = "labelGlucoseBiscuits";
+  static const labelMarieBiscuits = "labelMarieBiscuits";
+  static const labelMilkBiscuits = "labelMilkBiscuits";
+  static const labelCreamBiscuits = "labelCreamBiscuits";
+  static const labelArrowrootBiscuits = "labelArrowrootBiscuits";
+  static const labelSandwichBiscuits = "labelSandwichBiscuits";
+  static const labelMultigrainBiscuits = "labelMultigrainBiscuits";
+  static const labelDigestiveBiscuits = "labelDigestiveBiscuits";
+  static const labelJeeraBiscuits = "labelJeeraBiscuits";
+  static const labelButterBiscuits = "labelButterBiscuits";
+  static const labelJamBiscuits = "labelJamBiscuits";
+
+// Bread & Bakery
+  static const labelWhiteBread = "labelWhiteBread";
+  static const labelBrownBread = "labelBrownBread";
+  static const labelMultigrainBread = "labelMultigrainBread";
+  static const labelPavBread = "labelPavBread";
+  static const labelBurgerBuns = "labelBurgerBuns";
+  static const labelPizzaBase = "labelPizzaBase";
+  static const labelBreadCrumbs = "labelBreadCrumbs";
+  static const labelKhariBiscuit = "labelKhariBiscuit";
+  static const labelRusk = "labelRusk";
+  static const labelCake = "labelCake";
+  static const labelCupCake = "labelCupCake";
+  static const labelMuffins = "labelMuffins";
+  static const labelSwissRoll = "labelSwissRoll";
+
+// Fried & Hot Snacks
+  static const labelSamosa = "labelSamosa";
+  static const labelVegPuff = "labelVegPuff";
+  static const labelVegPatties = "labelVegPatties";
+  static const labelPizzaPatties = "labelPizzaPatties";
+  static const labelVegCutlet = "labelVegCutlet";
+  static const labelBreadRoll = "labelBreadRoll";
+  static const labelSpringRoll = "labelSpringRoll";
+  static const labelDryKachori = "labelDryKachori";
+  static const labelKhakhra = "labelKhakhra";
+  static const labelChakli = "labelChakli";
+  static const labelMurukku = "labelMurukku";
+  static const labelPopcorn = "labelPopcorn";
+
+
+// Dairy & Milk
+  static const labelFullCreamMilk = "labelFullCreamMilk";
+  static const labelTonedMilk = "labelTonedMilk";
+  static const labelDoubleTonedMilk = "labelDoubleTonedMilk";
+  static const labelSkimmedMilk = "labelSkimmedMilk";
+  static const labelCowMilk = "labelCowMilk";
+  static const labelBuffaloMilk = "labelBuffaloMilk";
+  static const labelFlavouredMilk = "labelFlavouredMilk";
+  static const labelLactoseFreeMilk = "labelLactoseFreeMilk";
+
+// Curd, Buttermilk & Cream
+  static const labelFreshCurd = "labelFreshCurd";
+  static const labelSetCurd = "labelSetCurd";
+  static const labelGreekYogurt = "labelGreekYogurt";
+  static const labelFlavouredYogurt = "labelFlavouredYogurt";
+  static const labelButterMilk = "labelButterMilk";
+  static const labelNamkeenChhaach = "labelNamkeenChhaach";
+  static const labelLassi = "labelLassi";
+  static const labelFreshCream = "labelFreshCream";
+  static const labelCookingCream = "labelCookingCream";
+  static const labelWhippingCream = "labelWhippingCream";
+
+// Butter, Cheese & Paneer
+  static const labelTableButter = "labelTableButter";
+  static const labelWhiteButter = "labelWhiteButter";
+  static const labelSaltedButter = "labelSaltedButter";
+  static const labelUnsaltedButter = "labelUnsaltedButter";
+  static const labelCheeseSlices = "labelCheeseSlices";
+  static const labelCheeseBlocks = "labelCheeseBlocks";
+  static const labelCheeseSpread = "labelCheeseSpread";
+  static const labelFreshPaneer = "labelFreshPaneer";
+  static const labelMalaiPaneer = "labelMalaiPaneer";
+  static const labelFrozenPaneer = "labelFrozenPaneer";
+
+// Ghee & Fats
+//   static const labelCowGhee = "labelCowGhee";
+  static const labelBuffaloGhee = "labelBuffaloGhee";
+  static const labelA2Ghee = "labelA2Ghee";
+  static const labelOrganicGhee = "labelOrganicGhee";
+  // static const labelDesiGhee = "labelDesiGhee";
+  static const labelVanaspati = "labelVanaspati";
+
+// Ice Cream & Frozen Desserts
+  static const labelIceCreamCups = "labelIceCreamCups";
+  static const labelIceCreamFamilyPacks = "labelIceCreamFamilyPacks";
+  static const labelIceCreamBars = "labelIceCreamBars";
+  static const labelIceCreamCones = "labelIceCreamCones";
+  static const labelKulfi = "labelKulfi";
+  static const labelMalaiKulfi = "labelMalaiKulfi";
+  static const labelMatkaKulfi = "labelMatkaKulfi";
+  static const labelFrozenYogurt = "labelFrozenYogurt";
+  static const labelFrozenDessert = "labelFrozenDessert";
+  static const labelIceLollies = "labelIceLollies";
+  static const labelCassataIceCream = "labelCassataIceCream";
+  static const labelIceCreamSandwich = "labelIceCreamSandwich";
+  static const labelFruitSorbet = "labelFruitSorbet";
+  static const labelGelato = "labelGelato";
+
+  // Dairy Sweets and Chocolate
+  static const labelMilkCake = "labelMilkCake";
+  static const labelKalakand = "labelKalakand";
+  static const labelRasgulla = "labelRasgulla";
+  static const labelRasmalai = "labelRasmalai";
+  static const labelGulabJamun = "labelGulabJamun";
+  static const labelKajuKatli = "labelKajuKatli";
+  static const labelPedha = "labelPedha";
+  static const labelChamCham = "labelChamCham";
+  static const labelSandesh = "labelSandesh";
+  static const labelMishtiDoi = "labelMishtiDoi";
+  static const labelMilkChocolate = "labelMilkChocolate";
+  static const labelDarkChocolate = "labelDarkChocolate";
+  static const labelWhiteChocolate = "labelWhiteChocolate";
+  static const labelChocolateBars = "labelChocolateBars";
+  static const labelChocolateBlocks = "labelChocolateBlocks";
+  static const labelChocolateCoins = "labelChocolateCoins";
+  static const labelChocolateGiftPacks = "labelChocolateGiftPacks";
+  static const labelChocolateSyrup = "labelChocolateSyrup";
+  static const labelChocolateSpread = "labelChocolateSpread";
+
+// Frozen Vegetables
+  static const labelFrozenGreenPeas = "labelFrozenGreenPeas";
+  static const labelFrozenSweetCorn = "labelFrozenSweetCorn";
+  static const labelFrozenMixedVegetables = "labelFrozenMixedVegetables";
+  static const labelFrozenFrenchBeans = "labelFrozenFrenchBeans";
+  static const labelFrozenCarrot = "labelFrozenCarrot";
+  static const labelFrozenSpinach = "labelFrozenSpinach";
+
+// Frozen Snacks
+  static const labelFrozenFrenchFries = "labelFrozenFrenchFries";
+  static const labelFrozenVegNuggets = "labelFrozenVegNuggets";
+  static const labelFrozenChickenNuggets = "labelFrozenChickenNuggets";
+  static const labelFrozenSpringRolls = "labelFrozenSpringRolls";
+  static const labelFrozenSamosa = "labelFrozenSamosa";
+  static const labelFrozenParatha = "labelFrozenParatha";
+  static const labelFrozenMomos = "labelFrozenMomos";
+  static const labelFrozenVegCutlet = "labelFrozenVegCutlet";
+
+// Milk Powders & Alternatives
+  static const labelSkimmedMilkPowder = "labelSkimmedMilkPowder";
+  static const labelFullCreamMilkPowder = "labelFullCreamMilkPowder";
+  static const labelInfantMilkFormula = "labelInfantMilkFormula";
+  static const labelCondensedMilk = "labelCondensedMilk";
+  static const labelEvaporatedMilk = "labelEvaporatedMilk";
+  static const labelSoyMilk = "labelSoyMilk";
+  static const labelAlmondMilk = "labelAlmondMilk";
+  static const labelOatsMilk = "labelOatsMilk";
+
+// Cooking Utensils
+  static const labelPressureCooker = "labelPressureCooker";
+  static const labelKadai = "labelKadai";
+  static const labelFryingPan = "labelFryingPan";
+  static const labelTawa = "labelTawa";
+  static const labelHandi = "labelHandi";
+  static const labelSaucePan = "labelSaucePan";
+  static const labelStockPot = "labelStockPot";
+
+// Eating & Dining
+  static const labelThali = "labelThali";
+  static const labelPlate = "labelPlate";
+  static const labelRicePlate = "labelRicePlate";
+  static const labelKatori = "labelKatori";
+  static const labelBowl = "labelBowl";
+  static const labelGlass = "labelGlass";
+  static const labelTumbler = "labelTumbler";
+  static const labelSpoon = "labelSpoon";
+  static const labelFork = "labelFork";
+  static const labelKnife = "labelKnife";
+
+// Serving Utensils
+  static const labelServingSpoon = "labelServingSpoon";
+  static const labelLadle = "labelLadle";
+  static const labelServingBowl = "labelServingBowl";
+  static const labelServingTray = "labelServingTray";
+  static const labelServingHandi = "labelServingHandi";
+  static const labelCasserole = "labelCasserole";
+
+// Hand Tools
+  static const labelRollingPin = "labelRollingPin";
+  static const labelChakla = "labelChakla";
+  static const labelPeeler = "labelPeeler";
+  static const labelGrater = "labelGrater";
+  static const labelChopper = "labelChopper";
+  static const labelWhisk = "labelWhisk";
+  static const labelSpatula = "labelSpatula";
+  static const labelTongs = "labelTongs";
+
+  // Kitchen Appliances
+  static const labelGasStove = "labelGasStove";
+  static const labelInductionCooktop = "labelInductionCooktop";
+  static const labelMixerGrinder = "labelMixerGrinder";
+  static const labelMicrowaveOven = "labelMicrowaveOven";
+  static const labelOTGOven = "labelOTGOven";
+  static const labelElectricKettle = "labelElectricKettle";
+  static const labelToaster = "labelToaster";
+
+// Storage & Carry
+  static const labelStorageContainer = "labelStorageContainer";
+  static const labelCanister = "labelCanister";
+  static const labelSpiceBox = "labelSpiceBox";
+  static const labelJar = "labelJar";
+  static const labelLunchBox = "labelLunchBox";
+  static const labelWaterBottle = "labelWaterBottle";
+  static const labelWaterJug = "labelWaterJug";
+
+// Gas & Water Utility
+  static const labelGasLighter = "labelGasLighter";
+  static const labelGasPipe = "labelGasPipe";
+  static const labelCylinderStand = "labelCylinderStand";
+  static const labelPanSupport = "labelPanSupport";
+  static const labelWaterFilter = "labelWaterFilter";
+  static const labelROPurifier = "labelROPurifier";
+
+// Cleaning & Setup
+  static const labelDishScrubber = "labelDishScrubber";
+  static const labelSponge = "labelSponge";
+  static const labelDishCloth = "labelDishCloth";
+  static const labelTrashBin = "labelTrashBin";
+  static const labelApron = "labelApron";
+  static const labelKitchenRack = "labelKitchenRack";
+  static const labelPlateStand = "labelPlateStand";
+  static const labelBottleRack = "labelBottleRack";
+  static const labelCutleryStand = "labelCutleryStand";
+
+  // Electrical and Safety
+  static const labelLedBulbs = "labelLedBulbs";
+  static const labelTubeLights = "labelTubeLights";
+  static const labelNightLamp = "labelNightLamp";
+  static const labelExtensionBoard = "labelExtensionBoard";
+  static const labelMultiPlug = "labelMultiPlug";
+  static const labelElectricWire = "labelElectricWire";
+  static const labelBatteries = "labelBatteries";
+  static const labelEmergencyLight = "labelEmergencyLight";
+  static const labelMosquitoNet = "labelMosquitoNet";
+  static const labelRoomHeater = "labelRoomHeater";
+  static const labelHotWaterBag = "labelHotWaterBag";
+  static const labelRaincoat = "labelRaincoat";
+
+// Water and Storage
+  static const labelWaterPipe = "labelWaterPipe";
+  static const labelBucket = "labelBucket";
+  static const labelMug = "labelMug";
+  static const labelTapConnector = "labelTapConnector";
+  static const labelPlasticWaterDrum = "labelPlasticWaterDrum";
+  static const labelPlasticStorageBox = "labelPlasticStorageBox";
+  static const labelClothStorageBag = "labelClothStorageBag";
+  static const labelWardrobeOrganizer = "labelWardrobeOrganizer";
+  static const labelShoeRack = "labelShoeRack";
+  static const labelStorageBasket = "labelStorageBasket";
+  static const labelHanger = "labelHanger";
+
+  // Home Utility
+  static const labelBedsheet = "labelBedsheet";
+  static const labelPillowCover = "labelPillowCover";
+  static const labelBlanket = "labelBlanket";
+  static const labelCurtains = "labelCurtains";
+  static const labelFloorMat = "labelFloorMat";
+  static const labelPlasticStool = "labelPlasticStool";
+  static const labelPlasticChair = "labelPlasticChair";
+  static const labelFoldableTable = "labelFoldableTable";
+  static const labelClothClips = "labelClothClips";
+  static const labelClothesDryingRope = "labelClothesDryingRope";
+  static const labelHooksStand = "labelHooksStand";
+  static const labelUmbrella = "labelUmbrella";
+
+// Puja Items
+  static const labelAgarbatti = "labelAgarbatti";
+  static const labelDhoop = "labelDhoop";
+  static const labelCamphor = "labelCamphor";
+  static const labelCottonWicks = "labelCottonWicks";
+  static const labelPujaOil = "labelPujaOil";
+  static const labelDiya = "labelDiya";
+  static const labelPujaThali = "labelPujaThali";
+  static const labelBell = "labelBell";
+  static const labelKumkum = "labelKumkum";
+  static const labelChandan = "labelChandan";
+
+  // Laundry Care
+  static const labelDetergentPowder = "labelDetergentPowder";
+  static const labelDetergentLiquid = "labelDetergentLiquid";
+  static const labelDetergentBar = "labelDetergentBar";
+  static const labelWashingSoap = "labelWashingSoap";
+  static const labelFabricSoftener = "labelFabricSoftener";
+  static const labelStainRemover = "labelStainRemover";
+  static const labelFabricConditioner = "labelFabricConditioner";
+  static const labelLaundryWhitener = "labelLaundryWhitener";
+  static const labelFabricDisinfectant = "labelFabricDisinfectant";
+  static const labelClothesFreshener = "labelClothesFreshener";
+
+// Bathroom Care
+  static const labelToiletCleaner = "labelToiletCleaner";
+  static const labelBathroomCleaner = "labelBathroomCleaner";
+  static const labelLimescaleRemover = "labelLimescaleRemover";
+  static const labelToiletFreshenerBlock = "labelToiletFreshenerBlock";
+  static const labelGlassCleaner = "labelGlassCleaner";
+  static const labelDrainCleaner = "labelDrainCleaner";
+
+// Kitchen Care
+  static const labelDishwashLiquid = "labelDishwashLiquid";
+  static const labelDishwashBar = "labelDishwashBar";
+  static const labelDishwashPowder = "labelDishwashPowder";
+  // static const labelDishScrubber = "labelDishScrubber";
+  static const labelDishwashingBrush = "labelDishwashingBrush";
+  static const labelSinkCleaner = "labelSinkCleaner";
+
+// Floor and Surface
+  static const labelFloorCleaner = "labelFloorCleaner";
+  static const labelSurfaceCleaner = "labelSurfaceCleaner";
+  static const labelMultipurposeCleaner = "labelMultipurposeCleaner";
+  static const labelTileStoneCleaner = "labelTileStoneCleaner";
+  static const labelWoodFurnitureCleaner = "labelWoodFurnitureCleaner";
+  static const labelFurniturePolish = "labelFurniturePolish";
+  static const labelMetalPolish = "labelMetalPolish";
+
+  // Cleaning Tools
+  static const labelBroom = "labelBroom";
+  static const labelMop = "labelMop";
+  static const labelFloorWiper = "labelFloorWiper";
+  static const labelCleaningCloth = "labelCleaningCloth";
+  static const labelScrubBrush = "labelScrubBrush";
+  static const labelBucketAndMug = "labelBucketAndMug";
+  static const labelDustpan = "labelDustpan";
+  static const labelGarbageBags = "labelGarbageBags";
+  static const labelDustbin = "labelDustbin";
+  static const labelDoormat = "labelDoormat";
+  static const labelCleaningGloves = "labelCleaningGloves";
+
+// Pest and Air Care
+  static const labelMosquitoRepellent = "labelMosquitoRepellent";
+  static const labelMosquitoCoil = "labelMosquitoCoil";
+  static const labelCockroachKiller = "labelCockroachKiller";
+  static const labelAntKiller = "labelAntKiller";
+  static const labelRatControl = "labelRatControl";
+  static const labelAirFreshener = "labelAirFreshener";
+  static const labelRoomFreshener = "labelRoomFreshener";
+
+// Safety and Repair
+  static const labelAdhesiveTape = "labelAdhesiveTape";
+  static const labelElectricalTape = "labelElectricalTape";
+  static const labelWallHooks = "labelWallHooks";
+  static const labelNailsAndScrews = "labelNailsAndScrews";
+  static const labelGeneralAdhesive = "labelGeneralAdhesive";
+  static const labelSealantAndPutty = "labelSealantAndPutty";
+  static const labelMatchbox = "labelMatchbox";
+  static const labelLighter = "labelLighter";
+  static const labelFireExtinguisher = "labelFireExtinguisher";
+  static const labelShoePolish = "labelShoePolish";
+  static const labelShoeBrush = "labelShoeBrush";
+
+  // Bath and Body Care
+  static const labelBathSoap = "labelBathSoap";
+  static const labelBodyWash = "labelBodyWash";
+  static const labelBodyScrub = "labelBodyScrub";
+  static const labelBathSponge = "labelBathSponge";
+  static const labelBathBrush = "labelBathBrush";
+  static const labelTalcumPowder = "labelTalcumPowder";
+
+// Skin Care
+  static const labelFaceCream = "labelFaceCream";
+  static const labelBodyLotion = "labelBodyLotion";
+  static const labelFaceWash = "labelFaceWash";
+  static const labelFaceScrub = "labelFaceScrub";
+  static const labelFacePack = "labelFacePack";
+  static const labelSunscreenLotion = "labelSunscreenLotion";
+  static const labelHandCream = "labelHandCream";
+  static const labelFootCream = "labelFootCream";
+
+// Hair Care
+  static const labelShampoo = "labelShampoo";
+  static const labelConditioner = "labelConditioner";
+  static const labelHairOil = "labelHairOil";
+  static const labelHairSerum = "labelHairSerum";
+  static const labelHairMask = "labelHairMask";
+  static const labelHairStylingProduct = "labelHairStylingProduct";
+
+// Oral Care
+  static const labelToothpaste = "labelToothpaste";
+  static const labelToothbrush = "labelToothbrush";
+  static const labelMouthwash = "labelMouthwash";
+  static const labelTongueCleaner = "labelTongueCleaner";
+  static const labelToothPowder = "labelToothPowder";
+
+  // Men Grooming
+  static const labelShavingCream = "labelShavingCream";
+  static const labelRazor = "labelRazor";
+  static const labelAfterShaveLotion = "labelAfterShaveLotion";
+  static const labelBeardCareProduct = "labelBeardCareProduct";
+  static const labelTrimmer = "labelTrimmer";
+  static const labelDeodorant = "labelDeodorant";
+
+// Women Hygiene
+  static const labelSanitaryPads = "labelSanitaryPads";
+  static const labelTampons = "labelTampons";
+  static const labelMenstrualCups = "labelMenstrualCups";
+  static const labelIntimateWash = "labelIntimateWash";
+  static const labelHygieneWipes = "labelHygieneWipes";
+
+// Beauty and Cosmetics
+  static const labelFacePowder = "labelFacePowder";
+  static const labelFoundation = "labelFoundation";
+  static const labelLipstick = "labelLipstick";
+  static const labelLipbalm = "labelLipbalm";
+  static const labelEyeMakeup = "labelEyeMakeup";
+  static const labelNailPolish = "labelNailPolish";
+  static const labelMakeupRemover = "labelMakeupRemover";
+  static const labelPerfume = "labelPerfume";
+
+// Bathroom Hygiene
+  static const labelHandWash = "labelHandWash";
+  static const labelHandSanitizer = "labelHandSanitizer";
+  static const labelToiletPaper = "labelToiletPaper";
+  static const labelFacialTissues = "labelFacialTissues";
+  static const labelPaperTowels = "labelPaperTowels";
+  static const labelCotton = "labelCotton";
+
+  // Baby Care
+  static const labelBabySoap = "labelBabySoap";
+  static const labelBabyShampoo = "labelBabyShampoo";
+  static const labelBabyOil = "labelBabyOil";
+  static const labelBabyLotion = "labelBabyLotion";
+  static const labelBabyPowder = "labelBabyPowder";
+  static const labelBabyWipes = "labelBabyWipes";
+  static const labelBabyDiaperCream = "labelBabyDiaperCream";
+
+// Medical Essentials
+  static const labelAntisepticLiquid = "labelAntisepticLiquid";
+  static const labelAntisepticCream = "labelAntisepticCream";
+  static const labelCottonBandage = "labelCottonBandage";
+  static const labelAdhesiveBandage = "labelAdhesiveBandage";
+  static const labelCrepeBandage = "labelCrepeBandage";
+  static const labelGauzePads = "labelGauzePads";
+  static const labelMedicalTape = "labelMedicalTape";
+  static const labelPainReliefSpray = "labelPainReliefSpray";
+  static const labelBurnOintment = "labelBurnOintment";
+  static const labelThermometer = "labelThermometer";
+  static const labelHandGlovesDisposable = "labelHandGlovesDisposable";
+
+  // Writing & Notebooks
+  static const labelPen = "labelPen";
+  static const labelPencil = "labelPencil";
+  static const labelMechanicalPencil = "labelMechanicalPencil";
+  static const labelMarker = "labelMarker";
+  static const labelHighlighter = "labelHighlighter";
+  static const labelNotebook = "labelNotebook";
+  static const labelCopy = "labelCopy";
+  static const labelRegister = "labelRegister";
+  static const labelRoughCopy = "labelRoughCopy";
+  static const labelLoosePaper = "labelLoosePaper";
+  static const labelStickyNotes = "labelStickyNotes";
+  static const labelDiary = "labelDiary";
+  static const labelDecorativeDiary = "labelDecorativeDiary";
+
+// School Essentials
+  static const labelSchoolBag = "labelSchoolBag";
+  static const labelGeometryBox = "labelGeometryBox";
+  static const labelEraser = "labelEraser";
+  static const labelSharpener = "labelSharpener";
+  static const labelScale = "labelScale";
+  static const labelCompass = "labelCompass";
+  static const labelDivider = "labelDivider";
+  static const labelSchoolWaterBottle = "labelSchoolWaterBottle";
+  static const labelLunchBoxSchool = "labelLunchBoxSchool";
+  static const labelSchoolIdCardHolder = "labelSchoolIdCardHolder";
+  static const labelSchoolLabelStickers = "labelSchoolLabelStickers";
+  static const labelKidsPencilBox = "labelKidsPencilBox";
+  static const labelSchoolGlueStick = "labelSchoolGlueStick";
+  static const labelKidsCrayons = "labelKidsCrayons";
+
+// Office & Utility
+  static const labelFilesAndFolders = "labelFilesAndFolders";
+  static const labelClipFile = "labelClipFile";
+  static const labelRingBinder = "labelRingBinder";
+  static const labelEnvelope = "labelEnvelope";
+  static const labelOfficeRegister = "labelOfficeRegister";
+  static const labelPaperClips = "labelPaperClips";
+  static const labelBinderClips = "labelBinderClips";
+  static const labelRubberBands = "labelRubberBands";
+  static const labelThumbPins = "labelThumbPins";
+  static const labelCalculator = "labelCalculator";
+  static const labelPenStand = "labelPenStand";
+  static const labelDeskTray = "labelDeskTray";
+
+  // Art & Project Work
+  static const labelColourPencils = "labelColourPencils";
+  static const labelCrayons = "labelCrayons";
+  static const labelPosterColours = "labelPosterColours";
+  static const labelWaterColours = "labelWaterColours";
+  static const labelPaintBrush = "labelPaintBrush";
+  static const labelDrawingBook = "labelDrawingBook";
+  static const labelArtCraftKits = "labelArtCraftKits";
+  static const labelGlitterPack = "labelGlitterPack";
+  static const labelProjectFile = "labelProjectFile";
+  static const labelProjectCoverSheet = "labelProjectCoverSheet";
+  static const labelChartPaper = "labelChartPaper";
+  static const labelExamPad = "labelExamPad";
+  static const labelAnswerSheets = "labelAnswerSheets";
+  static const labelPracticalFile = "labelPracticalFile";
+
+// Cutting & Packing
+  static const labelScissors = "labelScissors";
+  static const labelPaperCutter = "labelPaperCutter";
+  static const labelMeasuringScale = "labelMeasuringScale";
+  static const labelMeasuringTape = "labelMeasuringTape";
+  static const labelFevicol = "labelFevicol";
+  static const labelGlueStick = "labelGlueStick";
+  static const labelAdhesiveTapeStationary = "labelAdhesiveTapeStationary";
+  static const labelStapler = "labelStapler";
+  static const labelStaplerPins = "labelStaplerPins";
+
+// Printing & Gifts
+  static const labelA4Paper = "labelA4Paper";
+  static const labelPrinterPaper = "labelPrinterPaper";
+  static const labelPhotoPaper = "labelPhotoPaper";
+  static const labelInkCartridge = "labelInkCartridge";
+  static const labelTonerCartridge = "labelTonerCartridge";
+  static const labelUsbPenDrive = "labelUsbPenDrive";
+  static const labelGreetingCards = "labelGreetingCards";
+  static const labelGiftEnvelopes = "labelGiftEnvelopes";
+  static const labelGiftWrappingPaper = "labelGiftWrappingPaper";
+  static const labelRibbons = "labelRibbons";
+  static const labelGiftBows = "labelGiftBows";
+  static const labelKeyChain = "labelKeyChain";
+  static const labelWallet = "labelWallet";
+  static const labelSmallUtilityGifts = "labelSmallUtilityGifts";
+  static const labelSoftToys = "labelSoftToys";
+  static const labelShowpieces = "labelShowpieces";
+  static const labelTableDecorItems = "labelTableDecorItems";
+  static const labelPhotoFrames = "labelPhotoFrames";
+  static const labelGiftBoxes = "labelGiftBoxes";
+  static const labelGiftHampers = "labelGiftHampers";
+
+   /// -----****(Grocery End)****------
 
 }

@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/core/routes/route_helper.dart'; // Added import for route navigation
@@ -29,7 +30,7 @@ class _JourneyPlanningScreenState extends State<JourneyPlanningScreen> {
   @override
   void dispose() {
     // TODO: implement dispose
-    Get.delete<JourneyPlanningController>();
+    deleteIfRegistered<JourneyPlanningController>();
     super.dispose();
   }
 

@@ -21,6 +21,8 @@ import 'package:BlueEra/features/common/delivery_partner/view/address_location_r
 import 'package:BlueEra/features/common/delivery_partner/view/driving_verification_riding_screen.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/personal_identification_riding_screen.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/personal_information_riding_screen.dart';
+import 'package:BlueEra/features/common/delivery_partner/view/rider_profile_status_screen.dart';
+import 'package:BlueEra/features/common/delivery_partner/view/rider_store/rider_store_screen.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/vehicle_images_riding_screen.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/vehicle_information_riding_screen.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
@@ -32,8 +34,11 @@ import 'package:BlueEra/features/common/food/view/food_upload_screen.dart';
 import 'package:BlueEra/features/common/food/view/grocery/add_grocery_screen.dart';
 import 'package:BlueEra/features/common/food/view/grocery/add_grocery_variant_screen.dart';
 import 'package:BlueEra/features/common/food/view/grocery/grocery_category_screen.dart';
+import 'package:BlueEra/features/common/food/view/grocery/grocery_listing/grocery_cart_screen.dart';
+import 'package:BlueEra/features/common/food/view/grocery/grocery_listing/grocery_confirm_screen.dart';
 import 'package:BlueEra/features/common/food/view/grocery/grocery_listing/grocery_listing_screen.dart';
-import 'package:BlueEra/features/common/food/view/grocery/all_grocery_listing_screen.dart';
+import 'package:BlueEra/features/common/food/view/grocery/grocery_subcategory_screen.dart';
+import 'package:BlueEra/features/common/food/view/grocery/grocery_super_category_screen.dart';
 import 'package:BlueEra/features/common/food/view/grocery/my_grocery_listing/grocery_screen.dart';
 import 'package:BlueEra/features/common/food/view/grocery/my_grocery_listing/my_grocery_category_screen.dart';
 import 'package:BlueEra/features/common/food/view/grocery/my_grocery_listing/my_grocery_screen.dart';
@@ -81,6 +86,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/booking_enquirie
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/send_enquiry_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/earn_blueera_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/rider_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/add_product_screen.dart';
@@ -92,8 +98,9 @@ import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/product_preview_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/store_product_preview_screen_product.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/inventory_business_cards_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/my_documents_screen/add_document_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/payment_setting_screen/add_account_screen/add_account_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/my_documents/view/add_document_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/payment/view/add_bank_account_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/payment/view/payment_setting_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/payment_setting_screen/add_account_upi/add_accountupi_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/product_listing_screen/product_listing_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/model/rental_service_response.dart';
@@ -112,6 +119,8 @@ import 'package:flutter/material.dart';
 import '../../features/chat/contacts/view/contact_list_page.dart';
 import '../../features/common/store/add_update_product/add_update_product_screen.dart';
 import '../../features/common/store/models/get_channel_product_model.dart';
+import '../../features/me/auth/model/medical_lab_details.dart';
+import '../../features/me/medical/view/category/otc_items_page.dart';
 import '../../features/personal/personal_profile/view/booking_enquiries_screen/appointment_booking_form.dart';
 import '../../features/personal/personal_profile/view/booking_enquiries_screen/bookings_enquiries.dart';
 import '../../features/personal/personal_profile/view/booking_enquiries_screen/my_booking_screen.dart';
@@ -131,8 +140,7 @@ class RouteHelper {
 
   // static String getOnboardingStartedScreenRoute() => RouteConstant.OnboardingStartedScreen;
 
-  static String getOtpPageScreenRoute() =>
-      RouteConstant.OtpPageScreen;
+  static String getOtpPageScreenRoute() => RouteConstant.OtpPageScreen;
 
   // static String getSelectAccountScreenRoute() =>
   //     RouteConstant.SelectAccountScreen;
@@ -140,17 +148,13 @@ class RouteHelper {
   // static String getCreateUserAccountRoute() =>
   //     RouteConstant.CreateUserAccount;
 
-  static String getHomeScreenRoute() =>
-      RouteConstant.HomeScreen;
+  static String getHomeScreenRoute() => RouteConstant.HomeScreen;
 
-  static String getSplashScreenRoute() =>
-      RouteConstant.SplashScreen;
+  static String getSplashScreenRoute() => RouteConstant.SplashScreen;
 
-  static String getPermissionScreenRoute() =>
-      RouteConstant.PermissionScreen;
+  static String getPermissionScreenRoute() => RouteConstant.PermissionScreen;
 
-  static String getAudioCallScreenRoute() =>
-      RouteConstant.AudioCallScreen;
+  static String getAudioCallScreenRoute() => RouteConstant.AudioCallScreen;
 
   // static String getBusinessAccountRoute() =>
   //     RouteConstant.BusinessAccount;
@@ -165,8 +169,6 @@ class RouteHelper {
       RouteConstant.PersonalProfileCreateScreen;
 
   static String getFeedScreenRoute() => RouteConstant.FeedScreen;
-
-
 
   static String getBusinessVerificationScreenRoute() =>
       RouteConstant.BusinessVerificationScreen;
@@ -201,15 +203,12 @@ class RouteHelper {
   static String getCategorySelectionScreenRoute() =>
       RouteConstant.categorySelectionScreen;
 
-
   static String getJobQnaScreenRoute() => RouteConstant.JobQnaScreen;
 
   static String getJobDetailsOverviewScreenRoute() =>
       RouteConstant.JobDetailsOverviewScreen;
 
   static String getAppliedJobsScreenRoute() => RouteConstant.AppliedJobsScreen;
-
-
 
   static String getAddUpdateProductScreenRoute() =>
       RouteConstant.addUpdateProductScreen;
@@ -234,32 +233,25 @@ class RouteHelper {
   static String getCreateJobPostStep5Route() =>
       RouteConstant.CreateJobPostStep5;
 
-  static String getTagPeopleScreenRoute() =>
-      RouteConstant.tagPeopleScreen;
+  static String getTagPeopleScreenRoute() => RouteConstant.tagPeopleScreen;
 
   static String getVideoReelRecorderScreenRoute() =>
       RouteConstant.videoRecorderScreen;
 
-  static String getFullVideoPreviewRoute() =>
-      RouteConstant.fullVideoPreview;
+  static String getFullVideoPreviewRoute() => RouteConstant.fullVideoPreview;
 
-  static String getVideoTrimScreenRoute() =>
-      RouteConstant.videoTrimScreen;
+  static String getVideoTrimScreenRoute() => RouteConstant.videoTrimScreen;
 
-  static String getAllSongsScreenRoute() =>
-      RouteConstant.allSongsScreen;
+  static String getAllSongsScreenRoute() => RouteConstant.allSongsScreen;
 
   static String getCreateMessagePostScreenRoute() =>
       RouteConstant.CreateMessagePostScreen;
 
-  static String getPollInputScreenRoute() =>
-      RouteConstant.PollInputScreen;
+  static String getPollInputScreenRoute() => RouteConstant.PollInputScreen;
 
-  static String getPollReviewScreenRoute() =>
-      RouteConstant.PollReviewScreen;
+  static String getPollReviewScreenRoute() => RouteConstant.PollReviewScreen;
 
-  static String getPhotoPostScreenRoute() =>
-      RouteConstant.PhotoPostScreen;
+  static String getPhotoPostScreenRoute() => RouteConstant.PhotoPostScreen;
 
   static String getPhotoPostPreviewScreenRoute() =>
       RouteConstant.PhotoPostPreviewScreen;
@@ -267,8 +259,7 @@ class RouteHelper {
   static String getPhotoPostReviewScreenRoute() =>
       RouteConstant.PhotoPostReviewScreen;
 
-  static String getVideoPlayerScreenRoute() =>
-      RouteConstant.videoPlayerScreen;
+  static String getVideoPlayerScreenRoute() => RouteConstant.videoPlayerScreen;
 
   // In route_helper.dart
   static String getJourneyPlanningScreenRoute() =>
@@ -290,8 +281,7 @@ class RouteHelper {
   static String getProductListingScreenRoute() =>
       RouteConstant.ProductListingScreen;
 
-  static String getMyBookingScreenRoute() =>
-      RouteConstant.MyBookingScreen;
+  static String getMyBookingScreenRoute() => RouteConstant.MyBookingScreen;
 
   static String getReceivedBookingScreenRoute() =>
       RouteConstant.ReceivedBookingScreen;
@@ -305,11 +295,9 @@ class RouteHelper {
   static String getVideographyTutorialScreen2Route() =>
       RouteConstant.VideographyTutorialScreen2;
 
-  static String getMyEnquiresRoute() =>
-      RouteConstant.MyEnquiresScreen;
+  static String getMyEnquiresRoute() => RouteConstant.MyEnquiresScreen;
 
-  static String sentEnquiresRoute() =>
-      RouteConstant.EnquiryForm;
+  static String sentEnquiresRoute() => RouteConstant.EnquiryForm;
 
   static String getBookingAndEnquiresRoute() =>
       RouteConstant.BookingAndEnquiresScreen;
@@ -320,41 +308,32 @@ class RouteHelper {
   static String getAppointmentBookingScreenRoute() =>
       RouteConstant.AppointmentBookingScreen;
 
-  static String getAddAccountScreenRoute() =>
-      RouteConstant.addAccountScreen;
+  static String getAddBankAccountScreenRoute() => RouteConstant.addBankAccountScreen;
 
   static String getAddAccountUpiScreenRoute() =>
       RouteConstant.addAccountUpiScreen;
 
-  static String getWalletScreenRoute() =>
-      RouteConstant.walletScreen;
+  static String getWalletScreenRoute() => RouteConstant.walletScreen;
 
   static String getAllTransactionsScreen() =>
       RouteConstant.allTransactionsScreen;
 
-  static String getEarnBlueEraScreenRoute() =>
-      RouteConstant.earnBlueeraScreen;
+  static String getEarnBlueEraScreenRoute() => RouteConstant.earnBlueeraScreen;
 
-  static String getAddDocumentScreenRoute() =>
-      RouteConstant.addDocumentScreen;
+  static String getAddDocumentScreenRoute() => RouteConstant.addDocumentScreen;
 
-  static String getPostDetailPageRoute() =>
-      RouteConstant.postDetailPage;
+  static String getPostDetailPageRoute() => RouteConstant.postDetailPage;
 
-  static String getMoreCardsScreenRoute() =>
-      RouteConstant.moreCardsScreen;
+  static String getMoreCardsScreenRoute() => RouteConstant.moreCardsScreen;
 
-  static String getAddProductScreenRoute() =>
-      RouteConstant.addProductScreen;
+  static String getAddProductScreenRoute() => RouteConstant.addProductScreen;
 
   // static String getListingFormScreenRoute() =>
   //      RouteConstant.listingFormScreen;
 
-  static String getInventoryScreenRoute() =>
-      RouteConstant.inventoryScreen;
+  static String getInventoryScreenRoute() => RouteConstant.inventoryScreen;
 
-  static String getAddServicesScreenRoute() =>
-      RouteConstant.addServicesScreen;
+  static String getAddServicesScreenRoute() => RouteConstant.addServicesScreen;
 
   static String getAddProductViaAiStep1Route() =>
       RouteConstant.addProductViaAiStep1;
@@ -371,8 +350,7 @@ class RouteHelper {
   static String getStoreProductPreviewScreenProductRoute() =>
       RouteConstant.storeProductPreviewScreenProduct;
 
-  static String getStoreFeedScreenRoute() =>
-      RouteConstant.storeFeedScreen;
+  static String getStoreFeedScreenRoute() => RouteConstant.storeFeedScreen;
 
   static String getEarnWithBlueEraNewScreenRoute() =>
       RouteConstant.earnWithBlueEraNewScreen;
@@ -380,8 +358,7 @@ class RouteHelper {
   static String getInventoryBusinessCardsScreenRoute() =>
       RouteConstant.inventoryBusinessCardsScreen;
 
-  static String getFoodUploadScreenRoute() =>
-      RouteConstant.foodUploadScreen;
+  static String getFoodUploadScreenRoute() => RouteConstant.foodUploadScreen;
 
   static String getAddFlatRoomRentalServiceScreenRoute() =>
       RouteConstant.addFlatRoomRentalServiceScreen;
@@ -434,20 +411,17 @@ class RouteHelper {
   static String getPersonalAccountNewScreenRoute() =>
       RouteConstant.personalAccountNewScreen;
 
-  static String getGstNumberScreenRoute() =>
-      RouteConstant.gstNumberScreen;
+  static String getGstNumberScreenRoute() => RouteConstant.gstNumberScreen;
 
-  static String getAddBioViaAiScreenRoute() =>
-      RouteConstant.addBioViaAiScreen;
+  static String getAddBioViaAiScreenRoute() => RouteConstant.addBioViaAiScreen;
 
-  static String getGroceryScreenRoute() =>
-      RouteConstant.groceryScreen;
+  static String getGroceryScreenRoute() => RouteConstant.groceryScreen;
 
   static String getGroceryCategoryScreenRoute() =>
       RouteConstant.groceryCategoryScreen;
 
-  static String getAllGroceryListingScreenRoute() =>
-      RouteConstant.allGroceryListingScreen;
+  static String getGrocerySubCategoryScreenRoute() =>
+      RouteConstant.grocerySubCategoryScreen;
 
   static String getAddGroceryScreenRoute() =>
       RouteConstant.addGroceryScreen;
@@ -463,6 +437,30 @@ class RouteHelper {
 
   static String getGroceryListingScreenRoute() =>
       RouteConstant.groceryListingScreen;
+
+  static String getRiderServiceScreenRoute() =>
+      RouteConstant.riderServiceScreen;
+
+  static String getGroceryCartScreenRoute() =>
+      RouteConstant.groceryCartScreen;
+
+  // static String getRiderProfileStatusScreenRoute() =>
+  //     RouteConstant.RiderProfileStatusScreen;
+
+  static String getGrocerySuperCategoryScreenRoute() =>
+      RouteConstant.grocerySuperCategoryScreen;
+
+  static String getPaymentSettingScreenRoute() =>
+      RouteConstant.paymentSettingScreen;
+
+  static String getMedicalOtcItemsScreen() =>
+      RouteConstant.medicalOtcItemsScreen;
+
+  static String getRiderStoreScreenRoute() =>
+      RouteConstant.riderStoreScreen;
+
+  static String getGroceryConfirmScreenRoute() =>
+      RouteConstant.groceryConfirmScreen;
 
 
   ///REDIRECT ROUTING SETUP.....
@@ -514,8 +512,8 @@ class RouteHelper {
         int? initialIndex = args?[ApiKeys.initialIndex];
         return MaterialPageRoute(
           builder: (_) => BottomNavigationBarScreen(
-              initialIndex: initialIndex,
-              ),
+            initialIndex: initialIndex,
+          ),
           settings: RouteSettings(
               name: RouteHelper.getBottomNavigationBarScreenRoute()),
         );
@@ -555,7 +553,7 @@ class RouteHelper {
                 onHeaderVisibilityChanged: onHeaderVisibilityChanged,
                 postFilterType: postFilterType,
                 id: id));
-    case RouteConstant.BusinessVerificationScreen:
+      case RouteConstant.BusinessVerificationScreen:
         return MaterialPageRoute(builder: (_) => BusinessVerificationScreen());
       case RouteConstant.OwnershipVerificationScreen:
         return MaterialPageRoute(builder: (_) => OwnershipVerificationScreen());
@@ -895,12 +893,11 @@ class RouteHelper {
       case RouteConstant.SetAvailabilityScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final String channelId = args[ApiKeys.channelId] as String;
-        final AvailabilityModel? availabilityBookingData = args[ApiKeys.availabilityBookingData] as AvailabilityModel?;
+        final AvailabilityModel? availabilityBookingData =
+            args[ApiKeys.availabilityBookingData] as AvailabilityModel?;
         return MaterialPageRoute(
           builder: (_) => SetAvailabilityScreen(
-              id: channelId,
-              availabilityBookingData: availabilityBookingData
-          ),
+              id: channelId, availabilityBookingData: availabilityBookingData),
           settings: settings, // Pass the settings to preserve arguments
         );
       case RouteConstant.AppointmentBookingScreen:
@@ -941,11 +938,11 @@ class RouteHelper {
           settings:
               RouteSettings(name: RouteHelper.getAddUpdateProductScreenRoute()),
         );
-      case RouteConstant.addAccountScreen:
+      case RouteConstant.addBankAccountScreen:
         return MaterialPageRoute(
-            builder: (_) => AddAccountScreen(),
+            builder: (_) => AddBankAccountScreen(),
             settings: RouteSettings(
-                name: RouteHelper.getAddAccountScreenRoute(),
+                name: RouteHelper.getAddBankAccountScreenRoute(),
                 arguments: settings.arguments));
       case RouteConstant.addAccountUpiScreen:
         return MaterialPageRoute(
@@ -999,13 +996,14 @@ class RouteHelper {
       case RouteConstant.addProductScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final String id = args[ApiKeys.id] as String;
-        final ProductServiceProviderType providerType = args[ApiKeys.providerType] as ProductServiceProviderType;
+        final ProductServiceProviderType providerType =
+            args[ApiKeys.providerType] as ProductServiceProviderType;
 
         return MaterialPageRoute(
             builder: (_) => AddProductScreen(
-              id: id,
-              providerType: providerType,
-            ),
+                  id: id,
+                  providerType: providerType,
+                ),
             settings: RouteSettings(name: getAddProductScreenRoute()));
       // case RouteConstant.listingFormScreen:
       //   return MaterialPageRoute(
@@ -1017,32 +1015,34 @@ class RouteHelper {
             settings: RouteSettings(name: getInventoryScreenRoute()));
       case RouteConstant.addServicesScreen:
         final args = settings.arguments as Map<String, dynamic>;
-        final ProductServiceProviderType providerType = args[ApiKeys.providerType] as ProductServiceProviderType;
-        final EarnWithBlueEraServiceTypes? serviceSubType = args[ApiKeys.serviceSubType] as EarnWithBlueEraServiceTypes?;
-        final bool? isFromEarnWithBlueEraService = args[ApiKeys.isFromEarnWithBlueEraService] as bool?;
+        final ProductServiceProviderType providerType =
+            args[ApiKeys.providerType] as ProductServiceProviderType;
+        final EarnWithBlueEraServiceTypes? serviceSubType =
+            args[ApiKeys.serviceSubType] as EarnWithBlueEraServiceTypes?;
+        final bool? isFromEarnWithBlueEraService =
+            args[ApiKeys.isFromEarnWithBlueEraService] as bool?;
         final String? designation = args[ApiKeys.designation] as String?;
         final String? channelId = args[ApiKeys.channelId] as String?;
 
         return MaterialPageRoute(
             builder: (_) => ServiceUploadScreen(
-              providerType: providerType,
-              isFromEarnWithBlueEraService: isFromEarnWithBlueEraService,
-              channelId: channelId,
-              designation: designation,
-              serviceSubType: serviceSubType,
-            ),
+                  providerType: providerType,
+                  isFromEarnWithBlueEraService: isFromEarnWithBlueEraService,
+                  channelId: channelId,
+                  designation: designation,
+                  serviceSubType: serviceSubType,
+                ),
             // builder: (_) => AddServicesScreen(),
             settings: RouteSettings(name: getAddServicesScreenRoute()));
       case RouteConstant.addProductViaAiStep1:
         final args = settings.arguments as Map<String, dynamic>;
         final String id = args[ApiKeys.id] as String;
-        final ProductServiceProviderType providerType = args[ApiKeys.providerType] as ProductServiceProviderType;
+        final ProductServiceProviderType providerType =
+            args[ApiKeys.providerType] as ProductServiceProviderType;
 
         return MaterialPageRoute(
-            builder: (_) => AddProductViaAiStep1(
-                id: id,
-              providerType: providerType
-            ),
+            builder: (_) =>
+                AddProductViaAiStep1(id: id, providerType: providerType),
             settings: RouteSettings(name: getAddProductViaAiStep1Route()));
       case RouteConstant.addProductViaAiStep2:
         final args = settings.arguments as Map<String, dynamic>;
@@ -1051,15 +1051,16 @@ class RouteHelper {
         final GenerateAiProductContent generateAiProductContent =
             args[ApiKeys.generateAiProductContent] as GenerateAiProductContent;
         final String id = args[ApiKeys.id] as String;
-        final ProductServiceProviderType providerType = args[ApiKeys.providerType] as ProductServiceProviderType;
+        final ProductServiceProviderType providerType =
+            args[ApiKeys.providerType] as ProductServiceProviderType;
 
         return MaterialPageRoute(
             builder: (_) => AddProductViaAiStep2(
-                controller: controller,
-                generateAiProductContent: generateAiProductContent,
-                id: id,
-                providerType: providerType,
-            ),
+                  controller: controller,
+                  generateAiProductContent: generateAiProductContent,
+                  id: id,
+                  providerType: providerType,
+                ),
             settings: RouteSettings(name: getAddProductViaAiStep2Route()));
       // case RouteConstant.productPreviewScreen:
       //   final args = settings.arguments as Map<String, dynamic>?;
@@ -1069,24 +1070,26 @@ class RouteHelper {
       //   return MaterialPageRoute(
       //       builder: (_) => ProductPreviewScreen(productData: productData),
       //       settings: RouteSettings(name: getProductPreviewScreenRoute()));
-        case RouteConstant.productPreviewScreen:
+      case RouteConstant.productPreviewScreen:
         final args = settings.arguments as Map<String, dynamic>?;
         final ProductPreviewArgs? argProductData =
             args?[ApiKeys.argProductData] as ProductPreviewArgs?;
-        final bool? isFromProductCreation = args?[ApiKeys.isFromProductCreation] as bool?;
-        final bool? isUserCanCreateVariants = args?[ApiKeys.isUserCanCreateVariants] as bool?;
+        final bool? isFromProductCreation =
+            args?[ApiKeys.isFromProductCreation] as bool?;
+        final bool? isUserCanCreateVariants =
+            args?[ApiKeys.isUserCanCreateVariants] as bool?;
         final String? id = args?[ApiKeys.id] as String?;
-        final ProductServiceProviderType? providerType = args?[ApiKeys.providerType] as ProductServiceProviderType?;
+        final ProductServiceProviderType? providerType =
+            args?[ApiKeys.providerType] as ProductServiceProviderType?;
 
         return MaterialPageRoute(
             builder: (_) => ProductPreviewScreen(
-                id: id,
-                providerType: providerType,
-                productPreviewArgs: argProductData,
-                isFromProductCreation: isFromProductCreation ?? false,
-                isUserCanCreateVariants: isUserCanCreateVariants ?? true,
-
-            ),
+                  id: id,
+                  providerType: providerType,
+                  productPreviewArgs: argProductData,
+                  isFromProductCreation: isFromProductCreation ?? false,
+                  isUserCanCreateVariants: isUserCanCreateVariants ?? true,
+                ),
             settings: RouteSettings(name: getProductPreviewScreenRoute()));
       case RouteConstant.storeProductPreviewScreenProduct:
         final args = settings.arguments as Map<String, dynamic>;
@@ -1094,84 +1097,91 @@ class RouteHelper {
             args[ApiKeys.argProductData] as ProductStore?;
         // final bool? productDataBool = args["isShowBusinessInfo"] as bool?;
         final String id = args[ApiKeys.id] as String;
-        final ProductServiceProviderType providerType = args[ApiKeys.providerType] as ProductServiceProviderType;
+        final ProductServiceProviderType providerType =
+            args[ApiKeys.providerType] as ProductServiceProviderType;
 
         return MaterialPageRoute(
             builder: (_) => StoreProductPreviewScreenProduct(
-                  productStore: productStore,
-                  // isShowBusinessInfo: productDataBool,
-                  id: id,
-                  providerType: providerType
-                ),
-            settings:
-                RouteSettings(name: getStoreProductPreviewScreenProductRoute()));
+                productStore: productStore,
+                // isShowBusinessInfo: productDataBool,
+                id: id,
+                providerType: providerType),
+            settings: RouteSettings(
+                name: getStoreProductPreviewScreenProductRoute()));
       case RouteConstant.createVariantScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final ProductController controller =
             args[ApiKeys.controller] as ProductController;
         final String id = args[ApiKeys.id] as String;
-        final ProductServiceProviderType providerType = args[ApiKeys.providerType] as ProductServiceProviderType;
+        final ProductServiceProviderType providerType =
+            args[ApiKeys.providerType] as ProductServiceProviderType;
 
         return MaterialPageRoute(
             builder: (_) => CreateVariantScreen(
-                controller: controller,
-                id: id,
-                providerType: providerType,
-            ),
+                  controller: controller,
+                  id: id,
+                  providerType: providerType,
+                ),
             settings: RouteSettings(name: getCreateVariantScreenRoute()));
 
       case RouteConstant.storeFeedScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final isHeaderVisible = args[ApiKeys.isHeaderVisible] as bool;
         final onHeaderVisibilityChanged =
-        args[ApiKeys.onHeaderVisibilityChanged] as Function(bool)?;
+            args[ApiKeys.onHeaderVisibilityChanged] as Function(bool)?;
         return MaterialPageRoute(
             builder: (_) => StoreFeedScreen(
-              isHeaderVisible: isHeaderVisible,
-              onHeaderVisibilityChanged: onHeaderVisibilityChanged
-            ),
+                isHeaderVisible: isHeaderVisible,
+                onHeaderVisibilityChanged: onHeaderVisibilityChanged),
             settings: RouteSettings(name: getStoreFeedScreenRoute()));
       case RouteConstant.earnWithBlueEraNewScreen:
         return MaterialPageRoute(
             builder: (_) => EarnWithBlueEraNewScreen(),
             settings: RouteSettings(name: getEarnWithBlueEraNewScreenRoute()));
-     case RouteConstant.inventoryBusinessCardsScreen:
+      case RouteConstant.inventoryBusinessCardsScreen:
         return MaterialPageRoute(
             builder: (_) => InventoryBusinessCardsScreen(),
-            settings: RouteSettings(name: getInventoryBusinessCardsScreenRoute()));
+            settings:
+                RouteSettings(name: getInventoryBusinessCardsScreenRoute()));
       case RouteConstant.foodUploadScreen:
         final args = settings.arguments as Map<String, dynamic>;
-        final ProductServiceProviderType providerType = args[ApiKeys.providerType] as ProductServiceProviderType;
-        final EarnWithBlueEraServiceTypes? serviceSubType = args[ApiKeys.serviceSubType] as EarnWithBlueEraServiceTypes?;
+        final ProductServiceProviderType providerType =
+            args[ApiKeys.providerType] as ProductServiceProviderType;
+        final EarnWithBlueEraServiceTypes? serviceSubType =
+            args[ApiKeys.serviceSubType] as EarnWithBlueEraServiceTypes?;
         final String? category = args[ApiKeys.category] as String?;
 
         return MaterialPageRoute(
             builder: (_) => FoodUploadScreen(
                 providerType: providerType,
                 serviceSubType: serviceSubType,
-                category: category
-            ),
+                category: category),
             settings: RouteSettings(name: getFoodUploadScreenRoute()));
       case RouteConstant.addFlatRoomRentalServiceScreen:
         return MaterialPageRoute(
             builder: (_) => AddFlatRoomRentalServiceScreen(),
-            settings: RouteSettings(name: getAddFlatRoomRentalServiceScreenRoute()));
+            settings:
+                RouteSettings(name: getAddFlatRoomRentalServiceScreenRoute()));
       case RouteConstant.personalInformationRidingScreen:
         return MaterialPageRoute(
-            builder: (_) => PersonalInformationRidingScreen(),
-            settings: RouteSettings(name: getPersonalInformationRidingScreenRoute()));
+            builder: (_) => PersonalInformationRidingScreen(screeName: '',),
+            settings:
+                RouteSettings(name: getPersonalInformationRidingScreenRoute()));
       case RouteConstant.addressLocationRidingScreen:
         return MaterialPageRoute(
-            builder: (_) => AddressLocationRidingScreen(),
-            settings: RouteSettings(name: getAddressLocationRidingScreenRoute()));
+            builder: (_) => AddressLocationRidingScreen(screeName: '',),
+            settings:
+                RouteSettings(name: getAddressLocationRidingScreenRoute()));
       case RouteConstant.personalIdentificationRidingScreen:
         return MaterialPageRoute(
             builder: (_) => PersonalIdentificationRidingScreen(),
-            settings: RouteSettings(name: getPersonalIdentificationRidingScreenRoute()));
+            settings: RouteSettings(
+                name: getPersonalIdentificationRidingScreenRoute()));
       case RouteConstant.drivingVerificationRidingScreen:
         return MaterialPageRoute(
             builder: (_) => DrivingVerificationRidingScreen(),
-            settings: RouteSettings(name: getDrivingVerificationRidingScreenRoute()));
+            settings:
+                RouteSettings(name: getDrivingVerificationRidingScreenRoute()));
       case RouteConstant.vehicleImagesRidingScreen:
         return MaterialPageRoute(
             builder: (_) => VehicleImagesRidingScreen(),
@@ -1179,7 +1189,8 @@ class RouteHelper {
       case RouteConstant.vehicleInformationRidingScreen:
         return MaterialPageRoute(
             builder: (_) => VehicleInformationRidingScreen(),
-            settings: RouteSettings(name: getVehicleInformationRidingScreenRoute()));
+            settings:
+                RouteSettings(name: getVehicleInformationRidingScreenRoute()));
       case RouteConstant.homeStayRentalService:
         return MaterialPageRoute(
             builder: (_) => HomeStayRentalService(),
@@ -1194,60 +1205,59 @@ class RouteHelper {
             settings: RouteSettings(name: getRentalServiceScreenRoute()));
       case RouteConstant.rentalServiceFullDetailsScreen:
         final args = settings.arguments as Map<String, dynamic>;
-        final RentalServiceData rentalServiceData = args[ApiKeys.argRentalData] as RentalServiceData;
+        final RentalServiceData rentalServiceData =
+            args[ApiKeys.argRentalData] as RentalServiceData;
         return MaterialPageRoute(
             builder: (_) => RentalServiceFullDetailsScreen(
-                rentalServiceData: rentalServiceData
-            ),
-            settings: RouteSettings(name: getRentalServiceFullDetailsScreenRoute()));
+                rentalServiceData: rentalServiceData),
+            settings:
+                RouteSettings(name: getRentalServiceFullDetailsScreenRoute()));
       case RouteConstant.createNewAccountScreen:
         // final args = settings.arguments as Map<String, dynamic>;
         return MaterialPageRoute(
             builder: (_) => CreateNewAccountScreen(),
-           settings: RouteSettings(name: getCreateNewAccountScreenRoute())
-          );
+            settings: RouteSettings(name: getCreateNewAccountScreenRoute()));
       case RouteConstant.createBusinessAccountNewStepOne:
         return MaterialPageRoute(
             builder: (_) => CreateBusinessAccountNewStepOne(),
-            settings: RouteSettings(name: getCreateBusinessAccountNewStepOneRoute())
-        );
+            settings:
+                RouteSettings(name: getCreateBusinessAccountNewStepOneRoute()));
       case RouteConstant.createBusinessAccountNewStepTwo:
         return MaterialPageRoute(
             builder: (_) => CreateBusinessAccountNewStepTwo(),
-            settings: RouteSettings(name: getCreateBusinessAccountNewStepTwoRoute())
-        );
+            settings:
+                RouteSettings(name: getCreateBusinessAccountNewStepTwoRoute()));
       case RouteConstant.createBusinessAccountNewStepThree:
         final args = settings.arguments as Map<String, dynamic>;
         final String? city = args[ApiKeys.city] as String?;
         return MaterialPageRoute(
-            builder: (_) => CreateBusinessAccountNewStepThree(
-                city: city
-            ),
-            settings: RouteSettings(name: getCreateBusinessAccountNewStepThreeRoute())
-        );
+            builder: (_) => CreateBusinessAccountNewStepThree(city: city),
+            settings: RouteSettings(
+                name: getCreateBusinessAccountNewStepThreeRoute()));
       case RouteConstant.addBusinessLivePhoto:
         return MaterialPageRoute(
             builder: (_) => AddBusinessLivePhoto(),
-            settings: RouteSettings(name: getAddBusinessLivePhotoRoute())
-        );
+            settings: RouteSettings(name: getAddBusinessLivePhotoRoute()));
       case RouteConstant.personalAccountNewScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final accountType = args[ApiKeys.argAccountType] as String;
         final professionTagId = args[ApiKeys.argProfessionTagId] as String;
-        final professionSubCategory = args[ApiKeys.argProfessionSubCategory] as List<SubcategoriesFiledName>?;
+        final professionSubCategory = args[ApiKeys.argProfessionSubCategory]
+            as List<SubcategoriesFiledName>?;
         final selfEmployment = args[ApiKeys.argSelfEmployment] as String?;
-        final selfEmploymentTagId = args[ApiKeys.argSelfEmploymentTagId] as String?;
+        final selfEmploymentTagId =
+            args[ApiKeys.argSelfEmploymentTagId] as String?;
 
         return MaterialPageRoute(
             builder: (_) => PersonalAccountNewScreen(
-              accountType: accountType,
-              professionTagId: professionTagId,
-              professionSubCategory: professionSubCategory,
-              selfEmployment: selfEmployment,
-              selfEmploymentTagId: selfEmploymentTagId,
-            ),
-            settings: RouteSettings(name: RouteHelper.getPersonalAccountNewScreenRoute())
-        );
+                  accountType: accountType,
+                  professionTagId: professionTagId,
+                  professionSubCategory: professionSubCategory,
+                  selfEmployment: selfEmployment,
+                  selfEmploymentTagId: selfEmploymentTagId,
+                ),
+            settings: RouteSettings(
+                name: RouteHelper.getPersonalAccountNewScreenRoute()));
 
       case RouteConstant.gstNumberScreen:
         final args = settings.arguments as Map<String, dynamic>;
@@ -1258,13 +1268,13 @@ class RouteHelper {
 
         return MaterialPageRoute(
             builder: (_) => GstNumberScreen(
-              accountType: accountType,
-              businessType: businessType,
-              categoryData: categoryData,
-              subCategory: subCategory,
-            ),
-            settings: RouteSettings(name: RouteHelper.getGstNumberScreenRoute())
-        );
+                  accountType: accountType,
+                  businessType: businessType,
+                  categoryData: categoryData,
+                  subCategory: subCategory,
+                ),
+            settings:
+                RouteSettings(name: RouteHelper.getGstNumberScreenRoute()));
       case RouteConstant.addBioViaAiScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final profession = args[ApiKeys.argProfession] as String;
@@ -1275,43 +1285,45 @@ class RouteHelper {
 
         return MaterialPageRoute(
             builder: (_) => AddBioViaAiScreen(
-              profession: profession,
-              designation: designation,
-              selectedDay: selectedDay,
-              selectedMonth: selectedMonth,
-              selectedYear: selectedYear
-            ),
-            settings: RouteSettings(name: getAddBioViaAiScreenRoute())
-        );
+                profession: profession,
+                designation: designation,
+                selectedDay: selectedDay,
+                selectedMonth: selectedMonth,
+                selectedYear: selectedYear),
+            settings: RouteSettings(name: getAddBioViaAiScreenRoute()));
 
       case RouteConstant.groceryScreen:
         final args = settings.arguments as Map<String, dynamic>;
-        final bool? argFromBottomNavBar = args[ApiKeys.argFromBottomNavBar] as bool?;
+        final bool? argFromBottomNavBar =
+            args[ApiKeys.argFromBottomNavBar] as bool?;
         return MaterialPageRoute(
-            builder: (_) => GroceryScreen(
-                fromBottomNavBar: argFromBottomNavBar
-            ),
-            settings: RouteSettings(name: getGroceryScreenRoute())
-        );
+            builder: (_) =>
+                GroceryScreen(fromBottomNavBar: argFromBottomNavBar),
+            settings: RouteSettings(name: getGroceryScreenRoute()));
       case RouteConstant.groceryCategoryScreen:
         final args = settings.arguments as Map<String, dynamic>;
-        final bool argOwnGrocery = args[ApiKeys.argOwnGrocery] as bool;
+        final bool argMyGrocery = args[ApiKeys.argMyGrocery] as bool;
+        final String pageHeading = args[ApiKeys.argPageHeading] as String;
+        final Map<String, List<CollapsibleGridModel>> argArrGroceryCat =
+              args[ApiKeys.argArrGroceryCat] as Map<String, List<CollapsibleGridModel>>;
         return MaterialPageRoute(
             builder: (_) => GroceryCategoryScreen(
-                isOwnGrocery: argOwnGrocery
+                arrGroceryCat: argArrGroceryCat,
+                pageHeading: pageHeading,
+                isMyGrocery: argMyGrocery
             ),
             settings: RouteSettings(name: getGroceryCategoryScreenRoute())
         );
-      case RouteConstant.allGroceryListingScreen:
+      case RouteConstant.grocerySubCategoryScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final List<CollapsibleGridModel> argGroceries = args[ApiKeys.argGroceries] as List<CollapsibleGridModel>;
         final CollapsibleGridModel argSelectedGroceryData = args[ApiKeys.argSelectedGroceryData] as CollapsibleGridModel;
         return MaterialPageRoute(
-            builder: (_) => AllGroceryListingScreen(
+            builder: (_) => GrocerySubCategoryScreen(
                 arrGroceries: argGroceries,
                 selectedGroceryData: argSelectedGroceryData
             ),
-            settings: RouteSettings(name: getAllGroceryListingScreenRoute())
+            settings: RouteSettings(name: getGrocerySubCategoryScreenRoute())
         );
       case RouteConstant.addGroceryScreen:
         return MaterialPageRoute(
@@ -1324,8 +1336,14 @@ class RouteHelper {
             settings: RouteSettings(name: getAddGroceryVariantScreenRoute())
         );
       case RouteConstant.myGroceryCategoryScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        final String argCategoryId = args[ApiKeys.argCategoryId] as String;
+        final String argCategoryName = args[ApiKeys.argCategoryName] as String;
         return MaterialPageRoute(
-            builder: (_) => MyGroceryCategoryScreen(),
+            builder: (_) => MyGroceryCategoryScreen(
+                categoryId: argCategoryId,
+                categoryName: argCategoryName,
+            ),
             settings: RouteSettings(name: getMyGroceryCategoryScreenRoute())
         );
       case RouteConstant.myGroceryScreen:
@@ -1349,6 +1367,62 @@ class RouteHelper {
                 selectedGroceryData: argSelectedGroceryData
             ),
             settings: RouteSettings(name: getGroceryListingScreenRoute())
+        );
+      case RouteConstant.riderServiceScreen:
+        // final args = settings.arguments as Map<String, dynamic>;
+        // final List<CollapsibleGridModel> argGroceries = args[ApiKeys.argGroceries] as List<CollapsibleGridModel>;
+        // final CollapsibleGridModel argSelectedGroceryData = args[ApiKeys.argSelectedGroceryData] as CollapsibleGridModel;
+        return MaterialPageRoute(
+            builder: (_) => RiderServiceScreen(
+                // arrGroceries: argGroceries,
+                // selectedGroceryData: argSelectedGroceryData
+                ),
+            settings: RouteSettings(name: getRiderServiceScreenRoute()));
+      case RouteConstant.groceryCartScreen:
+        return MaterialPageRoute(
+            builder: (_) => GroceryCartScreen(),
+            settings: RouteSettings(name: getGroceryCartScreenRoute()));
+
+    //   case RouteConstant.RiderProfileStatusScreen:
+    //     return MaterialPageRoute(
+    //       builder: (_) => RiderProfileStatusScreen(screeName: '', isAllComplete: false: ''lStepsCompleted: null,),
+    //      settings: RouteSettings(name: getGroceryCartScreenRoute())
+    // );
+      case RouteConstant.grocerySuperCategoryScreen:
+      final args = settings.arguments as Map<String, dynamic>;
+        final bool argMyGrocery = args[ApiKeys.argMyGrocery] as bool;
+        return MaterialPageRoute(
+            builder: (_) => GrocerySuperCategoryScreen(
+                isMyGrocery: argMyGrocery
+            ),
+            settings: RouteSettings(name: getGrocerySuperCategoryScreenRoute())
+        );
+      case RouteConstant.paymentSettingScreen:
+        return MaterialPageRoute(
+            builder: (_) => PaymentSettingScreen(),
+            settings: RouteSettings(name: getPaymentSettingScreenRoute())
+        );
+
+
+        case RouteConstant.medicalOtcItemsScreen:
+          final args = settings.arguments as Map<String, dynamic>;
+          List<MedicalLabDataListModel>? children=args[ApiKeys.medicalOtcChildren] as List<MedicalLabDataListModel>?;
+          return MaterialPageRoute(
+              builder: (_) => OTCItemsPage(
+                  children: children
+              ),
+              settings: RouteSettings(name: getMedicalOtcItemsScreen())
+          );
+      case RouteConstant.riderStoreScreen:
+        return MaterialPageRoute(
+            builder: (_) => RiderStoreScreen(
+            ),
+            settings: RouteSettings(name: getRiderStoreScreenRoute())
+        );
+        case RouteConstant.groceryConfirmScreen:
+        return MaterialPageRoute(
+            builder: (_) => GroceryConfirmScreen(),
+            settings: RouteSettings(name: getGroceryConfirmScreenRoute())
         );
       default:
         return MaterialPageRoute(

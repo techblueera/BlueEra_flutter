@@ -46,11 +46,11 @@ class _ContactsPageState extends State<ContactsPage> {
   @override
   void initState() {
     super.initState();
-    if (widget.from == "group") {
+    // if (widget.from == "group") {
       chatViewController.loadGroupConnections();
-    } else {
+    // } else {
       _loadContactsFromStorage();
-    }
+    // }
     _searchController.addListener(_onSearchChanged);
   }
 
@@ -172,7 +172,10 @@ class _ContactsPageState extends State<ContactsPage> {
     PermissionStatus status = await Permission.contacts.status;
     if (status.isGranted) {
       List<Contact> contacts =
-          await FlutterContacts.getContacts(withProperties: true);
+      await FlutterContacts.getContacts(
+        withProperties: true,
+        withAccounts: true, // REQUIRED for newer Android
+      );
 
       // Convert Contacts → plain JSON-safe map
       List<Map<String, dynamic>> rawContacts = contacts.map((c) {

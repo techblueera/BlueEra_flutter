@@ -49,6 +49,14 @@ class ChatViewRepo extends BaseService {
         params: params, onError: (error) {}, onSuccess: (data) {});
     return response;
   }
+  Future<ResponseModel> updateGroupApi(Map<String, dynamic> params) async {
+    final response = await ApiBaseHelper().putHTTP(
+        updateGroup,
+        isMultipart: true,
+        showProgress: true,
+        params: params, onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
   Future<ResponseModel> getGroupMembersApi(Map<String, dynamic> params) async {
     final response = await ApiBaseHelper().getHTTP(
         getGroupMembersChat,

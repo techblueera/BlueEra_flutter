@@ -30,6 +30,8 @@ String googleGeoCode =
 String googleCountryCode = "&language=en&components=country:IN";
 
 
+
+String takeFranchise ="https://bluecs.in/partner";
 String privacyLink =
     "https://www.freeprivacypolicy.com/live/f1d1be8d-4563-43e0-9275-c439f46390ad";
 String tncLink =
@@ -39,18 +41,20 @@ Future<void> projectKeys({required String environmentType}) async {
   if (environmentType == AppConstants.prod) {
     isProdEnvironment = true;
     baseUrl = "https://be.blueera.ai/api/";
-    // razorpayKey = "rzp_test_ohzYMNmUvD1Vxg";
-    razorpayKey = "rzp_live_RYv0tzupV710iQ";
+    razorpayKey = "rzp_test_ohzYMNmUvD1Vxg";
+    // razorpayKey = "rzp_live_RYv0tzupV710iQ";
     chatSocketUrl = 'wss://chat.blueera.ai';
   } else if (environmentType == AppConstants.dev) {
     isProdEnvironment = false;
     baseUrl = "https://p3qw782za2.execute-api.ap-south-1.amazonaws.com/api/";
-    razorpayKey = "rzp_live_RYv0tzupV710iQ";
+    razorpayKey = "rzp_test_ohzYMNmUvD1Vxg";
+    // razorpayKey = "rzp_live_RYv0tzupV710iQ";
     chatSocketUrl = 'wss://chat.blueera.ai';
   } else if (environmentType == AppConstants.qa) {
     isProdEnvironment = false;
     baseUrl = "https://p3qw782za2.execute-api.ap-south-1.amazonaws.com/api/";
-    razorpayKey = "rzp_live_RYv0tzupV710iQ";
+    razorpayKey = "rzp_test_ohzYMNmUvD1Vxg";
+    // razorpayKey = "rzp_live_RYv0tzupV710iQ";
   }
 
   await SharedPreferenceUtils.setBaseUrlSecureValue(baseUrl);

@@ -40,10 +40,10 @@ void postNavigations(
           arguments: {ApiKeys.argPostVia: postVia});
       break;
 
-    case PostCreationMenu.photos:
-      Get.toNamed(RouteHelper.getPhotoPostScreenRoute(),
-          arguments: {ApiKeys.argPostVia: postVia});
-      break;
+    // case PostCreationMenu.photos:
+    //   Get.toNamed(RouteHelper.getPhotoPostScreenRoute(),
+    //       arguments: {ApiKeys.argPostVia: postVia});
+    //   break;
     default:
       break;
   }

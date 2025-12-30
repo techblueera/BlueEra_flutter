@@ -510,30 +510,31 @@ class _AllMessagePostScreenState extends State<AllMessagePostScreen> {
                           try {
                             _isSharing =
                                 true; // Set flag to prevent multiple calls
-                            XFile? xFile;
-                            if ((post.media?.first.isNotEmpty ?? false)) {
-                              // Safely handle first media
-                              xFile = await urlToCachedXFile(
-                                  post.media?.first ?? "");
-                            }
-
-                            final shareUrl =
-                                postDeepLink(postId: post.id.toString());
-                            final combinedText = shareUrl;
-
-                            await SharePlus.instance.share(ShareParams(
-                                text: combinedText,
-                                title: post.subTitle,
-                                previewThumbnail: xFile,
-                                files: [xFile ?? XFile("")]));
-
-                            if (xFile != null) {
-                              final file = File(xFile.path);
-                              if (await file.exists()) {
-                                await file.delete();
-                                print("🗑️ File deleted from cache.");
-                              }
-                            }
+                            onShareButtonPressed(post);
+                            // XFile? xFile;
+                            // if ((post.media?.first.isNotEmpty ?? false)) {
+                            //   // Safely handle first media
+                            //   xFile = await urlToCachedXFile(
+                            //       post.media?.first ?? "");
+                            // }
+                            //
+                            // final shareUrl =
+                            //     postDeepLink(postId: post.id.toString());
+                            // final combinedText = shareUrl;
+                            //
+                            // await SharePlus.instance.share(ShareParams(
+                            //     text: combinedText,
+                            //     title: post.subTitle,
+                            //     previewThumbnail: xFile,
+                            //     files: [xFile ?? XFile("")]));
+                            //
+                            // if (xFile != null) {
+                            //   final file = File(xFile.path);
+                            //   if (await file.exists()) {
+                            //     await file.delete();
+                            //     print("🗑️ File deleted from cache.");
+                            //   }
+                            // }
                           } catch (e) {
                             print(
                                 "feed card share failed inside _onShareButtonPressed $e");

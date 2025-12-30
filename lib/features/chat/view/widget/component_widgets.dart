@@ -234,9 +234,11 @@ Widget ChatListTile({
           }
         },
     child: Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: SizeConfig.size16,
-        vertical: SizeConfig.size12,
+      padding: EdgeInsets.only(
+        right: SizeConfig.size16,
+        left: (chat?.symbolData?.isNotEmpty??false)?13.5:SizeConfig.size16,
+        top: SizeConfig.size12,
+        bottom: SizeConfig.size12,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -244,7 +246,7 @@ Widget ChatListTile({
           InkWell(
             onTap: () {
               if(chat?.symbolData?.isNotEmpty??false){
-                Get.to(SymbolViewImages(data: chat?.symbolData??[],));
+                Get.to(SymbolViewImages(data: chat?.symbolData??[],userId: chat?.sender?.id,));
                 //
               }else{
                 showDialog(
@@ -371,41 +373,51 @@ Widget ChatListTile({
                   ],
                 ),
               ):null,
-              child: CircleAvatar(
-                backgroundColor: theme.colorScheme.primary,
-                radius: (chat?.symbolData?.isNotEmpty??false)?SizeConfig.size20:SizeConfig.size22,
-                child: (senderProfileImage == null || senderProfileImage == "null")
-                    ? Center(
-                  child: CustomText(
-                    "${groupName?.split('')[0]}",
-                    color: Colors.white,
-                    fontWeight: FontWeight.w800,
-                    fontSize: SizeConfig.size18,
-                  ),
-                )
-                    : (senderProfileImage.isNotEmpty)
-                    ? ClipOval(
-                  child: (senderProfileImage.startsWith('http'))
-                      ? CachedNetworkImage(
-                    imageUrl: senderProfileImage,
-                    fit: BoxFit.cover,
-                    width: SizeConfig.size44,
-                    height: SizeConfig.size44,
-                  )
-                      : Image.file(
-                    File(senderProfileImage),
-                    width: SizeConfig.size44,
-                    height: SizeConfig.size44,
-                    fit: BoxFit.cover,
-                  ),
-                )
-                    : Center(
-                  child: Text(
-                    senderName?.substring(0, 1) ?? '',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                      fontSize: SizeConfig.size18,
+              child: Container(
+
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(30),
+                  color: AppColors.white,
+                ),
+                child: Padding(
+                  padding:  EdgeInsets.all((chat?.symbolData?.isNotEmpty??false)?2.0:0),
+                  child: CircleAvatar(
+                    backgroundColor: theme.colorScheme.primary,
+                    radius: (chat?.symbolData?.isNotEmpty??false)?SizeConfig.size20:SizeConfig.size22,
+                    child: (senderProfileImage == null || senderProfileImage == "null")
+                        ? Center(
+                      child: CustomText(
+                        "${groupName?.split('')[0]}",
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        fontSize: SizeConfig.size18,
+                      ),
+                    )
+                        : (senderProfileImage.isNotEmpty)
+                        ? ClipOval(
+                      child: (senderProfileImage.startsWith('http'))
+                          ? CachedNetworkImage(
+                        imageUrl: senderProfileImage,
+                        fit: BoxFit.cover,
+                        width: SizeConfig.size44,
+                        height: SizeConfig.size44,
+                      )
+                          : Image.file(
+                        File(senderProfileImage),
+                        width: SizeConfig.size44,
+                        height: SizeConfig.size44,
+                        fit: BoxFit.cover,
+                      ),
+                    )
+                        : Center(
+                      child: Text(
+                        senderName?.substring(0, 1) ?? '',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
+                          fontSize: SizeConfig.size18,
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -907,6 +919,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
   required String? contactNo,
   String? profileImage,
   bool? isGroupAppBar,
+  bool? isGroupPrivate,
 }) {
   final theme = Theme.of(context);
   final chatViewController = Get.find<ChatViewController>();
@@ -947,6 +960,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
               transitionDuration: const Duration(milliseconds: 400),
               pageBuilder: (context, animation, secondaryAnimation) =>
                   ViewGroupMembers(
+                    publicGroup: isGroupPrivate??false,
                     conversationId: conversationId,
                     type: type,
                     name: name,
@@ -1093,6 +1107,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
                     transitionDuration: const Duration(milliseconds: 400),
                     pageBuilder: (context, animation, secondaryAnimation) =>
                         ViewGroupMembers(
+                          publicGroup: isGroupPrivate??false,
                           conversationId: conversationId,
                           type: type,
                           name: name,
@@ -1200,6 +1215,7 @@ PreferredSize getChatOptionsAppBar(BuildContext context, {
                             await chatViewController.deleteChatMessage(
                                 data, userId ?? '');
                             chatThemeController.resetSelection();
+                            chatThemeController.deActivateSelection();
                             Navigator.pop(context);
                           },
                           child: Container(
@@ -1233,6 +1249,7 @@ PreferredSize getChatOptionsAppBar(BuildContext context, {
                             await chatViewController.deleteChatMessage(
                                 data, userId ?? '');
                             chatThemeController.resetSelection();
+                            chatThemeController.deActivateSelection();
                             Navigator.pop(context);
                           },
                           child: Container(

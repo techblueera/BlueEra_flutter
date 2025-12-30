@@ -63,12 +63,14 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
   @override
   void initState() {
     super.initState();
-    // widget.members;
-    // if (widget.from == "group") {
-    //   chatViewController.loadGroupConnections();
-    // } else {
+
+    // ✅ Preselect users if provided
+    if (widget.preSelectedUsers != null &&
+        widget.preSelectedUsers!.isNotEmpty) {
+      _selectedUsers.addAll(widget.preSelectedUsers!);
+    }
+
     _loadContactsFromStorage();
-    // }
     _searchController.addListener(_onSearchChanged);
   }
 

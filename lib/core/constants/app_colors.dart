@@ -132,5 +132,9 @@ class AppColors {
   static const  symbolBorderRed = Color(0xFFEC2528);
   static const  symbolBorderGreen = Color(0xFF08F159);
   static const  symbolBorderYellow = Color(0xFFEEE92B);
+  static const  liteWhite = Color(0xFFFCFCFE);
   static const  blue52 = Color(0x52007BE8);
+  static const  redLight = Color(0xFFD94A42);
+  static const  yellowBC = Color(0xFFBC8D00);
+  // static const  yellowBC = Color(0xFFBC8D00);
 }

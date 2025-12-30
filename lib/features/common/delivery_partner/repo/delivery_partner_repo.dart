@@ -82,7 +82,7 @@ class DeliveryPartnerRepo extends BaseService {
   Future<ResponseModel> ridersOnboardingStatusRepo() async {
     var response = await ApiBaseHelper().getHTTP(
       ridersOnboardingStatus,
-      showProgress: true,
+      showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );
@@ -90,7 +90,7 @@ class DeliveryPartnerRepo extends BaseService {
   }
 
   /// initRiderServiceUploadRepo
-  Future<ResponseModel> initRiderServiceUploadRepo({required String fileType}) async {
+  Future<ResponseModel> initRiderServiceFileUploadRepo({required String fileType}) async {
     var response = await ApiBaseHelper().getHTTP(
       initRiderServiceUpload,
       params: {

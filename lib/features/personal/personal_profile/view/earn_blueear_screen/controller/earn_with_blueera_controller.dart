@@ -25,12 +25,13 @@ class EarnWithBlueEraController extends GetxController{
 
   RxInt selectedProductsServicesTabIndex = 0.obs;
   final List<String> productsServicesTab = [
-    AppStrings.selfWork,
-    AppStrings.deliveryPartner,
+    // AppStrings.selfWork,
+    // AppStrings.deliveryPartner,
+    AppStrings.tiffin,
     AppStrings.homeMadeProducts,
     AppStrings.homeMadeFoodItems,
-    AppStrings.homeServices,
-    AppStrings.rentalServices,
+    // AppStrings.homeServices,
+    // AppStrings.rentalServices,
   ];
   RxBool showGoLiveEnabled = false.obs;
 
@@ -56,8 +57,12 @@ class EarnWithBlueEraController extends GetxController{
   bool ownServiceDataHasMore = true;
 
   /// Earn Service Opt flag
-  RxString isRiderServiceOpt = ''.obs;
+
   RxString isEarnServiceOpt = ''.obs;
+
+  final List<EarnServiceOrdersStatus> earnServiceOrdersTabs =
+      EarnServiceOrdersStatus.values;
+  RxInt selectedEarnServiceOrderIndex = 0.obs;
 
   Future<void> fetchOwnProducts({bool isLoadMore = false}) async {
     if (isLoadMore) {

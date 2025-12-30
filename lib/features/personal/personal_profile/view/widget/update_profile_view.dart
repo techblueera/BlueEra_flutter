@@ -148,11 +148,11 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
               0;
       personalCreateProfileController.selectedProfession.value =
           viewProfileController.personalProfileDetails.value.user?.profession ??
-              "OTHERS";
-      selectedProfession =
-          personalCreateProfileController.selectedProfession.value;
-      if (viewProfileController.personalProfileDetails.value.user?.profession ==
-          OTHERS) {
+              OTHERS;
+      selectedProfession = personalCreateProfileController.selectedProfession.value;
+
+      /// OTHERS
+      if (selectedProfession == OTHERS) {
         professionOthersController.text = viewProfileController
                 .personalProfileDetails.value.user?.specilization ??
             "";
@@ -240,8 +240,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                 .personalProfileDetails.value.user?.art?.artType ??
             "";
       }
-      selectedProfession =
-          personalCreateProfileController.selectedProfession.value;
+
       personalCreateProfileController.selectedProfessionObj.value =
           ProfessionTypeData(
               tagId: selectedProfession,
@@ -496,6 +495,12 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                     : null,
                               ),
 
+                              if(viewProfileController
+                                  .personalProfileDetails
+                                  .value
+                                  .user
+                                  ?.emailVerified ==
+                                  false)
                               Padding(
                                 padding: EdgeInsets.only(
                                     right: SizeConfig.size10,
@@ -516,14 +521,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                       }
                                     },
                                     child: CustomText(
-                                      viewProfileController
-                                                  .personalProfileDetails
-                                                  .value
-                                                  .user
-                                                  ?.emailVerified ==
-                                              true
-                                          ? ''
-                                          : AppStrings.getVerify,
+                                      AppStrings.getVerify,
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.primaryColor,
                                     ),
@@ -564,21 +562,29 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                               SizedBox(height: SizeConfig.paddingXSL),
                               GetBuilder<AuthController>(
                                   builder: (authController) {
-                                final dataList = authController
-                                    .professionTypeDataList
-                                    .where((e) =>
-                                        e.tagId ==
-                                        personalCreateProfileController
-                                            .selectedProfession.value)
-                                    .toList();
-                                if (dataList.isNotEmpty) {
-                                  authController.clearSubCategoryData();
+                                    final selectedValue = personalCreateProfileController.selectedProfession.value;
 
-                                  authController.subcategoriesFiledNameList
-                                      .addAll(dataList
-                                              .first.subcategoriesFiledName ??
-                                          []);
-                                }
+                                    log('Comparing: Controller Value ($selectedValue) vs Local Variable ($selectedProfession)');
+
+                                    if (selectedValue == selectedProfession) {
+                                      log('Values are equal. Proceeding with lookup.');
+                                    }
+
+                                    final selectedProfessionData = authController.professionTypeDataList.firstWhereOrNull(
+                                          (e) => e.tagId == selectedProfession,
+                                    );
+
+                                    if (selectedProfessionData != null) {
+                                      authController.clearSubCategoryData();
+
+                                      // Directly add the subcategories without needing to access .first of a list
+                                      authController.subcategoriesFiledNameList.addAll(
+                                        selectedProfessionData.subcategoriesFiledName ?? [],
+                                      );
+                                      log('Updated subcategories: ${authController.subcategoriesFiledNameList}');
+                                    } else {
+                                      log('No profession found for the selected tagId');
+                                    }
                                 return CommonDropdownDialog<ProfessionTypeData>(
                                   items: authController.professionTypeDataList,
                                   selectedValue: personalCreateProfileController
@@ -588,18 +594,18 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                   displayValue: (profession) =>
                                       profession.name ?? "",
                                   onChanged: (value) {
+                                    log('selected profession tagId -- ${value?.tagId}');
+                                    log('selected profession name -- ${value?.name}');
                                     personalCreateProfileController
                                         .selectedSubProfessionObj.value = null;
 
                                     authController.clearSubCategoryData();
 
                                     personalCreateProfileController
-                                        .selectedProfession
-                                        .value = value?.tagId;
-                                    personalCreateProfileController
                                         .selectedProfessionObj.value = value;
-                                    selectedProfession = value?.name;
-                                    log('selected profession name -- $selectedProfession');
+                                    personalCreateProfileController.selectedProfession.value = value?.tagId;
+                                    selectedProfession = personalCreateProfileController.selectedProfession.value;
+                                    log('selected profession -- $selectedProfession');
                                     authController.subcategoriesFiledNameList
                                         .addAll(value?.subcategoriesFiledName ??
                                             []);
@@ -609,26 +615,23 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                 );
                               }),
 
-                              SizedBox(height: SizeConfig.size18),
+                              // SizedBox(height: SizeConfig.size18),
 
-                              if (personalCreateProfileController
-                                      .selectedProfession.value ==
-                                  AppConstants.Others) ...[
+                              if (selectedProfession == OTHERS) ...[
                                 CommonTextField(
                                   hintText: AppStrings.enterProfessionIfOthers,
                                   title: AppStrings.specifyProfession,
                                   isValidate: false,
-                                  textEditController:
-                                      professionOthersController,
+                                  inputLength: 24,
+                                  textEditController: professionOthersController,
                                 ),
                                 SizedBox(height: SizeConfig.size18),
                               ],
-                              if (personalCreateProfileController
-                                      .selectedProfession.value ==
-                                  SELF_EMPLOYED) ...[
-                                // SizedBox(
-                                //   height: SizeConfig.size20,
-                                // ),
+
+                              if (selectedProfession == SELF_EMPLOYED) ...[
+                                SizedBox(
+                                  height: SizeConfig.size18,
+                                ),
 
                                 ///selectYourProfession
                                 Align(
@@ -682,23 +685,11 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                   height: SizeConfig.size15,
                                 ),
                               ],
-                              if ((selectedProfession == SKILLED_WORKER)) ...[
-                                CommonTextField(
-                                  textEditController:
-                                      _skillWorkerSpecificationTextController,
-                                  inputLength: 24,
-                                  title: AppStrings.typeWorkSpecification,
-                                  keyBoardType: TextInputType.text,
-                                  regularExpression: RegularExpressionUtils
-                                      .alphabetSpacePattern,
-                                  hintText:AppStrings.workExample,
-                                  isValidate: false,
-                                ),
-                                SizedBox(
-                                  height: SizeConfig.size20,
-                                ),
-                              ],
+
                               if ((selectedProfession == CONTENT_CREATOR)) ...[
+                                SizedBox(
+                                  height: SizeConfig.size18,
+                                ),
                                 CommonTextField(
                                   isValidate: false,
 
@@ -713,11 +704,34 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                   hintText: AppStrings.specificationExample,
                                 ),
                                 SizedBox(
-                                  height: SizeConfig.size20,
+                                  height: SizeConfig.size18,
+                                ),
+                              ],
+
+                              if ((selectedProfession == SKILLED_WORKER)) ...[
+                                SizedBox(
+                                  height: SizeConfig.size18,
+                                ),
+                                CommonTextField(
+                                  textEditController:
+                                  _skillWorkerSpecificationTextController,
+                                  inputLength: 24,
+                                  title: AppStrings.typeWorkSpecification,
+                                  keyBoardType: TextInputType.text,
+                                  regularExpression: RegularExpressionUtils
+                                      .alphabetSpacePattern,
+                                  hintText:AppStrings.workExample,
+                                  isValidate: false,
+                                ),
+                                SizedBox(
+                                  height: SizeConfig.size18,
                                 ),
                               ],
 
                               if ((selectedProfession == REG_UNION)) ...[
+                                SizedBox(
+                                  height: SizeConfig.size18,
+                                ),
                                 CommonTextField(
                                   isValidate: false,
                                   textEditController: _ngoNameTextController,
@@ -728,19 +742,18 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                       .alphabetSpacePattern,
                                   hintText:AppStrings.ngoExample,
                                 ),
-                                SizedBox(
-                                  height: SizeConfig.size20,
-                                ),
+                                // SizedBox(
+                                //   height: SizeConfig.size18,
+                                // ),
                               ],
+
                               if ((selectedProfession == INDUSTRIALIST)) ...[
                                 SizedBox(
-                                  height: SizeConfig.size20,
+                                  height: SizeConfig.size18,
                                 ),
                                 CommonTextField(
                                   isValidate: false,
-
-                                  textEditController:
-                                      _companyNameTextController,
+                                  textEditController: _companyNameTextController,
                                   // inputLength: 13,
                                   inputLength: 24,
                                   title: AppStrings.typeCompanyName,
@@ -749,14 +762,18 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                       .alphabetSpacePattern,
                                   hintText: AppStrings.companyExample,
                                 ),
+                                // SizedBox(
+                                //   height: SizeConfig.size18,
+                                // ),
                               ],
 
                               if ((selectedProfession == HOMEMAKER)) ...[
+                                SizedBox(
+                                  height: SizeConfig.size18,
+                                ),
                                 CommonTextField(
                                   isValidate: false,
-
                                   textEditController: _ExpertiseTextController,
-                                  // inputLength: 13,
                                   inputLength: 24,
                                   title: AppStrings.typeExpertise,
                                   keyBoardType: TextInputType.text,
@@ -765,13 +782,13 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                   hintText:AppStrings.expertiseExample1,
                                 ),
                                 SizedBox(
-                                  height: SizeConfig.size20,
+                                  height: SizeConfig.size18,
                                 ),
                               ],
-                              if ((selectedProfession ==
-                                  SENIOR_CITIZEN)) ...[
+
+                              if ((selectedProfession == SENIOR_CITIZEN)) ...[
                                 SizedBox(
-                                  height: SizeConfig.size20,
+                                  height: SizeConfig.size18,
                                 ),
                                 CommonTextField(
                                   isValidate: false,
@@ -783,8 +800,15 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                       .alphabetSpacePattern,
                                   hintText:AppStrings.expertiseExample2,
                                 ),
+                                SizedBox(
+                                  height: SizeConfig.size18,
+                                ),
                               ],
+
                               if ((selectedProfession == STUDENT)) ...[
+                                SizedBox(
+                                  height: SizeConfig.size18,
+                                ),
                                 CommonTextField(
                                   isValidate: false,
                                   textEditController: _CourseTextController,
@@ -796,11 +820,13 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                   hintText: AppStrings.studyExample,
                                 ),
                                 SizedBox(
-                                  height: SizeConfig.size20,
+                                  height: SizeConfig.size18,
                                 ),
                               ],
 
                               if ((selectedProfession == ARTIST)) ...[
+                                SizedBox(height: SizeConfig.size18),
+
                                 ///selectYourProfession
                                 Align(
                                   alignment: Alignment.centerLeft,
@@ -830,7 +856,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                   },
                                 ),
                                 SizedBox(
-                                  height: SizeConfig.size20,
+                                  height: SizeConfig.size18,
                                 ),
 
                                 if (personalCreateProfileController
@@ -838,7 +864,6 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                     null) ...[
                                   CommonTextField(
                                     isValidate: false,
-
                                     textEditController: _artTypeController,
                                     // inputLength: 13,
                                     inputLength: 24,
@@ -849,12 +874,60 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                     hintText: AppStrings.pleaseSpecifyArtType,
                                   ),
                                   SizedBox(
-                                    height: SizeConfig.size20,
+                                    height: SizeConfig.size18,
                                   ),
                                 ],
                               ],
 
-                              if (selectedProfession == 'Private Job') ...[
+                              if ((selectedProfession == POLITICIAN)) ...[
+                                SizedBox(
+                                  height: SizeConfig.size18,
+                                ),
+                                CommonTextField(
+                                  title: AppStrings.politicalParty,
+                                  inputLength: 24,
+                                  hintText:
+                                  AppStrings.enterPoliticalParty,
+                                  textEditController: politicalPartyController,
+                                  isValidate: false,
+                                ),
+                                // SizedBox(height: SizeConfig.size18),
+                              ],
+
+                              if (selectedProfession == GOVTPSU) ...[
+                                SizedBox(
+                                  height: SizeConfig.size18,
+                                ),
+                                CommonTextField(
+                                  title: AppStrings.departmentName,
+                                  textEditController: departmentNameController,
+                                  inputLength: 24,
+                                  keyBoardType: TextInputType.text,
+                                  regularExpression: RegularExpressionUtils
+                                      .alphabetSpacePattern_,
+                                  titleColor: Colors.black,
+                                  hintText: AppStrings.departmentExample,
+                                  isValidate: false,
+                                ),
+                                SizedBox(height: SizeConfig.size18),
+                                CommonTextField(
+                                  title: AppStrings.subDivision,
+                                  textEditController: subDivision,
+                                  inputLength: 24,
+                                  isValidate: false,
+                                  keyBoardType: TextInputType.text,
+                                  regularExpression: RegularExpressionUtils
+                                      .alphabetSpacePattern_,
+                                  titleColor: Colors.black,
+                                  hintText: AppStrings.subDivisionExample,
+                                ),
+                                // SizedBox(height: SizeConfig.size18),
+                              ],
+
+                              if (selectedProfession == PRIVATE_JOB) ...[
+                                SizedBox(
+                                  height: SizeConfig.size18,
+                                ),
                                 CommonTextField(
                                   textEditController: sectorTextController,
                                   inputLength: 24,
@@ -874,58 +947,42 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                     return null;
                                   },
                                 ),
-                                SizedBox(height: SizeConfig.size18),
+                                // SizedBox(height: SizeConfig.size18),
                               ],
 
-                              if ((selectedProfession == POLITICIAN)) ...[
-                                CommonTextField(
-                                  title: AppStrings.politicalParty,
-                                  inputLength: 24,
-                                  hintText:
-                                  AppStrings.enterPoliticalParty,
-                                  textEditController: politicalPartyController,
-                                  isValidate: false,
-                                ),
+                              if (selectedProfession == DIRECTOR) ...[
                                 SizedBox(height: SizeConfig.size18),
-                              ],
-                              if (selectedProfession == GOVTPSU) ...[
                                 CommonTextField(
-                                  title: AppStrings.departmentName,
-                                  textEditController: departmentNameController,
-                                  inputLength: 24,
-                                  keyBoardType: TextInputType.text,
-                                  regularExpression: RegularExpressionUtils
-                                      .alphabetSpacePattern_,
-                                  titleColor: Colors.black,
-                                  hintText: AppStrings.departmentExample,
-                                  isValidate: false,
+                                    isValidate: false,
+                                    textEditController: _companyNameTextController,
+                                    inputLength: 24,
+                                    title: "Type Your Company Name",
+                                    keyBoardType: TextInputType.text,
+                                    regularExpression:
+                                    RegularExpressionUtils.alphabetSpacePattern,
+                                    hintText: "eg. TCS LTD",
+                                    // autovalidateMode: _autoValidate,
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'Please enter company name';
+                                      }
+                                      return null;
+                                    }
                                 ),
-                                SizedBox(height: SizeConfig.size18),
+                                // SizedBox(height: SizeConfig.size18)
                               ],
-                              if ((selectedProfession == GOVTPSU)) ...[
-                                CommonTextField(
-                                  title: AppStrings.subDivision,
-                                  textEditController: subDivision,
-                                  inputLength: 24,
-                                  isValidate: false,
-                                  keyBoardType: TextInputType.text,
-                                  regularExpression: RegularExpressionUtils
-                                      .alphabetSpacePattern_,
-                                  titleColor: Colors.black,
-                                  hintText: AppStrings.subDivisionExample,
-                                ),
-                                SizedBox(height: SizeConfig.size18),
-                              ],
+
                               if ((selectedProfession != SELF_EMPLOYED) &&
                                   (selectedProfession != SKILLED_WORKER) &&
                                   (selectedProfession != ARTIST) &&
                                   (selectedProfession != CONTENT_CREATOR) &&
                                   (selectedProfession != HOMEMAKER) &&
-                                  (selectedProfession !=
-                                      SENIOR_CITIZEN) &&
+                                  (selectedProfession != SENIOR_CITIZEN) &&
                                   (selectedProfession != FARMER) &&
                                   (selectedProfession != STUDENT) &&
                                   (selectedProfession != OTHERS)) ...[
+                                SizedBox(height: SizeConfig.size18),
+
                                 CommonTextField(
                                   title: AppStrings.designation,
                                   inputLength: 24,
@@ -1042,9 +1099,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                               }
 
                                               String? designation;
-                                              if (personalCreateProfileController
-                                                      .selectedProfession
-                                                      .value ==
+                                              if (selectedProfession ==
                                                   SELF_EMPLOYED) {
                                                 designation =
                                                     personalCreateProfileController
@@ -1104,31 +1159,21 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                                 ApiKeys.designation:
                                                     designation,
 
-                                                if (personalCreateProfileController
-                                                        .selectedProfession
-                                                        .value ==
-                                                    SELF_EMPLOYED)
+                                                if (selectedProfession == SELF_EMPLOYED)
                                                   ApiKeys.specilization:
                                                       specializationController
                                                           .text,
-                                                if (personalCreateProfileController
-                                                        .selectedProfession
-                                                        .value ==
-                                                    OTHERS)
+                                                if (selectedProfession == OTHERS)
                                                   ApiKeys.specilization:
                                                       professionOthersController
                                                           .text,
 
-                                                if ((selectedProfession ==
-                                                    POLITICIAN))
+                                                if ((selectedProfession == POLITICIAN))
                                                   'political_party':
                                                       politicalPartyController
                                                           .text
                                                           .trim(),
-                                                if (personalCreateProfileController
-                                                        .selectedProfession
-                                                        .value ==
-                                                    PRIVATE_JOB)
+                                                if (selectedProfession == PRIVATE_JOB)
                                                   ApiKeys.sector:
                                                       sectorTextController.text,
 
@@ -1151,40 +1196,34 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                                         .selectedYear,
 
                                                 ///SKILL WORKER..
-                                                if (selectedProfession ==
-                                                    SKILLED_WORKER)
+                                                if (selectedProfession == SKILLED_WORKER)
                                                   ApiKeys.specilization:
                                                       _skillWorkerSpecificationTextController
                                                           .text,
 
                                                 ///CONTENT_CREATOR
-                                                if (selectedProfession ==
-                                                    CONTENT_CREATOR)
+                                                if (selectedProfession == CONTENT_CREATOR)
                                                   ApiKeys.specilization:
                                                       _contentCraterTextController
                                                           .text,
 
                                                 ///GOVT PSU
-                                                if (selectedProfession ==
-                                                    GOVTPSU)
+                                                if (selectedProfession == GOVTPSU)
                                                   ApiKeys.department:
                                                       departmentNameController
                                                           .text,
-                                                if (selectedProfession ==
-                                                    GOVTPSU)
+                                                if (selectedProfession == GOVTPSU)
                                                   ApiKeys.subDivision:
                                                       subDivision.text,
 
                                                 ///NGO
-                                                if (selectedProfession ==
-                                                    REG_UNION)
+                                                if (selectedProfession == REG_UNION)
                                                   ApiKeys.department:
                                                       _ngoNameTextController
                                                           .text,
 
                                                 ///Artist...
-                                                if (selectedProfession ==
-                                                    ARTIST)
+                                                if (selectedProfession == ARTIST)
                                                   ApiKeys.art: jsonEncode({
                                                     ApiKeys.artName:
                                                         personalCreateProfileController
@@ -1305,11 +1344,9 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
     if (emailController.text.isEmpty) isValid = false;
     if (educationController.text.isEmpty||educationController.text.trim().length < 2||educationController.text.trim().length > 16) isValid = false;
 
-    if (personalCreateProfileController.selectedProfession.value ==
-            AppConstants.Others &&
+    if (selectedProfession == OTHERS &&
         professionOthersController.text.isEmpty) isValid = false;
-    if ((personalCreateProfileController.selectedProfession.value ==
-            PRIVATE_JOB) &&
+    if ((selectedProfession == PRIVATE_JOB) &&
         sectorTextController.text.isEmpty) isValid = false;
     if (addBio.text.isEmpty||addBio.text.length<50) isValid = false;
 

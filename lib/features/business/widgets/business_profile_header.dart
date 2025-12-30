@@ -240,7 +240,6 @@ class BusinessProfileHeader extends StatelessWidget {
                                     prevBusinessDetails: details,
                                   ),
                                 ));
-
                           },
                           child: Container(
                             padding: const EdgeInsets.symmetric(

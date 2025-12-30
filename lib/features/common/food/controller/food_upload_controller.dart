@@ -154,7 +154,7 @@ class FoodUploadController extends GetxController {
         return Color(0xFFA62C2B);
       case 'vigan': // assuming this means Vegan
         return Color(0xFFA8A9AD);
-      case 'dairy/sweet':
+      case 'dairy_items/sweet':
         return Color(0xFF6B4A3A);
       default:
         return Color(0xFFA8A9AD);

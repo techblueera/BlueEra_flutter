@@ -73,17 +73,19 @@ class NewStoreController extends GetxController{
   RxBool chatBotReading = false.obs;
 
 
-  RxBool isBannerVisible = false.obs;
+  // RxBool isBannerVisible = false.obs;
+  RxBool isBannerVisible = true.obs;
+
   @override
   void onInit() {
     super.onInit();
-    scrollController.addListener(() {
-      if (scrollController.offset > 300) {
-        isBannerVisible.value = true;
-      } else {
-        isBannerVisible.value = false;
-      }
-    });
+    // scrollController.addListener(() {
+    //   if (scrollController.offset > 300) {
+    //     isBannerVisible.value = true;
+    //   } else {
+    //     isBannerVisible.value = false;
+    //   }
+    // });
   }
 
   @override
