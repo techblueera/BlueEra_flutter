@@ -5,9 +5,11 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/user_profile_res.dart';
 import 'package:BlueEra/core/api/model/user_testimonial_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/reel/models/channel_model.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
+import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:get/get.dart';
@@ -249,40 +251,58 @@ class VisitProfileController extends GetxController {
       followUnFollowResponse.value = ApiResponse.error('error');
     }
   }
-///
+
+
   void updateFollowStatusForStore(String? candidateResumeId, bool isFollowed) {
-    if (Get.isRegistered<StoreScreenController>()) {
-      final storeScreenController = Get.find<StoreScreenController>();
 
-      // 🔹 Update in allNearByStoresFeed
-      final listAllData = storeScreenController.allNearByStoresFeed;
-      if (listAllData.isNotEmpty) {
-        final index = listAllData.indexWhere(
-              (elem) => elem.businessData?.userId == candidateResumeId,
-        );
-        if (index != -1) {
-          final data = listAllData[index];
-          listAllData[index] = data.copyWith(
-            businessData: data.businessData?.copyWith(isFollowed: isFollowed),
-          );
-        }
+    final controller = getOrPut(() => NewStoreController());
+
+    // Update in allStore
+    final listStoreData = controller.allStore;
+    if (listStoreData.isNotEmpty) {
+      final index = listStoreData.indexWhere(
+            (elem) => elem.userId == candidateResumeId,
+      );
+      if (index != -1) {
+        final data = listStoreData[index];
+        listStoreData[index] = data.copyWith(isFollowed: isFollowed);
       }
-
-      // Update in allStore
-      final listStoreData = storeScreenController.allStore;
-      if (listStoreData.isNotEmpty) {
-        final index = listStoreData.indexWhere(
-              (elem) => elem.userId == candidateResumeId,
-        );
-        if (index != -1) {
-          final data = listStoreData[index];
-          listStoreData[index] = data.copyWith(isFollowed: isFollowed);
-        }
-      }
-
-      storeScreenController.allNearByStoresFeed.refresh();
-      storeScreenController.allStore.refresh();
     }
+
+    controller.allStore.refresh();
+
+    // if (Get.isRegistered<StoreScreenController>()) {
+    //   final storeScreenController = Get.find<StoreScreenController>();
+    //
+    //   // 🔹 Update in allNearByStoresFeed
+    //   final listAllData = storeScreenController.allNearByStoresFeed;
+    //   if (listAllData.isNotEmpty) {
+    //     final index = listAllData.indexWhere(
+    //           (elem) => elem.businessData?.userId == candidateResumeId,
+    //     );
+    //     if (index != -1) {
+    //       final data = listAllData[index];
+    //       listAllData[index] = data.copyWith(
+    //         businessData: data.businessData?.copyWith(isFollowed: isFollowed),
+    //       );
+    //     }
+    //   }
+    //
+    //   // Update in allStore
+    //   final listStoreData = storeScreenController.allStore;
+    //   if (listStoreData.isNotEmpty) {
+    //     final index = listStoreData.indexWhere(
+    //           (elem) => elem.userId == candidateResumeId,
+    //     );
+    //     if (index != -1) {
+    //       final data = listStoreData[index];
+    //       listStoreData[index] = data.copyWith(isFollowed: isFollowed);
+    //     }
+    //   }
+    //
+    //   storeScreenController.allNearByStoresFeed.refresh();
+    //   storeScreenController.allStore.refresh();
+    // }
   }
 
 

@@ -14,6 +14,7 @@ import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/auth/model/individual_profiile_category.dart';
+import 'package:BlueEra/features/common/auth/model/mixed_profile_categrory.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
 import 'package:BlueEra/features/common/jobs/view/jobs_screen.dart';
 import 'package:BlueEra/features/common/map/view/customize_map_screen.dart';
@@ -372,12 +373,12 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                                       title: AppStrings.nearMe,
                                       seeMoreTap: () {}),
                                   SizedBox(height: SizeConfig.size15),
-                                  genericIconGrid<BusinessProfileCategory>(
+                                  genericIconGrid<MixedProfileCategory>(
                                       items: mainCategories,
                                       labelBuilder: (c) => c.name,
                                       iconBuilder: (c) => c.icon,
-                                      onTap: (category) =>
-                                          _handleNearMeCategoryTap(category))
+                                      onTap: (c) =>
+                                          _handleNearMeCategoryTap(c))
                                 ],
                               )),
                           SizedBox(height: SizeConfig.size10),
@@ -755,7 +756,7 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
     );
   }
 
-  void _handleNearMeCategoryTap(BusinessProfileCategory category) {
+  void _handleNearMeCategoryTap(MixedProfileCategory category) {
     switch (category.slugId) {
       case AppConstants.storeServices:
         Get.to(() => BusinessStoreScreen(

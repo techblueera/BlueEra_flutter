@@ -16,6 +16,7 @@ import 'package:BlueEra/features/business/auth/controller/view_business_details_
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/chat/contacts/view/contact_list_page.dart';
 import 'package:BlueEra/features/common/auth/model/individual_profiile_category.dart';
+import 'package:BlueEra/features/common/auth/model/mixed_profile_categrory.dart';
 import 'package:BlueEra/features/common/post/repo/post_repo.dart';
 import 'package:BlueEra/features/common/reel/models/social_input_fields_model.dart';
 import 'package:BlueEra/features/common/store/repo/store_repo.dart';
@@ -1912,61 +1913,54 @@ String formatClaimedAt(String claimedAt) {
 }
 
 /// STORE FEED
-final List<BusinessProfileCategory> mainCategories = [
-  BusinessProfileCategory(
+final List<MixedProfileCategory> mainCategories = [
+  MixedProfileCategory(
     name: AppStrings.groceryVegetablesDairy,
     slugId: AppConstants.groceryVegetablesDairy,
-    // categoryId: '68ce9917eac48e6b0d4973bf',
     icon: AppIconAssets.groceryIcon,
-    type: AppConstants.service,
+    // type: AppConstants.service,
   ),
-  BusinessProfileCategory(
+  MixedProfileCategory(
     name: AppStrings.food,
     slugId: AppConstants.foodServices,
     icon: AppIconAssets.foodIcon,
-    type: AppConstants.service,
+    // type: AppConstants.food,
   ),
-  BusinessProfileCategory(
+  MixedProfileCategory(
     name: AppStrings.store,
     slugId: AppConstants.storeServices,
     icon: AppIconAssets.storeIcon,
-    type: AppConstants.service,
+    // type: AppConstants.storeServices,
   ),
-  BusinessProfileCategory(
+  MixedProfileCategory(
     name: AppStrings.tab_product,
     slugId: AppConstants.productsServices,
     icon: AppIconAssets.productIcon,
-    type: AppConstants.service,
+    // type: AppConstants.product,
   ),
-  BusinessProfileCategory(
+  MixedProfileCategory(
     name: AppStrings.rider,
     slugId: AppConstants.riderServices,
     icon: AppIconAssets.riderIcon,
-    type: AppConstants.service,
+    // type: AppConstants.service,
   ),
-  BusinessProfileCategory(
+  MixedProfileCategory(
     name: AppStrings.taxiCarDriver,
     slugId: AppConstants.taxiDriverServices,
     icon: AppIconAssets.taxiDriverIcon,
-    type: AppConstants.service,
+    // type: AppConstants.service,
   ),
-  BusinessProfileCategory(
+  MixedProfileCategory(
     name: AppStrings.rentalServices,
     slugId: AppConstants.rentalServices,
     icon: AppIconAssets.rentKeyIcon,
-    type: AppConstants.service,
+    // type: AppConstants.service,
   ),
-  // StoreFeedCategory(
-  //   name: "Booking",
-  //   slugId: AppConstants.booking,
-  //   icon: AppIconAssets.bookingEnquiries,
-  //   type: AppConstants.service,
-  // ),
-  BusinessProfileCategory(
+  MixedProfileCategory(
     name: AppStrings.homeServices,
     slugId: AppConstants.homeServices,
     icon: AppIconAssets.homeServiceIcon,
-    type: AppConstants.service,
+    // type: AppConstants.service,
   ),
 ];
 

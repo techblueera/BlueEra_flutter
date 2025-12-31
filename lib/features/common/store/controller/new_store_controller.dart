@@ -6,13 +6,17 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/get_all_store_res_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/food/model/get_food_details_model.dart';
 import 'package:BlueEra/features/common/food/repo/food_ai_repo.dart';
 import 'package:BlueEra/features/common/store/repo/store_repo.dart';
+import 'package:BlueEra/features/personal/personal_profile/repo/user_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -28,7 +32,10 @@ class NewStoreController extends GetxController{
       ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> getListOfAiMessageResponse =
       ApiResponse.initial('Initial').obs;
-
+  Rx<ApiResponse> followResponse =
+      ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> unFollowResponse =
+      ApiResponse.initial('Initial').obs;
 
   final ScrollController scrollController = ScrollController();
   final GlobalKey headerKey = GlobalKey();
@@ -400,6 +407,98 @@ class NewStoreController extends GetxController{
     }
   }
 
+  /// FOLLOW BUSINESS USER
+  Future<void> followBusinessUser({
+    required String? businessId,
+    required GetAllStoreResModel store,
+  }) async {
+    try {
+      followResponse.value = ApiResponse.initial('Initial');
 
+      final responseModel =
+      await UserRepo().followUser(followUserId: businessId);
+
+      if (responseModel.isSuccess) {
+        followResponse.value = ApiResponse.complete(responseModel);
+
+        /// Update store locally
+        final updatedStore = store.copyWith(
+          isFollowed: true,
+          followerCount:
+          ((int.tryParse(store.followerCount ?? '0') ?? 0) + 1).toString(),
+        );
+
+        /// Update both lists
+        _updateStoreInLists(updatedStore);
+      } else {
+        followResponse.value = ApiResponse.error('error');
+        commonSnackBar(
+          message: responseModel.message ?? AppStrings.somethingWentWrong,
+        );
+      }
+    } catch (e) {
+      followResponse.value = ApiResponse.error('error');
+    }
+  }
+
+  /// UNFOLLOW BUSINESS USER
+  Future<void> unFollowBusinessUser({
+    required String? businessId,
+    required GetAllStoreResModel store,
+  }) async {
+    try {
+      unFollowResponse.value = ApiResponse.initial('Initial');
+
+      final responseModel =
+      await UserRepo().unfollowUser(followUserId: businessId);
+
+      if (responseModel.isSuccess) {
+        unFollowResponse.value = ApiResponse.complete(responseModel);
+
+        /// Update store locally
+        final updatedStore = store.copyWith(
+          isFollowed: false,
+          followerCount: ((int.tryParse(store.followerCount ?? '0') ?? 0) - 1).toString(),
+        );
+
+        /// Update both lists
+        _updateStoreInLists(updatedStore);
+      } else {
+        unFollowResponse.value = ApiResponse.error('error');
+        commonSnackBar(
+          message: responseModel.message ?? AppStrings.somethingWentWrong,
+        );
+      }
+    } catch (e) {
+      unFollowResponse.value = ApiResponse.error('error');
+    }
+  }
+
+  void _updateStoreInLists(GetAllStoreResModel updatedStore) {
+    /// 1️⃣ Update in allStore list
+    final index1 = allStore.indexWhere((s) => s.id == updatedStore.id);
+    if (index1 != -1) {
+      allStore[index1] = updatedStore;
+    }
+
+    allStore.refresh();
+
+  }
+
+  void updateStoreRatings(String businessId) {
+    ///  Update inside allStore list
+    final index1 = allStore.indexWhere((s) => s.id == businessId);
+    if (index1 != -1) {
+      final store = allStore[index1];
+      allStore[index1] = store.copyWith(
+        totalRatings: (int.parse(store.totalRatings ?? "0") + 1).toString(),
+      );
+    }
+
+    /// Refresh reactive lists
+    allStore.refresh();
+
+    log('Store rating count updated for businessId: $businessId');
+  }
 
 }

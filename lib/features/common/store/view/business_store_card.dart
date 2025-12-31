@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile_new.dart';
@@ -12,6 +13,7 @@ import 'package:BlueEra/features/business/widgets/business_ratings_bottom_sheet.
 import 'package:BlueEra/features/business/widgets/rating_widget.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
+import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
 import 'package:BlueEra/features/common/store/view/store_screen_controller.dart';
 import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
@@ -117,13 +119,14 @@ class BusinessStoreCard extends StatelessWidget {
                               if (isGuestUser()) {
                                 createProfileScreen();
                               } else {
+                                final controller = getOrPut(() => NewStoreController());
                                 if (getAllStoreResData?.isFollowed ?? false) {
-                                  await Get.find<StoreScreenController>().unFollowBusinessUser(
+                                  await controller.unFollowBusinessUser(
                                       businessId: getAllStoreResData?.userId,
                                       store: getAllStoreResData ?? GetAllStoreResModel()
                                   );
                                 } else {
-                                  await Get.find<StoreScreenController>().followBusinessUser(
+                                  await controller.followBusinessUser(
                                       businessId: getAllStoreResData?.userId,
                                       store: getAllStoreResData ?? GetAllStoreResModel()
                                   );
@@ -282,6 +285,8 @@ class BusinessStoreCard extends StatelessWidget {
               },
             ),
 
+          SizedBox(height: SizeConfig.paddingXSL),
+
           /// Interaction row
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -374,7 +379,7 @@ class BusinessStoreCard extends StatelessWidget {
                       );
 
                       if (success == true) {
-                        Get.find<StoreScreenController>().updateStoreRatings(getAllStoreResData?.id??'');
+                        Get.find<NewStoreController>().updateStoreRatings(getAllStoreResData?.id??'');
                       }
                     },
                     child: Container(
