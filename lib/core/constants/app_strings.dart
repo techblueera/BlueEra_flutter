@@ -1818,6 +1818,7 @@ class AppStrings {
   static const uploadMunicipalCorpCertificate = "Upload Municipal Corp. Certificate";
   static const uploadMSMECertificate = "Upload MSME Certificate";
   static const uploadShopActCertificate = "Upload Shop Act Certificate";
+  static const bookViaBlueEraPartner = "Book Via BlueEra Partner";
 
   ///BHAVESH START
   static const ownerDetail = "owner_detail";

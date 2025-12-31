@@ -21,6 +21,7 @@ import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/more/controller/more_cards_screen_controller.dart';
 import 'package:BlueEra/features/common/reel/models/channel_model.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
+import 'package:BlueEra/features/common/store/view/new_discover/discover_screen.dart';
 import 'package:BlueEra/features/common/store/view/new_store/new_store_screen2.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
@@ -341,10 +342,15 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         //   isHeaderVisible: isVisible,
         //   onHeaderVisibilityChanged: _toggleAppBar,
         // );
-        return NewStoreScreen2(
+        // return NewStoreScreen2(
+        //   isHeaderVisible: isVisible,
+        //   onHeaderVisibilityChanged: _toggleAppBar,
+        // );
+        return DiscoverScreen(
           isHeaderVisible: isVisible,
           onHeaderVisibilityChanged: _toggleAppBar,
         );
+
       case 2:
         return getHomeScreen();
 

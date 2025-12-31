@@ -159,7 +159,7 @@ class _RiderStoreScreenState extends State<RiderStoreScreen> {
                     child: Row(
                       children: [
                         LocalAssets(
-                          imagePath: AppImageAssets.searchJobImage,
+                          imagePath: AppIconAssets.riderIconColorful,
                           height: SizeConfig.size30,
                           width: SizeConfig.size30,
                         ),

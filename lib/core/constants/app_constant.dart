@@ -1964,7 +1964,7 @@ final List<MixedProfileCategory> mainCategories = [
   ),
 ];
 
-final List<IndividualProfileCategory> providerCategories = [
+final List<IndividualProfileCategory> selfEmployedCategories = [
   IndividualProfileCategory(
     name: AppStrings.electrician,
     slugId: ELECTRICIAN,

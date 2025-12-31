@@ -218,7 +218,7 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                               child: Row(
                                 children: [
                                   LocalAssets(
-                                    imagePath: AppImageAssets.searchJobImage,
+                                    imagePath: AppIconAssets.searchJobIcon,
                                     height: SizeConfig.size30,
                                     width: SizeConfig.size30,
                                   ),
@@ -406,7 +406,7 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                                       seeMoreTap: () {}),
                                   SizedBox(height: SizeConfig.size15),
                                   genericIconGrid<IndividualProfileCategory>(
-                                      items: providerCategories,
+                                      items: selfEmployedCategories,
                                       labelBuilder: (c) => c.name,
                                       iconBuilder: (c) => c.icon,
                                       onTap: (category) {
