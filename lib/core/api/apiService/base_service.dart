@@ -540,7 +540,11 @@ abstract class BaseService {
   final String groceryCategoryWithVariant = 'grocery-service/api/categories/with-inventory';
   String getMedicalCategoryApi(String orderId) => "api/modules/tree/module/$orderId";
   final String aiInstitutionFetchDetails = 'ai-service/api/ai-institution/fetch-details';
-  final String aiCreateSchool = 'ai/create-school';
-
-
+  final String aiCreateSchool = 'education-service/ai/create-school';
+  final String schoolAboutUs = 'education-service/about/school';
+  final String schoolAboutUsUpdate = 'education-service/about/';
+  final String educationUploadInit = "education-service/upload/init";
+  final String schoolAboutAdd = 'education-service/about';
+  final String schoolContact = 'education-service/contact/school';
+  final String schoolUser = 'education-service/schools/user';
 }

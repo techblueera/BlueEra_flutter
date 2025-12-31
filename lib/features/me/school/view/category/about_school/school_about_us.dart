@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/model/service_option_model.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
 import 'package:BlueEra/features/me/school/controller/school_controller.dart';
 import 'package:BlueEra/features/me/school/view/category/about_school/history_screen.dart';
 import 'package:BlueEra/features/me/school/view/category/about_school/management_and_trust.dart';
@@ -12,14 +13,16 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../laboratory/view/widgets/me_menu_card_design.dart';
+
 class SchoolAboutUs extends StatefulWidget {
   const SchoolAboutUs({super.key});
 
   @override
   State<SchoolAboutUs> createState() => _SchoolAboutUsState();
 }
-class _SchoolAboutUsState extends State<SchoolAboutUs> {
 
+class _SchoolAboutUsState extends State<SchoolAboutUs> {
+  final schoolAboutUsController = Get.put(SchoolAboutUsController());
   final List<ServiceMenuItem> visionAboutMenus = [
     ServiceMenuItem(
       title: "Vision & Mission",
@@ -28,17 +31,17 @@ class _SchoolAboutUsState extends State<SchoolAboutUs> {
     ),
     ServiceMenuItem(
       title: "History",
-      icon:AppIconAssets.history,
+      icon: AppIconAssets.history,
       page: () => HistoryScreen(),
     ),
     ServiceMenuItem(
       title: "Principal / Director Message",
-      icon:AppIconAssets.principal_director_message,
+      icon: AppIconAssets.principal_director_message,
       page: () => PrincipalMessageScreen(),
     ),
     ServiceMenuItem(
       title: "Management / Trust",
-      icon:AppIconAssets.management_trust,
+      icon: AppIconAssets.management_trust,
       page: () => ManagementAndTrust(),
     ),
   ];
@@ -66,7 +69,6 @@ class _SchoolAboutUsState extends State<SchoolAboutUs> {
               ),
             );
           }).toList(),
-
           SizedBox(height: SizeConfig.size14),
         ],
       ),

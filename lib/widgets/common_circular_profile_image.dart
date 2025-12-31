@@ -17,35 +17,39 @@ class CommonProfileImage extends StatefulWidget {
   final Function(String) onImageUpdate;
   final bool isOwnProfile;
   final bool showProfileBorder;
+  final Color? borderColor;
 
-  CommonProfileImage({
-    Key? key,
-    required this.imagePath,
-    required this.dialogTitle,
-    required this.onImageUpdate,
-    this.isOwnProfile = true,
-    this.showProfileBorder = true
-  }) : super(key: key);
+  CommonProfileImage(
+      {Key? key,
+      required this.imagePath,
+      required this.dialogTitle,
+      required this.onImageUpdate,
+      this.isOwnProfile = true,
+      this.borderColor = AppColors.white,
+      this.showProfileBorder = true})
+      : super(key: key);
 
   @override
   State<CommonProfileImage> createState() => _CommonProfileImageState();
 }
 
 class _CommonProfileImageState extends State<CommonProfileImage> {
-
-
   @override
   Widget build(BuildContext context) {
-
     return InkWell(
-      onTap: (widget.isOwnProfile) ? () => selectImage(context,widget.dialogTitle??"Upload Picture") : null,
+      onTap: (widget.isOwnProfile)
+          ? () => selectImage(context, widget.dialogTitle ?? "Upload Picture")
+          : null,
       child: Stack(
         children: [
           Container(
             // padding: EdgeInsets.all(SizeConfig.size2),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: (widget.showProfileBorder) ? Border.all(color: AppColors.white, width: 4) : null,
+              border: (widget.showProfileBorder)
+                  ? Border.all(
+                      color: widget.borderColor ?? AppColors.white, width: 4)
+                  : null,
             ),
             child: CircleAvatar(
               radius: 40,
@@ -55,9 +59,9 @@ class _CommonProfileImageState extends State<CommonProfileImage> {
                       child: ((widget.imagePath != null) &&
                               (widget.imagePath?.isNotEmpty ?? false) &&
                               (isNetworkImage(widget.imagePath ?? "")))
-                          ? NetWorkOcToAssets(imgUrl: widget.imagePath??"")
+                          ? NetWorkOcToAssets(imgUrl: widget.imagePath ?? "")
                           : Image(
-                              image: FileImage(File(widget.imagePath??""))
+                              image: FileImage(File(widget.imagePath ?? ""))
                                 ..evict(),
                               fit: BoxFit.cover,
                               width: 100, // radius * 2
@@ -67,42 +71,41 @@ class _CommonProfileImageState extends State<CommonProfileImage> {
                   : LocalAssets(imagePath: AppIconAssets.user_out_line),
             ),
           ),
-
           if (widget.isOwnProfile)
-          Positioned(
-            bottom: 0,
-            right: 0,
-            child: Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: (widget.showProfileBorder) ? Border.all(color: AppColors.white, width: 2) : null,
-              ),
+            Positioned(
+              bottom: 0,
+              right: 0,
               child: Container(
-
-                padding: EdgeInsets.all(6),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.primaryColor,
+                  border: (widget.showProfileBorder)
+                      ? Border.all(color: AppColors.white, width: 2)
+                      : null,
                 ),
-                child: LocalAssets(
-                  imagePath: AppIconAssets.editIcon,
-                  height: SizeConfig.size14,
-                  width: SizeConfig.size14,
-                  imgColor: Colors.white,
+                child: Container(
+                  padding: EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.primaryColor,
+                  ),
+                  child: LocalAssets(
+                    imagePath: AppIconAssets.editIcon,
+                    height: SizeConfig.size14,
+                    width: SizeConfig.size14,
+                    imgColor: Colors.white,
+                  ),
                 ),
               ),
             ),
-          ),
         ],
       ),
     );
   }
 
   ///SELECT IMAGE AND SHOW DIALOG...
-  selectImage(BuildContext context,String titleOfDialog) async {
-
-    widget.imagePath = await SelectProfilePictureDialog.showLogoDialog(
-        context, titleOfDialog);
+  selectImage(BuildContext context, String titleOfDialog) async {
+    widget.imagePath =
+        await SelectProfilePictureDialog.showLogoDialog(context, titleOfDialog);
     print('image path-> ${widget.imagePath}');
     if (widget.imagePath?.isNotEmpty ?? false) {
       ///SET IMAGE PATH...

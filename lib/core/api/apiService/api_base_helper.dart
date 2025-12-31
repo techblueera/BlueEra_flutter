@@ -84,8 +84,6 @@ class ApiBaseHelper {
               }
 
             }
-             const String baseUrl1 = "https://be.blueera.ai/api/";
-             const String baseUrl2 = "https://education.blueera.ai/";
             if (authTokenGlobal != null &&
                 (authTokenGlobal?.isNotEmpty ?? false)) {
               options.headers[ApiKeys.authorization] =
@@ -93,14 +91,13 @@ class ApiBaseHelper {
 
               logs("AUTH TOKEN===> ${options.headers[ApiKeys.authorization]}");
             }
-            logs("options===baseUrl==== ${options.path}");
-            if (options.path==("ai/create-school")) {
-              options.baseUrl = baseUrl2;
-              // Remove the dummy header so it doesn't get sent to the server
-              options.headers.remove("create-school");
-            } else {
-              options.baseUrl = baseUrl1;
-            }
+            // if (options.path==("ai/create-school")) {
+            //   options.baseUrl = baseUrl2;
+            //   // Remove the dummy header so it doesn't get sent to the server
+            //   options.headers.remove("create-school");
+            // } else {
+            //   options.baseUrl = baseUrl1;
+            // }
             options.headers[ApiKeys.contentType] = "application/json";
             return requestInterceptor(options, handler);
           },

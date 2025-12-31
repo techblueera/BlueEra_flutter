@@ -1,9 +1,13 @@
+import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/school/controller/school_controller.dart';
+import 'package:BlueEra/features/me/school/repo/school_repo.dart';
 import 'package:BlueEra/features/me/school/view/school_home_screen.dart';
 import 'package:BlueEra/features/me/school/view/school_statics_screen.dart';
 import 'package:BlueEra/features/me/school/view/school_update_screen.dart';
@@ -29,8 +33,22 @@ class _SchoolMainState extends State<SchoolMain>
 
   @override
   void initState() {
+    apiCalling();
     _tabController = TabController(length: 3, vsync: this);
     super.initState();
+  }
+
+  apiCalling() async {
+    if (schoolIDGlobal.isEmpty) {
+      ResponseModel response = await SchoolRepo().getSchoolByUserIDRepo();
+      String? schoolID = response.response?.data['data'][0]['_id'];
+      if (schoolID != null && schoolID.isNotEmpty) {
+        await setSchoolID(schoolID);
+      } else {
+        await setSchoolID("");
+      }
+      await getSchoolID();
+    }
   }
 
   @override
@@ -52,7 +70,7 @@ class _SchoolMainState extends State<SchoolMain>
               TabBar(
                 controller: _tabController,
                 labelColor: AppColors.mainTextColor,
-                unselectedLabelColor:AppColors.secondaryTextColor,
+                unselectedLabelColor: AppColors.secondaryTextColor,
                 indicatorColor: AppColors.primaryColor,
                 indicatorWeight: 4,
                 tabAlignment: TabAlignment.fill,

@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/laboratory/view/widgets/me_menu_card_design.dart';
+import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
 import 'package:BlueEra/features/me/school/controller/school_controller.dart';
 import 'package:BlueEra/features/me/school/view/category/about_school/school_about_us.dart';
 import 'package:BlueEra/features/me/school/view/category/acadamics/school_academics_page.dart';
@@ -20,6 +21,7 @@ import 'package:get/get.dart';
 
 class SchoolUpdateScreen extends StatelessWidget {
   SchoolUpdateScreen({super.key});
+  final schoolAboutUsController = Get.put(SchoolAboutUsController());
 
   final aboutUsController = Get.put(SchoolController());
   final List<ServiceMenuItem> serviceMenus = [

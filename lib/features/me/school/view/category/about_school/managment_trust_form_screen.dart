@@ -1,17 +1,24 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/me/school/controller/school_controller.dart';
+import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
+import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../../../core/api/model/school_about_us_model.dart';
+
 class ManagementTrustFormScreen extends StatefulWidget {
-  ManagementTrustFormScreen({super.key});
+  ManagementTrustFormScreen({super.key, required this.isEdit, this.management});
+
+  final bool isEdit;
+  final Management? management;
 
   @override
   State<ManagementTrustFormScreen> createState() =>
@@ -19,7 +26,7 @@ class ManagementTrustFormScreen extends StatefulWidget {
 }
 
 class _ManagementTrustFormScreenState extends State<ManagementTrustFormScreen> {
-  final aboutUsController = Get.find<SchoolController>();
+  final schoolAboutUsController = Get.find<SchoolAboutUsController>();
 
   final nameEditController = TextEditingController();
 
@@ -29,19 +36,29 @@ class _ManagementTrustFormScreenState extends State<ManagementTrustFormScreen> {
 
   @override
   void initState() {
-    aboutUsController.isFormValid.value=false;
+    schoolAboutUsController.qualifications.clear();
+    schoolAboutUsController.isFormValid.value = false;
     // TODO: implement initState
-    aboutUsController.addQualification();
+    schoolAboutUsController.addQualification();
     nameEditController.addListener(_runValidation);
     professionEditController.addListener(_runValidation);
     messageEditController.addListener(_runValidation);
-    aboutUsController.qualifications.firstOrNull?.addListener(_runValidation);
+    schoolAboutUsController.qualifications.firstOrNull
+        ?.addListener(_runValidation);
+    if (widget.isEdit) {
+      nameEditController.text = widget.management?.name ?? "";
+      professionEditController.text = widget.management?.position ?? "";
+      messageEditController.text = widget.management?.bio ?? "";
+      widget.management?.qualification?.forEach((data) {
+        schoolAboutUsController.qualifications
+            .add(TextEditingController(text: data));
+      });
+    }
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: CommonBackAppBar(
         showRightTextButton: true,
@@ -55,6 +72,18 @@ class _ManagementTrustFormScreenState extends State<ManagementTrustFormScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                ///UPLOAD PROFILE....
+                Center(
+                  child: CommonProfileImage(
+                    imagePath: schoolAboutUsController.managementProfile.value,
+                    onImageUpdate: (image) {
+                      schoolAboutUsController.managementProfile.value = image;
+                      schoolAboutUsController.isImageUpdated.value = true;
+                    },
+                    dialogTitle: 'Upload Profile',
+                    borderColor: AppColors.primaryColor,
+                  ),
+                ),
                 CommonTextField(
                   textEditController: nameEditController,
                   hintText: "E.g. Ramesh Gupta",
@@ -75,7 +104,8 @@ class _ManagementTrustFormScreenState extends State<ManagementTrustFormScreen> {
                         ListView.builder(
                           shrinkWrap: true,
                           physics: NeverScrollableScrollPhysics(),
-                          itemCount: aboutUsController.qualifications.length,
+                          itemCount:
+                              schoolAboutUsController.qualifications.length,
                           itemBuilder: (context, index) {
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 8),
@@ -83,18 +113,19 @@ class _ManagementTrustFormScreenState extends State<ManagementTrustFormScreen> {
                                 children: [
                                   Expanded(
                                     child: TextFormField(
-                                      controller: aboutUsController
+                                      controller: schoolAboutUsController
                                           .qualifications[index],
                                       decoration: InputDecoration(
                                         hintText: "E.g. PhD in Geography",
                                       ),
                                     ),
                                   ),
-                                  if (aboutUsController.qualifications.length >
+                                  if (schoolAboutUsController
+                                          .qualifications.length >
                                       1)
                                     IconButton(
                                       icon: Icon(Icons.close),
-                                      onPressed: () => aboutUsController
+                                      onPressed: () => schoolAboutUsController
                                           .removeQualification(index),
                                     )
                                 ],
@@ -104,7 +135,7 @@ class _ManagementTrustFormScreenState extends State<ManagementTrustFormScreen> {
                         ),
 
                         /// Add More Button (hidden after 5)
-                        if (aboutUsController.qualifications.length < 5)
+                        if (schoolAboutUsController.qualifications.length < 5)
                           Align(
                             alignment: Alignment.centerRight,
                             child: TextButton.icon(
@@ -118,7 +149,8 @@ class _ManagementTrustFormScreenState extends State<ManagementTrustFormScreen> {
                                 "Add More",
                                 color: AppColors.primaryColor,
                               ),
-                              onPressed: aboutUsController.addQualification,
+                              onPressed:
+                                  schoolAboutUsController.addQualification,
                             ),
                           ),
                       ],
@@ -145,7 +177,8 @@ class _ManagementTrustFormScreenState extends State<ManagementTrustFormScreen> {
                   textInputAction: TextInputAction.newline,
                   onChange: (value) {
                     String newVal = value.replaceAll(RegExp(r'\n{3,}'), '\n\n');
-                    aboutUsController.managementDescriptionText.value = newVal;
+                    schoolAboutUsController.managementDescriptionText.value =
+                        newVal;
                     _runValidation();
                   },
                 ),
@@ -154,7 +187,7 @@ class _ManagementTrustFormScreenState extends State<ManagementTrustFormScreen> {
                 Align(
                   alignment: Alignment.centerRight,
                   child: Obx(() => CustomText(
-                        "${aboutUsController.managementDescriptionText.value.length}/1000",
+                        "${schoolAboutUsController.managementDescriptionText.value.length}/1000",
                         color: Colors.grey,
                         fontSize: 12,
                       )),
@@ -163,10 +196,28 @@ class _ManagementTrustFormScreenState extends State<ManagementTrustFormScreen> {
 
                 // THE BUTTON
                 Obx(() => CustomBtn(
-                      onTap: aboutUsController.isFormValid.value ? () {} : null,
+                      onTap: schoolAboutUsController.isFormValid.value
+                          ? () {
+                              schoolAboutUsController
+                                  .aboutUsData?.value.management
+                                  ?.add(Management(
+                                      qualification: schoolAboutUsController
+                                          .qualifications
+                                          .map((item) => item.text)
+                                          .toList(),
+                                      name: nameEditController.text,
+                                      bio: schoolAboutUsController
+                                          .managementDescriptionText.value,
+                                      photo: "",
+                                      id: widget.management?.id,
+                                      position: professionEditController.text));
+                              schoolAboutUsController
+                                  .addManagementTrustController();
+                            }
+                          : null,
                       title: AppStrings.add,
                       // Pass the validation state to change button color/opacity
-                      isValidate: aboutUsController.isFormValid.value,
+                      isValidate: schoolAboutUsController.isFormValid.value,
                     )),
                 SizedBox(height: SizeConfig.paddingXXL),
               ],
@@ -179,11 +230,11 @@ class _ManagementTrustFormScreenState extends State<ManagementTrustFormScreen> {
 
 // Helper to trigger validation
   void _runValidation() {
-    aboutUsController.managementValidateForm(
+    schoolAboutUsController.managementValidateForm(
         managementName: nameEditController.text,
         profession: professionEditController.text,
         message: messageEditController.text,
         qualification:
-            aboutUsController.qualifications.firstOrNull?.text ?? "");
+            schoolAboutUsController.qualifications.firstOrNull?.text ?? "");
   }
 }

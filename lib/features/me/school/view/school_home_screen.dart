@@ -116,10 +116,12 @@ class _AIProfileDialogState extends State<AIProfileDialog> {
                     flex: 3,
                     child: CustomBtn(
                       title: AppStrings.generate,
-                      isValidate: isFormValid,
-                      onTap: isFormValid
-                          ? controller.aiInstitutionFetchDetailsController
-                          : null,
+                      onTap: controller.aiInstitutionFetchDetailsController
+                           ,
+                      // isValidate: isFormValid,
+                      // onTap: isFormValid
+                      //     ? controller.aiInstitutionFetchDetailsController
+                      //     : null,
                     ),
                   ),
                   SizedBox(width: SizeConfig.size12),

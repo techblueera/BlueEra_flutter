@@ -22,7 +22,6 @@ class SchoolController extends GetxController {
   RxString directorMessageText = ''.obs;
   RxString departmentDescriptionText = ''.obs;
   RxString courseDescriptionText = ''.obs;
-  RxString managementDescriptionText = ''.obs;
 
   ///DEPARTMENT SCREEN LOGIC
   var selectedImages = <File>[].obs;
@@ -137,19 +136,7 @@ class SchoolController extends GetxController {
         branchLocation.isNotEmpty;
   }
 
-  // This function checks all conditions
-  void managementValidateForm({
-    required String managementName,
-    required String profession,
-    required String qualification,
-    required String message,
-  }) {
-    // Condition: All text fields not empty AND at least 1 image
-    isFormValid.value = managementName.isNotEmpty &&
-        profession.isNotEmpty &&
-        qualification.isNotEmpty &&
-        message.isNotEmpty;
-  }
+
 
   ///ADD COURSE...
 // Radio button state
@@ -160,39 +147,6 @@ class SchoolController extends GetxController {
 
   void setFeeType(String? value) {
     if (value != null) feeType.value = value;
-  }
-
-  ///ADD MANAGEMENT....
-  static const int maxQualifications = 5;
-
-  var qualifications = <TextEditingController>[].obs;
-
-  void addQualification() {
-    if (qualifications.length < maxQualifications) {
-      qualifications.add(TextEditingController());
-    } else {
-      commonSnackBar(
-          message: "Limit Reached You can add maximum 5 qualifications");
-    }
-  }
-
-  void removeQualification(int index) {
-    if (qualifications.length > 1) {
-      qualifications[index].dispose();
-      qualifications.removeAt(index);
-    } else {
-      commonSnackBar(message: "At least 1 qualification is required");
-    }
-  }
-
-  bool validateQualifications() {
-    for (var controller in qualifications) {
-      if (controller.text.trim().isEmpty) {
-        commonSnackBar(message: "Qualification field cannot be empty");
-        return false;
-      }
-    }
-    return true;
   }
 
   ///Only Branch Validation
@@ -245,18 +199,18 @@ class SchoolController extends GetxController {
     // Logic for AI generation goes here
     Get.back();
     try {
-      // ResponseModel response =
-      //     await SchoolRepo().aiInstitutionFetchDetailsRepo(reqBody: {
-      //       "name": "Parul University",
-      //       "url": "https://paruluniversity.ac.in",
-      //       "address": "Private university in Gujarat"
-      //     });
       ResponseModel response =
           await SchoolRepo().aiInstitutionFetchDetailsRepo(reqBody: {
-        ApiKeys.name: school,
-        ApiKeys.url: website,
-        ApiKeys.address: fullSchoolAddress,
-      });
+            "name": "Parul University",
+            "url": "https://paruluniversity.ac.in",
+            "address": "Private university in Gujarat"
+          });
+      // ResponseModel response =
+      //     await SchoolRepo().aiInstitutionFetchDetailsRepo(reqBody: {
+      //   ApiKeys.name: school,
+      //   ApiKeys.url: website,
+      //   ApiKeys.address: fullSchoolAddress,
+      // });
       if (response.isSuccess) {
         final data = response.response?.data;
         institutionFetchModel?.value = InstitutionFetchModel.fromJson(data);
