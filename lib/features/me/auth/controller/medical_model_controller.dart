@@ -20,7 +20,7 @@ class MedicalModelController extends GetxController {
     ResponseModel response =
         await medicalRepo.fetchMedicalCategoryData(categoryTopic);
     if (response.isSuccess) {
-      final modelJson = response.response?.data;
+      final modelJson = response.response?.data['data'];
       List<dynamic> modelList = modelJson;
       medicalCategoryDataList.value =
           modelList.map((e) => MedicalLabDataListModel.fromJson(e)).toList();

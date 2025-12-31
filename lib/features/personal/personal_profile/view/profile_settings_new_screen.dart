@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -20,8 +22,11 @@ import 'package:BlueEra/widgets/webview_common.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:hive/hive.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../../../chat/auth/controller/chat_view_controller.dart';
+import '../../../chat/auth/service/location_update_service.dart';
 import '../../../common/referral/view/referral_page.dart';
 
 class ProfileSettingsNewScreen extends StatelessWidget {
@@ -29,6 +34,8 @@ class ProfileSettingsNewScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final LiveLocationService locationService = LiveLocationService();
+
     return Scaffold(
       appBar: CommonBackAppBar(
         title: AppStrings.settings,
@@ -105,6 +112,8 @@ class ProfileSettingsNewScreen extends StatelessWidget {
                           confirmCallback: () async {
                             deleteIfRegistered<ChatViewController>();
                             await SharedPreferenceUtils.clearPreference();
+                            locationService.stop();
+                            await clearAllLocalDataOnLogout();
                             Navigator.of(context).pushNamedAndRemoveUntil(
                                 RouteHelper.getMobileNumberLoginRoute(),
                                 (Route<dynamic> route) => false);
@@ -217,6 +226,22 @@ class ProfileSettingsNewScreen extends StatelessWidget {
       ),
     );
   }
+  Future<void> clearAllLocalDataOnLogout() async {
+    try {
+      // 1️⃣ Clear all Hive boxes
+      await Hive.deleteFromDisk();
+
+      // 2️⃣ Clear stored media files
+      final dir = await getApplicationDocumentsDirectory();
+      if (dir.existsSync()) {
+        await dir.delete(recursive: true);
+      }
+
+      log("✅ Local storage cleared successfully");
+    } catch (e) {
+      log("❌ Error clearing local data: $e");
+    }
+  }
 
   Widget _buildTile(String icon, String title, {VoidCallback? onTap}) {
     return Padding(
@@ -251,6 +276,7 @@ class ProfileSettingsNewScreen extends StatelessWidget {
           ),
         ],
       ),
+
     );
   }
 }
