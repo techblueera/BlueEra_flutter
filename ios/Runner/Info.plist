@@ -61,17 +61,6 @@
     </array>
     <key>NSLocalNetworkUsageDescription</key>
     <string>This app uses the local network to discover and communicate with nearby devices.</string>
-
-<!--    <key>NSBonjourServices</key>-->
-<!--    <array>-->
-<!--        <string>_http._tcp</string>-->
-<!--    </array>-->
-
-<!--    <key>LSApplicationQueriesSchemes</key>-->
-<!--    <array>-->
-<!--      <string>sms</string>-->
-<!--      <string>tel</string>-->
-<!--    </array>-->
     <key>io.flutter.embedded_views_preview</key>
     <true/>
     <key>FlutterDeepLinkingEnabled</key>
@@ -110,6 +99,23 @@
     <string>ca-app-pub-4151367085462604~5043177104</string>
     <key>FirebaseAppDelegateProxyEnabled</key>
     <false/>
+    <!-- Add for share_handler start -->
+    <!-- The 'NSUserActivityTypes' key is only needed if you plan to use the recordSentMessage API allowing for conversations to show up as direct share suggestions -->
+    <key>NSUserActivityTypes</key>
+    <array>
+        <string>INSendMessageIntent</string>
+    </array>
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleTypeRole</key>
+            <string>Editor</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>ShareMedia-$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+            </array>
+        </dict>
+    </array>
 
 </dict>
 </plist>
