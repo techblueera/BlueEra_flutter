@@ -375,9 +375,9 @@ class OrderNowController extends GetxController {
         final pincode = place.postalCode ?? '';
 
         return {
-          "city": city,
-          "state": state,
-          "pincode": pincode,
+          ApiKeys.city: city,
+          ApiKeys.state: state,
+          ApiKeys.pincode: pincode,
         };
       } else {
         return {};
@@ -671,4 +671,8 @@ ApiKeys.additional_comments: ""
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
   }
+  Future<void> updateRiderLocation(Map<String,dynamic> params) async {
+
+  }
+
 }

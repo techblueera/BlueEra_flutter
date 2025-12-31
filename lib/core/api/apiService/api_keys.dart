@@ -567,4 +567,5 @@ class ApiKeys {
   static const argCategoryName = 'argCategoryName';
   static const argPageHeading = 'argPageHeading';
   static const medicalOtcChildren = 'medicalOtcItems';
+  static const success = 'success';
 }

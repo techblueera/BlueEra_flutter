@@ -255,7 +255,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   @override
   void dispose() {
     bottomBarVisibleNotifier.dispose(); // 🧼 Clean up
-
     chatViewController.disposeSocket();
     super.dispose();
   }

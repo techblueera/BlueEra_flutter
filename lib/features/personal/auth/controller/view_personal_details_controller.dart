@@ -34,6 +34,7 @@ import 'package:get/get.dart';
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
 
+import '../../../chat/auth/service/location_update_service.dart';
 import '../../personal_profile/view/widget/ai_suggestion_field.dart';
 import '../../personal_profile/view/widget/introduction_video_widget.dart';
 import '../../personal_profile/view/widget/update_personal_profession_dialog.dart';
@@ -64,9 +65,14 @@ class ViewPersonalDetailsController extends GetxController {
   }
 
   RxBool shopStatusOpenClose = false.obs;
-
+  final LiveLocationService locationService = LiveLocationService();
   Future<void> toggleShopStatus() async {
     shopStatusOpenClose.value = !shopStatusOpenClose.value;
+    if(shopStatusOpenClose.value){
+      locationService.start();
+    }else{
+      locationService.stop();
+    }
     await callApiForChangeStatus();
   }
 
