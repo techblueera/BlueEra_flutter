@@ -569,4 +569,5 @@ class ApiKeys {
   static const medicalOtcChildren = 'medicalOtcItems';
   static const documentType = 'documentType';
   static const value = 'value';
+  static const success = 'success';
 }

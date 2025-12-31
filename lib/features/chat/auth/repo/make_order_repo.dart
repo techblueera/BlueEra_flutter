@@ -30,6 +30,14 @@ class MakeOrderRepo extends BaseService {
         params: params, onError: (error) {}, onSuccess: (data) {});
     return response;
   }
+  Future<ResponseModel> updateLiveLocationRep(Map<String, dynamic> params) async {
+    final response = await ApiBaseHelper().postHTTP(
+        updateLiveLocation,
+        isMultipart: false,
+        showProgress: false,
+        params: params, onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
   Future<ResponseModel> getAddress() async {
     final response = await ApiBaseHelper().getHTTP(
         getAddressApi,
