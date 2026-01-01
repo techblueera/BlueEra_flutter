@@ -70,9 +70,27 @@ class SchoolRepo extends BaseService {
     return response;
   }
 
+  ///UPDATE SCHOOL CONTACT REPO....
+  Future<ResponseModel> updateSchoolContactRepo({required dynamic reqParm,required String contactID}) async {
+    final response = await ApiBaseHelper().putHTTP(
+        "${schoolContactUpdate}/$contactID",
+        onError: (error) {},
+        params: reqParm,
+        onSuccess: (data) {});
+    return response;
+  }
+
   ///GET SCHOOL CONTACT REPO....
   Future<ResponseModel> getSchoolByUserIDRepo() async {
     final response = await ApiBaseHelper().getHTTP("${schoolUser}/$userId",
+        onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+
+
+  ///GET SCHOOL CONTACT REPO....
+  Future<ResponseModel> getSchoolNoticesRepo() async {
+    final response = await ApiBaseHelper().getHTTP("${schoolNotices}/$schoolIDGlobal",
         onError: (error) {}, onSuccess: (data) {});
     return response;
   }

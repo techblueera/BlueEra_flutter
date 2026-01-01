@@ -17,6 +17,8 @@ import 'package:get/get.dart';
 
 class SchoolAboutUsController extends GetxController {
   Rx<ApiResponse> getAboutUsSchoolResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> updateSchoolContactInfoResponse =
+      ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> getSchoolContactUsResponse =
       ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> visionMissionResponse = ApiResponse.initial('Initial').obs;
@@ -25,13 +27,21 @@ class SchoolAboutUsController extends GetxController {
   Rx<ApiResponse> uploadFileToS3Response = ApiResponse.initial('Initial').obs;
   RxString visionMissionText = ''.obs;
   RxString historyText = ''.obs;
+  RxString directorMessageText = ''.obs;
   RxString managementDescriptionText = ''.obs;
 
   final Rxn<File> historyImageFile = Rxn<File>();
+  final Rxn<File> directorMessageImageFile = Rxn<File>();
+  final Rxn<File> managementProfileImageFile = Rxn<File>();
   final isFormValid = false.obs;
   final isUploading = false.obs;
 
   // Initial values (to check if data changed)
+  String initialDirectText = "";
+  String initialDirectImageUrl = "";
+
+  String initialManagementProfileImageUrl = "";
+
   String initialHistoryText = "";
   String initialHistoryImageUrl = "";
   RxString managementProfile = ''.obs;
@@ -50,8 +60,7 @@ class SchoolAboutUsController extends GetxController {
 
     // Logic for AI generation goes here
     try {
-      ResponseModel response = await SchoolRepo()
-          .getSchoolContactRepo();
+      ResponseModel response = await SchoolRepo().getSchoolContactRepo();
       SchoolContactUsModel schoolContactUsModel =
           SchoolContactUsModel.fromJson(response.response?.data);
       schoolContactUsData?.value =
@@ -72,13 +81,42 @@ class SchoolAboutUsController extends GetxController {
     }
   }
 
+  ///UPDATE CONTACT INFO...
+  Future<void> updateBranchContactDetailsController() async {
+    // 1. Check if data is already loaded OR if it's currently loading
+
+    // Logic for AI generation goes here
+    try {
+      ResponseModel response = await SchoolRepo().updateSchoolContactRepo(
+          reqParm: {"contactInfo": schoolContactUsData?.value.contactInfo}, contactID: schoolContactUsData?.value.id??"");
+
+      if (response.isSuccess) {
+        Get.back();
+        commonSnackBar(
+            message:
+            response.response?.data["message"] ?? AppStrings.successful);
+        updateSchoolContactInfoResponse.value =
+            ApiResponse.complete(response.response?.data);
+      } else {
+        commonSnackBar(message: AppStrings.somethingWentWrong);
+        updateSchoolContactInfoResponse.value =
+            ApiResponse.error(AppStrings.somethingWentWrong);
+      }
+    } on Exception catch (e) {
+      logs("ERROR ${e}");
+      // TODO
+      updateSchoolContactInfoResponse.value =
+          ApiResponse.error(AppStrings.somethingWentWrong);
+    }
+  }
+
   Future<void> getSchoolAboutUsController() async {
     // 1. Check if data is already loaded OR if it's currently loading
 
     // Logic for AI generation goes here
     try {
-      ResponseModel response = await SchoolRepo()
-          .getSchoolAboutUsRepo(schoolID: schoolIDGlobal);
+      ResponseModel response =
+          await SchoolRepo().getSchoolAboutUsRepo(schoolID: schoolIDGlobal);
       SchoolAboutUsModel schoolAboutUsModel =
           SchoolAboutUsModel.fromJson(response.response?.data);
       aboutUsData?.value = schoolAboutUsModel.data ?? AboutUsData();
@@ -128,12 +166,11 @@ class SchoolAboutUsController extends GetxController {
 
   Future<void> uploadEductionHistoryDocInit() async {
     if (historyImageFile.value == null) {
-      commonSnackBar(message: AppStrings.noVideoSelected);
+      commonSnackBar(message: AppStrings.noImageSelected);
       return;
     }
     try {
       isUploading.value = true;
-
       // 1. VIDEO
       final imageFile = File(historyImageFile.value?.path ?? "");
       final vInfo = getFileInfo(imageFile);
@@ -147,10 +184,10 @@ class SchoolAboutUsController extends GetxController {
 
       if (response?.isSuccess ?? false) {
         uploadInitResponse.value = ApiResponse.complete(response);
-        UploadInitResponse uploadInit =
-            UploadInitResponse.fromJson(response?.response?.data);
+        uploadInit = UploadInitResponse.fromJson(response?.response?.data);
         await uploadFileToS3(
           file: imageFile,
+          apiCallFrom: "HistoryDoc",
           fileType: vInfo['mimeType']!,
           preSignedUrl: uploadInit.uploadUrl ?? "",
         );
@@ -174,6 +211,7 @@ class SchoolAboutUsController extends GetxController {
   Future<void> uploadFileToS3(
       {required File file,
       required String fileType,
+      required String apiCallFrom,
       required String preSignedUrl}) async {
     try {
       ResponseModel? response = await ChannelRepo().uploadVideoToS3(
@@ -184,7 +222,11 @@ class SchoolAboutUsController extends GetxController {
       );
 
       if (response?.isSuccess ?? false) {
-        updateHistoryController();
+        if (apiCallFrom == "HistoryDoc") {
+          await updateHistoryController();
+        } else if (apiCallFrom == "PrincipalDoc") {
+          await updateDirectMessageController();
+        }
       } else {
         uploadFileToS3Response.value = ApiResponse.error('error');
         commonSnackBar(
@@ -206,7 +248,7 @@ class SchoolAboutUsController extends GetxController {
       ResponseModel response = await SchoolRepo().updateSchoolAboutUsRepo(
           aboutUsID: aboutUsData?.value.id ?? "",
           reqBODY: {
-            ApiKeys.history: historyText,
+            ApiKeys.history: historyText.value,
             ApiKeys.photo: uploadInit.publicUrl ?? ""
           });
 
@@ -255,6 +297,160 @@ class SchoolAboutUsController extends GetxController {
     }
   }
 
+  ///UPLOAD PRINCIPAL DIRECT MESSAGE...
+
+  UploadInitResponse uploadDirectMessageInit = UploadInitResponse();
+
+  Future<void> uploadDirectMessageDocInit() async {
+    if (directorMessageImageFile.value == null) {
+      commonSnackBar(message: AppStrings.noImageSelected);
+      return;
+    }
+    try {
+      isUploading.value = true;
+      // 1. VIDEO
+      final imageFile = File(directorMessageImageFile.value?.path ?? "");
+      final vInfo = getFileInfo(imageFile);
+      Map<String, dynamic> queryParams = {
+        ApiKeys.fileName: vInfo['fileName'],
+        ApiKeys.fileType: vInfo['mimeType']
+      };
+
+      ResponseModel? response =
+          await SchoolRepo().uploadEducationDocRepo(queryParams: queryParams);
+
+      if (response?.isSuccess ?? false) {
+        uploadInitResponse.value = ApiResponse.complete(response);
+        uploadDirectMessageInit =
+            UploadInitResponse.fromJson(response?.response?.data);
+        await uploadFileToS3(
+          file: imageFile,
+          apiCallFrom: "PrincipalDoc",
+          fileType: vInfo['mimeType']!,
+          preSignedUrl: uploadDirectMessageInit.uploadUrl ?? "",
+        );
+      } else {
+        isUploading.value = false;
+
+        uploadInitResponse.value = ApiResponse.error('error');
+        commonSnackBar(
+            message: response?.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      isUploading.value = false;
+      uploadInitResponse.value = ApiResponse.error('error');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    } finally {
+      isUploading.value = false;
+    }
+  }
+
+  Future<void> updateDirectMessageController() async {
+    // Logic for AI generation goes here
+    try {
+      ResponseModel response = await SchoolRepo().updateSchoolAboutUsRepo(
+          aboutUsID: aboutUsData?.value.id ?? "",
+          reqBODY: {
+            ApiKeys.photo: uploadDirectMessageInit.publicUrl,
+            ApiKeys.message: directorMessageText.value,
+          });
+
+      if (response.isSuccess) {
+        Get.back();
+        commonSnackBar(
+            message:
+                response.response?.data["message"] ?? AppStrings.successful);
+      } else {
+        commonSnackBar(message: AppStrings.somethingWentWrong);
+        visionMissionResponse.value =
+            ApiResponse.error(AppStrings.somethingWentWrong);
+      }
+    } on Exception catch (e) {
+      // TODO
+      visionMissionResponse.value =
+          ApiResponse.error(AppStrings.somethingWentWrong);
+    }
+  }
+
+  ///UPLOAD PRINCIPAL DIRECT MESSAGE...
+
+  UploadInitResponse uploadManagementInit = UploadInitResponse();
+
+  Future<void> uploadManagementDocInit({
+    required String name,
+    required String bio,
+    required String position,
+    required String managementId,
+    required List<String> qualificationList,
+  }) async {
+    if (managementProfileImageFile.value == null) {
+      commonSnackBar(message: AppStrings.noImageSelected);
+      return;
+    }
+
+    try {
+      isUploading.value = true;
+      // 1. IMAGE
+      final imageFile = File(managementProfileImageFile.value?.path ?? "");
+      final vInfo = getFileInfo(imageFile);
+      Map<String, dynamic> queryParams = {
+        ApiKeys.fileName: vInfo['fileName'],
+        ApiKeys.fileType: vInfo['mimeType']
+      };
+
+      ResponseModel? response =
+          await SchoolRepo().uploadEducationDocRepo(queryParams: queryParams);
+
+      if (response?.isSuccess ?? false) {
+        uploadInitResponse.value = ApiResponse.complete(response);
+        uploadDirectMessageInit =
+            UploadInitResponse.fromJson(response?.response?.data);
+
+        try {
+          ResponseModel? response = await ChannelRepo().uploadVideoToS3(
+            file: imageFile,
+            fileType: vInfo['mimeType']!,
+            preSignedUrl: uploadDirectMessageInit.uploadUrl ?? "",
+            onProgress: (sent) {},
+          );
+
+          if (response?.isSuccess ?? false) {
+            aboutUsData?.value.management?.add(Management(
+                qualification: qualifications.map((item) => item.text).toList(),
+                name: name,
+                bio: bio,
+                photo: uploadDirectMessageInit.publicUrl,
+                position: position));
+            addManagementTrustController();
+          } else {
+            uploadFileToS3Response.value = ApiResponse.error('error');
+            commonSnackBar(
+                message: response?.message ?? AppStrings.somethingWentWrong);
+          }
+        } catch (e) {
+          isUploading.value = false;
+
+          uploadFileToS3Response.value = ApiResponse.error('error');
+          commonSnackBar(message: AppStrings.somethingWentWrong);
+        } finally {
+          isUploading.value = false;
+        }
+      } else {
+        isUploading.value = false;
+
+        uploadInitResponse.value = ApiResponse.error('error');
+        commonSnackBar(
+            message: response?.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      isUploading.value = false;
+      uploadInitResponse.value = ApiResponse.error('error');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    } finally {
+      isUploading.value = false;
+    }
+  }
+
   ///====================API CALLING END==============================
   ///VALIDATION....
 
@@ -295,13 +491,15 @@ class SchoolAboutUsController extends GetxController {
   void managementValidateForm({
     required String managementName,
     required String profession,
-    required String qualification,
+    required List<TextEditingController> qualification,
     required String message,
+    required String profileImg,
   }) {
     // Condition: All text fields not empty AND at least 1 image
     isFormValid.value = managementName.isNotEmpty &&
         profession.isNotEmpty &&
         qualification.isNotEmpty &&
+        profileImg.isNotEmpty &&
         message.isNotEmpty;
   }
 
@@ -319,14 +517,31 @@ class SchoolAboutUsController extends GetxController {
   void validateHistoryForm() {
     bool isTextChanged = historyText.value.trim() != initialHistoryText.trim();
 
-    // Check if image changed (either new file picked or existing image removed)
-    bool isImageChanged = historyImageFile.value != null ||
-        (initialHistoryImageUrl.isNotEmpty &&
-            historyImageFile.value == null &&
-            initialHistoryText.isNotEmpty);
-
     // If you want to enable button ONLY if text is not empty AND (Text changed OR Image changed)
     isFormValid.value = historyText.value.trim().isNotEmpty &&
         (isTextChanged || historyImageFile.value != null);
+  }
+
+  // Logic to check if user changed anything
+  void validateDirectMessageForm() {
+    bool isTextChanged =
+        directorMessageText.value.trim() != initialDirectText.trim();
+
+    // If you want to enable button ONLY if text is not empty AND (Text changed OR Image changed)
+    isFormValid.value = directorMessageText.value.trim().isNotEmpty &&
+        (isTextChanged || directorMessageImageFile.value != null);
+  }
+
+  ///Only Department Validation
+
+  void departmentValidateForm({
+    required String departmentRole,
+    required String departmentEmailAddress,
+    required String departmentPhoneNo,
+  }) {
+    // Condition: All text fields not empty AND at least 1 image
+    isFormValid.value = departmentRole.isNotEmpty &&
+        departmentPhoneNo.isNotEmpty &&
+        departmentEmailAddress.isNotEmpty;
   }
 }

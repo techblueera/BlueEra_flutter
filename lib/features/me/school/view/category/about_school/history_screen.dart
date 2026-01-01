@@ -37,8 +37,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
         // Set Initial Values for Comparison
         schoolAboutUsController.initialHistoryText = data.history ?? "";
         schoolAboutUsController.initialHistoryImageUrl = "";
-        // schoolAboutUsController.initialHistoryImageUrl = data.historyImage ?? "";
-
         // Populate UI
         descriptionEditController.text = data.history ?? "";
         schoolAboutUsController.historyText.value = data.history ?? "";
@@ -180,129 +178,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   void _handleSubmit() {
     // Call your update API
-    print("Submitting changes...");
     schoolAboutUsController.uploadEductionHistoryDocInit();
   }
 }
-/*
-class _HistoryScreenState extends State<HistoryScreen> {
-  final schoolAboutUsController = Get.find<SchoolAboutUsController>();
-  final descriptionEditController = TextEditingController();
-
-  @override
-  void initState() {
-    // TODO: implement initState
-    schoolAboutUsController.isFormValid.value = false;
-
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CommonBackAppBar(
-        showRightTextButton: true,
-        isShowMoreInfoIcon: true,
-        title: "History",
-        isShadowShow: false,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          children: [
-            /// Course Card
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.whiteE5),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  /// Apply Button
-                  CommonTextField(
-                    textEditController: descriptionEditController,
-                    title: "Our History",
-                    hintText:
-                        "Hello Everyone @India User Now I am Using https://blueera.ai It’s Amazing, I suggest to Join Me.",
-                    maxLine: 5,
-                    maxLength: 3000,
-                    isValidate: false,
-                    keyBoardType: TextInputType.multiline,
-                    textInputAction: TextInputAction.newline,
-                    onChange: (value) {
-                      String newVal =
-                          value.replaceAll(RegExp(r'\n{3,}'), '\n\n');
-                      schoolAboutUsController.historyText.value = newVal;
-                      _runValidation();
-                    },
-                  ),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: Obx(() => CustomText(
-                          "${schoolAboutUsController.historyText.value.length}/3000",
-                          color: Colors.grey,
-                          fontSize: 12,
-                        )),
-                  ),
-                  SizedBox(height: SizeConfig.size20),
-                  CustomText(
-                    "Upload Photo",
-                    fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w400,
-                    color: AppColors.mainTextColor,
-                  ),
-                  SizedBox(height: SizeConfig.size10),
-                  CommonImageUploadTile(
-                    title: "Upload Photo",
-                    imageFile: schoolAboutUsController.historyImageFile,
-                    context: context,
-                    onImageRemove: () {
-                      schoolAboutUsController.historyImageFile.value = null;
-                      _runValidation();
-                    },
-                    onImageSelected: () async {
-                      final selectedPath =
-                          await CommonImageUploadTile.pickImage(
-                              context: context);
-                      if (selectedPath != null) {
-                        schoolAboutUsController.historyImageFile.value =
-                            File(selectedPath);
-                      }
-                      _runValidation();
-                    },
-                  ),
-
-                  SizedBox(height: SizeConfig.size30),
-                  Obx(() => CustomBtn(
-                        onTap: schoolAboutUsController.isFormValid.value
-                            ? () {
-                                schoolAboutUsController
-                                    .uploadEductionDocInit();
-                              }
-                            : null,
-                        title: AppStrings.submit,
-                        // Pass the validation state to change button color/opacity
-                        isValidate: schoolAboutUsController.isFormValid.value,
-                      )),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Helper to trigger validation
-  void _runValidation() {
-    schoolAboutUsController.noticesNewsValidateForm(
-        noticeDescription: descriptionEditController.text,
-        uploadPhoto:
-            schoolAboutUsController.historyImageFile.value?.path ?? "");
-  }
-}
-*/

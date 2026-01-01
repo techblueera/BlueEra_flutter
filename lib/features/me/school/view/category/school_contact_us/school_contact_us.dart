@@ -126,7 +126,7 @@ class _SchoolContactUsState extends State<SchoolContactUs> {
                                         ),
                                         InkWell(
                                           onTap: () {
-                                            Get.to(DepartmentOnlyScreen());
+                                            Get.to(DepartmentOnlyScreen(contactInfo:data ,isContactInfoEdit: true,));
                                           },
                                           child: LocalAssets(
                                             imagePath: AppIconAssets.editIcon,

@@ -111,18 +111,6 @@ class SchoolController extends GetxController {
         departmentEmailAddress.isNotEmpty;
   }
 
-  ///Only Department Validation
-
-  void departmentValidateForm({
-    required String departmentRole,
-    required String departmentEmailAddress,
-    required String departmentPhoneNo,
-  }) {
-    // Condition: All text fields not empty AND at least 1 image
-    isFormValid.value = departmentRole.isNotEmpty &&
-        departmentPhoneNo.isNotEmpty &&
-        departmentEmailAddress.isNotEmpty;
-  }
 
   ///Only Branch Validation
   void branchValidateForm({

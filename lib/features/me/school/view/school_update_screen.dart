@@ -8,6 +8,7 @@ import 'package:BlueEra/features/me/school/controller/school_controller.dart';
 import 'package:BlueEra/features/me/school/view/category/about_school/school_about_us.dart';
 import 'package:BlueEra/features/me/school/view/category/acadamics/school_academics_page.dart';
 import 'package:BlueEra/features/me/school/view/category/campus_life/school_compus_life.dart';
+import 'package:BlueEra/features/me/school/view/category/notice_news/notice_news_screen.dart';
 import 'package:BlueEra/features/me/school/view/category/school_contact_us/school_contact_us.dart';
 import 'package:BlueEra/features/me/school/view/category/school_gallery/school_gallery.dart';
 import 'package:BlueEra/features/me/school/view/category/school_notice_and_news.dart';
@@ -48,7 +49,8 @@ class SchoolUpdateScreen extends StatelessWidget {
     ServiceMenuItem(
       title: "Notices & News",
       icon: AppIconAssets.notices_news,
-      page: () => SchoolNoticeAndNews(),
+      page: () => NoticeNewsScreen(),
+      // page: () => SchoolNoticeAndNews(),
     ),
     ServiceMenuItem(
       title: "Gallery",

@@ -1,4 +1,5 @@
-import 'package:BlueEra/features/me/school/controller/school_controller.dart';
+import 'package:BlueEra/core/api/model/school_contact_us_model.dart';
+import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
@@ -7,12 +8,18 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class DepartmentOnlyScreen extends StatefulWidget {
+  final ContactInfo? contactInfo;
+  final bool? isContactInfoEdit;
+
+  const DepartmentOnlyScreen(
+      {super.key, this.isContactInfoEdit, this.contactInfo});
+
   @override
   _DepartmentOnlyScreenState createState() => _DepartmentOnlyScreenState();
 }
 
 class _DepartmentOnlyScreenState extends State<DepartmentOnlyScreen> {
-  final aboutUsController = Get.find<SchoolController>();
+  final schoolAboutUsController = Get.find<SchoolAboutUsController>();
 
   final titleController = TextEditingController();
   final emailController = TextEditingController();
@@ -22,15 +29,17 @@ class _DepartmentOnlyScreenState extends State<DepartmentOnlyScreen> {
   void initState() {
     // TODO: implement initState
 
-    titleController.addListener(_runValidation);
-    emailController.addListener(_runValidation);
-    phoneController.addListener(_runValidation);
+    if (widget.isContactInfoEdit ?? false) {
+      titleController.text = widget.contactInfo?.title ?? "";
+      emailController.text = widget.contactInfo?.email ?? "";
+      phoneController.text = widget.contactInfo?.phone ?? "";
+    }
     super.initState();
   }
 
 // Helper to trigger validation
   void _runValidation() {
-    aboutUsController.departmentValidateForm(
+    schoolAboutUsController.departmentValidateForm(
       departmentRole: titleController.text,
       departmentEmailAddress: emailController.text,
       departmentPhoneNo: phoneController.text,
@@ -49,7 +58,6 @@ class _DepartmentOnlyScreenState extends State<DepartmentOnlyScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
               CommonTextField(
                 textEditController: titleController,
                 hintText: "E.g.Admission Cell",
@@ -70,7 +78,26 @@ class _DepartmentOnlyScreenState extends State<DepartmentOnlyScreen> {
                 title: "Phone Number",
                 onChange: (_) => _runValidation(),
               ),
-              CustomBtn(onTap: () {}, title: "Submit"),
+              SizedBox(height: 12),
+
+              Obx(() {
+                return CustomBtn(
+                    isValidate: schoolAboutUsController.isFormValid.value,
+                    onTap: () async {
+                      if (widget.isContactInfoEdit ?? false) {
+                        schoolAboutUsController
+                            .schoolContactUsData?.value.contactInfo
+                            ?.add(ContactInfo(
+                            id: widget.contactInfo?.id,
+                            email: emailController.text,
+                            phone: phoneController.text,
+                            title: titleController.text));
+                        await schoolAboutUsController
+                            .updateBranchContactDetailsController();
+                      }
+                    },
+                    title: "Submit");
+              }),
             ],
           ),
         ),

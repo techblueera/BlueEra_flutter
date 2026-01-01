@@ -1,7 +1,8 @@
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -36,16 +37,19 @@ class _ManagementTrustFormScreenState extends State<ManagementTrustFormScreen> {
 
   @override
   void initState() {
+    schoolAboutUsController.initialManagementProfileImageUrl = "";
+    schoolAboutUsController.managementProfile.value ="";
     schoolAboutUsController.qualifications.clear();
     schoolAboutUsController.isFormValid.value = false;
     // TODO: implement initState
     schoolAboutUsController.addQualification();
-    nameEditController.addListener(_runValidation);
-    professionEditController.addListener(_runValidation);
-    messageEditController.addListener(_runValidation);
-    schoolAboutUsController.qualifications.firstOrNull
-        ?.addListener(_runValidation);
+
     if (widget.isEdit) {
+      schoolAboutUsController.initialManagementProfileImageUrl =
+          widget.management?.photo ?? "";
+      schoolAboutUsController.managementProfile.value =
+          widget.management?.photo ?? "";
+
       nameEditController.text = widget.management?.name ?? "";
       professionEditController.text = widget.management?.position ?? "";
       messageEditController.text = widget.management?.bio ?? "";
@@ -73,17 +77,18 @@ class _ManagementTrustFormScreenState extends State<ManagementTrustFormScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 ///UPLOAD PROFILE....
-                Center(
-                  child: CommonProfileImage(
-                    imagePath: schoolAboutUsController.managementProfile.value,
-                    onImageUpdate: (image) {
-                      schoolAboutUsController.managementProfile.value = image;
-                      schoolAboutUsController.isImageUpdated.value = true;
-                    },
-                    dialogTitle: 'Upload Profile',
-                    borderColor: AppColors.primaryColor,
-                  ),
-                ),
+                _buildImageSection(),
+                // Center(
+                //   child: CommonProfileImage(
+                //     imagePath: schoolAboutUsController.managementProfile.value,
+                //     onImageUpdate: (image) {
+                //       schoolAboutUsController.managementProfile.value = image;
+                //       schoolAboutUsController.isImageUpdated.value = true;
+                //     },
+                //     dialogTitle: 'Upload Profile',
+                //     borderColor: AppColors.primaryColor,
+                //   ),
+                // ),
                 CommonTextField(
                   textEditController: nameEditController,
                   hintText: "E.g. Ramesh Gupta",
@@ -197,22 +202,19 @@ class _ManagementTrustFormScreenState extends State<ManagementTrustFormScreen> {
                 // THE BUTTON
                 Obx(() => CustomBtn(
                       onTap: schoolAboutUsController.isFormValid.value
-                          ? () {
-                              schoolAboutUsController
-                                  .aboutUsData?.value.management
-                                  ?.add(Management(
-                                      qualification: schoolAboutUsController
-                                          .qualifications
-                                          .map((item) => item.text)
-                                          .toList(),
-                                      name: nameEditController.text,
-                                      bio: schoolAboutUsController
-                                          .managementDescriptionText.value,
-                                      photo: "",
-                                      id: widget.management?.id,
-                                      position: professionEditController.text));
-                              schoolAboutUsController
-                                  .addManagementTrustController();
+                          ? () async {
+                              await schoolAboutUsController
+                                  .uploadManagementDocInit(
+                                name: nameEditController.text,
+                                bio: schoolAboutUsController
+                                    .managementDescriptionText.value,
+                                position: professionEditController.text,
+                                qualificationList: schoolAboutUsController
+                                    .qualifications
+                                    .map((item) => item.text)
+                                    .toList(),
+                                managementId: widget.management?.id ?? "",
+                              );
                             }
                           : null,
                       title: AppStrings.add,
@@ -228,6 +230,116 @@ class _ManagementTrustFormScreenState extends State<ManagementTrustFormScreen> {
     );
   }
 
+  Widget _buildImageSection() {
+    // If user picked a NEW local file
+    if (schoolAboutUsController.managementProfileImageFile.value != null) {
+      return Center(
+        child: CommonProfileImage(
+          imagePath: schoolAboutUsController.managementProfile.value,
+          onImageUpdate: (image) {
+            schoolAboutUsController.managementProfile.value = image;
+            schoolAboutUsController.isImageUpdated.value = true;
+            _runValidation();
+          },
+          dialogTitle: 'Upload Profile',
+          borderColor: AppColors.primaryColor,
+        ),
+      );
+      return CommonImageUploadTile(
+        imageFile: schoolAboutUsController.managementProfileImageFile,
+        onImageRemove: () {
+          schoolAboutUsController.managementProfileImageFile.value = null;
+          _runValidation();
+        },
+        title: '',
+        context: context,
+      );
+    }
+    // If no local file but we have a NETWORK image from API
+    else if (schoolAboutUsController
+        .initialManagementProfileImageUrl.isNotEmpty) {
+      return Stack(
+        children: [
+          Center(
+            child: CommonProfileImage(
+              imagePath:
+                  schoolAboutUsController.initialManagementProfileImageUrl,
+              // imagePath: schoolAboutUsController.managementProfile.value,
+              onImageUpdate: (image) {
+                schoolAboutUsController.managementProfile.value = image;
+                schoolAboutUsController.isImageUpdated.value = true;
+                _runValidation();
+              },
+              dialogTitle: 'Upload Profile',
+              borderColor: AppColors.primaryColor,
+            ),
+          ),
+          // ClipRRect(
+          //   borderRadius: BorderRadius.circular(8),
+          //   child: Image.network(
+          //     schoolAboutUsController.initialManagementProfileImageUrl,
+          //     height: 150,
+          //     width: double.infinity,
+          //     fit: BoxFit.cover,
+          //   ),
+          // ),
+          // Positioned(
+          //   right: 5,
+          //   top: 5,
+          //   child: CircleAvatar(
+          //     backgroundColor: Colors.red,
+          //     child: IconButton(
+          //       icon: const Icon(Icons.delete, color: Colors.white),
+          //       onPressed: () {
+          //         // Clear initial URL to show "Change" happened
+          //         schoolAboutUsController.initialManagementProfileImageUrl = "";
+          //         _runValidation();
+          //         setState(
+          //             () {}); // Refresh local UI to show upload placeholder
+          //       },
+          //     ),
+          //   ),
+          // )
+        ],
+      );
+    }
+    return Center(
+      child: CommonProfileImage(
+        imagePath: schoolAboutUsController.managementProfile.value,
+        onImageUpdate: (image) async {
+          final path = await CommonImageUploadTile.pickImage(context: context);
+          if (path != null) {
+            schoolAboutUsController.managementProfile.value = path;
+            schoolAboutUsController.managementProfileImageFile.value =
+                File(path);
+
+            _runValidation();
+          }
+          //   schoolAboutUsController.managementProfile.value = image;
+          //   schoolAboutUsController.isImageUpdated.value = true;
+          //   _runValidation();
+          //
+        },
+        dialogTitle: 'Upload Profile',
+        borderColor: AppColors.primaryColor,
+      ),
+    );
+    // Default: Show Upload Placeholder
+    return CommonImageUploadTile(
+      title: "Upload Photo",
+      context: context,
+      onImageSelected: () async {
+        final path = await CommonImageUploadTile.pickImage(context: context);
+        if (path != null) {
+          schoolAboutUsController.managementProfileImageFile.value = File(path);
+
+          _runValidation();
+        }
+      },
+      imageFile: schoolAboutUsController.managementProfileImageFile,
+    );
+  }
+
 // Helper to trigger validation
   void _runValidation() {
     schoolAboutUsController.managementValidateForm(
@@ -235,6 +347,7 @@ class _ManagementTrustFormScreenState extends State<ManagementTrustFormScreen> {
         profession: professionEditController.text,
         message: messageEditController.text,
         qualification:
-            schoolAboutUsController.qualifications.firstOrNull?.text ?? "");
+            schoolAboutUsController.qualifications,
+        profileImg: schoolAboutUsController.managementProfile.value ?? "");
   }
 }

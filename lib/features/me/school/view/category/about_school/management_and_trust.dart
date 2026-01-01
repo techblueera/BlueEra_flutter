@@ -75,11 +75,12 @@ class _ManagementAndTrustState extends State<ManagementAndTrust> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               /// Doctor Image
-                              NetWorkOcToAssets(imgUrl: data?.photo ?? ""),
+                              Expanded(child: NetWorkOcToAssets(imgUrl: data?.photo ?? "")),
                               const SizedBox(width: 12),
 
                               /// Details
                               Expanded(
+                                flex: 3,
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [

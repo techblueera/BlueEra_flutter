@@ -547,4 +547,6 @@ abstract class BaseService {
   final String schoolAboutAdd = 'education-service/about';
   final String schoolContact = 'education-service/contact/school';
   final String schoolUser = 'education-service/schools/user';
+  final String schoolContactUpdate = 'education-service/contact/';
+  final String schoolNotices = 'education-service/notices/school/';
 }
