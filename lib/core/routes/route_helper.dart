@@ -1389,7 +1389,7 @@ class RouteHelper {
     //      settings: RouteSettings(name: getGroceryCartScreenRoute())
     // );
       case RouteConstant.grocerySuperCategoryScreen:
-      final args = settings.arguments as Map<String, dynamic>;
+        final args = settings.arguments as Map<String, dynamic>;
         final bool argMyGrocery = args[ApiKeys.argMyGrocery] as bool;
         return MaterialPageRoute(
             builder: (_) => GrocerySuperCategoryScreen(
@@ -1420,8 +1420,12 @@ class RouteHelper {
             settings: RouteSettings(name: getRiderStoreScreenRoute())
         );
         case RouteConstant.groceryConfirmScreen:
+          final args = settings.arguments as Map<String, dynamic>;
+          final String argOrderId = args[ApiKeys.argOrderId] as String;
         return MaterialPageRoute(
-            builder: (_) => GroceryConfirmScreen(),
+            builder: (_) => GroceryConfirmScreen(
+                orderId: argOrderId
+            ),
             settings: RouteSettings(name: getGroceryConfirmScreenRoute())
         );
       default:

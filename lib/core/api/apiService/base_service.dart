@@ -544,5 +544,8 @@ abstract class BaseService {
   final String documents = 'document-service/documents';
   final String documentsStatus = 'document-service/documents/status';
   final String initDocumentServiceUpload = "document-service/s3/presigned-url";
+  final String groceryOrder = "grocery-service/api/orders";
+  String updateGroceryOrder(String orderId) => "grocery-service/api/orders/$orderId";
+  static final String groceryRiderOrderStream = "riders/orders/stream/grocery/$userId";
 
 }

@@ -381,10 +381,23 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   }
 
   Widget resolveBusinessScreen() {
-    return BusinessType == BusinessType.Grocery
-        ? GroceryScreen(fromBottomNavBar: true)
-        // : GroceryScreen(fromBottomNavBar: true);
-    : InventoryScreen(fromBottomNavBar: true);
+    log('Resolving Screen... Type: $businessTypeGlobal | Category: $businessCategoryGlobal');
+
+    // 1. First, check if it is a Food business
+    if (businessTypeGlobal.toUpperCase() == BusinessType.Food.name.toUpperCase()) {
+      log('goes into this');
+      // 2. If it is Food, check the specific category
+      if (businessCategoryGlobal == AppConstants.groceryVegetablesDairy) {
+
+        return const GroceryScreen(fromBottomNavBar: true);
+      } else {
+        return const InventoryScreen(fromBottomNavBar: true);
+      }
+
+    } else {
+      // 3. If it is NOT Food (e.g., Product, Service, etc.)
+      return const InventoryScreen(fromBottomNavBar: true);
+    }
   }
 
   Widget resolveIndividualScreen() {

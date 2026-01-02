@@ -2,9 +2,13 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/common/food/controller/grocery_controller.dart';
+import 'package:BlueEra/features/common/food/controller/user_grocery_controller.dart';
 import 'package:BlueEra/features/common/food/view/grocery/grocery_category_screen.dart';
+import 'package:BlueEra/features/common/food/view/grocery/grocery_listing/grocery_cart_screen.dart';
 import 'package:BlueEra/features/common/food/view/grocery/my_grocery_listing/my_grocery_category_screen.dart';
 import 'package:BlueEra/features/common/food/view/grocery/my_grocery_listing/my_grocery_super_category_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -42,6 +46,8 @@ class _GroceryScreenState extends State<GroceryScreen> with SingleTickerProvider
   @override
   void dispose() {
     _tabController?.dispose();
+    deleteIfRegistered<GroceryController>();
+    deleteIfRegistered<UserGroceryController>();
     super.dispose();
   }
 

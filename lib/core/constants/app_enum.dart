@@ -12,7 +12,8 @@ enum ValidationTypeEnum {
   lNumber
 }
 
-enum BusinessType { Food, Product, Service, Grocery, Health, HotelStay, Both }
+enum BusinessType { Food, Product, Service, Both }
+// enum BusinessType { Food, Product, Service, Grocery, Health, HotelStay, Both }
 
 /// Modes of Communication
 enum CommunicationMode { ONLINE, IN_PERSON, PHONE }

@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -91,13 +92,16 @@ class _GroceryCartScreenState extends State<GroceryCartScreen> {
                               borderColor: AppColors.secondaryTextColor,
                           ),
                           SizedBox(width: SizeConfig.paddingXSL),
-                          CustomBtn(
-                              onTap: ()=> Get.toNamed(RouteHelper.getGroceryConfirmScreenRoute()),
-                              height: SizeConfig.size30,
-                              width: SizeConfig.size100,
-                              title: AppStrings.submit,
-                              bgColor: AppColors.primaryColor,
-                          ),
+                          Obx(()=> CustomBtn(
+                            onTap: ()=> controller.addGroceryOrderApi(),
+                            height: SizeConfig.size30,
+                            width: SizeConfig.size100,
+                            title: controller.isAddGroceryOrderLoading.value
+                                ? null
+                                : AppStrings.submit,
+                            bgColor: AppColors.primaryColor,
+                            isLoading: controller.isAddGroceryOrderLoading.value,
+                          )),
                         ],
                       )
                     ],
@@ -349,7 +353,6 @@ class _GroceryCartScreenState extends State<GroceryCartScreen> {
                 )
               ],
             );
-
           }),
 
         ],

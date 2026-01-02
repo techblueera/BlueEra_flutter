@@ -223,9 +223,10 @@ class _CreateNewAccountScreenState extends State<CreateNewAccountScreen> {
                                   print("You tapped category name → ${category.name}");
                                   print("You tapped category id → ${category.categoryData}");
                                   _showDropdownDialog(
-                                    businessType: (category.slugId == AppConstants.groceryVegetablesDairy)
-                                    ? BusinessType.Grocery
-                                    : BusinessType.Food,
+                                    businessType: BusinessType.Food,
+                                    // businessType: (category.slugId == AppConstants.groceryVegetablesDairy)
+                                    // ? BusinessType.Grocery
+                                    // : BusinessType.Food,
                                     categoryData: category.categoryData,
                                   );
                                 },

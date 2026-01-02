@@ -30,6 +30,7 @@ class CommonDraggableBottomSheet extends StatelessWidget {
       initialChildSize: initialChildSize,
       minChildSize: minChildSize,
       maxChildSize: maxChildSize,
+      expand: false,
       builder: (context, scrollController) {
         return Container(
           decoration: BoxDecoration(

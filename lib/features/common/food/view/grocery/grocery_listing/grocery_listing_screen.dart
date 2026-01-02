@@ -419,8 +419,8 @@ class _GroceryListingScreenState extends State<GroceryListingScreen> {
     // final discount = price.discountRange;
 
 
-    final sellingPrice = "${groceryProductData.variants?[0].pricing?[0].sellingPrice}";
-    final mrp = "${groceryProductData.variants?[0].pricing?[0].mrp}";
+    final sellingPrice = "₹${groceryProductData.variants?[0].pricing?[0].sellingPrice}";
+    final mrp = "₹${groceryProductData.variants?[0].pricing?[0].mrp}";
     final discount = '${calculateDiscount(
       sellingPrice,
       mrp,
@@ -485,7 +485,7 @@ class _GroceryListingScreenState extends State<GroceryListingScreen> {
                         return;
                       }
 
-                      showEditProductBottomSheet(
+                      showProductVariantsBottomSheet(
                         context,
                         allVariants: groceryProductData.variants!,
                         onAdd: (variant) {
@@ -637,7 +637,7 @@ class _GroceryListingScreenState extends State<GroceryListingScreen> {
     );
   }
 
-  void showEditProductBottomSheet(
+  void showProductVariantsBottomSheet(
     BuildContext context, {
     required List<VariantsData> allVariants,
     required Function(VariantsData variant) onAdd,

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/language_localization_service/language_service_app.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/environment_config.dart';
@@ -33,6 +35,7 @@ String businessNameGlobal = '';
 String businessOwnerNameGlobal = '';
 String userNameAtGlobal = '';
 String businessOwnerAddressGlobal = '';
+String businessCategoryGlobal = '';
 String businessSubCategoryGlobal = '';
 String serviceProviderStatusGlobal = '';
 String earnServiceCreatedStatusGlobal = 'false';
@@ -77,6 +80,7 @@ class SharedPreferenceUtils {
   static const channelOwner = 'channelOwner';
   static const businessOwnerAddress = 'businessOwnerAddress';
   static const availabilityDetails = 'availabilityDetails';
+  static const businessCategory = 'businessCategory';
   static const businessSubCategory = 'businessSubCategory';
   static const serviceProviderStatus = 'serviceProviderStatus';
   static const earnServiceCreatedStatusKey = 'earnServiceCreatedStatusKey';
@@ -134,6 +138,7 @@ class SharedPreferenceUtils {
     required String loginBusinessUserId,
     required String userNameAt,
     required String businessAddress,
+    required String categoryOfBusiness,
     required String subCategoryOfBusiness,
     required String typeOfBusiness,
   }) async {
@@ -151,6 +156,8 @@ class SharedPreferenceUtils {
     await SharedPreferenceUtils.setSecureValue(userNameAtKey, userNameAt);
     await SharedPreferenceUtils.setSecureValue(
         SharedPreferenceUtils.businessOwnerAddress, businessAddress);
+    await SharedPreferenceUtils.setSecureValue(
+        SharedPreferenceUtils.businessCategory, categoryOfBusiness);
     await SharedPreferenceUtils.setSecureValue(
         SharedPreferenceUtils.businessSubCategory, subCategoryOfBusiness);
     await SharedPreferenceUtils.setSecureValue(
@@ -224,6 +231,8 @@ class SharedPreferenceUtils {
       businessTypeGlobal = '';
       isRiderServiceOpt = '';
       isEarnServiceOpt = '';
+      businessCategoryGlobal = '';
+      businessSubCategoryGlobal = '';
       Get.find<AuthController>().imgPath.value = "";
       await SharedPreferenceUtils.setBaseUrlSecureValue(workManagerBaseUrl);
       AppNotificationHandler.getFcmToken();
@@ -360,6 +369,10 @@ getUserLoginData() async {
 
   userNameAtGlobal = await SharedPreferenceUtils.getSecureValue(
           SharedPreferenceUtils.userNameAtKey) ??
+      "";
+
+  businessCategoryGlobal = await SharedPreferenceUtils.getSecureValue(
+          SharedPreferenceUtils.businessCategory) ??
       "";
 
   businessSubCategoryGlobal = await SharedPreferenceUtils.getSecureValue(

@@ -21,7 +21,6 @@ class GroceryBillDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // We wrap the content in Obx so it updates automatically when cart changes
     return Obx(() {
       return CustomFormCard(
           padding: EdgeInsets.all(SizeConfig.size10),
@@ -155,7 +154,7 @@ class GroceryBillDetails extends StatelessWidget {
                       borderRadius: BorderRadius.circular(2.0)
                   ),
                   child: CustomText(
-                    '${controller.discountPercentage.toStringAsFixed(2)}%',
+                    '${controller.totalDiscountPercentage.toStringAsFixed(2)}%',
                     fontSize: SizeConfig.extraSmall,
                     fontWeight: FontWeight.w600,
                     color: AppColors.white,

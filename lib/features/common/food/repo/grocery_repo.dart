@@ -37,7 +37,7 @@ class GroceryRepo extends BaseService {
   }
 
   /// Create New Grocery Product Variant
-  Future<ResponseModel> createNewGroceryProductVariantRepo({ required String productId, Map<String, dynamic>? params}) async {
+  Future<ResponseModel> createNewGroceryProductVariantRepo({required String productId, Map<String, dynamic>? params}) async {
     final response = await ApiBaseHelper().postHTTP(
       createNewProductVariant(productId),
       params: params,
@@ -72,7 +72,7 @@ class GroceryRepo extends BaseService {
     return response;
   }
 
-  /// Add Grocery Product to inventory
+  /// Fetch My grocery Category
   Future<ResponseModel> fetchGroceryCategoryRepo({List<Map<String, dynamic>>? params}) async {
     final response = await ApiBaseHelper().getHTTP(
       groceryCategoryWithVariant,
@@ -84,6 +84,53 @@ class GroceryRepo extends BaseService {
     return response;
   }
 
+  /// Grocery Order Request
+  Future<ResponseModel> groceryOrderRepo({Map<String, dynamic>? params}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      groceryOrder,
+      params: params,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  /// Grocery Order update Request
+  Future<ResponseModel> updateGroceryOrderRepo({Map<String, dynamic>? params, required String orderId}) async {
+    final response = await ApiBaseHelper().putHTTP(
+      updateGroceryOrder(orderId),
+      params: params,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  /// Fetch Near By Riders
+  Future<ResponseModel> fetchNearByRidersRepo({Map<String, dynamic>? queryParams}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      getNearByRiderApi,
+      params: queryParams,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  /// Order Request To Rider
+  Future<ResponseModel> orderReqToRiderRepo({Map<String, dynamic>? params}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      sendOrderReqToRider,
+      params: params,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 
 
 }
