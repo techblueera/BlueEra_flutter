@@ -39,7 +39,7 @@ class _PrincipalMessageScreenState extends State<PrincipalMessageScreen> {
         // Set Initial Values for Comparison
         schoolAboutUsController.initialDirectText =
             data.principalMessage?.message ?? "";
-        schoolAboutUsController.initialDirectImageUrl = "";
+        schoolAboutUsController.initialDirectImageUrl =  data.principalMessage?.photo??"";
         // Populate UI
         descriptionEditController.text = data.principalMessage?.message ?? "";
         schoolAboutUsController.directorMessageText.value =

@@ -24,7 +24,8 @@ class _SchoolAcademicsPageState extends State<SchoolAcademicsPage> {
     ServiceMenuItem(
       title: "Courses / Programs",
       icon:AppIconAssets.courses_programs,
-      page: () => AcadamicCoursAndPrograms(),
+      page: () => CourseListScreen(),
+      // page: () => AcadamicCoursAndPrograms(),
     ),
     ServiceMenuItem(
       title: "Faculty Details",

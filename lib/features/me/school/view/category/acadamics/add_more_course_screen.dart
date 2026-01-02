@@ -1,8 +1,7 @@
-import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/api/model/school_course_res_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/common/delivery_partner/widget/common_multiple_image_upload_section.dart';
-import 'package:BlueEra/features/me/school/controller/school_controller.dart';
+import 'package:BlueEra/features/me/school/controller/course_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
@@ -13,14 +12,18 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 class AddMoreCourseScreen extends StatefulWidget {
-  AddMoreCourseScreen({super.key});
+  final bool isEdit;
+  final SchoolCourseData?
+      courseData; // Passing the model from your previous JSON
+
+  AddMoreCourseScreen({super.key, this.isEdit = false, this.courseData});
 
   @override
   State<AddMoreCourseScreen> createState() => _AddMoreCourseScreenState();
 }
 
 class _AddMoreCourseScreenState extends State<AddMoreCourseScreen> {
-  final aboutUsController = Get.find<SchoolController>();
+  final courseController = Get.find<CourseController>();
 
   final courseNameEditController = TextEditingController();
 
@@ -36,14 +39,53 @@ class _AddMoreCourseScreenState extends State<AddMoreCourseScreen> {
 
   @override
   void initState() {
-    // TODO: implement initState
-    courseNameEditController.addListener(_runValidation);
-    admissionProcessEditController.addListener(_runValidation);
-    eligibilityEditController.addListener(_runValidation);
-    courseFeeEditController.addListener(_runValidation);
-    courseDurationEditController.addListener(_runValidation);
-    descriptionEditController.addListener(_runValidation);
     super.initState();
+    _initializeData();
+
+    // Listeners for all controllers to trigger validation
+    [
+      courseNameEditController,
+      admissionProcessEditController,
+      eligibilityEditController,
+      courseFeeEditController,
+      courseDurationEditController,
+      descriptionEditController
+    ].forEach((controller) => controller.addListener(_runValidation));
+  }
+
+  void _initializeData() {
+    if (widget.isEdit && widget.courseData != null) {
+      final data = widget.courseData!;
+
+      // Determine fee type and value from API response
+      String feeVal = "";
+      if (data.courseFees?.monthly != null && data.courseFees!.monthly! > 0) {
+        courseController.feeType.value = "Monthly";
+        feeVal = data.courseFees!.monthly.toString();
+      } else {
+        courseController.feeType.value = "Yearly";
+        feeVal = data.courseFees?.yearly.toString() ?? "";
+      }
+
+      // Populate TextFields
+      courseNameEditController.text = data.name ?? "";
+      admissionProcessEditController.text = data.admissionProcess ?? "";
+      eligibilityEditController.text = data.eligibility ?? "";
+      courseFeeEditController.text = feeVal;
+      courseDurationEditController.text = data.duration ?? "";
+      descriptionEditController.text = data.description ?? "";
+      courseController.courseDescriptionText.value = data.description ?? "";
+      // Save snapshot for comparison
+      courseController.originalCourseData = {
+        'name': data.name,
+        'admissionProcess': data.admissionProcess,
+        'eligibility': data.eligibility,
+        'feeValue': feeVal,
+        'feeType': courseController.feeType.value,
+        'duration': data.duration,
+        'description': data.description,
+      };
+    }
   }
 
   @override
@@ -85,37 +127,33 @@ class _AddMoreCourseScreenState extends State<AddMoreCourseScreen> {
                   onChange: (_) => _runValidation(),
                 ),
                 SizedBox(height: SizeConfig.paddingM),
-                Row(
-                  children: [
-                    CustomText(
-                      'Course Fee',
-                      fontSize: SizeConfig.medium,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.mainTextColor,
-                    ),
-                    Container(
-                      height: 30,
-                      child: Row(
-                        children: [
-                          Radio<String>(
-                            value: 'Monthly',
-                            groupValue: aboutUsController.feeType.value,
-                            onChanged: aboutUsController.setFeeType,
-                            activeColor: AppColors.primaryColor,
-                          ),
-                          const CustomText("Monthly"),
-                          Radio<String>(
-                            value: 'Yearly',
-                            groupValue: aboutUsController.feeType.value,
-                            onChanged: aboutUsController.setFeeType,
-                            activeColor: AppColors.primaryColor,
-                          ),
-                          const CustomText("Yearly"),
-                        ],
-                      ),
-                    )
-                  ],
-                ),
+                // Radio buttons with Obx to update UI immediately
+                Obx(() => Row(
+                      children: [
+                        CustomText(
+                          'Course Fee',
+                        ),
+                        Radio<String>(
+                          value: 'Monthly',
+                          groupValue: courseController.feeType.value,
+                          onChanged: (val) {
+                            courseController.setFeeType(val);
+                            _runValidation();
+                          },
+                        ),
+                        const CustomText("Monthly"),
+                        Radio<String>(
+                          value: 'Yearly',
+                          groupValue: courseController.feeType.value,
+                          onChanged: (val) {
+                            courseController.setFeeType(val);
+                            _runValidation();
+                          },
+                        ),
+                        const CustomText("Yearly"),
+                      ],
+                    )),
+
                 SizedBox(height: SizeConfig.paddingXSL),
                 CommonTextField(
                   title: '',
@@ -149,7 +187,7 @@ class _AddMoreCourseScreenState extends State<AddMoreCourseScreen> {
                   textInputAction: TextInputAction.newline,
                   onChange: (value) {
                     String newVal = value.replaceAll(RegExp(r'\n{3,}'), '\n\n');
-                    aboutUsController.courseDescriptionText.value = newVal;
+                    courseController.courseDescriptionText.value = newVal;
                     _runValidation();
                   },
                 ),
@@ -158,19 +196,29 @@ class _AddMoreCourseScreenState extends State<AddMoreCourseScreen> {
                 Align(
                   alignment: Alignment.centerRight,
                   child: Obx(() => CustomText(
-                        "${aboutUsController.courseDescriptionText.value.length}/1000",
+                        "${courseController.courseDescriptionText.value.length}/1000",
                         color: Colors.grey,
                         fontSize: 12,
                       )),
                 ),
                 SizedBox(height: SizeConfig.paddingM),
 
-                // THE BUTTON
+                // Inside the Obx for CustomBtn in AddMoreCourseScreen
                 Obx(() => CustomBtn(
-                      onTap: aboutUsController.isFormValid.value ? () {} : null,
-                      title: AppStrings.add,
-                      // Pass the validation state to change button color/opacity
-                      isValidate: aboutUsController.isFormValid.value,
+                      onTap: courseController.isFormValid.value
+                          ? () => courseController.submitCourse(
+                                // Extract text from controllers to pass to the method
+                                name: courseNameEditController.text,
+                                admission: admissionProcessEditController.text,
+                                eligibility: eligibilityEditController.text,
+                                feeValue: courseFeeEditController.text,
+                                duration: courseDurationEditController.text,
+                                isEdit: widget.isEdit,
+                                courseId: widget.courseData?.id,
+                              )
+                          : null,
+                      title: widget.isEdit ? AppStrings.update : AppStrings.add,
+                      isValidate: courseController.isFormValid.value,
                     )),
                 SizedBox(height: SizeConfig.paddingXXL),
               ],
@@ -183,7 +231,7 @@ class _AddMoreCourseScreenState extends State<AddMoreCourseScreen> {
 
 // Helper to trigger validation
   void _runValidation() {
-    aboutUsController.courseValidateForm(
+    courseController.courseValidateForm(
       courseName: courseNameEditController.text,
       courseDuration: courseDurationEditController.text,
       courseFee: courseFeeEditController.text,

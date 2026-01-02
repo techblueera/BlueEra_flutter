@@ -137,14 +137,7 @@ class SchoolController extends GetxController {
     if (value != null) feeType.value = value;
   }
 
-  ///Only Branch Validation
-  void noticesNewsValidateForm({
-    required String uploadPhoto,
-    required String noticeDescription,
-  }) {
-    // Condition: All text fields not empty AND at least 1 image
-    isFormValid.value = noticeDescription.isNotEmpty && uploadPhoto.isNotEmpty;
-  }
+
 
   ///Only Gallery Validation
   void addPhotosValidateForm({

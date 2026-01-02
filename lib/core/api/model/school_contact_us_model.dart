@@ -3,7 +3,7 @@ SchoolContactUsModel schoolContactUsModelFromJson(String str) => SchoolContactUs
 String schoolContactUsModelToJson(SchoolContactUsModel data) => json.encode(data.toJson());
 class SchoolContactUsModel {
   SchoolContactUsModel({
-      this.success, 
+      this.success,
       this.data,});
 
   SchoolContactUsModel.fromJson(dynamic json) {
@@ -28,15 +28,15 @@ SchoolContactUsData dataFromJson(String str) => SchoolContactUsData.fromJson(jso
 String dataToJson(SchoolContactUsData data) => json.encode(data.toJson());
 class SchoolContactUsData {
   SchoolContactUsData({
-      this.location, 
-      this.id, 
-      this.website, 
-      this.address, 
-      this.schoolId, 
-      this.contactInfo, 
-      this.createdAt, 
-      this.updatedAt, 
-      this.v, 
+      this.location,
+      this.id,
+      this.website,
+      this.address,
+      this.schoolId,
+      this.contactInfo,
+      this.createdAt,
+      this.updatedAt,
+      this.v,
       this.branch,});
 
   SchoolContactUsData.fromJson(dynamic json) {
@@ -54,7 +54,8 @@ class SchoolContactUsData {
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
     v = json['__v'];
-    branch = json['branch'];
+    branch = json['branch'] != null ? json['branch'].cast<String>() : [];
+
   }
   Location? location;
   String? id;
@@ -62,10 +63,10 @@ class SchoolContactUsData {
   String? address;
   String? schoolId;
   List<ContactInfo>? contactInfo;
+  List<String>? branch;
   String? createdAt;
   String? updatedAt;
   int? v;
-  String? branch;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -92,9 +93,9 @@ ContactInfo contactInfoFromJson(String str) => ContactInfo.fromJson(json.decode(
 String contactInfoToJson(ContactInfo data) => json.encode(data.toJson());
 class ContactInfo {
   ContactInfo({
-      this.title, 
-      this.email, 
-      this.phone, 
+      this.title,
+      this.email,
+      this.phone,
       this.id,});
 
   ContactInfo.fromJson(dynamic json) {
@@ -123,7 +124,7 @@ Location locationFromJson(String str) => Location.fromJson(json.decode(str));
 String locationToJson(Location data) => json.encode(data.toJson());
 class Location {
   Location({
-      this.type, 
+      this.type,
       this.coordinates,});
 
   Location.fromJson(dynamic json) {
@@ -131,7 +132,7 @@ class Location {
     coordinates = json['coordinates'] != null ? json['coordinates'].cast<double>() : [];
   }
   String? type;
-  List<double>? coordinates;
+  List<num>? coordinates;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};

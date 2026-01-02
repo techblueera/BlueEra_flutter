@@ -576,5 +576,6 @@ class ApiKeys {
   static const schoolId = 'schoolId';
   static const management = 'management';
   static const qualification = 'qualification';
+  static const uploadPhoto = 'uploadPhoto';
 
 }

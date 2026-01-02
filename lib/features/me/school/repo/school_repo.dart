@@ -71,7 +71,8 @@ class SchoolRepo extends BaseService {
   }
 
   ///UPDATE SCHOOL CONTACT REPO....
-  Future<ResponseModel> updateSchoolContactRepo({required dynamic reqParm,required String contactID}) async {
+  Future<ResponseModel> updateSchoolContactRepo(
+      {required dynamic reqParm, required String contactID}) async {
     final response = await ApiBaseHelper().putHTTP(
         "${schoolContactUpdate}/$contactID",
         onError: (error) {},
@@ -87,11 +88,110 @@ class SchoolRepo extends BaseService {
     return response;
   }
 
-
   ///GET SCHOOL CONTACT REPO....
   Future<ResponseModel> getSchoolNoticesRepo() async {
-    final response = await ApiBaseHelper().getHTTP("${schoolNotices}/$schoolIDGlobal",
-        onError: (error) {}, onSuccess: (data) {});
+    final response = await ApiBaseHelper().getHTTP(
+        "${schoolNotices}/$schoolIDGlobal",
+        onError: (error) {},
+        onSuccess: (data) {});
+    return response;
+  }
+
+  ///ADD SCHOOL NOTICE REPO....
+  Future<ResponseModel> addSchoolNoticesRepo(
+      {required Map<String, dynamic> reqBODY}) async {
+    final response = await ApiBaseHelper().postHTTP("${schoolNoticesAddDelete}",
+        params: reqBODY, onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+
+  ///EDIT SCHOOL NOTICE REPO....
+  Future<ResponseModel> editSchoolNoticesRepo(
+      {required Map<String, dynamic> reqBODY, required String noticeID}) async {
+    final response = await ApiBaseHelper().putHTTP(
+        "${schoolNoticesAddDelete}/$noticeID",
+        params: reqBODY,
+        onError: (error) {},
+        onSuccess: (data) {});
+    return response;
+  }
+
+  ///DELETE SCHOOL NOTICE REPO....
+  Future<ResponseModel> deleteSchoolNoticesRepo(
+      {required String noticeID}) async {
+    final response = await ApiBaseHelper().deleteHTTP(
+        "${schoolNoticesAddDelete}/$noticeID",
+        onError: (error) {},
+        onSuccess: (data) {});
+    return response;
+  }
+
+  ///CREATE DEPARTMENT...
+  Future<ResponseModel> addSchoolDepartmentRepo(
+      {required Map<String, dynamic> reqBODY}) async {
+    final response = await ApiBaseHelper().postHTTP("${educationDepartments}",
+        params: reqBODY, onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+
+  ///UPDATE DEPARTMENT...
+  Future<ResponseModel> updateSchoolDepartmentRepo(
+      {required Map<String, dynamic> reqBODY, required String deptId}) async {
+    final response = await ApiBaseHelper().putHTTP(
+        "${educationDepartments}/${deptId}",
+        params: reqBODY,
+        onError: (error) {},
+        onSuccess: (data) {});
+    return response;
+  }
+
+  ///GET DEPARTMENT REPO....
+  Future<ResponseModel> getSchoolDepartmentRepo(
+      {required Map<String, dynamic> reqBODY}) async {
+    final response = await ApiBaseHelper().getHTTP("${educationDepartments}",
+        params: reqBODY, onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+
+  ///DELETE SCHOOL DEPARTMENT REPO....
+  Future<ResponseModel> deleteSchoolDepartmentRepo(
+      {required String departmentID}) async {
+    final response = await ApiBaseHelper().deleteHTTP(
+        "${educationDepartments}/$departmentID",
+        onError: (error) {},
+        onSuccess: (data) {});
+    return response;
+  }
+  ///GET ALL COURSE....
+  Future<ResponseModel> getSchoolCourseRepo(
+      {required Map<String, dynamic> reqBODY}) async {
+    final response = await ApiBaseHelper().getHTTP("${educationCourses}",
+        params: reqBODY, onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+
+  ///ADD  COURSE....
+  Future<ResponseModel> addSchoolCourseRepo(
+      {required Map<String, dynamic> reqBODY}) async {
+    final response = await ApiBaseHelper().postHTTP("${educationCourses}",
+        params: reqBODY, onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+
+  ///PUT  COURSE....
+  Future<ResponseModel> updateSchoolCourseRepo(
+      {required Map<String, dynamic> reqBODY, required String courseId}) async {
+    final response = await ApiBaseHelper().putHTTP("${educationCourses}/$courseId",
+        params: reqBODY, onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+  ///DELETE SCHOOL Course REPO....
+  Future<ResponseModel> deleteSchoolCourseRepo(
+      {required String courseId}) async {
+    final response = await ApiBaseHelper().deleteHTTP(
+        "${educationCourses}/$courseId",
+        onError: (error) {},
+        onSuccess: (data) {});
     return response;
   }
 }

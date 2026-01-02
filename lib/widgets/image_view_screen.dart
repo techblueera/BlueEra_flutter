@@ -97,19 +97,22 @@ class _ImageViewScreenState extends State<ImageViewScreen> {
                                     _transformationController,
                                 // minScale: 1.0,
                                 // maxScale: 5.0,
-                                child: isNetworkUrl ? CachedNetworkImage(
-                                  imageUrl: imageUrl,
-                                  scale: 1,
-                                  fit: BoxFit.fitWidth,
-                                  placeholder: (context, url) => LocalAssets(
-                                      imagePath: AppIconAssets
-                                          .place_holder_image) /*const CircularProgressIndicator()*/,
-                                  errorWidget: (context, url, error) =>
-                                      const Icon(Icons.error),
-                                ) :  Image.file(
-                                  File(imageUrl),
-                                  scale: 1,
-                                  fit: BoxFit.fitWidth,),
+                                child: isNetworkUrl
+                                    ? CachedNetworkImage(
+                                        imageUrl: imageUrl,
+                                        scale: 1,
+                                        fit: BoxFit.fitWidth,
+                                        placeholder: (context, url) => LocalAssets(
+                                            imagePath: AppIconAssets
+                                                .place_holder_image) /*const CircularProgressIndicator()*/,
+                                        errorWidget: (context, url, error) =>
+                                            const Icon(Icons.error),
+                                      )
+                                    : Image.file(
+                                        File(imageUrl),
+                                        scale: 1,
+                                        fit: BoxFit.fitWidth,
+                                      ),
                               );
                             },
                           ),
@@ -191,7 +194,8 @@ class _ImageViewScreenState extends State<ImageViewScreen> {
                     padding:
                         const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
                     decoration: BoxDecoration(
-                      color: AppColors.secondaryTextColor.withValues(alpha: 0.2),
+                      color:
+                          AppColors.secondaryTextColor.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: ExpandableText(
@@ -206,15 +210,7 @@ class _ImageViewScreenState extends State<ImageViewScreen> {
                         fontFamily: AppConstants.OpenSans,
                       ),
                     ),
-                    // child: Text(
-                    //   widget.subTitle ?? '',
-                    //   textAlign: TextAlign.left,
-                    //   style: TextStyle(
-                    //     color: Colors.white,
-                    //     fontSize: SizeConfig.screenWidth * 0.045,
-                    //     fontWeight: FontWeight.w500,
-                    //   ),
-                    // ),
+
                   ),
                 ),
             ],

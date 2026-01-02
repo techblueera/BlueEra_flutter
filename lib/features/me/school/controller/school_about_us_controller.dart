@@ -88,13 +88,14 @@ class SchoolAboutUsController extends GetxController {
     // Logic for AI generation goes here
     try {
       ResponseModel response = await SchoolRepo().updateSchoolContactRepo(
-          reqParm: {"contactInfo": schoolContactUsData?.value.contactInfo}, contactID: schoolContactUsData?.value.id??"");
+          reqParm: {"contactInfo": schoolContactUsData?.value.contactInfo},
+          contactID: schoolContactUsData?.value.id ?? "");
 
       if (response.isSuccess) {
         Get.back();
         commonSnackBar(
             message:
-            response.response?.data["message"] ?? AppStrings.successful);
+                response.response?.data["message"] ?? AppStrings.successful);
         updateSchoolContactInfoResponse.value =
             ApiResponse.complete(response.response?.data);
       } else {
@@ -248,8 +249,10 @@ class SchoolAboutUsController extends GetxController {
       ResponseModel response = await SchoolRepo().updateSchoolAboutUsRepo(
           aboutUsID: aboutUsData?.value.id ?? "",
           reqBODY: {
-            ApiKeys.history: historyText.value,
-            ApiKeys.photo: uploadInit.publicUrl ?? ""
+            "history": {
+              ApiKeys.history: historyText.value,
+              ApiKeys.photo: uploadInit.publicUrl ?? ""
+            }
           });
 
       if (response.isSuccess) {
@@ -274,7 +277,9 @@ class SchoolAboutUsController extends GetxController {
     // Logic for AI generation goes here
     try {
       ResponseModel response = await SchoolRepo().updateSchoolAboutUsRepo(
-        reqBODY: {ApiKeys.management: aboutUsData?.value.management},
+        reqBODY: {
+          "management": {ApiKeys.management: aboutUsData?.value.management}
+        },
         aboutUsID: aboutUsData?.value.id ?? "",
       );
 
@@ -351,8 +356,10 @@ class SchoolAboutUsController extends GetxController {
       ResponseModel response = await SchoolRepo().updateSchoolAboutUsRepo(
           aboutUsID: aboutUsData?.value.id ?? "",
           reqBODY: {
-            ApiKeys.photo: uploadDirectMessageInit.publicUrl,
-            ApiKeys.message: directorMessageText.value,
+            "principalMessage": {
+              ApiKeys.photo: uploadDirectMessageInit.publicUrl,
+              ApiKeys.message: directorMessageText.value,
+            }
           });
 
       if (response.isSuccess) {

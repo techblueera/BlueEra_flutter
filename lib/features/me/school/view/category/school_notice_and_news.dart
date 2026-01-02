@@ -1,6 +1,9 @@
 import 'dart:io';
+import 'package:BlueEra/core/api/model/notice_news_model.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
+import 'package:BlueEra/features/me/school/controller/notice_news_controller.dart';
 import 'package:BlueEra/features/me/school/controller/school_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -12,22 +15,51 @@ import '../../../../../../../widgets/custom_text_cm.dart';
 import '../../../../../core/constants/app_strings.dart';
 
 class SchoolNoticeAndNews extends StatefulWidget {
-  const SchoolNoticeAndNews({super.key});
+  const SchoolNoticeAndNews({super.key, this.isEdit = false, this.newsData});
+
+  final bool isEdit;
+  final NoticeNewsData? newsData;
 
   @override
   State<SchoolNoticeAndNews> createState() => _SchoolNoticeAndNewsState();
 }
 
 class _SchoolNoticeAndNewsState extends State<SchoolNoticeAndNews> {
-  final aboutUsController = Get.find<SchoolController>();
+  final noticeController = Get.find<NoticeController>();
   final titleEditController = TextEditingController();
   final descriptionEditController = TextEditingController();
 
   @override
   void initState() {
-    // TODO: implement initState
     descriptionEditController.addListener(_runValidation);
 
+    if (widget.isEdit) {
+      // Current Values
+      noticeController.initialNoticeImageUrl =
+          widget.newsData?.uploadPhoto ?? "";
+      noticeController.notice_news_titleText.value =
+          widget.newsData?.title ?? "";
+      noticeController.notice_news_messageText.value =
+          widget.newsData?.description ?? "";
+
+      // Store Original Values for Comparison
+      noticeController.originalImageUrl.value =
+          widget.newsData?.uploadPhoto ?? "";
+      noticeController.originalTitle.value = widget.newsData?.title ?? "";
+      noticeController.originalDescription.value =
+          widget.newsData?.description ?? "";
+
+      titleEditController.text = widget.newsData?.title ?? "";
+      descriptionEditController.text = widget.newsData?.description ?? "";
+    } else {
+      noticeController.noticeImageFile.value = null;
+      noticeController.isFormValid.value = false;
+      noticeController.originalImageUrl.value = "";
+      noticeController.initialNoticeImageUrl = "";
+      noticeController.notice_news_titleText.value = "";
+      noticeController.notice_news_messageText.value = "";
+
+    }
     super.initState();
   }
 
@@ -62,31 +94,17 @@ class _SchoolNoticeAndNewsState extends State<SchoolNoticeAndNews> {
                     color: AppColors.mainTextColor,
                   ),
                   SizedBox(height: SizeConfig.size10),
-                  CommonImageUploadTile(
-                    title: "Upload Photo",
-                    imageFile: aboutUsController.noticeNewsImageFile,
-                    context: context,
-                    onImageSelected: () async {
-                      final selectedPath =
-                          await CommonImageUploadTile.pickImage(
-                              context: context);
-                      if (selectedPath != null) {
-                        aboutUsController.noticeNewsImageFile.value =
-                            File(selectedPath);
-                      }
-                      _runValidation();
-                    },
-                    onImageRemove: () {
-                      aboutUsController.noticeNewsImageFile.value = null;
-                      _runValidation();
-                    },
-                  ),
+                  _buildImageSection(),
                   SizedBox(height: SizeConfig.size20),
                   CommonTextField(
                     textEditController: titleEditController,
                     hintText: "E.g. How do you commute to work?",
                     title: "Title (Optional)",
                     isValidate: false,
+                    onChange: (value) {
+                      noticeController.notice_news_titleText.value = value;
+                      _runValidation();
+                    },
                   ),
                   SizedBox(height: SizeConfig.size20),
 
@@ -104,7 +122,7 @@ class _SchoolNoticeAndNewsState extends State<SchoolNoticeAndNews> {
                     onChange: (value) {
                       String newVal =
                           value.replaceAll(RegExp(r'\n{3,}'), '\n\n');
-                      aboutUsController.notice_news_messageText.value = newVal;
+                      noticeController.notice_news_messageText.value = newVal;
                       _runValidation();
                     },
                   ),
@@ -113,18 +131,35 @@ class _SchoolNoticeAndNewsState extends State<SchoolNoticeAndNews> {
                   Align(
                     alignment: Alignment.centerRight,
                     child: Obx(() => CustomText(
-                          "${aboutUsController.notice_news_messageText.value.length}/1000",
+                          "${noticeController.notice_news_messageText.value.length}/1000",
                           color: Colors.grey,
                           fontSize: 12,
                         )),
                   ),
                   SizedBox(height: SizeConfig.size30),
                   Obx(() => CustomBtn(
-                        onTap:
-                            aboutUsController.isFormValid.value ? () {} : null,
+                        onTap: noticeController.isFormValid.value
+                            ? () async {
+                                if (widget.isEdit) {
+                                  noticeController.notice_news_id.value =
+                                      widget.newsData?.id ?? "";
+                                  if (noticeController.noticeImageFile.value ==
+                                      null) {
+                                    await noticeController
+                                        .updateSchoolNoticeNewsController(
+                                            isPhotoUpdate: false);
+                                  } else {
+                                    await noticeController.uploadNewsDocDocInit(
+                                        isEdit: true);
+                                  }
+                                } else {
+                                  await noticeController.uploadNewsDocDocInit();
+                                }
+                              }
+                            : null,
                         title: AppStrings.submit,
                         // Pass the validation state to change button color/opacity
-                        isValidate: aboutUsController.isFormValid.value,
+                        isValidate: noticeController.isFormValid.value,
                       )),
                 ],
               ),
@@ -135,10 +170,95 @@ class _SchoolNoticeAndNewsState extends State<SchoolNoticeAndNews> {
     );
   }
 
+  Widget _buildImageSection() {
+    // If user picked a NEW local file
+    if (noticeController.noticeImageFile.value != null) {
+      return CommonImageUploadTile(
+        imageFile: noticeController.noticeImageFile,
+        onImageRemove: () {
+          noticeController.noticeImageFile.value = null;
+          noticeController.initialNoticeImageUrl = "";
+
+          _runValidation();
+          setState(() {});
+        },
+        title: '',
+        context: context,
+      );
+    }
+    // If no local file but we have a NETWORK image from API
+    else if (noticeController.initialNoticeImageUrl.isNotEmpty) {
+      return Stack(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.network(
+              noticeController.initialNoticeImageUrl,
+              height: 150,
+              width: double.infinity,
+              fit: BoxFit.cover,
+            ),
+          ),
+          Positioned(
+            right: 5,
+            top: 5,
+            child: CircleAvatar(
+              backgroundColor: Colors.red,
+              child: IconButton(
+                icon: const Icon(Icons.delete, color: Colors.white),
+                onPressed: () {
+                  // Clear initial URL to show "Change" happened
+                  noticeController.noticeImageFile.value = null;
+
+                  noticeController.initialNoticeImageUrl = "";
+                  _runValidation();
+                  setState(
+                      () {}); // Refresh local UI to show upload placeholder
+                },
+              ),
+            ),
+          )
+        ],
+      );
+    }
+    // Default: Show Upload Placeholder
+    return CommonImageUploadTile(
+      title: "Upload Photo",
+      context: context,
+      onImageSelected: () async {
+        final path = await CommonImageUploadTile.pickImage(context: context);
+        if (path != null) {
+          noticeController.noticeImageFile.value = File(path);
+          noticeController.initialNoticeImageUrl = path;
+          _runValidation();
+        }
+      },
+      onImageRemove: () {
+        // Clear initial URL to show "Change" happened
+        noticeController.noticeImageFile.value = null;
+
+        noticeController.initialNoticeImageUrl = "";
+        _runValidation();
+        setState(() {}); //
+      },
+      imageFile: noticeController.noticeImageFile,
+    );
+  }
+
 // Helper to trigger validation
   void _runValidation() {
-    aboutUsController.noticesNewsValidateForm(
-        noticeDescription: descriptionEditController.text,
-        uploadPhoto: aboutUsController.noticeNewsImageFile.value?.path ?? "");
+    // 1. Run your standard validation (e.g., checking if description is empty)
+    noticeController.noticesNewsValidateForm(
+        noticeDescription: noticeController.notice_news_messageText.value ?? "",
+        uploadPhoto: noticeController.initialNoticeImageUrl);
+
+    // 2. If in edit mode, add the 'Has Changed' requirement
+    if (widget.isEdit) {
+      bool changed = noticeController.hasChanges();
+      // Update the controller's valid state based on both rules
+      noticeController.isFormValid.value =
+          noticeController.isFormValid.value && changed;
+    }
   }
+
 }

@@ -35,11 +35,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
     once(schoolAboutUsController.aboutUsData!, (AboutUsData? data) {
       if (data != null) {
         // Set Initial Values for Comparison
-        schoolAboutUsController.initialHistoryText = data.history ?? "";
-        schoolAboutUsController.initialHistoryImageUrl = "";
+        schoolAboutUsController.initialHistoryText = data.history?.message ?? "";
+        schoolAboutUsController.initialHistoryImageUrl = data.history?.photo ?? "";
         // Populate UI
-        descriptionEditController.text = data.history ?? "";
-        schoolAboutUsController.historyText.value = data.history ?? "";
+        descriptionEditController.text = data.history?.message ?? "";
+        schoolAboutUsController.historyText.value = data.history?.message ?? "";
       }
     });
   }

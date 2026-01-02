@@ -40,9 +40,9 @@ class AboutUsData {
 
   AboutUsData.fromJson(dynamic json) {
     principalMessage = json['principalMessage'] != null ? PrincipalMessage.fromJson(json['principalMessage']) : null;
+    history = json['history'] != null ? PrincipalMessage.fromJson(json['history']) : null;
     id = json['_id'];
     visionAndMission = json['visionAndMission'];
-    history = json['history'];
     if (json['management'] != null) {
       management = [];
       json['management'].forEach((v) {
@@ -57,7 +57,7 @@ class AboutUsData {
   PrincipalMessage? principalMessage;
   String? id;
   String? visionAndMission;
-  String? history;
+  PrincipalMessage? history;
   List<Management>? management;
   String? schoolId;
   String? createdAt;
@@ -69,9 +69,12 @@ class AboutUsData {
     if (principalMessage != null) {
       map['principalMessage'] = principalMessage?.toJson();
     }
+    if (history != null) {
+      map['history'] = history?.toJson();
+    }
     map['_id'] = id;
     map['visionAndMission'] = visionAndMission;
-    map['history'] = history;
+    // map['history'] = history;
     if (management != null) {
       map['management'] = management?.map((v) => v.toJson()).toList();
     }

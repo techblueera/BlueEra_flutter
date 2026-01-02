@@ -1,4 +1,3 @@
-
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/post/controller/message_post_controller.dart';
 import 'package:BlueEra/features/common/post/message_post/feed_network_video_preview_widget.dart';
@@ -53,13 +52,13 @@ class _InstaSliderNetworkState extends State<InstaSliderNetwork> {
                 borderRadius: BorderRadius.circular(8),
                 child: isVideo
                     ? (thumb != null
-                    ? Image.network(widget.post?.thumbnail ?? "",
-                    fit: BoxFit.cover)
-                    : Container(
-                  color: Colors.black12,
-                  child: const Center(
-                      child: CircularProgressIndicator()),
-                ))
+                        ? Image.network(widget.post?.thumbnail ?? "",
+                            fit: BoxFit.cover)
+                        : Container(
+                            color: Colors.black12,
+                            child: const Center(
+                                child: CircularProgressIndicator()),
+                          ))
                     : Image.network(file, fit: BoxFit.cover),
               ),
               if (isVideo)
@@ -67,7 +66,6 @@ class _InstaSliderNetworkState extends State<InstaSliderNetwork> {
                   child: Icon(Icons.play_circle_fill,
                       color: Colors.white, size: 40),
                 ),
-
             ],
           ),
         );
