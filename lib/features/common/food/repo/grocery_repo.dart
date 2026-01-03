@@ -1,13 +1,14 @@
 import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
 import 'package:BlueEra/core/api/apiService/base_service.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 
 class GroceryRepo extends BaseService {
-
-  Future<ResponseModel> searchGroceryCategoryRepo({Map<String, dynamic>? queryParam}) async {
+  Future<ResponseModel> searchGroceryCategoryRepo(
+      {Map<String, dynamic>? queryParam}) async {
     final response = await ApiBaseHelper().getHTTP(
       searchGroceryCategory,
-      params:queryParam,
+      params: queryParam,
       showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
@@ -15,7 +16,8 @@ class GroceryRepo extends BaseService {
     return response;
   }
 
-  Future<ResponseModel> groceryCategoryOfChildrenRepo({required String key}) async {
+  Future<ResponseModel> groceryCategoryOfChildrenRepo(
+      {required String key}) async {
     final response = await ApiBaseHelper().getHTTP(
       GroceryCategoryOfChildren(key),
       showProgress: false,
@@ -25,7 +27,8 @@ class GroceryRepo extends BaseService {
     return response;
   }
 
-  Future<ResponseModel> userSearchGroceryCategoryRepo({Map<String, dynamic>? queryParam}) async {
+  Future<ResponseModel> userSearchGroceryCategoryRepo(
+      {Map<String, dynamic>? queryParam}) async {
     final response = await ApiBaseHelper().getHTTP(
       userSearchGroceryCategory,
       params: queryParam,
@@ -37,7 +40,8 @@ class GroceryRepo extends BaseService {
   }
 
   /// Create New Grocery Product Variant
-  Future<ResponseModel> createNewGroceryProductVariantRepo({required String productId, Map<String, dynamic>? params}) async {
+  Future<ResponseModel> createNewGroceryProductVariantRepo(
+      {required String productId, Map<String, dynamic>? params}) async {
     final response = await ApiBaseHelper().postHTTP(
       createNewProductVariant(productId),
       params: params,
@@ -49,7 +53,8 @@ class GroceryRepo extends BaseService {
   }
 
   ///FETCH My GROCERIES SERVICES....
-  Future<ResponseModel> fetchMyGroceryProductsRepo({Map<String, dynamic>? queryParam}) async {
+  Future<ResponseModel> fetchMyGroceryProductsRepo(
+      {Map<String, dynamic>? queryParam}) async {
     final response = await ApiBaseHelper().getHTTP(
       myGroceryProducts,
       showProgress: false,
@@ -61,7 +66,8 @@ class GroceryRepo extends BaseService {
   }
 
   /// Add Grocery Product to inventory
-  Future<ResponseModel> addGroceryProductVariantRepo({List<Map<String, dynamic>>? params}) async {
+  Future<ResponseModel> addGroceryProductVariantRepo(
+      {List<Map<String, dynamic>>? params}) async {
     final response = await ApiBaseHelper().postHTTP(
       addGroceryProductVariant,
       params: params,
@@ -73,7 +79,8 @@ class GroceryRepo extends BaseService {
   }
 
   /// Fetch My grocery Category
-  Future<ResponseModel> fetchGroceryCategoryRepo({List<Map<String, dynamic>>? params}) async {
+  Future<ResponseModel> fetchGroceryCategoryRepo(
+      {List<Map<String, dynamic>>? params}) async {
     final response = await ApiBaseHelper().getHTTP(
       groceryCategoryWithVariant,
       params: params,
@@ -97,7 +104,8 @@ class GroceryRepo extends BaseService {
   }
 
   /// Grocery Order update Request
-  Future<ResponseModel> updateGroceryOrderRepo({Map<String, dynamic>? params, required String orderId}) async {
+  Future<ResponseModel> updateGroceryOrderRepo(
+      {Map<String, dynamic>? params, required String orderId}) async {
     final response = await ApiBaseHelper().putHTTP(
       updateGroceryOrder(orderId),
       params: params,
@@ -109,7 +117,8 @@ class GroceryRepo extends BaseService {
   }
 
   /// Fetch Near By Riders
-  Future<ResponseModel> fetchNearByRidersRepo({Map<String, dynamic>? queryParams}) async {
+  Future<ResponseModel> fetchNearByRidersRepo(
+      {Map<String, dynamic>? queryParams}) async {
     final response = await ApiBaseHelper().getHTTP(
       getNearByRiderApi,
       params: queryParams,
@@ -121,7 +130,8 @@ class GroceryRepo extends BaseService {
   }
 
   /// Order Request To Rider
-  Future<ResponseModel> orderReqToRiderRepo({Map<String, dynamic>? params}) async {
+  Future<ResponseModel> orderReqToRiderRepo(
+      {Map<String, dynamic>? params}) async {
     final response = await ApiBaseHelper().postHTTP(
       sendOrderReqToRider,
       params: params,
@@ -132,5 +142,41 @@ class GroceryRepo extends BaseService {
     return response;
   }
 
+  /// GET ALL GROCERY ORDER...
+  Future<ResponseModel> groceryOrderServiceRepo(
+      {required String? orderID,
+      required Map<String, dynamic> queryParm}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      "${groceryServiceOrder(orderID ?? " ")}",
+      params: queryParm,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 
+  /// ACCEPT GROCERY ACCEPT ORDER...
+  Future<ResponseModel> createGroceryAcceptOrderServiceRepo(
+      {required String? rideOrderId,
+      required Map<String, dynamic> queryParm}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      "${groceryServiceOrder(rideOrderId ?? " ")}",
+      params: queryParm,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+  /// ACCEPT GROCERY ACCEPT ORDER...
+  Future<ResponseModel> submitGroceryAcceptOrderServiceRepo(
+      {required String? rideOrderId,required String? itemId,
+      required Map<String, dynamic> queryParm}) async {
+    final response = await ApiBaseHelper().patchHTTP(
+      "${ridersGroceryOrders}${rideOrderId}/businesses/$businessId/items/$itemId/pickup",
+      params: queryParm,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 }

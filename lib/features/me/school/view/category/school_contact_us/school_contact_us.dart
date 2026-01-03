@@ -1,10 +1,14 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/model/school_contact_us_model.dart';
+import 'package:BlueEra/core/api/model/school_contact_us_new_res_model.dart';
+import 'package:BlueEra/core/api/model/school_contact_us_res_model.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/me/school/controller/branch_contact_controller.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
 import 'package:BlueEra/features/me/school/view/category/school_contact_us/branch_details_form_screen.dart';
 import 'package:BlueEra/features/me/school/view/category/school_contact_us/branch_only_screen.dart';
@@ -12,6 +16,7 @@ import 'package:BlueEra/features/me/school/view/category/school_contact_us/depar
 import 'package:BlueEra/features/me/school/view/widget/add_more_icon_button.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
+import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -27,12 +32,13 @@ class SchoolContactUs extends StatefulWidget {
 }
 
 class _SchoolContactUsState extends State<SchoolContactUs> {
-  final schoolAboutUsController = Get.find<SchoolAboutUsController>();
+  // final schoolAboutUsController = Get.find<SchoolAboutUsController>();
+  final controller = Get.put(BranchContactController());
 
   @override
   void initState() {
     // TODO: implement initState
-    schoolAboutUsController.getBranchDetailsController();
+    controller.getBranchDetailsController();
     super.initState();
   }
 
@@ -48,157 +54,245 @@ class _SchoolContactUsState extends State<SchoolContactUs> {
       body: SafeArea(
         child: Column(
           children: [
-            Obx(() {
-              if (schoolAboutUsController
-                      .getSchoolContactUsResponse.value.status ==
-                  Status.COMPLETE) {
-                return Expanded(
-                  child: SingleChildScrollView(
-                    child: CommonCardWidget(
-                      child: Column(
-                        children: [
-                          /// Course Card
-                          Row(
-                            children: [
-                              CustomText(
-                                "Branch: ",
-                                color: AppColors.secondaryTextColor,
-                                fontSize: SizeConfig.large,
-                              ),
-                              Expanded(
-                                  child: CustomText(
-                                "${schoolAboutUsController.schoolContactUsData?.value.branch}",
-                                color: AppColors.secondaryTextColor,
-                                fontSize: SizeConfig.large,
-                                fontWeight: FontWeight.w600,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              )),
-                              InkWell(
-                                onTap: () {
-                                  Get.to(BranchOnlyScreen());
-                                },
-                                child: LocalAssets(
-                                  imagePath: AppIconAssets.editIcon,
-                                  imgColor: AppColors.black,
-                                ),
-                              )
-                            ],
-                          ),
-                          iconTextRow(
-                              iconName: AppIconAssets.website_click,
-                              isPrimary: true,
-                              value:
-                                  '${schoolAboutUsController.schoolContactUsData?.value.website}'),
-                          SizedBox(
-                            height: SizeConfig.size5,
-                          ),
+            Expanded(
+              child: Obx(() {
+                logs(
+                    "controller.getSchoolContactUsResponse.value.status ${controller.getSchoolContactUsResponse.value.status}");
+                if (controller.getSchoolContactUsResponse.value.status ==
+                    Status.COMPLETE) {
+                  if (controller.schoolContactUsData?.isEmpty ?? false) {
+                    return Center(child: CustomText("No Contact Us Found "));
+                  }
+                  return ListView.builder(
+                    shrinkWrap: true,
+                    itemBuilder: (context, index) {
+                      SchoolContactUsData data =
+                          controller.schoolContactUsData?[index] ??
+                              SchoolContactUsData();
 
-                          iconTextRow(
-                              iconName: AppIconAssets.location_new,
-                              value:
-                                  '${schoolAboutUsController.schoolContactUsData?.value.address}'),
-                          const SizedBox(height: 20),
-                          ListView.builder(
-                            shrinkWrap: true,
-                            physics: NeverScrollableScrollPhysics(),
-                            itemBuilder: (context, index) {
-                              ContactInfo data = schoolAboutUsController
-                                      .schoolContactUsData
-                                      ?.value
-                                      .contactInfo?[index] ??
-                                  ContactInfo();
-                              return Container(
-                                padding: EdgeInsets.all(8),
-                                margin: EdgeInsets.only(bottom: 12),
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(10),
-                                    border:
-                                        Border.all(color: AppColors.whiteE5)),
-                                child: Column(
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: iconTextRow(
-                                              iconName: AppIconAssets.principal,
-                                              value: data.title ?? ""),
-                                        ),
-                                        InkWell(
-                                          onTap: () {
-                                            Get.to(DepartmentOnlyScreen(contactInfo:data ,isContactInfoEdit: true,));
+                      return CommonCardWidget(
+                        child: Column(
+                          children: [
+                            /// Course Card
+                            Row(
+                              children: [
+                                CustomText(
+                                  "Branch: ",
+                                  color: AppColors.secondaryTextColor,
+                                  fontSize: SizeConfig.large,
+                                ),
+                                Expanded(
+                                    child: CustomText(
+                                  "${data.branch?.name}",
+                                  color: AppColors.secondaryTextColor,
+                                  fontSize: SizeConfig.large,
+                                  fontWeight: FontWeight.w600,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                )),
+                                InkWell(
+                                  onTap: () {
+                                    Get.to(BranchOnlyScreen(schoolContactUsData: data,));
+                                  },
+                                  child: LocalAssets(
+                                    imagePath: AppIconAssets.editIcon,
+                                    imgColor: AppColors.black,
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: SizeConfig.size10,
+                                ),
+                                InkWell(
+                                  onTap: () async {
+                                    if (controller
+                                            .schoolContactUsData?.length ==
+                                        1) {
+                                      commonSnackBar(
+                                          message:
+                                              "At least one school branch contact info is required");
+                                    } else {
+                                      await showCommonDialog(
+                                          context: context,
+                                          text:
+                                              'Are you sure you want to delete this school branch contact info?',
+                                          confirmCallback: () async {
+                                            await controller
+                                                .deleteSchoolBranchController(
+                                                    contactId: data.id ?? "");
                                           },
-                                          child: LocalAssets(
-                                            imagePath: AppIconAssets.editIcon,
-                                            imgColor: AppColors.black,
-                                          ),
-                                        )
-                                      ],
-                                    ),
-                                    SizedBox(
-                                      height: SizeConfig.size5,
-                                    ),
-                                    iconTextRow(
-                                        iconName: AppIconAssets.email,
-                                        value: data.email ?? ""),
-                                    SizedBox(
-                                      height: SizeConfig.size5,
-                                    ),
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: iconTextRow(
-                                              iconName: AppIconAssets.call,
-                                              value: data.phone ?? ""),
-                                        ),
-                                        LocalAssets(
-                                          imagePath: AppIconAssets.chat,
-                                          imgColor: AppColors.black,
-                                        )
-                                      ],
-                                    ),
-                                  ],
+                                          cancelCallback: () {
+                                            Navigator.of(context)
+                                                .pop(); // Close the dialog
+                                          },
+                                          confirmText: AppStrings.yes,
+                                          cancelText: AppStrings.no);
+                                    }
+                                  },
+                                  child: LocalAssets(
+                                    imagePath: AppIconAssets.deleteIcon,
+                                    imgColor: AppColors.red00,
+                                  ),
                                 ),
-                              );
-                            },
-                            itemCount: schoolAboutUsController
-                                .schoolContactUsData?.value.contactInfo?.length,
-                          ),
-
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: TextButton.icon(
-                              style: TextButton.styleFrom(
-                                padding: EdgeInsets.zero,
-                                minimumSize: Size.zero,
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              ),
-                              icon: Icon(
-                                Icons.add,
-                                color: AppColors.primaryColor,
-                              ),
-                              label: CustomText(
-                                "Add More Department",
-                                color: AppColors.primaryColor,
-                              ),
-                              onPressed: () {
-                                Get.to(DepartmentOnlyScreen());
-                              },
+                              ],
                             ),
-                          )
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              }
-              if (schoolAboutUsController
-                      .getSchoolContactUsResponse.value.status ==
-                  Status.ERROR) {
-                return CustomText(AppStrings.somethingWentWrong);
-              }
-              return SizedBox();
-            }),
+                            iconTextRow(
+                                iconName: AppIconAssets.website_click,
+                                isPrimary: true,
+                                value: '${data.branch?.website}'),
+                            SizedBox(
+                              height: SizeConfig.size5,
+                            ),
+
+                            iconTextRow(
+                                iconName: AppIconAssets.location_new,
+                                value: '${data.branch?.location?.name}'),
+                            const SizedBox(height: 20),
+                            ListView.builder(
+                              shrinkWrap: true,
+                              physics: NeverScrollableScrollPhysics(),
+                              itemBuilder: (context, index) {
+                                Departments contactData =
+                                    data.departments?[index] ?? Departments();
+                                return Container(
+                                  padding: EdgeInsets.all(8),
+                                  margin: EdgeInsets.only(bottom: 12),
+                                  decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(10),
+                                      border:
+                                          Border.all(color: AppColors.whiteE5)),
+                                  child: Column(
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: iconTextRow(
+                                                iconName:
+                                                    AppIconAssets.principal,
+                                                value: contactData.department ??
+                                                    ""),
+                                          ),
+                                          InkWell(
+                                            onTap: () {
+                                              Get.to(DepartmentOnlyScreen(
+                                                contactInfo: contactData,
+                                                isContactInfoEdit: true,
+                                                branchId: data.id,
+                                              ));
+                                            },
+                                            child: LocalAssets(
+                                              imagePath: AppIconAssets.editIcon,
+                                              imgColor: AppColors.black,
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            width: SizeConfig.size10,
+                                          ),
+                                          InkWell(
+                                            onTap: () async {
+                                              if (data.departments?.length ==
+                                                  1) {
+                                                commonSnackBar(
+                                                    message:
+                                                        "At least one department is required");
+                                              } else {
+                                                await showCommonDialog(
+                                                    context: context,
+                                                    text:
+                                                        'Are you sure you want to delete this department?',
+                                                    confirmCallback: () async {
+                                                      await controller
+                                                          .deleteSchoolBranchDepartmentController(
+                                                              departmentId:
+                                                                  contactData
+                                                                          .id ??
+                                                                      "",
+                                                              contactId:
+                                                                  data.id ??
+                                                                      "");
+                                                    },
+                                                    cancelCallback: () {
+                                                      Navigator.of(context)
+                                                          .pop(); // Close the dialog
+                                                    },
+                                                    confirmText: AppStrings.yes,
+                                                    cancelText: AppStrings.no);
+                                              }
+                                            },
+                                            child: LocalAssets(
+                                              imagePath:
+                                                  AppIconAssets.deleteIcon,
+                                              imgColor: AppColors.red00,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      SizedBox(
+                                        height: SizeConfig.size5,
+                                      ),
+                                      iconTextRow(
+                                          iconName: AppIconAssets.email,
+                                          value: contactData.email ?? ""),
+                                      SizedBox(
+                                        height: SizeConfig.size5,
+                                      ),
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: iconTextRow(
+                                                iconName: AppIconAssets.call,
+                                                value: contactData.phone ?? ""),
+                                          ),
+                                          LocalAssets(
+                                            imagePath: AppIconAssets.chat,
+                                            imgColor: AppColors.black,
+                                          )
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                              itemCount: data.departments?.length,
+                            ),
+
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: TextButton.icon(
+                                style: TextButton.styleFrom(
+                                  padding: EdgeInsets.zero,
+                                  minimumSize: Size.zero,
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                icon: Icon(
+                                  Icons.add,
+                                  color: AppColors.primaryColor,
+                                ),
+                                label: CustomText(
+                                  "Add More Department",
+                                  color: AppColors.primaryColor,
+                                ),
+                                onPressed: () {
+                                  Get.to(DepartmentOnlyScreen(
+                                    branchId: data.id,
+                                  ));
+                                },
+                              ),
+                            )
+                          ],
+                        ),
+                      );
+                    },
+                    itemCount: controller.schoolContactUsData?.length,
+                  );
+                }
+                if (controller.getSchoolContactUsResponse.value.status ==
+                    Status.ERROR) {
+                  return CustomText(AppStrings.somethingWentWrong);
+                }
+                return SizedBox();
+              }),
+            ),
             SizedBox(
               height: SizeConfig.size10,
             ),

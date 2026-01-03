@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
+import 'package:BlueEra/core/api/model/academic_calender_res_model.dart';
 import 'package:BlueEra/core/api/model/notice_news_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -6,7 +7,9 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
+import 'package:BlueEra/features/me/school/controller/academic_calender_controller.dart';
 import 'package:BlueEra/features/me/school/controller/notice_news_controller.dart';
+import 'package:BlueEra/features/me/school/view/category/acadamics/academic_calender_form_screen.dart';
 import 'package:BlueEra/features/me/school/view/category/school_notice_and_news.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
@@ -16,15 +19,15 @@ import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class NoticeNewsScreen extends StatefulWidget {
-  const NoticeNewsScreen({super.key});
+class AcademicCalenderScreen extends StatefulWidget {
+  const AcademicCalenderScreen({super.key});
 
   @override
-  State<NoticeNewsScreen> createState() => _NoticeNewsScreenState();
+  State<AcademicCalenderScreen> createState() => _AcademicCalenderScreenState();
 }
 
-class _NoticeNewsScreenState extends State<NoticeNewsScreen> {
-  final noticeController = Get.put(NoticeController());
+class _AcademicCalenderScreenState extends State<AcademicCalenderScreen> {
+  final noticeController = Get.put(AcademicCalenderController());
 
   @override
   void initState() {
@@ -37,7 +40,7 @@ class _NoticeNewsScreenState extends State<NoticeNewsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Notice & News",
+        title: "Academic Calender",
       ),
       bottomNavigationBar: SafeArea(
         child: Padding(
@@ -48,9 +51,9 @@ class _NoticeNewsScreenState extends State<NoticeNewsScreen> {
               textColor: AppColors.primaryColor,
               borderColor: AppColors.primaryColor,
               onTap: () {
-                Get.to(SchoolNoticeAndNews());
+                Get.to(AcademicCalenderFormScreen());
               },
-              title: "Add Notice & News"),
+              title: "Add Academic Calender"),
         ),
       ),
       body: SafeArea(
@@ -64,7 +67,7 @@ class _NoticeNewsScreenState extends State<NoticeNewsScreen> {
             if (noticeController.noticeNewsDataList.isNotEmpty) {
               return ListView.builder(
                 itemBuilder: (context, index) {
-                  NoticeNewsData data =
+                  AcademicCalenderData data =
                       noticeController.noticeNewsDataList[index];
                   return CustomFormCard(
                     margin: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
@@ -102,9 +105,9 @@ class _NoticeNewsScreenState extends State<NoticeNewsScreen> {
                             //
                           },
                           child: rowWidget(
-                              title: "Photo",
+                              title: "Document",
                               value: (data.uploadPhoto?.isNotEmpty ?? false)
-                                  ? "View Photo"
+                                  ? "View"
                                   : "N/A",
                               noticeID: data.id ?? "",
                               isDecoration:
@@ -120,7 +123,7 @@ class _NoticeNewsScreenState extends State<NoticeNewsScreen> {
                 itemCount: noticeController.noticeNewsDataList.length,
               );
             }
-            return Center(child: CustomText("Notice & News Not Found"));
+            return Center(child: CustomText("Academic Calender Not Found"));
           }
           return SizedBox();
         }),
@@ -161,7 +164,7 @@ class _NoticeNewsScreenState extends State<NoticeNewsScreen> {
             ? _buildNoticeNewsPopUpMenu(onNoticeNewsDelete: () async {
                 await showCommonDialog(
                     context: context,
-                    text: 'Are you sure you want to delete this notice?',
+                    text: 'Are you sure you want to delete this academic calender?',
                     confirmCallback: () async {
                       await noticeController.deleteSchoolNoticeNewsController(
                           noticeId: noticeID);
@@ -172,9 +175,9 @@ class _NoticeNewsScreenState extends State<NoticeNewsScreen> {
                     confirmText: AppStrings.yes,
                     cancelText: AppStrings.no);
               }, onNoticeNewsEdit: () {
-                NoticeNewsData data =
+          AcademicCalenderData data =
                     noticeController.noticeNewsDataList[noticeIndex];
-                Get.to(SchoolNoticeAndNews(
+                Get.to(AcademicCalenderFormScreen(
                   isEdit: true,
                   newsData: data,
                 ));

@@ -112,17 +112,6 @@ class SchoolController extends GetxController {
   }
 
 
-  ///Only Branch Validation
-  void branchValidateForm({
-    required String branchName,
-    required String branchWebsiteUrl,
-    required String branchLocation,
-  }) {
-    // Condition: All text fields not empty AND at least 1 image
-    isFormValid.value = branchName.isNotEmpty &&
-        branchWebsiteUrl.isNotEmpty &&
-        branchLocation.isNotEmpty;
-  }
 
 
 
@@ -180,18 +169,18 @@ class SchoolController extends GetxController {
     // Logic for AI generation goes here
     Get.back();
     try {
-      ResponseModel response =
-          await SchoolRepo().aiInstitutionFetchDetailsRepo(reqBody: {
-            "name": "Parul University",
-            "url": "https://paruluniversity.ac.in",
-            "address": "Private university in Gujarat"
-          });
       // ResponseModel response =
       //     await SchoolRepo().aiInstitutionFetchDetailsRepo(reqBody: {
-      //   ApiKeys.name: school,
-      //   ApiKeys.url: website,
-      //   ApiKeys.address: fullSchoolAddress,
-      // });
+      //       "name": "Parul University",
+      //       "url": "https://paruluniversity.ac.in",
+      //       "address": "Private university in Gujarat"
+      //     });
+      ResponseModel response =
+          await SchoolRepo().aiInstitutionFetchDetailsRepo(reqBody: {
+        ApiKeys.name: school,
+        ApiKeys.url: website,
+        ApiKeys.address: fullSchoolAddress,
+      });
       if (response.isSuccess) {
         final data = response.response?.data;
         institutionFetchModel?.value = InstitutionFetchModel.fromJson(data);

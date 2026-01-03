@@ -581,5 +581,6 @@ class ApiKeys {
   static const management = 'management';
   static const qualification = 'qualification';
   static const uploadPhoto = 'uploadPhoto';
+  static const fileUrl = 'fileUrl';
 
 }

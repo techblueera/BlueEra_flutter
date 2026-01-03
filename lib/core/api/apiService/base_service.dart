@@ -560,5 +560,9 @@ abstract class BaseService {
   final String schoolNoticesAddDelete = 'education-service/notices';
   final String educationDepartments = 'education-service/departments';
   final String educationCourses = 'education-service/courses';
-
+  final String ridersGroceryOrders = 'rider-service/riders/orders/grocery/';
+  String groceryServiceOrder(String orderId) =>  'grocery-service/api/orders/$orderId/alternatives';
+  String groceryServiceOrderAccept(String rideOrderId) =>  'rider-service/riders/orders/grocery/$rideOrderId/accept';
+  final String educationServiceContact = 'education-service/contact';
+  final String educationServiceAcademics = 'education-service/academics';
 }

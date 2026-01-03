@@ -17,10 +17,7 @@ import 'package:get/get.dart';
 
 class SchoolAboutUsController extends GetxController {
   Rx<ApiResponse> getAboutUsSchoolResponse = ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> updateSchoolContactInfoResponse =
-      ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> getSchoolContactUsResponse =
-      ApiResponse.initial('Initial').obs;
+
   Rx<ApiResponse> visionMissionResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> managementTrustResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> uploadInitResponse = ApiResponse.initial('Initial').obs;
@@ -50,66 +47,9 @@ class SchoolAboutUsController extends GetxController {
 
   ///GET ABOUT US......
   Rx<AboutUsData>? aboutUsData = AboutUsData().obs;
-  Rx<SchoolContactUsData>? schoolContactUsData = SchoolContactUsData().obs;
 
-  ///====================API CALLING START==============================
-  ///GET BRANCH CONTACT DETAILS...
 
-  Future<void> getBranchDetailsController() async {
-    // 1. Check if data is already loaded OR if it's currently loading
 
-    // Logic for AI generation goes here
-    try {
-      ResponseModel response = await SchoolRepo().getSchoolContactRepo();
-      SchoolContactUsModel schoolContactUsModel =
-          SchoolContactUsModel.fromJson(response.response?.data);
-      schoolContactUsData?.value =
-          schoolContactUsModel.data ?? SchoolContactUsData();
-      if (response.isSuccess) {
-        getSchoolContactUsResponse.value =
-            ApiResponse.complete(schoolContactUsModel);
-      } else {
-        commonSnackBar(message: AppStrings.somethingWentWrong);
-        getSchoolContactUsResponse.value =
-            ApiResponse.error(AppStrings.somethingWentWrong);
-      }
-    } on Exception catch (e) {
-      logs("ERROR ${e}");
-      // TODO
-      getSchoolContactUsResponse.value =
-          ApiResponse.error(AppStrings.somethingWentWrong);
-    }
-  }
-
-  ///UPDATE CONTACT INFO...
-  Future<void> updateBranchContactDetailsController() async {
-    // 1. Check if data is already loaded OR if it's currently loading
-
-    // Logic for AI generation goes here
-    try {
-      ResponseModel response = await SchoolRepo().updateSchoolContactRepo(
-          reqParm: {"contactInfo": schoolContactUsData?.value.contactInfo},
-          contactID: schoolContactUsData?.value.id ?? "");
-
-      if (response.isSuccess) {
-        Get.back();
-        commonSnackBar(
-            message:
-                response.response?.data["message"] ?? AppStrings.successful);
-        updateSchoolContactInfoResponse.value =
-            ApiResponse.complete(response.response?.data);
-      } else {
-        commonSnackBar(message: AppStrings.somethingWentWrong);
-        updateSchoolContactInfoResponse.value =
-            ApiResponse.error(AppStrings.somethingWentWrong);
-      }
-    } on Exception catch (e) {
-      logs("ERROR ${e}");
-      // TODO
-      updateSchoolContactInfoResponse.value =
-          ApiResponse.error(AppStrings.somethingWentWrong);
-    }
-  }
 
   Future<void> getSchoolAboutUsController() async {
     // 1. Check if data is already loaded OR if it's currently loading
@@ -539,16 +479,5 @@ class SchoolAboutUsController extends GetxController {
         (isTextChanged || directorMessageImageFile.value != null);
   }
 
-  ///Only Department Validation
 
-  void departmentValidateForm({
-    required String departmentRole,
-    required String departmentEmailAddress,
-    required String departmentPhoneNo,
-  }) {
-    // Condition: All text fields not empty AND at least 1 image
-    isFormValid.value = departmentRole.isNotEmpty &&
-        departmentPhoneNo.isNotEmpty &&
-        departmentEmailAddress.isNotEmpty;
-  }
 }
