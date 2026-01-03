@@ -58,7 +58,8 @@ class AppConstants {
   static const String dev = 'Dev';
   static const String baseImageAssetsPath = "assets/images/";
   static const String baseImageAssetsCategoryPath = "assets/category/";
-  static const String baseImageAssetsGroceryCategoryPath = "assets/category/grocery/";
+  static const String baseImageAssetsGroceryCategoryPath =
+      "assets/category/grocery/";
   static const String baseIconAssetsPath = "assets/icons/";
   static const String baseSvgAssetsPath = "assets/svg/";
   static const String baseGifsAssetsPath = "assets/gifs/";
@@ -99,6 +100,7 @@ class AppConstants {
   static const String AiReply_Chat_Type = 'AiReply';
   static const String AiQuest_Chat_Type = 'AiQuest';
   static const String askInentory_Chat_Type = 'askInentory';
+
   // static const String business = 'business';
   // static const String company = 'company';
   static const String recruiter = 'recruiter';
@@ -178,7 +180,6 @@ class AppConstants {
   static const String channelFeedList = "channelFeedList";
   static const String channelOTTList = "channelOTTList";
 
-
   /// Services Category
   static const consulting = "Consulting Services";
   static const automotive = "Automotive Services";
@@ -230,8 +231,6 @@ class AppConstants {
   static const homeServices = "Home Services";
 
   static const storeAi = "StoreAi";
-
-
 }
 
 class DocumentKeys {
@@ -250,11 +249,13 @@ class DocumentKeys {
   static const fireSafetyCertificate = "fireSafetyCertificate";
   static const municipalCorpCertificate = "municipalCorpCertificate";
   static const msmeCertificate = "msmeCertificate";
-  static const shopActCertificate  = "shopActCertificate"; // Removed trailing space
+  static const shopActCertificate =
+      "shopActCertificate"; // Removed trailing space
 }
 
 ///IS GUEST USER...
 bool isGuestUser() => (accountTypeGlobal.toUpperCase() == AppConstants.guest);
+
 A getOrPutController<A>(A Function() create) {
   if (Get.isRegistered<A>()) {
     return Get.find<A>();
@@ -376,8 +377,7 @@ redirectToProfileScreen(
       Get.to(() => VisitBusinessProfileNew(
             businessId: profileId,
             screenName: AppConstants.feedScreen,
-        isScreenFrom: screenName,
-
+            isScreenFrom: screenName,
           ));
     }
   }
@@ -798,17 +798,17 @@ List<PopupMenuEntry<String>> popupMenuChatCardItems() {
         value: items[i]['id'],
         onTap: () {
           if (items[i]['id'] == "VIEW_SYMBOL") {
-            final addSymbolController = Get.isRegistered<AddChatSymbolController>()
-                ? Get.find<AddChatSymbolController>()
-                : Get.put(AddChatSymbolController());
-            Get.to(()=>SymbolViewImages(
-              mySymbols: addSymbolController.mySymbols,
-            ));
-          }else
-            if (items[i]['id'] == "CREATE_GROUP") {
-            Get.to(()=>ContactsPage(
-              from: "group",
-            ));
+            final addSymbolController =
+                Get.isRegistered<AddChatSymbolController>()
+                    ? Get.find<AddChatSymbolController>()
+                    : Get.put(AddChatSymbolController());
+            Get.to(() => SymbolViewImages(
+                  mySymbols: addSymbolController.mySymbols,
+                ));
+          } else if (items[i]['id'] == "CREATE_GROUP") {
+            Get.to(() => ContactsPage(
+                  from: "group",
+                ));
           } else if (items[i]['id'] == "THEME") {
             commonSnackBar(message: "Coming soon....");
           } else if (items[i]['id'] == "WALLPAPER") {
@@ -1275,7 +1275,6 @@ final List<SocialInputFieldsModel> selectedInputFieldsPersonalProfile = [
   ),
 ];
 
-
 // Constants
 const String SELF_EMPLOYED = "SELF_EMPLOYED";
 const String PRIVATE_JOB = "PRIVATE_JOB";
@@ -1331,88 +1330,84 @@ const HOME_STAY = "HOME_STAY";
 const Flat_ROOM = "Flat_ROOM";
 const VEHICLE = "VEHICLE";
 
-
-
-
 // biscuit & foods
- const String CHIPS_NAMKEEN       = 'CHIPS_NAMKEEN';
- const String BISCUITS_COOKIES    = 'BISCUITS_COOKIES';
- const String CHOCOLATES_CANDIES  = 'CHOCOLATES_CANDIES';
- const String INDIAN_SWEETS       = 'INDIAN_SWEETS';
- const String DRINKS_JUICES       = 'DRINKS_JUICES';
- const String BREAKFAST_CEREALS   = 'BREAKFAST_CEREALS';
- const String NOODLES_PASTA       = 'NOODLES_PASTA';
- const String READY_TO_COOK      = 'READY_TO_COOK';
- const String SPREAD              = 'SPREAD';
- const String PICKLES             = 'PICKLES';
- const String TEA                 = 'TEA';
+const String CHIPS_NAMKEEN = 'CHIPS_NAMKEEN';
+const String BISCUITS_COOKIES = 'BISCUITS_COOKIES';
+const String CHOCOLATES_CANDIES = 'CHOCOLATES_CANDIES';
+const String INDIAN_SWEETS = 'INDIAN_SWEETS';
+const String DRINKS_JUICES = 'DRINKS_JUICES';
+const String BREAKFAST_CEREALS = 'BREAKFAST_CEREALS';
+const String NOODLES_PASTA = 'NOODLES_PASTA';
+const String READY_TO_COOK = 'READY_TO_COOK';
+const String SPREAD = 'SPREAD';
+const String PICKLES = 'PICKLES';
+const String TEA = 'TEA';
 
 // fruits & veg
- const String FRESH_FRUITS        = 'FRESH_FRUITS';
- const String BASIC_VEGETABLES    = 'BASIC_VEGETABLES';
- const String PREMIUM_FV          = 'PREMIUM_FV';
+const String FRESH_FRUITS = 'FRESH_FRUITS';
+const String BASIC_VEGETABLES = 'BASIC_VEGETABLES';
+const String PREMIUM_FV = 'PREMIUM_FV';
 
 // cooking essentials
- const String RICE                = 'RICE';
- const String DALS_PULSES         = 'DALS_PULSES';
- const String GHEE                = 'GHEE';
- const String WHEAT_SOYA          = 'WHEAT_SOYA';
- const String SALT_SUGAR_JAGGERY  = 'SALT_SUGAR_JAGGERY';
- const String SNACK_BASES         = 'SNACK_BASES';
- const String ATTA_FLOURS         = 'ATTA_FLOURS';
- const String DRY_FRUITS          = 'DRY_FRUITS';
- const String EDIBLE_OILS         = 'EDIBLE_OILS';
- const String MILLET_ORGANIC      = 'MILLET_ORGANIC';
+const String RICE = 'RICE';
+const String DALS_PULSES = 'DALS_PULSES';
+const String GHEE = 'GHEE';
+const String WHEAT_SOYA = 'WHEAT_SOYA';
+const String SALT_SUGAR_JAGGERY = 'SALT_SUGAR_JAGGERY';
+const String SNACK_BASES = 'SNACK_BASES';
+const String ATTA_FLOURS = 'ATTA_FLOURS';
+const String DRY_FRUITS = 'DRY_FRUITS';
+const String EDIBLE_OILS = 'EDIBLE_OILS';
+const String MILLET_ORGANIC = 'MILLET_ORGANIC';
 
 // dairy_items & bakery
- const String MILK_PRODUCTS       = 'MILK_PRODUCTS';
- const String CHEESE_PANEER_TOFU  = 'CHEESE_PANEER_TOFU';
- const String BUTTER_CHUTNEY      = 'BUTTER_CHUTNEY';
- const String TOAST_KHARI         = 'TOAST_KHARI';
- const String CAKES_MUFFINS       = 'CAKES_MUFFINS';
- const String BREADS_CHAPATIS     = 'BREADS_CHAPATIS';
- const String BAKERY_SNACKS       = 'BAKERY_SNACKS';
+const String MILK_PRODUCTS = 'MILK_PRODUCTS';
+const String CHEESE_PANEER_TOFU = 'CHEESE_PANEER_TOFU';
+const String BUTTER_CHUTNEY = 'BUTTER_CHUTNEY';
+const String TOAST_KHARI = 'TOAST_KHARI';
+const String CAKES_MUFFINS = 'CAKES_MUFFINS';
+const String BREADS_CHAPATIS = 'BREADS_CHAPATIS';
+const String BAKERY_SNACKS = 'BAKERY_SNACKS';
 
 // mom & baby
- const String BABY_FOOD           = 'BABY_FOOD';
- const String BABY_HYGIENE        = 'BABY_HYGIENE';
- const String BABY_TOYS           = 'BABY_TOYS';
- const String BABY_HEALTH         = 'BABY_HEALTH';
- const String DIAPERS_WIPES       = 'DIAPERS_WIPES';
+const String BABY_FOOD = 'BABY_FOOD';
+const String BABY_HYGIENE = 'BABY_HYGIENE';
+const String BABY_TOYS = 'BABY_TOYS';
+const String BABY_HEALTH = 'BABY_HEALTH';
+const String DIAPERS_WIPES = 'DIAPERS_WIPES';
 
 // kitchenware
- const String GAS_STOVE           = 'GAS_STOVE';
- const String STORAGE_CONTAINERS  = 'STORAGE_CONTAINERS';
- const String BOTTLES_FLASKS      = 'BOTTLES_FLASKS';
- const String CUTTING_CHOPPING    = 'CUTTING_CHOPPING';
- const String KITCHEN_TOOLS       = 'KITCHEN_TOOLS';
- const String BAKEWARE            = 'BAKEWARE';
+const String GAS_STOVE = 'GAS_STOVE';
+const String STORAGE_CONTAINERS = 'STORAGE_CONTAINERS';
+const String BOTTLES_FLASKS = 'BOTTLES_FLASKS';
+const String CUTTING_CHOPPING = 'CUTTING_CHOPPING';
+const String KITCHEN_TOOLS = 'KITCHEN_TOOLS';
+const String BAKEWARE = 'BAKEWARE';
 
 // tableware
- const String DINING              = 'DINING';
- const String SERVEWARE           = 'SERVEWARE';
- const String BARWARE             = 'BARWARE';
- const String TABLE_ACCESSORIES   = 'TABLE_ACCESSORIES';
- const String CUPS_MUGS           = 'CUPS_MUGS';
- const String GLASSWARE           = 'GLASSWARE';
+const String DINING = 'DINING';
+const String SERVEWARE = 'SERVEWARE';
+const String BARWARE = 'BARWARE';
+const String TABLE_ACCESSORIES = 'TABLE_ACCESSORIES';
+const String CUPS_MUGS = 'CUPS_MUGS';
+const String GLASSWARE = 'GLASSWARE';
 
 // gifts
- const String TEA_GIFTS           = 'TEA_GIFTS';
- const String CHOCOLATE_GIFTS     = 'CHOCOLATE_GIFTS';
- const String GOURMET_GIFTS       = 'GOURMET_GIFTS';
+const String TEA_GIFTS = 'TEA_GIFTS';
+const String CHOCOLATE_GIFTS = 'CHOCOLATE_GIFTS';
+const String GOURMET_GIFTS = 'GOURMET_GIFTS';
 
 // home
- const String DETERGENTS          = 'DETERGENTS';
- const String FRESHENERS          = 'FRESHENERS';
- const String CLEANING_TOOLS      = 'CLEANING_TOOLS';
- const String FURNISHING          = 'FURNISHING';
- const String DISHWASH            = 'DISHWASH';
- const String POOJA_NEEDS         = 'POOJA_NEEDS';
- const String ELECTRICALS         = 'ELECTRICALS';
- const String SHOE_CARE           = 'SHOE_CARE';
- const String FURNITURE           = 'FURNITURE';
- const String BAGS_TRAVEL         = 'BAGS_TRAVEL';
-
+const String DETERGENTS = 'DETERGENTS';
+const String FRESHENERS = 'FRESHENERS';
+const String CLEANING_TOOLS = 'CLEANING_TOOLS';
+const String FURNISHING = 'FURNISHING';
+const String DISHWASH = 'DISHWASH';
+const String POOJA_NEEDS = 'POOJA_NEEDS';
+const String ELECTRICALS = 'ELECTRICALS';
+const String SHOE_CARE = 'SHOE_CARE';
+const String FURNITURE = 'FURNITURE';
+const String BAGS_TRAVEL = 'BAGS_TRAVEL';
 
 double calculateDistanceKm(double lat1, double lon1, double lat2, double lon2) {
   const R = 6371; // Radius of Earth in kilometers
@@ -1765,7 +1760,7 @@ final List<ServiceItem> homeServicesList = [
     labelColor: const Color(0xFF4E5500),
   ),
   ServiceItem(
-    name:  AppStrings.interiorDecor,
+    name: AppStrings.interiorDecor,
     slugId: INTERIOR_DESIGNER,
     icon: AppIconAssets.interiorIcon,
     bgColor: const Color(0xFFD7EAC9),
@@ -1811,7 +1806,7 @@ final List<ServiceItem> rentalServicesList = [
   // ),
 ];
 
-class ChatEmitEvents{
+class ChatEmitEvents {
   static const ChatList = "ChatList";
   static const screenRoom = "screenRoom";
   static const messageReceived = "messageReceived";
@@ -2161,8 +2156,7 @@ final List<BusinessProfileCategory> businessProductsCategories = [
       slugId: AppConstants.fashionLifestyle,
       // categoryId: '68ce9907eac48e6b0d4971dc',
       icon: AppIconAssets.fashionLifestyleIcon,
-      type: AppConstants.product
-  ),
+      type: AppConstants.product),
 ];
 
 final List<BusinessProfileCategory> businessFoodsCategories = [
@@ -2171,57 +2165,49 @@ final List<BusinessProfileCategory> businessFoodsCategories = [
       slugId: AppConstants.fastFoodQuickService,
       // categoryId: '68ce9917eac48e6b0d4973cc',
       icon: AppIconAssets.fastFoodQuickServiceIcon,
-      type: AppConstants.food
-  ),
+      type: AppConstants.food),
   BusinessProfileCategory(
       name: AppStrings.multiCuisineRestaurants,
       slugId: AppConstants.multiCuisineRestaurants,
       // categoryId: '68ce9919eac48e6b0d49740a',
       icon: AppIconAssets.multiCuisineRestroIcon,
-      type: AppConstants.food
-  ),
+      type: AppConstants.food),
   BusinessProfileCategory(
       name: AppStrings.groceryVegetablesDairy,
       slugId: AppConstants.groceryVegetablesDairy,
       // categoryId: '68ce9917eac48e6b0d4973bf',
       icon: AppIconAssets.groceryVegetableDairyIcon,
-      type: AppConstants.food
-  ),
+      type: AppConstants.food),
   BusinessProfileCategory(
       name: AppStrings.nonVegRestaurants,
       slugId: AppConstants.nonVegRestaurants,
       // categoryId: '68ce9919eac48e6b0d4973e8',
       icon: AppIconAssets.nonVegRestaurantIcon,
-      type: AppConstants.food
-  ),
+      type: AppConstants.food),
   BusinessProfileCategory(
       name: AppStrings.vegRestaurants,
       slugId: AppConstants.vegRestaurants,
       // categoryId: '68ce9918eac48e6b0d4973d9',
       icon: AppIconAssets.vegRestaurantIcon,
-      type: AppConstants.food
-  ),
+      type: AppConstants.food),
   BusinessProfileCategory(
       name: AppStrings.otherRestaurantsDhaba,
       slugId: AppConstants.otherRestaurantsDhaba,
       // categoryId: '68ce991aeac48e6b0d497417',
       icon: AppIconAssets.restaurantIcon,
-      type: AppConstants.food
-  ),
+      type: AppConstants.food),
   BusinessProfileCategory(
       name: AppStrings.sweetsBakeryDrinks,
       slugId: AppConstants.sweetsBakeryDrinks,
       // categoryId: '68ce9918eac48e6b0d4973d9',
       icon: AppIconAssets.sweetBakeryDrinkIcon,
-      type: AppConstants.food
-  ),
+      type: AppConstants.food),
   BusinessProfileCategory(
       name: AppStrings.otherFoodServices,
       slugId: AppConstants.otherFoodServices,
       // categoryId: '68ce991aeac48e6b0d497428',
       icon: AppIconAssets.staggeredIcon,
-      type: AppConstants.food
-  ),
+      type: AppConstants.food),
 ];
 
 /// Individual Categories
@@ -2323,9 +2309,9 @@ final List<IndividualProfileCategory> individualOtherSocialProfileList = [
 
 final List<IndividualProfileCategory> individualSelfEmployedList = [
   IndividualProfileCategory(
-      name: AppStrings.rider,
-      slugId: DELIVERY_RIDER,
-      icon: AppIconAssets.riderIcon,
+    name: AppStrings.rider,
+    slugId: DELIVERY_RIDER,
+    icon: AppIconAssets.riderIcon,
   ),
   IndividualProfileCategory(
     name: AppStrings.electrician,
@@ -2386,8 +2372,16 @@ final List<IndividualProfileCategory> individualSelfEmployedList = [
 
 List<PopupMenuEntry<String>> groceryPopupMenuItems() {
   final List<Map<String, String>> items = [
-    {'id': AppConstants.EDIT, 'title': 'Edit Product', 'icon': AppIconAssets.pen_line},
-    {'id': AppConstants.REMOVE, 'title': 'Remove From List', 'icon': AppIconAssets.removeOutlinedIcon},
+    {
+      'id': AppConstants.EDIT,
+      'title': 'Edit Product',
+      'icon': AppIconAssets.pen_line
+    },
+    {
+      'id': AppConstants.REMOVE,
+      'title': 'Remove From List',
+      'icon': AppIconAssets.removeOutlinedIcon
+    },
   ];
 
   final List<PopupMenuEntry<String>> entries = [];
@@ -2435,10 +2429,7 @@ List<PopupMenuEntry<String>> groceryPopupMenuItems() {
 
 List<PopupMenuEntry<String>> groceryPopUpMenuItems() {
   final items = <Map<String, dynamic>>[
-    {
-      "id": AppConstants.ADD,
-      'title': AppStrings.addManually
-    },
+    {"id": AppConstants.ADD, 'title': AppStrings.addManually},
   ];
 
   final List<PopupMenuEntry<String>> entries = [];
@@ -2451,8 +2442,8 @@ List<PopupMenuEntry<String>> groceryPopUpMenuItems() {
         onTap: () {
           if (items[i]['id'] == AppConstants.ADD) {
             // Get.toNamed(RouteHelper.getCreateResumeScreenRoute());
-           }
-          },
+          }
+        },
         child: CustomText(
           items[i]['title'],
           fontSize: SizeConfig.medium,
@@ -2474,7 +2465,6 @@ List<PopupMenuEntry<String>> groceryPopUpMenuItems() {
         //     ),
         //   ],
         // ),
-
       ),
     );
 
@@ -2499,4 +2489,44 @@ List<PopupMenuEntry<String>> groceryPopUpMenuItems() {
   return entries;
 }
 
+List<PopupMenuEntry<String>> popupSchoolDepartmentMenuItems() {
+  final items = <Map<String, dynamic>>[
+    {'title': AppStrings.editPost, "slud_id": 'Edit'},
+    {'title': AppStrings.deletePost, "slud_id": "Delete"},
+  ];
 
+  final List<PopupMenuEntry<String>> entries = [];
+
+  for (int i = 0; i < items.length; i++) {
+    entries.add(
+      PopupMenuItem<String>(
+        height: SizeConfig.size35,
+        value: items[i]['slud_id'],
+        child: CustomText(
+          items[i]['title'],
+          fontSize: SizeConfig.medium,
+          color: AppColors.black30,
+        ),
+      ),
+    );
+
+    if (i != items.length - 1) {
+      entries.add(
+        const PopupMenuItem<String>(
+          enabled: false,
+          padding: EdgeInsets.zero,
+          height: 1,
+          child: Divider(
+            indent: 10,
+            endIndent: 10,
+            height: 1,
+            thickness: 0.2,
+            color: AppColors.grey99,
+          ),
+        ),
+      );
+    }
+  }
+
+  return entries;
+}
