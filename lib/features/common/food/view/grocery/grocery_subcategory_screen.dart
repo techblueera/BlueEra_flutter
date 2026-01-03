@@ -336,30 +336,39 @@ class _GrocerySubCategoryScreenState extends State<GrocerySubCategoryScreen> {
                 ),
               )
           : Expanded(
-            child: GridView.builder(
-              controller: scrollController,
-              itemCount: controller.arrGroceryCategoryProducts.length +
-                  (controller.isGroceryCategoryProductsLoadingMore.value ? 1 : 0),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 10,
-                mainAxisSpacing: 10,
-                childAspectRatio: 0.6,
-              ),
-              padding: EdgeInsets.only(bottom: SizeConfig.size30),
-              itemBuilder: (_, i) {
-                log('coming');
-                if (i == controller.arrGroceryCategoryProducts.length) {
-                  return const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(8.0),
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                  );
-                }
+            child: Builder(
+              builder: (context) {
+                double screenWidth = Get.width;
+                double totalHorizontalPadding = 8.0;
+                double crossAxisSpacing = 10.0;
+                double gridItemWidth = (screenWidth - totalHorizontalPadding - crossAxisSpacing) / 2;
+                double desiredItemHeight = 350.0;
 
-                return groceryCard(controller.arrGroceryCategoryProducts[i]);
-              },
+                return GridView.builder(
+                  controller: scrollController,
+                  itemCount: controller.arrGroceryCategoryProducts.length +
+                      (controller.isGroceryCategoryProductsLoadingMore.value ? 1 : 0),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                    childAspectRatio: gridItemWidth / desiredItemHeight,
+                  ),
+                  padding: EdgeInsets.only(bottom: SizeConfig.size30),
+                  itemBuilder: (_, i) {
+                    if (i == controller.arrGroceryCategoryProducts.length) {
+                      return const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      );
+                    }
+
+                    return groceryCard(controller.arrGroceryCategoryProducts[i]);
+                  },
+                );
+              }
             ),
           )
         ],
