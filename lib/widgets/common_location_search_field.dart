@@ -14,6 +14,7 @@ class CommonLocationSearchField extends StatefulWidget {
   final TextEditingController controller;
   final String title;
   final String hintText;
+  final bool? isShowLeading;
   final Function(String placeId, double lat, double lng, String address)?
       onSelected;
 
@@ -22,6 +23,7 @@ class CommonLocationSearchField extends StatefulWidget {
     required this.controller,
     this.title = 'Property Location',
     this.hintText = 'E.g. Lucknow, Gomti Nagar...',
+    this.isShowLeading=true,
     this.onSelected,
   });
 
@@ -236,7 +238,7 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
         key: textFieldKey,
         title: widget.title,
         hintText: widget.hintText,
-        pIcon: Icon(Icons.search, color: AppColors.primaryColor),
+        pIcon:widget.isShowLeading==true? Icon(Icons.search, color: AppColors.primaryColor):null,
         textEditController: widget.controller,
         onChange: onSearchChanged,
         sIcon: Obx(() => currentAddress.isNotEmpty

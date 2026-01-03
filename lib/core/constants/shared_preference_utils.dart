@@ -43,6 +43,7 @@ String businessTypeGlobal = '';
 
 String isRiderServiceOpt = '';
 String isEarnServiceOpt = '';
+String schoolIDGlobal = '';
 
 class SharedPreferenceUtils {
   static const FlutterSecureStorage _secureStorage = FlutterSecureStorage(
@@ -89,6 +90,7 @@ class SharedPreferenceUtils {
   static const notificationDeviceToken = 'notificationDeviceToken';
   static const isRiderServiceUser = 'isRiderServiceUser';
   static const isEarnServiceUser = 'isEarnServiceUser';
+  static const schoolIDKey = 'schoolIDKey';
 
   static Future<void> userLoggedInIndividualGuest({
     required String loginUserId_,
@@ -233,6 +235,7 @@ class SharedPreferenceUtils {
       isEarnServiceOpt = '';
       businessCategoryGlobal = '';
       businessSubCategoryGlobal = '';
+      schoolIDGlobal = '';
       Get.find<AuthController>().imgPath.value = "";
       await SharedPreferenceUtils.setBaseUrlSecureValue(workManagerBaseUrl);
       AppNotificationHandler.getFcmToken();
@@ -453,3 +456,14 @@ getEarnServiceOptData() async {
   isEarnServiceOpt = await SharedPreferenceUtils.getSecureValue(
       SharedPreferenceUtils.isEarnServiceUser);
 }
+///SET SCHOOL ID....
+setSchoolID(String schoolIDValue) {
+  SharedPreferenceUtils.setSecureValue(
+      SharedPreferenceUtils.schoolIDKey, schoolIDValue.toString());
+}
+
+getSchoolID() async {
+  schoolIDGlobal = await SharedPreferenceUtils.getSecureValue(
+      SharedPreferenceUtils.schoolIDKey);
+}
+

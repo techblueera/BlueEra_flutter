@@ -84,7 +84,6 @@ class ApiBaseHelper {
               }
 
             }
-
             if (authTokenGlobal != null &&
                 (authTokenGlobal?.isNotEmpty ?? false)) {
               options.headers[ApiKeys.authorization] =
@@ -92,6 +91,13 @@ class ApiBaseHelper {
 
               logs("AUTH TOKEN===> ${options.headers[ApiKeys.authorization]}");
             }
+            // if (options.path==("ai/create-school")) {
+            //   options.baseUrl = baseUrl2;
+            //   // Remove the dummy header so it doesn't get sent to the server
+            //   options.headers.remove("create-school");
+            // } else {
+            //   options.baseUrl = baseUrl1;
+            // }
             options.headers[ApiKeys.contentType] = "application/json";
             return requestInterceptor(options, handler);
           },
@@ -108,25 +114,6 @@ class ApiBaseHelper {
                 (key, value) => MapEntry(key.toString(), value),
               );
             }
-
-
-            // final url = response.requestOptions.uri.toString();
-            // final statusCode = response.statusCode ?? 0;
-            //
-            // if(kDebugMode){
-            //   // ====== 🌟 Beautified Response Log ======
-            //   log("\x1B[32m==================== API RESPONSE [$statusCode] ====================\x1B[0m");
-            //   log("🔹 URL: $url");
-            //   log("🔹 Status Message: ${response.statusMessage}");
-            //   log("🔹 Type: ${response.data.runtimeType}");
-            //   try {
-            //     log("🔹 Response: ${const JsonEncoder.withIndent('  ').convert(response.data)}");
-            //   } catch (_) {
-            //     log("🔹 Response: ${response.data.toString()}");
-            //   }
-            //   log("\x1B[32m===============================================================\x1B[0m");
-            //
-            // }
 
             showProgressDialog = true;
             // Decrement the request count and hide the loader if no pending requests

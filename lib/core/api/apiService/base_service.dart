@@ -547,5 +547,18 @@ abstract class BaseService {
   final String groceryOrder = "grocery-service/api/orders";
   String updateGroceryOrder(String orderId) => "grocery-service/api/orders/$orderId";
   static final String groceryRiderOrderStream = "riders/orders/stream/grocery/$userId";
+  final String aiInstitutionFetchDetails = 'ai-service/api/ai-institution/fetch-details';
+  final String aiCreateSchool = 'education-service/ai/create-school';
+  final String schoolAboutUs = 'education-service/about/school';
+  final String schoolAboutUsUpdate = 'education-service/about/';
+  final String educationUploadInit = "education-service/upload/init";
+  final String schoolAboutAdd = 'education-service/about';
+  final String schoolContact = 'education-service/contact/school';
+  final String schoolUser = 'education-service/schools/user';
+  final String schoolContactUpdate = 'education-service/contact/';
+  final String schoolNotices = 'education-service/notices/school/';
+  final String schoolNoticesAddDelete = 'education-service/notices';
+  final String educationDepartments = 'education-service/departments';
+  final String educationCourses = 'education-service/courses';
 
 }

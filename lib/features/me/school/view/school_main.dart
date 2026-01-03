@@ -1,7 +1,16 @@
+import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/me/school/controller/school_controller.dart';
+import 'package:BlueEra/features/me/school/repo/school_repo.dart';
+import 'package:BlueEra/features/me/school/view/school_home_screen.dart';
+import 'package:BlueEra/features/me/school/view/school_statics_screen.dart';
+import 'package:BlueEra/features/me/school/view/school_update_screen.dart';
 import 'package:BlueEra/features/me/school/view/widget/add_school_service.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -24,9 +33,22 @@ class _SchoolMainState extends State<SchoolMain>
 
   @override
   void initState() {
-    _tabController = TabController(length: 2, vsync: this);
-
+    apiCalling();
+    _tabController = TabController(length: 3, vsync: this);
     super.initState();
+  }
+
+  apiCalling() async {
+    if (schoolIDGlobal.isEmpty) {
+      ResponseModel response = await SchoolRepo().getSchoolByUserIDRepo();
+      String? schoolID = response.response?.data['data'][0]['_id'];
+      if (schoolID != null && schoolID.isNotEmpty) {
+        await setSchoolID(schoolID);
+      } else {
+        await setSchoolID("");
+      }
+      await getSchoolID();
+    }
   }
 
   @override
@@ -38,77 +60,41 @@ class _SchoolMainState extends State<SchoolMain>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        backgroundColor: AppColors.white,
         body: SafeArea(
-      child: Column(
-        children: [
-          SizedBox(
-            height: SizeConfig.size12,
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 26.0, vertical: 10),
-            child: Row(
-              children: [
-                Expanded(
-                  child: CommonSearchBar(
-                      controller: TextEditingController(),
-                      isShowCursor: false,
-                      onSearchTap: () {},
-                      onClearCallback: () {},
-                      hintText: "Search Products..."),
-                ),
-                SizedBox(
-                  width: SizeConfig.size12,
-                ),
-                InkWell(
-                  onTap: () {
-                    Get.to(() => AddSchoolService());
-                  },
-                  child: Container(
-                    height: SizeConfig.size40,
-                    width: SizeConfig.size40,
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        color: AppColors.primaryColor),
-                    child: Center(
-                      child: Icon(
-                        Icons.add,
-                        size: 28,
-                        color: AppColors.white,
-                      ),
-                    ),
-                  ),
-                )
-              ],
-            ),
-          ),
-          TabBar(
-            controller: _tabController,
-            labelColor: AppColors.primaryColor,
-            unselectedLabelColor: Colors.grey[600],
-            indicatorColor: AppColors.primaryColor,
-            indicatorWeight: 4,
-            tabAlignment: TabAlignment.fill,
-            indicatorSize: TabBarIndicatorSize.tab,
-            labelStyle: const TextStyle(fontWeight: FontWeight.w600),
-            tabs: [
-              Tab(text: "My School"),
-              Tab(text: "Statics"),
-            ],
-          ),
-          Expanded(
-              child: TabBarView(
-            controller: _tabController,
+          child: Column(
             children: [
-              Center(
-                child: LocalAssets(
-                  imagePath: AppImageAssets.noMeContent,
-                ),
+              SizedBox(
+                height: SizeConfig.size12,
               ),
-              const Center(child: CustomText(AppStrings.comingSoon)),
+              TabBar(
+                controller: _tabController,
+                labelColor: AppColors.mainTextColor,
+                unselectedLabelColor: AppColors.secondaryTextColor,
+                indicatorColor: AppColors.primaryColor,
+                indicatorWeight: 4,
+                tabAlignment: TabAlignment.fill,
+                indicatorSize: TabBarIndicatorSize.tab,
+                labelStyle: const TextStyle(
+                    fontWeight: FontWeight.w500,
+                    fontFamily: AppConstants.OpenSans),
+                tabs: [
+                  Tab(text: "Home"),
+                  Tab(text: "Update"),
+                  Tab(text: "Statics"),
+                ],
+              ),
+              Expanded(
+                  child: TabBarView(
+                controller: _tabController,
+                children: [
+                  SchoolHomeScreen(),
+                  SchoolUpdateScreen(),
+                  SchoolStaticsScreen(),
+                ],
+              ))
             ],
-          ))
-        ],
-      ),
-    ));
+          ),
+        ));
   }
 }

@@ -19,7 +19,6 @@ class AppColors {
   static const grey17 = Color(0x17A4A5A5);
   static const grey9A = Color(0xFF7A8B9A);
   static const greyB4 = Color(0xFFB4B4B4);
-  static const grey4C = Color(0xFF303E4C);
   static const grey83 = Color(0xFF7A7F83);
   static const grey9B = Color(0xFF9B9B9B);
   static const grey80 = Color(0xFF5B6B80);
@@ -137,4 +136,5 @@ class AppColors {
   static const  redLight = Color(0xFFD94A42);
   static const  yellowBC = Color(0xFFBC8D00);
   // static const  yellowBC = Color(0xFFBC8D00);
+  static const  whiteE91 = Color(0xffE9E9E9);
 }

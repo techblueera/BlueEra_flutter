@@ -272,6 +272,12 @@ enum OwnChannelMenuAction {
   addService,
 }
 
+
+enum EditDeleteMenuAction {
+  noticeEdit,
+  noticeDelete,
+}
+
 /// Map Category
 enum MapServiceCategory {
   services('Services'),

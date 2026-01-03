@@ -571,4 +571,15 @@ class ApiKeys {
   static const value = 'value';
   static const success = 'success';
   static const argOrderId = 'argOrderId';
+  static const aiOutput = 'aiOutput';
+  static const visionAndMission = 'visionAndMission';
+  static const history = 'history';
+  static const photo = 'photo';
+  static const position = 'position';
+  static const faculty = 'faculty';
+  static const schoolId = 'schoolId';
+  static const management = 'management';
+  static const qualification = 'qualification';
+  static const uploadPhoto = 'uploadPhoto';
+
 }
