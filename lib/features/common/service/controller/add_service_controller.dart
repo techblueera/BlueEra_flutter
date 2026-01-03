@@ -272,7 +272,7 @@ class AddServiceController extends GetxController {
       //   if (name.isEmpty) return null;
       //   return this[0].toUpperCase() + substring(1).toLowerCase();
       // }
-      if(category!=null) params[ApiKeys.category]= category?.capitalizeFirst??'';
+      if(category!=null) params[ApiKeys.category] = category;
       if(serviceSubType!=null)  params[ApiKeys.subType] = serviceSubType.label;
       if(channelId!=null) params[ApiKeys.channelId] = channelId;
 
@@ -284,6 +284,7 @@ class AddServiceController extends GetxController {
         };
       } else {
         params[ApiKeys.priceType] = 'fixed';
+        params[ApiKeys.singlePrice] = priceCtrl.text.trim();
       }
 
       // Prepare images

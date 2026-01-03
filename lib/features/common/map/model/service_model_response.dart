@@ -96,7 +96,12 @@ class ServiceData {
   int? reviewCount;
   ServiceMedia? serviceMedia;
   PriceData? priceData;
+  ServiceInfo? service;
   String? category;
+  List<String>? skills;
+  List<String>? projects;
+  List<String>? experiences;
+
   ServiceData(
       {
         this.id,
@@ -144,7 +149,11 @@ class ServiceData {
         this.reviewCount,
         this.serviceMedia,
         this.priceData,
+        this.service,
         this.category,
+        this.skills,
+        this.projects,
+        this.experiences,
       });
 
   ServiceData.fromJson(Map<String, dynamic> json) {
@@ -204,6 +213,18 @@ class ServiceData {
     priceData = json['priceData'] != null
         ? new PriceData.fromJson(json['priceData'])
         : null;
+    service = json['service'] != null
+        ? new ServiceInfo.fromJson(json['service'])
+        : null;
+    if (json['skills'] != null) {
+      skills = List<String>.from(json['skills']);
+    }
+    if (json['projects'] != null) {
+      projects = List<String>.from(json['projects']);
+    }
+    if (json['experiences'] != null) {
+      experiences = List<String>.from(json['experiences']);
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -263,6 +284,18 @@ class ServiceData {
     }
     if (this.priceData != null) {
       data['priceData'] = this.priceData!.toJson();
+    }
+    if (this.service != null) {
+      data['service'] = this.service!.toJson();
+    }
+    if (skills != null) {
+      data['skills'] = skills;
+    }
+    if (projects != null) {
+      data['projects'] = projects;
+    }
+    if (experiences != null) {
+      data['experiences'] = experiences;
     }
     return data;
   }
@@ -396,6 +429,58 @@ class PriceData {
     }
     data['perUnit'] = this.perUnit;
     data['minimumBookingAmount'] = this.minimumBookingAmount;
+    return data;
+  }
+}
+
+class ServiceInfo {
+  List<Timings>? timings;
+  List<String>? facilities;
+
+  ServiceInfo({this.timings, this.facilities});
+
+  ServiceInfo.fromJson(Map<String, dynamic> json) {
+    if (json['timings'] != null) {
+      timings = <Timings>[];
+      json['timings'].forEach((v) {
+        timings!.add(Timings.fromJson(v));
+      });
+    }
+    if (json['facilities'] != null) {
+      facilities = List<String>.from(json['facilities']);
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    if (timings != null) {
+      data['timings'] = timings!.map((v) => v.toJson()).toList();
+    }
+    if (facilities != null) {
+      data['facilities'] = facilities;
+    }
+    return data;
+  }
+}
+
+class Timings {
+  String? start;
+  String? end;
+  bool? special;
+
+  Timings({this.start, this.end, this.special});
+
+  Timings.fromJson(Map<String, dynamic> json) {
+    start = json['start'];
+    end = json['end'];
+    special = json['special'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['start'] = start;
+    data['end'] = end;
+    data['special'] = special;
     return data;
   }
 }

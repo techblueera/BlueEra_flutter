@@ -276,7 +276,9 @@ String formatNumber(int number) {
   return formatter.format(number);
 }
 
-String formatIndianNumber(num number) {
+String formatIndianNumber(num? number) {
+  if (number == null) return "0";
+
   if (number >= 10000000) {
     return '${(number / 10000000).toStringAsFixed((number % 10000000 == 0) ? 0 : 1)}Cr';
   } else if (number >= 100000) {

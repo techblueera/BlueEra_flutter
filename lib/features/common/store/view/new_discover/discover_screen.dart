@@ -13,7 +13,7 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/ai_chat/ask_inventory_chat_screen.dart';
-import 'package:BlueEra/features/common/auth/model/individual_profiile_category.dart';
+import 'package:BlueEra/features/common/auth/model/business_profile_category.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
 import 'package:BlueEra/features/common/jobs/view/jobs_screen.dart';
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
@@ -26,9 +26,10 @@ import 'package:BlueEra/widgets/gradient_floating_button.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/setup_scroll_visibility_notification.dart';
 import 'package:BlueEra/widgets/update_live_photo_dialog.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+import '../../../../personal/personal_profile/view/widget/service_item.dart';
 
 class DiscoverScreen extends StatefulWidget {
   final bool isHeaderVisible;
@@ -348,17 +349,17 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                   child: Column(
                     children: [
                       _bannerWidget(
-                          bannerImage: AppImageAssets.riderBanner,
+                          bannerImage: AppImageAssets.localMarket,
                           bannerHeight: SizeConfig.size180
                       ),
 
                       SizedBox(height: SizeConfig.paddingXSL),
 
-                      genericSquareRow<String>(
-                        items: ["Electrician", "Beautician", "Tuition", "Counselling", "Doctors"],
+                      genericSquareRow<BusinessProfileCategory>(
+                        items: businessProductsCategories,
                         itemsPerRow: 5,
-                        labelBuilder: (c) => c,
-                        iconBuilder: (c) => AppIconAssets.electricianIcon,
+                        labelBuilder: (c) => c.name,
+                        iconBuilder: (c) => c.icon,
                         onTap: (c) {
 
                         },
@@ -379,10 +380,11 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                     final double totalWidth = constraints.maxWidth;
                     final double fixedBannerHeight = SizeConfig.size160;
                     final double gap = SizeConfig.paddingXSL;
-
                     final double sideBoxSize = (fixedBannerHeight - gap) / 2;
-
                     final double bannerWidth = totalWidth - sideBoxSize - gap;
+
+                    final List<ServiceItem> sideBoxItems = selfWorkServiceList.sublist(0, 2);
+                    final List<ServiceItem> bottomRowItems = selfWorkServiceList.sublist(2, 7);
 
                     return Column(
                       children: [
@@ -393,7 +395,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                               width: bannerWidth,
                               height: fixedBannerHeight,
                               child: _bannerWidget(
-                                bannerImage: AppImageAssets.riderBanner,
+                                bannerImage: AppImageAssets.bookProfessional,
                                 bannerHeight: fixedBannerHeight,
                               ),
                             ),
@@ -407,20 +409,26 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   _buildContainer(
-                                    size: sideBoxSize,
-                                    text: "Taxi Driver",
-                                    icon: AppIconAssets.taxiDriverIcon,
-                                    onTap: (){
-                                      // Get.to(()=> SelfProfessionScreen());
-                                    }
+                                      size: sideBoxSize,
+                                      text: sideBoxItems[0].name,
+                                      icon: sideBoxItems[0].icon,
+                                      onTap: () {
+                                        Get.to(()=> SelfProfessionScreen(
+                                            selfEmployedCategories: selfWorkServiceList, // Pass full list for context
+                                            selectedSelfProfessionData: sideBoxItems[0]
+                                        ));
+                                      }
                                   ),
                                   _buildContainer(
-                                    size: sideBoxSize,
-                                    text: "Rider",
-                                    icon: AppIconAssets.riderIconColorful,
-                                    onTap: (){
-                                      // Get.to(()=> SelfProfessionScreen());
-                                    }
+                                      size: sideBoxSize,
+                                      text: sideBoxItems[1].name,
+                                      icon: sideBoxItems[1].icon,
+                                      onTap: () {
+                                        Get.to(()=> SelfProfessionScreen(
+                                            selfEmployedCategories: selfWorkServiceList,
+                                            selectedSelfProfessionData: sideBoxItems[1]
+                                        ));
+                                      }
                                   ),
                                 ],
                               ),
@@ -431,15 +439,15 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                         SizedBox(height: SizeConfig.paddingXSL),
 
                         // Bottom Section
-                        genericSquareRow<IndividualProfileCategory>(
-                          items: selfEmployedCategories,
+                        genericSquareRow<ServiceItem>(
+                          items: bottomRowItems,
                           itemsPerRow: 5,
-                          labelBuilder: (c) => c.name,
-                          iconBuilder: (c) => c.icon,
-                          onTap: (c) {
+                          labelBuilder: (s) => s.name,
+                          iconBuilder: (s) => s.icon,
+                          onTap: (s) {
                             Get.to(()=> SelfProfessionScreen(
-                              selfEmployedCategories: selfEmployedCategories,
-                              selectedCategory: c
+                              selfEmployedCategories: selfWorkServiceList,
+                              selectedSelfProfessionData: s
                             ));
                           },
                         )
@@ -456,13 +464,21 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
               child: Row(
                 children: [
                   _buildVerticalLayout(
-                      imageUrl: 'https://picsum.photos/200',
-                      child: Row()
+                      imageUrl: AppImageAssets.bookNowBanner,
+                      items: [
+                        'Hotel',
+                        'Homestay',
+                        'Cabs'
+                      ]
                   ),
                   SizedBox(width: SizeConfig.paddingXSL),
                   _buildVerticalLayout(
-                      imageUrl: 'https://picsum.photos/200',
-                      child: Row()
+                      imageUrl: AppImageAssets.homeMadeBanner,
+                      items: [
+                        'Food',
+                        'Product',
+                        'Service'
+                      ]
                   ),
                 ],
               ),
@@ -474,72 +490,27 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
             SliverToBoxAdapter(
               child: CustomFormCard(
                 padding: EdgeInsets.all(SizeConfig.size10),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final double totalWidth = constraints.maxWidth;
-                    final double fixedBannerHeight = SizeConfig.size160;
-                    final double gap = SizeConfig.paddingXSL;
+                child: Column(
+                  children: [
+                    _bannerWidget(
+                        bannerImage: AppImageAssets.findServiceNearMe,
+                        bannerHeight: SizeConfig.size180
+                    ),
 
-                    final double sideBoxSize = (fixedBannerHeight - gap) / 2;
 
-                    final double bannerWidth = totalWidth - sideBoxSize - gap;
+                    SizedBox(height: SizeConfig.paddingXSL),
 
-                    return Column(
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SizedBox(
-                              width: bannerWidth,
-                              height: fixedBannerHeight,
-                              child: _bannerWidget(
-                                bannerImage: AppImageAssets.riderBanner,
-                                bannerHeight: fixedBannerHeight,
-                              ),
-                            ),
+                    // Bottom Section
+                    genericSquareRow<BusinessProfileCategory>(
+                      items: businessServicesCategories,
+                      itemsPerRow: 5,
+                      labelBuilder: (c) => c.name,
+                      iconBuilder: (c) => c.icon,
+                      onTap: (c) {
 
-                            SizedBox(width: gap),
-
-                            SizedBox(
-                              width: sideBoxSize,
-                              // The Column height matches the banner height exactly
-                              height: fixedBannerHeight,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  _buildContainer(
-                                      size: sideBoxSize,
-                                      text: "Taxi Driver",
-                                      icon: AppIconAssets.electricianIcon,
-                                      onTap: (){}
-                                  ),
-                                  _buildContainer(
-                                      size: sideBoxSize,
-                                      text: "Rider",
-                                      icon: AppIconAssets.electricianIcon,
-                                      onTap: (){}
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        SizedBox(height: SizeConfig.paddingXSL),
-
-                        // Bottom Section
-                        genericSquareRow<String>(
-                          items: ["Electrician", "Beautician", "Tuition", "Counselling", "Doctors"],
-                          itemsPerRow: 5,
-                          labelBuilder: (c) => c,
-                          iconBuilder: (c) => AppIconAssets.electricianIcon,
-                          onTap: (c) {
-
-                          },
-                        )
-                      ],
-                    );
-                  },
+                      },
+                    )
+                  ],
                 ),
               ),
             ),
@@ -550,148 +521,59 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
             SliverToBoxAdapter(
               child: CustomFormCard(
                 padding: EdgeInsets.all(SizeConfig.size10),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final double totalWidth = constraints.maxWidth;
-                    final double fixedBannerHeight = SizeConfig.size160;
-                    final double gap = SizeConfig.paddingXSL;
+                child: Column(
+                  children: [
 
-                    final double sideBoxSize = (fixedBannerHeight - gap) / 2;
+                    _bannerWidget(
+                        bannerImage: AppImageAssets.medicalHealthService,
+                        bannerHeight: SizeConfig.size180
+                    ),
 
-                    final double bannerWidth = totalWidth - sideBoxSize - gap;
+                    SizedBox(height: SizeConfig.paddingXSL),
 
-                    return Column(
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SizedBox(
-                              width: bannerWidth,
-                              height: fixedBannerHeight,
-                              child: _bannerWidget(
-                                bannerImage: AppImageAssets.riderBanner,
-                                bannerHeight: fixedBannerHeight,
-                              ),
-                            ),
+                    // Bottom Section
+                    genericSquareRow<String>(
+                      items: ["Electrician", "Beautician", "Tuition", "Counselling", "Doctors"],
+                      itemsPerRow: 5,
+                      labelBuilder: (c) => c,
+                      iconBuilder: (c) => AppIconAssets.electricianIcon,
+                      onTap: (c) {
 
-                            SizedBox(width: gap),
-
-                            SizedBox(
-                              width: sideBoxSize,
-                              // The Column height matches the banner height exactly
-                              height: fixedBannerHeight,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  _buildContainer(
-                                      size: sideBoxSize,
-                                      text: "Taxi Driver",
-                                      icon: AppIconAssets.electricianIcon,
-                                      onTap: (){}
-                                  ),
-                                  _buildContainer(
-                                      size: sideBoxSize,
-                                      text: "Rider",
-                                      icon: AppIconAssets.electricianIcon,
-                                      onTap: (){}
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        SizedBox(height: SizeConfig.paddingXSL),
-
-                        // Bottom Section
-                        genericSquareRow<String>(
-                          items: ["Electrician", "Beautician", "Tuition", "Counselling", "Doctors"],
-                          itemsPerRow: 5,
-                          labelBuilder: (c) => c,
-                          iconBuilder: (c) => AppIconAssets.electricianIcon,
-                          onTap: (c) {
-
-                          },
-                        )
-                      ],
-                    );
-                  },
+                      },
+                    )
+                  ],
                 ),
               ),
             ),
 
             _buildGap(),
 
+            /// Food
             SliverToBoxAdapter(
               child: CustomFormCard(
                 padding: EdgeInsets.all(SizeConfig.size10),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final double totalWidth = constraints.maxWidth;
-                    final double fixedBannerHeight = SizeConfig.size160;
-                    final double gap = SizeConfig.paddingXSL;
+                child: Column(
+                  children: [
 
-                    final double sideBoxSize = (fixedBannerHeight - gap) / 2;
+                    _bannerWidget(
+                        bannerImage: AppImageAssets.sampleStoreImage4,
+                        bannerHeight: SizeConfig.size180
+                    ),
 
-                    final double bannerWidth = totalWidth - sideBoxSize - gap;
+                    SizedBox(height: SizeConfig.paddingXSL),
 
-                    return Column(
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SizedBox(
-                              width: bannerWidth,
-                              height: fixedBannerHeight,
-                              child: _bannerWidget(
-                                bannerImage: AppImageAssets.riderBanner,
-                                bannerHeight: fixedBannerHeight,
-                              ),
-                            ),
-
-                            SizedBox(width: gap),
-
-                            SizedBox(
-                              width: sideBoxSize,
-                              // The Column height matches the banner height exactly
-                              height: fixedBannerHeight,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  _buildContainer(
-                                      size: sideBoxSize,
-                                      text: "Taxi Driver",
-                                      icon: AppIconAssets.electricianIcon,
-                                      onTap: (){}
-                                  ),
-                                  _buildContainer(
-                                      size: sideBoxSize,
-                                      text: "Rider",
-                                      icon: AppIconAssets.electricianIcon,
-                                      onTap: (){}
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        SizedBox(height: SizeConfig.paddingXSL),
-
-                        // Bottom Section
-                        genericSquareRow<String>(
-                          items: ["Electrician", "Beautician", "Tuition", "Counselling", "Doctors"],
-                          itemsPerRow: 5,
-                          labelBuilder: (c) => c,
-                          iconBuilder: (c) => AppIconAssets.electricianIcon,
-                          onTap: (c) {
+                    // Bottom Section
+                    genericSquareRow<BusinessProfileCategory>(
+                      items: businessFoodsCategories,
+                      itemsPerRow: 5,
+                      labelBuilder: (c) => c.name,
+                      iconBuilder: (c) => c.icon,
+                      onTap: (c) {
 
 
-                          },
-                        )
-                      ],
-                    );
-                  },
+                      },
+                    )
+                  ],
                 ),
               ),
             ),
@@ -873,12 +755,15 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
               height: size * 0.25,
               width: size * 0.25,
           ),
-            SizedBox(height: SizeConfig.size2),
+            SizedBox(height: SizeConfig.size3),
             CustomText(
                 text,
                 fontSize: SizeConfig.extraSmall,
                 color: AppColors.secondaryTextColor,
-                fontWeight: FontWeight.w600
+                fontWeight: FontWeight.w600,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
@@ -886,37 +771,60 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     );
   }
 
-  Widget _buildVerticalLayout({required String imageUrl, required Widget child}) {
+  Widget _buildVerticalLayout({
+    required String imageUrl,
+    required List<String> items
+  }) {
     return Expanded(
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(10.0),
+      child: CustomFormCard(
+        padding: EdgeInsets.all(SizeConfig.size10),
         child: Column(
           children: [
-            CachedNetworkImage(
-              imageUrl: imageUrl,
-              width: double.maxFinite,
-              height: SizeConfig.size270,
-              fit: BoxFit.cover,
-              placeholder: (context, url) => LocalAssets(
-                imagePath: AppIconAssets.place_holder_image,
+
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10.0),
+              child: LocalAssets(
+                imagePath: imageUrl,
                 width: double.maxFinite,
-                height: SizeConfig.size270,
-                boxFix: BoxFit.cover,
-              ),
-              errorWidget: (context, url, error) => LocalAssets(
-                imagePath: AppIconAssets.place_holder_image,
-                width: double.maxFinite,
-                height: SizeConfig.size270,
-                boxFix: BoxFit.cover,
+                height: SizeConfig.size190,
+                boxFix: BoxFit.cover
               ),
             ),
-            Positioned(
-              left: 10,
-              right: 10,
-              bottom: 10,
-              child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: child)
+
+            // ClipRRect(
+            //   borderRadius: BorderRadius.circular(10.0),
+            //   child: CachedNetworkImage(
+            //     imageUrl: imageUrl,
+            //     width: double.maxFinite,
+            //     height: SizeConfig.size190,
+            //     fit: BoxFit.cover,
+            //     placeholder: (context, url) => LocalAssets(
+            //       imagePath: AppIconAssets.place_holder_image,
+            //       width: double.maxFinite,
+            //       height: SizeConfig.size270,
+            //       boxFix: BoxFit.cover,
+            //     ),
+            //     errorWidget: (context, url, error) => LocalAssets(
+            //       imagePath: AppIconAssets.place_holder_image,
+            //       width: double.maxFinite,
+            //       height: SizeConfig.size270,
+            //       boxFix: BoxFit.cover,
+            //     ),
+            //   ),
+            // ),
+
+            SizedBox(
+              height: SizeConfig.size10,
+            ),
+
+            genericSquareRow<String>(
+              items: items,
+              itemsPerRow: 3,
+              labelBuilder: (c) => c,
+              iconBuilder: (c) => AppIconAssets.electricianIcon,
+              onTap: (c) {
+
+              },
             )
           ],
         ),

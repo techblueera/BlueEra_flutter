@@ -349,17 +349,31 @@ class _AddDocumentScreenState extends State<AddDocumentScreen> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Icon(
+                (!isUploadable)
+                ? Padding(
+                    padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
+                    child: status == DocStatus.verified
+                        ? LocalAssets(
+                      imagePath: AppIconAssets.green_tick_icon,
+                      height: 20,
+                      width: 20,
+                    )
+                        : LocalAssets(
+                      imagePath: AppIconAssets.storeWatch,
+                      imgColor: AppColors.yellow,
+                      height: 20,
+                      width: 20,
+                    ),
+                  )
+                : Icon(
                   CupertinoIcons.add,
-                  // Use Primary color only for new uploads, otherwise Gray
-                  color: isUploadable ? AppColors.primaryColor : AppColors.secondaryTextColor,
+                  color: AppColors.primaryColor,
                   size: 20,
                 ),
                 SizedBox(width: SizeConfig.size8),
                 Flexible(
                   child: CustomText(
                     title,
-                    // Use Primary color only for new uploads, otherwise Gray
                     color: isUploadable ? AppColors.primaryColor : AppColors.secondaryTextColor,
                     fontWeight: FontWeight.w400,
                     fontSize: SizeConfig.large,
@@ -371,18 +385,7 @@ class _AddDocumentScreenState extends State<AddDocumentScreen> {
         ),
 
 
-        if (status != DocStatus.notUploaded)
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
-            child: status == DocStatus.verified
-                ? LocalAssets(imagePath: AppIconAssets.green_tick_icon)
-                : LocalAssets(
-              imagePath: AppIconAssets.storeWatch,
-              imgColor: AppColors.yellow,
-              height: 20,
-              width: 20,
-            ),
-          ),
+
       ],
     );
   }

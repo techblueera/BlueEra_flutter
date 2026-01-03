@@ -24,8 +24,14 @@ class AppImageAssets {
   static const String sampleStoreImage1 = "${imgPath}sample_store_image1.png";
   static const String sampleStoreImage2 = "${imgPath}sample_store_image2.png";
   static const String sampleStoreImage3 = "${imgPath}sample_store_image3.png";
-  static const String sampleStoreImage4 = "${imgPath}sample_store_image3.png";
+  static const String sampleStoreImage4 = "${imgPath}sample_store_image4.png";
   static const String riderBanner = "${imgPath}rider_banner.png";
+  static const String localMarket = "${imgPath}local_market.png";
+  static const String bookProfessional = "${imgPath}book_professional.png";
+  static const String findServiceNearMe = "${imgPath}find_service_near_me.png";
+  static const String medicalHealthService = "${imgPath}medical_health_service.png";
+  static const String bookNowBanner = "${imgPath}book_now_banner.png";
+  static const String homeMadeBanner = "${imgPath}home_made_banner.png";
 
   static String frontDeskImage = "${imgPath}front_desk_image.png";
   static String officeImage = "${imgPath}office_image.png";
