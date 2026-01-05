@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/me/medical/view/category/otc_items_page.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';

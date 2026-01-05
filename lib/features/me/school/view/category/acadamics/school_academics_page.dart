@@ -32,8 +32,8 @@ class _SchoolAcademicsPageState extends State<SchoolAcademicsPage> {
     ServiceMenuItem(
       title: "Faculty Details",
       icon:AppIconAssets.faculty_details,
-      page: () => ComingSoon(),
-      // page: () => FacultyFormScreen(),
+      // page: () => ComingSoon(),
+      page: () => FacultyFormScreen(),
     ),
     ServiceMenuItem(
       title: "Academic Calendar",

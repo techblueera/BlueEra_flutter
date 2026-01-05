@@ -567,4 +567,5 @@ abstract class BaseService {
   final String educationServiceContact = 'education-service/contact';
   final String educationServiceAcademics = 'education-service/academics';
   final String educationServiceStudentCorner = 'education-service/student-corner';
+  final String educationServiceFaculty = 'education-service/faculty';
 }

@@ -1,3 +1,8 @@
+import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/me/school/repo/school_repo.dart';
 import 'package:get/get.dart';
 
 class FacultyController extends GetxController {
@@ -14,10 +19,12 @@ class FacultyController extends GetxController {
     required String name,
     required String email,
     required String phone,
+    required String posController,
   }) {
     isFormValid.value = name.isNotEmpty &&
         email.isEmail &&
         phone.isNotEmpty &&
+        posController.isNotEmpty &&
         qualifications.isNotEmpty;
   }
 
@@ -40,6 +47,7 @@ class FacultyController extends GetxController {
 
       // Constructing the nested JSON payload
       Map<String, dynamic> body = {
+        "school": schoolIDGlobal,
         "name": name,
         "position": position,
         "qualifications": qualifications.toList(),
@@ -55,9 +63,19 @@ class FacultyController extends GetxController {
         "publications": publications.toList()
       };
 
-      // API Integration logic here
-      // await yourApiService.post('education-service/faculty', body);
+      ResponseModel response = await SchoolRepo().addFacultyRepo(
+          reqParm: body,
+        );
 
+      if (response.isSuccess) {
+        Get.back();
+        commonSnackBar(
+            message:
+            response.response?.data['message'] ?? AppStrings.successful);
+
+      } else {
+        commonSnackBar(message: AppStrings.somethingWentWrong);
+      }
       print("Payload: $body");
       Get.back(); // Return after success
     } catch (e) {

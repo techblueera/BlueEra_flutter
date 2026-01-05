@@ -1,12 +1,15 @@
 import 'dart:io';
 
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/student_corner_res_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/school/repo/school_repo.dart';
+import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:get/get.dart';
 
 class StudentCornerController extends GetxController {
@@ -37,6 +40,19 @@ class StudentCornerController extends GetxController {
   void onInit() {
     super.onInit();
     initStudentCorner();
+  }
+
+  clearAllTextFile() {
+    initialNoticeImageUrl = '';
+    initialDescriptionText = '';
+    initialTitleText = '';
+    notice_news_messageText.value = '';
+    notice_news_titleText.value = '';
+    originalTitle.value = '';
+    originalDescription.value = '';
+    originalImageUrl.value = '';
+    docUploadName.value = '';
+    isFormValid.value = false;
   }
 
   clearList() {
@@ -91,28 +107,43 @@ class StudentCornerController extends GetxController {
     }
   }
 
-  Future<void> createStudentCornerController(
-      {required String studentCornerId,
-      required Map<String, dynamic> reqParm}) async {
-    ResponseModel postResponse = await SchoolRepo()
-        .postStudentCornerRepo(studentCornerId: '', reqParm: {});
+  Future<void> createStudentCornerController({
+    required String studentCornerCategory,
+  }) async {
+    UploadResult result = await S3UploadService.uploadFile(
+        File(noticeImageFile.value?.path ?? ""));
 
-    if (postResponse.response?.data != null &&
-        postResponse.response?.data['success'] == true) {
+    final reqDATA = {
+      ApiKeys.category: studentCornerCategory,
+      ApiKeys.fileUrl: result.url,
+      ApiKeys.title: notice_news_titleText.value,
+      ApiKeys.description: notice_news_messageText.value,
+    };
+    if (result.isSuccess) {
+      ResponseModel postResponse = await SchoolRepo().postStudentCornerRepo(
+          studentCornerId: studentCornerId.value, reqParm: reqDATA);
+
+      if (postResponse.response?.data != null &&
+          postResponse.response?.data['success'] == true) {
+        Get.back();
+
+        commonSnackBar(message: postResponse.response?.data['message']);
+        initStudentCorner();
+      } else {
+        commonSnackBar(message: AppStrings.somethingWentWrong);
+      }
     } else {
-      Get.snackbar("Failed", "Could not create student corner section");
+      commonSnackBar(message: AppStrings.somethingWentWrong);
     }
   }
 
   ///DELETE NOTICE....
   Future<void> deleteSchoolCornerItemController(
-      {
-      required String studentCornerTYPE,
-      required int cornerINDEX}) async {
+      {required String studentCornerTYPE, required int cornerINDEX}) async {
     try {
       ResponseModel response = await SchoolRepo().deleteStudentCornerRepo(
           cornerIndex: cornerINDEX,
-          studentCornerId:   studentCornerId.value ,
+          studentCornerId: studentCornerId.value,
           studentCornerType: studentCornerTYPE);
 
       if (response.isSuccess) {
@@ -127,6 +158,44 @@ class StudentCornerController extends GetxController {
       }
     } on Exception catch (e) {
       logs("ERROR ${e}");
+    }
+  }
+
+  Future<void> updateSchoolCornerItemController(
+      {bool isPhotoUpdate = false,
+      required int index,
+      required String studentCornerTYPE}) async {
+    try {
+      UploadResult? result;
+      if (isPhotoUpdate) {
+        result = await S3UploadService.uploadFile(
+            File(noticeImageFile.value?.path ?? ""));
+      }
+
+      final reqDATA = {
+        if (isPhotoUpdate) ApiKeys.fileUrl: result?.url,
+        ApiKeys.title: notice_news_titleText.value,
+        ApiKeys.description: notice_news_messageText.value,
+      };
+      ResponseModel response = await SchoolRepo().updateStudentCornerRepo(
+          reqParm: reqDATA,
+          studentCornerId: studentCornerId.value,
+          cornerIndex: index,
+          studentCornerType: studentCornerTYPE);
+
+      if (response.isSuccess) {
+        Get.back();
+        commonSnackBar(
+            message:
+                response.response?.data['message'] ?? AppStrings.successful);
+
+        initStudentCorner();
+      } else {
+        commonSnackBar(message: AppStrings.somethingWentWrong);
+      }
+    } on Exception catch (e) {
+      logs("ERROR ${e}");
+      // TODO
     }
   }
 

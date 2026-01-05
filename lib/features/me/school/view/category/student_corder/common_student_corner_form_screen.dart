@@ -1,27 +1,39 @@
 import 'dart:io';
 import 'package:BlueEra/core/api/model/academic_calender_res_model.dart';
 import 'package:BlueEra/core/api/model/student_corner_res_model.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
 import 'package:BlueEra/features/me/school/controller/academic_calender_controller.dart';
 import 'package:BlueEra/features/me/school/controller/pdf_picker_controller.dart';
 import 'package:BlueEra/features/me/school/controller/student_corder_controller.dart';
+import 'package:BlueEra/features/me/school/controller/student_pdf_picker_controller.dart';
+import 'package:BlueEra/features/me/school/view/category/student_corder/student_corner_pdf_preview_widget.dart';
 import 'package:BlueEra/features/me/school/view/pdf_picker_widget.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import '../../../../../../../core/constants/app_colors.dart';
 import '../../../../../../../widgets/custom_text_cm.dart';
 
 class CommonStudentCornerFormScreen extends StatefulWidget {
   const CommonStudentCornerFormScreen(
-      {super.key, this.isEdit = false, this.studentItem});
+      {super.key,
+      this.isEdit = false,
+      this.studentItem,
+      required this.title,
+      required this.screenName,
+      this.itemIndex});
 
   final bool isEdit;
   final StudentCornerItem? studentItem;
+  final String title;
+  final String screenName;
+  final int? itemIndex;
 
   @override
   State<CommonStudentCornerFormScreen> createState() =>
@@ -33,14 +45,15 @@ class _CommonStudentCornerFormScreenState
   final studentController = Get.find<StudentCornerController>();
   final titleEditController = TextEditingController();
   final descriptionEditController = TextEditingController();
-  late PdfPickerController pdfPickerController;
+  late StudentPdfPickerController pdfPickerController;
 
   @override
   void initState() {
+    studentController.clearAllTextFile();
     descriptionEditController.addListener(_runValidation);
-    pdfPickerController = Get.isRegistered<PdfPickerController>()
-        ? Get.find<PdfPickerController>()
-        : Get.put(PdfPickerController());
+    pdfPickerController = Get.isRegistered<StudentPdfPickerController>()
+        ? Get.find<StudentPdfPickerController>()
+        : Get.put(StudentPdfPickerController());
     if (widget.isEdit) {
       // Current Values
       studentController.initialNoticeImageUrl =
@@ -59,6 +72,12 @@ class _CommonStudentCornerFormScreenState
 
       titleEditController.text = widget.studentItem?.title ?? "";
       descriptionEditController.text = widget.studentItem?.description ?? "";
+      String urlType = widget.studentItem?.uploadPhoto ?? "";
+      if (urlType.isPdf) {
+        studentController.docUploadName.value = "pdf";
+      } else {
+        studentController.docUploadName.value = "photo";
+      }
     } else {
       studentController.noticeImageFile.value = null;
       studentController.isFormValid.value = false;
@@ -76,7 +95,7 @@ class _CommonStudentCornerFormScreenState
       appBar: CommonBackAppBar(
         showRightTextButton: true,
         isShowMoreInfoIcon: true,
-        title: "Academic Calender",
+        title: widget.title,
         isShadowShow: false,
       ),
       body: SingleChildScrollView(
@@ -95,7 +114,7 @@ class _CommonStudentCornerFormScreenState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CustomText(
-                    "Upload Doc",
+                    "Upload Doc ",
                     fontSize: SizeConfig.medium,
                     fontWeight: FontWeight.w400,
                     color: AppColors.mainTextColor,
@@ -107,7 +126,7 @@ class _CommonStudentCornerFormScreenState
                             children: [
                               Expanded(child: _buildImageSection()),
                               SizedBox(width: SizeConfig.size10),
-                              Expanded(child: SinglePdfPreviewWidget()),
+                              Expanded(child: StudentCornerPdfPreviewWidget()),
                             ],
                           )
                         : Row(
@@ -116,8 +135,57 @@ class _CommonStudentCornerFormScreenState
                                   "photo")
                                 Expanded(child: _buildImageSection()),
                               SizedBox(width: SizeConfig.size10),
-                              if (studentController.docUploadName.value == "pdf")
-                                Expanded(child: SinglePdfPreviewWidget()),
+                              if (studentController.docUploadName.value ==
+                                  "pdf")
+                                Expanded(
+                                    child: (widget.isEdit)
+                                        ? Column(
+                                            children: [
+                                              IgnorePointer(
+                                                ignoring: true,
+                                                child: Container(
+                                                  height: 150, // Preview Height
+                                                  decoration: BoxDecoration(
+                                                    border: Border.all(
+                                                        color: Colors.black12),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            8),
+                                                  ),
+                                                  clipBehavior: Clip.antiAlias,
+                                                  child: SfPdfViewer.network(
+                                                    widget.studentItem
+                                                            ?.uploadPhoto ??
+                                                        "",
+                                                    canShowPaginationDialog:
+                                                        false, // Clean preview look
+                                                  ),
+                                                ),
+                                              ),
+                                              Align(
+                                                alignment:
+                                                    Alignment.centerRight,
+                                                child: TextButton.icon(
+                                                  onPressed: () {
+                                                    studentController
+                                                        .noticeImageFile
+                                                        .value = null;
+                                                    studentController
+                                                        .initialNoticeImageUrl = "";
+                                                    studentController
+                                                        .docUploadName
+                                                        .value = "";
+                                                  },
+                                                  icon: const Icon(Icons.delete,
+                                                      color: Colors.red),
+                                                  label: const CustomText(
+                                                      "Remove",
+                                                      color: Colors.red),
+                                                ),
+                                              ),
+                                            ],
+                                          )
+                                        : StudentCornerPdfPreviewWidget()),
                             ],
                           );
                   }),
@@ -166,23 +234,29 @@ class _CommonStudentCornerFormScreenState
                   Obx(() => CustomBtn(
                         onTap: studentController.isFormValid.value
                             ? () async {
-                                // if (widget.isEdit) {
-                                //   studentController.notice_news_id.value =
-                                //       widget.newsData?.id ?? "";
-                                //   if (studentController.noticeImageFile.value ==
-                                //       null) {
-                                //     await studentController
-                                //         .updateAcademicCalenderController(
-                                //             isPhotoUpdate: false);
-                                //   } else {
-                                //     await studentController
-                                //         .updateAcademicCalenderController(
-                                //             isPhotoUpdate: true);
-                                //   }
-                                // } else {
-                                //   await studentController
-                                //       .addAcademicCalenderController();
-                                // }
+                                if (widget.isEdit) {
+                                  if (studentController.noticeImageFile.value ==
+                                      null) {
+                                    await studentController
+                                        .updateSchoolCornerItemController(
+                                            isPhotoUpdate: false,
+                                            index: widget.itemIndex ?? 0,
+                                            studentCornerTYPE:
+                                                widget.screenName);
+                                  } else {
+                                    await studentController
+                                        .updateSchoolCornerItemController(
+                                            isPhotoUpdate: true,
+                                            index: widget.itemIndex ?? 0,
+                                            studentCornerTYPE:
+                                                widget.screenName);
+                                  }
+                                } else {
+                                  await studentController
+                                      .createStudentCornerController(
+                                          studentCornerCategory:
+                                              widget.screenName);
+                                }
                               }
                             : null,
                         title: AppStrings.submit,
@@ -282,7 +356,8 @@ class _CommonStudentCornerFormScreenState
   void _runValidation() {
     // 1. Run your standard validation (e.g., checking if description is empty)
     studentController.noticesNewsValidateForm(
-        noticeDescription: studentController.notice_news_messageText.value ?? "",
+        noticeDescription:
+            studentController.notice_news_messageText.value ?? "",
         uploadPhoto: studentController.initialNoticeImageUrl);
 
     // 2. If in edit mode, add the 'Has Changed' requirement

@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/hospital/view/widget/add_hospital_service.dart';
 import 'package:BlueEra/features/me/hospital/view/widget/general_medicine.dart';
 import 'package:BlueEra/features/me/laboratory/view/widgets/add_lab_services.dart';
+import 'package:BlueEra/features/me/medical/view/category/otc_items_page.dart';
 import 'package:BlueEra/features/me/medical/view/widget/add_medical_service.dart';
 import 'package:BlueEra/features/me/widget/no_product_profile.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';

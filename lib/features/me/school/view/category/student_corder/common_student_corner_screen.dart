@@ -51,7 +51,10 @@ class _CommonStudentCornerScreenState extends State<CommonStudentCornerScreen> {
               textColor: AppColors.primaryColor,
               borderColor: AppColors.primaryColor,
               onTap: () {
-                // Get.to(CommonStudentCornerFormScreen());
+                Get.to(CommonStudentCornerFormScreen(
+                  title: widget.title,
+                  screenName: widget.screenName,
+                ));
               },
               title: "Add ${widget.title}"),
         ),
@@ -187,8 +190,7 @@ class _CommonStudentCornerScreenState extends State<CommonStudentCornerScreen> {
             ? _buildNoticeNewsPopUpMenu(onNoticeNewsDelete: () async {
                 await showCommonDialog(
                     context: context,
-                    text:
-                        'Are you sure you want to delete this data?',
+                    text: 'Are you sure you want to delete this data?',
                     confirmCallback: () async {
                       await studentCornerController
                           .deleteSchoolCornerItemController(
@@ -202,10 +204,13 @@ class _CommonStudentCornerScreenState extends State<CommonStudentCornerScreen> {
                     cancelText: AppStrings.no);
               }, onNoticeNewsEdit: () {
                 StudentCornerItem data = dataList[noticeIndex];
-                // Get.to(CommonStudentCornerFormScreen(
-                //   isEdit: true,
-                //   studentItem: data,
-                // ));
+                Get.to(CommonStudentCornerFormScreen(
+                  isEdit: true,
+                  studentItem: data,
+                  title: widget.title,
+                  screenName: widget.screenName,
+                  itemIndex:noticeIndex,
+                ));
               })
             : SizedBox(
                 width: 10,
