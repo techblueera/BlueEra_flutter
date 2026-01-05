@@ -297,7 +297,6 @@ class _GroceryListingScreenState extends State<GroceryListingScreen> {
                     //   ),
 
                     // TABS
-
                     SizedBox(
                       height: 28,
                       child: ListView.builder(
@@ -411,7 +410,8 @@ class _GroceryListingScreenState extends State<GroceryListingScreen> {
                                     padding: EdgeInsets.all(SizeConfig.size20),
                                     child: EmptyStateWidget(
                                         message:
-                                            'No ${controller.selectedGroceryData.value.label} found.')))
+                                            'No ${controller.selectedGroceryData.value.label} found.'))
+                    )
                   ],
                 ),
         ));

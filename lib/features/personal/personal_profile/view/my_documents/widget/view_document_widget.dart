@@ -1,8 +1,10 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/my_documents/controller/my_documents_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/model/upload_document_response.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
@@ -15,7 +17,7 @@ class ViewDocumentWidget extends StatelessWidget {
 
   ViewDocumentWidget({super.key, required this.document});
 
-  // final controller = getOrPut(() => MyDocumentsController());
+  final controller = getOrPut(() => MyDocumentsController());
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +50,7 @@ class ViewDocumentWidget extends StatelessWidget {
                   onTap: () {
                     if (validImages.isNotEmpty) {
                       Get.to(() => ImageViewScreen(
-                        appBarTitle: document.documentType ?? '',
+                        appBarTitle: controller.getDocumentName(document.documentType ?? ''),
                         imageUrls: validImages,
                         initialIndex: 0,
                       ));

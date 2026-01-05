@@ -253,6 +253,19 @@ class DocumentKeys {
   static const municipalCorpCertificate = "municipalCorpCertificate";
   static const msmeCertificate = "msmeCertificate";
   static const shopActCertificate = "shopActCertificate";
+
+  // Hotel & Home Stay keys
+  static const hotelTradeLicense = "hotelTradeLicense";
+  static const hotelPanCard = "hotelPanCard";
+  static const hotelGstCertificate = "hotelGstCertificate";
+  static const hotelCancelledCheque = "hotelCancelledCheque";
+  static const hotelPoliceVerification = "hotelPoliceVerification";
+  static const hotelFireSafetyCertificate = "hotelFireSafetyCertificate";
+  static const hotelFssaiLicense = "hotelFssaiLicense";
+  static const hotelOwnerIdProof = "hotelOwnerIdProof";
+  static const hotelOnboardingAgreement = "hotelOnboardingAgreement";
+  static const hotelPropertyAgreement  = "hotelPropertyAgreement ";
+
 }
 
 ///IS GUEST USER...

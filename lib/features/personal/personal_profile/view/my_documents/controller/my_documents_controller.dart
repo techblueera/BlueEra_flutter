@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -23,23 +24,18 @@ enum DocStatus {
 class MyDocumentsController extends GetxController {
   Rx<ApiResponse> fetchAllDocumentResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> fetchAllDocumentStatusResponse = ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> aadharCardUploadResponse = ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> panCardUploadResponse = ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> addressUploadResponse = ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> drivingLicenseUploadResponse = ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> RcBookUploadResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> uploadInitResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> uploadFileToS3Response = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> cancelChequeUploadResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> genericDocumentUploadResponse = ApiResponse.initial('Initial').obs;
 
   GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   RxBool isLoading = false.obs;
 
-  final aadharController = TextEditingController();
-  final panNumberController = TextEditingController();
-  final addIdProofController = TextEditingController();
-  final drivingLicenseController = TextEditingController();
-  final rcController = TextEditingController();
+  final genericDocumentController = TextEditingController();
+  final bankAccountNumberController = TextEditingController();
+  final IFSCCodeController = TextEditingController();
 
   final Rxn<File> aadharFrontImage = Rxn<File>();
   final Rxn<File> aadharBackImage = Rxn<File>();
@@ -50,6 +46,11 @@ class MyDocumentsController extends GetxController {
   final Rxn<File> drivingLicenseBackImage = Rxn<File>();
   final Rxn<File> rcFrontImage = Rxn<File>();
   final Rxn<File> rcBackImage = Rxn<File>();
+  final Rxn<File> cancelChequeFrontImage = Rxn<File>();
+  final Rxn<File> cancelChequeBackImage = Rxn<File>();
+
+  final Rxn<File> genericDocumentsFrontImage = Rxn<File>();
+  final Rxn<File> genericDocumentsBackImage = Rxn<File>();
 
   RxList<DocumentsResponse> documents = <DocumentsResponse>[].obs;
   Future<void> fetchAllDocumentApi() async {
@@ -125,6 +126,18 @@ class MyDocumentsController extends GetxController {
         case 'msmeCertificate': localKey = DocumentKeys.msmeCertificate; break;
         case 'shopActCertificate': localKey = DocumentKeys.shopActCertificate; break;
 
+        // --- Hotel & Home Stay keys ---
+        case 'hotelTradeLicense': localKey = DocumentKeys.hotelTradeLicense; break;
+        case 'hotelPanCard': localKey = DocumentKeys.hotelPanCard; break;
+        case 'hotelGstCertificate': localKey = DocumentKeys.hotelGstCertificate; break;
+        case 'hotelCancelledCheque': localKey = DocumentKeys.hotelCancelledCheque; break;
+        case 'hotelPoliceVerification': localKey = DocumentKeys.hotelPoliceVerification; break;
+        case 'hotelFireSafetyCertificate': localKey = DocumentKeys.hotelFireSafetyCertificate; break;
+        case 'hotelFssaiLicense': localKey = DocumentKeys.hotelFssaiLicense; break;
+        case 'hotelOwnerIdProof': localKey = DocumentKeys.hotelOwnerIdProof; break;
+        case 'hotelOnboardingAgreement': localKey = DocumentKeys.hotelOnboardingAgreement; break;
+        case 'hotelPropertyAgreement': localKey = DocumentKeys.hotelPropertyAgreement; break;
+
         default: localKey = null;
       }
 
@@ -190,186 +203,6 @@ class MyDocumentsController extends GetxController {
     }
   }
 
-  RxBool isAadharUploadLoading = false.obs;
-  Future<void> aadharCardApi() async {
-    // ---------- 1️⃣ VALIDATION ----------
-
-    if(formKey.currentState!.validate()){
-      if (aadharFrontImage.value == null) {
-        commonSnackBar(message: AppStrings.pleaseSelectAadharFrontImage.tr);
-        return;
-      }
-      if (aadharBackImage.value == null) {
-        commonSnackBar(message: AppStrings.pleaseSelectAadharBackImage.tr);
-        return;
-      }
-
-      try {
-        isAadharUploadLoading.value = true;
-
-        // ---------- 2️⃣ INITIALIZE ----------
-        String? aadharFrontImageUrl;
-        String? aadharBackImageUrl;
-
-        // ---------- 4️⃣ UPLOAD AADHAR FRONT ----------
-        aadharFrontImageUrl = await _uploadToS3(aadharFrontImage.value!);
-
-        // ---------- 5️⃣ UPLOAD AADHAR BACK ----------
-        aadharBackImageUrl = await _uploadToS3(aadharBackImage.value!);
-
-        // ---------- 7️⃣ PREPARE PAYLOAD ----------
-        final params = {
-          ApiKeys.documentType: DocumentKeys.aadhar,
-          ApiKeys.value: aadharController.text,
-          ApiKeys.files: {
-            ApiKeys.front: aadharFrontImageUrl,
-            ApiKeys.back: aadharBackImageUrl,
-          },
-        };
-
-        // ---------- 8️⃣ API CALL ----------
-        final response = await MyDocumentRepo().addDocument(params: params);
-
-        // ---------- 9️⃣ HANDLE RESPONSE ----------
-        if (response.isSuccess) {
-          aadharCardUploadResponse.value = ApiResponse.complete(response);
-          Get.back();
-          aadharController.clear();
-          aadharFrontImage.value = null;
-          aadharBackImage.value = null;
-          fetchAllDocumentStatusApi();
-        } else {
-          aadharCardUploadResponse.value = ApiResponse.error('error');
-          commonSnackBar(
-            message: response.message ?? AppStrings.somethingWentWrong,
-          );
-        }
-      } catch (e, s) {
-        debugPrint('❌ documentIdentificationRepo error: $e\n$s');
-        aadharCardUploadResponse.value = ApiResponse.error('error');
-        commonSnackBar(message: AppStrings.somethingWentWrong);
-      } finally {
-        isAadharUploadLoading.value = false;
-      }
-    }
-
-  }
-
-  RxBool isPanUploadLoading = false.obs;
-  Future<void> panCardApi() async {
-    // ---------- 1️⃣ VALIDATION ----------
-
-    if(formKey.currentState!.validate()){
-      if (panCardImage.value == null) {
-        commonSnackBar(message: AppStrings.pleaseSelectPanCardImage.tr);
-        return;
-      }
-
-      try {
-        isPanUploadLoading.value = true;
-
-        // ---------- 2️⃣ INITIALIZE ----------
-        String? panCardImageUrl;
-
-        // ---------- 6️⃣ UPLOAD PAN CARD ----------
-        panCardImageUrl = await _uploadToS3(panCardImage.value!);
-
-        // ---------- 7️⃣ PREPARE PAYLOAD ----------
-        final params = {
-          ApiKeys.documentType: DocumentKeys.pan,
-          ApiKeys.value: panNumberController.text,
-          ApiKeys.files: {
-            ApiKeys.front: panCardImageUrl,
-          },
-        };
-
-        // ---------- 8️⃣ API CALL ----------
-        final response = await MyDocumentRepo().addDocument(params: params);
-
-        // ---------- 9️⃣ HANDLE RESPONSE ----------
-        if (response.isSuccess) {
-          panCardUploadResponse.value = ApiResponse.complete(response);
-          Get.back();
-          panNumberController.clear();
-          panCardImage.value = null;
-          fetchAllDocumentStatusApi();
-        } else {
-          panCardUploadResponse.value = ApiResponse.error('error');
-          commonSnackBar(
-            message: response.message ?? AppStrings.somethingWentWrong,
-          );
-        }
-        // await ridersOnboardingStatusRepoApi();
-      } catch (e, s) {
-        debugPrint('❌ documentIdentificationRepo error: $e\n$s');
-        panCardUploadResponse.value = ApiResponse.error('error');
-        commonSnackBar(message: AppStrings.somethingWentWrong);
-      } finally {
-        isPanUploadLoading.value = false;
-      }
-    }
-  }
-
-  RxBool isAddressUploadLoading = false.obs;
-  Future<void> addressApi() async {
-    // ---------- 1️⃣ VALIDATION ----------
-    if(formKey.currentState!.validate()){
-      if (addIdProofFrontImage.value == null) {
-        commonSnackBar(message: AppStrings.pleaseSelectAddressProofIdFrontImage.tr);
-        return;
-      }
-      if (addIdProofBackImage.value == null) {
-        commonSnackBar(message: AppStrings.pleaseSelectAddressProofIdBackImage.tr);
-        return;
-      }
-
-      try {
-        isAddressUploadLoading.value = true;
-
-        // ---------- 2️⃣ INITIALIZE ----------
-        String? addIdProofFrontImageUrl;
-        String? addIdProofBackImageUrl;
-
-        // ---------- 4️⃣ UPLOAD AADHAR FRONT ----------
-        addIdProofFrontImageUrl = await _uploadToS3(aadharFrontImage.value!);
-
-        // ---------- 5️⃣ UPLOAD AADHAR BACK ----------
-        addIdProofBackImageUrl = await _uploadToS3(aadharBackImage.value!);
-
-        // ---------- 7️⃣ PREPARE PAYLOAD ----------
-        final params = {
-          ApiKeys.documentType: DocumentKeys.addressProof,
-          ApiKeys.value: addIdProofController.text,
-          ApiKeys.files: {
-            ApiKeys.front: addIdProofFrontImageUrl,
-            ApiKeys.back: addIdProofBackImageUrl,
-          },
-        };
-
-        // ---------- 8️⃣ API CALL ----------
-        final response = await MyDocumentRepo().addDocument(params: params);
-
-        // ---------- 9️⃣ HANDLE RESPONSE ----------
-        if (response.isSuccess) {
-          addressUploadResponse.value = ApiResponse.complete(response);
-          Get.back();
-        } else {
-          addressUploadResponse.value = ApiResponse.error('error');
-          commonSnackBar(
-            message: response.message ?? AppStrings.somethingWentWrong,
-          );
-        }
-        // checkStatusManageRoute();
-      } catch (e, s) {
-        debugPrint('❌ documentIdentificationRepo error: $e\n$s');
-        addressUploadResponse.value = ApiResponse.error('error');
-        commonSnackBar(message: AppStrings.somethingWentWrong);
-      } finally {
-        isAddressUploadLoading.value = false;
-      }
-    }
-  }
-
   Future<String?> _uploadToS3(File file) async {
     try {
       final fileInfo = getFileInfo(file);
@@ -395,141 +228,212 @@ class MyDocumentsController extends GetxController {
     }
   }
 
-  RxBool isDrivingVerificationLoading = false.obs;
+  RxBool isCancelChequeLoading = false.obs;
+  Future<void> cancelChequeUploadApi({
+    required String documentType,
+   }) async {
 
-  Future<void> drivingLicenceUploadApi() async {
-    if (drivingLicenseFrontImage.value == null) {
-      commonSnackBar(message: AppStrings.pleaseSelectDlFrontImage.tr);
-      return;
-    }
-    if (drivingLicenseBackImage.value == null) {
-      commonSnackBar(message: AppStrings.pleaseSelectDlBackImage.tr);
-      return;
-    }
-
-    try {
-      isDrivingVerificationLoading.value = true;
-
-      // ---------- 2️⃣ INITIALIZE ----------
-
-      String? drivingLicenseFrontImageUrl;
-      String? drivingLicenseBackImageUrl;
-
-      // ---------- 4️⃣ UPLOAD DRIVING LICENSE IMAGES ----------
-      drivingLicenseFrontImageUrl =
-      await _uploadToS3(drivingLicenseFrontImage.value!);
-      drivingLicenseBackImageUrl =
-      await _uploadToS3(drivingLicenseBackImage.value!);
-
-      // ---------- 5️⃣ PREPARE PAYLOAD ----------
-      final params = {
-        ApiKeys.documentType:  DocumentKeys.drivingLicense,
-        ApiKeys.value: drivingLicenseController.text,
-        ApiKeys.files: {
-          ApiKeys.front: drivingLicenseFrontImageUrl,
-          ApiKeys.back: drivingLicenseBackImageUrl,
-        },
-      };
-
-      // ---------- 6️⃣ CALL API ----------
-      final response = await MyDocumentRepo().addDocument(params: params);
-
-      // ---------- 7️⃣ HANDLE RESPONSE ----------
-      if (response.isSuccess) {
-        drivingLicenseUploadResponse.value = ApiResponse.complete(response);
-        Get.back();
-      } else {
-        drivingLicenseUploadResponse.value = ApiResponse.error('error');
-        commonSnackBar(
-          message: response.message ?? AppStrings.somethingWentWrong,
-        );
-      }
-      // checkStatusManageRoute();
-    } catch (e, s) {
-      debugPrint('❌ ridersOnboardingDrivingVerificationApi error: $e\n$s');
-      drivingLicenseUploadResponse.value = ApiResponse.error('error');
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-    } finally {
-      isDrivingVerificationLoading.value = false;
-    }
-  }
-
-  RxBool isRcBookVerificationLoading = false.obs;
-
-  Future<void> rcBookUploadApi() async {
     // ---------- 1️⃣ VALIDATION ----------
-    if (rcFrontImage.value == null) {
-      commonSnackBar(message: AppStrings.pleaseSelectRcFrontImage.tr);
-      return;
-    }
-    if (rcBackImage.value == null) {
-      commonSnackBar(message: AppStrings.pleaseSelectRcBackImage.tr);
-      return;
-    }
-
-    try {
-      isRcBookVerificationLoading.value = true;
-
-      // ---------- 2️⃣ INITIALIZE ----------
-      String? rcFrontImageUrl;
-      String? rcBackImageUrl;
-
-      // ---------- 3️⃣ UPLOAD RC IMAGES ----------
-      rcFrontImageUrl = await _uploadToS3(rcFrontImage.value!);
-      rcBackImageUrl = await _uploadToS3(rcBackImage.value!);
-
-      // ---------- 5️⃣ PREPARE PAYLOAD ----------
-      final params = {
-        ApiKeys.documentType: DocumentKeys.vehicleRC,
-        ApiKeys.value: rcController.text,
-        ApiKeys.files: {
-          ApiKeys.front: rcFrontImageUrl,
-          ApiKeys.back: rcBackImageUrl,
-        },
-      };
-
-      // ---------- 6️⃣ CALL API ----------
-      final response = await MyDocumentRepo().addDocument(params: params);
-
-      // ---------- 7️⃣ HANDLE RESPONSE ----------
-      if (response.isSuccess) {
-        RcBookUploadResponse.value = ApiResponse.complete(response);
-        Get.back();
-      } else {
-        RcBookUploadResponse.value = ApiResponse.error('error');
-        commonSnackBar(
-          message: response.message ?? AppStrings.somethingWentWrong,
-        );
+    if(formKey.currentState!.validate()){
+      if (cancelChequeFrontImage.value == null) {
+        commonSnackBar(message: AppStrings.pleaseSelectRcFrontImage.tr);
+        return;
       }
-      // checkStatusManageRoute();
-    } catch (e, s) {
-      debugPrint('❌ ridersOnboardingDrivingVerificationApi error: $e\n$s');
-      RcBookUploadResponse.value = ApiResponse.error('error');
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-    } finally {
-      isRcBookVerificationLoading.value = false;
+      if (cancelChequeBackImage.value == null) {
+        commonSnackBar(message: AppStrings.pleaseSelectRcBackImage.tr);
+        return;
+      }
+
+      try {
+        isCancelChequeLoading.value = true;
+
+        // ---------- 2️⃣ INITIALIZE ----------
+        String? cancelChequeFrontImageUrl;
+        String? cancelChequeBackImageUrl;
+
+        // ---------- 3️⃣ UPLOAD RC IMAGES ----------
+        cancelChequeFrontImageUrl = await _uploadToS3(cancelChequeFrontImage.value!);
+        cancelChequeBackImageUrl = await _uploadToS3(cancelChequeBackImage.value!);
+
+        // ---------- 5️⃣ PREPARE PAYLOAD ----------
+        final params = {
+          ApiKeys.documentType: documentType,
+          ApiKeys.value: {
+            "accountNumber": bankAccountNumberController.text.trim(),
+            "ifscCode": IFSCCodeController.text.trim(),
+          },
+          ApiKeys.files: {
+            ApiKeys.front: cancelChequeFrontImageUrl,
+            ApiKeys.back: cancelChequeBackImageUrl,
+          },
+        };
+
+        // ---------- 6️⃣ CALL API ----------
+        final response = await MyDocumentRepo().addDocument(params: params);
+
+        // ---------- 7️⃣ HANDLE RESPONSE ----------
+        if (response.isSuccess) {
+          cancelChequeUploadResponse.value = ApiResponse.complete(response);
+          bankAccountNumberController.clear();
+          IFSCCodeController.clear();
+          cancelChequeFrontImage.value = null;
+          cancelChequeBackImage.value = null;
+          Get.back();
+        } else {
+          cancelChequeUploadResponse.value = ApiResponse.error('error');
+          commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong,
+          );
+        }
+      } catch (e) {
+        cancelChequeUploadResponse.value = ApiResponse.error('error');
+        commonSnackBar(message: AppStrings.somethingWentWrong);
+      } finally {
+        isCancelChequeLoading.value = false;
+      }
     }
   }
 
+  RxBool isGenericDocumentLoading = false.obs;
+  Future<void> genericDocumentApi({
+    required String documentType,
+    required bool hasInput,
+    required bool backImage,
+  }) async {
 
+    // ---------- 1️⃣ TEXT VALIDATION (Conditional) ----------
+    if (hasInput) {
+      if (!formKey.currentState!.validate()) {
+        return; // Stop if text validation fails
+      }
+    }
 
-// checkStatusManageRoute()
-  // async {
-  //   await ridersOnboardingStatusRepoApi();
-  //   final allCompleted =
-  //   stepStatus.values.every((status) => status == true);
-  //   if (allCompleted) {
-  //     Get.offNamedUntil(
-  //       RouteHelper.getBottomNavigationBarScreenRoute(),
-  //           (route) => false,
-  //     );
-  //     // Get.until((route) =>
-  //     // route.settings.name ==
-  //     //     RouteHelper.getBottomNavigationBarScreenRoute());
-  //   } else {
-  //     Get.back();
-  //   }
-  // }
+    // ---------- 2️⃣ IMAGE VALIDATION ----------
+    if (genericDocumentsFrontImage.value == null) {
+      commonSnackBar(message: _getMissingImageMsg(documentType, isBack: false));
+      return;
+    }
+
+    if (backImage) {
+      if (genericDocumentsBackImage.value == null) {
+        commonSnackBar(message: _getMissingImageMsg(documentType, isBack: true));
+        return;
+      }
+    }
+
+    try {
+      isGenericDocumentLoading.value = true;
+
+      // ---------- 3️⃣ UPLOAD IMAGES ----------
+      String? frontImageUrl = await _uploadToS3(genericDocumentsFrontImage.value!);
+      String? backImageUrl;
+      if(backImage) backImageUrl = await _uploadToS3(genericDocumentsBackImage.value!);
+
+      // ---------- 4️⃣ PREPARE PAYLOAD ----------
+      final params = {
+        ApiKeys.documentType: documentType,
+         ApiKeys.files: {
+          ApiKeys.front: frontImageUrl,
+         if(backImage && backImageUrl!=null) ApiKeys.back: backImageUrl
+        },
+      };
+      if(hasInput) params[ApiKeys.value] = jsonEncode({documentType: genericDocumentController.text.trim()});
+
+      // ---------- 5️⃣ API CALL ----------
+      final response = await MyDocumentRepo().addDocument(params: params);
+
+      if (response.isSuccess) {
+        genericDocumentUploadResponse.value = ApiResponse.complete(response);
+        Get.back();
+        fetchAllDocumentStatusApi();
+      } else {
+        genericDocumentUploadResponse.value = ApiResponse.error('error');
+        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e, s) {
+      debugPrint('❌ documentIdentificationRepo error: $e\n$s');
+      genericDocumentUploadResponse.value = ApiResponse.error('error');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    } finally {
+      isGenericDocumentLoading.value = false;
+    }
+  }
+
+  String getDocumentName(String docType) {
+    switch (docType) {
+    // ----------------- PERSONAL DOCUMENTS -----------------
+      case DocumentKeys.aadhar:
+        return "Aadhar Card";
+      case DocumentKeys.pan:
+        return "PAN Card";
+      case DocumentKeys.drivingLicense:
+        return "Driving License";
+      case DocumentKeys.vehicleRC:
+        return "Vehicle RC";
+      case DocumentKeys.addressProof:
+        return "Address Proof";
+      case DocumentKeys.noc:
+        return "NOC";
+      case DocumentKeys.bankersCancelledCheque:
+        return "Cancelled Cheque";
+
+    // ----------------- BUSINESS DOCUMENTS -----------------
+      case DocumentKeys.gstCertificate:
+        return "GST Certificate";
+      case DocumentKeys.fssaiLicense:
+        return "FSSAI License";
+      case DocumentKeys.medicalLicense:
+        return "Medical License";
+      case DocumentKeys.fireSafetyCertificate:
+        return "Fire Safety Certificate";
+      case DocumentKeys.municipalCorpCertificate:
+        return "Municipal Corp Certificate";
+      case DocumentKeys.msmeCertificate:
+        return "MSME Certificate";
+      case DocumentKeys.shopActCertificate:
+        return "Shop Act Certificate";
+
+    // ----------------- HOTEL & HOMESTAY DOCUMENTS -----------------
+      case DocumentKeys.hotelTradeLicense:
+        return "Trade License";
+      case DocumentKeys.hotelPanCard:
+        return "Hotel PAN Card";
+      case DocumentKeys.hotelGstCertificate:
+        return "Hotel GST Certificate";
+      case DocumentKeys.hotelCancelledCheque:
+        return "Hotel Cancelled Cheque";
+      case DocumentKeys.hotelPoliceVerification:
+        return "Police Verification / NOC";
+      case DocumentKeys.hotelFireSafetyCertificate:
+        return "Hotel Fire Safety Certificate";
+      case DocumentKeys.hotelFssaiLicense:
+        return "Hotel FSSAI License";
+      case DocumentKeys.hotelOwnerIdProof:
+        return "Owner ID Proof";
+      case DocumentKeys.hotelOnboardingAgreement:
+        return "Signed Agreement";
+      case DocumentKeys.hotelPropertyAgreement:
+        return "Property/Lease Agreement";
+
+    // ----------------- DEFAULT -----------------
+      default:
+        return "Document";
+    }
+  }
+
+  String _getMissingImageMsg(String docType, {bool isBack = false}) {
+    String docName = getDocumentName(docType);
+
+    // Return specific message
+    if (isBack) {
+      return "Please upload $docName back side image";
+    } else {
+      // For single-side documents (like Cheque/Certificates), this message still works well
+      // e.g. "Please upload Cancelled Cheque front side image"
+      return "Please upload $docName image";
+    }
+  }
+
 
 
 

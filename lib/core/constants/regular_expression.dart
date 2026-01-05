@@ -412,6 +412,45 @@ class ValidationMethod {
     return null;
   }
 
+  static String? validateTradeLicense(String? value) {
+    if (value == null || value.isEmpty) {
+      return "Trade License number is required";
+    }
+
+    // Must be between 5 and 30 characters
+    final RegExp licenseRegex = RegExp(r'^[a-zA-Z0-9-/]{5,30}$');
+
+    if (!licenseRegex.hasMatch(value)) {
+      return "Invalid Trade License Number (Use A-Z, 0-9, - or /)";
+    }
+
+    return null;
+  }
+
+  static String? validateGSTIN(String? value) {
+    if (value == null || value.isEmpty) {
+      return "GSTIN is required";
+    }
+
+    if (value.length != 15) {
+      return "GSTIN must be exactly 15 characters";
+    }
+
+    // Standard GST Regex
+    if (!RegExp(r'^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$').hasMatch(value)) {
+      return "Invalid GSTIN format";
+    }
+    return null;
+  }
+
+  static String? validateFSSAI(String? value) {
+    if (value == null || value.isEmpty) return "FSSAI number is required";
+    if (!RegExp(r'^[0-9]{14}$').hasMatch(value)) {
+      return "FSSAI must be exactly 14 digits";
+    }
+    return null;
+  }
+
 }
 
 
