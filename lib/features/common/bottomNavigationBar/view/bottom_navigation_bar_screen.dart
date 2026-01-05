@@ -13,8 +13,6 @@ import 'package:BlueEra/features/chat/view/ai_chat/ask_inventory_chat_screen.dar
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/auth/controller/ai_chat_guest_controller.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_widget.dart';
-import 'package:BlueEra/features/common/delivery_partner/view/rider_profile_status_screen.dart';
-import 'package:BlueEra/features/common/food/view/food/food_categroy.dart';
 import 'package:BlueEra/features/common/food/view/grocery/my_grocery_listing/grocery_screen.dart';
 import 'package:BlueEra/features/common/home/view/home_screen.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
@@ -28,7 +26,6 @@ import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_scr
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/inventory_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
-import 'package:BlueEra/features/rider_order_collect/items_screen.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/service_provider_dialoge.dart';
 import 'package:flutter/material.dart';
@@ -42,12 +39,6 @@ import '../../../../core/routes/route_helper.dart';
 import '../../../chat/auth/controller/chat_theme_controller.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../chat/view/chat_screen_new.dart';
-import '../../../me/hospital/view/hospital_main.dart';
-import '../../../me/hotel/view/hotel_main.dart';
-import '../../../me/laboratory/view/laboratory_main.dart';
-import '../../../me/medical/view/medical_main.dart';
-import '../../../me/others/others_main.dart';
-import '../../../me/school/view/school_main.dart';
 import '../../delivery_partner/controller/delivery_partner_orders_controller.dart';
 import '../auth/controller/bottom_bar_controller.dart';
 

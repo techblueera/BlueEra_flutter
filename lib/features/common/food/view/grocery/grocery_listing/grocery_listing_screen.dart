@@ -255,7 +255,7 @@ class _GroceryListingScreenState extends State<GroceryListingScreen> {
 
   Widget rightContent() {
     return Obx(() => Padding(
-          padding: const EdgeInsets.all(8),
+          padding: EdgeInsets.all(8),
           child: controller.isInitialLoading.value
               ? Center(child: CircularProgressIndicator())
               : Column(
@@ -365,39 +365,48 @@ class _GroceryListingScreenState extends State<GroceryListingScreen> {
                                 ),
                               )
                             : controller.arrUserGrocery.isNotEmpty
-                                ? GridView.builder(
-                                    controller: scrollController,
-                                    itemCount:
-                                        controller.arrUserGrocery.length +
-                                            (controller.isUserGroceryLoadingMore
-                                                    .value
-                                                ? 1
-                                                : 0),
-                                    gridDelegate:
-                                        const SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: 2,
-                                      crossAxisSpacing: 10,
-                                      mainAxisSpacing: 10,
-                                      childAspectRatio: 0.6,
-                                    ),
-                                    padding: EdgeInsets.only(
-                                        bottom: SizeConfig.size30),
-                                    itemBuilder: (_, i) {
-                                      if (i ==
-                                          controller.arrUserGrocery.length) {
-                                        return const Center(
-                                          child: Padding(
-                                            padding: EdgeInsets.all(8.0),
-                                            child: CircularProgressIndicator(
-                                                strokeWidth: 2),
-                                          ),
-                                        );
-                                      }
+                                ? Builder(
+                                  builder: (context) {
+                                    double screenWidth = Get.width;
+                                    double totalHorizontalPadding = 8.0;
+                                    double crossAxisSpacing = 10.0;
+                                    double gridItemWidth = (screenWidth - totalHorizontalPadding - crossAxisSpacing) / 2;
+                                    double desiredItemHeight = 350.0;
 
-                                      return groceryCard(
-                                          controller.arrUserGrocery[i]);
-                                    },
-                                  )
+                                    return GridView.builder(
+                                        controller: scrollController,
+                                        itemCount:
+                                            controller.arrUserGrocery.length +
+                                                (controller.isUserGroceryLoadingMore
+                                                        .value
+                                                    ? 1
+                                                    : 0),
+                                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                              crossAxisCount: 2,
+                                              crossAxisSpacing: 10,
+                                              mainAxisSpacing: 10,
+                                              childAspectRatio: gridItemWidth / desiredItemHeight,
+                                        ),
+                                        padding: EdgeInsets.only(
+                                            bottom: SizeConfig.size30),
+                                        itemBuilder: (_, i) {
+                                          if (i ==
+                                              controller.arrUserGrocery.length) {
+                                            return const Center(
+                                              child: Padding(
+                                                padding: EdgeInsets.all(8.0),
+                                                child: CircularProgressIndicator(
+                                                    strokeWidth: 2),
+                                              ),
+                                            );
+                                          }
+
+                                          return groceryCard(
+                                              controller.arrUserGrocery[i]);
+                                        },
+                                      );
+                                  }
+                                )
                                 : Padding(
                                     padding: EdgeInsets.all(SizeConfig.size20),
                                     child: EmptyStateWidget(

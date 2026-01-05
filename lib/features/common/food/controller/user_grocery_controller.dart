@@ -127,6 +127,13 @@ class UserGroceryController extends GetxController{
   }
 
   RxList<Riders> arrRiders = <Riders>[].obs;
+
+  // Track riders we have successfully assigned to the order (Step 1)
+  var assignedRiderIds = <String>{}.obs;
+
+  // Track riders we have successfully sent requests to (Step 2)
+  var sentRiderIds = <String>{}.obs;
+
   late Stream<dynamic> stream;
   StreamSubscription? subscription;
 
@@ -245,33 +252,19 @@ class UserGroceryController extends GetxController{
 
   void showCircularLoader() {
     Get.dialog(
-
       Center(
-
         child: Container(
-
           width: SizeConfig.size90,
-
           height: SizeConfig.size90,
-
           alignment: Alignment.center,
-
           decoration: const BoxDecoration(
-
             shape: BoxShape.circle,
-
             color: AppColors.white,
-
           ),
-
           child: staggeredDotsWaveLoading(
-
             color: AppColors.primaryColor,
-
           ),
-
         ),
-
       ),
 
       barrierDismissible: false, // Prevent closing by tapping outside
@@ -397,6 +390,8 @@ class UserGroceryController extends GetxController{
     try {
       isNearByRidersLoading.value = true;
       arrRiders.clear();
+      assignedRiderIds.clear();
+      sentRiderIds.clear();
 
       double lat = LocationService.lat;
       double lng = LocationService.lng;
@@ -432,12 +427,6 @@ class UserGroceryController extends GetxController{
       isNearByRidersLoading.value = false;
     }
   }
-
-  // Track riders we have successfully assigned to the order (Step 1)
-  var assignedRiderIds = <String>{}.obs;
-
-  // Track riders we have successfully sent requests to (Step 2)
-  var sentRiderIds = <String>{}.obs;
 
   Future<void> executeOrderProcess({required String orderId, required String riderId}) async {
 
