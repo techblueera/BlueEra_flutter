@@ -1924,6 +1924,7 @@ class _PersonalProfileSetupNewScreenState
 
   Widget _buildDocumentCard(
       DocumentsResponse document, MyDocumentsController controller) {
+
     return Container(
       padding: EdgeInsets.symmetric(
           vertical: SizeConfig.size12, horizontal: SizeConfig.size15),
@@ -1953,7 +1954,7 @@ class _PersonalProfileSetupNewScreenState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomText(
-                  document.documentType,
+                  controller.getDocumentName(document.documentType??''),
                   fontSize: SizeConfig.small,
                   fontWeight: FontWeight.w400,
                   color: AppColors.mainTextColor,
@@ -1975,11 +1976,11 @@ class _PersonalProfileSetupNewScreenState
             onTap: () {
               Get.bottomSheet(
                 CommonDocumentBottomSheet(
-                  title: document.documentType??'',
+                  title: controller.getDocumentName(document.documentType??''),
                   child: (document.isVerified ?? false) ? ViewDocumentWidget(
                     document: document,
                   ) : DocumentVerificationPendingWidget(
-                      documentName: document.documentType??'',
+                      documentName: controller.getDocumentName(document.documentType??''),
                   ),
                 ),
                 isScrollControlled: true,

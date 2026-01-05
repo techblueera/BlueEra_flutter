@@ -7,6 +7,7 @@ import 'package:BlueEra/features/common/food/controller/grocery_controller.dart'
 import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
 import 'package:BlueEra/features/common/food/model/grocery_product_model.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
+import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -324,53 +325,61 @@ class _GrocerySubCategoryScreenState extends State<GrocerySubCategoryScreen> {
           SizedBox(height: 8),
 
           // GRID
-          controller.isGroceryCategoryProductsLoading.value
-              ? Center(
-                child: Padding(
-                  padding: EdgeInsets.all(SizeConfig.size20),
-                  child: SizedBox(
+          Expanded(
+            child: controller.isGroceryCategoryProductsLoading.value
+                ? Center(
+              child: Padding(
+                padding: EdgeInsets.all(SizeConfig.size20),
+                child: SizedBox(
                     height: 20.0,
                     width: 20.0,
                     child: CircularProgressIndicator()
-                            ),
                 ),
-              )
-          : Expanded(
-            child: Builder(
-              builder: (context) {
-                double screenWidth = Get.width;
-                double totalHorizontalPadding = 8.0;
-                double crossAxisSpacing = 10.0;
-                double gridItemWidth = (screenWidth - totalHorizontalPadding - crossAxisSpacing) / 2;
-                double desiredItemHeight = 350.0;
+              ),
+            )
+                : controller.arrGroceryCategoryProducts.isNotEmpty
+                ? Builder(
+                    builder: (context) {
+                      double screenWidth = Get.width;
+                      double totalHorizontalPadding = 8.0;
+                      double crossAxisSpacing = 10.0;
+                      double gridItemWidth = (screenWidth - totalHorizontalPadding - crossAxisSpacing) / 2;
+                      double desiredItemHeight = 350.0;
 
-                return GridView.builder(
-                  controller: scrollController,
-                  itemCount: controller.arrGroceryCategoryProducts.length +
-                      (controller.isGroceryCategoryProductsLoadingMore.value ? 1 : 0),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
-                    childAspectRatio: gridItemWidth / desiredItemHeight,
-                  ),
-                  padding: EdgeInsets.only(bottom: SizeConfig.size30),
-                  itemBuilder: (_, i) {
-                    if (i == controller.arrGroceryCategoryProducts.length) {
-                      return const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: CircularProgressIndicator(strokeWidth: 2),
+                      return GridView.builder(
+                        controller: scrollController,
+                        itemCount: controller.arrGroceryCategoryProducts.length +
+                            (controller.isGroceryCategoryProductsLoadingMore.value ? 1 : 0),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                          childAspectRatio: gridItemWidth / desiredItemHeight,
                         ),
+                        padding: EdgeInsets.only(bottom: SizeConfig.size30),
+                        itemBuilder: (_, i) {
+                          if (i == controller.arrGroceryCategoryProducts.length) {
+                            return const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              ),
+                            );
+                          }
+
+                          return groceryCard(controller.arrGroceryCategoryProducts[i]);
+                        },
                       );
                     }
-
-                    return groceryCard(controller.arrGroceryCategoryProducts[i]);
-                  },
-                );
-              }
+                )
+                : Padding(
+                padding: EdgeInsets.all(SizeConfig.size20),
+                child: EmptyStateWidget(
+                    message:
+                    'No ${controller.selectedGroceryData.value.label.tr} found.')
             ),
           )
+
         ],
       ),
     ));

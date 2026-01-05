@@ -35,7 +35,7 @@ class DocumentVerificationPendingWidget extends StatelessWidget {
         // 2. Title
         CustomText(
           "Verification Pending",
-          fontSize: SizeConfig.medium,
+          fontSize: SizeConfig.large,
           fontWeight: FontWeight.w600,
           color: AppColors.mainTextColor,
         ),
@@ -46,7 +46,7 @@ class DocumentVerificationPendingWidget extends StatelessWidget {
         Text.rich(
           TextSpan(
             style: TextStyle(
-              fontSize: SizeConfig.small,
+              fontSize: SizeConfig.medium,
               fontWeight: FontWeight.w400,
               color: AppColors.secondaryTextColor,
               fontFamily: 'Manrope', // Add your font family if CustomText uses one
@@ -55,7 +55,7 @@ class DocumentVerificationPendingWidget extends StatelessWidget {
               const TextSpan(text: "Your "),
 
               TextSpan(
-                text: documentName, // Dynamic Name
+                text: documentName,
                 style: const TextStyle(
                   fontWeight: FontWeight.w700,
                   color: AppColors.mainTextColor,
@@ -71,18 +71,18 @@ class DocumentVerificationPendingWidget extends StatelessWidget {
         ),
 
         // if(onOkayTap!=null)...[
-          SizedBox(height: SizeConfig.size20),
+        SizedBox(height: SizeConfig.size20),
 
-          CustomBtn(
-            // onTap: onOkayTap,
-            onTap: ()=> Get.back(),
-            title: "Okay",
-            radius: 10.0,
-            height: SizeConfig.size40,
-            width: SizeConfig.size120,
-            bgColor: AppColors.primaryColor,
-            textColor: AppColors.white,
-          )
+        CustomBtn(
+          // onTap: onOkayTap,
+          onTap: ()=> Get.back(),
+          title: "Okay",
+          radius: 10.0,
+          height: SizeConfig.size40,
+          width: SizeConfig.size120,
+          bgColor: AppColors.primaryColor,
+          textColor: AppColors.white,
+        )
         // ]
 
       ],

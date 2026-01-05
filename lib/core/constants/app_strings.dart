@@ -1805,6 +1805,7 @@ class AppStrings {
   static const prePaid = "Pre Paid";
   static const personalDocument = "Personal Document";
   static const businessDocument = "Business Document";
+  static const hotelNdHomeStayDocument = "Hotel & Home Stay Document";
   static const uploadAadhar = "Upload Aadhar";
   static const uploadDrivingLicense = "Upload Driving License";
   static const uploadVehicleRC = "Upload Vehicle RC";
@@ -1812,12 +1813,22 @@ class AppStrings {
   static const uploadNOC = "Upload NOC";
   static const uploadBankerCancelCheck = "Upload Banker Cancel Check";
   static const uploadGSTCertificate = "Upload GST Certificate";
-  static const uploadFoodLicense = "Upload Food License";
   static const uploadMedicalLicense = "Upload Medical License";
   static const uploadFireSafetyCertificate = "Upload Fire/Safety Certificate";
   static const uploadMunicipalCorpCertificate = "Upload Municipal Corp. Certificate";
   static const uploadMSMECertificate = "Upload MSME Certificate";
   static const uploadShopActCertificate = "Upload Shop Act Certificate";
+  static const hotelTradeLicense = "Hotel Trade License";
+  static const panCardHotelOrOwner = "PAN Card (Hotel / Owner)";
+  static const gstRegistrationCertificate = "GST Registration Certificate";
+  static const cancelledCheque = "Cancelled Cheque";
+  static const policeVerificationOrNOC = "Police Verification / NOC";
+  static const fireSafetyCertificate = "Fire Safety Certificate";
+  static const fssaiLicense = "FSSAI License";
+  static const ownerOrAuthorizedSignatoryIDProof = "Owner / Authorized Signatory ID Proof";
+  static const hotelOnboardingAgreementSigned = "Hotel Onboarding Agreement (Signed)";
+  static const propertyOwnershipOrLeaseAgreement = "Property Ownership / Lease Agreement";
+  static const upload = "Upload";
 
   ///BHAVESH START
   static const ownerDetail = "owner_detail";

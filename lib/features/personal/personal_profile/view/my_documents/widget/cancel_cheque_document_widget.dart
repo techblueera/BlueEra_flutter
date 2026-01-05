@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -13,15 +12,16 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class AadharCardWidget extends StatelessWidget {
-  AadharCardWidget({super.key});
+class CancelChequeDocumentWidget extends StatelessWidget {
+  final String documentType;
+  CancelChequeDocumentWidget({super.key, required this.documentType});
 
   final controller = getOrPut(() => MyDocumentsController());
 
   @override
   Widget build(BuildContext context) {
     return Obx(()=> AbsorbPointer(
-      absorbing: controller.isAadharUploadLoading.value,
+      absorbing: controller.isCancelChequeLoading.value,
       child: CustomFormCard(
           padding: EdgeInsets.zero,
           child: Form(
@@ -30,18 +30,28 @@ class AadharCardWidget extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                /// Aadhar
+                /// Bank Account Number
                 CommonTextField(
-                  textEditController: controller.aadharController,
-                  title: AppStrings.aadharNumber,
-                  hintText: 'E.g. 5678 1234 6679 9012',
+                  textEditController: controller.bankAccountNumberController,
+                  title: 'Bank Account Number',
+                  hintText: 'E.g. 1234567890',
                   keyBoardType: TextInputType.number,
-                  validator: ValidationMethod.validateAadhaar,
-                  maxLength: 12,
+                  validator: ValidationMethod.validateAccountNumber,
+                  inputLength: 18,
+                ),
+                SizedBox(height: SizeConfig.paddingM),
+                CommonTextField(
+                  textEditController: controller.IFSCCodeController,
+                  title: 'IFSC Code',
+                  hintText: 'E.g. SBIN0001234',
+                  keyBoardType: TextInputType.text,
+                  inputLength: 11,
+                  validator: ValidationMethod.validateIfscCode,
+                  isCapitalize: true,
                 ),
                 SizedBox(height: SizeConfig.paddingM),
                 CustomText(
-                  AppStrings.uploadAadharBothSide,
+                  'Upload Cancelled Cheque Photo',
                   fontSize: SizeConfig.medium,
                   color: AppColors.mainTextColor,
                   fontWeight: FontWeight.w400,
@@ -51,15 +61,15 @@ class AadharCardWidget extends StatelessWidget {
                   children: [
                     Expanded(
                       child: CommonImageUploadTile(
-                        title: AppStrings.aadharFront,
-                        imageFile: controller.aadharFrontImage,
+                        title: 'Cancel Cheque Front',
+                        imageFile: controller.cancelChequeFrontImage,
                         context: context,
                         onImageSelected: () async {
                           final selectedPath =
                           await CommonImageUploadTile.pickImage(
                               context: context);
                           if (selectedPath != null) {
-                            controller.aadharFrontImage.value = File(selectedPath);
+                            controller.cancelChequeFrontImage.value = File(selectedPath);
                           }
                         },
                       ),
@@ -67,32 +77,34 @@ class AadharCardWidget extends StatelessWidget {
                     SizedBox(width: SizeConfig.size8),
                     Expanded(
                       child: CommonImageUploadTile(
-                        title: AppStrings.aadharBack,
-                        imageFile: controller.aadharBackImage,
+                        title: 'Cancel Cheque Back',
+                        imageFile: controller.cancelChequeBackImage,
                         context: context,
                         onImageSelected: () async {
                           final selectedPath =
                           await CommonImageUploadTile.pickImage(
                               context: context);
                           if (selectedPath != null) {
-                            controller.aadharBackImage.value = File(selectedPath);
+                            controller.cancelChequeBackImage.value = File(selectedPath);
                           }
                         },
                       ),
                     ),
                   ],
                 ),
-      
+
                 SizedBox(height: SizeConfig.paddingL),
-      
+
                 CustomBtn(
-                  title: controller.isAadharUploadLoading.value
+                  title: controller.isCancelChequeLoading.value
                       ? null
                       : "Upload",
-                  onTap: () => controller.aadharCardApi(),
+                  onTap: () => controller.cancelChequeUploadApi(
+                      documentType: documentType
+                  ),
                   radius: 10.0,
                   bgColor: AppColors.primaryColor,
-                  isLoading: controller.isAadharUploadLoading.value,
+                  isLoading: controller.isCancelChequeLoading.value,
                 ),
               ],
             ),
