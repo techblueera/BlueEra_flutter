@@ -6,8 +6,12 @@ class AppImageAssets {
   static const String businessVerification = '${imgPath}business_verification.svg';
   static const String refer_earn_bg = '${imgPath}refer_earn_bg.png';
   static const String tearDrop = '${imgPath}tear_drop.png';
-  static const String chating_bg = 'assets/images/chatting_bg.png';
+  static const String chating_bg = 'assets/images/chatting_bg_light.png';
   static const String splashBgImage = "assets/images/bg_splash.png";
+  static const String chatBgDark = '${imgPath}chat_bg_dark.png';
+  static const String chatBgLight = '${imgPath}chatting_bg_light.png';
+  static const String chatBgBlueShade = '${imgPath}chat_bg_blue_shade.png';
+
 
   static const String markerBlue = '${imgPath}marker_blue.png';
   static const String receivedIcon = '${imgPath}camera_stand.png';

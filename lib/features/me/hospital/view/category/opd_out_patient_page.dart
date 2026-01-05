@@ -45,8 +45,7 @@ class _OpdOutPatientPageState extends State<OpdOutPatientPage> {
           ...widget.children.map((title) {
             return InkWell(
               onTap: () {
-                Get.toNamed(RouteHelper.getHospitalDoctorViewCategory(),
-                );
+                Get.toNamed(RouteHelper.getHospitalDoctorViewCategory(),);
               },
               child: MeMenuCardDesign(
                 showToggleButton: true,

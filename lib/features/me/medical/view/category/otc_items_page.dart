@@ -11,6 +11,7 @@ import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 
 import '../../../../../core/api/apiService/api_response.dart';
 import '../../../../../core/constants/app_constant.dart';
+import '../../../../../core/constants/getx_utils.dart';
 import '../../../../../widgets/common_back_app_bar.dart';
 import '../../../auth/controller/medical_model_controller.dart';
 import '../../../laboratory/model/lab_content_list_view_model.dart';
@@ -35,9 +36,7 @@ class OTCItemsPage extends StatefulWidget {
 class _OTCItemsPageState extends State<OTCItemsPage> {
   /// UI-ready list
   List<LabContentListViewModel> otcItemsList = [];
-  final controller = getOrPutController<MedicalModelController>(
-        () => MedicalModelController(),
-  );
+  final controller = getOrPut(() => MedicalModelController());
 
   @override
   void initState() {

@@ -33,6 +33,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../features/business/visit_business_profile/view/visit_business_profile_new.dart';
 import '../../features/chat/auth/controller/add_chat_symbol_controller.dart';
 import '../../features/chat/view/add_symbol/add_symbol_screen.dart';
+import '../../features/chat/view/chat_theme/chat_theme.dart';
 import '../../features/chat/view/symbol_view/symbol_view_images.dart';
 import '../../features/personal/personal_profile/view/widget/service_item.dart';
 
@@ -808,7 +809,7 @@ List<PopupMenuEntry<String>> popupMenuChatCardItems() {
                   from: "group",
                 ));
           } else if (items[i]['id'] == "THEME") {
-            commonSnackBar(message: "Coming soon....");
+            Get.to(()=>ChatThemeScreen());
           } else if (items[i]['id'] == "WALLPAPER") {
             commonSnackBar(message: "Coming soon....");
           } else if (items[i]['id'] == "LOCK_CHAT") {

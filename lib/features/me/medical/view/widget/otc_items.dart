@@ -5,6 +5,7 @@ import 'package:get/get_core/src/get_main.dart';
 import '../../../../../core/api/apiService/api_keys.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/app_constant.dart';
+import '../../../../../core/constants/getx_utils.dart';
 import '../../../../../core/constants/size_config.dart';
 import '../../../../../core/routes/route_helper.dart';
 import '../../../../../widgets/common_box_shadow.dart';
@@ -31,9 +32,7 @@ class CategoryListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = getOrPutController<HospitalModelController>(
-          () => HospitalModelController(),
-    );
+    final controller = getOrPut(() => HospitalModelController());
 
     return Obx(() {
       return Column(

@@ -8,6 +8,7 @@ import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 
 import '../../../../../core/constants/app_constant.dart';
+import '../../../../../core/constants/getx_utils.dart';
 import '../../../../../widgets/custom_btn.dart';
 import '../../../auth/controller/medical_model_controller.dart';
 import '../../../auth/model/medical_admin_product_details.dart';
@@ -17,9 +18,8 @@ class SelectedMedicalProductPrev extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = getOrPutController<MedicalModelController>(
-          () => MedicalModelController(),
-    );
+    final controller = getOrPut(() => MedicalModelController());
+
     return Scaffold(
       backgroundColor: AppColors.appBackgroundColor,
       appBar: const CommonBackAppBar(
@@ -56,7 +56,7 @@ class ProductCard extends StatelessWidget {
   final MedicalProductDetailsModel productData;
   @override
   Widget build(BuildContext context) {
-    final controller = getOrPutController<MedicalModelController>(
+    final controller = getOrPut<MedicalModelController>(
           () => MedicalModelController(),
     );
     return Container(

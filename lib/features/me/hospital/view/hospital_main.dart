@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/constants/app_constant.dart';
+import '../../../../core/constants/getx_utils.dart';
 import '../../../../widgets/common_search_bar.dart';
 import '../../auth/controller/hospital_model_controller.dart';
 import '../../medical/view/widget/otc_items.dart';
@@ -29,9 +30,7 @@ class HospitalMain extends StatefulWidget {
 class _HospitalMainState extends State<HospitalMain>
     with SingleTickerProviderStateMixin, RouteAware {
   late TabController _tabController;
-  final controller = getOrPutController<HospitalModelController>(
-        () => HospitalModelController(),
-  );
+  final controller = getOrPut(() => HospitalModelController());
 
 
 
