@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import '../../../../../core/api/apiService/api_keys.dart';
 import '../../../../../core/constants/app_constant.dart';
+import '../../../../../core/constants/getx_utils.dart';
 import '../../../../../core/routes/route_helper.dart';
 import '../../../auth/controller/hospital_model_controller.dart';
 import '../../../laboratory/view/widgets/me_menu_card_design.dart';
@@ -30,9 +31,7 @@ class _AddHospitalServiceState extends State<AddHospitalService> {
   //   "Careers": () => OpdOutPatientPage(),
   //   "Management": () => OpdOutPatientPage(),
   // };
-  final controller = getOrPutController<HospitalModelController>(
-        () => HospitalModelController(),
-  );
+  final controller = getOrPut(() => HospitalModelController());
 
   @override
   Widget build(BuildContext context) {

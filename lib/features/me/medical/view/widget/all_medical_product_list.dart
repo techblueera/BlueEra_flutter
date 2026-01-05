@@ -3,6 +3,7 @@ import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/app_constant.dart';
 import '../../../../../core/constants/custom_carousel_slider.dart';
+import '../../../../../core/constants/getx_utils.dart';
 import '../../../../../core/constants/size_config.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 import '../../../auth/controller/medical_model_controller.dart';
@@ -15,9 +16,7 @@ class AllMedicalProductList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = getOrPutController<MedicalModelController>(
-      () => MedicalModelController(),
-    );
+    final controller = getOrPut(() => MedicalModelController());
 
     return LayoutBuilder(
       builder: (context, constraints) {
