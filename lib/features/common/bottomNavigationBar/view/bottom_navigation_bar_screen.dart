@@ -367,13 +367,12 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   }
 
   Widget getHomeScreen() {
-    // if (isGuestUser()) return GuestDashBoardScreen();
-    // if (isBusinessUser()) return resolveBusinessScreen();
-    // if (isIndividualUser()) return resolveIndividualScreen();
-    //
-    // // Fallback (required)
-    // return PersonalProfileSetupNewScreen();
-    return HospitalMain();
+    if (isGuestUser()) return GuestDashBoardScreen();
+    if (isBusinessUser()) return resolveBusinessScreen();
+    if (isIndividualUser()) return resolveIndividualScreen();
+
+    // Fallback (required)
+    return PersonalProfileSetupNewScreen();
   }
 
   Widget resolveBusinessScreen() {
