@@ -176,9 +176,12 @@ class AppConstants {
   static const String food = "food";
   static const String product = "product";
   static const String service = "service";
+  static const String grocery = "grocery";
   static const String chatMsgBusinessType = "business";
   static const String channelFeedList = "channelFeedList";
   static const String channelOTTList = "channelOTTList";
+  static const String prepaid = "prepaid";
+  static const String postpaid = "postpaid";
 
   /// Services Category
   static const consulting = "Consulting Services";
@@ -249,20 +252,11 @@ class DocumentKeys {
   static const fireSafetyCertificate = "fireSafetyCertificate";
   static const municipalCorpCertificate = "municipalCorpCertificate";
   static const msmeCertificate = "msmeCertificate";
-  static const shopActCertificate =
-      "shopActCertificate"; // Removed trailing space
+  static const shopActCertificate = "shopActCertificate";
 }
 
 ///IS GUEST USER...
 bool isGuestUser() => (accountTypeGlobal.toUpperCase() == AppConstants.guest);
-
-A getOrPutController<A>(A Function() create) {
-  if (Get.isRegistered<A>()) {
-    return Get.find<A>();
-  } else {
-    return Get.put<A>(create());
-  }
-}
 
 ///IS individual USER...
 bool isIndividualUser() =>

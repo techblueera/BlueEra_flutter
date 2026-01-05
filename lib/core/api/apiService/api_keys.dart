@@ -582,5 +582,7 @@ class ApiKeys {
   static const qualification = 'qualification';
   static const uploadPhoto = 'uploadPhoto';
   static const fileUrl = 'fileUrl';
+  static const orderFor = 'orderFor';
+  static const modeOfPayment = 'modeOfPayment';
 
 }

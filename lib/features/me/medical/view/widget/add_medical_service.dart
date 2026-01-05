@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -19,7 +20,7 @@ class AddMedicalService extends StatefulWidget {
   State<AddMedicalService> createState() => _AddMedicalServiceState();
 }
 class _AddMedicalServiceState extends State<AddMedicalService> {
-  final controller = getOrPutController<MedicalModelController>(
+  final controller = getOrPut<MedicalModelController>(
         () => MedicalModelController(),
   );
   final Map<String, Widget Function()> servicePages = {

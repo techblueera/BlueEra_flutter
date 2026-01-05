@@ -1,6 +1,7 @@
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/medical/view/widget/add_medical_service.dart';
 import 'package:BlueEra/features/me/medical/view/widget/otc_items.dart';
@@ -24,9 +25,8 @@ class MedicalMain extends StatefulWidget {
 class _MedicalMainState extends State<MedicalMain>
     with SingleTickerProviderStateMixin, RouteAware {
   late TabController _tabController;
-  final controller = getOrPutController<MedicalModelController>(
-  () => MedicalModelController(),
-  );
+  final controller = getOrPut<MedicalModelController>(
+  () => MedicalModelController());
 
 
 

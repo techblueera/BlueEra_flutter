@@ -543,7 +543,9 @@ class UserGroceryController extends GetxController{
           ApiKeys.longitude: lng
         },
         ApiKeys.orderId: orderId,
-        ApiKeys.receiverUserId: userId
+        ApiKeys.receiverUserId: userId,
+        ApiKeys.orderFor: AppConstants.grocery,
+        ApiKeys.modeOfPayment: AppConstants.postpaid
       };
       log("Request Body: $params");
 
@@ -586,10 +588,11 @@ class UserGroceryController extends GetxController{
           }
         }
 
-        // Case 2: It's a Map (e.g., {status: 'payment-pending'})
-        else if (event is Map) {
-          _handleStatusUpdate(event);
-        }
+        // // Case 2: It's a Map (e.g., {status: 'payment-pending'})
+        // else if (event is Map) {
+        //   _handleStatusUpdate(event);
+        // }
+
       }, onError: (error) {
         print('❌ Stream error: $error');
       }, onDone: () {
@@ -603,6 +606,7 @@ class UserGroceryController extends GetxController{
 
     if (status == 'pending') {
       // Your dialog logic here
+
     } else if(status == 'accepted') {
       hide(); // TERMINAL STATE: Hide loader
       commonSnackBar(message: "Rider $status the request");

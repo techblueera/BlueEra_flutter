@@ -192,7 +192,6 @@ class GroceryRiderCard extends StatelessWidget {
                           height: SizeConfig.size24,
                           width: SizeConfig.size70,
                           onTap: () {
-
                             controller.executeOrderProcess(
                               orderId: orderId,
                               riderId: rider.riderData?.id ?? ''
