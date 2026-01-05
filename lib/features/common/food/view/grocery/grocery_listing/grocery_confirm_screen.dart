@@ -61,6 +61,7 @@ class _GroceryConfirmScreenState extends State<GroceryConfirmScreen> {
                 : controller.arrRiders.isNotEmpty ? ListView.builder(
                   itemCount: controller.arrRiders.length,
                   shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
                   itemBuilder: (context, index) {
                     var rider = controller.arrRiders[index];
                     log('order id -- ${widget.orderId}');
