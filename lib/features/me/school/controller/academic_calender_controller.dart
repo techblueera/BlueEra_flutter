@@ -7,18 +7,17 @@ import 'package:get/get.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
-import 'package:BlueEra/core/api/model/notice_news_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/features/me/school/repo/school_repo.dart';
 
 class AcademicCalenderController extends GetxController {
-  Rx<ApiResponse> getNoticeNewsResponse = ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> addNoticeNewsResponse = ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> deleteNoticeNewsResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> getAcademicCalenderResponse =
+      ApiResponse.initial('Initial').obs;
   RxString notice_news_titleText = ''.obs;
   RxString notice_news_messageText = ''.obs;
   RxString notice_news_id = ''.obs;
+  RxString docUploadName = ''.obs;
   final isFormValid = false.obs;
   final Rxn<File> noticeImageFile = Rxn<File>();
 
@@ -27,26 +26,29 @@ class AcademicCalenderController extends GetxController {
   String initialNoticeImageUrl = "";
 
   ///GET BRANCH CONTACT DETAILS...
-  RxList<AcademicCalenderData> noticeNewsDataList = <AcademicCalenderData>[].obs;
+  RxList<AcademicCalenderData> noticeNewsDataList =
+      <AcademicCalenderData>[].obs;
 
   Future<void> getSchoolNoticeNewsController() async {
     noticeNewsDataList.clear();
     try {
-      ResponseModel response = await SchoolRepo().getEducationServiceAcademicsRepo();
+      ResponseModel response =
+          await SchoolRepo().getEducationServiceAcademicsRepo();
       AcademicCalenderResModel noticeNewsModel =
-      AcademicCalenderResModel.fromJson(response.response?.data);
+          AcademicCalenderResModel.fromJson(response.response?.data);
       noticeNewsDataList.value = noticeNewsModel.data ?? [];
       if (response.isSuccess) {
-        getNoticeNewsResponse.value = ApiResponse.complete(noticeNewsModel);
+        getAcademicCalenderResponse.value =
+            ApiResponse.complete(noticeNewsModel);
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
-        getNoticeNewsResponse.value =
+        getAcademicCalenderResponse.value =
             ApiResponse.error(AppStrings.somethingWentWrong);
       }
     } on Exception catch (e) {
       logs("ERROR ${e}");
       // TODO
-      getNoticeNewsResponse.value =
+      getAcademicCalenderResponse.value =
           ApiResponse.error(AppStrings.somethingWentWrong);
     }
   }
@@ -71,19 +73,14 @@ class AcademicCalenderController extends GetxController {
         commonSnackBar(
             message:
                 response.response?.data['message'] ?? AppStrings.successful);
-        addNoticeNewsResponse.value =
-            ApiResponse.complete(response.response?.data);
+
         getSchoolNoticeNewsController();
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
-        addNoticeNewsResponse.value =
-            ApiResponse.error(AppStrings.somethingWentWrong);
       }
     } on Exception catch (e) {
       logs("ERROR ${e}");
       // TODO
-      addNoticeNewsResponse.value =
-          ApiResponse.error(AppStrings.somethingWentWrong);
     }
   }
 
@@ -101,28 +98,24 @@ class AcademicCalenderController extends GetxController {
         ApiKeys.title: notice_news_titleText.value,
         ApiKeys.description: notice_news_messageText.value,
       };
-      ResponseModel response = await SchoolRepo().editEducationServiceAcademicsRepo(
-          reqBODY: reqDATA, noticeID: notice_news_id.value);
+      ResponseModel response = await SchoolRepo()
+          .editEducationServiceAcademicsRepo(
+              reqBODY: reqDATA, noticeID: notice_news_id.value);
 
       if (response.isSuccess) {
         Get.back();
         commonSnackBar(
             message:
                 response.response?.data['message'] ?? AppStrings.successful);
-        addNoticeNewsResponse.value =
-            ApiResponse.complete(response.response?.data);
+
         getSchoolNoticeNewsController();
         notice_news_id.value = "";
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
-        addNoticeNewsResponse.value =
-            ApiResponse.error(AppStrings.somethingWentWrong);
       }
     } on Exception catch (e) {
       logs("ERROR ${e}");
       // TODO
-      addNoticeNewsResponse.value =
-          ApiResponse.error(AppStrings.somethingWentWrong);
     }
   }
 
@@ -130,27 +123,21 @@ class AcademicCalenderController extends GetxController {
   Future<void> deleteSchoolNoticeNewsController(
       {required String noticeId}) async {
     try {
-      ResponseModel response =
-          await SchoolRepo().deleteEducationServiceAcademicsRepo(noticeID: noticeId);
+      ResponseModel response = await SchoolRepo()
+          .deleteEducationServiceAcademicsRepo(noticeID: noticeId);
 
       if (response.isSuccess) {
         Get.back();
         commonSnackBar(
             message:
                 response.response?.data['message'] ?? AppStrings.successful);
-        deleteNoticeNewsResponse.value =
-            ApiResponse.complete(response.response?.data);
+
         getSchoolNoticeNewsController();
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
-        deleteNoticeNewsResponse.value =
-            ApiResponse.error(AppStrings.somethingWentWrong);
       }
     } on Exception catch (e) {
       logs("ERROR ${e}");
-      // TODO
-      deleteNoticeNewsResponse.value =
-          ApiResponse.error(AppStrings.somethingWentWrong);
     }
   }
 
@@ -181,34 +168,3 @@ class AcademicCalenderController extends GetxController {
     return isTitleChanged || isDescChanged || isImageChanged;
   }
 }
-
-// class AcademicCalenderController extends GetxController {
-//   final isUploading = false.obs;
-//
-//   final Rxn<File> academicCalenderImageFile = Rxn<File>();
-//
-//   Future<void> uploadAcademicCalenderController() async {
-//     isUploading.value = true;
-//
-//     // No need for null checks on the result since we removed '?' from the return type
-//     UploadResult result = await S3UploadService.uploadFile(
-//         File(academicCalenderImageFile.value?.path ?? ""));
-//
-//     isUploading.value = false;
-//
-//     if (result.isSuccess) {
-//       final bodyReq = {
-//         "title": "Academic Calendar 2024",
-//         "fileUrl":  result.url,
-//         "description":
-//             "Comprehensive academic calendar for the year 2024 containing all important dates and events for students and faculty",
-//         "schoolId": schoolIDGlobal
-//       };
-//
-//
-//       // imageUrl.value = result.url;
-//     } else {
-//       commonSnackBar(message: result.message);
-//     }
-//   }
-// }

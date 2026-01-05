@@ -25,7 +25,7 @@ dependencies:
   url_launcher: ^6.3.1
   camera: ^0.10.5+9
   permission_handler: ^12.0.1
-  device_info_plus: ^11.5.0
+  device_info_plus: ^12.1.0
   path_provider: ^2.1.5
   cached_network_image: ^3.4.1
   intl: ^0.19.0
@@ -81,7 +81,7 @@ dependencies:
   flutter_callkit_incoming: ^3.0.0
   flutter_webrtc: ^1.2.1
   video_compress: ^3.1.4
-
+  syncfusion_flutter_pdfviewer: ^32.1.21
 dependency_overrides:
   intl: ^0.19.0
 

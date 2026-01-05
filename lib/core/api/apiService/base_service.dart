@@ -566,4 +566,5 @@ abstract class BaseService {
   String groceryServiceOrderAccept(String rideOrderId) =>  'rider-service/riders/orders/grocery/$rideOrderId/accept';
   final String educationServiceContact = 'education-service/contact';
   final String educationServiceAcademics = 'education-service/academics';
+  final String educationServiceStudentCorner = 'education-service/student-corner';
 }

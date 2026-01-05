@@ -275,7 +275,6 @@ class SchoolRepo extends BaseService {
     return response;
   }
 
-
   ///EDIT SCHOOL NOTICE REPO....
   Future<ResponseModel> editEducationServiceAcademicsRepo(
       {required Map<String, dynamic> reqBODY, required String noticeID}) async {
@@ -286,11 +285,59 @@ class SchoolRepo extends BaseService {
         onSuccess: (data) {});
     return response;
   }
+
   ///DELETE SCHOOL NOTICE REPO....
   Future<ResponseModel> deleteEducationServiceAcademicsRepo(
       {required String noticeID}) async {
     final response = await ApiBaseHelper().deleteHTTP(
         "${educationServiceAcademics}/$noticeID",
+        onError: (error) {},
+        onSuccess: (data) {});
+    return response;
+  }
+
+  ///CREATE STUDENT CORNER REPO....
+  Future<ResponseModel> createStudentCornerRepo() async {
+    final response = await ApiBaseHelper().postHTTP(
+        "${educationServiceStudentCorner}",
+        params: {ApiKeys.schoolId:  schoolIDGlobal},
+        onError: (error) {},
+        onSuccess: (data) {});
+    return response;
+  }
+
+  ///GET STUDENT CORNER LIST REPO....
+  Future<ResponseModel> getStudentCornerRepo() async {
+    final response = await ApiBaseHelper().getHTTP(
+        "${educationServiceStudentCorner}/school/$schoolIDGlobal",
+        onError: (error) {},
+        onSuccess: (data) {});
+    return response;
+  }
+
+  ///ADD STUDENT CORNER SPECIFIC DETAILS REPO....
+  Future<ResponseModel> postStudentCornerRepo({required String studentCornerId,required Map<String,dynamic> reqParm}) async {
+    final response = await ApiBaseHelper().postHTTP(
+        "${educationServiceStudentCorner}/$studentCornerId/items",
+        params: reqParm,
+        onError: (error) {},
+        onSuccess: (data) {});
+    return response;
+  }
+
+  ///DELETE STUDENT CORNER SPECIFIC DETAILS REPO....
+  Future<ResponseModel> deleteStudentCornerRepo({required String studentCornerId,required String studentCornerType,required int cornerIndex}) async {
+    final response = await ApiBaseHelper().deleteHTTP(
+        "${educationServiceStudentCorner}/$studentCornerId/$studentCornerType/$cornerIndex",
+        onError: (error) {},
+        onSuccess: (data) {});
+    return response;
+  }
+
+  ///UPDATE STUDENT CORNER SPECIFIC DETAILS REPO....
+  Future<ResponseModel> updateStudentCornerRepo({required String studentCornerId,required String studentCornerType,required int cornerIndex}) async {
+    final response = await ApiBaseHelper().putHTTP(
+        "${educationServiceStudentCorner}/$studentCornerId/$studentCornerType/$cornerIndex",
         onError: (error) {},
         onSuccess: (data) {});
     return response;

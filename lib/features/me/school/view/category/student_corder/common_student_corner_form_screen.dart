@@ -1,10 +1,12 @@
 import 'dart:io';
 import 'package:BlueEra/core/api/model/academic_calender_res_model.dart';
+import 'package:BlueEra/core/api/model/student_corner_res_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
 import 'package:BlueEra/features/me/school/controller/academic_calender_controller.dart';
 import 'package:BlueEra/features/me/school/controller/pdf_picker_controller.dart';
+import 'package:BlueEra/features/me/school/controller/student_corder_controller.dart';
 import 'package:BlueEra/features/me/school/view/pdf_picker_widget.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -14,21 +16,21 @@ import 'package:get/get.dart';
 import '../../../../../../../core/constants/app_colors.dart';
 import '../../../../../../../widgets/custom_text_cm.dart';
 
-class AcademicCalenderFormScreen extends StatefulWidget {
-  const AcademicCalenderFormScreen(
-      {super.key, this.isEdit = false, this.newsData});
+class CommonStudentCornerFormScreen extends StatefulWidget {
+  const CommonStudentCornerFormScreen(
+      {super.key, this.isEdit = false, this.studentItem});
 
   final bool isEdit;
-  final AcademicCalenderData? newsData;
+  final StudentCornerItem? studentItem;
 
   @override
-  State<AcademicCalenderFormScreen> createState() =>
-      _AcademicCalenderFormScreenState();
+  State<CommonStudentCornerFormScreen> createState() =>
+      _CommonStudentCornerFormScreenState();
 }
 
-class _AcademicCalenderFormScreenState
-    extends State<AcademicCalenderFormScreen> {
-  final noticeController = Get.find<AcademicCalenderController>();
+class _CommonStudentCornerFormScreenState
+    extends State<CommonStudentCornerFormScreen> {
+  final studentController = Get.find<StudentCornerController>();
   final titleEditController = TextEditingController();
   final descriptionEditController = TextEditingController();
   late PdfPickerController pdfPickerController;
@@ -41,29 +43,29 @@ class _AcademicCalenderFormScreenState
         : Get.put(PdfPickerController());
     if (widget.isEdit) {
       // Current Values
-      noticeController.initialNoticeImageUrl =
-          widget.newsData?.uploadPhoto ?? "";
-      noticeController.notice_news_titleText.value =
-          widget.newsData?.title ?? "";
-      noticeController.notice_news_messageText.value =
-          widget.newsData?.description ?? "";
+      studentController.initialNoticeImageUrl =
+          widget.studentItem?.uploadPhoto ?? "";
+      studentController.notice_news_titleText.value =
+          widget.studentItem?.title ?? "";
+      studentController.notice_news_messageText.value =
+          widget.studentItem?.description ?? "";
 
       // Store Original Values for Comparison
-      noticeController.originalImageUrl.value =
-          widget.newsData?.uploadPhoto ?? "";
-      noticeController.originalTitle.value = widget.newsData?.title ?? "";
-      noticeController.originalDescription.value =
-          widget.newsData?.description ?? "";
+      studentController.originalImageUrl.value =
+          widget.studentItem?.uploadPhoto ?? "";
+      studentController.originalTitle.value = widget.studentItem?.title ?? "";
+      studentController.originalDescription.value =
+          widget.studentItem?.description ?? "";
 
-      titleEditController.text = widget.newsData?.title ?? "";
-      descriptionEditController.text = widget.newsData?.description ?? "";
+      titleEditController.text = widget.studentItem?.title ?? "";
+      descriptionEditController.text = widget.studentItem?.description ?? "";
     } else {
-      noticeController.noticeImageFile.value = null;
-      noticeController.isFormValid.value = false;
-      noticeController.originalImageUrl.value = "";
-      noticeController.initialNoticeImageUrl = "";
-      noticeController.notice_news_titleText.value = "";
-      noticeController.notice_news_messageText.value = "";
+      studentController.noticeImageFile.value = null;
+      studentController.isFormValid.value = false;
+      studentController.originalImageUrl.value = "";
+      studentController.initialNoticeImageUrl = "";
+      studentController.notice_news_titleText.value = "";
+      studentController.notice_news_messageText.value = "";
     }
     super.initState();
   }
@@ -100,7 +102,7 @@ class _AcademicCalenderFormScreenState
                   ),
                   SizedBox(height: SizeConfig.size10),
                   Obx(() {
-                    return (noticeController.docUploadName.value == "")
+                    return (studentController.docUploadName.value == "")
                         ? Row(
                             children: [
                               Expanded(child: _buildImageSection()),
@@ -110,11 +112,11 @@ class _AcademicCalenderFormScreenState
                           )
                         : Row(
                             children: [
-                              if (noticeController.docUploadName.value ==
+                              if (studentController.docUploadName.value ==
                                   "photo")
                                 Expanded(child: _buildImageSection()),
                               SizedBox(width: SizeConfig.size10),
-                              if (noticeController.docUploadName.value == "pdf")
+                              if (studentController.docUploadName.value == "pdf")
                                 Expanded(child: SinglePdfPreviewWidget()),
                             ],
                           );
@@ -126,7 +128,7 @@ class _AcademicCalenderFormScreenState
                     title: "Title (Optional)",
                     isValidate: false,
                     onChange: (value) {
-                      noticeController.notice_news_titleText.value = value;
+                      studentController.notice_news_titleText.value = value;
                       _runValidation();
                     },
                   ),
@@ -146,7 +148,7 @@ class _AcademicCalenderFormScreenState
                     onChange: (value) {
                       String newVal =
                           value.replaceAll(RegExp(r'\n{3,}'), '\n\n');
-                      noticeController.notice_news_messageText.value = newVal;
+                      studentController.notice_news_messageText.value = newVal;
                       _runValidation();
                     },
                   ),
@@ -155,37 +157,37 @@ class _AcademicCalenderFormScreenState
                   Align(
                     alignment: Alignment.centerRight,
                     child: Obx(() => CustomText(
-                          "${noticeController.notice_news_messageText.value.length}/1000",
+                          "${studentController.notice_news_messageText.value.length}/1000",
                           color: Colors.grey,
                           fontSize: 12,
                         )),
                   ),
                   SizedBox(height: SizeConfig.size30),
                   Obx(() => CustomBtn(
-                        onTap: noticeController.isFormValid.value
+                        onTap: studentController.isFormValid.value
                             ? () async {
-                                if (widget.isEdit) {
-                                  noticeController.notice_news_id.value =
-                                      widget.newsData?.id ?? "";
-                                  if (noticeController.noticeImageFile.value ==
-                                      null) {
-                                    await noticeController
-                                        .updateAcademicCalenderController(
-                                            isPhotoUpdate: false);
-                                  } else {
-                                    await noticeController
-                                        .updateAcademicCalenderController(
-                                            isPhotoUpdate: true);
-                                  }
-                                } else {
-                                  await noticeController
-                                      .addAcademicCalenderController();
-                                }
+                                // if (widget.isEdit) {
+                                //   studentController.notice_news_id.value =
+                                //       widget.newsData?.id ?? "";
+                                //   if (studentController.noticeImageFile.value ==
+                                //       null) {
+                                //     await studentController
+                                //         .updateAcademicCalenderController(
+                                //             isPhotoUpdate: false);
+                                //   } else {
+                                //     await studentController
+                                //         .updateAcademicCalenderController(
+                                //             isPhotoUpdate: true);
+                                //   }
+                                // } else {
+                                //   await studentController
+                                //       .addAcademicCalenderController();
+                                // }
                               }
                             : null,
                         title: AppStrings.submit,
                         // Pass the validation state to change button color/opacity
-                        isValidate: noticeController.isFormValid.value,
+                        isValidate: studentController.isFormValid.value,
                       )),
                 ],
               ),
@@ -198,13 +200,13 @@ class _AcademicCalenderFormScreenState
 
   Widget _buildImageSection() {
     // If user picked a NEW local file
-    if (noticeController.noticeImageFile.value != null) {
+    if (studentController.noticeImageFile.value != null) {
       return CommonImageUploadTile(
-        imageFile: noticeController.noticeImageFile,
+        imageFile: studentController.noticeImageFile,
         onImageRemove: () {
-          noticeController.noticeImageFile.value = null;
-          noticeController.initialNoticeImageUrl = "";
-          noticeController.docUploadName.value = "";
+          studentController.noticeImageFile.value = null;
+          studentController.initialNoticeImageUrl = "";
+          studentController.docUploadName.value = "";
 
           _runValidation();
           setState(() {});
@@ -214,13 +216,13 @@ class _AcademicCalenderFormScreenState
       );
     }
     // If no local file but we have a NETWORK image from API
-    else if (noticeController.initialNoticeImageUrl.isNotEmpty) {
+    else if (studentController.initialNoticeImageUrl.isNotEmpty) {
       return Stack(
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: Image.network(
-              noticeController.initialNoticeImageUrl,
+              studentController.initialNoticeImageUrl,
               height: 150,
               width: double.infinity,
               fit: BoxFit.cover,
@@ -235,10 +237,10 @@ class _AcademicCalenderFormScreenState
                 icon: const Icon(Icons.delete, color: Colors.white),
                 onPressed: () {
                   // Clear initial URL to show "Change" happened
-                  noticeController.noticeImageFile.value = null;
+                  studentController.noticeImageFile.value = null;
 
-                  noticeController.initialNoticeImageUrl = "";
-                  noticeController.docUploadName.value = "";
+                  studentController.initialNoticeImageUrl = "";
+                  studentController.docUploadName.value = "";
 
                   _runValidation();
                   setState(
@@ -257,38 +259,38 @@ class _AcademicCalenderFormScreenState
       onImageSelected: () async {
         final path = await CommonImageUploadTile.pickImage(context: context);
         if (path != null) {
-          noticeController.noticeImageFile.value = File(path);
-          noticeController.initialNoticeImageUrl = path;
-          noticeController.docUploadName.value = "photo";
+          studentController.noticeImageFile.value = File(path);
+          studentController.initialNoticeImageUrl = path;
+          studentController.docUploadName.value = "photo";
 
           _runValidation();
         }
       },
       onImageRemove: () {
         // Clear initial URL to show "Change" happened
-        noticeController.noticeImageFile.value = null;
+        studentController.noticeImageFile.value = null;
 
-        noticeController.initialNoticeImageUrl = "";
+        studentController.initialNoticeImageUrl = "";
         _runValidation();
         setState(() {}); //
       },
-      imageFile: noticeController.noticeImageFile,
+      imageFile: studentController.noticeImageFile,
     );
   }
 
 // Helper to trigger validation
   void _runValidation() {
     // 1. Run your standard validation (e.g., checking if description is empty)
-    noticeController.noticesNewsValidateForm(
-        noticeDescription: noticeController.notice_news_messageText.value ?? "",
-        uploadPhoto: noticeController.initialNoticeImageUrl);
+    studentController.noticesNewsValidateForm(
+        noticeDescription: studentController.notice_news_messageText.value ?? "",
+        uploadPhoto: studentController.initialNoticeImageUrl);
 
     // 2. If in edit mode, add the 'Has Changed' requirement
     if (widget.isEdit) {
-      bool changed = noticeController.hasChanges();
+      bool changed = studentController.hasChanges();
       // Update the controller's valid state based on both rules
-      noticeController.isFormValid.value =
-          noticeController.isFormValid.value && changed;
+      studentController.isFormValid.value =
+          studentController.isFormValid.value && changed;
     }
   }
 }
