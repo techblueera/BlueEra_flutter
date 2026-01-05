@@ -6,11 +6,14 @@ import 'package:BlueEra/features/me/hospital/view/widget/add_hospital_service.da
 import 'package:BlueEra/features/me/hospital/view/widget/general_medicine.dart';
 import 'package:BlueEra/features/me/laboratory/view/widgets/add_lab_services.dart';
 import 'package:BlueEra/features/me/medical/view/widget/add_medical_service.dart';
+import 'package:BlueEra/features/me/widget/no_product_profile.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../core/constants/app_constant.dart';
 import '../../../../widgets/common_search_bar.dart';
+import '../../auth/controller/hospital_model_controller.dart';
 import '../../medical/view/widget/otc_items.dart';
 
 
@@ -26,13 +29,18 @@ class HospitalMain extends StatefulWidget {
 class _HospitalMainState extends State<HospitalMain>
     with SingleTickerProviderStateMixin, RouteAware {
   late TabController _tabController;
+  final controller = getOrPutController<HospitalModelController>(
+        () => HospitalModelController(),
+  );
+
 
 
 
   @override
   void initState() {
 
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
+    controller.fetchHospitalCategoryData(MedicalStoreType.hospital);
 
     super.initState();
   }
@@ -101,13 +109,15 @@ class _HospitalMainState extends State<HospitalMain>
                 indicatorSize: TabBarIndicatorSize.tab,
                 labelStyle: const TextStyle(fontWeight: FontWeight.w600),
                 tabs: [
-                  Tab(text: "OPD"),
+                  Tab(text: "Home"),
+                  Tab(text: "Updates"),
                   Tab(text: "Statics"),
                 ],
               ),
               Expanded(child: TabBarView(
                 controller: _tabController,
                 children: [
+                  NoProfileDetailsFound(content: "You Have not Upload Hospital Details"),
                   CategoryListView(),
                   const Center(child: CustomText(AppStrings.comingSoon)),
                 ],

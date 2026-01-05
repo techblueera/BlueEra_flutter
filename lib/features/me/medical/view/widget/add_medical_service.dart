@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -11,7 +13,6 @@ import '../../../../../core/constants/app_constant.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 import '../../../auth/controller/medical_model_controller.dart';
 import '../../../laboratory/view/widgets/me_menu_card_design.dart';
-import '../category/otc_items_page.dart';
 class AddMedicalService extends StatefulWidget {
   const AddMedicalService({super.key});
 
@@ -22,13 +23,7 @@ class _AddMedicalServiceState extends State<AddMedicalService> {
   final controller = getOrPutController<MedicalModelController>(
         () => MedicalModelController(),
   );
-  final Map<String, Widget Function()> servicePages = {
-    "OTC Items": () => OTCItemsPage(),
-    "Herbal/Ayurved": () => OTCItemsPage(),
-    "Patanjali Product": () => OTCItemsPage(),
-    "General Medical Instruments": () => OTCItemsPage(),
-    "General Medicines": () => OTCItemsPage(),
-  };
+
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +42,8 @@ class _AddMedicalServiceState extends State<AddMedicalService> {
               onTap: () {
                 Get.toNamed(RouteHelper.getMedicalOtcItemsScreen(),
                 arguments: {
-                  ApiKeys.medicalOtcChildren:title.children
+                  ApiKeys.title:title.name,
+                  ApiKeys.categoryId:title.id
                 });
               },
               child: MeMenuCardDesign(

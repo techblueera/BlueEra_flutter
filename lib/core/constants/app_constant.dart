@@ -252,6 +252,10 @@ class DocumentKeys {
   static const msmeCertificate = "msmeCertificate";
   static const shopActCertificate  = "shopActCertificate"; // Removed trailing space
 }
+class MedicalStoreType {
+  static const pharmacy = "PHARMACY";
+  static const hospital = "HOSPITAL";
+}
 
 ///IS GUEST USER...
 bool isGuestUser() => (accountTypeGlobal.toUpperCase() == AppConstants.guest);

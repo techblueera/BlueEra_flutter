@@ -4,23 +4,6 @@ import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
-class DoctorItem {
-  final String name;
-  final String qualification;
-  final String specialty;
-  final String timing;
-  final String fees;
-  final String image;
-
-  DoctorItem({
-    required this.name,
-    required this.qualification,
-    required this.specialty,
-    required this.timing,
-    required this.fees,
-    required this.image,
-  });
-}
 
 class DoctorListCard extends StatelessWidget {
   final DoctorItem item;
@@ -189,6 +172,24 @@ class DoctorListCard extends StatelessWidget {
     );
   }
 }
+class DoctorItem {
+  final String name;
+  final String qualification;
+  final String specialty;
+  final String timing;
+  final String fees;
+  final String image;
+
+  DoctorItem({
+    required this.name,
+    required this.qualification,
+    required this.specialty,
+    required this.timing,
+    required this.fees,
+    required this.image,
+  });
+}
+
 class DoctorListView extends StatelessWidget {
   DoctorListView({super.key});
 

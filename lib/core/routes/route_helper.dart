@@ -120,6 +120,8 @@ import '../../features/chat/contacts/view/contact_list_page.dart';
 import '../../features/common/store/add_update_product/add_update_product_screen.dart';
 import '../../features/common/store/models/get_channel_product_model.dart';
 import '../../features/me/auth/model/medical_lab_details.dart';
+import '../../features/me/hospital/view/category/opd_out_patient_page.dart';
+import '../../features/me/hospital/view/widget/general_medicine.dart';
 import '../../features/me/medical/view/category/otc_items_page.dart';
 import '../../features/personal/personal_profile/view/booking_enquiries_screen/appointment_booking_form.dart';
 import '../../features/personal/personal_profile/view/booking_enquiries_screen/bookings_enquiries.dart';
@@ -455,6 +457,10 @@ class RouteHelper {
 
   static String getMedicalOtcItemsScreen() =>
       RouteConstant.medicalOtcItemsScreen;
+  static String getHospitalOptCategory() =>
+      RouteConstant.hospitalOptCategory;
+  static String getHospitalDoctorViewCategory() =>
+      RouteConstant.hospitalDoctorViewCategory;
 
   static String getRiderStoreScreenRoute() =>
       RouteConstant.riderStoreScreen;
@@ -1406,10 +1412,12 @@ class RouteHelper {
 
         case RouteConstant.medicalOtcItemsScreen:
           final args = settings.arguments as Map<String, dynamic>;
-          List<MedicalLabDataListModel>? children=args[ApiKeys.medicalOtcChildren] as List<MedicalLabDataListModel>?;
+          String title  =args[ApiKeys.title] as String;
+          String categoryId= args[ApiKeys.categoryId] as String;
           return MaterialPageRoute(
               builder: (_) => OTCItemsPage(
-                  children: children
+                  categoryId: categoryId,
+                  title: title
               ),
               settings: RouteSettings(name: getMedicalOtcItemsScreen())
           );
@@ -1423,6 +1431,28 @@ class RouteHelper {
         return MaterialPageRoute(
             builder: (_) => GroceryConfirmScreen(),
             settings: RouteSettings(name: getGroceryConfirmScreenRoute())
+        );
+      case RouteConstant.hospitalOptCategory:
+        final args = settings.arguments as Map<String, dynamic>;
+        List<MedicalLabDataListModel>? children=args[ApiKeys.medicalOtcChildren] as List<MedicalLabDataListModel>?;
+        String categoryId= args[ApiKeys.categoryId] as String;
+        String title= args[ApiKeys.title] as String;
+        return MaterialPageRoute(
+            builder: (_) => OpdOutPatientPage(
+              title: title,
+              categoryId: categoryId,
+              children:children??[],
+            ),
+            settings: RouteSettings(name: getHospitalOptCategory())
+        );
+      case RouteConstant.hospitalDoctorViewCategory:
+        // final args = settings.arguments as Map<String, dynamic>;
+        // List<MedicalLabDataListModel>? children=args[ApiKeys.medicalOtcChildren] as List<MedicalLabDataListModel>?;
+        // String categoryId= args[ApiKeys.categoryId] as String;
+        return MaterialPageRoute(
+            builder: (_) => DoctorListView(
+            ),
+            settings: RouteSettings(name: getHospitalDoctorViewCategory())
         );
       default:
         return MaterialPageRoute(

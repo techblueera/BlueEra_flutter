@@ -11,5 +11,12 @@ class MedicalRepo extends BaseService {
    onError: (error) {}, onSuccess: (data) {});
     return response;
   }
+  Future<ResponseModel> fetchMedicalAdminProduct(String endPoint) async {
+    final response = await ApiBaseHelper().getHTTP(
+        getMedicalAdminProduct(endPoint),
+        showProgress: false,
+   onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
 
 }
