@@ -1,15 +1,15 @@
 import 'dart:io';
-import 'package:BlueEra/features/me/school/controller/academic_calender_controller.dart';
+
 import 'package:BlueEra/features/me/school/controller/student_corder_controller.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-class PdfPickerController extends GetxController {
+class StudentPdfPickerController extends GetxController {
   // Observables
   var selectedFile = Rxn<File>();
   var isPicking = false.obs;
-  final academicCalenderController = Get.find<AcademicCalenderController>();
+  final academicCalenderController = Get.find<StudentCornerController>();
 
   Future<void> pickSinglePdf() async {
     try {

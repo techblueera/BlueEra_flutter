@@ -20,6 +20,8 @@ import 'package:BlueEra/features/common/more/controller/more_cards_screen_contro
 import 'package:BlueEra/features/common/reel/models/channel_model.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/common/store/view/new_store/new_store_screen2.dart';
+import 'package:BlueEra/features/me/medical/view/medical_main.dart';
+import 'package:BlueEra/features/me/school/view/school_main.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/rider_service_screen.dart';
@@ -365,12 +367,12 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   }
 
   Widget getHomeScreen() {
-    // if (isGuestUser()) return GuestDashBoardScreen();
-    // if (isBusinessUser()) return resolveBusinessScreen();
-    // if (isIndividualUser()) return resolveIndividualScreen();
-    //
-    // // Fallback (required)
-    // return PersonalProfileSetupNewScreen();
+    if (isGuestUser()) return GuestDashBoardScreen();
+    if (isBusinessUser()) return resolveBusinessScreen();
+    if (isIndividualUser()) return resolveIndividualScreen();
+
+    // Fallback (required)
+    return PersonalProfileSetupNewScreen();
     return MedicalMain();
   }
 

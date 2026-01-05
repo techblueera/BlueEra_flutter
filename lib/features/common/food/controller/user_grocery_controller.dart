@@ -204,7 +204,8 @@ class UserGroceryController extends GetxController{
 
       // log('current tab key-- $currentTabKey');
       Map<String, dynamic> queryParams = {
-        ApiKeys.pincode: postalCode,
+        // ApiKeys.pincode: postalCode,
+        ApiKeys.pincode: "342003",
         ApiKeys.key: currentTabKey,
         ApiKeys.page: userGroceryPage,
         ApiKeys.limit: pageLimit

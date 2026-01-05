@@ -16,6 +16,13 @@ import '../../../auth/controller/medical_model_controller.dart';
 import '../../../laboratory/model/lab_content_list_view_model.dart';
 import '../widget/all_medical_product_list.dart';
 import '../widget/selected_medical_product_prev.dart';
+T getOrPutController<T>(T Function() builder, {String? tag}) {
+  if (Get.isRegistered<T>(tag: tag)) {
+    return Get.find<T>(tag: tag);
+  } else {
+    return Get.put<T>(builder(), tag: tag);
+  }
+}
 
 class OTCItemsPage extends StatefulWidget {
   const OTCItemsPage({

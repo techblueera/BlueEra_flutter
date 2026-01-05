@@ -335,9 +335,20 @@ class SchoolRepo extends BaseService {
   }
 
   ///UPDATE STUDENT CORNER SPECIFIC DETAILS REPO....
-  Future<ResponseModel> updateStudentCornerRepo({required String studentCornerId,required String studentCornerType,required int cornerIndex}) async {
+  Future<ResponseModel> updateStudentCornerRepo({required String studentCornerId,required String studentCornerType,required int cornerIndex,required Map<String,dynamic> reqParm}) async {
     final response = await ApiBaseHelper().putHTTP(
         "${educationServiceStudentCorner}/$studentCornerId/$studentCornerType/$cornerIndex",
+        params: reqParm,
+        onError: (error) {},
+        onSuccess: (data) {});
+    return response;
+  }
+
+  ///educationServiceFaculty  REPO....
+  Future<ResponseModel> addFacultyRepo({required Map<String,dynamic> reqParm}) async {
+    final response = await ApiBaseHelper().postHTTP(
+        "${educationServiceFaculty}",
+        params: reqParm,
         onError: (error) {},
         onSuccess: (data) {});
     return response;

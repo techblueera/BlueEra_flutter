@@ -34,6 +34,7 @@ class _FacultyFormScreenState extends State<FacultyFormScreen> {
       name: nameController.text,
       email: emailController.text,
       phone: phoneController.text,
+      posController: posController.text,
     );
   }
 
@@ -52,6 +53,13 @@ class _FacultyFormScreenState extends State<FacultyFormScreen> {
                 textEditController: nameController,
                 title: "Full Name",
                 hintText: "Dr. John Smith",
+                onChange: (_) => _triggerValidation(),
+              ),
+              SizedBox(height: 12),
+              CommonTextField(
+                textEditController: posController,
+                title: "Position",
+                hintText: "Manager",
                 onChange: (_) => _triggerValidation(),
               ),
               SizedBox(height: 12),
