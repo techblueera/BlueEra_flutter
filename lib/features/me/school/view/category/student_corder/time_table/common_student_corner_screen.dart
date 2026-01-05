@@ -1,6 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/model/academic_calender_res_model.dart';
-import 'package:BlueEra/core/api/model/notice_news_model.dart';
+import 'package:BlueEra/core/api/model/student_corner_res_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -8,42 +8,39 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/me/school/controller/academic_calender_controller.dart';
-import 'package:BlueEra/features/me/school/controller/notice_news_controller.dart';
+import 'package:BlueEra/features/me/school/controller/student_corder_controller.dart';
 import 'package:BlueEra/features/me/school/view/category/acadamics/academic_calender_form_screen.dart';
 import 'package:BlueEra/features/me/school/view/category/acadamics/full_screen_pdf_view_screen.dart';
-import 'package:BlueEra/features/me/school/view/category/school_notice_and_news.dart';
+import 'package:BlueEra/features/me/school/view/category/student_corder/common_student_corner_form_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
-import 'package:BlueEra/widgets/webview_common.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 
-class AcademicCalenderScreen extends StatefulWidget {
-  const AcademicCalenderScreen({super.key});
+class CommonStudentCornerScreen extends StatefulWidget {
+  const CommonStudentCornerScreen(
+      {super.key, required this.title, required this.screenName});
+
+  final String title;
+  final String screenName;
 
   @override
-  State<AcademicCalenderScreen> createState() => _AcademicCalenderScreenState();
+  State<CommonStudentCornerScreen> createState() =>
+      _CommonStudentCornerScreenState();
 }
 
-class _AcademicCalenderScreenState extends State<AcademicCalenderScreen> {
-  final academicCalenderController = Get.put(AcademicCalenderController());
-
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-    academicCalenderController.getSchoolNoticeNewsController();
-  }
+class _CommonStudentCornerScreenState extends State<CommonStudentCornerScreen> {
+  final studentCornerController = Get.put(StudentCornerController());
+  List<StudentCornerItem> dataList = [];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Academic Calender",
+        title: widget.title,
       ),
       bottomNavigationBar: SafeArea(
         child: Padding(
@@ -54,26 +51,36 @@ class _AcademicCalenderScreenState extends State<AcademicCalenderScreen> {
               textColor: AppColors.primaryColor,
               borderColor: AppColors.primaryColor,
               onTap: () {
-                Get.to(AcademicCalenderFormScreen());
+                // Get.to(CommonStudentCornerFormScreen());
               },
-              title: "Add Academic Calender"),
+              title: "Add ${widget.title}"),
         ),
       ),
       body: SafeArea(
         child: Obx(() {
-          if (academicCalenderController
-                  .getAcademicCalenderResponse.value.status ==
+          if (studentCornerController.getStudentCornerResponse.value.status ==
               Status.ERROR) {
             return CustomText(AppStrings.somethingWentWrong);
           }
-          if (academicCalenderController
-                  .getAcademicCalenderResponse.value.status ==
+          if (studentCornerController.getStudentCornerResponse.value.status ==
               Status.COMPLETE) {
-            if (academicCalenderController.noticeNewsDataList.isNotEmpty) {
+            dataList = <StudentCornerItem>[].obs;
+
+            if (widget.screenName == timeTable) {
+              dataList.assignAll(studentCornerController.timeTableList);
+            } else if (widget.screenName == syllabus) {
+              dataList.assignAll(studentCornerController.syllabusList);
+            } else if (widget.screenName == examSchedule) {
+              dataList.assignAll(studentCornerController.examScheduleList);
+            } else if (widget.screenName == results) {
+              dataList.assignAll(studentCornerController.resultsList);
+            } else if (widget.screenName == downloads) {
+              dataList.assignAll(studentCornerController.downloadsList);
+            }
+            if (dataList.isNotEmpty) {
               return ListView.builder(
                 itemBuilder: (context, index) {
-                  AcademicCalenderData data =
-                      academicCalenderController.noticeNewsDataList[index];
+                  StudentCornerItem data = dataList[index];
                   return CustomFormCard(
                     margin: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                     child: Column(
@@ -136,10 +143,10 @@ class _AcademicCalenderScreenState extends State<AcademicCalenderScreen> {
                     ),
                   );
                 },
-                itemCount: academicCalenderController.noticeNewsDataList.length,
+                itemCount: dataList.length,
               );
             }
-            return Center(child: CustomText("Academic Calender Not Found"));
+            return Center(child: CustomText("${widget.title} Not Found"));
           }
           return SizedBox();
         }),
@@ -181,10 +188,12 @@ class _AcademicCalenderScreenState extends State<AcademicCalenderScreen> {
                 await showCommonDialog(
                     context: context,
                     text:
-                        'Are you sure you want to delete this academic calender?',
+                        'Are you sure you want to delete this data?',
                     confirmCallback: () async {
-                      await academicCalenderController
-                          .deleteSchoolNoticeNewsController(noticeId: noticeID);
+                      await studentCornerController
+                          .deleteSchoolCornerItemController(
+                              studentCornerTYPE: widget.screenName,
+                              cornerINDEX: noticeIndex);
                     },
                     cancelCallback: () {
                       Navigator.of(context).pop(); // Close the dialog
@@ -192,12 +201,11 @@ class _AcademicCalenderScreenState extends State<AcademicCalenderScreen> {
                     confirmText: AppStrings.yes,
                     cancelText: AppStrings.no);
               }, onNoticeNewsEdit: () {
-                AcademicCalenderData data =
-                    academicCalenderController.noticeNewsDataList[noticeIndex];
-                Get.to(AcademicCalenderFormScreen(
-                  isEdit: true,
-                  newsData: data,
-                ));
+                StudentCornerItem data = dataList[noticeIndex];
+                // Get.to(CommonStudentCornerFormScreen(
+                //   isEdit: true,
+                //   studentItem: data,
+                // ));
               })
             : SizedBox(
                 width: 10,

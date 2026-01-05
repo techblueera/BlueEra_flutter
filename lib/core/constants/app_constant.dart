@@ -2530,3 +2530,20 @@ List<PopupMenuEntry<String>> popupSchoolDepartmentMenuItems() {
 
   return entries;
 }
+extension UrlTypeChecker on String {
+  bool get isPdf => lowerCase.endsWith('.pdf');
+
+  bool get isImageUrl {
+    final extensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'];
+    return extensions.any((ext) => lowerCase.endsWith(ext));
+  }
+
+  String get lowerCase => this.toLowerCase();
+}
+
+
+ const timeTable="timeTable";
+ const syllabus="syllabus";
+ const examSchedule="examSchedule";
+ const results="results";
+ const downloads="downloads";

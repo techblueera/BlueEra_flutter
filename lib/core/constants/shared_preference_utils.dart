@@ -44,6 +44,7 @@ String businessTypeGlobal = '';
 String isRiderServiceOpt = '';
 String isEarnServiceOpt = '';
 String schoolIDGlobal = '';
+// String schoolIDGlobal = '6954c5337ca7a9670dc99129';
 
 class SharedPreferenceUtils {
   static const FlutterSecureStorage _secureStorage = FlutterSecureStorage(
