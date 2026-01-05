@@ -3,12 +3,16 @@ import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
+import '../../../../../core/routes/route_helper.dart';
+import '../../../auth/model/medical_lab_details.dart';
 import '../../../laboratory/view/widgets/me_menu_card_design.dart';
 import '../widget/general_medicine.dart';
 
 class OpdOutPatientPage extends StatefulWidget {
-  const OpdOutPatientPage({super.key});
-
+  const OpdOutPatientPage({super.key,required this.children, required this.categoryId, required this.title});
+  final List<MedicalLabDataListModel> children;
+  final String categoryId;
+  final String title;
   @override
   State<OpdOutPatientPage> createState() => _OpdOutPatientPageState();
 }
@@ -32,23 +36,21 @@ class _OpdOutPatientPageState extends State<OpdOutPatientPage> {
       appBar: CommonBackAppBar(
         showRightTextButton: true,
         isShowMoreInfoIcon: true,
-        title: "OPD (Out-Patient Departments)",
+        title: widget.title,
         isShadowShow: false,
       ),
       body: Column(
         children: [
           SizedBox(height: 12),
-          ...opdPages.keys.map((title) {
+          ...widget.children.map((title) {
             return InkWell(
               onTap: () {
-                final pageBuilder = opdPages[title];
-                if (pageBuilder != null) {
-                  Get.to(pageBuilder);
-                }
+                Get.toNamed(RouteHelper.getHospitalDoctorViewCategory(),
+                );
               },
-              child: MeMenuCardDesign(count: "2",
-                showCount: title=="General Medicine",
-                title: title,
+              child: MeMenuCardDesign(
+                showToggleButton: true,
+                title: title.name??'',
                 icon: 'assets/icons/service_icon.svg',
               ),
             );

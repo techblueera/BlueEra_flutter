@@ -1,6 +1,7 @@
 class MedicalLabDataListModel {
   final String? moduleCode;
   final String? name;
+  final String? id;
   final String? key;
   final String? type;
   final String? description;
@@ -13,6 +14,7 @@ class MedicalLabDataListModel {
     this.moduleCode,
     this.name,
     this.key,
+    this.id,
     this.type,
     this.description,
     this.order,
@@ -25,6 +27,7 @@ class MedicalLabDataListModel {
     return MedicalLabDataListModel(
       moduleCode: json['moduleCode'],
       name: json['name'],
+      id: json['_id'],
       key: json['key'],
       type: json['type'],
       description: json['description'],
@@ -45,6 +48,7 @@ class MedicalLabDataListModel {
       'moduleCode': moduleCode,
       'name': name,
       'key': key,
+      'id': id,
       'type': type,
       'description': description,
       'order': order,

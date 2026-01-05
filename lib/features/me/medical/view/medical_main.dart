@@ -12,6 +12,7 @@ import 'package:get/get.dart';
 import '../../../../core/constants/app_constant.dart';
 import '../../../../widgets/common_search_bar.dart';
 import '../../auth/controller/medical_model_controller.dart';
+import '../../widget/no_product_profile.dart';
 
 class MedicalMain extends StatefulWidget {
 
@@ -32,7 +33,7 @@ class _MedicalMainState extends State<MedicalMain>
 
   @override
   void initState() {
-    controller.fetchMedicalCategoryData('PHARMACY');
+    controller.fetchMedicalCategoryData(MedicalStoreType.pharmacy);
     _tabController = TabController(length: 2, vsync: this);
 
     super.initState();
@@ -109,8 +110,8 @@ class _MedicalMainState extends State<MedicalMain>
               Expanded(child: TabBarView(
                 controller: _tabController,
                 children: [
-                  CategoryListView(),
-                  const Center(child: CustomText(AppStrings.comingSoon)),
+                  NoProfileDetailsFound(content: "No OTC Items Found",),
+                  NoProfileDetailsFound(content: "No Statics Items Found",),
                 ],
               ))
             ],

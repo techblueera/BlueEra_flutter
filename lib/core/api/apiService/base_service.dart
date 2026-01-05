@@ -538,7 +538,8 @@ abstract class BaseService {
   String getAllSymbolOneUser(String orderId) => "chat-service/symbols/user/$orderId";
   String deleteSymbolApi(String symbolId) => "chat-service/symbols/$symbolId";
   final String groceryCategoryWithVariant = 'grocery-service/api/categories/with-inventory';
-  String getMedicalCategoryApi(String orderId) => "api/modules/tree/module/$orderId";
+  String getMedicalCategoryApi(String orderId) => "health-service/api/modules/tree/$orderId";
+  String getMedicalAdminProduct(String orderId) => "health-service/api/offerings/category/$orderId";
   final String updateLiveLocation = 'map-service/api/provider/location';
 
   final String documents = 'document-service/documents';
