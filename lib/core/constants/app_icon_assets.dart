@@ -476,17 +476,6 @@ class AppIconAssets {
   static String logisticTransportationIcon = "${iconPath}logistic_transportation_icon.svg";
   static String celebrationEventIcon = "${iconPath}celebration_event_icon.svg";
   static String financialIcon = "${iconPath}financial_icon.svg";
-  static String furnitureHomeDecorIcon = "${iconPath}furniture_home_decor_icon.svg";
-  static String sportsFitnessStoreIcon = "${iconPath}sports_fitness_store_icon.svg";
-  static String jewelleryLuxuryStoreIcon = "${iconPath}jewellery_luxury_store_icon.svg";
-  static String automotiveStoreIcon = "${iconPath}automotive_store_icon.svg";
-  static String booksStationaryGiftsIcon = "${iconPath}books_stationary_gifts_icon.svg";
-  static String pharmacyMedicalStoreIcon = "${iconPath}pharmacy_medical_store_icon.svg";
-  static String petSuppliesStoreIcon = "${iconPath}pet_supplies_store_icon.svg";
-  static String babyToysProductStoreIcon = "${iconPath}baby_toys_product_store_icon.svg";
-  static String electronicsApplianceStoreIcon = "${iconPath}electronics_appliance_store_icon.svg";
-  static String constructionHomeEsseIcon = "${iconPath}construction_home_esse_icon.svg";
-  static String fashionLifestyleIcon = "${iconPath}fashion_lifestyle_icon.svg";
   static String fastFoodQuickServiceIcon = "${iconPath}fast_food_quick_service_icon.svg";
   static String multiCuisineRestroIcon = "${iconPath}multi_cuisine_restro_icon.svg";
   static String groceryVegetableDairyIcon = "${iconPath}grocery_vegetable_dairy_icon.svg";

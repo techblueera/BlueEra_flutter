@@ -17,6 +17,7 @@ import 'package:BlueEra/features/common/auth/model/business_profile_category.dar
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
 import 'package:BlueEra/features/common/jobs/view/jobs_screen.dart';
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
+import 'package:BlueEra/features/common/store/view/new_discover/product_local_market_screen.dart';
 import 'package:BlueEra/features/common/store/view/new_discover/self_profession_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/create_profile_screen.dart';
@@ -361,7 +362,9 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                         labelBuilder: (c) => c.name,
                         iconBuilder: (c) => c.icon,
                         onTap: (c) {
-
+                          Get.to(()=> ProductLocalMarketScreen(
+                            businessProductsCategories: businessProductsCategories,
+                          ));
                         },
                       )
                     ],
@@ -507,7 +510,9 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                       labelBuilder: (c) => c.name,
                       iconBuilder: (c) => c.icon,
                       onTap: (c) {
-
+                        // Get.to(()=> ProductLocalMarketScreen(
+                        //     businessProductsCategories: selfWorkServiceList,
+                        // ));
                       },
                     )
                   ],
@@ -752,8 +757,8 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
           children: [
             LocalAssets(
               imagePath: icon,
-              height: size * 0.25,
-              width: size * 0.25,
+              height: size * 0.3,
+              width: size * 0.3,
           ),
             SizedBox(height: SizeConfig.size3),
             CustomText(

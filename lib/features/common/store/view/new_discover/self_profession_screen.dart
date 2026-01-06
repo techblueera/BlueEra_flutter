@@ -41,6 +41,7 @@ class _SelfProfessionScreenState extends State<SelfProfessionScreen> {
   final controller = getOrPut(() => SelfProfessionController());
   ScrollController scrollController = ScrollController();
 
+  @override
   initState(){
     super.initState();
     selfEmployedCategories = widget.selfEmployedCategories;

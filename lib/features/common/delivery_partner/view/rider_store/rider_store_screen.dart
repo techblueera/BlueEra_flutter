@@ -356,6 +356,7 @@ class _RiderStoreScreenState extends State<RiderStoreScreen> {
     return InkWell(
       onTap: onTap,
       child: Container(
+        padding: EdgeInsets.all(SizeConfig.size5),
         decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.circular(10.0),
@@ -381,7 +382,11 @@ class _RiderStoreScreenState extends State<RiderStoreScreen> {
                 label,
                 fontSize: SizeConfig.extraSmall,
                 color: AppColors.secondaryTextColor,
-                fontWeight: FontWeight.w400),
+                fontWeight: FontWeight.w400,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+            ),
 
           ],
         ),

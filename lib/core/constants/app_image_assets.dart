@@ -38,6 +38,20 @@ class AppImageAssets {
   static String roadsideViewImage = "${imgPath}roadside_view_image.png";
 
   static String noMeContent = "${imgPath}no_me_content.png";
+  static String sampleGirlImage = "${imgPath}sample_girl_image.png";
+
+  /// Business products images
+  static String furnitureHomeDecorIcon = "${imgPath}furniture_home_decor_icon.png";
+  static String sportsFitnessStoreIcon = "${imgPath}sports_fitness_store_icon.png";
+  static String jewelleryLuxuryStoreIcon = "${imgPath}jewellery_luxury_store_icon.png";
+  static String automotiveStoreIcon = "${imgPath}automotive_store_icon.png";
+  static String booksStationaryGiftsIcon = "${imgPath}books_stationary_gifts_icon.png";
+  static String pharmacyMedicalStoreIcon = "${imgPath}pharmacy_medical_store_icon.png";
+  static String petSuppliesStoreIcon = "${imgPath}pet_supplies_store_icon.png";
+  static String babyToysProductStoreIcon = "${imgPath}baby_toys_product_store_icon.png";
+  static String electronicsApplianceStoreIcon = "${imgPath}electronics_appliance_store_icon.png";
+  static String constructionHomeEsseIcon = "${imgPath}construction_home_esse_icon.png";
+  static String fashionLifestyleIcon = "${imgPath}fashion_lifestyle_icon.png";
 
 }
 
