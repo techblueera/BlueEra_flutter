@@ -356,7 +356,7 @@ class _InventoryScreenState extends State<InventoryScreen>
             child: CommonSearchBar(
                 controller: searchController,
                 onClearCallback: ()=> searchController.clear(),
-                hintText: AppStrings.searchHintText),
+           ),
           ),
         ),
         PopupMenuButton<String>(
