@@ -14,6 +14,7 @@ class FacultyController extends GetxController {
   var qualifications = <String>[].obs;
   var researchInterests = <String>[].obs;
   var publications = <Map<String, dynamic>>[].obs;
+  RxString faculty_short_bio_text = ''.obs;
 
   void validateFacultyForm({
     required String name,

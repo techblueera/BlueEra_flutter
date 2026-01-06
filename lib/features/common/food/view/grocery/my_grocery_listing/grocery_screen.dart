@@ -126,7 +126,7 @@ class _GroceryScreenState extends State<GroceryScreen> with SingleTickerProvider
             child: CommonSearchBar(
                 controller: searchController,
                 onClearCallback: ()=> searchController.clear(),
-                hintText: AppStrings.searchHintText),
+               ),
           ),
         ),
         Padding(

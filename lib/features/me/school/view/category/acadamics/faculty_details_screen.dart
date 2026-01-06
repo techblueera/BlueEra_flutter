@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/school/controller/faculty_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -42,93 +43,120 @@ class _FacultyFormScreenState extends State<FacultyFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(title: "Add Faculty"),
-      body: CommonCardWidget(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildSectionTitle("Basic Information"),
-              CommonTextField(
-                textEditController: nameController,
-                title: "Full Name",
-                hintText: "Dr. John Smith",
-                onChange: (_) => _triggerValidation(),
-              ),
-              SizedBox(height: 12),
-              CommonTextField(
-                textEditController: posController,
-                title: "Position",
-                hintText: "Manager",
-                onChange: (_) => _triggerValidation(),
-              ),
-              SizedBox(height: 12),
-              CommonTextField(
-                textEditController: emailController,
-                title: "Email Address",
-                hintText: "john.smith@university.edu",
-                onChange: (_) => _triggerValidation(),
-              ),
-              SizedBox(height: 12),
-              CommonTextField(
-                textEditController: phoneController,
-                title: "Phone Number",
-                hintText: "+1234567890",
-                onChange: (_) => _triggerValidation(),
-              ),
-
-              _buildSectionTitle("Qualifications"),
-              _buildListInput(
-                hint: "Add Qualification (e.g. PhD)",
-                onAdd: (val) => controller.addQualification(val),
-                items: controller.qualifications,
-              ),
-
-              _buildSectionTitle("Experience"),
-              Row(
-                children: [
-                  Expanded(
-                    flex: 1,
-                    child: CommonTextField(
-                      textEditController: expYearsController,
-                      title: "Years",
-                      hintText: "10",
-                      onChange: (_) => _triggerValidation(),
-
+      body: SafeArea(
+        child: CommonCardWidget(
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildSectionTitle("Basic Information"),
+                CommonTextField(
+                  textEditController: nameController,
+                  title: "Full Name",
+                  hintText: "Dr. John Smith",
+                  onChange: (_) => _triggerValidation(),
+                ),
+                SizedBox(height: 12),
+                CommonTextField(
+                  textEditController: posController,
+                  title: "Position",
+                  hintText: "Manager",
+                  onChange: (_) => _triggerValidation(),
+                ),
+                SizedBox(height: 12),
+                CommonTextField(
+                  textEditController: emailController,
+                  title: "Email Address",
+                  hintText: "john.smith@university.edu",
+                  onChange: (_) => _triggerValidation(),
+                ),
+                SizedBox(height: 12),
+                CommonTextField(
+                  textEditController: phoneController,
+                  title: "Phone Number",
+                  hintText: "+1234567890",
+                  onChange: (_) => _triggerValidation(),
+                ),
+                SizedBox(height: 12),
+        
+                _buildSectionTitle("Qualifications"),
+                _buildListInput(
+                  hint: "Add Qualification (e.g. PhD)",
+                  onAdd: (val) => controller.addQualification(val),
+                  items: controller.qualifications,
+                ),
+                SizedBox(height: 12),
+        
+                _buildSectionTitle("Experience"),
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 1,
+                      child: CommonTextField(
+                        textEditController: expYearsController,
+                        title: "Years",
+                        hintText: "10",
+                        onChange: (_) => _triggerValidation(),
+        
+                      ),
                     ),
-                  ),
-                  SizedBox(width: 10),
-                  Expanded(
-                    flex: 3,
-                    child: CommonTextField(
-                      textEditController: expDetailsController,
-                      title: "Experience Details",
-                      hintText: "Details about research...",
-                      onChange: (_) => _triggerValidation(),
-
+                    SizedBox(width: 10),
+                    Expanded(
+                      flex: 3,
+                      child: CommonTextField(
+                        textEditController: expDetailsController,
+                        title: "Experience Details",
+                        hintText: "Details about research...",
+                        onChange: (_) => _triggerValidation(),
+        
+                      ),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
+                SizedBox(height: 12),
+        
+                _buildSectionTitle("Bio"),
+        
+                /// Apply Button
+                CommonTextField(
+                  textEditController: bioController,
+                  title: "Short Bio",
+                  hintText: "Experienced professor with expertise in AI...",
+                  maxLine: 5,
+                  maxLength: 500,
+                  isValidate: false,
+                  keyBoardType: TextInputType.multiline,
+                  textInputAction: TextInputAction.newline,
+                  onChange: (value) {
+                    String newVal =
+                    value.replaceAll(RegExp(r'\n{3,}'), '\n\n');
+                    controller.faculty_short_bio_text.value = newVal;
+                    _triggerValidation();
+                  },
+                ),
+                SizedBox(height: SizeConfig.size10),
+        
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Obx(() => CustomText(
+                    "${controller.faculty_short_bio_text.value.length}/500",
+                    color: Colors.grey,
+                    fontSize: 12,
+                  )),
+                ),
+                SizedBox(height: SizeConfig.size30),
+        
+                SizedBox(height: 30),
+                Obx(() => CustomBtn(
+                  isLoading: controller.isLoading.value,
+                  onTap: controller.isFormValid.value ? _submit : null,
+                  title: "Save Faculty Profile",
+                  isValidate: controller.isFormValid.value ,
+                )),
+                SizedBox(height: 50),
 
-              _buildSectionTitle("Bio"),
-              CommonTextField(
-                textEditController: bioController,
-                title: "Short Bio",
-                hintText: "Experienced professor with expertise in AI...",
-                maxLength: 200,
-                onChange: (_) => _triggerValidation(),
-
-              ),
-
-              SizedBox(height: 30),
-              Obx(() => CustomBtn(
-                isLoading: controller.isLoading.value,
-                onTap: controller.isFormValid.value ? _submit : null,
-                title: "Save Faculty Profile",
-                isValidate: controller.isFormValid.value ,
-              )),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -151,7 +179,7 @@ class _FacultyFormScreenState extends State<FacultyFormScreen> {
 
   Widget _buildSectionTitle(String title) {
     return Padding(
-      padding: const EdgeInsets.only(top: 20, bottom: 10),
+      padding: const EdgeInsets.only(top: 0, bottom: 10),
       child: CustomText(title, fontWeight: FontWeight.bold, fontSize: SizeConfig.large),
     );
   }
