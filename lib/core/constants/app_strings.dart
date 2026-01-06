@@ -1541,7 +1541,6 @@ class AppStrings {
   static const String noServicesFound = 'noServicesFound';
   static const String noFoodItemsFound = 'noFoodItemsFound';
 
-  static const String searchHintText = 'searchHintText';
 
   static const String pricingAndWarranty = 'pricingAndWarranty';
   static const String listedVariants = 'listedVariants';
