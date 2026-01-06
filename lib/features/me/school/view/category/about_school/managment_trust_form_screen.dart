@@ -78,17 +78,7 @@ class _ManagementTrustFormScreenState extends State<ManagementTrustFormScreen> {
               children: [
                 ///UPLOAD PROFILE....
                 _buildImageSection(),
-                // Center(
-                //   child: CommonProfileImage(
-                //     imagePath: schoolAboutUsController.managementProfile.value,
-                //     onImageUpdate: (image) {
-                //       schoolAboutUsController.managementProfile.value = image;
-                //       schoolAboutUsController.isImageUpdated.value = true;
-                //     },
-                //     dialogTitle: 'Upload Profile',
-                //     borderColor: AppColors.primaryColor,
-                //   ),
-                // ),
+
                 CommonTextField(
                   textEditController: nameEditController,
                   hintText: "E.g. Ramesh Gupta",
@@ -245,15 +235,7 @@ class _ManagementTrustFormScreenState extends State<ManagementTrustFormScreen> {
           borderColor: AppColors.primaryColor,
         ),
       );
-      return CommonImageUploadTile(
-        imageFile: schoolAboutUsController.managementProfileImageFile,
-        onImageRemove: () {
-          schoolAboutUsController.managementProfileImageFile.value = null;
-          _runValidation();
-        },
-        title: '',
-        context: context,
-      );
+
     }
     // If no local file but we have a NETWORK image from API
     else if (schoolAboutUsController
@@ -324,20 +306,7 @@ class _ManagementTrustFormScreenState extends State<ManagementTrustFormScreen> {
         borderColor: AppColors.primaryColor,
       ),
     );
-    // Default: Show Upload Placeholder
-    return CommonImageUploadTile(
-      title: "Upload Photo",
-      context: context,
-      onImageSelected: () async {
-        final path = await CommonImageUploadTile.pickImage(context: context);
-        if (path != null) {
-          schoolAboutUsController.managementProfileImageFile.value = File(path);
 
-          _runValidation();
-        }
-      },
-      imageFile: schoolAboutUsController.managementProfileImageFile,
-    );
   }
 
 // Helper to trigger validation

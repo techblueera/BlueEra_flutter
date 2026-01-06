@@ -10,9 +10,11 @@ class NetWorkOcToAssets extends StatelessWidget {
       this.height = 0,
       required this.imgUrl,
       this.boxFit,
+      this.customErrorImage,
       this.scale})
       : super(key: key);
   final String? imgUrl;
+  final String? customErrorImage;
   final BoxFit? boxFit;
   final double? scale;
   final double? height;
@@ -26,7 +28,7 @@ class NetWorkOcToAssets extends StatelessWidget {
       },
       errorBuilder: (context, error, stacktrace) => Center(
         child: LocalAssets(
-          imagePath: AppImageAssets.noImageFound,
+          imagePath: customErrorImage??AppImageAssets.noImageFound,
           boxFix: BoxFit.cover,
         ),
       ),

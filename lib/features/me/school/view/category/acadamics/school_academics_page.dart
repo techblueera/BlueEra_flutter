@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/school/view/category/acadamics/academic_calender_screen.dart';
 import 'package:BlueEra/features/me/school/view/category/acadamics/department_screen.dart';
 import 'package:BlueEra/features/me/school/view/category/acadamics/faculty_details_screen.dart';
+import 'package:BlueEra/features/me/school/view/category/acadamics/faculty_profile_list_screen.dart';
 import 'package:BlueEra/features/me/school/view/category/acadamics/widgets/acadamic_cours_and_programs.dart';
 import 'package:BlueEra/features/me/school/view/school_update_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -32,7 +33,7 @@ class _SchoolAcademicsPageState extends State<SchoolAcademicsPage> {
     ServiceMenuItem(
       title: "Faculty Details",
       icon:AppIconAssets.faculty_details,
-      page: () => FacultyFormScreen(),
+      page: () => FacultyProfileListScreen(),
     ),
     ServiceMenuItem(
       title: "Academic Calendar",
