@@ -56,13 +56,21 @@ class GroceryCategoryCard extends StatelessWidget {
                   color: AppColors.whiteFE,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(10),
-                    child: (category!=null && category.image!=null && category.image!.isNotEmpty) ? CustomImageSlideshow(
+                    child: (category != null &&
+                        category.products != null &&
+                        category.products!.isNotEmpty &&
+                        category.products![0].images != null &&
+                        category.products![0].images!.isNotEmpty &&
+                        category.products![0].images![0].url != null)
+                        ? CustomImageSlideshow(
                       isLoading: false,
                       height: SizeConfig.size130,
                       width: SizeConfig.size180,
-                      imagePaths: [category.image!],
-                      borderRadius: BorderRadius.horizontal(left: Radius.circular(10.0))
-                    ) : LocalAssets(
+                      imagePaths: [category.products![0].images![0].url!],
+                      borderRadius: BorderRadius.horizontal(left: Radius.circular(10.0)),
+                      boxFit: BoxFit.contain,
+                    )
+                        : LocalAssets(
                       imagePath: AppIconAssets.place_holder_image,
                       height: SizeConfig.size130,
                       width: SizeConfig.size180,

@@ -104,7 +104,7 @@ class _MyGroceryCategoryScreenState extends State<MyGroceryCategoryScreen> {
             final groceryProductsData = groceryList[index];
 
             return  GroceryCategoryCard(
-                groceryProductsData: groceryProductsData
+                groceryProductsData: groceryProductsData,
             );
           },
         );

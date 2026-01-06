@@ -1,4 +1,5 @@
 import 'package:BlueEra/features/common/food/model/grocery_product_model.dart';
+import 'package:BlueEra/features/common/food/model/images.dart';
 
 class MyGroceryProductsModel {
   List<MyGroceryProductsData>? data;
@@ -135,25 +136,6 @@ class Products {
     if (this.variants != null) {
       data['variants'] = this.variants!.map((v) => v.toJson()).toList();
     }
-    return data;
-  }
-}
-
-class Images {
-  String? url;
-  String? sId;
-
-  Images({this.url, this.sId});
-
-  Images.fromJson(Map<String, dynamic> json) {
-    url = json['url'];
-    sId = json['_id'];
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['url'] = this.url;
-    data['_id'] = this.sId;
     return data;
   }
 }

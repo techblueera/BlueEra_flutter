@@ -14,6 +14,7 @@ class CustomImageSlideshow extends StatefulWidget {
   final double width;
   final bool isLocal;
   final Color dotColor;
+  final BoxFit boxFit;
   final Color dotInactiveColor;
   final Duration autoPlayInterval;
   final BorderRadius? borderRadius;
@@ -27,6 +28,7 @@ class CustomImageSlideshow extends StatefulWidget {
       this.width = 100,
       this.isLocal = false,
       this.dotColor = AppColors.primaryColor,
+      this.boxFit = BoxFit.cover,
       this.dotInactiveColor = AppColors.whiteFE,
       this.autoPlayInterval = const Duration(seconds: 3),
       this.borderRadius,
@@ -117,7 +119,7 @@ class _CustomImageSlideshowState extends State<CustomImageSlideshow> {
                   ? Image.asset(imagePath, fit: BoxFit.cover)
                   : CachedNetworkImage(
                       imageUrl: imagePath,
-                      fit: BoxFit.cover,
+                      fit: widget.boxFit,
                       memCacheWidth: 600,
                       memCacheHeight: 600,
                       fadeInDuration: const Duration(milliseconds: 100),

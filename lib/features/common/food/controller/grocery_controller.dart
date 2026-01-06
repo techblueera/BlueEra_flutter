@@ -11,12 +11,12 @@ import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/food/model/children_of_grocery_category_response.dart';
 import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
 import 'package:BlueEra/features/common/food/model/grocery_product_model.dart';
+import 'package:BlueEra/features/common/food/model/images.dart';
 import 'package:BlueEra/features/common/food/model/my_grocery_products_reponse.dart';
 import 'package:BlueEra/features/common/food/model/my_grocery_super_category_model.dart';
 import 'package:BlueEra/features/common/food/repo/grocery_repo.dart';
 import 'package:BlueEra/features/common/food/view/grocery/edit_grocery_varient_dialog.dart';
 import 'package:BlueEra/features/common/food/view/grocery/grocery_varient_dialog.dart';
-import 'package:BlueEra/features/common/food/view/grocery/widget/grocery_constant.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -1282,7 +1282,7 @@ class GroceryController extends GetxController {
       Map<String, dynamic> params = {
         ApiKeys.page: myGroceryDataPage,
         ApiKeys.limit: pageLimit,
-        ApiKeys.categoryId: categoryId
+        'categoryId': categoryId
       };
 
       ResponseModel responseModel = await GroceryRepo().fetchMyGroceryProductsRepo(queryParam: params);
@@ -1307,7 +1307,6 @@ class GroceryController extends GetxController {
             );
           }
 
-
           myGroceryDataPage++;
         } else {
           myGroceryDataHasMore = false;
@@ -1331,24 +1330,84 @@ class GroceryController extends GetxController {
     }
   }
 
+  /// if variant  has image then it will work
+  // void extractAllVariantsFromResponse(
+  //     List<MyGroceryProductsData> groceryProductData,
+  //     {bool isLoadMore = false}
+  //     ) {
+  //   if (!isLoadMore) {
+  //     myGroceryProductsVariantsList.clear();
+  //   }
+  //
+  //   for (final data in groceryProductData) {
+  //     final category = data.category;
+  //     if (category == null) continue;
+  //
+  //     final products = category.products ?? [];
+  //     for (final product in products) {
+  //       final variants = product.variants ?? [];
+  //       myGroceryProductsVariantsList.addAll(variants);
+  //     }
+  //   }
+  // }
+
+  /// if variant not has image then we need to fetch from product image and we will overwrite variant image (current scenario)
   void extractAllVariantsFromResponse(
-      List<MyGroceryProductsData> groceryProductData,
-      {bool isLoadMore = false}
-      ) {
+      List<MyGroceryProductsData> groceryProductData, {
+        bool isLoadMore = false,
+      }) {
+    debugPrint("📦 START: Extracting variants. isLoadMore: $isLoadMore");
+
     if (!isLoadMore) {
       myGroceryProductsVariantsList.clear();
+      debugPrint("🧹 Cleared existing variants list.");
     }
+
+    int variantsAddedCount = 0;
 
     for (final data in groceryProductData) {
       final category = data.category;
       if (category == null) continue;
 
       final products = category.products ?? [];
+      debugPrint("📂 Processing Category: ${category.name}, Found ${products.length} products.");
+
       for (final product in products) {
+        // 1. Safely extract the parent product's image
+        Images? productImage;
+        if (product.images != null && product.images!.isNotEmpty) {
+          productImage = product.images![0];
+        }
+
         final variants = product.variants ?? [];
-        myGroceryProductsVariantsList.addAll(variants);
+
+        // 2. Loop through variants to attach the image
+        for (final variant in variants) {
+          // Logic Fix: Initialize list if null, then ADD the image (don't access index 0)
+          bool appliedFallback = false;
+
+          if (productImage != null) {
+            if (variant.images == null) {
+              variant.images = [productImage]; // Initialize with parent image
+              appliedFallback = true;
+            } else if (variant.images!.isEmpty) {
+              variant.images!.add(productImage); // Add parent image to empty list
+              appliedFallback = true;
+            }
+          }
+
+          if (appliedFallback) {
+            debugPrint("   📎 Attached parent image to Variant ID: ${variant.sId}");
+          }
+
+          myGroceryProductsVariantsList.add(variant);
+          variantsAddedCount++;
+        }
       }
     }
+
+    debugPrint("✅ END: Total variants added in this batch: $variantsAddedCount");
+    debugPrint("📊 Total variants in list: ${myGroceryProductsVariantsList.length}");
   }
 
 

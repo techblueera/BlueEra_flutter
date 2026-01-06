@@ -9,6 +9,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:hive/hive.dart';
 import '../../../model/my_grocery_products_reponse.dart';
 
 class MyGroceryCard extends StatelessWidget {
@@ -37,7 +38,7 @@ class MyGroceryCard extends StatelessWidget {
         //   data: foodDetailsData ?? GetFoodDetailsModel(),
         // ));
       },
-      child: (isShowInGrid)  ? Container(
+      child: (isShowInGrid) ? Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
             color: AppColors.white,
@@ -57,6 +58,7 @@ class MyGroceryCard extends StatelessWidget {
                   height: SizeConfig.size150,
                   imagePaths: groceryProductsVariantItem.images!.map((i)=> i.url??'').toList(),
                   borderRadius: BorderRadius.zero,
+                  boxFit: BoxFit.contain,
                 )
                     : LocalAssets(
                   imagePath: AppIconAssets.place_holder_image,

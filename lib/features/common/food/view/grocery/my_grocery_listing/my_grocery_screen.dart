@@ -66,7 +66,7 @@ class _MyGroceryScreenState extends State<MyGroceryScreen> {
 
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: 'Grocery & Veg',
+
       ),
 
       body: SafeArea(
