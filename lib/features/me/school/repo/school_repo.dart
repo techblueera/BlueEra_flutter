@@ -353,4 +353,35 @@ class SchoolRepo extends BaseService {
         onSuccess: (data) {});
     return response;
   }
+
+  ///educationServiceFaculty  REPO....
+  Future<ResponseModel> editFacultyRepo({required Map<String,dynamic> reqParm,required String facultyId}) async {
+    final response = await ApiBaseHelper().putHTTP(
+        "${educationServiceFaculty}/$facultyId",
+        params: reqParm,
+        onError: (error) {},
+        onSuccess: (data) {});
+    return response;
+  }
+
+  ///GET ALL Faculty  REPO....
+  Future<ResponseModel> getAllFacultyRepo({required Map<String,dynamic> reqParm}) async {
+    final response = await ApiBaseHelper().getHTTP(
+        "${educationServiceFaculty}",
+        params: reqParm,
+        onError: (error) {},
+        onSuccess: (data) {});
+    return response;
+  }
+
+
+
+  ///DELETE FACULTY DETAILS REPO....
+  Future<ResponseModel> deleteFacultyRepo({required String facultyId,}) async {
+    final response = await ApiBaseHelper().deleteHTTP(
+        "${educationServiceFaculty}/$facultyId",
+        onError: (error) {},
+        onSuccess: (data) {});
+    return response;
+  }
 }

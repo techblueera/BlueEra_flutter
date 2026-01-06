@@ -10,18 +10,15 @@ import 'package:BlueEra/features/me/school/view/category/acadamics/school_academ
 import 'package:BlueEra/features/me/school/view/category/campus_life/school_compus_life.dart';
 import 'package:BlueEra/features/me/school/view/category/notice_news/notice_news_screen.dart';
 import 'package:BlueEra/features/me/school/view/category/school_contact_us/school_contact_us.dart';
-import 'package:BlueEra/features/me/school/view/category/school_gallery/school_gallery.dart';
-import 'package:BlueEra/features/me/school/view/category/school_notice_and_news.dart';
 import 'package:BlueEra/features/me/school/view/category/school_student_corner.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-
-
 class SchoolUpdateScreen extends StatelessWidget {
   SchoolUpdateScreen({super.key});
+
   final schoolAboutUsController = Get.put(SchoolAboutUsController());
 
   final aboutUsController = Get.put(SchoolController());
@@ -51,11 +48,6 @@ class SchoolUpdateScreen extends StatelessWidget {
       icon: AppIconAssets.notices_news,
       page: () => NoticeNewsScreen(),
       // page: () => SchoolNoticeAndNews(),
-    ),
-    ServiceMenuItem(
-      title: "Gallery",
-      icon: AppIconAssets.gallery_round,
-      page: () => SchoolGallery(),
     ),
     ServiceMenuItem(
       title: "Career / Jobs",
@@ -117,10 +109,17 @@ class SchoolUpdateScreen extends StatelessWidget {
     );
   }
 }
+
 class ComingSoon extends StatelessWidget {
   const ComingSoon({super.key});
 
   @override
   Widget build(BuildContext context) {
-  return Scaffold(appBar: CommonBackAppBar(title: "",),body: Center(child: CustomText("Coming soon...")),);  }
+    return Scaffold(
+      appBar: CommonBackAppBar(
+        title: "",
+      ),
+      body: Center(child: CustomText("Coming soon...")),
+    );
+  }
 }
