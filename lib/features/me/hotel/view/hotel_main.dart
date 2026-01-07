@@ -2,6 +2,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/me/hotel/view/add_hotel_service_screen.dart';
 import 'package:BlueEra/features/me/hotel/view/widget/add_hotel_service.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -61,7 +62,8 @@ class _HotelMainState extends State<HotelMain>
                     ),
                     InkWell(
                       onTap: () {
-                        Get.to(() => AddHotelService());
+                        Get.to(() => AddHotelServiceScreen());
+                        // Get.to(() => AddHotelService());
                       },
                       child: Container(
                         height: SizeConfig.size40,

@@ -568,4 +568,7 @@ abstract class BaseService {
   final String educationServiceAcademics = 'education-service/academics';
   final String educationServiceStudentCorner = 'education-service/student-corner';
   final String educationServiceFaculty = 'education-service/faculty';
+  final String campusLifeCategories = 'education-service/campus-life-categories';
+  final String campusLife = 'education-service/campus-life';
+  final String hotelServiceCategory = 'hotel-service/api/categories/nested';
 }

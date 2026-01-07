@@ -86,10 +86,11 @@ class JobRepo extends BaseService {
   }
 
   /// GET All JOBS
-  Future<ResponseModel> getAllJobsRepo() async {
+  Future<ResponseModel> getAllJobsRepo({required String postedVia}) async {
     final response = await ApiBaseHelper().getHTTP(
       ((accountTypeGlobal.toUpperCase() == AppConstants.business))
-          ? "$getAllJobs?postedBy=$userId"
+          // ? "$getAllJobs?postedBy=$userId"
+          ? "$getAllJobs?postedBy=$userId&postedFrom=$postedVia"
           : "$getAllJobs?status=Open",
       onError: (error) {},
       onSuccess: (res) {},

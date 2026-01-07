@@ -397,6 +397,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                         arguments: {
                           'isEditMode': false,
                           'jobId': '',
+                          'createJobVia': 'business',
                         });
                   }
                 },

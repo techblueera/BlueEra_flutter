@@ -27,11 +27,13 @@ import 'package:get/get.dart';
 class CreateJobPostScreen extends StatefulWidget {
   final bool isEditMode;
   final String jobId;
+  final String createJobVia;
 
   const CreateJobPostScreen({
     super.key,
     this.isEditMode = false,
     this.jobId = '',
+    this.createJobVia = '',
   });
 
   @override
@@ -764,7 +766,7 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
                             );
                           } else {
                             createJobPostController.postJobApi(
-                                imagePath: _imagePath);
+                                imagePath: _imagePath,createJobVia: widget.createJobVia);
                           }
                         },
                         title: createJobPostController.isEditMode.value

@@ -37,10 +37,10 @@ class JobScreenController extends GetxController {
           .obs;
 
 
-  Future<void> getAllJobsApi() async {
+  Future<void> getAllJobsApi({required String postedVIA}) async {
     try {
       isLoading.value = true;
-      final response = await _jobRepo.getAllJobsRepo();
+      final response = await _jobRepo.getAllJobsRepo(postedVia: postedVIA);
       if (response.isSuccess) {
         final rawData = response.response!.data;
         // Handle different response structures

@@ -654,10 +654,12 @@ class RouteHelper {
         final args = settings.arguments as Map<String, dynamic>?;
         final isEditMode = args?['isEditMode'] as bool? ?? false;
         final jobId = args?['jobId'] as String? ?? '';
+        final createJobVia = args?['createJobVia'] as String? ?? '';
         return MaterialPageRoute(
           builder: (_) => CreateJobPostScreen(
             isEditMode: isEditMode,
             jobId: jobId,
+            createJobVia: createJobVia,
           ),
         );
       case RouteConstant.CreateJobPostStep2:
