@@ -1,15 +1,14 @@
 import 'dart:async';
 import 'dart:developer';
-
-
+import 'package:geolocator/geolocator.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:get/get.dart';
-
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/api/apiService/response_model.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/snackbar_helper.dart';
+import '../../../../core/services/location/location_service.dart';
 import '../../../chat/auth/model/rider_orders_details_model.dart';
 import '../../../chat/auth/repo/make_order_repo.dart';
 import '../../../chat/auth/stream/get_orders_stream.dart';
@@ -40,7 +39,7 @@ class DeliverPartnerOrdersController extends GetxController {
         ApiResponse.complete('');
     stream = await getOrderFromUserStream();
     subscription = stream.listen((event) {
-
+     log("kadskasdjchnsdkjs ${event}");
       if (event is List) {
         List<RiderOrdersDetailsModel> riderOrdersList = event
             .map((item) => RiderOrdersDetailsModel.fromJson(
@@ -55,6 +54,7 @@ class DeliverPartnerOrdersController extends GetxController {
             ApiResponse.error(AppStrings.somethingWentWrong);
       }
     }, onError: (error) {
+      log("kadskasdjchnsdkjs Error :: ${error}");
       ordersListResponse.value =
           ApiResponse.error(AppStrings.somethingWentWrong);
     }, onDone: () {});
@@ -218,5 +218,22 @@ class DeliverPartnerOrdersController extends GetxController {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
   }
+  Future<void> getGroceryShopsList(String orderId) async {
+    try {
+      Map<String, dynamic>? locationMap= await LocationService.fetchLocation(openSettingsOnDeny: true);
+      Position? position=locationMap?['position'];
+      ResponseModel? response = await MakeOrderRepo().getGroceryShopsList(orderId: orderId,longitude: '${position?.longitude}',latitude: '${position?.latitude}');
+      if (response.isSuccess ) {
+        commonSnackBar(
+            message: response.message ?? "Order Status Updated Successfully");
+      } else {
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+  }
+
 
 }

@@ -13,6 +13,7 @@ class LocationService extends GetxService {
   static double lat = 0.0;
   static double lng = 0.0;
   static RxList<String> userCurrentAddress = <String>[].obs;
+  static String currentPostCode = '';
   static bool isLoading = false;
 
   Future<bool> isLocationAvailable() async {
@@ -83,7 +84,7 @@ class LocationService extends GetxService {
 
       if (placeMarks.isNotEmpty) {
         final place = placeMarks.first;
-
+        currentPostCode=place.postalCode??'';
         userCurrentAddress.value = _composeAddress(
           thoroughfare: place.thoroughfare,
           subLocality: place.subLocality,

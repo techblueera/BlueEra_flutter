@@ -291,27 +291,32 @@ class OrderCard extends StatelessWidget {
   }
 
   Widget _buildPickupLocation() {
-    return Padding(
-      padding: EdgeInsets.all(SizeConfig.size10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(child: _buildPickupLocationInfo()),
-              if (selectedPickUp == PickUpTab.onGoing)
-                _buildCallButton(order.receiverUser?.contactNo),
-            ],
-          ),
-          SizedBox(height: SizeConfig.size6),
-          _buildLocationText(
-            latitude: order.pickupLocation?.location?.coordinates?[1].toDouble() ?? 0.0,
-            longitude: order.pickupLocation?.location?.coordinates?[0].toDouble() ?? 0.0,
-          ),
-        ],
-      ),
-    );
+    if(order.pickupLocation?.location?.coordinates?.isNotEmpty??false){
+      return Padding(
+        padding: EdgeInsets.all(SizeConfig.size10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: _buildPickupLocationInfo()),
+                if (selectedPickUp == PickUpTab.onGoing)
+                  _buildCallButton(order.receiverUser?.contactNo),
+              ],
+            ),
+            SizedBox(height: SizeConfig.size6),
+            _buildLocationText(
+              latitude: order.pickupLocation?.location?.coordinates?[1].toDouble() ?? 0.0,
+              longitude: order.pickupLocation?.location?.coordinates?[0].toDouble() ?? 0.0,
+            ),
+          ],
+        ),
+      );
+    }else{
+      return SizedBox();
+    }
+
   }
 
   Widget _buildPickupLocationInfo() {

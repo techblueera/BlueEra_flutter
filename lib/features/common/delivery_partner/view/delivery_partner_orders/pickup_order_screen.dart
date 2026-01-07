@@ -66,6 +66,7 @@ class _PickupOrderScreenState extends State<PickupOrderScreen> {
                       decorationColor:
                           isSelected ? AppColors.primaryColor : AppColors.secondaryTextColor,
                       fontWeight: FontWeight.w600,
+                      fontSize: 14,
                     ),
                   ),
                 );

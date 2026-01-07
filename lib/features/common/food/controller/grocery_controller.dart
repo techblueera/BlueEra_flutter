@@ -1203,7 +1203,7 @@ class GroceryController extends GetxController {
     List<Map<String, dynamic>> payload = [];
 
     String city = LocationService.userCurrentAddress[2];
-    String postalCode = LocationService.userCurrentAddress[5];
+    String postalCode = LocationService.currentPostCode;
 
     selectedProductVariants.forEach((productId, variants) {
       for (final variant in variants) {
