@@ -566,4 +566,7 @@ abstract class BaseService {
   String groceryServiceOrderAccept(String rideOrderId) =>  'rider-service/riders/orders/grocery/$rideOrderId/accept';
   final String educationServiceContact = 'education-service/contact';
   final String educationServiceAcademics = 'education-service/academics';
+  String getGroceryAvailableShops({required String orderId,required String latitude,required String longitude})
+  =>  'orders/${orderId}/alternatives?filter=suggested&latitude=$latitude&longitude=$longitude';
+
 }

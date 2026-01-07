@@ -145,6 +145,13 @@ class MakeOrderRepo extends BaseService {
         onError: (error) {}, onSuccess: (data) {});
     return response;
   }
+  Future<ResponseModel> getGroceryShopsList({required String orderId,required String latitude,required String longitude}) async {
+    final response = await ApiBaseHelper().getHTTP(
+        getGroceryAvailableShops(latitude: latitude,longitude: longitude,orderId: orderId),
+        showProgress: false,
+        onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
 
 
 }

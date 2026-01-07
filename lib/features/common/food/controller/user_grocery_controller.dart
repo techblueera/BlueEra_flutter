@@ -198,8 +198,7 @@ class UserGroceryController extends GetxController{
         userGroceryPage = 1;
         userGroceryHasMore = true;
       }
-
-      String postalCode = LocationService.userCurrentAddress[5];
+      String postalCode = LocationService.currentPostCode;
       if(postalCode.isEmpty) return;
 
       // log('current tab key-- $currentTabKey');

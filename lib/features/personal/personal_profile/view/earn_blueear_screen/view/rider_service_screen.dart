@@ -131,7 +131,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
         if (riderOpt.isEmpty) {
           return _buildLoading();
         }
-logs("riderOpt==== $riderOpt");
+
         if (riderOpt.toLowerCase() == 'true') {
           return _buildRiderEnabled(context);
         }
@@ -160,7 +160,6 @@ logs("riderOpt==== $riderOpt");
     // Check if all completed
     final allCompleted = stepStatus.values.every((status) => status == true);
     // Find first incomplete step
-    logs("stepStatus==== $stepStatus");
     final firstIncompleteEntry = stepStatus.entries
         .where((entry) => entry.value == false)
         .cast<MapEntry<RiderProfileStep, bool>>()
@@ -174,7 +173,7 @@ logs("riderOpt==== $riderOpt");
 
     // final firstIncompleteEntry =
     //     stepStatus.entries.firstWhere((entry) => entry.value == false);
-    logs("firstIncompleteEntry=== ${firstIncompleteEntry?.key}");
+
 
     return Scaffold(
       // floatingActionButton: _buildFAB(),

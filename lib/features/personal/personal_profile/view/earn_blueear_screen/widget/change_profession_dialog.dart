@@ -244,7 +244,7 @@ class ProfessionChangeDialogHelper {
     // Find first incomplete step
     final firstIncompleteEntry =
         stepStatus.entries.firstWhere((entry) => entry.value == false);
-    logs("firstIncompleteEntry=== ${firstIncompleteEntry.key}");
+
 
     if (firstIncompleteEntry.key == RiderProfileStep.personalInfo) {
       Get.toNamed(RouteHelper.getPersonalInformationRidingScreenRoute());

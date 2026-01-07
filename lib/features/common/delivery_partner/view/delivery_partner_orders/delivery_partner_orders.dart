@@ -104,21 +104,21 @@ class _DeliveryPartnerOrdersState extends State<DeliveryPartnerOrders> {
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Padding(
-                            padding: EdgeInsets.all(SizeConfig.size15),
-                            child: HorizontalTabSelector(
-                              tabs: controller.deliveryPartnerOrdersTabs,
-                              selectedIndex: controller
-                                  .selectedDeliveryPartnerOrderIndex.value,
-                              onTabSelected: (index, value) {
-                                if (mounted) {
-                                  controller.selectedDeliveryPartnerOrderIndex
-                                      .value = index;
-                                }
-                              },
-                              labelBuilder: (value) => value.label,
-                            ),
-                          ),
+                          // Padding(
+                          //   padding: EdgeInsets.all(SizeConfig.size15),
+                          //   child: HorizontalTabSelector(
+                          //     tabs: controller.deliveryPartnerOrdersTabs,
+                          //     selectedIndex: controller
+                          //         .selectedDeliveryPartnerOrderIndex.value,
+                          //     onTabSelected: (index, value) {
+                          //       if (mounted) {
+                          //         controller.selectedDeliveryPartnerOrderIndex
+                          //             .value = index;
+                          //       }
+                          //     },
+                          //     labelBuilder: (value) => value.label,
+                          //   ),
+                          // ),
                           Expanded(
                             child: Builder(
                               builder: (context) {

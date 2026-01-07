@@ -24,6 +24,7 @@ class _GroceryConfirmScreenState extends State<GroceryConfirmScreen> {
 
   @override
   initState(){
+
     super.initState();
     controller.fetchNearByRidersApi();
   }

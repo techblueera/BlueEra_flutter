@@ -45,7 +45,7 @@ class _AddOthersServicesState extends State<OthersAboutUs> {
               },
               child: MeMenuCardDesign(
                 title: title,
-                icon: 'assets/icons/service_icon.svg',
+                icon: '',
               ),
             );
           }).toList(),
