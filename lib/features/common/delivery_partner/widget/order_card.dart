@@ -23,6 +23,7 @@ import 'package:pinput/pinput.dart';
 import '../../../chat/auth/model/rider_orders_details_model.dart';
 import '../../../chat/view/orders_chat/widget/lat_lng_to_location_text.dart';
 import '../controller/delivery_partner_orders_controller.dart';
+import 'delivery_pickup_shops_list.dart';
 
 class OrderCard extends StatelessWidget {
   final PickUpTab selectedPickUp;
@@ -469,7 +470,10 @@ class OrderCard extends StatelessWidget {
         ),
         SizedBox(width: SizeConfig.size6),
         _buildActionButton(
-          onTap: () => _handleAcceptOrder(controller),
+          onTap: () {
+            Get.to(DeliveryPickupShopsList(orderId: order.orderId??'',));
+            // _handleAcceptOrder(controller);
+          },
           text: AppStrings.accept,
           bgColor: AppColors.green0B.withValues(alpha: 0.1),
           borderColor: AppColors.green0B,

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:developer';
 import 'package:geolocator/geolocator.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -12,6 +13,7 @@ import '../../../../core/services/location/location_service.dart';
 import '../../../chat/auth/model/rider_orders_details_model.dart';
 import '../../../chat/auth/repo/make_order_repo.dart';
 import '../../../chat/auth/stream/get_orders_stream.dart';
+import '../model/rider_shops_list_grocery.dart';
 
 class DeliverPartnerOrdersController extends GetxController {
   final List<DeliveryPartnerOrdersTab> deliveryPartnerOrdersTabs =
@@ -23,6 +25,7 @@ class DeliverPartnerOrdersController extends GetxController {
   RxList<RiderOrdersDetailsModel> riderOrdersList =
       <RiderOrdersDetailsModel>[].obs;
   Rx<ApiResponse> ordersListResponse = ApiResponse.initial('Initial').obs; // Declare your RxLists
+  Rx<ApiResponse> orderRiderShopListResponse = ApiResponse.initial('Initial').obs; // Declare your RxLists
   Rx<ApiResponse> verifyDeliveredOtpResponse = ApiResponse.initial('Initial').obs; // Declare your RxLists
   RxList<RiderOrdersDetailsModel> riderOrdersDetailsModel = <RiderOrdersDetailsModel>[].obs;
   RxList<RiderOrdersDetailsModel> newOrders = <RiderOrdersDetailsModel>[].obs;
@@ -30,6 +33,7 @@ class DeliverPartnerOrdersController extends GetxController {
   RxList<RiderOrdersDetailsModel> completedOrders = <RiderOrdersDetailsModel>[].obs;
   RxList<RiderOrdersDetailsModel> cancelledOrders = <RiderOrdersDetailsModel>[].obs;
   RxList<RiderOrdersDetailsModel> rejectedOrders = <RiderOrdersDetailsModel>[].obs;
+  Rx<RiderShopsListGrocery> riderBusinessList = RiderShopsListGrocery(businesses: []).obs;
 
   late Stream<dynamic> stream;
   StreamSubscription? subscription;
@@ -54,7 +58,6 @@ class DeliverPartnerOrdersController extends GetxController {
             ApiResponse.error(AppStrings.somethingWentWrong);
       }
     }, onError: (error) {
-      log("kadskasdjchnsdkjs Error :: ${error}");
       ordersListResponse.value =
           ApiResponse.error(AppStrings.somethingWentWrong);
     }, onDone: () {});
@@ -219,20 +222,24 @@ class DeliverPartnerOrdersController extends GetxController {
     }
   }
   Future<void> getGroceryShopsList(String orderId) async {
-    try {
+    // try {
       Map<String, dynamic>? locationMap= await LocationService.fetchLocation(openSettingsOnDeny: true);
       Position? position=locationMap?['position'];
       ResponseModel? response = await MakeOrderRepo().getGroceryShopsList(orderId: orderId,longitude: '${position?.longitude}',latitude: '${position?.latitude}');
       if (response.isSuccess ) {
-        commonSnackBar(
-            message: response.message ?? "Order Status Updated Successfully");
+        log("aslkjdlskdcmlskdcd ${response.response?.data}");
+        final List<dynamic> json = jsonDecode(response.response?.data);
+        riderBusinessList.value = RiderShopsListGrocery.fromJson(json);
+        orderRiderShopListResponse.value = ApiResponse.complete(riderBusinessList.value);
       } else {
         commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);
+        orderRiderShopListResponse.value = ApiResponse.error(response.message ?? AppStrings.somethingWentWrong);
       }
-    } catch (e) {
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-    }
+    // } catch (e) {
+    //   commonSnackBar(message: AppStrings.somethingWentWrong);
+    //   orderRiderShopListResponse.value = ApiResponse.error(AppStrings.somethingWentWrong);
+    // }
   }
 
 

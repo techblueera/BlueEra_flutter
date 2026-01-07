@@ -567,7 +567,7 @@ abstract class BaseService {
   final String educationServiceContact = 'education-service/contact';
   final String educationServiceAcademics = 'education-service/academics';
   String getGroceryAvailableShops({required String orderId,required String latitude,required String longitude})
-  =>  'orders/${orderId}/alternatives?filter=suggested&latitude=$latitude&longitude=$longitude';
+  =>  'grocery-service/api/orders/${orderId}/alternatives?filter=suggested&latitude=$latitude&longitude=$longitude';
 
   final String educationServiceStudentCorner = 'education-service/student-corner';
   final String educationServiceFaculty = 'education-service/faculty';

@@ -100,12 +100,18 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
     // this.isAddProductCategory = false,
     this.bottomWidget,
     this.isGoLiveWidget,
+    this.isShowAcceptOrRejectBtn,
     this.isFollowRefreshWidget,
     this.isFollowRefresh = false,
     this.isGoLive = false,
     this.isInventoryPopUpMenu = false,
     this.isStoreProfile,
     this.isCurrentAddress,
+    this.onTabAcceptBtn,
+    this.orderAcceptText,
+    this.orderAcceptBgColor,
+    this.orderAcceptBorderColor,
+    this.orderAcceptTextColor,
     this.isRejectButton,
     this.rejectButton,
   });
@@ -122,6 +128,12 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool? isShadowShow;
   final bool? isChangeToEditMode;
   final bool? isShowMoreInfoIcon;
+  final bool? isShowAcceptOrRejectBtn;
+  final VoidCallback? onTabAcceptBtn;
+  final String? orderAcceptText;
+  final Color? orderAcceptBgColor;
+  final Color? orderAcceptBorderColor;
+  final Color? orderAcceptTextColor;
   final bool? isDownloadButton;
   final bool? isLogout;
   final bool? isGuestLogout;
@@ -710,6 +722,33 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
               width: 24,
             ),
           ),
+        if(isShowAcceptOrRejectBtn??false)
+        InkWell(
+          onTap: onTabAcceptBtn,
+          child: Container(
+            margin: EdgeInsets.symmetric(horizontal: 20),
+            padding: EdgeInsets.symmetric(
+              horizontal: SizeConfig.size14,
+              vertical: SizeConfig.size6,
+            ),
+            decoration: BoxDecoration(
+              color: orderAcceptBgColor,
+              border: Border.all(color: orderAcceptBorderColor!),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CustomText(
+                  orderAcceptText,
+                  fontSize: SizeConfig.small,
+                  fontWeight: FontWeight.w400,
+                  color: orderAcceptTextColor,
+                ),
+              ],
+            ),
+          ),
+        )
       ],
       bottom: bottomWidget,
     );
