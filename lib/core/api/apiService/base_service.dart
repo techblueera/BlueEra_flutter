@@ -574,4 +574,6 @@ abstract class BaseService {
   final String campusLifeCategories = 'education-service/campus-life-categories';
   final String campusLife = 'education-service/campus-life';
   final String hotelServiceCategory = 'hotel-service/api/categories/nested';
+  String enableHotelServiceStatus(String categoryId) =>  'health-service/api/categories/$categoryId/status';
+
 }

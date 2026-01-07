@@ -586,5 +586,6 @@ class ApiKeys {
   static const modeOfPayment = 'modeOfPayment';
   static const postedFrom = 'postedFrom';
   static const argVariants = 'argVariants';
+  static const isActive = 'isActive';
 
 }

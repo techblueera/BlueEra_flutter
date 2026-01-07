@@ -11,8 +11,8 @@ import 'package:get/get.dart';
 
 import '../../../../core/constants/app_constant.dart';
 import '../../../../widgets/common_search_bar.dart';
-import '../../auth/controller/medical_model_controller.dart';
 import '../../widget/no_product_profile.dart';
+import '../controller/medical_model_controller.dart';
 
 class MedicalMain extends StatefulWidget {
 

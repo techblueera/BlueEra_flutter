@@ -3,6 +3,7 @@ class MedicalLabDataListModel {
   final String? name;
   final String? id;
   final String? key;
+  final bool? isActive;
   final String? type;
   final String? description;
   final int? order;
@@ -14,6 +15,7 @@ class MedicalLabDataListModel {
     this.moduleCode,
     this.name,
     this.key,
+    this.isActive,
     this.id,
     this.type,
     this.description,
@@ -23,18 +25,37 @@ class MedicalLabDataListModel {
     this.children,
   });
 
+  MedicalLabDataListModel copyWith({
+    bool? isActive,
+    List<MedicalLabDataListModel>? children,
+  }) {
+    return MedicalLabDataListModel(
+      moduleCode: moduleCode,
+      name: name,
+      key: key,
+      id: id,
+      type: type,
+      description: description,
+      order: order,
+      ui: ui,
+      rules: rules,
+      isActive: isActive ?? this.isActive,
+      children: children ?? this.children,
+    );
+  }
+
   factory MedicalLabDataListModel.fromJson(Map<String, dynamic> json) {
     return MedicalLabDataListModel(
       moduleCode: json['moduleCode'],
       name: json['name'],
       id: json['_id'],
+      isActive: json['isActive'],
       key: json['key'],
       type: json['type'],
       description: json['description'],
       order: json['order'],
       ui: json['ui'] != null ? UiModel.fromJson(json['ui']) : null,
-      rules:
-      json['rules'] != null ? RulesModel.fromJson(json['rules']) : null,
+      rules: json['rules'] != null ? RulesModel.fromJson(json['rules']) : null,
       children: json['children'] != null
           ? (json['children'] as List)
           .map((e) => MedicalLabDataListModel.fromJson(e))
@@ -42,12 +63,12 @@ class MedicalLabDataListModel {
           : null,
     );
   }
-
   Map<String, dynamic> toJson() {
     return {
       'moduleCode': moduleCode,
       'name': name,
       'key': key,
+      'isActive': isActive,
       'id': id,
       'type': type,
       'description': description,
@@ -58,6 +79,7 @@ class MedicalLabDataListModel {
     };
   }
 }
+
 
 class UiModel {
   final String? icon;

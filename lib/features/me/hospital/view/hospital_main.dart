@@ -15,8 +15,8 @@ import 'package:get/get.dart';
 import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/getx_utils.dart';
 import '../../../../widgets/common_search_bar.dart';
-import '../../auth/controller/hospital_model_controller.dart';
 import '../../medical/view/widget/otc_items.dart';
+import '../controller/hospital_model_controller.dart';
 
 
 class HospitalMain extends StatefulWidget {

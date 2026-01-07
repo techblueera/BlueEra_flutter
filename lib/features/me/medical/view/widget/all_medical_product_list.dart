@@ -7,8 +7,8 @@ import '../../../../../core/constants/custom_carousel_slider.dart';
 import '../../../../../core/constants/getx_utils.dart';
 import '../../../../../core/constants/size_config.dart';
 import '../../../../../widgets/custom_text_cm.dart';
-import '../../../auth/controller/medical_model_controller.dart';
-import '../../../auth/model/medical_admin_product_details.dart';
+import '../../controller/medical_model_controller.dart';
+import '../../model/medical_admin_product_details.dart';
 
 class AllMedicalProductList extends StatelessWidget {
   const AllMedicalProductList({super.key, required this.productList});

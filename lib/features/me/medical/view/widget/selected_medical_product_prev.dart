@@ -11,8 +11,8 @@ import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 import '../../../../../core/constants/app_constant.dart';
 import '../../../../../core/constants/getx_utils.dart';
 import '../../../../../widgets/custom_btn.dart';
-import '../../../auth/controller/medical_model_controller.dart';
-import '../../../auth/model/medical_admin_product_details.dart';
+import '../../controller/medical_model_controller.dart';
+import '../../model/medical_admin_product_details.dart';
 
 class SelectedMedicalProductPrev extends StatelessWidget {
   const SelectedMedicalProductPrev({super.key});
