@@ -6,7 +6,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/food/controller/grocery_controller.dart';
 import 'package:BlueEra/features/common/food/model/my_grocery_products_reponse.dart';
 import 'package:BlueEra/features/common/food/model/my_grocery_super_category_model.dart';
-import 'package:BlueEra/features/common/food/view/grocery/my_grocery_listing/grocery_category_card.dart';
+import 'package:BlueEra/features/common/food/view/grocery/my_grocery_listing/grocery_product_card.dart';
 import 'package:BlueEra/features/common/food/view/grocery/widget/grocery_category_item.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
@@ -75,7 +75,7 @@ class _MyGrocerySuperCategoryScreenState extends State<MyGrocerySuperCategoryScr
                 label: item.name??'',
                 onTap: () {
 
-                  Get.toNamed(RouteHelper.getMyGroceryCategoryScreenRoute(),
+                  Get.toNamed(RouteHelper.getMyGroceryProductsScreenRoute(),
                     arguments: {
                       ApiKeys.argCategoryId: item.sId,
                       ApiKeys.argCategoryName: item.name

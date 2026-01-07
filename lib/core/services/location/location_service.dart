@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/services/location/user_address.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -12,8 +13,8 @@ import 'package:permission_handler/permission_handler.dart';
 class LocationService extends GetxService {
   static double lat = 0.0;
   static double lng = 0.0;
-  static RxList<String> userCurrentAddress = <String>[].obs;
-  static String currentPostCode = '';
+  static Rx<UserAddress> userCurrentAddress = UserAddress().obs;
+  // static RxList<String> userCurrentAddress = <String>[].obs;
   static bool isLoading = false;
 
   Future<bool> isLocationAvailable() async {
@@ -84,23 +85,23 @@ class LocationService extends GetxService {
 
       if (placeMarks.isNotEmpty) {
         final place = placeMarks.first;
-        currentPostCode=place.postalCode??'';
-        userCurrentAddress.value = _composeAddress(
-          thoroughfare: place.thoroughfare,
-          subLocality: place.subLocality,
-          locality: place.locality,
-          administrativeArea: place.administrativeArea,
-          country: place.country,
-          postalCode: place.postalCode,
+
+        userCurrentAddress.value = UserAddress(
+          street: place.thoroughfare ?? '',
+          subLocality: place.subLocality ?? '',
+          city: place.locality ?? '',
+          state: place.administrativeArea ?? '',
+          country: place.country ?? '',
+          postalCode: place.postalCode ?? '',
         );
-      }
-      else {
-        userCurrentAddress.value = [];
+      } else {
+        // Reset to empty if not found
+        userCurrentAddress.value = UserAddress();
       }
 
       return {
         "position": position,
-        "address": userCurrentAddress,
+        "address": userCurrentAddress.value,
       };
     } catch (e) {
       debugPrint('Location error: $e');

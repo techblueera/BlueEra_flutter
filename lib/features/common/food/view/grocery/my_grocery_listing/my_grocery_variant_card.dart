@@ -9,16 +9,15 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:hive/hive.dart';
 import '../../../model/my_grocery_products_reponse.dart';
 
-class MyGroceryCard extends StatelessWidget {
-  final Variants groceryProductsVariantItem;
+class MyGroceryVariantCard extends StatelessWidget {
+  final Variants variantItem;
   final bool isShowInGrid;
 
-  const MyGroceryCard({
+  const MyGroceryVariantCard({
     Key? key,
-    required this.groceryProductsVariantItem,
+    required this.variantItem,
     required this.isShowInGrid
   }) : super(key: key);
 
@@ -26,7 +25,7 @@ class MyGroceryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = getOrPut(() => GroceryController());
 
-    final price = controller.getPriceDetails(groceryProductsVariantItem.pricing);
+    final price = controller.getPriceDetails(variantItem.pricing);
     print("Selling Range: ${price.sellingRange}");
     print("MRP Range: ${price.mrpRange}");
     print("Discount Range: ${price.discountRange}");
@@ -47,24 +46,27 @@ class MyGroceryCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Image slideshow
-              ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child:
-                (groceryProductsVariantItem.images!=null  &&
-                    groceryProductsVariantItem.images!.isNotEmpty)
-                    ? CustomImageSlideshow(
-                  isLoading: false,
-                  width: double.infinity,
-                  height: SizeConfig.size150,
-                  imagePaths: groceryProductsVariantItem.images!.map((i)=> i.url??'').toList(),
-                  borderRadius: BorderRadius.zero,
-                  boxFit: BoxFit.contain,
-                )
-                    : LocalAssets(
-                  imagePath: AppIconAssets.place_holder_image,
-                  boxFix: BoxFit.fill,
-                  height: SizeConfig.size150,
-                  width: double.infinity,
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child:
+                  (variantItem.images!=null  &&
+                      variantItem.images!.isNotEmpty)
+                      ? CustomImageSlideshow(
+                    isLoading: false,
+                    width: double.infinity,
+                    height: SizeConfig.size150,
+                    imagePaths: variantItem.images!.map((i)=> i.url??'').toList(),
+                    borderRadius: BorderRadius.zero,
+                    boxFit: BoxFit.contain,
+                  )
+                      : LocalAssets(
+                    imagePath: AppIconAssets.place_holder_image,
+                    boxFix: BoxFit.fill,
+                    height: SizeConfig.size150,
+                    width: double.infinity,
+                  ),
                 ),
               ),
 
@@ -77,7 +79,7 @@ class MyGroceryCard extends StatelessWidget {
                   children: [
                     // Title
                     CustomText(
-                      groceryProductsVariantItem.variantName,
+                      variantItem.variantName,
                       fontWeight: FontWeight.w600,
                       fontSize: SizeConfig.medium,
                       color: AppColors.mainTextColor,
@@ -111,7 +113,7 @@ class MyGroceryCard extends StatelessWidget {
                           padding:
                           EdgeInsets.symmetric(horizontal: 2, vertical: 0.5),
                           child: CustomText(
-                            '${groceryProductsVariantItem.weight?.toInt()} ${groceryProductsVariantItem.unit}',
+                            '${variantItem.weight?.toInt()} ${variantItem.unit}',
                             fontSize: 11,
                             color: Colors.grey,
                           ),
@@ -213,13 +215,13 @@ class MyGroceryCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             /// Product Image
-            (groceryProductsVariantItem.images!=null  &&
-                groceryProductsVariantItem.images!.isNotEmpty)
+            (variantItem.images!=null  &&
+                variantItem.images!.isNotEmpty)
                 ? CustomImageSlideshow(
               isLoading: false,
               width: double.infinity,
               height: SizeConfig.size150,
-              imagePaths: groceryProductsVariantItem.images!.map((i)=> i.url??'').toList(),
+              imagePaths: variantItem.images!.map((i)=> i.url??'').toList(),
               borderRadius: BorderRadius.zero,
             )
                 : LocalAssets(
@@ -241,7 +243,7 @@ class MyGroceryCard extends StatelessWidget {
                       children: [
                         Expanded(
                           child: CustomText(
-                            groceryProductsVariantItem.variantName,
+                            variantItem.variantName,
                             fontSize: SizeConfig.medium,
                             fontWeight: FontWeight.w600,
                             overflow: TextOverflow.ellipsis,
@@ -282,7 +284,7 @@ class MyGroceryCard extends StatelessWidget {
                           padding:
                           EdgeInsets.symmetric(horizontal: 2, vertical: 0.5),
                           child: CustomText(
-                            '${groceryProductsVariantItem.weight?.toInt()} ${groceryProductsVariantItem.unit}',
+                            '${variantItem.weight?.toInt()} ${variantItem.unit}',
                             fontSize: 11,
                             color: Colors.grey,
                           ),

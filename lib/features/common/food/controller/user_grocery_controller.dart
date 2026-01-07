@@ -198,7 +198,7 @@ class UserGroceryController extends GetxController{
         userGroceryPage = 1;
         userGroceryHasMore = true;
       }
-      String postalCode = LocationService.currentPostCode;
+      String postalCode = LocationService.userCurrentAddress.value.postalCode;
       if(postalCode.isEmpty) return;
 
       // log('current tab key-- $currentTabKey');
@@ -532,7 +532,7 @@ class UserGroceryController extends GetxController{
 
       double lat = LocationService.lat;
       double lng = LocationService.lng;
-      String dropLocation = LocationService.userCurrentAddress.where((e) => e.isNotEmpty).join(', ');
+      String dropLocation = LocationService.userCurrentAddress.value.formattedAddress;
 
       Map<String, dynamic> params = {
         ApiKeys.selectedRiders: [riderId],

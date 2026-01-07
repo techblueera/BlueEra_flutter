@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/common/food/model/images.dart';
 import 'package:BlueEra/features/common/food/model/my_grocery_products_reponse.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -12,22 +13,40 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
-class GroceryCategoryCard extends StatelessWidget {
-  final MyGroceryProductsData groceryProductsData;
+class GroceryProductCard extends StatelessWidget {
+  final Products groceryProducts;
 
-  const GroceryCategoryCard({
+  const GroceryProductCard({
     Key? key,
-    required this.groceryProductsData,
+    required this.groceryProducts,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final category = groceryProductsData.category;
     return InkWell(
       onTap: (){
-        Get.toNamed(RouteHelper.getMyGroceryScreenRoute(),
+
+          Images? productImage;
+          if (groceryProducts.images != null && groceryProducts.images!.isNotEmpty) {
+            productImage = groceryProducts.images![0];
+          }
+
+          final variants = groceryProducts.variants ?? [];
+
+          for (final variant in variants) {
+            if (productImage != null) {
+              if (variant.images == null) {
+                variant.images = [productImage]; // Initialize with parent image
+              } else if (variant.images!.isEmpty) {
+                variant.images!.add(productImage); // Add parent image to empty list
+              }
+            }
+          }
+
+
+        Get.toNamed(RouteHelper.getMyGroceryVariantScreenRoute(),
           arguments: {
-            ApiKeys.argCategoryId: category?.sId,
+            ApiKeys.argVariants: variants,
             ApiKeys.argIsShowInGrid: true
           },
         );
@@ -54,26 +73,26 @@ class GroceryCategoryCard extends StatelessWidget {
               children: [
                 Card(
                   color: AppColors.whiteFE,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: (category != null &&
-                        category.products != null &&
-                        category.products!.isNotEmpty &&
-                        category.products![0].images != null &&
-                        category.products![0].images!.isNotEmpty &&
-                        category.products![0].images![0].url != null)
-                        ? CustomImageSlideshow(
-                      isLoading: false,
-                      height: SizeConfig.size130,
-                      width: SizeConfig.size180,
-                      imagePaths: [category.products![0].images![0].url!],
-                      borderRadius: BorderRadius.horizontal(left: Radius.circular(10.0)),
-                      boxFit: BoxFit.contain,
-                    )
-                        : LocalAssets(
-                      imagePath: AppIconAssets.place_holder_image,
-                      height: SizeConfig.size130,
-                      width: SizeConfig.size180,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4.0),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: (groceryProducts.images != null &&
+                          groceryProducts.images!.isNotEmpty &&
+                          groceryProducts.images![0].url != null)
+                          ? CustomImageSlideshow(
+                        isLoading: false,
+                        height: SizeConfig.size130,
+                        width: SizeConfig.size180,
+                        imagePaths: [groceryProducts.images![0].url!],
+                        borderRadius: BorderRadius.horizontal(left: Radius.circular(10.0)),
+                        boxFit: BoxFit.contain,
+                      )
+                          : LocalAssets(
+                        imagePath: AppIconAssets.place_holder_image,
+                        height: SizeConfig.size130,
+                        width: SizeConfig.size180,
+                      ),
                     ),
                   ),
                 ),
@@ -92,7 +111,7 @@ class GroceryCategoryCard extends StatelessWidget {
                               borderRadius: BorderRadius.circular(6.0),
                           ),
                           child: CustomText(
-                              '+${category?.productVariantCount??0} Product',
+                              '+${groceryProducts.variants?.length??0} Product',
                               fontSize: SizeConfig.extraSmall,
                               fontWeight: FontWeight.w600,
                               color: AppColors.whiteFE
@@ -122,7 +141,7 @@ class GroceryCategoryCard extends StatelessWidget {
                       children: [
                         Expanded(
                           child: CustomText(
-                              category?.name ?? '',
+                              groceryProducts.name ?? '',
                               fontSize: SizeConfig.large,
                               fontWeight: FontWeight.w600,
                               color: AppColors.mainTextColor,
@@ -154,7 +173,7 @@ class GroceryCategoryCard extends StatelessWidget {
                     FittedBox(
                       fit: BoxFit.scaleDown,
                       child: CustomText(
-                          formatDate(category?.lastUpdate ?? DateTime.now().toIso8601String()),
+                          formatDate(groceryProducts.lastInventoryAddedOrUpdated ?? DateTime.now().toIso8601String()),
                           fontSize: SizeConfig.small,
                           fontWeight: FontWeight.w600,
                           color: AppColors.secondaryTextColor

@@ -1,4 +1,3 @@
-import 'package:BlueEra/features/me/medical/view/category/otc_items_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
@@ -9,12 +8,8 @@ import '../../../../../core/constants/app_constant.dart';
 import '../../../../../core/constants/getx_utils.dart';
 import '../../../../../core/constants/size_config.dart';
 import '../../../../../core/routes/route_helper.dart';
-import '../../../../../widgets/common_box_shadow.dart';
-import '../../../../../widgets/custom_text_cm.dart';
-import '../../../auth/controller/hospital_model_controller.dart';
-import '../../../hospital/view/category/emergency_and_critical_care.dart';
-import '../../../hospital/view/category/ipd_in_patient_department_page.dart';
-import '../../../hospital/view/category/opd_out_patient_page.dart';
+
+import '../../../hospital/controller/hospital_model_controller.dart';
 import '../../../laboratory/view/widgets/me_menu_card_design.dart';
 
 class CategoryListView extends StatelessWidget {
@@ -30,7 +25,14 @@ class CategoryListView extends StatelessWidget {
   //   "Careers": () => OpdOutPatientPage(),
   //   "Management": () => OpdOutPatientPage(),
   // };
-
+  bool isToggleAvailable(String title){
+    return title == "OPT (Out-Patient Department)" ||
+        title == "IPD (In-Patient Department)"||
+        title == "Emergency And Critical Care"||
+        title == "Diagnostic Departments"||
+        title == "Medical Store"
+    ;
+  }
   @override
   Widget build(BuildContext context) {
     final controller = getOrPut(() => HospitalModelController());
@@ -43,6 +45,7 @@ class CategoryListView extends StatelessWidget {
             return InkWell(
               onTap: () {
                 if(title.children?.isNotEmpty??false){
+
                   Get.toNamed(RouteHelper.getHospitalOptCategory(),
                       arguments: {
                         ApiKeys.medicalOtcChildren:title.children,
@@ -52,7 +55,15 @@ class CategoryListView extends StatelessWidget {
                 }
 
               },
-              child: MeMenuCardDesign(showToggleButton: true,
+              child: MeMenuCardDesign(
+                onToggleChanged: (val){
+                 Map<String,dynamic> params ={
+                   ApiKeys.isActive: val
+                };
+                 controller.updateEnableStatus(title.id??'',params);
+                },
+                isToggleOn: title.isActive??false,
+                showToggleButton: isToggleAvailable(title.name??''),
                 title: title.name??'',
                 icon: 'assets/icons/service_icon.svg',
               ),
@@ -64,4 +75,3 @@ class CategoryListView extends StatelessWidget {
     });
   }
 }
-

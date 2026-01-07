@@ -17,6 +17,13 @@ class MedicalRepo extends BaseService {
         showProgress: false,
    onError: (error) {}, onSuccess: (data) {});
     return response;
+  }  Future<ResponseModel> enableHotelServiceStatusApi(String categoryId,Map<String,dynamic> params) async {
+    final response = await ApiBaseHelper().patchHTTP(
+        enableHotelServiceStatus(categoryId),
+        params: params,
+        showProgress: false,
+   onError: (error) {}, onSuccess: (data) {});
+    return response;
   }
 
 }

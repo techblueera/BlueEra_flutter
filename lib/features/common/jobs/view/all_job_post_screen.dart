@@ -31,12 +31,14 @@ import 'package:share_plus/share_plus.dart';
 class AllJobPostScreen extends StatefulWidget {
   final Function(bool isVisible) onHeaderVisibilityChanged;
   final String? tabName;
+  final String? screenListingVia;
   final double headerHeight;
 
   const AllJobPostScreen(
       {super.key,
       required this.onHeaderVisibilityChanged,
       this.tabName,
+      this.screenListingVia = "business",
       required this.headerHeight});
 
   @override
@@ -67,7 +69,8 @@ class _AllJobPostScreenState extends State<AllJobPostScreen> {
 
       // fire API without await
     } else {
-      jobScreenController.getAllJobsApi(); // fire API without await
+      jobScreenController.getAllJobsApi(
+          postedVIA: widget.screenListingVia ?? ""); // fire API without await
     }
   }
 
@@ -165,14 +168,12 @@ class _AllJobPostScreenState extends State<AllJobPostScreen> {
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                            
                                 InkWell(
                                   onTap: () {
                                     navigatePushTo(
                                       context,
                                       ImageViewScreen(
-                                        appBarTitle:AppStrings
-                                            .imageViewer,
+                                        appBarTitle: AppStrings.imageViewer,
                                         // imageUrls: [post?.author.profileImage ?? ''],
                                         imageUrls: [job?.jobPostImage ?? ""],
                                         initialIndex: 0,
@@ -182,8 +183,9 @@ class _AllJobPostScreenState extends State<AllJobPostScreen> {
                                   child: SizedBox(
                                     width: SizeConfig.screenWidth * 0.35,
                                     child: ClipRRect(
-                                      borderRadius: const BorderRadius.horizontal(
-                                          left: Radius.circular(10.0)),
+                                      borderRadius:
+                                          const BorderRadius.horizontal(
+                                              left: Radius.circular(10.0)),
                                       child: CachedNetworkImage(
                                         imageUrl: job?.jobPostImage ?? "",
                                         // <-- Replace with your image URL from API
@@ -203,7 +205,6 @@ class _AllJobPostScreenState extends State<AllJobPostScreen> {
                                     ),
                                   ),
                                 ),
-                            
                                 Expanded(
                                   child: Padding(
                                     padding: EdgeInsets.only(
@@ -228,9 +229,10 @@ class _AllJobPostScreenState extends State<AllJobPostScreen> {
                                                 title: job?.businessDetails
                                                     ?.businessName,
                                               ),
-                                              SizedBox(width: SizeConfig.size10),
+                                              SizedBox(
+                                                  width: SizeConfig.size10),
                                             ],
-                            
+
                                             Expanded(
                                               child: Container(
                                                 child: Column(
@@ -242,7 +244,8 @@ class _AllJobPostScreenState extends State<AllJobPostScreen> {
                                                           ? job?.jobTitle
                                                           : job?.companyName ??
                                                               "N/A",
-                                                      fontSize: SizeConfig.medium,
+                                                      fontSize:
+                                                          SizeConfig.medium,
                                                       color: AppColors.black28,
                                                       maxLines: 1,
                                                       overflow:
@@ -250,8 +253,8 @@ class _AllJobPostScreenState extends State<AllJobPostScreen> {
                                                     ),
                                                     CustomText(
                                                       "${AppStrings.postedOn.tr} ${formatMonthStringDate(job?.createdAt.toString() ?? "")}",
-                                                      fontSize:
-                                                          SizeConfig.extraSmall8,
+                                                      fontSize: SizeConfig
+                                                          .extraSmall8,
                                                       color: AppColors
                                                           .secondaryTextColor,
                                                       maxLines: 1,
@@ -262,335 +265,378 @@ class _AllJobPostScreenState extends State<AllJobPostScreen> {
                                                 ),
                                               ),
                                             ),
-                            
+
                                             // Three dots menu
-                                            if ((accountTypeGlobal
-                                                        .toUpperCase() ==
-                                                    AppConstants.business) &&
-                                                (widget.tabName !=
-                                                    AppConstants.SCHEDULES))
-                                              Container(
-                                                width: SizeConfig.size20,
-                                                height: SizeConfig.size30,
-                                                child: PopupMenuButton<String>(
-                                                  padding: EdgeInsets.zero,
-                                                  offset: const Offset(-6, 36),
-                                                  color: AppColors.white,
-                                                  elevation: 8,
-                                                  shape: RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              10)),
-                                                  onSelected: (value) async {
-                                                    //Get.find<JobScreenController>().jobsData.value = job ;
-                                                    if ((job?.status ==
-                                                            AppConstants
-                                                                .ON_HOLD) ||
-                                                        (job?.status ==
-                                                            AppConstants
-                                                                .CLOSED)) {
-                                                      switch (value) {
-                                                        case 'Un Hide':
-                                                          final Map<String,
-                                                              dynamic> params = {
-                                                            ApiKeys.status:
-                                                                AppConstants.OPEN,
-                                                          };
-                            
-                                                          await jobScreenController
-                                                              .updateJobPostDetailsApi(
-                                                            jobId: job?.sId ?? "",
-                                                            params: params,
-                                                          );
-                            
-                                                          await apiCalling();
-                            
-                                                          break;
-                            
-                                                        case 'Open Vacancy':
-                                                          // Handle close vacancy action
-                                                          final Map<String,
-                                                              dynamic> params = {
-                                                            ApiKeys.status:
-                                                                AppConstants.OPEN,
-                                                          };
-                            
-                                                          await jobScreenController
-                                                              .updateJobPostDetailsApi(
-                                                            jobId: job?.sId ?? "",
-                                                            params: params,
-                                                          );
-                                                          await apiCalling();
-                            
-                                                          break;
-                                                      }
-                                                    } else {
-                                                      switch (value) {
-                                                        case 'Edit':
-                                                          final jobId = job?.sId
-                                                                  ?.toString()
-                                                                  .trim() ??
-                                                              '';
-                            
-                                                          // Additional validation
-                                                          if (jobId.isEmpty) {
-                                                            commonSnackBar(
-                                                              message:
-                                                              AppStrings.jobIdMissing,
+                                            if (widget.screenListingVia ==
+                                                "business")
+                                              if ((accountTypeGlobal
+                                                          .toUpperCase() ==
+                                                      AppConstants.business) &&
+                                                  (widget.tabName !=
+                                                      AppConstants.SCHEDULES))
+                                                Container(
+                                                  width: SizeConfig.size20,
+                                                  height: SizeConfig.size30,
+                                                  child:
+                                                      PopupMenuButton<String>(
+                                                    padding: EdgeInsets.zero,
+                                                    offset:
+                                                        const Offset(-6, 36),
+                                                    color: AppColors.white,
+                                                    elevation: 8,
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        10)),
+                                                    onSelected: (value) async {
+                                                      //Get.find<JobScreenController>().jobsData.value = job ;
+                                                      if ((job?.status ==
+                                                              AppConstants
+                                                                  .ON_HOLD) ||
+                                                          (job?.status ==
+                                                              AppConstants
+                                                                  .CLOSED)) {
+                                                        switch (value) {
+                                                          case 'Un Hide':
+                                                            final Map<String,
+                                                                    dynamic>
+                                                                params = {
+                                                              ApiKeys.status:
+                                                                  AppConstants
+                                                                      .OPEN,
+                                                            };
+
+                                                            await jobScreenController
+                                                                .updateJobPostDetailsApi(
+                                                              jobId: job?.sId ??
+                                                                  "",
+                                                              params: params,
                                                             );
-                            
-                                                            return;
-                                                          }
-                            
-                                                          // Use exactly the same navigation approach as JobDetailsScreen
-                                                          Navigator.pushNamed(
-                                                              context,
-                                                              RouteHelper
-                                                                  .getCreateJobPostScreenRoute(),
-                                                              arguments: {
-                                                                'isEditMode':
-                                                                    true,
-                                                                'jobId': jobId,
-                                                              });
-                                                          // Handle edit action
-                                                          break;
-                                                        case 'Share':
-                                                          // Share job: deep link + optional image preview
-                                                          if (_isSharing) return;
-                            
-                                                          try {
-                                                            _isSharing = true;
-                            
-                                                            final linkShare =
-                                                                jobDeepLink(
-                                                                    jobId: job
-                                                                        ?.sId
-                                                                        ?.toString());
-                            
-                                                            XFile? xFile;
-                                                            final imageUrl =
-                                                                job?.jobPostImage;
-                                                            if (imageUrl !=
-                                                                    null &&
-                                                                imageUrl
-                                                                    .isNotEmpty) {
-                                                              xFile =
-                                                                  await urlToCachedXFile(
-                                                                      imageUrl);
+
+                                                            await apiCalling();
+
+                                                            break;
+
+                                                          case 'Open Vacancy':
+                                                            // Handle close vacancy action
+                                                            final Map<String,
+                                                                    dynamic>
+                                                                params = {
+                                                              ApiKeys.status:
+                                                                  AppConstants
+                                                                      .OPEN,
+                                                            };
+
+                                                            await jobScreenController
+                                                                .updateJobPostDetailsApi(
+                                                              jobId: job?.sId ??
+                                                                  "",
+                                                              params: params,
+                                                            );
+                                                            await apiCalling();
+
+                                                            break;
+                                                        }
+                                                      } else {
+                                                        switch (value) {
+                                                          case 'Edit':
+                                                            final jobId = job
+                                                                    ?.sId
+                                                                    ?.toString()
+                                                                    .trim() ??
+                                                                '';
+
+                                                            // Additional validation
+                                                            if (jobId.isEmpty) {
+                                                              commonSnackBar(
+                                                                message: AppStrings
+                                                                    .jobIdMissing,
+                                                              );
+
+                                                              return;
                                                             }
-                            
-                                                            await SharePlus
-                                                                .instance
-                                                                .share(
-                                                                    ShareParams(
-                                                              text: linkShare,
-                                                              subject:
-                                                                  job?.jobTitle,
-                                                              previewThumbnail:
-                                                                  xFile,
-                                                            ));
-                            
-                                                            if (xFile != null) {
-                                                              final file = File(
-                                                                  xFile.path);
-                                                              if (await file
-                                                                  .exists()) {
-                                                                await file
-                                                                    .delete();
-                            
+
+                                                            // Use exactly the same navigation approach as JobDetailsScreen
+                                                            Navigator.pushNamed(
+                                                                context,
+                                                                RouteHelper
+                                                                    .getCreateJobPostScreenRoute(),
+                                                                arguments: {
+                                                                  'isEditMode':
+                                                                      true,
+                                                                  'jobId':
+                                                                      jobId,
+                                                                });
+                                                            // Handle edit action
+                                                            break;
+                                                          case 'Share':
+                                                            // Share job: deep link + optional image preview
+                                                            if (_isSharing)
+                                                              return;
+
+                                                            try {
+                                                              _isSharing = true;
+
+                                                              final linkShare =
+                                                                  jobDeepLink(
+                                                                      jobId: job
+                                                                          ?.sId
+                                                                          ?.toString());
+
+                                                              XFile? xFile;
+                                                              final imageUrl = job
+                                                                  ?.jobPostImage;
+                                                              if (imageUrl !=
+                                                                      null &&
+                                                                  imageUrl
+                                                                      .isNotEmpty) {
+                                                                xFile =
+                                                                    await urlToCachedXFile(
+                                                                        imageUrl);
                                                               }
+
+                                                              await SharePlus
+                                                                  .instance
+                                                                  .share(
+                                                                      ShareParams(
+                                                                text: linkShare,
+                                                                subject: job
+                                                                    ?.jobTitle,
+                                                                previewThumbnail:
+                                                                    xFile,
+                                                              ));
+
+                                                              if (xFile !=
+                                                                  null) {
+                                                                final file =
+                                                                    File(xFile
+                                                                        .path);
+                                                                if (await file
+                                                                    .exists()) {
+                                                                  await file
+                                                                      .delete();
+                                                                }
+                                                              }
+                                                            } catch (e) {
+                                                              print(
+                                                                  "job card share failed $e");
+                                                            } finally {
+                                                              _isSharing =
+                                                                  false; // Reset flag
                                                             }
-                                                          } catch (e) {
-                                                            print(
-                                                                "job card share failed $e");
-                                                          } finally {
-                                                            _isSharing =
-                                                                false; // Reset flag
-                                                          }
-                                                          break;
-                                                        case 'Hide':
-                                                          final Map<String,
-                                                              dynamic> params = {
-                                                            ApiKeys.status:
-                                                                "On Hold",
-                                                          };
-                            
-                                                          await jobScreenController
-                                                              .updateJobPostDetailsApi(
-                                                            jobId: job?.sId ?? "",
-                                                            params: params,
-                                                          );
-                                                          await apiCalling();
-                            
-                                                          break;
-                                                        case 'Close Vacancy':
-                                                          final Map<String,
-                                                              dynamic> params = {
-                                                            ApiKeys.status:
-                                                                "Closed",
-                                                          };
-                            
-                                                          await jobScreenController
-                                                              .updateJobPostDetailsApi(
-                                                            jobId: job?.sId ?? "",
-                                                            params: params,
-                                                          );
-                                                          await apiCalling();
-                            
-                                                          break;
+                                                            break;
+                                                          case 'Hide':
+                                                            final Map<String,
+                                                                    dynamic>
+                                                                params = {
+                                                              ApiKeys.status:
+                                                                  "On Hold",
+                                                            };
+
+                                                            await jobScreenController
+                                                                .updateJobPostDetailsApi(
+                                                              jobId: job?.sId ??
+                                                                  "",
+                                                              params: params,
+                                                            );
+                                                            await apiCalling();
+
+                                                            break;
+                                                          case 'Close Vacancy':
+                                                            final Map<String,
+                                                                    dynamic>
+                                                                params = {
+                                                              ApiKeys.status:
+                                                                  "Closed",
+                                                            };
+
+                                                            await jobScreenController
+                                                                .updateJobPostDetailsApi(
+                                                              jobId: job?.sId ??
+                                                                  "",
+                                                              params: params,
+                                                            );
+                                                            await apiCalling();
+
+                                                            break;
+                                                        }
                                                       }
-                                                    }
-                                                  },
-                                                  icon: Icon(
-                                                    Icons.more_vert,
-                                                    color: AppColors.black28,
-                                                    size: SizeConfig.size20,
+                                                    },
+                                                    icon: Icon(
+                                                      Icons.more_vert,
+                                                      color: AppColors.black28,
+                                                      size: SizeConfig.size20,
+                                                    ),
+                                                    itemBuilder: (context) =>
+                                                        createPopupJobCardItems(
+                                                            status:
+                                                                job?.status),
                                                   ),
-                                                  itemBuilder: (context) =>
-                                                      createPopupJobCardItems(
-                                                          status: job?.status),
                                                 ),
-                                              ),
                                           ],
                                         ),
                                         SizedBox(height: SizeConfig.size5),
                                         CommonHorizontalDivider(
-                                            color: AppColors.grey9A, height: 0.5),
+                                            color: AppColors.grey9A,
+                                            height: 0.5),
                                         SizedBox(height: SizeConfig.size4),
-                            
+
                                         /// 🔵 Job Info (Flexible to fit available space)
                                         if (isIndividual())
                                           buildJobDescriptionContent(
-                                              title: '${AppStrings.jobTitle.tr}: ',
+                                              title:
+                                                  '${AppStrings.jobTitle.tr}: ',
                                               subtitle: job?.jobTitle ?? 'N/A'),
                                         buildJobDescriptionContent(
                                             title: '${AppStrings.jobType.tr}: ',
                                             subtitle:
                                                 '${job?.jobType ?? "N/A"} - ${job?.workMode ?? "N/A"}'),
                                         buildJobDescriptionContent(
-                                            title: '${AppStrings.minExperience.tr}: ',
+                                            title:
+                                                '${AppStrings.minExperience.tr}: ',
                                             subtitle:
                                                 '${job?.experience ?? 0} yrs'),
                                         buildJobDescriptionContent(
-                                            title: '${AppStrings.monthlyPay.tr}: ',
+                                            title:
+                                                '${AppStrings.monthlyPay.tr}: ',
                                             subtitle:
                                                 '₹${formatIndianNumber(job?.compensation?.minSalary ?? 0)} to ₹ ${formatIndianNumber(job?.compensation?.maxSalary ?? 0)}'),
                                         buildJobDescriptionContent(
-                                            title: '${AppStrings.jobLocation.tr}: ',
+                                            title:
+                                                '${AppStrings.jobLocation.tr}: ',
                                             subtitle:
                                                 job?.location?.addressString ??
                                                     'NA'),
-                                        SizedBox(
-                                          height: SizeConfig.size10,
-                                        ),
-                                                    // CustomText(job?.status),
+                                        if (widget.screenListingVia ==
+                                            "business")
+                                          SizedBox(
+                                            height: SizeConfig.size10,
+                                          ),
+                                        // CustomText(job?.status),
                                         /// 🔵 Bottom Buttons
-                                        ((accountTypeGlobal.toUpperCase() ==
-                                                AppConstants.business))
-                                            ? PositiveCustomBtn(
-                                                borderColor:
-                                                    AppColors.primaryColor,
-                                                textColor: AppColors.primaryColor,
-                                                bgColor: AppColors.white,
-                                                height: SizeConfig.size32,
-                                                onTap: () {
-                                                  if ((job?.applications
-                                                              ?.length ??
-                                                          0) >
-                                                      0) {
-                                                    Get.to(JobApplicationsScreen(
-                                                      jobsData: job,
-                                                      onHeaderVisibilityChanged:
-                                                          widget
-                                                              .onHeaderVisibilityChanged,
-                                                      headerHeight:
-                                                          widget.headerHeight,
-                                                    ));
-                                                  } else {
-                                                    commonSnackBar(
-                                                        message:
-                                                        AppStrings.noApplicationFound);
-                                                  }
-                                                },
-                                                title: (job?.applications
-                                                            ?.isNotEmpty ??
-                                                        false)
-                                                    ? "${AppStrings.applications.tr} (${job?.applications?.length}) "
-                                                    : "${AppStrings.applications.tr}")
-                                            : Row(
-                                                children: [
-                                                  Expanded(
-                                                    child: PositiveCustomBtn(
-                                                      height: SizeConfig.size32,
-                                                      onTap: () async {
-                                                        if (job != null) {
-                                                          XFile xFile =
-                                                              await urlToCachedXFile(
-                                                                  job.jobPostImage ??
-                                                                      "");
-                            
-                                                          final linkShare =
-                                                              "https://blueera.ai/app/job/${job.sId.toString()}";
-                            
-                                                          await SharePlus.instance
-                                                              .share(ShareParams(
-                                                                  text: linkShare,
-                                                                  subject: job
-                                                                      .jobTitle,
-                                                                  previewThumbnail:
-                                                                      xFile));
-                                                          final file =
-                                                              File(xFile.path);
-                                                          if (await file
-                                                              .exists()) {
-                                                            await file.delete();
-                            
-                                                          }
-                            
-                                                        }
-                                                      },
-                                                      title: AppStrings.share,
-                                                      bgColor: AppColors.white,
-                                                      borderColor:
-                                                          AppColors.primaryColor,
-                                                      textColor:
-                                                          AppColors.primaryColor,
-                                                      fontSize: SizeConfig.small,
-                                                    ),
-                                                  ),
-                                                  SizedBox(
-                                                      width: SizeConfig.size8),
-                                                  if (!(job?.isApplied ??
-                                                          false) &&
-                                                      job?.status
-                                                              ?.toLowerCase() ==
-                                                          "open")
+                                        if (widget.screenListingVia ==
+                                            "business")
+                                          ((accountTypeGlobal.toUpperCase() ==
+                                                  AppConstants.business))
+                                              ? PositiveCustomBtn(
+                                                  borderColor:
+                                                      AppColors.primaryColor,
+                                                  textColor:
+                                                      AppColors.primaryColor,
+                                                  bgColor: AppColors.white,
+                                                  height: SizeConfig.size32,
+                                                  onTap: () {
+                                                    if ((job?.applications
+                                                                ?.length ??
+                                                            0) >
+                                                        0) {
+                                                      Get.to(
+                                                          JobApplicationsScreen(
+                                                        jobsData: job,
+                                                        onHeaderVisibilityChanged:
+                                                            widget
+                                                                .onHeaderVisibilityChanged,
+                                                        headerHeight:
+                                                            widget.headerHeight,
+                                                      ));
+                                                    } else {
+                                                      commonSnackBar(
+                                                          message: AppStrings
+                                                              .noApplicationFound);
+                                                    }
+                                                  },
+                                                  title: (job?.applications
+                                                              ?.isNotEmpty ??
+                                                          false)
+                                                      ? "${AppStrings.applications.tr} (${job?.applications?.length}) "
+                                                      : "${AppStrings.applications.tr}")
+                                              : Row(
+                                                  children: [
                                                     Expanded(
                                                       child: PositiveCustomBtn(
-                                                        height: SizeConfig.size32,
-                                                        onTap: () {
-                                                          Get.to(() =>
-                                                              JobDetailScreen(
-                                                                jobId: job?.sId
-                                                                        .toString() ??
-                                                                    "",
-                                                                isPostDirection:
-                                                                    AppConstants
-                                                                        .DIRECTION,
-                                                                isPostApply:
-                                                                    AppConstants
-                                                                        .APPLY_NOW,
-                                                                isPostEdit: '',
-                                                                isPostCreate: '',
-                                                              ));
+                                                        height:
+                                                            SizeConfig.size32,
+                                                        onTap: () async {
+                                                          if (job != null) {
+                                                            XFile xFile =
+                                                                await urlToCachedXFile(
+                                                                    job.jobPostImage ??
+                                                                        "");
+
+                                                            final linkShare =
+                                                                "https://blueera.ai/app/job/${job.sId.toString()}";
+
+                                                            await SharePlus
+                                                                .instance
+                                                                .share(ShareParams(
+                                                                    text:
+                                                                        linkShare,
+                                                                    subject: job
+                                                                        .jobTitle,
+                                                                    previewThumbnail:
+                                                                        xFile));
+                                                            final file = File(
+                                                                xFile.path);
+                                                            if (await file
+                                                                .exists()) {
+                                                              await file
+                                                                  .delete();
+                                                            }
+                                                          }
                                                         },
-                                                        title: AppStrings.applyNow,
+                                                        title: AppStrings.share,
+                                                        bgColor:
+                                                            AppColors.white,
+                                                        borderColor: AppColors
+                                                            .primaryColor,
+                                                        textColor: AppColors
+                                                            .primaryColor,
                                                         fontSize:
                                                             SizeConfig.small,
                                                       ),
                                                     ),
-                                                ],
-                                              ),
+                                                    SizedBox(
+                                                        width:
+                                                            SizeConfig.size8),
+                                                    if (!(job?.isApplied ??
+                                                            false) &&
+                                                        job?.status
+                                                                ?.toLowerCase() ==
+                                                            "open")
+                                                      Expanded(
+                                                        child:
+                                                            PositiveCustomBtn(
+                                                          height:
+                                                              SizeConfig.size32,
+                                                          onTap: () {
+                                                            Get.to(() =>
+                                                                JobDetailScreen(
+                                                                  jobId: job
+                                                                          ?.sId
+                                                                          .toString() ??
+                                                                      "",
+                                                                  isPostDirection:
+                                                                      AppConstants
+                                                                          .DIRECTION,
+                                                                  isPostApply:
+                                                                      AppConstants
+                                                                          .APPLY_NOW,
+                                                                  isPostEdit:
+                                                                      '',
+                                                                  isPostCreate:
+                                                                      '',
+                                                                ));
+                                                          },
+                                                          title: AppStrings
+                                                              .applyNow,
+                                                          fontSize:
+                                                              SizeConfig.small,
+                                                        ),
+                                                      ),
+                                                  ],
+                                                ),
                                       ],
                                     ),
                                   ),
@@ -670,10 +716,14 @@ List<PopupMenuEntry<String>> createPopupJobCardItems(
           : <Map<String, dynamic>>[
               {
                 'icon': AppIconAssets.tablerEditIcon,
-                'title':AppStrings.edit,
+                'title': AppStrings.edit,
                 'slug_id': 'Edit'
               },
-              {'icon': AppIconAssets.hide, 'title': AppStrings.hide, 'slug_id': 'Hide'},
+              {
+                'icon': AppIconAssets.hide,
+                'title': AppStrings.hide,
+                'slug_id': 'Hide'
+              },
               {
                 'icon': AppIconAssets.uploadIcon,
                 'title': AppStrings.share,
@@ -681,7 +731,7 @@ List<PopupMenuEntry<String>> createPopupJobCardItems(
               },
               {
                 'icon': AppIconAssets.uilSuitcaseOutlinedIcon,
-                'title':AppStrings.closeVacancy,
+                'title': AppStrings.closeVacancy,
                 'slug_id': 'Close Vacancy'
               },
             ];

@@ -300,7 +300,7 @@ class SchoolRepo extends BaseService {
   Future<ResponseModel> createStudentCornerRepo() async {
     final response = await ApiBaseHelper().postHTTP(
         "${educationServiceStudentCorner}",
-        params: {ApiKeys.schoolId:  schoolIDGlobal},
+        params: {ApiKeys.schoolId: schoolIDGlobal},
         onError: (error) {},
         onSuccess: (data) {});
     return response;
@@ -316,7 +316,9 @@ class SchoolRepo extends BaseService {
   }
 
   ///ADD STUDENT CORNER SPECIFIC DETAILS REPO....
-  Future<ResponseModel> postStudentCornerRepo({required String studentCornerId,required Map<String,dynamic> reqParm}) async {
+  Future<ResponseModel> postStudentCornerRepo(
+      {required String studentCornerId,
+      required Map<String, dynamic> reqParm}) async {
     final response = await ApiBaseHelper().postHTTP(
         "${educationServiceStudentCorner}/$studentCornerId/items",
         params: reqParm,
@@ -326,7 +328,10 @@ class SchoolRepo extends BaseService {
   }
 
   ///DELETE STUDENT CORNER SPECIFIC DETAILS REPO....
-  Future<ResponseModel> deleteStudentCornerRepo({required String studentCornerId,required String studentCornerType,required int cornerIndex}) async {
+  Future<ResponseModel> deleteStudentCornerRepo(
+      {required String studentCornerId,
+      required String studentCornerType,
+      required int cornerIndex}) async {
     final response = await ApiBaseHelper().deleteHTTP(
         "${educationServiceStudentCorner}/$studentCornerId/$studentCornerType/$cornerIndex",
         onError: (error) {},
@@ -335,7 +340,11 @@ class SchoolRepo extends BaseService {
   }
 
   ///UPDATE STUDENT CORNER SPECIFIC DETAILS REPO....
-  Future<ResponseModel> updateStudentCornerRepo({required String studentCornerId,required String studentCornerType,required int cornerIndex,required Map<String,dynamic> reqParm}) async {
+  Future<ResponseModel> updateStudentCornerRepo(
+      {required String studentCornerId,
+      required String studentCornerType,
+      required int cornerIndex,
+      required Map<String, dynamic> reqParm}) async {
     final response = await ApiBaseHelper().putHTTP(
         "${educationServiceStudentCorner}/$studentCornerId/$studentCornerType/$cornerIndex",
         params: reqParm,
@@ -345,7 +354,8 @@ class SchoolRepo extends BaseService {
   }
 
   ///educationServiceFaculty  REPO....
-  Future<ResponseModel> addFacultyRepo({required Map<String,dynamic> reqParm}) async {
+  Future<ResponseModel> addFacultyRepo(
+      {required Map<String, dynamic> reqParm}) async {
     final response = await ApiBaseHelper().postHTTP(
         "${educationServiceFaculty}",
         params: reqParm,
@@ -355,7 +365,9 @@ class SchoolRepo extends BaseService {
   }
 
   ///educationServiceFaculty  REPO....
-  Future<ResponseModel> editFacultyRepo({required Map<String,dynamic> reqParm,required String facultyId}) async {
+  Future<ResponseModel> editFacultyRepo(
+      {required Map<String, dynamic> reqParm,
+      required String facultyId}) async {
     final response = await ApiBaseHelper().putHTTP(
         "${educationServiceFaculty}/$facultyId",
         params: reqParm,
@@ -365,21 +377,74 @@ class SchoolRepo extends BaseService {
   }
 
   ///GET ALL Faculty  REPO....
-  Future<ResponseModel> getAllFacultyRepo({required Map<String,dynamic> reqParm}) async {
-    final response = await ApiBaseHelper().getHTTP(
-        "${educationServiceFaculty}",
-        params: reqParm,
+  Future<ResponseModel> getAllFacultyRepo(
+      {required Map<String, dynamic> reqParm}) async {
+    final response = await ApiBaseHelper().getHTTP("${educationServiceFaculty}",
+        params: reqParm, onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+
+  ///DELETE FACULTY DETAILS REPO....
+  Future<ResponseModel> deleteFacultyRepo({
+    required String facultyId,
+  }) async {
+    final response = await ApiBaseHelper().deleteHTTP(
+        "${educationServiceFaculty}/$facultyId",
         onError: (error) {},
         onSuccess: (data) {});
     return response;
   }
 
+  ///GET CAMPUS CATEGORIES REPO....
+  Future<ResponseModel> campusLifeCategoriesRepo() async {
+    final response = await ApiBaseHelper().getHTTP("${campusLifeCategories}",
+        onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
 
+  ///CREATE CAMPUS REPO....
+  Future<ResponseModel> createCampusLifeRepo(
+      {required Map<String, dynamic> reqBody}) async {
+    final response = await ApiBaseHelper()
+        .postHTTP("${campusLife}",params: reqBody, onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
 
-  ///DELETE FACULTY DETAILS REPO....
-  Future<ResponseModel> deleteFacultyRepo({required String facultyId,}) async {
+  ///GET CAMPUS LIFE REPO....
+  Future<ResponseModel> getAllCampusLifeRepo() async {
+    final response = await ApiBaseHelper().getHTTP(
+        "${campusLife}/school/${schoolIDGlobal}",
+        onError: (error) {},
+        onSuccess: (data) {});
+    return response;
+  }
+
+  // ///GET CAMPUS CATEGORY LIFE REPO....
+  // Future<ResponseModel> getCampusCategoryLifeRepo({
+  //   required String campusId,
+  // }) async {
+  //   final response = await ApiBaseHelper().getHTTP("${campusLife}/${campusId}",
+  //       onError: (error) {}, onSuccess: (data) {});
+  //   return response;
+  // }
+
+  ///UPDATE CAMPUS CATEGORY LIFE REPO....
+  Future<ResponseModel> updateCampusCategoryLifeRepo({
+    required String campusId,
+    required Map<String, dynamic> reqBody
+  }) async {
+    final response = await ApiBaseHelper().putHTTP("${campusLife}/${campusId}",params: reqBody,
+        onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+
+  ///DELETE CAMPUS CATEGORY LIFE REPO....
+  Future<ResponseModel> deleteCampusCategoryLifeRepo({
+    required String entriesId,
+    required String imageId,
+  }) async {
     final response = await ApiBaseHelper().deleteHTTP(
-        "${educationServiceFaculty}/$facultyId",
+        "${campusLife}/${entriesId}/images/$imageId",
         onError: (error) {},
         onSuccess: (data) {});
     return response;
