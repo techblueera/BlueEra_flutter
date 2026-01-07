@@ -32,7 +32,7 @@ class SelfProfessionController extends GetxController{
   var selfProfessionServiceResponse =
       ApiResponse.initial('Initial').obs;
 
-  Rx<ServiceItem?> selectedSelfProfessionData = Rx<ServiceItem?>(null);
+  Rx<IndividualProfileCategory?> selectedSelfProfessionData = Rx<IndividualProfileCategory?>(null);
   RxInt selectedTabIndex = 0.obs;
   final List<CategoryFilter> filters = CategoryFilter.values;
   Rx<CategoryFilter> selectedFilter = CategoryFilter.nearest.obs;

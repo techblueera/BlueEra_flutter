@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
+import 'package:BlueEra/features/common/auth/model/individual_profiile_category.dart';
 import 'package:BlueEra/features/common/map/model/service_model_response.dart';
 import 'package:BlueEra/features/common/store/controller/self_profession_controller.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
@@ -24,8 +25,8 @@ import 'package:get/get.dart';
 import '../../../../personal/personal_profile/view/widget/service_item.dart';
 
 class SelfProfessionScreen extends StatefulWidget {
-  final List<ServiceItem> selfEmployedCategories;
-  final ServiceItem selectedSelfProfessionData;
+  final List<IndividualProfileCategory> selfEmployedCategories;
+  final IndividualProfileCategory selectedSelfProfessionData;
 
   const SelfProfessionScreen({
     super.key,
@@ -37,7 +38,7 @@ class SelfProfessionScreen extends StatefulWidget {
 }
 
 class _SelfProfessionScreenState extends State<SelfProfessionScreen> {
-  late List<ServiceItem> selfEmployedCategories;
+  late List<IndividualProfileCategory> selfEmployedCategories;
   final controller = getOrPut(() => SelfProfessionController());
   ScrollController scrollController = ScrollController();
 

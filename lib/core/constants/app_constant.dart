@@ -2010,91 +2010,154 @@ final List<IndividualProfileCategory> selfEmployedCategories = [
   ),
 ];
 
+final List<IndividualProfileCategory> selfWorkCategories = [
+  IndividualProfileCategory(
+    name: AppStrings.electrician,
+    slugId: ELECTRICIAN,
+    icon: AppImageAssets.electrician,
+  ),
+  IndividualProfileCategory(
+    name: AppStrings.plumber,
+    slugId: PLUMBER,
+    icon: AppImageAssets.plumber,
+  ),
+  IndividualProfileCategory(
+    name: AppStrings.technician,
+    slugId: TECHNICIAN,
+    icon: AppImageAssets.technician
+  ),
+  IndividualProfileCategory(
+    name: AppStrings.maidCleaner,
+    slugId: MAID_CLEANER,
+    icon: AppImageAssets.mainCleaner
+  ),
+  IndividualProfileCategory(
+    name: AppStrings.carpenter,
+    slugId: CARPENTER,
+    icon: AppImageAssets.carpenter
+  ),
+  IndividualProfileCategory(
+    name: AppStrings.taxiCarDriver,
+    slugId: CAR_DRIVER_TAXI,
+    icon: AppImageAssets.taxiDriver
+  ),
+  IndividualProfileCategory(
+    name: AppStrings.mechanic,
+    slugId: MECHANIC,
+    icon: AppImageAssets.mechanic
+  ),
+  IndividualProfileCategory(
+    name: AppStrings.homeRenovator,
+    slugId: HOME_RENOVATION,
+    icon: AppImageAssets.homeRenovator
+  ),
+  IndividualProfileCategory(
+    name: AppStrings.painter,
+    slugId: PAINTER,
+    icon: AppImageAssets.painter
+  ),
+  IndividualProfileCategory(
+    name: AppStrings.gardener,
+    slugId: GARDENER,
+    icon: AppImageAssets.gardener
+  ),
+  IndividualProfileCategory(
+    name: AppStrings.securityPerson,
+    slugId: SECURITY,
+    icon: AppImageAssets.securityPerson
+  ),
+  IndividualProfileCategory(
+    name: AppStrings.other,
+    slugId: OTHER,
+    icon: AppIconAssets.staggeredIcon
+  ),
+];
+
 /// Business Categories
 final List<BusinessProfileCategory> businessServicesCategories = [
   BusinessProfileCategory(
       name: AppStrings.consulting,
       slugId: AppConstants.consulting,
       // categoryId: '68ce990deac48e6b0d497298',
-      icon: AppIconAssets.consultingServiceIcon,
+      icon: AppImageAssets.consultingService,
       type: AppConstants.service),
   BusinessProfileCategory(
       name: AppStrings.automotive,
       slugId: AppConstants.automotive,
       // categoryId: '68ce990beac48e6b0d49724f',
-      icon: AppIconAssets.automativeServiceIcon,
+      icon: AppImageAssets.automativeService,
       type: AppConstants.service),
   BusinessProfileCategory(
       name: AppStrings.itCommunication,
       slugId: AppConstants.itCommunication,
       // categoryId: '68ce9914eac48e6b0d497366',
-      icon: AppIconAssets.itCommunicationIcon,
+      icon: AppImageAssets.itCommunication,
       type: AppConstants.service),
   BusinessProfileCategory(
       name: AppStrings.homeUtility,
       slugId: AppConstants.homeUtility,
       // categoryId: '68ce9912eac48e6b0d497328',
-      icon: AppIconAssets.homeServiceUtilityIcon,
+      icon: AppImageAssets.homeServiceUtility,
       type: AppConstants.service),
   BusinessProfileCategory(
       name: AppStrings.mediaCreative,
       slugId: AppConstants.mediaCreative,
       // categoryId: '68ce9915eac48e6b0d497382',
-      icon: AppIconAssets.mediaPublicityIcon,
+      icon: AppImageAssets.mediaPublicityIcon,
       type: AppConstants.service),
   BusinessProfileCategory(
       name: AppStrings.educationTraining,
       slugId: AppConstants.educationTraining,
       // categoryId: '68ce990eeac48e6b0d4972ad',
-      icon: AppIconAssets.educationTrainingIcon,
+      icon: AppImageAssets.educationTraining,
       type: AppConstants.service),
   BusinessProfileCategory(
       name: AppStrings.tourTravel,
       slugId: AppConstants.tourTravel,
       // categoryId: '68ce9916eac48e6b0d4973aa',
-      icon: AppIconAssets.tourTravelIcon,
+      icon: AppImageAssets.tourTravel,
       type: AppConstants.service),
   BusinessProfileCategory(
       name: AppStrings.beautyCare,
       slugId: AppConstants.beautyCare,
       // categoryId: '68ce990beac48e6b0d497260',
-      icon: AppIconAssets.beautyPersonalCareIcon,
+      icon: AppImageAssets.beautyPersonalCare,
       type: AppConstants.service),
   BusinessProfileCategory(
       name: AppStrings.serviceCenter,
       slugId: AppConstants.serviceCenter,
       // categoryId: '68ce9915eac48e6b0d497397',
-      icon: AppIconAssets.serviceCenterIcon,
+      icon: AppImageAssets.serviceCenter,
       type: AppConstants.service),
   BusinessProfileCategory(
       name: AppStrings.logistics,
       slugId: AppConstants.logistics,
       // categoryId: '68ce9914eac48e6b0d497375',
-      icon: AppIconAssets.logisticTransportationIcon,
+      icon: AppImageAssets.logisticTransportation,
       type: AppConstants.service),
   BusinessProfileCategory(
       name: AppStrings.celebrationEvent,
       slugId: AppConstants.celebrationEvent,
       // categoryId: '68ce990ceac48e6b0d49727f',
-      icon: AppIconAssets.celebrationEventIcon,
+      icon: AppImageAssets.celebrationEvent,
       type: AppConstants.service),
   BusinessProfileCategory(
       name: AppStrings.financial,
       slugId: AppConstants.financial,
       // categoryId: '68ce990feac48e6b0d4972dc',
-      icon: AppIconAssets.financialIcon,
+      icon: AppImageAssets.financial,
       type: AppConstants.service),
   BusinessProfileCategory(
       name: AppStrings.healthcareMedicalServices,
       slugId: AppConstants.healthcareMedicalServices,
       // categoryId: '68ce9910eac48e6b0d4972ed',
-      icon: AppIconAssets.healthCareIcon,
+      icon: AppImageAssets.healthCare,
       type: AppConstants.service),
   BusinessProfileCategory(
       name: AppStrings.hostelsStayService,
       slugId: AppConstants.hostelsStayService,
       // categoryId: '68ce9912eac48e6b0d497341',
-      icon: AppIconAssets.hostelIcon,
+      icon: AppImageAssets.hostel,
       type: AppConstants.service),
 ];
 
@@ -2103,67 +2166,67 @@ final List<BusinessProfileCategory> businessProductsCategories = [
       name: AppStrings.furnitureHomeDecor,
       slugId: AppConstants.furnitureHomeDecor,
       // categoryId: '68ce9907eac48e6b0d4971f7',
-      icon: AppImageAssets.furnitureHomeDecorIcon,
+      icon: AppImageAssets.furnitureHomeDecor,
       type: AppConstants.product),
   BusinessProfileCategory(
       name: AppStrings.sportsFitness,
       slugId: AppConstants.sportsFitness,
       // categoryId: '68ce990aeac48e6b0d497235',
-      icon: AppImageAssets.sportsFitnessStoreIcon,
+      icon: AppImageAssets.sportsFitnessStore,
       type: AppConstants.product),
   BusinessProfileCategory(
       name: AppStrings.jewelleryLuxury,
       slugId: AppConstants.jewelleryLuxury,
       // categoryId: '68ce9908eac48e6b0d497204',
-      icon: AppImageAssets.jewelleryLuxuryStoreIcon,
+      icon: AppImageAssets.jewelleryLuxuryStore,
       type: AppConstants.product),
   BusinessProfileCategory(
       name: AppStrings.automotiveStore,
       slugId: AppConstants.automotiveStore,
       // categoryId: '68ce9904eac48e6b0d497192',
-      icon: AppImageAssets.automotiveStoreIcon,
+      icon: AppImageAssets.automotiveStore,
       type: AppConstants.product),
   BusinessProfileCategory(
       name: AppStrings.booksStationaryGifts,
       slugId: AppConstants.booksStationaryGifts,
       // categoryId: '68ce9905eac48e6b0d4971a5',
-      icon: AppImageAssets.booksStationaryGiftsIcon,
+      icon: AppImageAssets.booksStationaryGifts,
       type: AppConstants.product),
   BusinessProfileCategory(
       name: AppStrings.pharmacyMedical,
       slugId: AppConstants.pharmacyMedical,
       // categoryId: '68ce9909eac48e6b0d497217',
-      icon: AppImageAssets.pharmacyMedicalStoreIcon,
+      icon: AppImageAssets.pharmacyMedicalStore,
       type: AppConstants.product),
   BusinessProfileCategory(
       name: AppStrings.petSupplies,
       slugId: AppConstants.petSupplies,
       // categoryId: '68ce9909eac48e6b0d497217',
-      icon: AppImageAssets.petSuppliesStoreIcon,
+      icon: AppImageAssets.petSuppliesStore,
       type: AppConstants.product),
   BusinessProfileCategory(
       name: AppStrings.toysBabyProducts,
       slugId: AppConstants.toysBabyProducts,
       // categoryId: '68ce990aeac48e6b0d497244',
-      icon: AppImageAssets.babyToysProductStoreIcon,
+      icon: AppImageAssets.babyToysProductStore,
       type: AppConstants.product),
   BusinessProfileCategory(
       name: AppStrings.electronicsAppliances,
       slugId: AppConstants.electronicsAppliances,
       // categoryId: '68ce9906eac48e6b0d4971c5',
-      icon: AppImageAssets.electronicsApplianceStoreIcon,
+      icon: AppImageAssets.electronicsApplianceStore,
       type: AppConstants.product),
   BusinessProfileCategory(
       name: AppStrings.constructionHomeEssentials,
       slugId: AppConstants.constructionHomeEssentials,
       // categoryId: '68ce9905eac48e6b0d4971b0',
-      icon: AppImageAssets.constructionHomeEsseIcon,
+      icon: AppImageAssets.constructionHomeEsse,
       type: AppConstants.product),
   BusinessProfileCategory(
       name: AppStrings.fashionLifestyle,
       slugId: AppConstants.fashionLifestyle,
       // categoryId: '68ce9907eac48e6b0d4971dc',
-      icon: AppImageAssets.fashionLifestyleIcon,
+      icon: AppImageAssets.fashionLifestyle,
       type: AppConstants.product
   ),
 ];

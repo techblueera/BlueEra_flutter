@@ -464,18 +464,6 @@ class AppIconAssets {
   static String riderIcon = "${iconPath}rider_icon.svg";
   static String doctorsIcon = "${iconPath}doctors_icon.svg";
   static String hospitalIcon = "${iconPath}hospital_icon.svg";
-  static String consultingServiceIcon = "${iconPath}consulting_service_icon.svg";
-  static String automativeServiceIcon = "${iconPath}automative_service_icon.svg";
-  static String itCommunicationIcon = "${iconPath}it_communication_icon.svg";
-  static String homeServiceUtilityIcon = "${iconPath}home_service_utility_icon.svg";
-  static String mediaPublicityIcon = "${iconPath}media_publicity_icon.svg";
-  static String educationTrainingIcon = "${iconPath}education_training_icon.svg";
-  static String tourTravelIcon = "${iconPath}tour_travel_icon.svg";
-  static String beautyPersonalCareIcon = "${iconPath}beauty_personal_care_icon.svg";
-  static String serviceCenterIcon = "${iconPath}service_center_icon.svg";
-  static String logisticTransportationIcon = "${iconPath}logistic_transportation_icon.svg";
-  static String celebrationEventIcon = "${iconPath}celebration_event_icon.svg";
-  static String financialIcon = "${iconPath}financial_icon.svg";
   static String fastFoodQuickServiceIcon = "${iconPath}fast_food_quick_service_icon.svg";
   static String multiCuisineRestroIcon = "${iconPath}multi_cuisine_restro_icon.svg";
   static String groceryVegetableDairyIcon = "${iconPath}grocery_vegetable_dairy_icon.svg";
@@ -501,8 +489,6 @@ class AppIconAssets {
   static String govtDeptIcon = "${iconPath}govt_dept_icon.svg";
   static String contentCreaterIcon = "${iconPath}content_creater_icon.svg";
 
-  static String healthCareIcon = "${iconPath}health_care_icon.svg";
-  static String hostelIcon = "${iconPath}hostel_icon.svg";
   static String otherBusinessRelatedIcon = "${iconPath}other_business_related_icon.svg";
   static String refreshIcon = "${iconPath}refresh_icon.svg";
 

@@ -306,7 +306,7 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                                         height: SizeConfig.size190,
                                         width: SizeConfig.screenWidth,
                                         child: LocalAssets(
-                                          imagePath: AppImageAssets.riderBanner,
+                                          imagePath: AppImageAssets.riderStoreBanner,
                                           boxFix: BoxFit.cover,
                                         ),
                                       ),

@@ -106,7 +106,6 @@ flutter:
     - assets/store/
     - assets/sound/
 
-    - assets/category/dal/
     - assets/category/foods/all_food_category/
     - assets/category/medical/
 

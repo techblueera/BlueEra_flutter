@@ -25,8 +25,8 @@ class AppImageAssets {
   static const String sampleStoreImage2 = "${imgPath}sample_store_image2.png";
   static const String sampleStoreImage3 = "${imgPath}sample_store_image3.png";
   static const String sampleStoreImage4 = "${imgPath}sample_store_image4.png";
-  static const String riderBanner = "${imgPath}rider_banner.png";
-  static const String localMarket = "${imgPath}local_market.png";
+  static const String riderStoreBanner = "${imgPath}rider_store_banner.png";
+  static const String localMarketProducts = "${imgPath}local_market_products.png";
   static const String bookProfessional = "${imgPath}book_professional.png";
   static const String findServiceNearMe = "${imgPath}find_service_near_me.png";
   static const String medicalHealthService = "${imgPath}medical_health_service.png";
@@ -41,17 +41,49 @@ class AppImageAssets {
   static String sampleGirlImage = "${imgPath}sample_girl_image.png";
 
   /// Business products images
-  static String furnitureHomeDecorIcon = "${imgPath}furniture_home_decor_icon.png";
-  static String sportsFitnessStoreIcon = "${imgPath}sports_fitness_store_icon.png";
-  static String jewelleryLuxuryStoreIcon = "${imgPath}jewellery_luxury_store_icon.png";
-  static String automotiveStoreIcon = "${imgPath}automotive_store_icon.png";
-  static String booksStationaryGiftsIcon = "${imgPath}books_stationary_gifts_icon.png";
-  static String pharmacyMedicalStoreIcon = "${imgPath}pharmacy_medical_store_icon.png";
-  static String petSuppliesStoreIcon = "${imgPath}pet_supplies_store_icon.png";
-  static String babyToysProductStoreIcon = "${imgPath}baby_toys_product_store_icon.png";
-  static String electronicsApplianceStoreIcon = "${imgPath}electronics_appliance_store_icon.png";
-  static String constructionHomeEsseIcon = "${imgPath}construction_home_esse_icon.png";
-  static String fashionLifestyleIcon = "${imgPath}fashion_lifestyle_icon.png";
+  static String furnitureHomeDecor = "${imgPath}furniture_home_decor_icon.png";
+  static String sportsFitnessStore = "${imgPath}sports_fitness_store_icon.png";
+  static String jewelleryLuxuryStore = "${imgPath}jewellery_luxury_store_icon.png";
+  static String automotiveStore = "${imgPath}automotive_store_icon.png";
+  static String booksStationaryGifts = "${imgPath}books_stationary_gifts_icon.png";
+  static String pharmacyMedicalStore = "${imgPath}pharmacy_medical_store_icon.png";
+  static String petSuppliesStore = "${imgPath}pet_supplies_store_icon.png";
+  static String babyToysProductStore = "${imgPath}baby_toys_product_store_icon.png";
+  static String electronicsApplianceStore = "${imgPath}electronics_appliance_store_icon.png";
+  static String constructionHomeEsse = "${imgPath}construction_home_esse_icon.png";
+  static String fashionLifestyle = "${imgPath}fashion_lifestyle_icon.png";
+
+  /// Business services images
+  static String consultingService = "${imgPath}consulting_service_icon.png";
+  static String automativeService = "${imgPath}automative_service_icon.png";
+  static String itCommunication = "${imgPath}it_communication_icon.png";
+  static String homeServiceUtility = "${imgPath}home_service_utility_icon.png";
+  static String mediaPublicityIcon = "${imgPath}media_publicity_icon.png";
+  static String educationTraining = "${imgPath}education_training_icon.png";
+  static String tourTravel = "${imgPath}tour_travel_icon.png";
+  static String beautyPersonalCare = "${imgPath}beauty_personal_care_icon.png";
+  static String serviceCenter = "${imgPath}service_center_icon.png";
+  static String logisticTransportation = "${imgPath}logistic_transportation_icon.png";
+  static String celebrationEvent = "${imgPath}celebration_event_icon.png";
+  static String financial = "${imgPath}financial_icon.png";
+  static String healthCare = "${imgPath}health_care_icon.png";
+  static String hostel = "${imgPath}hostel_icon.png";
+
+  /// Self employed images
+  static String electrician = "${imgPath}electrician.png";
+  static String mechanic = "${imgPath}mechanic.png";
+  static String technician = "${imgPath}technician.png";
+  static String plumber = "${imgPath}plumber.png";
+  static String painter = "${imgPath}painter.png";
+  static String homeRenovator = "${imgPath}home_renovator.png";
+  static String mainCleaner = "${imgPath}main_cleaner.png";
+  static String carpenter = "${imgPath}carpenter.png";
+  static String gardener = "${imgPath}gardener.png";
+  static String securityPerson = "${imgPath}security_person.png";
+  static String taxiDriver = "${imgPath}taxi_driver.png";
+  static String deliveryPartner = "${imgPath}delivery_partner.png";
+
+
 
 }
 

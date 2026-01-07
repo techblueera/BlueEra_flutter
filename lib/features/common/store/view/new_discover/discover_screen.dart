@@ -14,11 +14,13 @@ import 'package:BlueEra/features/business/auth/controller/view_business_details_
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/ai_chat/ask_inventory_chat_screen.dart';
 import 'package:BlueEra/features/common/auth/model/business_profile_category.dart';
+import 'package:BlueEra/features/common/auth/model/individual_profiile_category.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
 import 'package:BlueEra/features/common/jobs/view/jobs_screen.dart';
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
 import 'package:BlueEra/features/common/store/view/new_discover/product_local_market_screen.dart';
 import 'package:BlueEra/features/common/store/view/new_discover/self_profession_screen.dart';
+import 'package:BlueEra/features/common/store/view/new_discover/services_near_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/create_profile_screen.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -47,13 +49,9 @@ class DiscoverScreen extends StatefulWidget {
 
 class _DiscoverScreenState extends State<DiscoverScreen> {
   final NewStoreController controller = Get.put(NewStoreController());
-  late final double userLat;
-  late final double userLng;
 
   @override
   void initState() {
-    userLat = LocationService.lat;
-    userLng = LocationService.lng;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       _calculateHeaderHeight();
     });
@@ -289,7 +287,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                     child: Column(
                       children: [
                         _bannerWidget(
-                            bannerImage: AppImageAssets.riderBanner,
+                            bannerImage: AppImageAssets.riderStoreBanner,
                             bannerHeight: SizeConfig.size180
                         ),
               
@@ -350,7 +348,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                   child: Column(
                     children: [
                       _bannerWidget(
-                          bannerImage: AppImageAssets.localMarket,
+                          bannerImage: AppImageAssets.localMarketProducts,
                           bannerHeight: SizeConfig.size180
                       ),
 
@@ -386,8 +384,8 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                     final double sideBoxSize = (fixedBannerHeight - gap) / 2;
                     final double bannerWidth = totalWidth - sideBoxSize - gap;
 
-                    final List<ServiceItem> sideBoxItems = selfWorkServiceList.sublist(0, 2);
-                    final List<ServiceItem> bottomRowItems = selfWorkServiceList.sublist(2, 7);
+                    final List<IndividualProfileCategory> sideBoxItems = selfWorkCategories.sublist(0, 2);
+                    final List<IndividualProfileCategory> bottomRowItems = selfWorkCategories.sublist(2, 7);
 
                     return Column(
                       children: [
@@ -417,7 +415,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                                       icon: sideBoxItems[0].icon,
                                       onTap: () {
                                         Get.to(()=> SelfProfessionScreen(
-                                            selfEmployedCategories: selfWorkServiceList, // Pass full list for context
+                                            selfEmployedCategories: selfWorkCategories, // Pass full list for context
                                             selectedSelfProfessionData: sideBoxItems[0]
                                         ));
                                       }
@@ -428,7 +426,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                                       icon: sideBoxItems[1].icon,
                                       onTap: () {
                                         Get.to(()=> SelfProfessionScreen(
-                                            selfEmployedCategories: selfWorkServiceList,
+                                            selfEmployedCategories: selfWorkCategories,
                                             selectedSelfProfessionData: sideBoxItems[1]
                                         ));
                                       }
@@ -442,14 +440,14 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                         SizedBox(height: SizeConfig.paddingXSL),
 
                         // Bottom Section
-                        genericSquareRow<ServiceItem>(
+                        genericSquareRow<IndividualProfileCategory>(
                           items: bottomRowItems,
                           itemsPerRow: 5,
                           labelBuilder: (s) => s.name,
                           iconBuilder: (s) => s.icon,
                           onTap: (s) {
                             Get.to(()=> SelfProfessionScreen(
-                              selfEmployedCategories: selfWorkServiceList,
+                              selfEmployedCategories: selfWorkCategories,
                               selectedSelfProfessionData: s
                             ));
                           },
@@ -510,9 +508,9 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                       labelBuilder: (c) => c.name,
                       iconBuilder: (c) => c.icon,
                       onTap: (c) {
-                        // Get.to(()=> ProductLocalMarketScreen(
-                        //     businessProductsCategories: selfWorkServiceList,
-                        // ));
+                        Get.to(()=> ServicesNearMeScreen(
+                          businessServicesCategories: businessServicesCategories,
+                        ));
                       },
                     )
                   ],
