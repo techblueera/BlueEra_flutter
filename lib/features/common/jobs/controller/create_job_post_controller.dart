@@ -113,7 +113,7 @@ class CreateJobPostController extends GetxController {
   final JobRepo _repo = JobRepo();
 
   ///POST JOB
-  Future<void> postJobApi({String? imagePath}) async {
+  Future<void> postJobApi({String? imagePath,required String? createJobVia}) async {
     try {
       final params = {
         ApiKeys.jobTitle: jobTitleController.text,
@@ -130,6 +130,7 @@ class CreateJobPostController extends GetxController {
         ApiKeys.locationLatitude: startLocationLat?.value ?? 0.0,
         ApiKeys.locationLongitude: startLocationLng?.value ?? 0.0,
         ApiKeys.locationAddress: addressEditController.text,
+        ApiKeys.postedFrom: createJobVia,
       };
       if (imagePath != null && imagePath.isNotEmpty) {
         params[ApiKeys.jobPostImage] = await MultipartFile.fromFile(imagePath,

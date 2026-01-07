@@ -7,7 +7,9 @@ import 'package:BlueEra/features/me/school/controller/school_about_us_controller
 import 'package:BlueEra/features/me/school/controller/school_controller.dart';
 import 'package:BlueEra/features/me/school/view/category/about_school/school_about_us.dart';
 import 'package:BlueEra/features/me/school/view/category/acadamics/school_academics_page.dart';
-import 'package:BlueEra/features/me/school/view/category/campus_life/school_compus_life.dart';
+import 'package:BlueEra/features/me/school/view/category/campus_life/campus_life_listing_screen.dart';
+import 'package:BlueEra/features/me/school/view/category/campus_life/create_campus_life_screen.dart';
+import 'package:BlueEra/features/me/school/view/category/career_jobs/school_job_listing_screen.dart';
 import 'package:BlueEra/features/me/school/view/category/notice_news/notice_news_screen.dart';
 import 'package:BlueEra/features/me/school/view/category/school_contact_us/school_contact_us.dart';
 import 'package:BlueEra/features/me/school/view/category/school_student_corner.dart';
@@ -41,7 +43,7 @@ class SchoolUpdateScreen extends StatelessWidget {
     ServiceMenuItem(
       title: "Campus Life",
       icon: AppIconAssets.campus_life,
-      page: () => CampusLifePage(),
+      page: () => CampusLifeListingScreen(),
     ),
     ServiceMenuItem(
       title: "Notices & News",
@@ -52,7 +54,7 @@ class SchoolUpdateScreen extends StatelessWidget {
     ServiceMenuItem(
       title: "Career / Jobs",
       icon: AppIconAssets.career_jobs,
-      page: () => ComingSoon(),
+      page: () => SchoolJobListingScreen(),
     ),
     ServiceMenuItem(
       title: "Contact Us",

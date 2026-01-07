@@ -584,6 +584,7 @@ class ApiKeys {
   static const fileUrl = 'fileUrl';
   static const orderFor = 'orderFor';
   static const modeOfPayment = 'modeOfPayment';
+  static const postedFrom = 'postedFrom';
   static const argVariants = 'argVariants';
 
 }

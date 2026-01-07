@@ -405,12 +405,8 @@ class _CreateJobPostStep2State extends State<CreateJobPostStep2> {
                         fontWeight: FontWeight.w500,
                     ),
                     const SizedBox(width: 4),
-                    LocalAssets(imagePath:
-                      'assets/svg/drop_down.svg',
-                      height: 14,
-                      width: 14,
-                      imgColor: AppColors.primaryColor,
-                    ),
+                    Icon(Icons.keyboard_arrow_down_sharp),
+
                   ],
                 ),
               ),

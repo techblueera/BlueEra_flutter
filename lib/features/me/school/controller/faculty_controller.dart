@@ -135,24 +135,6 @@ class FacultyController extends GetxController {
     }
   }
 
-  // void validateFacultyForm({
-  //   required String name,
-  //   required String email,
-  //   required String phone,
-  //   required String posController,
-  //   required String profile,
-  // }) {
-  //   isFormValid.value = name.isNotEmpty &&
-  //       email.isEmail &&
-  //       phone.isNotEmpty &&
-  //       posController.isNotEmpty &&
-  //       profile.isNotEmpty &&
-  //       qualifications.isNotEmpty;
-  // }
-  //
-  // // Helper to add to lists
-  // void addQualification(String val) => qualifications.add(val);
-
   void addInterest(String val) => researchInterests.add(val);
 
   void removeQualification(int index) => qualifications.removeAt(index);

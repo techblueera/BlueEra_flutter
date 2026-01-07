@@ -166,7 +166,7 @@ class JobCard extends StatelessWidget {
                                           params: params,
                                         );
                                         await jobScreenController
-                                            .getAllJobsApi();
+                                            .getAllJobsApi(postedVIA: 'business');
 
                                         break;
 
@@ -220,7 +220,7 @@ class JobCard extends StatelessWidget {
                                           params: params,
                                         );
                                         await jobScreenController
-                                            .getAllJobsApi();
+                                            .getAllJobsApi(postedVIA: 'business');
 
                                         break;
                                       case 'Share':
