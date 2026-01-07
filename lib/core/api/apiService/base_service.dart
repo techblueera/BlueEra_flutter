@@ -568,4 +568,6 @@ abstract class BaseService {
   final String educationServiceAcademics = 'education-service/academics';
   final String educationServiceStudentCorner = 'education-service/student-corner';
   final String educationServiceFaculty = 'education-service/faculty';
+  String enableHotelServiceStatus(String categoryId) =>  'health-service/api/categories/$categoryId/status';
+
 }

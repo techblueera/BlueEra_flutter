@@ -12,8 +12,8 @@ import 'package:get/get_core/src/get_main.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/app_constant.dart';
 import '../../../../../widgets/custom_text_cm.dart';
-import '../../../auth/controller/medical_model_controller.dart';
 import '../../../laboratory/view/widgets/me_menu_card_design.dart';
+import '../../controller/medical_model_controller.dart';
 class AddMedicalService extends StatefulWidget {
   const AddMedicalService({super.key});
 

@@ -6,13 +6,16 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 
 class MeMenuCardDesign extends StatelessWidget {
-  const MeMenuCardDesign(
-      {super.key,
-      required this.title,
-      required this.icon,
-      this.showCount,
-      this.count,
-      this.showToggleButton});
+  const MeMenuCardDesign({
+    super.key,
+    required this.title,
+    required this.icon,
+    this.showCount,
+    this.count,
+    this.showToggleButton,
+    this.isToggleOn,
+    this.onToggleChanged,
+  });
 
   final String title;
   final String icon;
@@ -20,33 +23,35 @@ class MeMenuCardDesign extends StatelessWidget {
   final bool? showToggleButton;
   final String? count;
 
+  /// 🔥 NEW
+  final bool? isToggleOn;
+  final ValueChanged<bool>? onToggleChanged;
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
       decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AppColors.greyE5),
-          color: AppColors.white),
-      padding: EdgeInsets.symmetric(horizontal: 14, vertical: 18),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.greyE5),
+        color: AppColors.white,
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 18),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
             children: [
-              LocalAssets(
-                imagePath: icon,
-              ),
-              SizedBox(
-                width: SizeConfig.size12,
-              ),
+              // LocalAssets(imagePath: icon),
+              SizedBox(width: SizeConfig.size12),
               CustomText(
-                "${title}",
+                title,
                 fontSize: SizeConfig.size18,
                 color: AppColors.secondaryTextColor,
-              )
+              ),
             ],
           ),
+
           if (showCount ?? false)
             SizedBox(
               width: 25,
@@ -63,28 +68,33 @@ class MeMenuCardDesign extends StatelessWidget {
                 ),
               ),
             ),
-          if (showToggleButton ?? false) CustomToggleSwitch()
+
+          if (showToggleButton ?? false)
+            CustomToggleSwitch(
+              isOn: isToggleOn ?? false,
+              onChanged: onToggleChanged,
+            ),
         ],
       ),
     );
   }
 }
 
-class CustomToggleSwitch extends StatefulWidget {
-  const CustomToggleSwitch({super.key});
+class CustomToggleSwitch extends StatelessWidget {
+  const CustomToggleSwitch({
+    super.key,
+     this.isOn,
+     this.onChanged,
+  });
 
-  @override
-  State<CustomToggleSwitch> createState() => _CustomToggleSwitchState();
-}
-
-class _CustomToggleSwitchState extends State<CustomToggleSwitch> {
-  bool isOn = false;
+  final bool? isOn;
+  final ValueChanged<bool>? onChanged;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        setState(() => isOn = !isOn);
+        onChanged?.call(!isOn!); // 🔥 return updated value
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
@@ -93,11 +103,11 @@ class _CustomToggleSwitchState extends State<CustomToggleSwitch> {
         padding: const EdgeInsets.all(2),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
-          color: isOn ? Colors.green : Colors.grey.shade400,
+          color: (isOn??false) ? Colors.green : Colors.grey.shade400,
         ),
         child: AnimatedAlign(
           duration: const Duration(milliseconds: 200),
-          alignment: isOn ? Alignment.centerRight : Alignment.centerLeft,
+          alignment: (isOn??false) ? Alignment.centerRight : Alignment.centerLeft,
           child: Container(
             width: 18,
             height: 18,

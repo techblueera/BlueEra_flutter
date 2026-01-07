@@ -3,9 +3,12 @@ import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
+import '../../../../../core/api/apiService/api_keys.dart';
+import '../../../../../core/constants/getx_utils.dart';
 import '../../../../../core/routes/route_helper.dart';
-import '../../../auth/model/medical_lab_details.dart';
 import '../../../laboratory/view/widgets/me_menu_card_design.dart';
+import '../../../medical/model/medical_lab_details.dart';
+import '../../controller/hospital_model_controller.dart';
 import '../widget/general_medicine.dart';
 
 class OpdOutPatientPage extends StatefulWidget {
@@ -32,6 +35,9 @@ class _OpdOutPatientPageState extends State<OpdOutPatientPage> {
 
   @override
   Widget build(BuildContext context) {
+    final controller = getOrPut(() => HospitalModelController());
+
+
     return Scaffold(
       appBar: CommonBackAppBar(
         showRightTextButton: true,
@@ -48,6 +54,13 @@ class _OpdOutPatientPageState extends State<OpdOutPatientPage> {
                 Get.toNamed(RouteHelper.getHospitalDoctorViewCategory(),);
               },
               child: MeMenuCardDesign(
+                onToggleChanged: (val){
+                  Map<String,dynamic> params ={
+                    ApiKeys.isActive: val
+                  };
+                  controller.updateEnableStatus(title.id??'',params);
+                },
+                isToggleOn: title.isActive??false,
                 showToggleButton: true,
                 title: title.name??'',
                 icon: 'assets/icons/service_icon.svg',

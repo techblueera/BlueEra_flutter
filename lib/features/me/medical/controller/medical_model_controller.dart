@@ -10,7 +10,6 @@ import '../../../../core/constants/snackbar_helper.dart';
 import '../model/medical_admin_product_details.dart';
 import '../model/medical_lab_details.dart';
 import '../repo/medical_repo.dart';
-
 class MedicalModelController extends GetxController {
   final medicalRepo = MedicalRepo();
   final RxList<MedicalLabDataListModel> medicalCategoryDataList =
