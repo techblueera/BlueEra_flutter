@@ -3,51 +3,53 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/food/controller/grocery_controller.dart';
 import 'package:BlueEra/features/common/food/model/my_grocery_products_reponse.dart';
-import 'package:BlueEra/features/common/food/view/grocery/my_grocery_listing/my_grocery_card.dart';
+import 'package:BlueEra/features/common/food/view/grocery/my_grocery_listing/my_grocery_variant_card.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class MyGroceryScreen extends StatefulWidget {
-  final String categoryId;
+class MyGroceryVariantScreen extends StatefulWidget {
+  final List<Variants> variants;
   final bool? isShowInGrid;
 
-  const MyGroceryScreen({
+  const MyGroceryVariantScreen({
     super.key,
-    required this.categoryId,
+    required this.variants,
     this.isShowInGrid = true
   });
 
   @override
-  State<MyGroceryScreen> createState() => _MyGroceryScreenState();
+  State<MyGroceryVariantScreen> createState() => _MyGroceryVariantScreenState();
 }
 
-class _MyGroceryScreenState extends State<MyGroceryScreen> {
+class _MyGroceryVariantScreenState extends State<MyGroceryVariantScreen> {
   final controller = getOrPut(() => GroceryController());
   final ScrollController scrollController = ScrollController();
+  late List<Variants> _variants;
 
   @override
   void initState() {
     super.initState();
+    _variants = widget.variants;
 
-    WidgetsBinding.instance.addPostFrameCallback((_){
-      controller.fetchMyGroceryProducts(
-          categoryId: widget.categoryId,
-          isSubCategoryProducts: true
-      );
-
-      scrollController.addListener(() {
-        if (scrollController.position.pixels >=
-            scrollController.position.maxScrollExtent - 200) {
-          controller.fetchMyGroceryProducts(
-              isLoadMore: true,
-              categoryId: widget.categoryId,
-              isSubCategoryProducts: true
-          );
-        }
-      });
-    });
+      // WidgetsBinding.instance.addPostFrameCallback((_){
+      // controller.fetchMyGroceryProducts(
+      //     categoryId: widget.productId,
+      //     isSubCategoryProducts: true
+      // );
+      //
+      // scrollController.addListener(() {
+      //   if (scrollController.position.pixels >=
+      //       scrollController.position.maxScrollExtent - 200) {
+      //     controller.fetchMyGroceryProducts(
+      //         isLoadMore: true,
+      //         categoryId: widget.productId,
+      //         isSubCategoryProducts: true
+      //     );
+      //   }
+      // });
+      // });
 
   }
 
@@ -71,16 +73,10 @@ class _MyGroceryScreenState extends State<MyGroceryScreen> {
 
       body: SafeArea(
         child:
-        Obx(() {
-          // First time loading
-          if (controller.isMyGroceryDataFirstLoading.value) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          final groceryProductsVariantList = List<Variants>.from(controller.myGroceryProductsVariantsList);
-
+        Builder(
+          builder: (BuildContext context) {
           // Empty state
-          if (groceryProductsVariantList.isEmpty) {
+          if (_variants.isEmpty) {
             return Center(
               child: CustomText(
                   'Not found any grocery',
@@ -122,20 +118,13 @@ class _MyGroceryScreenState extends State<MyGroceryScreen> {
                     mainAxisSpacing: mainSpacing,
                     childAspectRatio: childAspectRatio,
                   ),
-                  itemCount: groceryProductsVariantList.length +
+                  itemCount: _variants.length +
                       (controller.isMyGroceryDataLoadingMore.value ? 1 : 0),
                   itemBuilder: (context, index) {
-                    if (index >= groceryProductsVariantList.length) {
-                      return const Padding(
-                        padding: EdgeInsets.all(20),
-                        child: Center(child: CircularProgressIndicator()),
-                      );
-                    }
+                    final variantItem = _variants[index];
 
-                    final groceryProductsVariantItem = groceryProductsVariantList[index];
-
-                    return MyGroceryCard(
-                      groceryProductsVariantItem: groceryProductsVariantItem,
+                    return MyGroceryVariantCard(
+                      variantItem: variantItem,
                       isShowInGrid: true,
                     );
                   },
@@ -149,29 +138,20 @@ class _MyGroceryScreenState extends State<MyGroceryScreen> {
                 horizontal: SizeConfig.size8,
                 vertical: SizeConfig.size8
             ),
-            itemCount: groceryProductsVariantList.length +
-                (controller.isMyGroceryDataLoadingMore.value ? 1 : 0),
+            itemCount: _variants.length,
             itemBuilder: (context, index) {
-              // Pagination Loader
-              if (index >= groceryProductsVariantList.length) {
-                return const Padding(
-                  padding: EdgeInsets.all(20),
-                  child: Center(child: CircularProgressIndicator()),
-                );
-              }
-
-              final groceryProductsVariantItem = groceryProductsVariantList[index];
+              final variantItem = _variants[index];
 
               return Padding(
                 padding: EdgeInsets.only(bottom: dynamicSize(10)),
-                child: MyGroceryCard(
-                  groceryProductsVariantItem: groceryProductsVariantItem,
+                child: MyGroceryVariantCard(
+                  variantItem: variantItem,
                   isShowInGrid: false,
                 ),
               );
             },
           );
-        }),
+        }, ),
       ),
     );
   }

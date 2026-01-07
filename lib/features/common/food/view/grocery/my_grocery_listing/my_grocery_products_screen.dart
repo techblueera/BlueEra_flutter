@@ -3,25 +3,26 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/food/controller/grocery_controller.dart';
 import 'package:BlueEra/features/common/food/model/my_grocery_products_reponse.dart';
-import 'package:BlueEra/features/common/food/view/grocery/my_grocery_listing/grocery_category_card.dart';
+import 'package:BlueEra/features/common/food/view/grocery/my_grocery_listing/grocery_product_card.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class MyGroceryCategoryScreen extends StatefulWidget {
+class MyGroceryProductsScreen extends StatefulWidget {
   final String categoryId;
   final String categoryName;
-  const MyGroceryCategoryScreen({
+
+  const MyGroceryProductsScreen({
     super.key,
     required this.categoryId,
     required this.categoryName});
 
   @override
-  State<MyGroceryCategoryScreen> createState() => _MyGroceryCategoryScreenState();
+  State<MyGroceryProductsScreen> createState() => _MyGroceryProductsScreenState();
 }
 
-class _MyGroceryCategoryScreenState extends State<MyGroceryCategoryScreen> {
+class _MyGroceryProductsScreenState extends State<MyGroceryProductsScreen> {
   final controller = getOrPut(() => GroceryController());
   final ScrollController scrollController = ScrollController();
   late String categoryId;
@@ -35,7 +36,6 @@ class _MyGroceryCategoryScreenState extends State<MyGroceryCategoryScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_){
       controller.fetchMyGroceryProducts(
           categoryId: categoryId,
-          isSubCategoryProducts: false
       );
 
       scrollController.addListener(() {
@@ -43,7 +43,6 @@ class _MyGroceryCategoryScreenState extends State<MyGroceryCategoryScreen> {
             scrollController.position.maxScrollExtent - 200) {
           controller.fetchMyGroceryProducts(
               categoryId: categoryId,
-              isSubCategoryProducts: false,
               isLoadMore: true
           );
         }
@@ -69,7 +68,7 @@ class _MyGroceryCategoryScreenState extends State<MyGroceryCategoryScreen> {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final groceryList = List<MyGroceryProductsData>.from(controller.myGroceryProductsList);
+        final groceryList = List<Products>.from(controller.myGroceryProductsList);
 
         // Empty state
         if (groceryList.isEmpty) {
@@ -101,10 +100,10 @@ class _MyGroceryCategoryScreenState extends State<MyGroceryCategoryScreen> {
               );
             }
 
-            final groceryProductsData = groceryList[index];
+            final groceryProducts = groceryList[index];
 
-            return  GroceryCategoryCard(
-                groceryProductsData: groceryProductsData,
+            return  GroceryProductCard(
+                groceryProducts: groceryProducts,
             );
           },
         );

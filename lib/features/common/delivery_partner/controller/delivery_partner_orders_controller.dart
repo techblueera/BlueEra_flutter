@@ -218,10 +218,11 @@ class DeliverPartnerOrdersController extends GetxController {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
   }
+
   Future<void> getGroceryShopsList(String orderId) async {
     try {
-      Map<String, dynamic>? locationMap= await LocationService.fetchLocation(openSettingsOnDeny: true);
-      Position? position=locationMap?['position'];
+      Map<String, dynamic>? locationMap = await LocationService.fetchLocation(openSettingsOnDeny: true);
+      Position? position = locationMap?['position'];
       ResponseModel? response = await MakeOrderRepo().getGroceryShopsList(orderId: orderId,longitude: '${position?.longitude}',latitude: '${position?.latitude}');
       if (response.isSuccess ) {
         commonSnackBar(

@@ -741,21 +741,24 @@ class _StoreFeedScreenState extends State<StoreFeedScreen>
           child: Stack(
             alignment: Alignment.center,
             children: [
-              Obx(() => LocationService.userCurrentAddress.isNotEmpty
-                  ? Padding(
-                      padding: controller.selectedStoreIndex.value == 1
-                          ? const EdgeInsets.only(bottom: 20.0)
-                          : EdgeInsets.zero,
-                      child: CustomText(
-                        'Find Anything\n in ' +
-                            LocationService.userCurrentAddress[2],
-                        fontSize: SizeConfig.extraLarge22,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.white,
-                        textAlign: TextAlign.center,
-                      ),
-                    )
-                  : SizedBox()),
+              Obx(() {
+                final address = LocationService.userCurrentAddress.value;
+
+                return address.city.isNotEmpty
+                    ? Padding(
+                  padding: controller.selectedStoreIndex.value == 1
+                      ? const EdgeInsets.only(bottom: 20.0)
+                      : EdgeInsets.zero,
+                  child: CustomText(
+                    'Find Anything\n in ${address.city}',
+                    fontSize: SizeConfig.extraLarge22,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.white,
+                    textAlign: TextAlign.center,
+                  ),
+                )
+                    : const SizedBox();
+              }),
 
               // Obx(()=> (controller.selectedStoreIndex.value == 1)
               //     ? Positioned(

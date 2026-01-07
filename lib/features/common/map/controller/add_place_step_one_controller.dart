@@ -1,6 +1,8 @@
 
 import 'package:BlueEra/core/services/location/location_service.dart';
+import 'package:BlueEra/core/services/location/user_address.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -33,13 +35,13 @@ class AddPlaceStepOneController extends GetxController {
       isFetchLocationLoading.value = true;
       final locationData = await LocationService.fetchLocation();
       if (locationData != null) {
-        final position = locationData["position"];
+        final Position position = locationData["position"];
+        final UserAddress address = locationData["address"];
 
         lat.value = position.latitude.toString();
         long.value = position.longitude.toString();
 
-        final address = locationData["address"];
-        landmarkController.text = address;
+        landmarkController.text = address.formattedAddress;
         validateForm();
       }
       isFetchLocationLoading.value = false;

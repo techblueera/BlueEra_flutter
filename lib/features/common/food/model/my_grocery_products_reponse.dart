@@ -2,16 +2,16 @@ import 'package:BlueEra/features/common/food/model/grocery_product_model.dart';
 import 'package:BlueEra/features/common/food/model/images.dart';
 
 class MyGroceryProductsModel {
-  List<MyGroceryProductsData>? data;
+  List<Data>? data;
   Pagination? pagination;
 
   MyGroceryProductsModel({this.data, this.pagination});
 
   MyGroceryProductsModel.fromJson(Map<String, dynamic> json) {
     if (json['data'] != null) {
-      data = <MyGroceryProductsData>[];
+      data = <Data>[];
       json['data'].forEach((v) {
-        data!.add(new MyGroceryProductsData.fromJson(v));
+        data!.add(new Data.fromJson(v));
       });
     }
     pagination = json['pagination'] != null
@@ -31,12 +31,12 @@ class MyGroceryProductsModel {
   }
 }
 
-class MyGroceryProductsData {
+class Data {
   Category? category;
 
-  MyGroceryProductsData({this.category});
+  Data({this.category});
 
-  MyGroceryProductsData.fromJson(Map<String, dynamic> json) {
+  Data.fromJson(Map<String, dynamic> json) {
     category = json['category'] != null
         ? new Category.fromJson(json['category'])
         : null;
@@ -96,6 +96,7 @@ class Products {
   String? brand;
   List<Images>? images;
   List<Variants>? variants;
+  String? lastInventoryAddedOrUpdated;
 
   Products(
       {this.sId,
@@ -103,7 +104,8 @@ class Products {
         this.description,
         this.brand,
         this.images,
-        this.variants});
+        this.variants,
+        this.lastInventoryAddedOrUpdated});
 
   Products.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
@@ -122,6 +124,7 @@ class Products {
         variants!.add(new Variants.fromJson(v));
       });
     }
+    lastInventoryAddedOrUpdated = json['lastInventoryAddedOrUpdated'];
   }
 
   Map<String, dynamic> toJson() {
@@ -136,6 +139,7 @@ class Products {
     if (this.variants != null) {
       data['variants'] = this.variants!.map((v) => v.toJson()).toList();
     }
+    data['lastInventoryAddedOrUpdated'] = this.lastInventoryAddedOrUpdated;
     return data;
   }
 }

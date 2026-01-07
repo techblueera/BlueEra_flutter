@@ -1202,8 +1202,8 @@ class GroceryController extends GetxController {
   List<Map<String, dynamic>> buildInventoryPayload() {
     List<Map<String, dynamic>> payload = [];
 
-    String city = LocationService.userCurrentAddress[2];
-    String postalCode = LocationService.currentPostCode;
+    String city = LocationService.userCurrentAddress.value.city;
+    String postalCode = LocationService.userCurrentAddress.value.postalCode;
 
     selectedProductVariants.forEach((productId, variants) {
       for (final variant in variants) {
@@ -1211,7 +1211,6 @@ class GroceryController extends GetxController {
           "productVariant": variant.sId ?? "",
           "pincode": postalCode,
           "cityName": city,
-
           "batches": [
             {
               "quantity": variant.weight,
@@ -1256,8 +1255,8 @@ class GroceryController extends GetxController {
 
 
   /// Fetch Grocery Products
-  RxList<MyGroceryProductsData> myGroceryProductsList = <MyGroceryProductsData>[].obs;
-  RxList<Variants> myGroceryProductsVariantsList = <Variants>[].obs;
+  RxList<Products> myGroceryProductsList = <Products>[].obs;
+  // RxList<Variants> myGroceryProductsVariantsList = <Variants>[].obs;
   RxBool isMyGroceryDataFirstLoading = false.obs;
   RxBool isMyGroceryDataLoadingMore = false.obs;
   int myGroceryDataPage = 1;
@@ -1266,7 +1265,6 @@ class GroceryController extends GetxController {
 
   Future<void> fetchMyGroceryProducts({
     required String categoryId,
-    required bool isSubCategoryProducts,
     bool isLoadMore = false,
   }) async {
     if (isLoadMore) {
@@ -1290,31 +1288,29 @@ class GroceryController extends GetxController {
         fetchMyGroceryProductsResponse.value = ApiResponse.complete(responseModel);
         final data = responseModel.response?.data;
         MyGroceryProductsModel myGroceryProductsModel = MyGroceryProductsModel.fromJson(data);
-        List<MyGroceryProductsData> newItems = myGroceryProductsModel.data ?? [];
+        List<Products> newItems = myGroceryProductsModel.data?[0].category?.products ?? [];
 
         if (newItems.isNotEmpty) {
-          if(!isSubCategoryProducts){
+          // if(!isSubCategoryProducts){
             if (isLoadMore) {
               myGroceryProductsList.addAll(newItems);
             } else {
               myGroceryProductsList.clear();
               myGroceryProductsList.assignAll(newItems);
             }
-          }else{
-            extractAllVariantsFromResponse(
-                newItems,
-                isLoadMore: isLoadMore,
-            );
-          }
+          // }else{
+          //   extractAllVariantsFromResponse(
+          //       newItems,
+          //       isLoadMore: isLoadMore,
+          //   );
+          // }
 
           myGroceryDataPage++;
         } else {
           myGroceryDataHasMore = false;
         }
 
-        log("Loaded ${newItems.length} items | Total: ${(!isSubCategoryProducts)
-            ? myGroceryProductsList.length
-        : myGroceryProductsVariantsList.length}");
+        log("Loaded ${newItems.length} items | Total: ${ myGroceryProductsList.length}");
       } else {
         fetchMyGroceryProductsResponse.value = ApiResponse.error('error');
       }
@@ -1352,63 +1348,55 @@ class GroceryController extends GetxController {
   // }
 
   /// if variant not has image then we need to fetch from product image and we will overwrite variant image (current scenario)
-  void extractAllVariantsFromResponse(
-      List<MyGroceryProductsData> groceryProductData, {
-        bool isLoadMore = false,
-      }) {
-    debugPrint("📦 START: Extracting variants. isLoadMore: $isLoadMore");
-
-    if (!isLoadMore) {
-      myGroceryProductsVariantsList.clear();
-      debugPrint("🧹 Cleared existing variants list.");
-    }
-
-    int variantsAddedCount = 0;
-
-    for (final data in groceryProductData) {
-      final category = data.category;
-      if (category == null) continue;
-
-      final products = category.products ?? [];
-      debugPrint("📂 Processing Category: ${category.name}, Found ${products.length} products.");
-
-      for (final product in products) {
-        // 1. Safely extract the parent product's image
-        Images? productImage;
-        if (product.images != null && product.images!.isNotEmpty) {
-          productImage = product.images![0];
-        }
-
-        final variants = product.variants ?? [];
-
-        // 2. Loop through variants to attach the image
-        for (final variant in variants) {
-          // Logic Fix: Initialize list if null, then ADD the image (don't access index 0)
-          bool appliedFallback = false;
-
-          if (productImage != null) {
-            if (variant.images == null) {
-              variant.images = [productImage]; // Initialize with parent image
-              appliedFallback = true;
-            } else if (variant.images!.isEmpty) {
-              variant.images!.add(productImage); // Add parent image to empty list
-              appliedFallback = true;
-            }
-          }
-
-          if (appliedFallback) {
-            debugPrint("   📎 Attached parent image to Variant ID: ${variant.sId}");
-          }
-
-          myGroceryProductsVariantsList.add(variant);
-          variantsAddedCount++;
-        }
-      }
-    }
-
-    debugPrint("✅ END: Total variants added in this batch: $variantsAddedCount");
-    debugPrint("📊 Total variants in list: ${myGroceryProductsVariantsList.length}");
-  }
+  // void extractAllVariantsFromResponse(
+  //     List<Products> products, {
+  //       bool isLoadMore = false,
+  //     }) {
+  //   debugPrint("📦 START: Extracting variants. isLoadMore: $isLoadMore");
+  //
+  //   if (!isLoadMore) {
+  //     myGroceryProductsVariantsList.clear();
+  //     debugPrint("🧹 Cleared existing variants list.");
+  //   }
+  //
+  //   int variantsAddedCount = 0;
+  //
+  //   for (final product in products) {
+  //     // 1. Safely extract the parent product's image
+  //     Images? productImage;
+  //     if (product.images != null && product.images!.isNotEmpty) {
+  //       productImage = product.images![0];
+  //     }
+  //
+  //     final variants = product.variants ?? [];
+  //
+  //     // 2. Loop through variants to attach the image
+  //     for (final variant in variants) {
+  //       // Logic Fix: Initialize list if null, then ADD the image (don't access index 0)
+  //       bool appliedFallback = false;
+  //
+  //       if (productImage != null) {
+  //         if (variant.images == null) {
+  //           variant.images = [productImage]; // Initialize with parent image
+  //           appliedFallback = true;
+  //         } else if (variant.images!.isEmpty) {
+  //           variant.images!.add(productImage); // Add parent image to empty list
+  //           appliedFallback = true;
+  //         }
+  //       }
+  //
+  //       if (appliedFallback) {
+  //         debugPrint("   📎 Attached parent image to Variant ID: ${variant.sId}");
+  //       }
+  //
+  //       myGroceryProductsVariantsList.add(variant);
+  //       variantsAddedCount++;
+  //     }
+  //   }
+  //
+  //   debugPrint("✅ END: Total variants added in this batch: $variantsAddedCount");
+  //   debugPrint("📊 Total variants in list: ${myGroceryProductsVariantsList.length}");
+  // }
 
 
 

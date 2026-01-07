@@ -155,8 +155,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
       final address = LocationService.userCurrentAddress;
 
       _currentPosition = LatLng(position.latitude, position.longitude);
-      _currentAddress =
-          address.where((e) => e.isNotEmpty).join(', ');
+      _currentAddress = LocationService.userCurrentAddress.value.formattedAddress;
       searchController.text = _currentAddress ?? '';
       isCurrentLocationMarkerShown = true;
 

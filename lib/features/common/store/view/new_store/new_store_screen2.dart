@@ -576,24 +576,9 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                                   Expanded(
                                     child: CustomText(
                                       [
-                                        if (LocationService
-                                                    .userCurrentAddress.length >
-                                                2 &&
-                                            LocationService
-                                                .userCurrentAddress[2]
-                                                .isNotEmpty)
-                                          LocationService.userCurrentAddress[2],
-                                        // locality
-
-                                        if (LocationService
-                                                    .userCurrentAddress.length >
-                                                3 &&
-                                            LocationService
-                                                .userCurrentAddress[3]
-                                                .isNotEmpty)
-                                          LocationService.userCurrentAddress[3],
-                                        // administrativeArea
-                                      ].join(', '),
+                                        LocationService.userCurrentAddress.value.city,
+                                        LocationService.userCurrentAddress.value.state,
+                                      ].where((e) => e.isNotEmpty).join(', '),
                                       fontSize: SizeConfig.large,
                                       color: AppColors.primaryColor,
                                       fontWeight: FontWeight.w600,

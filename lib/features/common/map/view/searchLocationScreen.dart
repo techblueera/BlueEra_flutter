@@ -62,12 +62,11 @@ class _SearchLocationScreenState extends State<SearchLocationScreen> {
     } */
     // else {
 
-      log('lat--> ${LocationService.lat}, lng--> ${LocationService.lng}, current address--> ${LocationService.userCurrentAddress}');
+      log('lat--> ${LocationService.lat}, lng--> ${LocationService.lng}, current address--> ${LocationService.userCurrentAddress.value.formattedAddress}');
       if (LocationService.lat!=0.0 && LocationService.lng!=0.0) {
-        var position = LatLng(LocationService.lat, LocationService.lng);
-        final address = LocationService.userCurrentAddress;
-        _currentPosition = LatLng(position.latitude, position.longitude);
-        _currentAddress = address.first;
+        _currentPosition = LatLng(LocationService.lat, LocationService.lng);
+        _currentAddress = LocationService.userCurrentAddress.value.formattedAddress;
+        // _currentAddress = address.first;
         // _currentCity = address;
         setState(() {});
       }
