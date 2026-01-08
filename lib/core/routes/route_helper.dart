@@ -334,9 +334,11 @@ class RouteHelper {
   // static String getListingFormScreenRoute() =>
   //      RouteConstant.listingFormScreen;
 
-  static String getInventoryScreenRoute() => RouteConstant.inventoryScreen;
+  static String getInventoryScreenRoute() =>
+      RouteConstant.inventoryScreen;
 
-  static String getAddServicesScreenRoute() => RouteConstant.addServicesScreen;
+  static String getAddServicesScreenRoute() =>
+      RouteConstant.addServicesScreen;
 
   static String getAddProductViaAiStep1Route() =>
       RouteConstant.addProductViaAiStep1;

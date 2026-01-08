@@ -588,4 +588,5 @@ class ApiKeys {
   static const argVariants = 'argVariants';
   static const isActive = 'isActive';
 
+  static const ownerType = 'ownerType';
 }

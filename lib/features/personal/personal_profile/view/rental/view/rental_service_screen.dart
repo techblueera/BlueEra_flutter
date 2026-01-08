@@ -50,8 +50,8 @@ class _RentalServiceScreenState extends State<RentalServiceScreen> {
 
       return Padding(
         padding: EdgeInsets.all(SizeConfig.size15),
-        child: HorizontalTabSelector(
-          tabs: controller.rentalTabs.map((e) => e.label).toList(),
+        child: HorizontalTabSelector<RentalServiceType>(
+          tabs: controller.rentalTabs,
           selectedIndex: controller.rentalTabs.indexOf(selectedTab),
           horizontalMargin: 0.0,
           onTabSelected: (index, _) {
@@ -62,7 +62,7 @@ class _RentalServiceScreenState extends State<RentalServiceScreen> {
             controller.selectedRentalTabs.value = selectedEnum;
             controller.callApi();
           },
-          labelBuilder: (label) => label,
+          labelBuilder: (r) => r.label,
           unSelectedBackgroundColor: AppColors.white,
         ),
       );

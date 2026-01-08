@@ -388,6 +388,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                   ),
                 ),
               ),
+
             if (isMore ?? false)
               PopupMenuButton<PostCreationMenu>(
                 padding: EdgeInsets.zero,

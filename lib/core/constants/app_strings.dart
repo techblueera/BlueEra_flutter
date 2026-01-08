@@ -1828,6 +1828,7 @@ class AppStrings {
   static const hotelOnboardingAgreementSigned = "Hotel Onboarding Agreement (Signed)";
   static const propertyOwnershipOrLeaseAgreement = "Property Ownership / Lease Agreement";
   static const upload = "Upload";
+  static const bookViaBlueEraPartner = "Book Via BlueEra Partner";
 
   ///BHAVESH START
   static const ownerDetail = "owner_detail";

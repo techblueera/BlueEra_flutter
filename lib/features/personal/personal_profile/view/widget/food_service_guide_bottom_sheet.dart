@@ -27,37 +27,6 @@ class _FoodServiceGuideBottomSheetState extends State<FoodServiceGuideBottomShee
   int? selectedIndex;
   ServiceItem? selectedService;
 
-  final List<ServiceItem> _services = [
-    ServiceItem(
-      name: AppStrings.tiffin,
-      slugId: TIFFIN,
-      icon: AppIconAssets.tiffinIcon,
-      bgColor: const Color(0xFFFFF2DF),
-      labelColor: const Color(0xFFAF6800),
-    ),
-    ServiceItem(
-      name: AppStrings.bakery,
-      slugId: BAKERY,
-      icon: AppIconAssets.bakeryIcon,
-      bgColor: const Color(0xFFFFF2C3),
-      labelColor: const Color(0xFF5D4900),
-    ),
-    ServiceItem(
-      name: AppStrings.sweets,
-      slugId: SWEETS,
-      icon: AppIconAssets.sweetIcon,
-      bgColor: const Color(0xFFF0F4C2),
-      labelColor: const Color(0xFF4E5500),
-    ),
-    ServiceItem(
-      name: AppStrings.other,
-      slugId: OTHER,
-      icon: AppIconAssets.staggeredIcon,
-      bgColor: const Color(0xFFCFD8DD),
-      labelColor: const Color(0xFF36444D),
-    ),
-  ];
-
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -117,9 +86,9 @@ class _FoodServiceGuideBottomSheetState extends State<FoodServiceGuideBottomShee
                   crossAxisSpacing: 30,
                   mainAxisSpacing: 20,
                 ),
-                itemCount: _services.length,
+                itemCount: homeMadeFoodServiceList.length,
                 itemBuilder: (_, i) => CommonServiceCard(
-                  service: _services[i],
+                  service: homeMadeFoodServiceList[i],
                   isSelected: selectedIndex == i,
                   onTap: () {
                     setState(() {
@@ -128,7 +97,7 @@ class _FoodServiceGuideBottomSheetState extends State<FoodServiceGuideBottomShee
                         selectedService = null;
                       } else {
                         selectedIndex = i;
-                        selectedService = _services[i];
+                        selectedService = homeMadeFoodServiceList[i];
                       }
                     });
                   },

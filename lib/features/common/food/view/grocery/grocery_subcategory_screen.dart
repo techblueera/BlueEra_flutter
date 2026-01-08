@@ -102,9 +102,9 @@ class _GrocerySubCategoryScreenState extends State<GrocerySubCategoryScreen> {
                     )
                 )
               ]
-                        ),
-                      ),
+              ),
             ),
+          ),
         )
       ),
       bottomNavigationBar:
