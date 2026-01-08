@@ -1,6 +1,5 @@
-import 'dart:convert';
-import 'dart:developer';
-
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:flutter/material.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:get/get.dart';
 
@@ -16,8 +15,10 @@ class HospitalModelController extends GetxController {
       <MedicalLabDataListModel>[].obs;
   Rx<ApiResponse> getMedicalCategoryResponse =
       ApiResponse.initial('Initial').obs;
-
-
+  final hospitalNameTextController=TextEditingController();
+  final hospitalAddressTextController=TextEditingController();
+  final hospitalLinkTextController=TextEditingController();
+  RxBool isAiBtnLoading=false.obs;
   Future<void> fetchHospitalCategoryData(String categoryTopic) async {
     ResponseModel response =
     await medicalRepo.fetchMedicalCategoryData(categoryTopic);
@@ -80,6 +81,23 @@ class HospitalModelController extends GetxController {
 
       commonSnackBar(message: response.response?.statusMessage ?? '');
     } else {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+  }
+  Future<void> fetchHospitalViaAi() async {
+    Map<String, dynamic> params={
+      ApiKeys.name: hospitalNameTextController.text,
+      ApiKeys.address: hospitalAddressTextController.text,
+      ApiKeys.url: hospitalLinkTextController.text
+    };
+    isAiBtnLoading.value=true;
+    ResponseModel response =
+    await medicalRepo.getHospitalFromAi(params);
+    if (response.isSuccess) {
+      isAiBtnLoading.value=false;
+      commonSnackBar(message: response.response?.statusMessage ?? '');
+    } else {
+      isAiBtnLoading.value=false;
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
   }

@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/hospital/view/widget/add_hospital_service.dart';
+import 'package:BlueEra/features/me/hospital/view/widget/create_hotel_profile_via_ai.dart';
 import 'package:BlueEra/features/me/hospital/view/widget/general_medicine.dart';
 import 'package:BlueEra/features/me/laboratory/view/widgets/add_lab_services.dart';
 import 'package:BlueEra/features/me/medical/view/category/otc_items_page.dart';
@@ -82,7 +83,17 @@ class _HospitalMainState extends State<HospitalMain>
                     ),
                     InkWell(
                       onTap: (){
-                        Get.to(()=>AddHospitalService());
+                        showDialog(context: context,
+                            builder: (BuildContext){
+                          return Dialog(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: CreateHotelProfileViaAi(),
+                          );
+                            }
+                        );
+                        // Get.to(()=>AddHospitalService());
                       },
                       child: Container(
                         height: SizeConfig.size40,
