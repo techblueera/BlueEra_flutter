@@ -29,7 +29,6 @@ import 'package:BlueEra/features/common/jobs/view/jobs_screen.dart';
 import 'package:BlueEra/features/common/store/view/new_store/all_product_store_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/create_profile_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/rental/view/rental_service_screen.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/gradient_floating_button.dart';
@@ -151,24 +150,9 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                     Expanded(
                       child: CustomText(
                         [
-                          if (LocationService
-                              .userCurrentAddress.length >
-                              2 &&
-                              LocationService
-                                  .userCurrentAddress[2]
-                                  .isNotEmpty)
-                            LocationService.userCurrentAddress[2],
-                          // locality
-
-                          if (LocationService
-                              .userCurrentAddress.length >
-                              3 &&
-                              LocationService
-                                  .userCurrentAddress[3]
-                                  .isNotEmpty)
-                            LocationService.userCurrentAddress[3],
-                          // administrativeArea
-                        ].join(', '),
+                          LocationService.userCurrentAddress.value.city,
+                          LocationService.userCurrentAddress.value.state,
+                        ].where((e) => e.isNotEmpty).join(', '),
                         fontSize: SizeConfig.large,
                         color: AppColors.primaryColor,
                         fontWeight: FontWeight.w600,

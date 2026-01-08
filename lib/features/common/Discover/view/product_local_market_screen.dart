@@ -113,14 +113,9 @@ class _ProductLocalMarketScreenState extends State<ProductLocalMarketScreen> {
             Expanded(
               child: CustomText(
                 [
-                  if (LocationService.userCurrentAddress.length > 2 &&
-                      LocationService.userCurrentAddress[2].isNotEmpty)
-                    LocationService.userCurrentAddress[2], // Locality
-
-                  if (LocationService.userCurrentAddress.length > 3 &&
-                      LocationService.userCurrentAddress[3].isNotEmpty)
-                    LocationService.userCurrentAddress[3], // Administrative Area
-                ].join(', '),
+                  LocationService.userCurrentAddress.value.city,
+                  LocationService.userCurrentAddress.value.state,
+                ].where((e) => e.isNotEmpty).join(', '),
                 fontSize: SizeConfig.large,
                 color: AppColors.primaryColor,
                 fontWeight: FontWeight.w600,
