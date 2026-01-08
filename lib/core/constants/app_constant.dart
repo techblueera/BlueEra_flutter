@@ -1333,9 +1333,9 @@ const SWEETS = "SWEETS";
 const HOME_STAY = "HOME_STAY";
 const Flat_ROOM = "Flat_ROOM";
 const VEHICLE = "VEHICLE";
-
-
-
+const FOOD = "FOOD";
+const PRODUCT = "PRODUCT";
+const SERVICE = "SERVICE";
 
 // biscuit & foods
  const String CHIPS_NAMKEEN       = 'CHIPS_NAMKEEN';
@@ -1814,6 +1814,37 @@ final List<ServiceItem> rentalServicesList = [
   // ),
 ];
 
+final List<ServiceItem> homeMadeFoodServiceList = [
+  ServiceItem(
+    name: AppStrings.tiffin,
+    slugId: TIFFIN,
+    icon: AppIconAssets.tiffinIcon,
+    bgColor: const Color(0xFFFFF2DF),
+    labelColor: const Color(0xFFAF6800),
+  ),
+  ServiceItem(
+    name: AppStrings.bakery,
+    slugId: BAKERY,
+    icon: AppIconAssets.bakeryIcon,
+    bgColor: const Color(0xFFFFF2C3),
+    labelColor: const Color(0xFF5D4900),
+  ),
+  ServiceItem(
+    name: AppStrings.sweets,
+    slugId: SWEETS,
+    icon: AppIconAssets.sweetIcon,
+    bgColor: const Color(0xFFF0F4C2),
+    labelColor: const Color(0xFF4E5500),
+  ),
+  ServiceItem(
+    name: AppStrings.other,
+    slugId: OTHER,
+    icon: AppIconAssets.staggeredIcon,
+    bgColor: const Color(0xFFCFD8DD),
+    labelColor: const Color(0xFF36444D),
+  ),
+];
+
 class ChatEmitEvents{
   static const ChatList = "ChatList";
   static const screenRoom = "screenRoom";
@@ -2010,6 +2041,8 @@ final List<IndividualProfileCategory> selfEmployedCategories = [
   ),
 ];
 
+
+/// New....
 final List<IndividualProfileCategory> selfWorkCategories = [
   IndividualProfileCategory(
     name: AppStrings.electrician,
@@ -2070,6 +2103,103 @@ final List<IndividualProfileCategory> selfWorkCategories = [
     name: AppStrings.other,
     slugId: OTHER,
     icon: AppIconAssets.staggeredIcon
+  ),
+];
+
+final List<IndividualProfileCategory> homeServicesCategories = [
+  IndividualProfileCategory(
+      name: AppStrings.counsellingConsulting,
+      slugId: CONSULTANT,
+      icon: AppImageAssets.consultation
+  ),
+  IndividualProfileCategory(
+      name: AppStrings.tuitionClassesOnlineOffline,
+      slugId: TUTOR,
+      icon: AppImageAssets.tutor
+  ),
+  IndividualProfileCategory(
+    name: AppStrings.beautyServices,
+    slugId: BEAUTICIAN,
+    icon: AppImageAssets.beautician
+  ),
+  IndividualProfileCategory(
+    name: AppStrings.tailoring,
+    slugId: TAILOR,
+    icon: AppImageAssets.tailor
+  ),
+  IndividualProfileCategory(
+    name: AppStrings.digitalMarketing,
+    slugId: DIGITAL_MARKETING,
+    icon: AppImageAssets.digitalMarketing
+  ),
+  IndividualProfileCategory(
+    name:  AppStrings.interiorDecor,
+    slugId: INTERIOR_DESIGNER,
+    icon: AppImageAssets.interiorDesigner
+  ),
+  IndividualProfileCategory(
+    name: AppStrings.other,
+    slugId: OTHER,
+    icon: AppIconAssets.staggeredIcon
+  ),
+];
+
+final List<IndividualProfileCategory> homeMadeFoodCategories = [
+  IndividualProfileCategory(
+    name: AppStrings.tiffin,
+    slugId: TIFFIN,
+    icon: AppImageAssets.tiffin
+  ),
+  IndividualProfileCategory(
+    name: AppStrings.bakery,
+    slugId: BAKERY,
+    icon: AppImageAssets.bakery
+  ),
+  IndividualProfileCategory(
+    name: AppStrings.sweets,
+    slugId: SWEETS,
+    icon: AppImageAssets.sweets
+  ),
+  IndividualProfileCategory(
+    name: AppStrings.other,
+    slugId: OTHER,
+    icon: AppIconAssets.staggeredIcon
+  ),
+];
+
+final List<IndividualProfileCategory> rentalServiceCategories = [
+  IndividualProfileCategory(
+      name: 'Hotel',
+      slugId: Flat_ROOM,
+      icon: AppImageAssets.hotel
+  ),
+  IndividualProfileCategory(
+      name: 'Homestay',
+      slugId: HOME_STAY,
+      icon: AppImageAssets.homeStay
+  ),
+  IndividualProfileCategory(
+      name: 'Cabs',
+      slugId: VEHICLE,
+      icon: AppImageAssets.cab
+  ),
+];
+
+final List<IndividualProfileCategory> homeServiceCategories = [
+  IndividualProfileCategory(
+      name: 'Food',
+      slugId: FOOD,
+      icon: AppImageAssets.homeMadeFood
+  ),
+  IndividualProfileCategory(
+      name: 'Product',
+      slugId: PRODUCT,
+      icon: AppImageAssets.homeMadeProduct
+  ),
+  IndividualProfileCategory(
+      name: 'Service',
+      slugId: SERVICE,
+      icon: AppImageAssets.homeService
   ),
 ];
 

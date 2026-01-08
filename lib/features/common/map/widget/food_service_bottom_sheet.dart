@@ -9,7 +9,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/map/controller/map_service_controller.dart';
-import 'package:BlueEra/features/common/map/model/service_model_response.dart';
+import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
 import 'package:BlueEra/features/common/map/widget/profile_summary_card.dart';
 import 'package:BlueEra/features/common/map/widget/sub_category_tab_bar.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';

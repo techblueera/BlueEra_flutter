@@ -3,6 +3,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/base_service.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 
 class StoreRepo extends BaseService {
   ///GET STORE......
@@ -111,6 +112,7 @@ class StoreRepo extends BaseService {
     String? lat,
     String? long,
     String? query,
+    ProductServiceProviderType? productPostBy
   }) async {
     const int limit = 20;
 
@@ -125,9 +127,11 @@ class StoreRepo extends BaseService {
       queryParams[ApiKeys.latitude] = lat;
       queryParams[ApiKeys.longitude] = long;
     }
-
     if ((query?.isNotEmpty ?? false)) {
       queryParams[ApiKeys.searchTerm] = query;
+    }
+    if(productPostBy!=null){
+      queryParams[ApiKeys.ownerType] = productPostBy;
     }
 
 

@@ -30,6 +30,7 @@ class AppImageAssets {
   static const String bookProfessional = "${imgPath}book_professional.png";
   static const String findServiceNearMe = "${imgPath}find_service_near_me.png";
   static const String medicalHealthService = "${imgPath}medical_health_service.png";
+  static const String foodDeliveryService = "${imgPath}food_delivery_service.png";
   static const String bookNowBanner = "${imgPath}book_now_banner.png";
   static const String homeMadeBanner = "${imgPath}home_made_banner.png";
 
@@ -83,6 +84,28 @@ class AppImageAssets {
   static String taxiDriver = "${imgPath}taxi_driver.png";
   static String deliveryPartner = "${imgPath}delivery_partner.png";
 
+  /// Home Service
+  static String consultation = "${imgPath}consultation.png";
+  static String tutor = "${imgPath}tutor.png";
+  static String beautician = "${imgPath}beautician.png";
+  static String tailor = "${imgPath}tailor.png";
+  static String interiorDesigner = "${imgPath}interior_designer.png";
+  static String digitalMarketing = "${imgPath}digital_marketing.png";
+
+  /// Home Made Food
+  static String tiffin = "${imgPath}tiffin.png";
+  static String bakery = "${imgPath}bakery.png";
+  static String sweets = "${imgPath}sweets.png";
+
+  /// Rental Service
+  static String hotel = "${imgPath}hotel.png";
+  static String homeStay = "${imgPath}home_stay.png";
+  static String cab = "${imgPath}cab.png";
+
+  /// Earn Service
+  static String homeMadeFood = "${imgPath}home_made_food.png";
+  static String homeMadeProduct = "${imgPath}home_made_product.png";
+  static String homeService = "${imgPath}home_service.png";
 
 
 }

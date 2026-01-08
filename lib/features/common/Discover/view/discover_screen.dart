@@ -1,6 +1,8 @@
+import 'dart:developer';
 import 'dart:ui';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -13,16 +15,21 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/ai_chat/ask_inventory_chat_screen.dart';
+import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
+import 'package:BlueEra/features/common/Discover/view/all_rental_service_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/home_made_food_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/home_service_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/product_local_market_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/self_profession_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/services_near_screen.dart';
 import 'package:BlueEra/features/common/auth/model/business_profile_category.dart';
 import 'package:BlueEra/features/common/auth/model/individual_profiile_category.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
 import 'package:BlueEra/features/common/jobs/view/jobs_screen.dart';
-import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
-import 'package:BlueEra/features/common/store/view/new_discover/product_local_market_screen.dart';
-import 'package:BlueEra/features/common/store/view/new_discover/self_profession_screen.dart';
-import 'package:BlueEra/features/common/store/view/new_discover/services_near_screen.dart';
+import 'package:BlueEra/features/common/store/view/new_store/all_product_store_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/create_profile_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/rental/view/rental_service_screen.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/gradient_floating_button.dart';
@@ -31,8 +38,6 @@ import 'package:BlueEra/widgets/setup_scroll_visibility_notification.dart';
 import 'package:BlueEra/widgets/update_live_photo_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
-import '../../../../personal/personal_profile/view/widget/service_item.dart';
 
 class DiscoverScreen extends StatefulWidget {
   final bool isHeaderVisible;
@@ -48,7 +53,7 @@ class DiscoverScreen extends StatefulWidget {
 }
 
 class _DiscoverScreenState extends State<DiscoverScreen> {
-  final NewStoreController controller = Get.put(NewStoreController());
+  final DiscoverController controller = Get.put(DiscoverController());
 
   @override
   void initState() {
@@ -466,20 +471,38 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                 children: [
                   _buildVerticalLayout(
                       imageUrl: AppImageAssets.bookNowBanner,
-                      items: [
-                        'Hotel',
-                        'Homestay',
-                        'Cabs'
-                      ]
+                      items: rentalServiceCategories,
+                      onTap: (c) {
+                        final typeMap = {
+                          Flat_ROOM: RentalServiceType.flatRoom,
+                          HOME_STAY: RentalServiceType.homeStay,
+                          VEHICLE:   RentalServiceType.vehicle,
+                        };
+
+                        final type = typeMap[c.slugId];
+
+                        if (type != null) {
+                          Get.to(() => AllRentalServiceScreen(type: type));
+                        } else {
+                          // Handle unknown slug (optional)
+                        }
+                      }
                   ),
                   SizedBox(width: SizeConfig.paddingXSL),
                   _buildVerticalLayout(
                       imageUrl: AppImageAssets.homeMadeBanner,
-                      items: [
-                        'Food',
-                        'Product',
-                        'Service'
-                      ]
+                      items: homeServiceCategories,
+                    onTap:(c){
+                      if(c.slugId == SERVICE) {
+                        Get.to(()=> HomeServiceScreen());
+                      }else if(c.slugId == FOOD){
+                        Get.to(()=> HomeMadeFoodScreen());
+                      }else if(c.slugId == PRODUCT){
+                        Get.to(() => AllProductStoreScreen(isShowInGrid: true));
+                      }else{
+                        log('No category');
+                      }
+                    }
                   ),
                 ],
               ),
@@ -536,7 +559,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
 
                     // Bottom Section
                     genericSquareRow<String>(
-                      items: ["Electrician", "Beautician", "Tuition", "Counselling", "Doctors"],
+                      items: ["Hospital", "Pharmacy", "Lab Test", "Clinic", "Doctors"],
                       itemsPerRow: 5,
                       labelBuilder: (c) => c,
                       iconBuilder: (c) => AppIconAssets.electricianIcon,
@@ -559,7 +582,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                   children: [
 
                     _bannerWidget(
-                        bannerImage: AppImageAssets.sampleStoreImage4,
+                        bannerImage: AppImageAssets.foodDeliveryService,
                         bannerHeight: SizeConfig.size180
                     ),
 
@@ -776,7 +799,8 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
 
   Widget _buildVerticalLayout({
     required String imageUrl,
-    required List<String> items
+    required List<IndividualProfileCategory> items,
+    required Function(IndividualProfileCategory item) onTap,
   }) {
     return Expanded(
       child: CustomFormCard(
@@ -790,44 +814,20 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                 imagePath: imageUrl,
                 width: double.maxFinite,
                 height: SizeConfig.size190,
-                boxFix: BoxFit.cover
+                boxFix: BoxFit.fill
               ),
             ),
-
-            // ClipRRect(
-            //   borderRadius: BorderRadius.circular(10.0),
-            //   child: CachedNetworkImage(
-            //     imageUrl: imageUrl,
-            //     width: double.maxFinite,
-            //     height: SizeConfig.size190,
-            //     fit: BoxFit.cover,
-            //     placeholder: (context, url) => LocalAssets(
-            //       imagePath: AppIconAssets.place_holder_image,
-            //       width: double.maxFinite,
-            //       height: SizeConfig.size270,
-            //       boxFix: BoxFit.cover,
-            //     ),
-            //     errorWidget: (context, url, error) => LocalAssets(
-            //       imagePath: AppIconAssets.place_holder_image,
-            //       width: double.maxFinite,
-            //       height: SizeConfig.size270,
-            //       boxFix: BoxFit.cover,
-            //     ),
-            //   ),
-            // ),
 
             SizedBox(
               height: SizeConfig.size10,
             ),
 
-            genericSquareRow<String>(
+            genericSquareRow<IndividualProfileCategory>(
               items: items,
               itemsPerRow: 3,
-              labelBuilder: (c) => c,
-              iconBuilder: (c) => AppIconAssets.electricianIcon,
-              onTap: (c) {
-
-              },
+              labelBuilder: (c) => c.name,
+              iconBuilder: (c) => c.icon,
+              onTap: (c)=> onTap(c),
             )
           ],
         ),

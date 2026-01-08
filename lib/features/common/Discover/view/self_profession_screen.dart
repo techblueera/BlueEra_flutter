@@ -5,9 +5,11 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
+import 'package:BlueEra/features/common/Discover/widget/service_category_item.dart';
 import 'package:BlueEra/features/common/auth/model/individual_profiile_category.dart';
-import 'package:BlueEra/features/common/map/model/service_model_response.dart';
-import 'package:BlueEra/features/common/store/controller/self_profession_controller.dart';
+import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
+import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -22,7 +24,6 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../../personal/personal_profile/view/widget/service_item.dart';
 
 class SelfProfessionScreen extends StatefulWidget {
   final List<IndividualProfileCategory> selfEmployedCategories;
@@ -39,20 +40,28 @@ class SelfProfessionScreen extends StatefulWidget {
 
 class _SelfProfessionScreenState extends State<SelfProfessionScreen> {
   late List<IndividualProfileCategory> selfEmployedCategories;
-  final controller = getOrPut(() => SelfProfessionController());
+  final controller = getOrPut(() => DiscoverController());
   ScrollController scrollController = ScrollController();
+  String serviceSubType = EarnWithBlueEraServiceTypes.selfWork.label;
+  String earnServiceType = AppConstants.service;
 
   @override
   initState(){
     super.initState();
     selfEmployedCategories = widget.selfEmployedCategories;
-    controller.selectedSelfProfessionData.value = widget.selectedSelfProfessionData;
-    controller.fetchSelfWorkServices();
+    controller.selectedEarnServiceData.value = widget.selectedSelfProfessionData;
+    controller.fetchEarnServices(
+        earnServiceType: earnServiceType,
+        subType: serviceSubType
+    );
 
     // Listener for Pagination
     scrollController.addListener(() {
       if (scrollController.position.pixels == scrollController.position.maxScrollExtent) {
-        controller.fetchSelfWorkServices(isLoadMore: true);
+        controller.fetchEarnServices(
+            earnServiceType: earnServiceType,
+            subType: serviceSubType,
+            isLoadMore: true);
       }
     });
   }
@@ -141,14 +150,17 @@ class _SelfProfessionScreenState extends State<SelfProfessionScreen> {
 
           // --- CASE 1: The "All" Item (Index 0) ---
           if (index == 0) {
-            return Obx(() => _categoryItem(
-              AppIconAssets.electricianIcon,
-              "All",
-              selected: controller.selectedSelfProfessionData.value == null,
+            return Obx(() => ServiceCategoryItem(
+              icon: AppIconAssets.electricianIcon,
+              label: "All",
+              selected: controller.selectedEarnServiceData.value == null,
               onTap: () {
-                controller.selectedSelfProfessionData.value = null;
+                controller.selectedEarnServiceData.value = null;
                 controller.selectedTabIndex.value = index;
-                controller.fetchSelfWorkServices();
+                controller.fetchEarnServices(
+                    earnServiceType: earnServiceType,
+                    subType: serviceSubType
+                );
               },
             ));
           }
@@ -156,74 +168,20 @@ class _SelfProfessionScreenState extends State<SelfProfessionScreen> {
           // --- CASE 2: Actual Categories (Index 1+) ---
           var item = selfEmployedCategories[index - 1];
 
-          return Obx(() => _categoryItem(
-            item.icon,
-            item.name,
-            selected: controller.selectedSelfProfessionData.value?.slugId == item.slugId,
+          return Obx(() => ServiceCategoryItem(
+            icon: item.icon,
+            label: item.name,
+            selected: controller.selectedEarnServiceData.value?.slugId == item.slugId,
             onTap: () {
-              controller.selectedSelfProfessionData.value = item;
+              controller.selectedEarnServiceData.value = item;
               controller.selectedTabIndex.value = index;
-              controller.fetchSelfWorkServices();
+              controller.fetchEarnServices(
+                  earnServiceType: earnServiceType,
+                  subType: serviceSubType
+              );
             },
           ));
         },
-      ),
-    );
-  }
-
-  Widget _categoryItem(
-      String icon,
-      String label,
-      {bool selected = false, required VoidCallback onTap}) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        child: Container(
-          padding: EdgeInsets.symmetric(vertical: selected ? 11 : 6),
-          decoration: BoxDecoration(
-            color: selected ? AppColors.white : Colors.transparent,
-            gradient: LinearGradient(
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-              colors: [
-                AppColors.skyBlueE4,
-                AppColors.skyBlueE4.withValues(alpha: 0.3),
-              ],
-            ),
-            border: selected
-                ? const Border(
-                left: BorderSide(
-                    color: AppColors.primaryColor,
-                    width: 3,
-                    style: BorderStyle.solid))
-                : null,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Container(
-                  decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: selected ? null : AppColors.skyBlueE4),
-                  padding: EdgeInsets.all(selected ? 0 : 6),
-                  child: LocalAssets(
-                    imagePath: icon,
-                    // boxFix: BoxFit.cover,
-                    height: 40,
-                    width: 40,
-                  )),
-              const SizedBox(height: 6),
-              CustomText(
-                label,
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
-                color: selected ? AppColors.black : AppColors.grayText,
-                textAlign: TextAlign.center,
-              )
-            ],
-          ),
-        ),
       ),
     );
   }
@@ -256,24 +214,24 @@ class _SelfProfessionScreenState extends State<SelfProfessionScreen> {
 
           Expanded(
             child: Obx(() {
-              if (controller.isSelfProfessionLoading.value &&
-                  controller.selfProfessionServiceList.isEmpty) {
+              if (controller.isEarnServiceLoading.value &&
+                  controller.earnServiceList.isEmpty) {
                 return const Center(child: CircularProgressIndicator());
               }
 
-              if (controller.selfProfessionServiceList.isEmpty) {
+              if (controller.earnServiceList.isEmpty) {
                 return Center(child: EmptyStateWidget(message: "No services found"));
               }
 
               return ListView.builder(
                   controller: scrollController,
-                  itemCount: controller.selfProfessionServiceList.length +
-                      (controller.isSelfProfessionLoadingMore.value ? 1 : 0),
+                  itemCount: controller.earnServiceList.length +
+                      (controller.isEarnServiceLoadingMore.value ? 1 : 0),
                   shrinkWrap: true,
                   padding: EdgeInsets.only(bottom: SizeConfig.paddingL),
                   itemBuilder: (context, index) {
 
-                    if (index == controller.selfProfessionServiceList.length) {
+                    if (index == controller.earnServiceList.length) {
                       return const Center(
                         child: Padding(
                           padding: EdgeInsets.all(16.0),
@@ -282,7 +240,7 @@ class _SelfProfessionScreenState extends State<SelfProfessionScreen> {
                       );
                     }
 
-                    var service = controller.selfProfessionServiceList[index];
+                    var service = controller.earnServiceList[index];
 
                     return selfProfessionCard(service);
                   }
@@ -295,9 +253,7 @@ class _SelfProfessionScreenState extends State<SelfProfessionScreen> {
     ));
   }
 
-
   Widget selfProfessionCard(ServiceData service){
-
 
     // Timings
     DateTime parse12HourTime(String timeStr) {
