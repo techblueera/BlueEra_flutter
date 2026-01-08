@@ -56,8 +56,6 @@ class _SchoolContactUsState extends State<SchoolContactUs> {
           children: [
             Expanded(
               child: Obx(() {
-                logs(
-                    "controller.getSchoolContactUsResponse.value.status ${controller.getSchoolContactUsResponse.value.status}");
                 if (controller.getSchoolContactUsResponse.value.status ==
                     Status.COMPLETE) {
                   if (controller.schoolContactUsData?.isEmpty ?? false) {

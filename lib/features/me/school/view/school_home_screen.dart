@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/school/controller/school_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
+import 'package:BlueEra/widgets/common_location_search_field.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -76,27 +77,39 @@ class _AIProfileDialogState extends State<AIProfileDialog> {
             children: [
               CustomText("Create Your Profile Via AI",
                   fontSize: SizeConfig.size20, fontWeight: FontWeight.bold),
+              // SizedBox(height: SizeConfig.size20),
+              //
+              // CommonTextField(
+              //   title: "Search Your Profile On Google",
+              //   textEditController: controller.searchController,
+              //   hintText: "E.g. Bharati Public School...",
+              //   onChange: (_) {
+              //     validateAiSchoolForm();
+              //     setstate(() {});
+              //   },
+              // ),
               SizedBox(height: SizeConfig.size20),
-
-              CommonTextField(
-                title: "Search Your Profile On Google",
-                textEditController: controller.searchController,
+              CommonLocationSearchField(
+                controller: controller.searchController,
                 hintText: "E.g. Bharati Public School...",
-                onChange: (_) {
+isShowLeading: false,
+                title: "Search Your Profile On Google",
+                onSelected: (placeId, lat, lng, address) {
+                  controller.searchController.text = address;
+                  controller.fullSchoolAddressController.text = address;
                   validateAiSchoolForm();
                   setstate(() {});
                 },
               ),
-              SizedBox(height: SizeConfig.size20),
-              CommonTextField(
-                title: "Full School Address",
-                textEditController: controller.fullSchoolAddressController,
-                hintText: "E.g. Swasthya Vihar, Delhi...",
-                onChange: (_) {
-                  validateAiSchoolForm();
-                  setstate(() {});
-                },
-              ),
+              // CommonTextField(
+              //   title: "Full School Address",
+              //   textEditController: controller.fullSchoolAddressController,
+              //   hintText: "E.g. Swasthya Vihar, Delhi...",
+              //   onChange: (_) {
+              //     validateAiSchoolForm();
+              //     setstate(() {});
+              //   },
+              // ),
               SizedBox(height: SizeConfig.size20),
               HttpsTextField(
                 title: "Organization Website",
@@ -116,12 +129,11 @@ class _AIProfileDialogState extends State<AIProfileDialog> {
                     flex: 3,
                     child: CustomBtn(
                       title: AppStrings.generate,
-                      onTap: controller.aiInstitutionFetchDetailsController
-                           ,
-                      // isValidate: isFormValid,
-                      // onTap: isFormValid
-                      //     ? controller.aiInstitutionFetchDetailsController
-                      //     : null,
+
+                      isValidate: isFormValid,
+                      onTap: isFormValid
+                          ? controller.aiInstitutionFetchDetailsController
+                          : null,
                     ),
                   ),
                   SizedBox(width: SizeConfig.size12),

@@ -104,6 +104,45 @@ class SchoolPreviewScreen extends StatelessWidget {
       itemCount: courses.length,
       itemBuilder: (context, index) {
         final course = courses[index];
+        return    Card(
+          margin: const EdgeInsets.only(bottom: 8),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start, // Keeps fees aligned at the top if title wraps
+                  children: [
+                    // 1. Wrap the large text in Expanded
+                    Expanded(
+                      child: CustomText(
+                        course.name ?? "Course Name",
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        // Optional: overflow: TextOverflow.ellipsis, // Adds "..." if too long
+                      ),
+                    ),
+                    const SizedBox(width: 10), // Space between text and fees
+                    // 2. Fees stay on the right
+                    Flexible(
+                      child: CustomText(
+                        course.fees ?? "",
+                        color: Colors.green,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                CustomText(
+                  "Eligibility: ${course.eligibility}",
+                  color: Colors.grey[700],
+                ),
+              ],
+            ),
+          ),
+        );
         return Card(
           margin: EdgeInsets.only(bottom: 8),
           child: ListTile(

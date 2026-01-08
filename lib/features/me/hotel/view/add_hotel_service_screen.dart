@@ -4,7 +4,12 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/hotel/controller/hotel_category_controller.dart';
+import 'package:BlueEra/features/me/hotel/view/hotel_amenities_screen.dart';
+import 'package:BlueEra/features/me/hotel/view/hotel_policies_screen.dart';
+import 'package:BlueEra/features/me/hotel/view/room_amenities_screen.dart';
 import 'package:BlueEra/features/me/hotel/view/room_detils_screen.dart';
+import 'package:BlueEra/features/me/school/view/category/school_contact_us/school_contact_us.dart';
+import 'package:BlueEra/features/me/school/view/school_update_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -21,16 +26,44 @@ class AddHotelServiceScreen extends StatefulWidget {
 
 class _AddHotelServiceScreenState extends State<AddHotelServiceScreen> {
   final hotelController = Get.put(HotelCategoryController());
+  void handleNavigation(dynamic data) {
+    final Map<String, Widget Function()> routeMap = {
+      "ROOM_DETAILS": () => RoomSelectionScreen(
+        hotelCategoryData: data,
+      ),
+      "ROOM_AMENITIES": () => RoomAmenitiesScreen(
+        hotelCategoryData: data,
+      ),
+      "HOTEL_AMENITIES": () => HotelAmenitiesScreen(
+        hotelCategoryData: data,
+      ),
+      "HOTEL_POLICIES": () => HotelPoliciesScreen(
+        hotelCategoryData: data,
+      ),
+      "CAREER": () => ComingSoon(),
+      "PROPERTY_PHOTOS": () => ComingSoon(),
+      "RESTAURANT_MENU": () => ComingSoon(),
+      "CONTACT_US": () => ComingSoon(),
+      "ABOUT_PROPERTY": () => ComingSoon(),
+      "UPLOAD_DOCUMENT": () => ComingSoon(),
+    };
+
+    final routeBuilder = routeMap[data.key];
+
+    if (routeBuilder != null) {
+      Get.to(routeBuilder());
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(
-        showRightTextButton: true,
-        isShowMoreInfoIcon: true,
-        title: "Add Hotel Service",
-        isShadowShow: false,
-      ),
+      // appBar: CommonBackAppBar(
+      //   showRightTextButton: false,
+      //   isShowMoreInfoIcon: false,
+      //   title: "Add Hotel Service",
+      //   isShadowShow: false,
+      // ),
       body: Obx(() {
         if (hotelController.getAllHotelServiceResponse.value.status ==
             Status.ERROR) {
@@ -44,11 +77,7 @@ class _AddHotelServiceScreenState extends State<AddHotelServiceScreen> {
                   hotelController.hotelServiceCategoryList[hotelIndex];
               return InkWell(
                 onTap: () {
-                  if(data.key=="ROOM_DETAILS")
-                    {
-                  Get.to(RoomSelectionScreen(
-                    hotelCategoryData: data,
-                  ));}
+                  handleNavigation(data);
                 },
                 child: CommonCardWidget(
                     borderColorColor: AppColors.whiteE5,

@@ -6,16 +6,16 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class RoomSelectionScreen extends StatefulWidget {
+class RoomAmenitiesScreen extends StatefulWidget {
   final HotelServiceCategoriesData hotelCategoryData;
 
-  const RoomSelectionScreen({super.key, required this.hotelCategoryData});
+  const RoomAmenitiesScreen({super.key, required this.hotelCategoryData});
 
   @override
-  State<RoomSelectionScreen> createState() => _RoomSelectionScreenState();
+  State<RoomAmenitiesScreen> createState() => _RoomAmenitiesScreenState();
 }
 
-class _RoomSelectionScreenState extends State<RoomSelectionScreen> {
+class _RoomAmenitiesScreenState extends State<RoomAmenitiesScreen> {
   final hotelDetailController = Get.find<HotelCategoryController>();
 
   @override
@@ -33,7 +33,7 @@ class _RoomSelectionScreenState extends State<RoomSelectionScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "${widget.hotelCategoryData.name}",
+        title:"${widget.hotelCategoryData.name}",
       ),
       body: Column(
         children: [

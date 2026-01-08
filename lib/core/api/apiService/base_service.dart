@@ -576,5 +576,9 @@ abstract class BaseService {
   final String hotelServiceCategory = 'hotel-service/api/categories/nested';
   final String fetchHospitalFromAi = 'ai-service/api/ai-hospital/fetch-details';
   String enableHotelServiceStatus(String categoryId) =>  'health-service/api/categories/$categoryId/status';
+  final String fetchHotelFromAi = 'ai-service/api/ai-hotel/fetch-details';
+  final String createHotelService = 'hotel-service/api/businesses';
+  final String hotelBulkStatus = 'hotel-service/api/hotels//offerings/bulk-toggle';
+  final String hotelBulkCatalogStatus = 'hotel-service/api/businesses/hotels//catalog';
 
 }

@@ -165,21 +165,15 @@ class SchoolController extends GetxController {
   Future<void> aiInstitutionFetchDetailsController() async {
     String school = searchController.text;
     String website = websiteController.text;
-    String fullSchoolAddress = fullSchoolAddressController.text;
     // Logic for AI generation goes here
     Get.back();
     try {
-      // ResponseModel response =
-      //     await SchoolRepo().aiInstitutionFetchDetailsRepo(reqBody: {
-      //       "name": "Parul University",
-      //       "url": "https://paruluniversity.ac.in",
-      //       "address": "Private university in Gujarat"
-      //     });
+
       ResponseModel response =
           await SchoolRepo().aiInstitutionFetchDetailsRepo(reqBody: {
         ApiKeys.name: school,
         ApiKeys.url: website,
-        ApiKeys.address: fullSchoolAddress,
+        ApiKeys.address: school,
       });
       if (response.isSuccess) {
         final data = response.response?.data;

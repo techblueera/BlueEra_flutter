@@ -1,4 +1,3 @@
-
 import 'dart:developer';
 
 import 'package:BlueEra/core/api/apiService/api_response.dart';
@@ -11,7 +10,6 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/view/ai_chat/ask_inventory_chat_screen.dart';
-import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/auth/controller/ai_chat_guest_controller.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_widget.dart';
@@ -341,24 +339,13 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         //   isHeaderVisible: isVisible,
         //   onHeaderVisibilityChanged: _toggleAppBar,
         // );
-        // return NewStoreScreen2(
-        //   isHeaderVisible: isVisible,
-        //   onHeaderVisibilityChanged: _toggleAppBar,
-        // );
-        return DiscoverScreen(
+        return NewStoreScreen2(
           isHeaderVisible: isVisible,
           onHeaderVisibilityChanged: _toggleAppBar,
         );
-
       case 2:
         return getHomeScreen();
 
-      // case 3:
-      //   return isGuestUser()
-      //       ? GuestDashBoardScreen()
-      //       : JobsScreen(
-      //           isHeaderVisible: isVisible,
-      //           onHeaderVisibilityChanged: _toggleAppBar);
       case 3:
       default:
         return isGuestUser()
@@ -383,23 +370,31 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
 
     // Fallback (required)
     return PersonalProfileSetupNewScreen();
-    // return HospitalMain();
+    return HospitalMain();
   }
 
   Widget resolveBusinessScreen() {
     log('Resolving Screen... Type: $businessTypeGlobal | Category: $businessCategoryGlobal');
 
     // 1. First, check if it is a Food business
-    if (businessTypeGlobal.toUpperCase() == BusinessType.Food.name.toUpperCase()) {
+    if (businessTypeGlobal.toUpperCase() ==
+        BusinessType.Food.name.toUpperCase()) {
       log('goes into this');
       // 2. If it is Food, check the specific category
       if (businessCategoryGlobal == AppConstants.groceryVegetablesDairy) {
-
         return const GroceryScreen(fromBottomNavBar: true);
       } else {
         return const InventoryScreen(fromBottomNavBar: true);
       }
-
+    } else if (businessTypeGlobal.toUpperCase() ==
+        BusinessType.Service.name.toUpperCase()) {
+      if (businessCategoryGlobal == AppConstants.educationTraining) {
+        return const SchoolMain();
+      }else if (businessCategoryGlobal == AppConstants.hostelsStayService) {
+        return const HotelMain();
+      } else {
+        return const InventoryScreen(fromBottomNavBar: true);
+      }
     } else {
       // 3. If it is NOT Food (e.g., Product, Service, etc.)
       return const InventoryScreen(fromBottomNavBar: true);
@@ -411,9 +406,9 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     logs("userWorkTypeGlobal==== ${userWorkTypeGlobal}");
     return (userProfessionGlobal == SELF_EMPLOYED)
         ? (userWorkTypeGlobal == DELIVERY_RIDER)
-          ? RiderServiceScreen(fromBottomNavBar: true)
+            ? RiderServiceScreen(fromBottomNavBar: true)
             : EarnWithBlueEraNewScreen(fromBottomNavBar: true)
-             : PersonalProfileSetupNewScreen();
+        : PersonalProfileSetupNewScreen();
   }
 
   void _checkAndShowDialog() async {
