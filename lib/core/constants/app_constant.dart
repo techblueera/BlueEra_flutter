@@ -198,7 +198,7 @@ class AppConstants {
   static const celebrationEvent = "Celebration & Event Services";
   static const financial = "Financial Services";
   static const healthcareMedicalServices = "Healthcare & Medical Services";
-  static const hostelsStayService = "Hostels & Stay Service";
+  static const hostelsStayService = "Hotels Hostels & Stay Service";
 
   /// Store(Products) Category
   static const furnitureHomeDecor = "Furniture & Home Decor Store";

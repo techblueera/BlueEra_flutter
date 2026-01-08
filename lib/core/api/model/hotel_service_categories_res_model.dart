@@ -40,7 +40,7 @@ class HotelServiceCategoriesData {
       this.id, 
       this.name, 
       this.key, 
-      this.isActive, 
+      this.isEnabled,
       this.parentId, 
       this.level, 
       this.type, 
@@ -54,7 +54,7 @@ class HotelServiceCategoriesData {
     id = json['_id'];
     name = json['name'];
     key = json['key'];
-    isActive = json['isActive'];
+    isEnabled = json['isEnabled'];
     parentId = json['parentId'];
     level = json['level'];
     type = json['type'];
@@ -72,7 +72,7 @@ class HotelServiceCategoriesData {
   String? id;
   String? name;
   String? key;
-  bool? isActive;
+  bool? isEnabled;
   dynamic parentId;
   int? level;
   String? type;
@@ -87,7 +87,7 @@ class HotelServiceCategoriesData {
     map['_id'] = id;
     map['name'] = name;
     map['key'] = key;
-    map['isActive'] = isActive;
+    map['isEnabled'] = isEnabled;
     map['parentId'] = parentId;
     map['level'] = level;
     map['type'] = type;

@@ -82,30 +82,6 @@ class SchoolUpdateScreen extends StatelessWidget {
             );
           }).toList(),
           SizedBox(height: SizeConfig.size14),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: OutlinedButton.icon(
-                onPressed: () {
-                  // Add course action
-                },
-                icon: const Icon(Icons.add_circle_outline,
-                    size: 20, color: AppColors.primaryColor),
-                label: CustomText("Add More",
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.primaryColor),
-                style: OutlinedButton.styleFrom(
-                  side: BorderSide(color: AppColors.primaryColor),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-            ),
-          ),
         ],
       ),
     );

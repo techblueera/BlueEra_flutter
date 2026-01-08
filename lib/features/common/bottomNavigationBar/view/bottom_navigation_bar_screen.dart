@@ -346,12 +346,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       case 2:
         return getHomeScreen();
 
-      // case 3:
-      //   return isGuestUser()
-      //       ? GuestDashBoardScreen()
-      //       : JobsScreen(
-      //           isHeaderVisible: isVisible,
-      //           onHeaderVisibilityChanged: _toggleAppBar);
       case 3:
       default:
         return isGuestUser()
@@ -370,12 +364,12 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   }
 
   Widget getHomeScreen() {
-    // if (isGuestUser()) return GuestDashBoardScreen();
-    // if (isBusinessUser()) return resolveBusinessScreen();
-    // if (isIndividualUser()) return resolveIndividualScreen();
-    //
-    // // Fallback (required)
-    // return PersonalProfileSetupNewScreen();
+    if (isGuestUser()) return GuestDashBoardScreen();
+    if (isBusinessUser()) return resolveBusinessScreen();
+    if (isIndividualUser()) return resolveIndividualScreen();
+
+    // Fallback (required)
+    return PersonalProfileSetupNewScreen();
     return HospitalMain();
   }
 
@@ -383,16 +377,24 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     log('Resolving Screen... Type: $businessTypeGlobal | Category: $businessCategoryGlobal');
 
     // 1. First, check if it is a Food business
-    if (businessTypeGlobal.toUpperCase() == BusinessType.Food.name.toUpperCase()) {
+    if (businessTypeGlobal.toUpperCase() ==
+        BusinessType.Food.name.toUpperCase()) {
       log('goes into this');
       // 2. If it is Food, check the specific category
       if (businessCategoryGlobal == AppConstants.groceryVegetablesDairy) {
-
         return const GroceryScreen(fromBottomNavBar: true);
       } else {
         return const InventoryScreen(fromBottomNavBar: true);
       }
-
+    } else if (businessTypeGlobal.toUpperCase() ==
+        BusinessType.Service.name.toUpperCase()) {
+      if (businessCategoryGlobal == AppConstants.educationTraining) {
+        return const SchoolMain();
+      }else if (businessCategoryGlobal == AppConstants.hostelsStayService) {
+        return const HotelMain();
+      } else {
+        return const InventoryScreen(fromBottomNavBar: true);
+      }
     } else {
       // 3. If it is NOT Food (e.g., Product, Service, etc.)
       return const InventoryScreen(fromBottomNavBar: true);
@@ -404,9 +406,9 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     logs("userWorkTypeGlobal==== ${userWorkTypeGlobal}");
     return (userProfessionGlobal == SELF_EMPLOYED)
         ? (userWorkTypeGlobal == DELIVERY_RIDER)
-          ? RiderServiceScreen(fromBottomNavBar: true)
+            ? RiderServiceScreen(fromBottomNavBar: true)
             : EarnWithBlueEraNewScreen(fromBottomNavBar: true)
-             : PersonalProfileSetupNewScreen();
+        : PersonalProfileSetupNewScreen();
   }
 
   void _checkAndShowDialog() async {

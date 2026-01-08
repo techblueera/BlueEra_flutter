@@ -44,18 +44,36 @@ class HotelCategoryController extends GetxController {
 
   // Toggle switch status
   void toggleRoom(int index, bool value) {
-    hotelServiceSubCategoryList[index].isActive = value;
+    hotelServiceSubCategoryList[index].isEnabled = value;
     hotelServiceSubCategoryList.refresh(); // Notify UI of change inside the list
   }
 
-  // Final list of selected data on submit
-  void submitData() {
-    List<Map<String, dynamic>> selectedRooms = hotelServiceSubCategoryList
-        .where((room) => (room.isActive??false))
-        .map((room) => {"id": room.id, "name": room.name})
-        .toList();
+  /// Call the repository and handle the response
+  Future<void> updateHotelBulkStatus() async {
+    try {
 
-    print("Final Selected List: $selectedRooms");
-    commonSnackBar(message: "Success ${selectedRooms.length} rooms selected for submission");
+      final List<String> roomIdsList = hotelServiceSubCategoryList
+          .where((room) => (room.isEnabled ?? false) && room.id != null)
+          .map((room) => room.id!)
+          .toList();
+
+      // Call your existing repository function
+      ResponseModel response = await HotelServiceRepo().updateHotelServiceRepo(reqBody: {
+        "nodeIds":roomIdsList,
+        "isEnabled": true
+      });
+
+      if (response.isSuccess == true) {
+        // SUCCESS MESSAGE
+        commonSnackBar(message:   response.message ?? "Hotel services updated successfully!");
+
+      } else {
+        // FAILED MESSAGE FROM API
+        commonSnackBar(message: response.message ?? "Failed to update services.");
+      }
+    } catch (e) {
+      // EXCEPTION HANDLING (Network issues, etc.)
+      commonSnackBar(message: "Something went wrong. Please try again later.");
+    }
   }
 }
