@@ -587,5 +587,10 @@ class ApiKeys {
   static const postedFrom = 'postedFrom';
   static const argVariants = 'argVariants';
   static const isActive = 'isActive';
+  static const groceryOrderDetails = 'groceryOrderDetails';
+  static const businesses = 'businesses';
+  static const items = 'items';
+  static const inventoryId = 'inventoryId';
+  static const isPickedUp = 'isPickedUp';
 
 }

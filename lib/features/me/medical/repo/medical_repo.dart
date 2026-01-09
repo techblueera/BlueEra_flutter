@@ -30,7 +30,7 @@ class MedicalRepo extends BaseService {
     final response = await ApiBaseHelper().postHTTP(
         fetchHospitalFromAi,
         params: params,
-        showProgress: false,
+        showProgress: true,
    onError: (error) {}, onSuccess: (data) {});
     return response;
   }

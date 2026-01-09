@@ -471,7 +471,7 @@ class OrderCard extends StatelessWidget {
         SizedBox(width: SizeConfig.size6),
         _buildActionButton(
           onTap: () {
-            Get.to(DeliveryPickupShopsList(orderId: order.orderId??'',));
+            Get.to(DeliveryPickupShopsList(orderId: order.orderId??'', rideOrderId: order.id??'',));
             // _handleAcceptOrder(controller);
           },
           text: AppStrings.accept,

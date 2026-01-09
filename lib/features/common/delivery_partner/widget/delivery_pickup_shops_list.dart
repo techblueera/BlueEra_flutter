@@ -3,6 +3,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 
+import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
@@ -10,11 +11,13 @@ import '../../../../core/constants/getx_utils.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../../../widgets/horizontal_tab_selector.dart';
 import '../controller/delivery_partner_orders_controller.dart';
+import '../model/rider_shops_list_grocery.dart';
 
 class DeliveryPickupShopsList extends StatefulWidget {
-  const DeliveryPickupShopsList({super.key, required this.orderId});
+  const DeliveryPickupShopsList({super.key, required this.orderId, required this.rideOrderId});
 
   final String orderId;
+  final String rideOrderId;
 
   @override
   State<DeliveryPickupShopsList> createState() =>
@@ -28,24 +31,29 @@ class _DeliveryPickupShopsListState extends State<DeliveryPickupShopsList> {
   void initState() {
     // TODO: implement initState
     controller.getGroceryShopsList(widget.orderId);
+    controller.selectedShops.clear();
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      print("lsdkcmlskdcm ${controller.orderRiderShopListResponse.value.status}");
       return Scaffold(
         appBar: CommonBackAppBar(
-          orderAcceptBgColor: AppColors.redLite.withValues(alpha: 0.1),
-          orderAcceptBorderColor: AppColors.redLite,
-          orderAcceptTextColor: AppColors.redLite,
-          orderAcceptText: AppStrings.reject,
+          orderAcceptBgColor:controller.selectedShops.isEmpty?
+          AppColors.redLite.withValues(alpha: 0.1):AppColors.green0B.withValues(alpha: 0.1),
+          orderAcceptBorderColor: controller.selectedShops.isEmpty?AppColors.redLite:AppColors.green0B,
+          orderAcceptTextColor: controller.selectedShops.isEmpty?AppColors.redLite:AppColors.green0B,
+          orderAcceptText: controller.selectedShops.isEmpty?AppStrings.reject: AppStrings.accept,
           onTabAcceptBtn: () {
-
+            if(controller.selectedShops.isEmpty){
+              controller.rejectOrder(widget.rideOrderId);
+            }else{
+              controller.acceptOrder(widget.rideOrderId);
+            }
           },
           isShowAcceptOrRejectBtn: true,
-          title: "Items",
+          title: "Available Shops",
         ),
         body: Padding(
           padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
@@ -66,74 +74,91 @@ class _DeliveryPickupShopsListState extends State<DeliveryPickupShopsList> {
                 ),
               ),
               if(controller.orderRiderShopListResponse.value.status==Status.COMPLETE)
-                if(controller.riderBusinessList.value.businesses.isNotEmpty)
+                if(controller.riderBusinessList.isNotEmpty)
                   Expanded(
-                  child: ListView.builder(itemCount: controller.riderBusinessList.value.businesses.length,
+                  child: ListView.builder(itemCount: controller.riderBusinessList.length,
                     itemBuilder: (BuildContext context,
                         int index,) {
-                      return Container(
-                        decoration: BoxDecoration(
-                          color: AppColors.whiteFE,
-                          borderRadius: BorderRadius.circular(10.0),
-                        ),
-                        padding: EdgeInsets.all(10),
-                        child: Row(mainAxisAlignment: MainAxisAlignment
-                            .spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Container(
-                                  height: 40,
-                                  width: 40,
-                                ),
-                                SizedBox(width: SizeConfig.size10,),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    CustomText(
-                                      "Gupta General Store",
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
+                      BusinessListModel? model = controller.riderBusinessList[index];
+                      bool isSelected=controller.selectedShops.contains(model);
+                      return InkWell(
+                        onTap: (){
+                          controller.onSelectTab(model);
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: AppColors.whiteFE,
+                            borderRadius: BorderRadius.circular(10.0),
+                          ),
+                          padding: EdgeInsets.all(10),
+                          child: Row(mainAxisAlignment: MainAxisAlignment
+                              .spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    height: 40,
+                                    width: 40,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(40),
+                                      image: DecorationImage(image: NetworkImage(model.profilePicture))
                                     ),
-                                    SizedBox(height: SizeConfig.size6,),
-                                    CustomText(
-                                      "10 Items Available  ₹ 600 Price",
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ],
-                                )
-                              ],
-                            ),
-                            Container(
-                              height: 24,
-                              width: 24,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(30),
-                                color: AppColors.black.withOpacity(0.4),
+                                  ),
+                                  SizedBox(width: SizeConfig.size10,),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      CustomText(
+                                        "${model.name}",
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                      SizedBox(height: SizeConfig.size6,),
+                                      CustomText(
+                                        "${model.noOfItemsAvailable} Items Available  ₹ ${model.totalPriceForAvailableItems} Price",
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w400,
+                                      ),
+                                      SizedBox(height: SizeConfig.size6,),
+                                      CustomText(
+                                        "${model.distance} Distance",
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w400,
+                                      ),
+                                    ],
+                                  )
+                                ],
                               ),
-                              alignment: Alignment.center,
-                              child: Container(
-                                height: 12,
-                                width: 12,
+                              Container(
+                                height: 24,
+                                width: 24,
                                 decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(4),
-                                  border: Border.all(color: Colors.white),
-                                  // color: AppColors.primaryColor
+                                  borderRadius: BorderRadius.circular(30),
+                                  color: AppColors.black.withOpacity(0.4),
                                 ),
-                                // child: isSelected
-                                //     ? Center(
-                                //   child: const Icon(
-                                //     Icons.check,
-                                //     color: Colors.white,
-                                //     size: 12,
-                                //   ),
-                                // )
-                                //     : null,
-                              ),
-                            )
-                          ],),
+                                alignment: Alignment.center,
+                                child: Container(
+                                  height: 14,
+                                  width: 14,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(4),
+                                    border: Border.all(color: Colors.white),
+                                    color: isSelected?AppColors.primaryColor:null
+                                  ),
+                                  child: isSelected
+                                      ? Center(
+                                    child: const Icon(
+                                      Icons.check,
+                                      color: Colors.white,
+                                      size: 12,
+                                    ),
+                                  )
+                                      : null,
+                                ),
+                              )
+                            ],),
+                        ),
                       );
                     },
 
