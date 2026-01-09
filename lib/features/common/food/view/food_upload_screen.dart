@@ -1,11 +1,10 @@
-
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
@@ -17,8 +16,8 @@ import 'package:BlueEra/features/common/food/controller/food_upload_controller.d
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 
 class FoodUploadScreen extends StatefulWidget {
-  final ProductServiceProviderType providerType;
-  final EarnWithBlueEraServiceTypes? serviceSubType;
+  final ProviderType providerType;
+  final EarnServiceTypes? serviceSubType;
   final String? category;
 
   FoodUploadScreen({Key? key, required this.providerType, this.serviceSubType, this.category}) : super(key: key);
@@ -34,7 +33,7 @@ class _FoodUploadScreenState extends State<FoodUploadScreen> {
   void initState() {
     super.initState();
 
-    if (widget.providerType == ProductServiceProviderType.user &&
+    if (widget.providerType == ProviderType.user &&
         widget.category != null) {
       final category = widget.category!;
       controller.selectedFoodType1.value = category;

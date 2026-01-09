@@ -11,14 +11,15 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/account_setting_screen/account_settings_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/controller/earn_with_blueera_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_service_orders.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/controller/earn_service_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_profession_details_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_orders.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
 import 'package:BlueEra/features/common/food/view/food_and_grocery_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/own_product_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/view/rental_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/widget/earn_with_blue_era_bottom_sheet.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/widget/earn_service_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/horizonatal_video_player.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -29,42 +30,42 @@ import 'package:BlueEra/widgets/tab_bar_delegate.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-enum EarnWithBlueEraServiceTypes {
+enum EarnServiceTypes {
   selfWork('selfWork'),
   homeService('homeService'),
   homeMadeFood('homeMadeFood');
 
   final String label;
-  const EarnWithBlueEraServiceTypes(this.label);
+  const EarnServiceTypes(this.label);
 
-  static EarnWithBlueEraServiceTypes? fromLabel(String value) {
-    return EarnWithBlueEraServiceTypes.values.firstWhere(
+  static EarnServiceTypes? fromLabel(String value) {
+    return EarnServiceTypes.values.firstWhere(
           (e) => e.label.toLowerCase() == value.toLowerCase(),
-      orElse: () => EarnWithBlueEraServiceTypes.selfWork, // default if not matched
+      orElse: () => EarnServiceTypes.selfWork, // default if not matched
     );
   }
 
   static List<String> get labels =>
-      EarnWithBlueEraServiceTypes.values.map((e) => e.label).toList();
+      EarnServiceTypes.values.map((e) => e.label).toList();
 }
 
 
-class EarnWithBlueEraNewScreen extends StatefulWidget {
+class EarnServiceScreen extends StatefulWidget {
   final bool fromBottomNavBar;
-  const EarnWithBlueEraNewScreen({super.key, this.fromBottomNavBar = false});
+  const EarnServiceScreen({super.key, this.fromBottomNavBar = false});
 
   @override
-  State<EarnWithBlueEraNewScreen> createState() => _EarnWithBlueEraNewScreenState();
+  State<EarnServiceScreen> createState() => _EarnServiceScreenState();
 }
 
-class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen>
+class _EarnServiceScreenState extends State<EarnServiceScreen>
     with SingleTickerProviderStateMixin, RouteAware {
   late TabController _tabController;
 
   // final foodUploadController = Get.put(FoodUploadController());
   // final serviceController = Get.put(ServiceController());
 
-  final earnWithBlueEraController = getOrPut(() => EarnWithBlueEraController());
+  final controller = getOrPut(() => EarnServiceController());
   final inventoryController = getOrPut(() => InventoryController());
   final viewPersonalDetailsController = getOrPut(() => ViewPersonalDetailsController());
   late bool isLeading;
@@ -74,7 +75,7 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen>
     log('user designation global -- $userWorkTypeGlobal');
     isLeading = !widget.fromBottomNavBar;
     _tabController = TabController(length: 3, vsync: this);
-    earnWithBlueEraController.fetchOwnProducts();
+    controller.fetchOwnProducts();
     _checkEarnServiceStatus();
     WidgetsBinding.instance.addPostFrameCallback((_)=> syncShopStatus());
     super.initState();
@@ -105,17 +106,17 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen>
   @override
   void dispose() {
     RouteHelper.routeObserver.unsubscribe(this);
-    deleteIfRegistered<EarnWithBlueEraController>();
+    deleteIfRegistered<EarnServiceController>();
     _tabController.dispose();
     super.dispose();
   }
 
   Future<void> _checkEarnServiceStatus() async {
      await getEarnServiceOptData();
-     earnWithBlueEraController.isEarnServiceOpt.value = isEarnServiceOpt;
-     print('isEarnServiceOpt -- ${earnWithBlueEraController.isEarnServiceOpt.value}');
+     controller.isEarnServiceOpt.value = isEarnServiceOpt;
+     print('isEarnServiceOpt -- ${controller.isEarnServiceOpt.value}');
      WidgetsBinding.instance.addPostFrameCallback((_) {
-       if(earnWithBlueEraController.isEarnServiceOpt.value.toLowerCase() == 'false') ()=> _openEarnWithBlueEraSheet();
+       if(controller.isEarnServiceOpt.value.toLowerCase() == 'false') ()=> _openEarnWithBlueEraSheet();
      });
   }
 
@@ -123,14 +124,14 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen>
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (_) => EarnWithBlueEraBottomSheet(),
+      builder: (_) => EarnServiceBottomSheet(),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      final earnValue = earnWithBlueEraController.isEarnServiceOpt.value;
+      final earnValue = controller.isEarnServiceOpt.value;
 
       if (earnValue.isEmpty) {
         return _buildLoadingScaffold();
@@ -184,8 +185,8 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen>
         Padding(
           padding: EdgeInsets.all(SizeConfig.size15),
           child: HorizontalTabSelector(
-            tabs: earnWithBlueEraController.productsServicesTab,
-            selectedIndex: earnWithBlueEraController.selectedProductsServicesTabIndex.value,
+            tabs: controller.productsServicesTab,
+            selectedIndex: controller.selectedProductsServicesTabIndex.value,
             horizontalMargin: 0.0,
             onTabSelected: (index, value) {
               onMyProductsTabChanged(index);
@@ -250,7 +251,7 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen>
           indicatorWeight: 2,
           labelStyle: const TextStyle(fontWeight: FontWeight.w600),
           tabs: [
-            Tab(text: AppStrings.myServices.tr),
+            Tab(text: AppStrings.myOrder.tr),
             Tab(text: AppStrings.myProducts.tr),
             Tab(text: AppStrings.rentalServices.tr),
           ],
@@ -324,7 +325,7 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen>
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 4,
+        crossAxisCount: 3,
         childAspectRatio: 0.6,
         crossAxisSpacing: 30,
         mainAxisSpacing: 20,
@@ -332,7 +333,7 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen>
       itemCount: earnWithBlueEraServiceList.length,
       itemBuilder: (_, i) => CommonServiceCard(
         service: earnWithBlueEraServiceList[i],
-        onTap: () => earnWithBlueEraController.handleServiceTap(
+        onTap: () => controller.handleServiceTap(
           context,
           earnWithBlueEraServiceList[i],
         ),
@@ -341,7 +342,7 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen>
   }
 
   void onMyProductsTabChanged(int index) async {
-    earnWithBlueEraController.selectedProductsServicesTabIndex.value = index;
+    controller.selectedProductsServicesTabIndex.value = index;
 
     switch (index) {
       case 0: // Tiffin
@@ -350,7 +351,7 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen>
 
       case 1: // Product
         // if (earnWithBlueEraController.ownProductDataList.isEmpty) {
-        await earnWithBlueEraController.fetchOwnProducts();
+        await controller.fetchOwnProducts();
         // }
         break;
 
@@ -361,7 +362,7 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen>
 
   Widget _buildMyProductsTab() {
     return Obx(() {
-      final selectedTab = earnWithBlueEraController.selectedProductsServicesTabIndex.value;
+      final selectedTab = controller.selectedProductsServicesTabIndex.value;
 
       Widget tabContent;
 
@@ -383,9 +384,9 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen>
         //   break;
 
         case 1:
-          final productList = earnWithBlueEraController.ownProductDataList;
+          final productList = controller.ownProductDataList;
 
-          if (earnWithBlueEraController.isOwnProductDataFirstLoading.value) {
+          if (controller.isOwnProductDataFirstLoading.value) {
             tabContent = const Center(
               child: CircularProgressIndicator(),
             );
@@ -472,7 +473,7 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen>
                 // ),
               ),
 
-              if (earnWithBlueEraController.isOwnProductDataLoadingMore.value)
+              if (controller.isOwnProductDataLoadingMore.value)
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 20),
                   child: Center(child: CircularProgressIndicator()),
@@ -484,8 +485,8 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen>
 
         case 2:
           tabContent = FoodAndGroceryScreen(
-             providerType: ProductServiceProviderType.user,
-            serviceSubType: EarnWithBlueEraServiceTypes.homeMadeFood,
+             providerType: ProviderType.user,
+            serviceSubType: EarnServiceTypes.homeMadeFood,
           );
           break;
 
@@ -541,19 +542,22 @@ class _EarnWithBlueEraNewScreenState extends State<EarnWithBlueEraNewScreen>
           ),
 
         Expanded(
-          child: Padding(
-            padding: EdgeInsets.only(
-              top: SizeConfig.paddingXSL,
-              bottom: SizeConfig.paddingXSL,
-              left: (isLeading == true) ? 0 : SizeConfig.size20,
-            ),
-            child: CustomText(
-              userWorkTypeGlobal,
-              fontSize: SizeConfig.large,
-              color: AppColors.primaryColor,
-              fontWeight: FontWeight.w600,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+          child: InkWell(
+            onTap: ()=> Get.to(()=> ProfessionDetailsScreen()),
+            child: Padding(
+              padding: EdgeInsets.only(
+                top: SizeConfig.paddingXSL,
+                bottom: SizeConfig.paddingXSL,
+                left: (isLeading == true) ? 0 : SizeConfig.size20,
+              ),
+              child: CustomText(
+                userWorkTypeGlobal,
+                fontSize: SizeConfig.large,
+                color: AppColors.primaryColor,
+                fontWeight: FontWeight.w600,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ),
         ),

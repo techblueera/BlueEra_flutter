@@ -195,7 +195,7 @@ class InventoryController extends GetxController {
       Map<String, dynamic> queryParams = {
         // ApiKeys.businessId: businessId,
         'ownerId': businessId,
-        'ownerType': ProductServiceProviderType.business.title,
+        'ownerType': ProviderType.business.title,
       };
 
       if(isDraftProduct!=null){
@@ -482,7 +482,7 @@ class InventoryController extends GetxController {
 
   Future<void> cloneProductVariantApi(
       { required String ownerID,
-        required ProductServiceProviderType providerType,
+        required ProviderType providerType,
        required bool cloneProductVariantFromSearch
       }
       ) async {
@@ -516,14 +516,14 @@ class InventoryController extends GetxController {
 
       if (responseModel.isSuccess) {
         cloneVariantProductResponse.value = ApiResponse.complete(responseModel);
-        if((providerType==ProductServiceProviderType.business)){
+        if((providerType==ProviderType.business)){
           navigateToInventory();
         }else{
           await setEarnServiceOptData(true);
           Get.until(
                 (route) =>
             route.settings.name ==
-                RouteHelper.getEarnWithBlueEraNewScreenRoute(),
+                RouteHelper.getEarnServiceScreenRoute(),
 
           );
         }

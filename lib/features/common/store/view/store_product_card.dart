@@ -81,11 +81,11 @@ class StoreProductCard extends StatelessWidget {
     return InkWell(
      onTap: (){
        final owner = product?.sellerClassification?.owner;
-       final type = owner?.type ?? ProductServiceProviderType.business.title;
+       final type = owner?.type ?? ProviderType.business.title;
 
-       final providerType = ProductServiceProviderType.values.firstWhere(
+       final providerType = ProviderType.values.firstWhere(
              (e) => e.title == type,
-         orElse: () => ProductServiceProviderType.business,
+         orElse: () => ProviderType.business,
        );
 
        Get.toNamed(
@@ -305,7 +305,7 @@ class StoreProductCard extends StatelessWidget {
 
                         if (owner == null) return;
 
-                        final isBusiness = owner.type == ProductServiceProviderType.business.title;
+                        final isBusiness = owner.type == ProviderType.business.title;
 
                         final destination = isBusiness
                             ? VisitBusinessProfileNew(

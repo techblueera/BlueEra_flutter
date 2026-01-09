@@ -354,7 +354,7 @@ class ProductController extends GetxController{
   bool canAddMoreStep1() => step1Images.length < maxStep1Images.value;
   bool canAddMoreStep2() => step2Images.length < maxStep2Images.value;
 
-  void onGenerate(ProductController addProductViaAiController, String id, ProductServiceProviderType providerType) async {
+  void onGenerate(ProductController addProductViaAiController, String id, ProviderType providerType) async {
     if (!_validate()) return;
 
     isLoading.value = true;
@@ -388,7 +388,7 @@ class ProductController extends GetxController{
   }
 
 
-  Future<void> createProductViaAiApi(AddProductViaAiRequest request, ProductController addProductViaAiController, String id, ProductServiceProviderType providerType) async {
+  Future<void> createProductViaAiApi(AddProductViaAiRequest request, ProductController addProductViaAiController, String id, ProviderType providerType) async {
     try {
       Map<String, dynamic> params = {};
 
@@ -527,7 +527,7 @@ class ProductController extends GetxController{
 
   var isCreateProductLoading = false.obs;
 
-  Future<void> createProductViaAi(ProductController addProductViaAiController, String id, ProductServiceProviderType providerType) async {
+  Future<void> createProductViaAi(ProductController addProductViaAiController, String id, ProviderType providerType) async {
     isCreateProductLoading.value = true;
     try {
       Map<String, dynamic> params = {
@@ -566,7 +566,7 @@ class ProductController extends GetxController{
         };
       params[ApiKeys.options] = jsonEncode(payload);
 
-      if(providerType == ProductServiceProviderType.channel){
+      if(providerType == ProviderType.channel){
         params[ApiKeys.channelId] = id;
       }
 
@@ -649,7 +649,7 @@ class ProductController extends GetxController{
   Future<void> addProductToInventory(
       {
         required String id,
-        required ProductServiceProviderType providerType,
+        required ProviderType providerType,
         required ProductController addProductViaAiController,
         required List<ProductListing> products
       }) async {
@@ -694,11 +694,11 @@ class ProductController extends GetxController{
       final responseModel = await ProductRepo().addProductToInventoryApi(params: params);
       if (responseModel.isSuccess) {
         addProductToInventoryResponse.value = ApiResponse.complete(responseModel);
-        if(providerType == ProductServiceProviderType.business){
+        if(providerType == ProviderType.business){
           navigateToInventorySectionAfterAddProduct();
-        }else if(providerType == ProductServiceProviderType.user){
+        }else if(providerType == ProviderType.user){
           navigateToEarnWithBlueEraSectionAfterAddProduct();
-        }else if(providerType == ProductServiceProviderType.channel){
+        }else if(providerType == ProviderType.channel){
           navigateToChannelSectionAfterAddProduct();
         }
 
@@ -727,7 +727,7 @@ class ProductController extends GetxController{
 
   Future<void> navigateToEarnWithBlueEraSectionAfterAddProduct() async {
     await setEarnServiceOptData(true);
-    Get.until((route) => Get.currentRoute == RouteHelper.getEarnWithBlueEraNewScreenRoute());
+    Get.until((route) => Get.currentRoute == RouteHelper.getEarnServiceScreenRoute());
   }
 
   void navigateToChannelSectionAfterAddProduct(){

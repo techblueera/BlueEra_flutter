@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -23,8 +23,8 @@ import '../../service/view/add_services_screen.dart';
 
 
 class SubmitFoodProductPage extends StatefulWidget {
-  final ProductServiceProviderType providerType;
-  final EarnWithBlueEraServiceTypes? serviceSubType;
+  final ProviderType providerType;
+  final EarnServiceTypes? serviceSubType;
   final FoodAiResModel foodDatas;
   final Map<String, dynamic> foodData;
   final String imagePath;
@@ -436,7 +436,7 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
                         // Category
                         Obx(() {
                           return AbsorbPointer(
-                            absorbing: widget.providerType == ProductServiceProviderType.user,
+                            absorbing: widget.providerType == ProviderType.user,
                             child: _buildDropdown(
                                 AppStrings.categoryTag,
                                 AppStrings.egMainCourse,

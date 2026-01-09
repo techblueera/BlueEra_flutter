@@ -9,8 +9,8 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_orders_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/delivery_partner_orders/pickup_order_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/controller/earn_with_blueera_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_service_new_orders.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/controller/earn_service_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_new_orders.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:flutter/material.dart';
@@ -24,7 +24,7 @@ class EarnServiceOrders extends StatefulWidget {
 }
 
 class _EarnServiceOrdersState extends State<EarnServiceOrders>  {
-  final controller = getOrPut(() => EarnWithBlueEraController());
+  final controller = getOrPut(() => EarnServiceController());
   // final deliveryPartnerController = getOrPut(() => DeliveryPartnerController());
 
   // @override
@@ -45,13 +45,15 @@ class _EarnServiceOrdersState extends State<EarnServiceOrders>  {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        body: Obx(()=> Column(
+    return Obx(()=> Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
 
             Padding(
-              padding: EdgeInsets.all(SizeConfig.size15),
+              padding: EdgeInsets.symmetric(
+                  vertical: SizeConfig.size15,
+                  horizontal: SizeConfig.size8,
+              ),
               child: HorizontalTabSelector(
                 tabs: controller.earnServiceOrdersTabs,
                 selectedIndex: controller
@@ -87,8 +89,7 @@ class _EarnServiceOrdersState extends State<EarnServiceOrders>  {
               ),
             ),
           ],
-        ))
-    );
+        ));
   }
 
   void showStatusDialog(BuildContext context, String title, String message) {

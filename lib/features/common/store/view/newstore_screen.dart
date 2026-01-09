@@ -205,7 +205,7 @@ class _StoreFeedScreenState extends State<StoreFeedScreen>
                         .getRiderServiceScreenRoute());
                   }else{
                     Get.toNamed(RouteHelper
-                        .getEarnWithBlueEraNewScreenRoute());
+                        .getEarnServiceScreenRoute());
                   }
                 }
               }

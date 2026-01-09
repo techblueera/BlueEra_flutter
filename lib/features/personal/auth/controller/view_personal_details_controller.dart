@@ -24,7 +24,7 @@ import 'package:BlueEra/features/personal/personal_profile/controller/introducti
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/create_profile_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/repo/earn_service_repo.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/repo/earn_service_repo.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -499,7 +499,7 @@ class ViewPersonalDetailsController extends GetxController {
        ? Get.find<ViewPersonalDetailsController>()
        : Get.put(ViewPersonalDetailsController());
 
-    selfWorkServiceList.any(
+    selfWorkCategories.any(
           (service) => service.slugId == userProfessionGlobal,
     );
 
@@ -516,7 +516,7 @@ class ViewPersonalDetailsController extends GetxController {
             .getRiderServiceScreenRoute());
       }else{
         Get.toNamed(RouteHelper
-            .getEarnWithBlueEraNewScreenRoute());
+            .getEarnServiceScreenRoute());
       }
 
       // Get.toNamed(

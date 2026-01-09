@@ -1314,7 +1314,8 @@ const String OTHERS = "OTHERS"; // keep Others last
 const String ELECTRICIAN = "ELECTRICIAN";
 const String PLUMBER = "PLUMBER";
 const String TECHNICIAN = "TECHNICIAN";
-const String MAID_CLEANER = "MAID_CLEANER";
+const String MAID = "MAID";
+const String CLEANER = "CLEANER";
 const String CARPENTER = "CARPENTER";
 const String CAR_DRIVER_TAXI = "CAR_DRIVER_TAXI";
 const String DELIVERY_RIDER = "DELIVERY_RIDER";
@@ -1609,251 +1610,258 @@ bool isVideoUrl(String? url) {
       lower.endsWith('.3gp');
 }
 
-final List<ServiceItem> earnWithBlueEraServiceList = [
-  ServiceItem(
-    name: AppStrings.selfWork,
-    slugId: SELF_EMPLOYED,
-    icon: AppIconAssets.plumberIcon,
-    bgColor: const Color(0xFFCBEAFC),
-    labelColor: const Color(0xFF004E7C),
-  ),
-  ServiceItem(
-    name: AppStrings.deliveryPartner,
-    slugId: DELIVERY_RIDER,
-    icon: AppIconAssets.deliveryPartnerIcon,
-    bgColor: const Color(0xFFDAEDCF),
-    labelColor: const Color(0xFF204A08),
-  ),
-  ServiceItem(
-    name: AppStrings.homeMadeProducts,
-    slugId: HOME_MADE_PRODUCTS_OPTION,
-    icon: AppIconAssets.homeMadeProductIcon,
-    bgColor: const Color(0xFFFDD5A4),
-    labelColor: const Color(0xFF8C4D00),
-  ),
-  ServiceItem(
-    name: AppStrings.homeMadeFoodItems,
-    slugId: HOME_MADE_FOOD_ITEMS_OPTION,
-    icon: AppIconAssets.homeMadeFoodIcon,
-    bgColor: const Color(0xFFFEF2B6),
-    labelColor: const Color(0xFF856F00),
-  ),
-  ServiceItem(
-    name: AppStrings.homeServices,
-    slugId: HOME_SERVICES_OPTION,
-    icon: AppIconAssets.homeServiceIcon,
-    bgColor: const Color(0xFFDBD5F7),
-    labelColor: const Color(0xFF140074),
-  ),
-  ServiceItem(
-    name: AppStrings.rentalServices,
-    slugId: RENTAL_SERVICES_OPTION,
-    icon: AppIconAssets.rentalServiceIcon,
-    bgColor: const Color(0xFFFAD7D3),
-    labelColor: const Color(0xFF740C00),
-  ),
-  ServiceItem(
-    name: AppStrings.counsellingConsulting,
-    slugId: CONSULTANT,
-    icon: AppIconAssets.counsellingServiceIcon,
-    bgColor: const Color(0xFFBCEEE2),
-    labelColor: const Color(0xFF006950),
-  ),
-  ServiceItem(
-    name: AppStrings.tuitionClassesOnlineOffline,
-    slugId: TUTOR,
-    icon: AppIconAssets.teachingIcon,
-    bgColor: const Color(0xFFEEBCE7),
-    labelColor: const Color(0xFF8B0077),
-  ),
-];
+// final List<ServiceItem> earnWithBlueEraServiceList = [
+//   ServiceItem(
+//     name: AppStrings.selfWork,
+//     slugId: SELF_EMPLOYED,
+//     icon: AppImageAssets.plumber,
+//     bgColor: const Color(0xFFCBEAFC),
+//     labelColor: const Color(0xFF004E7C),
+//   ),
+//   ServiceItem(
+//     name: AppStrings.deliveryPartner,
+//     slugId: DELIVERY_RIDER,
+//     icon: AppImageAssets.deliveryPartner,
+//     bgColor: const Color(0xFFDAEDCF),
+//     labelColor: const Color(0xFF204A08),
+//   ),
+//   ServiceItem(
+//     name: AppStrings.taxiCarDriver,
+//     slugId: CAR_DRIVER_TAXI,
+//     icon: AppImageAssets.taxiDriver,
+//     bgColor: const Color(0xFFB2DFDC),
+//     labelColor: const Color(0xFF00625C),
+//   ),
+//   ServiceItem(
+//     name: AppStrings.homeMadeProducts,
+//     slugId: HOME_MADE_PRODUCTS_OPTION,
+//     icon: AppImageAssets.homeMadeProduct,
+//     bgColor: const Color(0xFFFDD5A4),
+//     labelColor: const Color(0xFF8C4D00),
+//   ),
+//   ServiceItem(
+//     name: AppStrings.homeMadeFoodItems,
+//     slugId: HOME_MADE_FOOD_ITEMS_OPTION,
+//     icon: AppImageAssets.homeMadeFood,
+//     bgColor: const Color(0xFFFEF2B6),
+//     labelColor: const Color(0xFF856F00),
+//   ),
+//   ServiceItem(
+//     name: AppStrings.homeServices,
+//     slugId: HOME_SERVICES_OPTION,
+//     icon: AppImageAssets.homeService,
+//     bgColor: const Color(0xFFDBD5F7),
+//     labelColor: const Color(0xFF140074),
+//   ),
+//   ServiceItem(
+//     name: AppStrings.rentalServices,
+//     slugId: RENTAL_SERVICES_OPTION,
+//     icon: AppIconAssets.rentalServiceIcon,
+//     bgColor: const Color(0xFFFAD7D3),
+//     labelColor: const Color(0xFF740C00),
+//   ),
+//   ServiceItem(
+//     name: AppStrings.counsellingConsulting,
+//     slugId: CONSULTANT,
+//     icon: AppImageAssets.consultation,
+//     bgColor: const Color(0xFFBCEEE2),
+//     labelColor: const Color(0xFF006950),
+//   ),
+//   ServiceItem(
+//     name: AppStrings.tuitionClassesOnlineOffline,
+//     slugId: TUTOR,
+//     icon: AppImageAssets.tutor,
+//     bgColor: const Color(0xFFEEBCE7),
+//     labelColor: const Color(0xFF8B0077),
+//   ),
+// ];
 
-final List<ServiceItem> selfWorkServiceList = [
-  ServiceItem(
-    name: AppStrings.electrician,
-    slugId: ELECTRICIAN,
-    icon: AppIconAssets.electricianIcon,
-    bgColor: const Color(0xFFFFF2DF),
-    labelColor: const Color(0xFFAF6800),
-  ),
-  ServiceItem(
-    name: AppStrings.plumber,
-    slugId: PLUMBER,
-    icon: AppIconAssets.plumberIcon,
-    bgColor: const Color(0xFFFFF2C3),
-    labelColor: const Color(0xFF5D4900),
-  ),
-  ServiceItem(
-    name: AppStrings.technician,
-    slugId: TECHNICIAN,
-    icon: AppIconAssets.technicianIcon,
-    bgColor: const Color(0xFFF0F4C2),
-    labelColor: const Color(0xFF4E5500),
-  ),
-  ServiceItem(
-    name: AppStrings.maidCleaner,
-    slugId: MAID_CLEANER,
-    icon: AppIconAssets.mainCleanerIcon,
-    bgColor: const Color(0xFFD7EAC9),
-    labelColor: const Color(0xFF183A00),
-  ),
-  ServiceItem(
-    name: AppStrings.carpenter,
-    slugId: CARPENTER,
-    icon: AppIconAssets.carpenterIcon,
-    bgColor: const Color(0xFFE1FCB3),
-    labelColor: const Color(0xFF375700),
-  ),
-  ServiceItem(
-    name: AppStrings.taxiCarDriver,
-    slugId: CAR_DRIVER_TAXI,
-    icon: AppIconAssets.taxiDriverIcon,
-    bgColor: const Color(0xFFB2DFDC),
-    labelColor: const Color(0xFF00625C),
-  ),
-  ServiceItem(
-    name: AppStrings.mechanic,
-    slugId: MECHANIC,
-    icon: AppIconAssets.mechanicIcon,
-    bgColor: const Color(0xFFB3E5FC),
-    labelColor: const Color(0xFF003E5B),
-  ),
-  ServiceItem(
-    name: AppStrings.homeRenovator,
-    slugId: HOME_RENOVATION,
-    icon: AppIconAssets.mistryIcon,
-    bgColor: const Color(0xFFD0C4E8),
-    labelColor: const Color(0xFF24006D),
-  ),
-  ServiceItem(
-    name: AppStrings.painter,
-    slugId: PAINTER,
-    icon: AppIconAssets.painterIcon,
-    bgColor: const Color(0xFFF9BBD0),
-    labelColor: const Color(0xFF84002D),
-  ),
-  ServiceItem(
-    name: AppStrings.gardener,
-    slugId: GARDENER,
-    icon: AppIconAssets.gardenerIcon,
-    bgColor: const Color(0xFFA3E7A3),
-    labelColor: const Color(0xFF006300),
-  ),
-  ServiceItem(
-    name: AppStrings.securityPerson,
-    slugId: SECURITY,
-    icon: AppIconAssets.securityPersonIcon,
-    bgColor: const Color(0xFFD7CCC8),
-    labelColor: const Color(0xFF5B3F38),
-  ),
-  ServiceItem(
-    name: AppStrings.other,
-    slugId: OTHER,
-    icon: AppIconAssets.staggeredIcon,
-    bgColor: const Color(0xFFCFD8DD),
-    labelColor: const Color(0xFF36444D),
-  ),
-];
+// final List<ServiceItem> selfWorkServiceList = [
+//   ServiceItem(
+//     name: AppStrings.electrician,
+//     slugId: ELECTRICIAN,
+//     icon: AppIconAssets.electricianIcon,
+//     bgColor: const Color(0xFFFFF2DF),
+//     labelColor: const Color(0xFFAF6800),
+//   ),
+//   ServiceItem(
+//     name: AppStrings.plumber,
+//     slugId: PLUMBER,
+//     icon: AppIconAssets.plumberIcon,
+//     bgColor: const Color(0xFFFFF2C3),
+//     labelColor: const Color(0xFF5D4900),
+//   ),
+//   ServiceItem(
+//     name: AppStrings.technician,
+//     slugId: TECHNICIAN,
+//     icon: AppIconAssets.technicianIcon,
+//     bgColor: const Color(0xFFF0F4C2),
+//     labelColor: const Color(0xFF4E5500),
+//   ),
+//   ServiceItem(
+//     name: AppStrings.maid,
+//     slugId: MAID,
+//     icon: AppIconAssets.mainCleanerIcon,
+//     bgColor: const Color(0xFFD7EAC9),
+//     labelColor: const Color(0xFF183A00),
+//   ),
+//   ServiceItem(
+//     name: AppStrings.cleaner,
+//     slugId: CLEANER,
+//     icon: AppIconAssets.mainCleanerIcon,
+//     bgColor: const Color(0xFFD7EAC9),
+//     labelColor: const Color(0xFF183A00),
+//   ),
+//   ServiceItem(
+//     name: AppStrings.carpenter,
+//     slugId: CARPENTER,
+//     icon: AppIconAssets.carpenterIcon,
+//     bgColor: const Color(0xFFE1FCB3),
+//     labelColor: const Color(0xFF375700),
+//   ),
+//   ServiceItem(
+//     name: AppStrings.mechanic,
+//     slugId: MECHANIC,
+//     icon: AppIconAssets.mechanicIcon,
+//     bgColor: const Color(0xFFB3E5FC),
+//     labelColor: const Color(0xFF003E5B),
+//   ),
+//   ServiceItem(
+//     name: AppStrings.homeRenovator,
+//     slugId: HOME_RENOVATION,
+//     icon: AppIconAssets.mistryIcon,
+//     bgColor: const Color(0xFFD0C4E8),
+//     labelColor: const Color(0xFF24006D),
+//   ),
+//   ServiceItem(
+//     name: AppStrings.painter,
+//     slugId: PAINTER,
+//     icon: AppIconAssets.painterIcon,
+//     bgColor: const Color(0xFFF9BBD0),
+//     labelColor: const Color(0xFF84002D),
+//   ),
+//   ServiceItem(
+//     name: AppStrings.gardener,
+//     slugId: GARDENER,
+//     icon: AppIconAssets.gardenerIcon,
+//     bgColor: const Color(0xFFA3E7A3),
+//     labelColor: const Color(0xFF006300),
+//   ),
+//   ServiceItem(
+//     name: AppStrings.securityPerson,
+//     slugId: SECURITY,
+//     icon: AppIconAssets.securityPersonIcon,
+//     bgColor: const Color(0xFFD7CCC8),
+//     labelColor: const Color(0xFF5B3F38),
+//   ),
+//   ServiceItem(
+//     name: AppStrings.other,
+//     slugId: OTHER,
+//     icon: AppIconAssets.staggeredIcon,
+//     bgColor: const Color(0xFFCFD8DD),
+//     labelColor: const Color(0xFF36444D),
+//   ),
+// ];
 
-final List<ServiceItem> homeServicesList = [
-  ServiceItem(
-    name: AppStrings.beautyServices,
-    slugId: BEAUTICIAN,
-    icon: AppIconAssets.beautyServiceIcon,
-    bgColor: const Color(0xFFFFF2DF),
-    labelColor: const Color(0xFFAF6800),
-  ),
-  ServiceItem(
-    name: AppStrings.tailoring,
-    slugId: TAILOR,
-    icon: AppIconAssets.tailoringIcon,
-    bgColor: const Color(0xFFFFF2C3),
-    labelColor: const Color(0xFF5D4900),
-  ),
-  ServiceItem(
-    name: AppStrings.digitalMarketing,
-    slugId: DIGITAL_MARKETING,
-    icon: AppIconAssets.digitalMarketingIcon,
-    bgColor: const Color(0xFFF0F4C2),
-    labelColor: const Color(0xFF4E5500),
-  ),
-  ServiceItem(
-    name: AppStrings.interiorDecor,
-    slugId: INTERIOR_DESIGNER,
-    icon: AppIconAssets.interiorIcon,
-    bgColor: const Color(0xFFD7EAC9),
-    labelColor: const Color(0xFF183A00),
-  ),
-  ServiceItem(
-    name: AppStrings.other,
-    slugId: OTHER,
-    icon: AppIconAssets.staggeredIcon,
-    bgColor: const Color(0xFFCFD8DD),
-    labelColor: const Color(0xFF36444D),
-  ),
-];
+// final List<ServiceItem> homeServicesList = [
+//   ServiceItem(
+//     name: AppStrings.beautyServices,
+//     slugId: BEAUTICIAN,
+//     icon: AppIconAssets.beautyServiceIcon,
+//     bgColor: const Color(0xFFFFF2DF),
+//     labelColor: const Color(0xFFAF6800),
+//   ),
+//   ServiceItem(
+//     name: AppStrings.tailoring,
+//     slugId: TAILOR,
+//     icon: AppIconAssets.tailoringIcon,
+//     bgColor: const Color(0xFFFFF2C3),
+//     labelColor: const Color(0xFF5D4900),
+//   ),
+//   ServiceItem(
+//     name: AppStrings.digitalMarketing,
+//     slugId: DIGITAL_MARKETING,
+//     icon: AppIconAssets.digitalMarketingIcon,
+//     bgColor: const Color(0xFFF0F4C2),
+//     labelColor: const Color(0xFF4E5500),
+//   ),
+//   ServiceItem(
+//     name: AppStrings.interiorDecor,
+//     slugId: INTERIOR_DESIGNER,
+//     icon: AppIconAssets.interiorIcon,
+//     bgColor: const Color(0xFFD7EAC9),
+//     labelColor: const Color(0xFF183A00),
+//   ),
+//   ServiceItem(
+//     name: AppStrings.other,
+//     slugId: OTHER,
+//     icon: AppIconAssets.staggeredIcon,
+//     bgColor: const Color(0xFFCFD8DD),
+//     labelColor: const Color(0xFF36444D),
+//   ),
+// ];
 
-final List<ServiceItem> rentalServicesList = [
-  ServiceItem(
-    name: AppStrings.homeStay,
-    slugId: HOME_STAY,
-    icon: AppIconAssets.homeStayIcon,
-    bgColor: const Color(0xFFFFF2DF),
-    labelColor: const Color(0xFFAF6800),
-  ),
-  ServiceItem(
-    name: AppStrings.flatRoom,
-    slugId: Flat_ROOM,
-    icon: AppIconAssets.roomIcon,
-    bgColor: const Color(0xFFF0F4C2),
-    labelColor: const Color(0xFF4E5500),
-  ),
-  ServiceItem(
-    name: AppStrings.vehicle,
-    slugId: VEHICLE,
-    icon: AppIconAssets.vehicleIcon,
-    bgColor: const Color(0xFFD7EAC9),
-    labelColor: const Color(0xFF183A00),
-  ),
-  // ServiceItem(
-  //   label: 'Other',
-  //   name: AppConstants.OTHER,
-  //   icon: AppIconAssets.staggeredIcon,
-  //   bgColor: const Color(0xFFCFD8DD),
-  //   labelColor: const Color(0xFF36444D),
-  // ),
-];
+// final List<ServiceItem> rentalServicesList = [
+//   ServiceItem(
+//     name: AppStrings.homeStay,
+//     slugId: HOME_STAY,
+//     icon: AppIconAssets.homeStayIcon,
+//     bgColor: const Color(0xFFFFF2DF),
+//     labelColor: const Color(0xFFAF6800),
+//   ),
+//   ServiceItem(
+//     name: AppStrings.flatRoom,
+//     slugId: Flat_ROOM,
+//     icon: AppIconAssets.roomIcon,
+//     bgColor: const Color(0xFFF0F4C2),
+//     labelColor: const Color(0xFF4E5500),
+//   ),
+//   ServiceItem(
+//     name: AppStrings.vehicle,
+//     slugId: VEHICLE,
+//     icon: AppIconAssets.vehicleIcon,
+//     bgColor: const Color(0xFFD7EAC9),
+//     labelColor: const Color(0xFF183A00),
+//   ),
+//   // ServiceItem(
+//   //   label: 'Other',
+//   //   name: AppConstants.OTHER,
+//   //   icon: AppIconAssets.staggeredIcon,
+//   //   bgColor: const Color(0xFFCFD8DD),
+//   //   labelColor: const Color(0xFF36444D),
+//   // ),
+// ];
 
-final List<ServiceItem> homeMadeFoodServiceList = [
-  ServiceItem(
-    name: AppStrings.tiffin,
-    slugId: TIFFIN,
-    icon: AppIconAssets.tiffinIcon,
-    bgColor: const Color(0xFFFFF2DF),
-    labelColor: const Color(0xFFAF6800),
-  ),
-  ServiceItem(
-    name: AppStrings.bakery,
-    slugId: BAKERY,
-    icon: AppIconAssets.bakeryIcon,
-    bgColor: const Color(0xFFFFF2C3),
-    labelColor: const Color(0xFF5D4900),
-  ),
-  ServiceItem(
-    name: AppStrings.sweets,
-    slugId: SWEETS,
-    icon: AppIconAssets.sweetIcon,
-    bgColor: const Color(0xFFF0F4C2),
-    labelColor: const Color(0xFF4E5500),
-  ),
-  ServiceItem(
-    name: AppStrings.other,
-    slugId: OTHER,
-    icon: AppIconAssets.staggeredIcon,
-    bgColor: const Color(0xFFCFD8DD),
-    labelColor: const Color(0xFF36444D),
-  ),
-];
+// final List<ServiceItem> homeMadeFoodServiceList = [
+//   ServiceItem(
+//     name: AppStrings.tiffin,
+//     slugId: TIFFIN,
+//     icon: AppIconAssets.tiffinIcon,
+//     bgColor: const Color(0xFFFFF2DF),
+//     labelColor: const Color(0xFFAF6800),
+//   ),
+//   ServiceItem(
+//     name: AppStrings.bakery,
+//     slugId: BAKERY,
+//     icon: AppIconAssets.bakeryIcon,
+//     bgColor: const Color(0xFFFFF2C3),
+//     labelColor: const Color(0xFF5D4900),
+//   ),
+//   ServiceItem(
+//     name: AppStrings.sweets,
+//     slugId: SWEETS,
+//     icon: AppIconAssets.sweetIcon,
+//     bgColor: const Color(0xFFF0F4C2),
+//     labelColor: const Color(0xFF4E5500),
+//   ),
+//   ServiceItem(
+//     name: AppStrings.other,
+//     slugId: OTHER,
+//     icon: AppIconAssets.staggeredIcon,
+//     bgColor: const Color(0xFFCFD8DD),
+//     labelColor: const Color(0xFF36444D),
+//   ),
+// ];
 
 class ChatEmitEvents {
   static const ChatList = "ChatList";
@@ -2008,51 +2016,56 @@ final List<MixedProfileCategory> mainCategories = [
   ),
 ];
 
-final List<IndividualProfileCategory> selfEmployedCategories = [
+/// New....
+
+final List<IndividualProfileCategory> earnWithBlueEraServiceList = [
   IndividualProfileCategory(
-    name: AppStrings.electrician,
-    slugId: ELECTRICIAN,
-    icon: AppIconAssets.electricianIcon,
+    name: AppStrings.selfWork,
+    slugId: SELF_EMPLOYED,
+    icon: AppImageAssets.plumber
   ),
   IndividualProfileCategory(
-    name: AppStrings.plumber,
-    slugId: PLUMBER,
-    icon: AppIconAssets.plumberIcon,
+    name: AppStrings.deliveryPartner,
+    slugId: DELIVERY_RIDER,
+    icon: AppImageAssets.deliveryPartner
   ),
   IndividualProfileCategory(
-    name: AppStrings.technician,
-    slugId: TECHNICIAN,
-    icon: AppIconAssets.technicianIcon,
+    name: AppStrings.taxiCarDriver,
+    slugId: CAR_DRIVER_TAXI,
+    icon: AppImageAssets.taxiDriver
   ),
   IndividualProfileCategory(
-    name: AppStrings.maidCleaner,
-    slugId: MAID_CLEANER,
-    icon: AppIconAssets.mainCleanerIcon,
+    name: AppStrings.homeMadeProducts,
+    slugId: HOME_MADE_PRODUCTS_OPTION,
+    icon: AppImageAssets.homeMadeProduct
   ),
   IndividualProfileCategory(
-    name: AppStrings.carpenter,
-    slugId: CARPENTER,
-    icon: AppIconAssets.carpenterIcon,
+    name: AppStrings.homeMadeFoodItems,
+    slugId: HOME_MADE_FOOD_ITEMS_OPTION,
+    icon: AppImageAssets.homeMadeFood
   ),
   IndividualProfileCategory(
-    name: AppStrings.painter,
-    slugId: PAINTER,
-    icon: AppIconAssets.painterIcon,
+    name: AppStrings.homeServices,
+    slugId: HOME_SERVICES_OPTION,
+    icon: AppImageAssets.homeService
   ),
   IndividualProfileCategory(
-    name: AppStrings.mechanic,
-    slugId: MECHANIC,
-    icon: AppIconAssets.mechanicIcon,
+    name: AppStrings.rentalServices,
+    slugId: RENTAL_SERVICES_OPTION,
+    icon: AppIconAssets.rentalServiceIcon
   ),
   IndividualProfileCategory(
-    name: AppStrings.homeRenovator,
-    slugId: HOME_RENOVATION,
-    icon: AppIconAssets.mistryIcon,
+    name: AppStrings.counsellingConsulting,
+    slugId: CONSULTANT,
+    icon: AppImageAssets.consultation
+  ),
+  IndividualProfileCategory(
+    name: AppStrings.tuitionClassesOnlineOffline,
+    slugId: TUTOR,
+    icon: AppImageAssets.tutor
   ),
 ];
 
-
-/// New....
 final List<IndividualProfileCategory> selfWorkCategories = [
   IndividualProfileCategory(
     name: AppStrings.electrician,
@@ -2070,19 +2083,19 @@ final List<IndividualProfileCategory> selfWorkCategories = [
     icon: AppImageAssets.technician
   ),
   IndividualProfileCategory(
-    name: AppStrings.maidCleaner,
-    slugId: MAID_CLEANER,
-    icon: AppImageAssets.mainCleaner
+    name: AppStrings.maid,
+    slugId: MAID,
+    icon: AppImageAssets.mainCleaner,
+  ),
+  IndividualProfileCategory(
+    name: AppStrings.cleaner,
+    slugId: CLEANER,
+    icon: AppImageAssets.mainCleaner,
   ),
   IndividualProfileCategory(
     name: AppStrings.carpenter,
     slugId: CARPENTER,
     icon: AppImageAssets.carpenter
-  ),
-  IndividualProfileCategory(
-    name: AppStrings.taxiCarDriver,
-    slugId: CAR_DRIVER_TAXI,
-    icon: AppImageAssets.taxiDriver
   ),
   IndividualProfileCategory(
     name: AppStrings.mechanic,
@@ -2541,8 +2554,13 @@ final List<IndividualProfileCategory> individualSelfEmployedList = [
     icon: AppIconAssets.technicianIcon,
   ),
   IndividualProfileCategory(
-    name: AppStrings.maidCleaner,
-    slugId: MAID_CLEANER,
+    name: AppStrings.maid,
+    slugId: MAID,
+    icon: AppIconAssets.mainCleanerIcon,
+  ),
+  IndividualProfileCategory(
+    name: AppStrings.cleaner,
+    slugId: CLEANER,
     icon: AppIconAssets.mainCleanerIcon,
   ),
   IndividualProfileCategory(

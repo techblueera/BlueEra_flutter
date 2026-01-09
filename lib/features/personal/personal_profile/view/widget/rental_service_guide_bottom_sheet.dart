@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/common/auth/model/individual_profiile_category.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/horizonatal_video_player.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/service_item.dart';
@@ -21,8 +22,7 @@ class RentalServiceGuideBottomSheet extends StatefulWidget {
 
 class _RentalServiceGuideBottomSheetState extends State<RentalServiceGuideBottomSheet> {
   int? selectedIndex;
-  ServiceItem? selectedService;
-
+  IndividualProfileCategory? selectedService;
 
   @override
   Widget build(BuildContext context) {
@@ -79,13 +79,12 @@ class _RentalServiceGuideBottomSheetState extends State<RentalServiceGuideBottom
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 4,
-                  childAspectRatio: 0.6,
-                  crossAxisSpacing: 30,
-                  mainAxisSpacing: 20,
+                  childAspectRatio: 1.0,
+                  crossAxisSpacing: 6,
                 ),
-                itemCount: rentalServicesList.length,
+                itemCount: rentalServiceCategories.length,
                 itemBuilder: (_, i) => CommonServiceCard(
-                  service: rentalServicesList[i],
+                  service: rentalServiceCategories[i],
                   isSelected: selectedIndex == i,
                   onTap: () {
                     setState(() {
@@ -94,7 +93,7 @@ class _RentalServiceGuideBottomSheetState extends State<RentalServiceGuideBottom
                         selectedService = null;
                       } else {
                         selectedIndex = i;
-                        selectedService = rentalServicesList[i];
+                        selectedService = rentalServiceCategories[i];
                       }
                     });
                   },

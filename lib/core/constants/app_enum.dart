@@ -758,7 +758,7 @@ extension StoreTypeExtension on StoreType {
   }
 }
 
-enum ProductServiceProviderType {
+enum ProviderType {
   user,
   business,
   channel;

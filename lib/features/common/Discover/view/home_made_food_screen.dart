@@ -13,7 +13,7 @@ import 'package:BlueEra/features/common/Discover/model/service_model_response.da
 import 'package:BlueEra/features/common/Discover/widget/service_category_item.dart';
 import 'package:BlueEra/features/common/auth/model/individual_profiile_category.dart';
 import 'package:BlueEra/features/common/map/widget/profile_summary_card.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -37,7 +37,7 @@ class _HomeMadeFoodScreenState extends State<HomeMadeFoodScreen> {
   final controller = getOrPut(() => DiscoverController());
   final List<IndividualProfileCategory> _homeMadeFoodCategories = homeMadeFoodCategories;
   ScrollController scrollController = ScrollController();
-  String serviceSubType = EarnWithBlueEraServiceTypes.homeMadeFood.label;
+  String serviceSubType = EarnServiceTypes.homeMadeFood.label;
   String earnServiceType = AppConstants.food;
 
   @override

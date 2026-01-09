@@ -26,8 +26,8 @@ class ServiceDetailsScreen extends StatelessWidget {
     bool isSelfService = false;
     // log('type--> ${service.serviceProvider?.type}');
     if(service.serviceProvider?.type?.toLowerCase()
-        == ProductServiceProviderType.user.name.toLowerCase() ||
-        service.serviceProvider?.type?.toLowerCase() == ProductServiceProviderType.business.name.toLowerCase()){
+        == ProviderType.user.name.toLowerCase() ||
+        service.serviceProvider?.type?.toLowerCase() == ProviderType.business.name.toLowerCase()){
       isSelfService = service.serviceProvider?.id == userId;
     }
     // else if(service.serviceProvider?.type?.toLowerCase() == ProductServiceProviderType.business.name.toLowerCase()){
@@ -35,7 +35,7 @@ class ServiceDetailsScreen extends StatelessWidget {
     //   log('businessId--> $businessId');
     //   isSelfService = service.serviceProvider?.id == businessId;
     // }
-    else if(service.serviceProvider?.type?.toLowerCase() == ProductServiceProviderType.channel.name.toLowerCase()){
+    else if(service.serviceProvider?.type?.toLowerCase() == ProviderType.channel.name.toLowerCase()){
       isSelfService = service.serviceProvider?.id == channelId;
     }
     // log('isSelfService--> $isSelfService');

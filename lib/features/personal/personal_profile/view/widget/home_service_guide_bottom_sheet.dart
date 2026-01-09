@@ -1,11 +1,11 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/widget/change_profession_dialog.dart';
+import 'package:BlueEra/features/common/auth/model/individual_profiile_category.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/change_profession_dialog.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/horizonatal_video_player.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/widget/service_item.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -20,7 +20,7 @@ class HomeServiceGuideBottomSheet extends StatefulWidget {
 
 class _HomeServiceGuideBottomSheetState extends State<HomeServiceGuideBottomSheet> {
   int? selectedIndex;
-  ServiceItem? selectedService;
+  IndividualProfileCategory? selectedService;
 
   @override
   Widget build(BuildContext context) {
@@ -77,13 +77,13 @@ class _HomeServiceGuideBottomSheetState extends State<HomeServiceGuideBottomShee
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 4,
-                  childAspectRatio: 0.6,
-                  crossAxisSpacing: 30,
-                  mainAxisSpacing: 20,
+                  childAspectRatio: 1.0,
+                  crossAxisSpacing: 6,
+                  mainAxisSpacing: 6,
                 ),
-                itemCount: homeServicesList.length,
+                itemCount: homeServicesCategories.length,
                 itemBuilder: (_, i) => CommonServiceCard(
-                  service: homeServicesList[i],
+                  service: homeServicesCategories[i],
                   isSelected: selectedIndex == i,
                   onTap: () {
                     setState(() {
@@ -92,7 +92,7 @@ class _HomeServiceGuideBottomSheetState extends State<HomeServiceGuideBottomShee
                         selectedService = null;
                       } else {
                         selectedIndex = i;
-                        selectedService = homeServicesList[i];
+                        selectedService = homeServicesCategories[i];
                       }
                     });
                   },
@@ -114,7 +114,7 @@ class _HomeServiceGuideBottomSheetState extends State<HomeServiceGuideBottomShee
                 ProfessionChangeDialogHelper().shouldShowUpdateDesignationDialog(
                   context: context,
                   designation: selectedService?.slugId ?? OTHER,
-                  serviceSubType: EarnWithBlueEraServiceTypes.homeService,
+                  serviceSubType: EarnServiceTypes.homeService,
                 );
 
               },

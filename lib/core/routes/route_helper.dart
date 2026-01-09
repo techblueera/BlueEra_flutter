@@ -83,9 +83,8 @@ import 'package:BlueEra/features/personal/personal_profile/view/booking_enquirie
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/my_enquires_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/received_enquiries_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/send_enquiry_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/earn_blueera_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/rider_service_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/rider_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/add_product_screen.dart';
@@ -321,8 +320,6 @@ class RouteHelper {
   static String getAllTransactionsScreen() =>
       RouteConstant.allTransactionsScreen;
 
-  static String getEarnBlueEraScreenRoute() => RouteConstant.earnBlueeraScreen;
-
   static String getAddDocumentScreenRoute() => RouteConstant.addDocumentScreen;
 
   static String getPostDetailPageRoute() => RouteConstant.postDetailPage;
@@ -357,8 +354,8 @@ class RouteHelper {
 
   static String getStoreFeedScreenRoute() => RouteConstant.storeFeedScreen;
 
-  static String getEarnWithBlueEraNewScreenRoute() =>
-      RouteConstant.earnWithBlueEraNewScreen;
+  static String getEarnServiceScreenRoute() =>
+      RouteConstant.earnServiceScreen;
 
   static String getInventoryBusinessCardsScreenRoute() =>
       RouteConstant.inventoryBusinessCardsScreen;
@@ -982,10 +979,6 @@ class RouteHelper {
             builder: (_) => AddDocumentScreen(),
             settings:
                 RouteSettings(name: RouteHelper.getAddDocumentScreenRoute()));
-      case RouteConstant.earnBlueeraScreen:
-        return MaterialPageRoute(
-            builder: (_) => EarnBlueeraScreen(),
-            settings: RouteSettings(name: getEarnBlueEraScreenRoute()));
       case RouteConstant.postDetailPage:
         return MaterialPageRoute(
             builder: (_) => PostDeatilPage(),
@@ -1007,8 +1000,8 @@ class RouteHelper {
       case RouteConstant.addProductScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final String id = args[ApiKeys.id] as String;
-        final ProductServiceProviderType providerType =
-            args[ApiKeys.providerType] as ProductServiceProviderType;
+        final ProviderType providerType =
+            args[ApiKeys.providerType] as ProviderType;
 
         return MaterialPageRoute(
             builder: (_) => AddProductScreen(
@@ -1026,10 +1019,10 @@ class RouteHelper {
             settings: RouteSettings(name: getInventoryScreenRoute()));
       case RouteConstant.addServicesScreen:
         final args = settings.arguments as Map<String, dynamic>;
-        final ProductServiceProviderType providerType =
-            args[ApiKeys.providerType] as ProductServiceProviderType;
-        final EarnWithBlueEraServiceTypes? serviceSubType =
-            args[ApiKeys.serviceSubType] as EarnWithBlueEraServiceTypes?;
+        final ProviderType providerType =
+            args[ApiKeys.providerType] as ProviderType;
+        final EarnServiceTypes? serviceSubType =
+            args[ApiKeys.serviceSubType] as EarnServiceTypes?;
         final bool? isFromEarnWithBlueEraService =
             args[ApiKeys.isFromEarnWithBlueEraService] as bool?;
         final String? designation = args[ApiKeys.designation] as String?;
@@ -1048,8 +1041,8 @@ class RouteHelper {
       case RouteConstant.addProductViaAiStep1:
         final args = settings.arguments as Map<String, dynamic>;
         final String id = args[ApiKeys.id] as String;
-        final ProductServiceProviderType providerType =
-            args[ApiKeys.providerType] as ProductServiceProviderType;
+        final ProviderType providerType =
+            args[ApiKeys.providerType] as ProviderType;
 
         return MaterialPageRoute(
             builder: (_) =>
@@ -1062,8 +1055,8 @@ class RouteHelper {
         final GenerateAiProductContent generateAiProductContent =
             args[ApiKeys.generateAiProductContent] as GenerateAiProductContent;
         final String id = args[ApiKeys.id] as String;
-        final ProductServiceProviderType providerType =
-            args[ApiKeys.providerType] as ProductServiceProviderType;
+        final ProviderType providerType =
+            args[ApiKeys.providerType] as ProviderType;
 
         return MaterialPageRoute(
             builder: (_) => AddProductViaAiStep2(
@@ -1090,8 +1083,8 @@ class RouteHelper {
         final bool? isUserCanCreateVariants =
             args?[ApiKeys.isUserCanCreateVariants] as bool?;
         final String? id = args?[ApiKeys.id] as String?;
-        final ProductServiceProviderType? providerType =
-            args?[ApiKeys.providerType] as ProductServiceProviderType?;
+        final ProviderType? providerType =
+            args?[ApiKeys.providerType] as ProviderType?;
 
         return MaterialPageRoute(
             builder: (_) => ProductPreviewScreen(
@@ -1108,8 +1101,8 @@ class RouteHelper {
             args[ApiKeys.argProductData] as ProductStore?;
         // final bool? productDataBool = args["isShowBusinessInfo"] as bool?;
         final String id = args[ApiKeys.id] as String;
-        final ProductServiceProviderType providerType =
-            args[ApiKeys.providerType] as ProductServiceProviderType;
+        final ProviderType providerType =
+            args[ApiKeys.providerType] as ProviderType;
 
         return MaterialPageRoute(
             builder: (_) => StoreProductPreviewScreenProduct(
@@ -1124,8 +1117,8 @@ class RouteHelper {
         final ProductController controller =
             args[ApiKeys.controller] as ProductController;
         final String id = args[ApiKeys.id] as String;
-        final ProductServiceProviderType providerType =
-            args[ApiKeys.providerType] as ProductServiceProviderType;
+        final ProviderType providerType =
+            args[ApiKeys.providerType] as ProviderType;
 
         return MaterialPageRoute(
             builder: (_) => CreateVariantScreen(
@@ -1145,10 +1138,10 @@ class RouteHelper {
                 isHeaderVisible: isHeaderVisible,
                 onHeaderVisibilityChanged: onHeaderVisibilityChanged),
             settings: RouteSettings(name: getStoreFeedScreenRoute()));
-      case RouteConstant.earnWithBlueEraNewScreen:
+      case RouteConstant.earnServiceScreen:
         return MaterialPageRoute(
-            builder: (_) => EarnWithBlueEraNewScreen(),
-            settings: RouteSettings(name: getEarnWithBlueEraNewScreenRoute()));
+            builder: (_) => EarnServiceScreen(),
+            settings: RouteSettings(name: getEarnServiceScreenRoute()));
       case RouteConstant.inventoryBusinessCardsScreen:
         return MaterialPageRoute(
             builder: (_) => InventoryBusinessCardsScreen(),
@@ -1156,10 +1149,10 @@ class RouteHelper {
                 RouteSettings(name: getInventoryBusinessCardsScreenRoute()));
       case RouteConstant.foodUploadScreen:
         final args = settings.arguments as Map<String, dynamic>;
-        final ProductServiceProviderType providerType =
-            args[ApiKeys.providerType] as ProductServiceProviderType;
-        final EarnWithBlueEraServiceTypes? serviceSubType =
-            args[ApiKeys.serviceSubType] as EarnWithBlueEraServiceTypes?;
+        final ProviderType providerType =
+            args[ApiKeys.providerType] as ProviderType;
+        final EarnServiceTypes? serviceSubType =
+            args[ApiKeys.serviceSubType] as EarnServiceTypes?;
         final String? category = args[ApiKeys.category] as String?;
 
         return MaterialPageRoute(

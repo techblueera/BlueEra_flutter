@@ -7,7 +7,7 @@ import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/food/view/food_details_view_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -19,8 +19,8 @@ import '../controller/food_upload_controller.dart';
 import '../model/get_food_details_model.dart';
 
 class FoodAndGroceryScreen extends StatefulWidget {
-  final ProductServiceProviderType providerType;
-  final EarnWithBlueEraServiceTypes? serviceSubType;
+  final ProviderType providerType;
+  final EarnServiceTypes? serviceSubType;
   final bool isShowGrid;
 
   const FoodAndGroceryScreen({
@@ -44,7 +44,7 @@ class _FoodAndGroceryScreenState extends State<FoodAndGroceryScreen>
   @override
   void initState() {
 
-    isFromEarnWithBlueEra = widget.providerType == ProductServiceProviderType.user;
+    isFromEarnWithBlueEra = widget.providerType == ProviderType.user;
 
     queryParams = {
       ApiKeys.all: false,

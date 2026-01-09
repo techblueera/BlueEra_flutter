@@ -74,7 +74,7 @@ class DetailPair {
 class ProductPreviewScreen extends StatefulWidget {
   // final OwnProductData? productData;
   final String? id;
-  final ProductServiceProviderType? providerType;
+  final ProviderType? providerType;
   final ProductPreviewArgs? productPreviewArgs;
   final bool isFromProductCreation;
   final bool isUserCanCreateVariants;
@@ -195,7 +195,7 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
       confirmCallback: () {
         Navigator.of(context).pop(); // Close dialog first
 
-        if(widget.providerType == ProductServiceProviderType.business){
+        if(widget.providerType == ProviderType.business){
           bool isInventoryInStack = false;
 
           // First check entire stack WITHOUT popping it
@@ -214,9 +214,9 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
             Get.until((route) => route.settings.name == RouteHelper.getBottomNavigationBarScreenRoute());
             // Get.toNamed(RouteHelper.getInventoryScreenRoute());
           }
-        }else if(widget.providerType == ProductServiceProviderType.user){
-          Get.until((route) => Get.currentRoute == RouteHelper.getEarnWithBlueEraNewScreenRoute());
-        }else if(widget.providerType == ProductServiceProviderType.channel){
+        }else if(widget.providerType == ProviderType.user){
+          Get.until((route) => Get.currentRoute == RouteHelper.getEarnServiceScreenRoute());
+        }else if(widget.providerType == ProviderType.channel){
           Get.until((route) => Get.currentRoute == RouteHelper.getChannelScreenRoute());
         }
       },

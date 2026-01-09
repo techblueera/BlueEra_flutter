@@ -140,7 +140,7 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
                       Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
                     } else {
                       Get.toNamed(
-                          RouteHelper.getEarnWithBlueEraNewScreenRoute());
+                          RouteHelper.getEarnServiceScreenRoute());
                     }
                   }
                 }

@@ -7,7 +7,8 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
+import 'package:BlueEra/features/common/auth/model/individual_profiile_category.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/horizonatal_video_player.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/service_item.dart';
@@ -25,7 +26,7 @@ class FoodServiceGuideBottomSheet extends StatefulWidget {
 
 class _FoodServiceGuideBottomSheetState extends State<FoodServiceGuideBottomSheet> {
   int? selectedIndex;
-  ServiceItem? selectedService;
+  IndividualProfileCategory? selectedService;
 
   @override
   Widget build(BuildContext context) {
@@ -82,13 +83,12 @@ class _FoodServiceGuideBottomSheetState extends State<FoodServiceGuideBottomShee
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 4,
-                  childAspectRatio: 0.6,
-                  crossAxisSpacing: 30,
-                  mainAxisSpacing: 20,
+                  childAspectRatio: 1.0,
+                  crossAxisSpacing: 6,
                 ),
-                itemCount: homeMadeFoodServiceList.length,
+                itemCount: homeMadeFoodCategories.length,
                 itemBuilder: (_, i) => CommonServiceCard(
-                  service: homeMadeFoodServiceList[i],
+                  service: homeMadeFoodCategories[i],
                   isSelected: selectedIndex == i,
                   onTap: () {
                     setState(() {
@@ -97,7 +97,7 @@ class _FoodServiceGuideBottomSheetState extends State<FoodServiceGuideBottomShee
                         selectedService = null;
                       } else {
                         selectedIndex = i;
-                        selectedService = homeMadeFoodServiceList[i];
+                        selectedService = homeMadeFoodCategories[i];
                       }
                     });
                   },
@@ -118,8 +118,8 @@ class _FoodServiceGuideBottomSheetState extends State<FoodServiceGuideBottomShee
                 Get.toNamed(
                   RouteHelper.getFoodUploadScreenRoute(),
                   arguments: {
-                    ApiKeys.providerType: ProductServiceProviderType.user,
-                    ApiKeys.serviceSubType: EarnWithBlueEraServiceTypes.homeMadeFood,
+                    ApiKeys.providerType: ProviderType.user,
+                    ApiKeys.serviceSubType: EarnServiceTypes.homeMadeFood,
                     ApiKeys.category: selectedService?.slugId,
                   },
                 );

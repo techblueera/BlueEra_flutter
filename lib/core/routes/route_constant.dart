@@ -81,7 +81,6 @@ class RouteConstant {
   static const String addAccountUpiScreen = "/AddAccountUpiScreen";
   static const String walletScreen = "/WalleScreen";
   static const String allTransactionsScreen = "/allTransactionsScreen";
-  static const String earnBlueeraScreen = "/EarnBlueeraScreen";
   static const String addDocumentScreen = "/AddDocumentScreen";
   static const String postDetailPage = "/PostDeatilPage";
   static const String moreCardsScreen = "/MoreCardsScreen";
@@ -95,7 +94,7 @@ class RouteConstant {
   static const String createVariantScreen = "/CreateVariantScreen";
   static const String storeProductPreviewScreenProduct = "/StoreProductPreviewScreenProduct";
   static const String storeFeedScreen = "/StoreFeedScreen";
-  static const String earnWithBlueEraNewScreen = "/EarnWithBlueEraNewScreen";
+  static const String earnServiceScreen = "/EarnServiceScreen";
   static const String inventoryBusinessCardsScreen = "/InventoryBusinessCardsScreen";
   static const String foodUploadScreen = "/FoodUploadScreen";
   static const String addFlatRoomRentalServiceScreen = "/AddFlatRoomRentalServiceScreen";

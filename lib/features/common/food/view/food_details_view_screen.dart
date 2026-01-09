@@ -38,10 +38,10 @@ class FoodDetailsViewScreen extends StatelessWidget {
 
     bool isSelfService = false;
     if(data.serviceProvider?.type?.toLowerCase()
-        == ProductServiceProviderType.user.name.toLowerCase() ||
-        data.serviceProvider?.type?.toLowerCase() == ProductServiceProviderType.business.name.toLowerCase()){
+        == ProviderType.user.name.toLowerCase() ||
+        data.serviceProvider?.type?.toLowerCase() == ProviderType.business.name.toLowerCase()){
       isSelfService = data.serviceProvider?.id == userId;
-    } else if(data.serviceProvider?.type?.toLowerCase() == ProductServiceProviderType.channel.name.toLowerCase()){
+    } else if(data.serviceProvider?.type?.toLowerCase() == ProviderType.channel.name.toLowerCase()){
       isSelfService = data.serviceProvider?.id == channelId;
     }
     void _navigateToProfile({required String authorId, required String type}) {

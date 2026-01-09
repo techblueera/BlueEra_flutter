@@ -47,6 +47,7 @@ class StoreRepo extends BaseService {
     required int page,
     String? lat,
     String? long,
+    ProviderType? ProviderType
   }) async {
     const int limit = 20;
 
@@ -61,6 +62,8 @@ class StoreRepo extends BaseService {
       queryParams[ApiKeys.latitude] = lat;
       queryParams[ApiKeys.longitude] = long;
     }
+    if(ProviderType!=null) queryParams[ApiKeys.ownerType] = ProviderType.title;
+
 
     final response = await ApiBaseHelper().getHTTP(
       homePageProduct,
@@ -112,7 +115,7 @@ class StoreRepo extends BaseService {
     String? lat,
     String? long,
     String? query,
-    ProductServiceProviderType? productPostBy
+    ProviderType? ProviderType
   }) async {
     const int limit = 20;
 
@@ -122,17 +125,12 @@ class StoreRepo extends BaseService {
       ApiKeys.limit: limit,
       ApiKeys.maxDistance: kmRadius1000,
     };
-
     if ((lat?.isNotEmpty ?? false) && (long?.isNotEmpty ?? false)) {
       queryParams[ApiKeys.latitude] = lat;
       queryParams[ApiKeys.longitude] = long;
     }
-    if ((query?.isNotEmpty ?? false)) {
-      queryParams[ApiKeys.searchTerm] = query;
-    }
-    if(productPostBy!=null){
-      queryParams[ApiKeys.ownerType] = productPostBy;
-    }
+    if ((query?.isNotEmpty ?? false)) queryParams[ApiKeys.searchTerm] = query;
+    if(ProviderType!=null) queryParams[ApiKeys.ownerType] = ProviderType.title;
 
 
     final response = await ApiBaseHelper().getHTTP(

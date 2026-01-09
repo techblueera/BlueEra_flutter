@@ -100,7 +100,7 @@ class _InventoryBusinessCardsScreenState extends State<InventoryBusinessCardsScr
           final queryParams = {
             ApiKeys.all: false,
             ApiKeys.type: AppConstants.service,
-            ApiKeys.providerType: ProductServiceProviderType.business.title,
+            ApiKeys.providerType: ProviderType.business.title,
           };
           serviceController.getServices(queryParams);
         }
@@ -111,7 +111,7 @@ class _InventoryBusinessCardsScreenState extends State<InventoryBusinessCardsScr
           final queryParams = {
             ApiKeys.all: false,
             ApiKeys.type: AppConstants.food,
-            ApiKeys.providerType: ProductServiceProviderType.business.title,
+            ApiKeys.providerType: ProviderType.business.title,
           };
           foodUploadController.getFoodService(queryParams);
         }
