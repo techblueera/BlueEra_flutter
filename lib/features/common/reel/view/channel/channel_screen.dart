@@ -667,7 +667,7 @@ class _ChannelScreenState extends State<ChannelScreen>
       case ChannelTab.Service:
         return ViewServiceList(
           channelId: channelId,
-          providerType: ProductServiceProviderType.channel,
+          providerType: ProviderType.channel,
         );
     // return ProductScreen();
     }

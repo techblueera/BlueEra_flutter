@@ -2,7 +2,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_service_order_card.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_order_card.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 
@@ -36,7 +36,7 @@ class _EarnServiceNewOrdersState extends State<EarnServiceNewOrders> {
         status: 'new', // New
         user: UserModel(
           name: 'Rahul Sharma',
-          profileImage: '',
+          profileImage: 'https://picsum.photos/200',
           contactNo: '9876543210',
         ),
       ),
@@ -52,7 +52,7 @@ class _EarnServiceNewOrdersState extends State<EarnServiceNewOrders> {
         status: 'ongoing', // Ongoing
         user: UserModel(
           name: 'Amit Verma',
-          profileImage: '',
+          profileImage: 'https://picsum.photos/300',
           contactNo: '9654236556',
         ),
       ),
@@ -68,7 +68,7 @@ class _EarnServiceNewOrdersState extends State<EarnServiceNewOrders> {
         status: 'ongoing', // Ongoing
         user: UserModel(
           name: 'Neha Singh',
-          profileImage: '',
+          profileImage: 'https://picsum.photos/400',
           contactNo: '9123456789',
         ),
       ),
@@ -87,7 +87,6 @@ class _EarnServiceNewOrdersState extends State<EarnServiceNewOrders> {
       )
           : ListView.builder(
         padding: EdgeInsets.only(
-          top: SizeConfig.size10,
           bottom: 2 * kBottomNavigationBarHeight + SizeConfig.size40,
           left: SizeConfig.size15,
           right: SizeConfig.size15,

@@ -307,7 +307,7 @@ class ChannelController extends GetxController{
       Map<String, dynamic> queryParams = {
         'DRAFT': false,
         'ownerId': channelId,
-        'ownerType': ProductServiceProviderType.channel.title,
+        'ownerType': ProviderType.channel.title,
       };
 
 

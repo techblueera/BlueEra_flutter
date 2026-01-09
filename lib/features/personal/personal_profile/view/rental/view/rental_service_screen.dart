@@ -49,7 +49,10 @@ class _RentalServiceScreenState extends State<RentalServiceScreen> {
       final selectedTab = controller.selectedRentalTabs.value;
 
       return Padding(
-        padding: EdgeInsets.all(SizeConfig.size15),
+        padding: EdgeInsets.symmetric(
+            vertical: SizeConfig.size15,
+            horizontal: SizeConfig.size8,
+        ),
         child: HorizontalTabSelector<RentalServiceType>(
           tabs: controller.rentalTabs,
           selectedIndex: controller.rentalTabs.indexOf(selectedTab),
@@ -112,7 +115,7 @@ class _RentalServiceScreenState extends State<RentalServiceScreen> {
 
     // GRID UI (REUSED FOR ALL TABS)
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final crossAxisCount = 2;

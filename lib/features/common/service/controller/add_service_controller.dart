@@ -1,6 +1,5 @@
 import 'dart:developer';
 import 'dart:io';
-
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
@@ -12,9 +11,9 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/common/service/repo/service_ai_repo.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/repo/earn_service_repo.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
 import 'package:BlueEra/features/common/service/model/add_service_response_model.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/repo/earn_service_repo.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/detail_item.dart';
 import 'package:BlueEra/features/common/service/view/add_services_screen.dart';
 import 'package:BlueEra/widgets/select_product_image_dialog.dart';
@@ -238,7 +237,7 @@ class AddServiceController extends GetxController {
     return true;
   }
 
-  Future<void> createServiceApi({String? channelId, required ProductServiceProviderType providerType, EarnWithBlueEraServiceTypes? serviceSubType}) async {
+  Future<void> createServiceApi({String? channelId, required ProviderType providerType, EarnServiceTypes? serviceSubType}) async {
 
     /// Provider Type
     // Business --> userId
@@ -305,7 +304,7 @@ class AddServiceController extends GetxController {
 
       // Call API once
       final ResponseModel responseModel;
-      if(providerType == ProductServiceProviderType.user){
+      if(providerType == ProviderType.user){
         responseModel = await EarnServiceRepo().addServiceRepo(params: params);
       }else{
         responseModel = await ServiceAiRepo().addService(params: params);
@@ -338,7 +337,7 @@ class AddServiceController extends GetxController {
         UploadProgressDialog.close();
         commonSnackBar(message: AppStrings.serviceAddedSuccess.tr);
 
-        if(providerType == ProductServiceProviderType.user){
+        if(providerType == ProviderType.user){
           await setEarnServiceOptData(true);
         }
         Get.close(2);

@@ -257,7 +257,7 @@ class AddFlatRentalServiceController extends GetxController {
           Get.until(
                 (route) =>
             route.settings.name ==
-                RouteHelper.getEarnWithBlueEraNewScreenRoute(),
+                RouteHelper.getEarnServiceScreenRoute(),
           );
         } else {
           addFlatRentalServiceResponse.value = ApiResponse.error('error');

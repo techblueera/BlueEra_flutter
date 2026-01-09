@@ -12,7 +12,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/common/service/controller/service_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
@@ -23,11 +23,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class ServiceUploadScreen extends StatefulWidget {
-  final ProductServiceProviderType providerType;
+  final ProviderType providerType;
   final bool? isFromEarnWithBlueEraService;
   final String? channelId;
   final String? designation;
-  final EarnWithBlueEraServiceTypes? serviceSubType;
+  final EarnServiceTypes? serviceSubType;
 
   ServiceUploadScreen({
     Key? key,

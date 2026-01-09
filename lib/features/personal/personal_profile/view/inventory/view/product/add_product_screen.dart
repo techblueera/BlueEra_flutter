@@ -29,7 +29,7 @@ import 'package:get/get.dart';
 
 class AddProductScreen extends StatefulWidget {
   final String id;
-  final ProductServiceProviderType providerType;
+  final ProviderType providerType;
   const AddProductScreen({super.key, required this.id, required this.providerType});
 
   @override

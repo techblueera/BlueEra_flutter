@@ -16,7 +16,7 @@ import 'package:get/get.dart';
 
 class AddProductViaAiStep1 extends StatefulWidget {
   final String id;
-  final ProductServiceProviderType providerType;
+  final ProviderType providerType;
   AddProductViaAiStep1({super.key, required this.id, required this.providerType});
 
   @override

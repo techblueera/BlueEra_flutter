@@ -20,7 +20,7 @@ import 'package:BlueEra/features/common/Discover/view/all_rental_service_screen.
 import 'package:BlueEra/features/common/Discover/view/home_made_food_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/home_service_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/product_local_market_screen.dart';
-import 'package:BlueEra/features/common/Discover/view/self_profession_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/all_self_profession_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/services_near_screen.dart';
 import 'package:BlueEra/features/common/auth/model/business_profile_category.dart';
 import 'package:BlueEra/features/common/auth/model/individual_profiile_category.dart';
@@ -192,7 +192,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                               .getRiderServiceScreenRoute());
                         }else{
                           Get.toNamed(RouteHelper
-                              .getEarnWithBlueEraNewScreenRoute());
+                              .getEarnServiceScreenRoute());
                         }
                       }
                     }
@@ -403,7 +403,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                                       text: sideBoxItems[0].name,
                                       icon: sideBoxItems[0].icon,
                                       onTap: () {
-                                        Get.to(()=> SelfProfessionScreen(
+                                        Get.to(()=> AllSelfProfessionScreen(
                                             selfEmployedCategories: selfWorkCategories, // Pass full list for context
                                             selectedSelfProfessionData: sideBoxItems[0]
                                         ));
@@ -414,7 +414,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                                       text: sideBoxItems[1].name,
                                       icon: sideBoxItems[1].icon,
                                       onTap: () {
-                                        Get.to(()=> SelfProfessionScreen(
+                                        Get.to(()=> AllSelfProfessionScreen(
                                             selfEmployedCategories: selfWorkCategories,
                                             selectedSelfProfessionData: sideBoxItems[1]
                                         ));
@@ -435,7 +435,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                           labelBuilder: (s) => s.name,
                           iconBuilder: (s) => s.icon,
                           onTap: (s) {
-                            Get.to(()=> SelfProfessionScreen(
+                            Get.to(()=> AllSelfProfessionScreen(
                               selfEmployedCategories: selfWorkCategories,
                               selectedSelfProfessionData: s
                             ));
@@ -482,7 +482,10 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                       }else if(c.slugId == FOOD){
                         Get.to(()=> HomeMadeFoodScreen());
                       }else if(c.slugId == PRODUCT){
-                        Get.to(() => AllProductStoreScreen(isShowInGrid: true));
+                        Get.to(() => AllProductScreen(
+                            isShowInGrid: true,
+                            providerType: ProviderType.user,
+                        ));
                       }else{
                         log('No category');
                       }

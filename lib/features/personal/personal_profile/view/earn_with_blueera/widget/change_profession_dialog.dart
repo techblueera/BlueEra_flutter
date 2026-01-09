@@ -12,8 +12,7 @@ import 'package:BlueEra/features/common/delivery_partner/controller/delivery_par
 import 'package:BlueEra/features/common/delivery_partner/view/rider_profile_status_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/rider_service_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -32,7 +31,7 @@ class ProfessionChangeDialogHelper {
   void shouldShowUpdateDesignationDialog({
     required BuildContext context,
     required String designation,
-    EarnWithBlueEraServiceTypes? serviceSubType,
+    EarnServiceTypes? serviceSubType,
   }) {
     // Debug prints
     print("👉 shouldShowUpdateDesignationDialog CALLED");
@@ -61,7 +60,7 @@ class ProfessionChangeDialogHelper {
   Future<void> showProfessionChangeDialog({
     required BuildContext context,
     required String designation,
-    EarnWithBlueEraServiceTypes? serviceSubType,
+    EarnServiceTypes? serviceSubType,
   }) async {
     await showDialog(
       context: context,
@@ -173,7 +172,7 @@ class ProfessionChangeDialogHelper {
   static Future<void> _handleUpdateAction({
     required PersonalCreateProfileController controller,
     required String designation,
-    required EarnWithBlueEraServiceTypes? serviceSubType,
+    required EarnServiceTypes? serviceSubType,
     required ViewPersonalDetailsController viewPersonalDetailsController,
     required bool isRequiredUpdateDestination,
   }) async {
@@ -205,15 +204,15 @@ class ProfessionChangeDialogHelper {
   /// Navigate to add services screen
   static Future<void> _navigateToAddServices({
     required String designation,
-    required EarnWithBlueEraServiceTypes? serviceSubType,
+    required EarnServiceTypes? serviceSubType,
   }) async {
     await Get.offNamedUntil(
       RouteHelper.getAddServicesScreenRoute(),
       ModalRoute.withName(
-        RouteHelper.getEarnWithBlueEraNewScreenRoute(),
+        RouteHelper.getEarnServiceScreenRoute(),
       ),
       arguments: {
-        ApiKeys.providerType: ProductServiceProviderType.user,
+        ApiKeys.providerType: ProviderType.user,
         ApiKeys.isFromEarnWithBlueEraService: true,
         ApiKeys.designation: designation,
         ApiKeys.serviceSubType: serviceSubType,

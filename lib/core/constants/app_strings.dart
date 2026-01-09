@@ -361,7 +361,8 @@ class AppStrings {
   static const electrician = "electrician";
   static const plumber = "plumber";
   static const technician = "technician";
-  static const maidCleaner = "maidCleaner";
+  static const maid = "maid";
+  static const cleaner = "cleaner";
   static const carpenter = "carpenter";
   static const taxiCarDriver = "taxiCarDriver";
   static const mechanic = "mechanic";

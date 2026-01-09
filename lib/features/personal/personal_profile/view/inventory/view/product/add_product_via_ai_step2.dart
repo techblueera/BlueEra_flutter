@@ -27,7 +27,7 @@ class AddProductViaAiStep2 extends StatefulWidget {
   final ProductController controller;
   final GenerateAiProductContent generateAiProductContent;
   final String id;
-  final ProductServiceProviderType providerType;
+  final ProviderType providerType;
 
   AddProductViaAiStep2({super.key, required this.generateAiProductContent, required this.controller, required this.id, required this.providerType});
 

@@ -8,7 +8,6 @@ import 'package:BlueEra/core/api/model/get_all_store_res_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
@@ -59,12 +58,12 @@ class NewStoreController extends GetxController{
   int allStorePage = 1;
   bool allStoreHasMore = true;
 
-  /// Stores Product data
-  RxList<GetProductData> storeProductDataList = <GetProductData>[].obs;
-  RxBool isStoreProductDataLoadingMore = false.obs;
-  RxBool isStoreProductDataFirstLoading = false.obs;
-  int storeProductDataPage = 1;
-  bool storeProductDataHasMore = true;
+  /// All Product data
+  RxList<GetProductData> productDataList = <GetProductData>[].obs;
+  RxBool isProductDataLoadingMore = false.obs;
+  RxBool isProductDataFirstLoading = false.obs;
+  int productDataPage = 1;
+  bool productDataHasMore = true;
 
   /// All Food service data
   RxList<GetFoodDetailsModel> foodDataList = <GetFoodDetailsModel>[].obs;
@@ -205,25 +204,26 @@ class NewStoreController extends GetxController{
   }
 
   ///GET STORE PRODUCT ONLY....
-  Future<void> getAllStoreProductNearBy({
+  Future<void> getAllProductNearBy({
+    required ProviderType providerType,
     bool isLoadMore = false,
     String? query}
       ) async {
     if (isLoadMore) {
-      if (isStoreProductDataLoadingMore.value || !storeProductDataHasMore) return;
-      isStoreProductDataLoadingMore.value = true;
+      if (isProductDataLoadingMore.value || !productDataHasMore) return;
+      isProductDataLoadingMore.value = true;
     } else {
-      isStoreProductDataFirstLoading.value = true;
-      storeProductDataPage = 1;
-      storeProductDataHasMore = true;
-      storeProductDataList.clear();
+      isProductDataFirstLoading.value = true;
+      productDataPage = 1;
+      productDataHasMore = true;
+      productDataList.clear();
 
       /// fetch local data not for search
       if(query == null){
         final cachedProduct = await HiveServices().getAllStoreProduct(userId);
         if (cachedProduct != null && cachedProduct.isNotEmpty) {
-          storeProductDataList.assignAll(cachedProduct);
-          isStoreProductDataFirstLoading.value = false;
+          productDataList.assignAll(cachedProduct);
+          isProductDataFirstLoading.value = false;
         }
       }
 
@@ -234,20 +234,22 @@ class NewStoreController extends GetxController{
       final response;
       if(query != null){
         response = await StoreRepo().productSearchFilterRepo(
-            page: storeProductDataPage,
+            page: productDataPage,
             lat: LocationService.lat != 0.0 ? "${LocationService.lat}" : "",
             long: LocationService.lng != 0.0
                 ? "${LocationService.lng}"
                 : "",
-            query: query
+            query: query,
+            ProviderType: providerType
         );
       }else{
         response = await StoreRepo().homePageProductRepo(
-            page: storeProductDataPage,
+            page: productDataPage,
             lat: LocationService.lat != 0.0 ? "${LocationService.lat}" : "",
             long: LocationService.lng != 0.0
                 ? "${LocationService.lng}"
-                : ""
+                : "",
+            ProviderType: providerType
         );
       }
 
@@ -260,30 +262,30 @@ class NewStoreController extends GetxController{
 
         if (newData.isNotEmpty) {
           if (isLoadMore) {
-            storeProductDataList.addAll(newData);
+            productDataList.addAll(newData);
           } else {
-            storeProductDataList.assignAll(newData);
-            log('product data length--> ${storeProductDataList.length}');
-            log('loggggg 1--> ${storeProductDataList[0].product.business_name}');
+            productDataList.assignAll(newData);
+            log('product data length--> ${productDataList.length}');
+            log('loggggg 1--> ${productDataList[0].product.business_name}');
 
             if(query == null) {
               await HiveServices().saveAllStoreProduct(
-                  storeProductDataList, userId);
+                  productDataList, userId);
             }
           }
-          storeProductDataPage++;
+          productDataPage++;
         }
       } else {
-        storeProductDataHasMore = false;
+        productDataHasMore = false;
         getAllStoreProductResponse.value = ApiResponse.error('error');
       }
     } catch (e) {
       getAllStoreProductResponse.value = ApiResponse.error('error');
     } finally{
       if (isLoadMore) {
-        isStoreProductDataLoadingMore.value = false;
+        isProductDataLoadingMore.value = false;
       } else {
-        isStoreProductDataFirstLoading.value = false;
+        isProductDataFirstLoading.value = false;
       }
     }
   }
@@ -397,7 +399,7 @@ class NewStoreController extends GetxController{
         //   storeProductDataPage++;
         // }
       } else {
-        storeProductDataHasMore = false;
+        productDataHasMore = false;
         getListOfAiMessageResponse.value = ApiResponse.error('error');
       }
     } catch (e) {

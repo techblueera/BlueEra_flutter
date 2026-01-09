@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/features/common/auth/model/individual_profiile_category.dart';
 import 'package:flutter/material.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -7,9 +8,8 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/service_item.dart';
 
 class CommonServiceCard extends StatelessWidget {
-  final ServiceItem service;
+  final IndividualProfileCategory service;
   final VoidCallback? onTap;
-  final EdgeInsetsGeometry? padding;
   final double spacing;
   final bool isSelected;
 
@@ -17,8 +17,7 @@ class CommonServiceCard extends StatelessWidget {
     Key? key,
     required this.service,
     this.onTap,
-    this.padding,
-    this.spacing = 12.0,
+    this.spacing = 8.0,
     this.isSelected = false,
   }) : super(key: key);
 
@@ -29,27 +28,28 @@ class CommonServiceCard extends StatelessWidget {
       onTap: onTap,
       // splashColor: Colors.red,
       // highlightColor: Colors.white,
-      child: Padding(
-        padding: padding ?? EdgeInsets.zero,
+      child: Container(
+        padding: EdgeInsets.all(SizeConfig.size5),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          // color: service.bgColor,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [AppShadows.textFieldShadow],
+          border: Border.all(
+              color: isSelected ? AppColors.primaryColor : AppColors.greyE5,
+              width: 1.5
+          ),
+        ),
+        alignment: Alignment.center,
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            AspectRatio(
-              aspectRatio: 1,
-              child: Container(
-                padding: const EdgeInsets.all(12.0),
-                decoration: BoxDecoration(
-                  color: service.bgColor,
-                  borderRadius: BorderRadius.circular(10),
-                  boxShadow: [AppShadows.textFieldShadow],
-                  border: isSelected ? Border.all(
-                    color: AppColors.primaryColor,
-                    width: 1.5
-                  ) : null,
-                ),
-                alignment: Alignment.center,
-                child: LocalAssets(imagePath: service.icon, imgColor: service.labelColor),
-              ),
+            LocalAssets(
+                imagePath: service.icon,
+                // imgColor: service.labelColor,
+                height: SizeConfig.size30,
+                width: SizeConfig.size30,
             ),
             SizedBox(height: spacing),
             CustomText(
@@ -58,8 +58,9 @@ class CommonServiceCard extends StatelessWidget {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               fontSize: SizeConfig.small,
-              fontWeight: FontWeight.w600,
-              color: service.labelColor,
+              fontWeight: FontWeight.w400,
+              // color: service.labelColor,
+              color: AppColors.secondaryTextColor,
             ),
           ],
         ),

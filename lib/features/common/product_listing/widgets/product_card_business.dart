@@ -65,7 +65,7 @@ class _ProductCardState extends State<ProductCardBusiness> {
             ApiKeys.argProductData: widget.productData,
             // "isShowBusinessInfo": widget.isShowBusinessInfo,
             ApiKeys.id: widget.productData.product.sellerClassification?.owner?.id,
-            ApiKeys.providerType: ProductServiceProviderType.business.title
+            ApiKeys.providerType: ProviderType.business.title
           },
         );
       },

@@ -10,6 +10,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/view/ai_chat/ask_inventory_chat_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/auth/controller/ai_chat_guest_controller.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_widget.dart';
@@ -23,8 +24,8 @@ import 'package:BlueEra/features/common/store/view/new_store/new_store_screen2.d
 import 'package:BlueEra/features/me/hotel/view/hotel_main.dart';
 import 'package:BlueEra/features/me/school/view/school_main.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/rider_service_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/rider_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/inventory_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
@@ -339,7 +340,11 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         //   isHeaderVisible: isVisible,
         //   onHeaderVisibilityChanged: _toggleAppBar,
         // );
-        return NewStoreScreen2(
+        // return NewStoreScreen2(
+        //   isHeaderVisible: isVisible,
+        //   onHeaderVisibilityChanged: _toggleAppBar,
+        // );
+        return DiscoverScreen(
           isHeaderVisible: isVisible,
           onHeaderVisibilityChanged: _toggleAppBar,
         );
@@ -407,7 +412,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     return (userProfessionGlobal == SELF_EMPLOYED)
         ? (userWorkTypeGlobal == DELIVERY_RIDER)
             ? RiderServiceScreen(fromBottomNavBar: true)
-            : EarnWithBlueEraNewScreen(fromBottomNavBar: true)
+            : EarnServiceScreen(fromBottomNavBar: true)
         : PersonalProfileSetupNewScreen();
   }
 

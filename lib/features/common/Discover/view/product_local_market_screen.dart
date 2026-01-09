@@ -154,7 +154,7 @@ class _ProductLocalMarketScreenState extends State<ProductLocalMarketScreen> {
                       Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
                     } else {
                       Get.toNamed(
-                          RouteHelper.getEarnWithBlueEraNewScreenRoute());
+                          RouteHelper.getEarnServiceScreenRoute());
                     }
                   }
                 }

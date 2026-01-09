@@ -34,7 +34,7 @@ class StoreProductPreviewScreenProduct extends StatefulWidget {
   final ProductStore? productStore;
   // final bool? isShowBusinessInfo;
   final String? id;
-  final ProductServiceProviderType? providerType;
+  final ProviderType? providerType;
 
   const StoreProductPreviewScreenProduct(
       { super.key,
@@ -310,7 +310,7 @@ class _StoreProductPreviewScreenProductState
 
                         if (owner == null) return;
 
-                        final isBusiness = owner.type == ProductServiceProviderType.business.title;
+                        final isBusiness = owner.type == ProviderType.business.title;
 
                         final destination = isBusiness
                             ? VisitBusinessProfileNew(

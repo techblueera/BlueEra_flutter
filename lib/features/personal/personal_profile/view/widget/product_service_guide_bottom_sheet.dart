@@ -59,10 +59,10 @@ class ProductServiceGuideBottomSheet extends StatelessWidget {
             onTap: () {
               Get.offNamedUntil(
                 RouteHelper.getAddProductScreenRoute(),
-                ModalRoute.withName(RouteHelper.getEarnWithBlueEraNewScreenRoute()),
+                ModalRoute.withName(RouteHelper.getEarnServiceScreenRoute()),
                 arguments: {
                   ApiKeys.id: userId,
-                  ApiKeys.providerType: ProductServiceProviderType.user,
+                  ApiKeys.providerType: ProviderType.user,
                 },
               );
             },

@@ -406,7 +406,7 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                                       seeMoreTap: () {}),
                                   SizedBox(height: SizeConfig.size15),
                                   genericIconGrid<IndividualProfileCategory>(
-                                      items: selfEmployedCategories,
+                                      items: selfWorkCategories,
                                       labelBuilder: (c) => c.name,
                                       iconBuilder: (c) => c.icon,
                                       onTap: (category) {
@@ -621,7 +621,7 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
                                             .getRiderServiceScreenRoute());
                                       }else{
                                         Get.toNamed(RouteHelper
-                                            .getEarnWithBlueEraNewScreenRoute());
+                                            .getEarnServiceScreenRoute());
                                       }
                                     }
                                   }
@@ -754,7 +754,10 @@ class _NewStoreScreen2State extends State<NewStoreScreen2> {
         break;
 
       case AppConstants.productsServices:
-        Get.to(() => AllProductStoreScreen(isShowInGrid: true));
+        Get.to(() => AllProductScreen(
+            isShowInGrid: true,
+            providerType: ProviderType.business,
+        ));
         break;
 
       case AppConstants.groceryVegetablesDairy:

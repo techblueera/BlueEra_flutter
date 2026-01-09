@@ -1386,7 +1386,7 @@ class _PersonalProfileSetupNewScreenState
                     .getRiderServiceScreenRoute());
               }else{
                 Get.toNamed(RouteHelper
-                    .getEarnWithBlueEraNewScreenRoute());
+                    .getEarnServiceScreenRoute());
               }
             }
           },

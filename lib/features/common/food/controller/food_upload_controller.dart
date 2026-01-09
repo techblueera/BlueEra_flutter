@@ -5,7 +5,6 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/upload_s3_image_model.dart';
-import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -14,8 +13,8 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/features/common/food/model/food_ai_res_model.dart';
 import 'package:BlueEra/features/common/food/repo/food_ai_repo.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/repo/earn_service_repo.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/repo/earn_service_repo.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart' as dio;
@@ -25,6 +24,7 @@ import '../view/add_food_screen.dart';
 import '../../reel/repo/channel_repo.dart';
 import '../model/get_food_details_model.dart';
 import '../model/upload_food_load_url_model.dart';
+
 class PriceOption {
   TextEditingController labelController;
   TextEditingController priceController;
@@ -186,8 +186,8 @@ class FoodUploadController extends GetxController {
   // Generate food data
   Future<void> generateFood(
       {
-        required ProductServiceProviderType providerType,
-        EarnWithBlueEraServiceTypes? serviceSubType}) async {
+        required ProviderType providerType,
+        EarnServiceTypes? serviceSubType}) async {
     try {
       isGenerateFoodLoading.value = true;
       dio.MultipartFile? imageByPart = await multiPartImage(imagePath: selectedImage.value?.path ?? "");
@@ -246,8 +246,8 @@ class FoodUploadController extends GetxController {
 
   Future<Map<String, dynamic>> buildRequestBody(
       Map<String, dynamic> foodData,
-      ProductServiceProviderType providerType,
-     {EarnWithBlueEraServiceTypes? serviceSubType}
+      ProviderType providerType,
+     {EarnServiceTypes? serviceSubType}
       ) async {
     // Title & desc (use controller if filled, otherwise fall back to AI/model values)
 
@@ -304,7 +304,7 @@ class FoodUploadController extends GetxController {
 
   RxBool isAddFoodLoading = false.obs;
 
-  Future<void> addFoodServices(Map<String,dynamic> foodData, ProductServiceProviderType providerType, {EarnWithBlueEraServiceTypes? serviceSubType}) async {
+  Future<void> addFoodServices(Map<String,dynamic> foodData, ProviderType providerType, {EarnServiceTypes? serviceSubType}) async {
    if(formKey.currentState!.validate()){
      try {
        isAddFoodLoading.value = true;
@@ -315,7 +315,7 @@ class FoodUploadController extends GetxController {
        );
 
        final ResponseModel responseModel;
-       if (providerType == ProductServiceProviderType.user) {
+       if (providerType == ProviderType.user) {
          responseModel = await EarnServiceRepo().addServiceRepo(params: data);
        } else {
          responseModel = await FoodAiRepo().addFoodService(queryParam: data);
@@ -338,7 +338,7 @@ class FoodUploadController extends GetxController {
          }
          UploadProgressDialog.close();
          commonSnackBar(message: AppStrings.foodAddedSuccess.tr);
-          if(providerType == ProductServiceProviderType.user){
+          if(providerType == ProviderType.user){
             await setEarnServiceOptData(true);
           }
          Get.close(2);

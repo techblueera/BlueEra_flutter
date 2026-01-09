@@ -17,7 +17,7 @@ import 'package:BlueEra/features/common/map/widget/rental_service_bottom_sheet.d
 import 'package:BlueEra/features/common/map/widget/search_place_list.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/account_setting_screen/account_settings_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
@@ -627,7 +627,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
           });
         },
         category: "service",
-        subType: EarnWithBlueEraServiceTypes.selfWork.label,
+        subType: EarnServiceTypes.selfWork.label,
       );
     } else if (mapServiceCategoryType == MapServiceCategory.homeService) {
       return HomeServicesBottomSheet(
@@ -641,7 +641,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
           });
         },
         category: "service",
-        subType: EarnWithBlueEraServiceTypes.homeService.label,
+        subType: EarnServiceTypes.homeService.label,
       );
     } else if (mapServiceCategoryType == MapServiceCategory.foods) {
       return FoodServicesBottomSheet(
@@ -655,7 +655,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
           });
         },
         category: "food",
-        subType: EarnWithBlueEraServiceTypes.homeMadeFood.label,
+        subType: EarnServiceTypes.homeMadeFood.label,
       );
     }
     else if (mapServiceCategoryType == MapServiceCategory.rental) {
@@ -670,7 +670,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
           });
         },
         category: "rental",
-        subType: EarnWithBlueEraServiceTypes.homeMadeFood.label,
+        subType: EarnServiceTypes.homeMadeFood.label,
       );
     }
 

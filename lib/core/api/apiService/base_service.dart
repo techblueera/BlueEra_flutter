@@ -486,6 +486,7 @@ abstract class BaseService {
   String channel_service_follower = "channel-service/follower/";
   String getNearByRiderApi = "rider-service/riders/nearby";
   final String servicesByLatLng = "earn-service/services/all/map";
+  String earnServiceByUserID(String userId) => 'earn-service/services/user/$userId';
 
   final String ridersOnboardingPersonalInformation = "rider-service/riders/onboarding/personal-information";            // Onboarding rider (step 1)
   final String ridersOnboardingAddress = "rider-service/riders/onboarding/address";                                     // Onboarding rider (step 2)

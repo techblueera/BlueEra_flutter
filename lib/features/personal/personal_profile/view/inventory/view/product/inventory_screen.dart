@@ -80,14 +80,14 @@ class _InventoryScreenState extends State<InventoryScreen>
       final queryParams = {
         ApiKeys.all: false,
         ApiKeys.type: AppConstants.service,
-        ApiKeys.providerType: ProductServiceProviderType.business.title,
+        ApiKeys.providerType: ProviderType.business.title,
       };
       serviceController.getServices(queryParams);
     } else if (firstTab == 'Food & Grocery') {
       final queryParams = {
         ApiKeys.all: false,
         ApiKeys.type: AppConstants.food,
-        ApiKeys.providerType: ProductServiceProviderType.business.title,
+        ApiKeys.providerType: ProviderType.business.title,
       };
       foodUploadController.getFoodService(queryParams);
     }
@@ -238,7 +238,7 @@ class _InventoryScreenState extends State<InventoryScreen>
                 ProductScreen(),
               if ((isShowService.contains(_businessType)))
                 ViewServiceList(
-                  providerType: ProductServiceProviderType.business,
+                  providerType: ProviderType.business,
                 ),
               if ((isShowFood.contains(_businessType)))
                 FoodCategoryPage(),
@@ -296,7 +296,7 @@ class _InventoryScreenState extends State<InventoryScreen>
             RouteHelper.getAddProductScreenRoute(),
             arguments: {
               ApiKeys.id: businessId,
-              ApiKeys.providerType: ProductServiceProviderType.business
+              ApiKeys.providerType: ProviderType.business
             }
         );
         controller.callApi(forceRefresh: true);
@@ -319,14 +319,14 @@ class _InventoryScreenState extends State<InventoryScreen>
         Get.toNamed(
             RouteHelper.getAddServicesScreenRoute(),
             arguments: {
-              ApiKeys.providerType: ProductServiceProviderType.business,
+              ApiKeys.providerType: ProviderType.business,
             }
         );
       } else if (result == InventoryMenuItem.addFood) {
         Get.toNamed(
           RouteHelper.getFoodUploadScreenRoute(),
           arguments: {
-            ApiKeys.providerType: ProductServiceProviderType.business,
+            ApiKeys.providerType: ProviderType.business,
           },
         );
       }

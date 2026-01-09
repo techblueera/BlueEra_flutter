@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
@@ -48,8 +49,6 @@ class OrderModel {
   });
 }
 
-
-
 class EarnServiceOrderCard extends StatelessWidget {
   final EarnServiceOrdersStatus selectedOrdersStatus;
   final OrderModel order;
@@ -62,20 +61,17 @@ class EarnServiceOrderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          children: [
-            _buildHeaderSection(context),
-            SizedBox(height: SizeConfig.size14),
-            _buildLocationSection(),
-            SizedBox(height: SizeConfig.size14),
-            _buildActionSection(),
-          ],
-        ),
+    return CustomFormCard(
+      margin: EdgeInsets.only(bottom: SizeConfig.size10),
+      padding: EdgeInsets.all(SizeConfig.size10),
+      child: Column(
+        children: [
+          _buildHeaderSection(context),
+          SizedBox(height: SizeConfig.size14),
+          _buildLocationSection(),
+          SizedBox(height: SizeConfig.size14),
+          _buildActionSection(),
+        ],
       ),
     );
   }
@@ -157,7 +153,7 @@ class EarnServiceOrderCard extends StatelessWidget {
         ),
       ),
       child: CachedAvatarWidget(
-        imageUrl: order.user?.profileImage,
+        imageUrl: order.user.profileImage,
         size: SizeConfig.size40,
         borderRadius: SizeConfig.size20,
       ),

@@ -219,7 +219,7 @@ class BusinessProfileRepo extends BaseService {
     final response = await ApiBaseHelper().getHTTP(showProgress: false,
       "$getOwnDraftedAndPublicProducts",
       params: {
-        'ownerType': ProductServiceProviderType.business.title,
+        'ownerType': ProviderType.business.title,
         'ownerId': businessId,
         'DRAFT': isDraft,
       },

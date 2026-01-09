@@ -319,7 +319,7 @@ class VehicleRentalServiceController extends GetxController{
         Get.until(
               (route) =>
           route.settings.name ==
-              RouteHelper.getEarnWithBlueEraNewScreenRoute(),
+              RouteHelper.getEarnServiceScreenRoute(),
         );
       } else {
         addVehicleRentalServiceResponse.value = ApiResponse.error('error');

@@ -4,11 +4,10 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/common/service/controller/service_controller.dart';
 import 'package:BlueEra/features/common/service/model/get_service_model.dart';
 import 'package:BlueEra/features/common/service/view/service_details_view_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/constants/app_colors.dart';
@@ -17,8 +16,8 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 
 class ViewServiceList extends StatefulWidget {
-  final ProductServiceProviderType providerType;
-  final EarnWithBlueEraServiceTypes? serviceSubType;
+  final ProviderType providerType;
+  final EarnServiceTypes? serviceSubType;
   final String? channelId;
   final bool isShowGrid;
 
@@ -44,7 +43,7 @@ class _ViewServiceListState extends State<ViewServiceList> {
   /// Refactored to reuse between initState & didUpdateWidget
   void _initQueryAndFetch() {
     isFromEarnWithBlueEra =
-        widget.providerType == ProductServiceProviderType.user;
+        widget.providerType == ProviderType.user;
 
     queryParams = {
       ApiKeys.all: false,

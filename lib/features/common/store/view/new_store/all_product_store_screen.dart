@@ -1,49 +1,51 @@
-import 'dart:developer';
-
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
-import 'package:BlueEra/features/common/store/repo/store_repo.dart';
-import 'package:BlueEra/features/common/store/view/business_store_card.dart';
 import 'package:BlueEra/features/common/store/view/store_product_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
-import 'package:visibility_detector/visibility_detector.dart';
 
-class AllProductStoreScreen extends StatefulWidget {
+class AllProductScreen extends StatefulWidget {
   final bool isShowInGrid;
-  const AllProductStoreScreen({
+  final ProviderType providerType;
+
+  const AllProductScreen({
     super.key,
-    required this.isShowInGrid
+    required this.isShowInGrid,
+    required this.providerType,
   });
 
   @override
-  State<AllProductStoreScreen> createState() => _AllProductStoreScreenState();
+  State<AllProductScreen> createState() => _AllProductScreenState();
 }
 
-class _AllProductStoreScreenState extends State<AllProductStoreScreen> {
+class _AllProductScreenState extends State<AllProductScreen> {
   final controller = Get.isRegistered<NewStoreController>()
       ? Get.find<NewStoreController>()
       : Get.put(NewStoreController());
   final ScrollController storesScrollController = ScrollController();
-
+  late ProviderType _providerType;
 
   @override
   void initState() {
-
-    controller.getAllStoreProductNearBy();
+    _providerType = widget.providerType;
+    controller.getAllProductNearBy(
+        providerType: _providerType
+    );
     super.initState();
 
     storesScrollController.addListener(() {
       if (storesScrollController.position.pixels >=
           storesScrollController.position.maxScrollExtent - 200) {
-        controller.getAllStoreProductNearBy(isLoadMore: true);
+        controller.getAllProductNearBy(
+            providerType: _providerType,
+            isLoadMore: true
+        );
       }
     });
   }
@@ -69,11 +71,11 @@ class _AllProductStoreScreenState extends State<AllProductStoreScreen> {
       body: SafeArea(
         child: Obx(() {
           // First time loading
-          if (controller.isStoreProductDataFirstLoading.value) {
+          if (controller.isProductDataFirstLoading.value) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final productList = List<GetProductData>.from(controller.storeProductDataList);
+          final productList = List<GetProductData>.from(controller.productDataList);
 
           // Empty state
           if (productList.isEmpty) {
@@ -139,7 +141,7 @@ class _AllProductStoreScreenState extends State<AllProductStoreScreen> {
                 vertical: SizeConfig.size15
             ),
             itemCount: productList.length +
-                (controller.isStoreProductDataLoadingMore.value ? 1 : 0),
+                (controller.isProductDataLoadingMore.value ? 1 : 0),
             itemBuilder: (context, index) {
               // Pagination Loader
               if (index >= productList.length) {

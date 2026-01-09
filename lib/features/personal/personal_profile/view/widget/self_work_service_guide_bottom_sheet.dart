@@ -2,8 +2,9 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/view/earn_with_blueera_new_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/widget/change_profession_dialog.dart';
+import 'package:BlueEra/features/common/auth/model/individual_profiile_category.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/change_profession_dialog.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/horizonatal_video_player.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/service_item.dart';
@@ -22,9 +23,7 @@ class SelfWorkServiceGuideBottomSheet extends StatefulWidget {
 class _SelfWorkServiceGuideBottomSheetState extends State<SelfWorkServiceGuideBottomSheet> {
   final authController = Get.find<AuthController>();
   int? selectedIndex;
-  ServiceItem? selectedService;
-
-
+  IndividualProfileCategory? selectedService;
 
   @override
   void initState() {
@@ -98,7 +97,7 @@ class _SelfWorkServiceGuideBottomSheetState extends State<SelfWorkServiceGuideBo
 
               final apiSubcategories = selfEmployedData?.subcategoriesFiledName ?? [];
 
-              final filteredServices = selfWorkServiceList.where((service) {
+              final filteredServices = selfWorkCategories.where((service) {
                 return apiSubcategories.any((api) =>
                 api.tagId == service.slugId);
               }).toList();
@@ -110,9 +109,9 @@ class _SelfWorkServiceGuideBottomSheetState extends State<SelfWorkServiceGuideBo
                   physics: const NeverScrollableScrollPhysics(),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 4,
-                    childAspectRatio: 0.6,
-                    crossAxisSpacing: 30,
-                    mainAxisSpacing: 20,
+                    childAspectRatio: 1.0,
+                    crossAxisSpacing: 6,
+                    mainAxisSpacing: 6,
                   ),
                   itemCount: filteredServices.length,
                   itemBuilder: (_, i) => CommonServiceCard(
@@ -148,7 +147,7 @@ class _SelfWorkServiceGuideBottomSheetState extends State<SelfWorkServiceGuideBo
                 ProfessionChangeDialogHelper().shouldShowUpdateDesignationDialog(
                   context: context,
                   designation: selectedService?.slugId ?? OTHER,
-                  serviceSubType: EarnWithBlueEraServiceTypes.selfWork,
+                  serviceSubType: EarnServiceTypes.selfWork,
                 );
 
 

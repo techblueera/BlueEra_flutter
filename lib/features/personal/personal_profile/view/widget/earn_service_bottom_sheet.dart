@@ -3,17 +3,17 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_blueear_screen/controller/earn_with_blueera_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/controller/earn_service_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 
-class EarnWithBlueEraBottomSheet extends StatelessWidget {
-  EarnWithBlueEraBottomSheet({Key? key}) : super(key: key);
+class EarnServiceBottomSheet extends StatelessWidget {
+  EarnServiceBottomSheet({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final earnWithBlueEraController = getOrPut(() => EarnWithBlueEraController());
+    final controller = getOrPut(() => EarnServiceController());
 
     return SingleChildScrollView(
       child: Container(
@@ -51,15 +51,15 @@ class EarnWithBlueEraBottomSheet extends StatelessWidget {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 4,
-                  childAspectRatio: 0.6,
-                  crossAxisSpacing: 30,
-                  mainAxisSpacing: 20,
+                  crossAxisCount: 3,
+                  childAspectRatio: 1.2,
+                  crossAxisSpacing: 6,
+                  mainAxisSpacing: 6,
                 ),
                 itemCount: earnWithBlueEraServiceList.length,
                 itemBuilder: (_, i) => CommonServiceCard(
                   service: earnWithBlueEraServiceList[i],
-                  onTap: () => earnWithBlueEraController.handleServiceTap(context, earnWithBlueEraServiceList[i]),
+                  onTap: () => controller.handleServiceTap(context, earnWithBlueEraServiceList[i]),
                 ),
               ),
             ),

@@ -69,7 +69,7 @@ class AskInventoryMsgCard extends StatelessWidget {
                       ApiKeys.argProductData: business,
                       // "isShowBusinessInfo": widget.isShowBusinessInfo,
                       ApiKeys.id: business?.businessId??'',
-                      ApiKeys.providerType:ProductServiceProviderType.business
+                      ApiKeys.providerType:ProviderType.business
                     },
                   );
                 },
