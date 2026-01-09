@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:flutter/material.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
@@ -8,6 +10,7 @@ import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/snackbar_helper.dart';
 import '../../medical/model/medical_lab_details.dart';
 import '../../medical/repo/medical_repo.dart';
+import '../model/hospital_model_class.dart';
 
 class HospitalModelController extends GetxController {
   final medicalRepo = MedicalRepo();
@@ -19,10 +22,21 @@ class HospitalModelController extends GetxController {
   final hospitalAddressTextController=TextEditingController();
   final hospitalLinkTextController=TextEditingController();
   RxBool isAiBtnLoading=false.obs;
+  Rxn<HospitalData> hospitalData = Rxn<HospitalData>();
+
+  void setHospitalData(dynamic responseData) {
+    final hospital =
+    HospitalResponse.fromJson({"success": true, "data": responseData});
+
+    hospitalData.value = hospital.data;
+  }
+
+
   Future<void> fetchHospitalCategoryData(String categoryTopic) async {
     ResponseModel response =
     await medicalRepo.fetchMedicalCategoryData(categoryTopic);
     if (response.isSuccess) {
+
       final modelJson = response.response?.data['data'];
 
       List<dynamic> modelList = modelJson;
@@ -94,8 +108,8 @@ class HospitalModelController extends GetxController {
     ResponseModel response =
     await medicalRepo.getHospitalFromAi(params);
     if (response.isSuccess) {
+      setHospitalData(response.response?.data);
       isAiBtnLoading.value=false;
-      commonSnackBar(message: response.response?.statusMessage ?? '');
     } else {
       isAiBtnLoading.value=false;
       commonSnackBar(message: AppStrings.somethingWentWrong);

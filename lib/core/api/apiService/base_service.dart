@@ -575,6 +575,8 @@ abstract class BaseService {
   final String campusLife = 'education-service/campus-life';
   final String hotelServiceCategory = 'hotel-service/api/categories/nested';
   final String fetchHospitalFromAi = 'ai-service/api/ai-hospital/fetch-details';
+  String groceryAcceptOrder(String orderId) => 'rider-service/riders/orders/grocery/${orderId}/accept';
+  String groceryRejectOrder(String orderId) => 'rider-service/riders/orders/grocery/${orderId}/reject';
   String enableHotelServiceStatus(String categoryId) =>  'health-service/api/categories/$categoryId/status';
   final String fetchHotelFromAi = 'ai-service/api/ai-hotel/fetch-details';
   final String createHotelService = 'hotel-service/api/businesses';

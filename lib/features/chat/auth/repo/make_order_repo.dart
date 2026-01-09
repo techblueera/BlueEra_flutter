@@ -88,7 +88,7 @@ class MakeOrderRepo extends BaseService {
   Future<ResponseModel> updateOrderStatusFromPt(Map<String,dynamic> params,String orderId) async {
     final response = await ApiBaseHelper().patchHTTP(
         updateOrderStatusFromPialot(orderId),
-        showProgress: false,
+        showProgress: true,
      params: params,
      onError: (error) {}, onSuccess: (data) {});
     return response;
@@ -149,6 +149,22 @@ class MakeOrderRepo extends BaseService {
     final response = await ApiBaseHelper().getHTTP(
         getGroceryAvailableShops(latitude: latitude,longitude: longitude,orderId: orderId),
         showProgress: false,
+        onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+  Future<ResponseModel> groceryAcceptOrderApi({required String orderId,required Map<String,dynamic> params}) async {
+    final response = await ApiBaseHelper().postHTTP(
+        groceryAcceptOrder(orderId),
+        params: params,
+        showProgress: true,
+        onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+ Future<ResponseModel> groceryRejctOrderApi({required String orderId,required Map<String,dynamic> params}) async {
+    final response = await ApiBaseHelper().postHTTP(
+        groceryRejectOrder(orderId),
+        params: params,
+        showProgress: true,
         onError: (error) {}, onSuccess: (data) {});
     return response;
   }

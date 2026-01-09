@@ -33,10 +33,39 @@ class DeliverPartnerOrdersController extends GetxController {
   RxList<RiderOrdersDetailsModel> completedOrders = <RiderOrdersDetailsModel>[].obs;
   RxList<RiderOrdersDetailsModel> cancelledOrders = <RiderOrdersDetailsModel>[].obs;
   RxList<RiderOrdersDetailsModel> rejectedOrders = <RiderOrdersDetailsModel>[].obs;
-  Rx<RiderShopsListGrocery> riderBusinessList = RiderShopsListGrocery(businesses: []).obs;
+  RxList<BusinessListModel> riderBusinessList = <BusinessListModel>[].obs;
+  RxList<BusinessListModel> selectedShops = <BusinessListModel>[].obs;
 
   late Stream<dynamic> stream;
   StreamSubscription? subscription;
+
+  void onSelectTab(BusinessListModel id){
+    if(selectedShops.contains(id)){
+      selectedShops.remove(id);
+    }else{
+      selectedShops.add(id);
+    }
+  }
+  Map<String, dynamic> buildGroceryOrderBody(
+      List<BusinessListModel> selectedShops,
+      ) {
+    return {
+      ApiKeys.groceryOrderDetails: {
+        ApiKeys.businesses: selectedShops.map((business) {
+          return {
+            ApiKeys.businessId: business.businessId,
+            ApiKeys.items: business.availableProducts.map((product) {
+              return {
+                ApiKeys.variantId: product.variant.id,
+                ApiKeys.inventoryId: product.inventory.id,
+                ApiKeys.isPickedUp: false,
+              };
+            }).toList(),
+          };
+        }).toList(),
+      }
+    };
+  }
 
   Future<void> fetchStream() async {
     ordersListResponse.value =
@@ -222,24 +251,50 @@ class DeliverPartnerOrdersController extends GetxController {
     }
   }
   Future<void> getGroceryShopsList(String orderId) async {
-    // try {
+    try {
       Map<String, dynamic>? locationMap= await LocationService.fetchLocation(openSettingsOnDeny: true);
       Position? position=locationMap?['position'];
       ResponseModel? response = await MakeOrderRepo().getGroceryShopsList(orderId: orderId,longitude: '${position?.longitude}',latitude: '${position?.latitude}');
       if (response.isSuccess ) {
-        log("aslkjdlskdcmlskdcd ${response.response?.data}");
-        final List<dynamic> json = jsonDecode(response.response?.data);
-        riderBusinessList.value = RiderShopsListGrocery.fromJson(json);
-        orderRiderShopListResponse.value = ApiResponse.complete(riderBusinessList.value);
+        final List<dynamic> json = response.response?.data;
+        riderBusinessList.value = json.map((e)=> BusinessListModel.fromJson(e)).toList();
+        orderRiderShopListResponse.value = ApiResponse.complete([]);
       } else {
         commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);
         orderRiderShopListResponse.value = ApiResponse.error(response.message ?? AppStrings.somethingWentWrong);
       }
-    // } catch (e) {
-    //   commonSnackBar(message: AppStrings.somethingWentWrong);
-    //   orderRiderShopListResponse.value = ApiResponse.error(AppStrings.somethingWentWrong);
-    // }
+    } catch (e) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+      orderRiderShopListResponse.value = ApiResponse.error(AppStrings.somethingWentWrong);
+    }
+  }
+  Future<void> acceptOrder(String orderId) async {
+    try {
+      ResponseModel? response = await MakeOrderRepo().groceryAcceptOrderApi(
+          orderId: orderId, params: buildGroceryOrderBody(selectedShops));
+      if (response.isSuccess ) {
+      } else {
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+  }
+  Future<void> rejectOrder(String orderId) async {
+    try {
+      ResponseModel? response = await MakeOrderRepo().groceryRejctOrderApi(
+          orderId: orderId, params: buildGroceryOrderBody(selectedShops));
+      if (response.isSuccess ) {
+      log("skdjcksjcsjkdc ${response.response?.data}");
+      } else {
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
   }
 
 

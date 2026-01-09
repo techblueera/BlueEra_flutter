@@ -2,6 +2,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/me/hospital/view/widget/add_hospital_prev_widget.dart';
 import 'package:BlueEra/features/me/hospital/view/widget/add_hospital_service.dart';
 import 'package:BlueEra/features/me/hospital/view/widget/create_hotel_profile_via_ai.dart';
 import 'package:BlueEra/features/me/hospital/view/widget/general_medicine.dart';
@@ -128,7 +129,8 @@ class _HospitalMainState extends State<HospitalMain>
               Expanded(child: TabBarView(
                 controller: _tabController,
                 children: [
-                  NoProfileDetailsFound(content: "You Have not Upload Hospital Details"),
+                  HospitalPreviewPage(),
+                  // NoProfileDetailsFound(content: "You Have not Upload Hospital Details"),
                   CategoryListView(),
                   const Center(child: CustomText(AppStrings.comingSoon)),
                 ],
