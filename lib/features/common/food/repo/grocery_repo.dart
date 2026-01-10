@@ -179,4 +179,58 @@ class GroceryRepo extends BaseService {
     );
     return response;
   }
+
+  /// FETCH MY GROCERY ORDERS...
+  Future<ResponseModel> fetchGroceryOrdersRepo(
+      {required Map<String, dynamic> queryParm}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      myGroceryOrders,
+      showProgress: false,
+      params: queryParm,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  /// GROCERY ITEM AVAILABILITY...
+  Future<ResponseModel> groceryOrderItemAvailabilityRepo(
+      {required Map<String, dynamic> params}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      groceryOrderItemAvailability,
+      params: params,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  /// GROCERY AVAILABLE ITEMS...
+  Future<ResponseModel> groceryOrderAvailableItemRepo(
+      {required Map<String, dynamic> queryParams}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      groceryOrderAvailableItem,
+      showProgress: false,
+      params: queryParams,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  Future<ResponseModel> submitGroceryOrderToRiderRepo(
+      {required Map<String, dynamic> params}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      groceryOrderUpdatePaymentStatus,
+      showProgress: false,
+      params: params,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+
+
 }

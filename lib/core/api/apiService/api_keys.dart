@@ -594,4 +594,10 @@ class ApiKeys {
   static const isPickedUp = 'isPickedUp';
 
   static const ownerType = 'ownerType';
+  static const groceryOrderId = 'groceryOrderId';
+  static const availableInventoryIds = 'availableInventoryIds';
+  static const rideOrderId = 'rideOrderId';
+  static const paymentStatus = 'paymentStatus';
+  static const paymentMode = 'paymentMode';
+  static const amountPaid = 'amountPaid';
 }

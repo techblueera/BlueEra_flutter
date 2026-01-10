@@ -1079,3 +1079,26 @@ extension BankAccountTypeExtension on BankAccountType {
     );
   }
 }
+
+enum MyGroceryOrdersTab {
+  pending(AppStrings.pending),
+  completed(AppStrings.completed),
+  cancelled(AppStrings.canceled),
+  payment(AppStrings.payment);
+
+  final String label;
+
+  const MyGroceryOrdersTab(this.label);
+}
+
+enum GroceryPaymentMode {
+  cash('Cash', 'cash'),
+  upi('UPI', 'upi'),
+  pending('Pending', 'pending');
+
+  final String label;
+  final String apiValue;
+
+  // Constructor
+  const GroceryPaymentMode(this.label, this.apiValue);
+}
