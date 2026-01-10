@@ -584,8 +584,6 @@ abstract class BaseService {
   final String hotelBulkStatus = 'hotel-service/api/hotels/offerings/bulk-toggle';
   final String hotelBulkCatalogStatus = 'hotel-service/api/businesses/hotels/catalog';
   final String schoolUserID = 'education-service/schools/';
-  final String hotelBulkStatus = 'hotel-service/api/hotels//offerings/bulk-toggle';
-  final String hotelBulkCatalogStatus = 'hotel-service/api/businesses/hotels//catalog';
   final String myGroceryOrders = 'rider-service/grocery/orders/business';
   final String groceryOrderItemAvailability = 'rider-service/grocery/orders/item-availability';
   final String groceryOrderAvailableItem = 'rider-service/grocery/orders/available-items';
