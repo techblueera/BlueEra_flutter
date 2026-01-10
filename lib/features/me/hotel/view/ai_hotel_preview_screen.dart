@@ -52,8 +52,8 @@ class _HotelPreviewScreenState extends State<HotelPreviewScreen> {
             // 1. Timing Section
             _buildSectionHeader("Check-in / Check-out"),
             _buildInfoCard([
-              _buildRow("Check-in Time", policies?.checkInTime ?? "12:00 PM"),
-              _buildRow("Check-out Time", policies?.checkOutTime ?? "11:00 AM"),
+              _buildRowCheckIn("Check-in Time", policies?.checkInTime ?? "12:00 PM"),
+              _buildRowCheckIn("Check-out Time", policies?.checkOutTime ?? "11:00 AM"),
             ]),
 
             // 2. Rules Section (The data usually hidden)
@@ -170,6 +170,23 @@ class _HotelPreviewScreenState extends State<HotelPreviewScreen> {
     );
   }
 
+  Widget _buildRowCheckIn(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          CustomText("${label} : ", color: Colors.grey[700]),
+          SizedBox(
+            width: SizeConfig.size20,
+          ),
+          CustomText(value, fontWeight: FontWeight.w600),
+        ],
+      ),
+    );
+  }
+
   Widget _buildRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -182,7 +199,7 @@ class _HotelPreviewScreenState extends State<HotelPreviewScreen> {
             width: SizeConfig.size20,
           ),
           Expanded(
-              flex: 4, child: CustomText(value, fontWeight: FontWeight.w600)),
+              flex: 3, child: CustomText(value, fontWeight: FontWeight.w600)),
         ],
       ),
     );

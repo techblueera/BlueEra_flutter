@@ -15,7 +15,6 @@ class HotelCategoryController extends GetxController {
 
   @override
   void onInit() {
-    fetchAllHotelServiceCategories();
     super.onInit();
   }
 
@@ -51,17 +50,21 @@ class HotelCategoryController extends GetxController {
   /// Call the repository and handle the response
   Future<void> updateHotelBulkStatus() async {
     try {
-
-      final List<String> roomIdsList = hotelServiceSubCategoryList
-          .where((room) => (room.isEnabled ?? false) && room.id != null)
-          .map((room) => room.id!)
+      final List<Map<String, dynamic>> nodes = hotelServiceSubCategoryList
+          .where((room) => room.id != null)
+          .map((room) => {
+        "catalogNodeId": room.id!,
+        "isEnabled": room.isEnabled ?? false,
+      })
           .toList();
 
+      final Map<String, dynamic> requestBody = {
+        "nodes": nodes,
+      };
+
+
       // Call your existing repository function
-      ResponseModel response = await HotelServiceRepo().updateHotelServiceRepo(reqBody: {
-        "nodeIds":roomIdsList,
-        "isEnabled": true
-      });
+      ResponseModel response = await HotelServiceRepo().updateHotelServiceRepo(reqBody: requestBody);
 
       if (response.isSuccess == true) {
         // SUCCESS MESSAGE

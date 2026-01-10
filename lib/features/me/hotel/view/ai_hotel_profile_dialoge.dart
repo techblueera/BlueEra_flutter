@@ -1,7 +1,10 @@
 
+import 'package:BlueEra/core/api/model/place_details.dart';
+import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/hotel/controller/hotel_service_controller.dart';
 import 'package:BlueEra/widgets/common_location_search_field.dart';
@@ -41,8 +44,22 @@ class _AIHotelProfileDialogState extends State<AIHotelProfileDialog> {
                 hintText: "E.g. Taj Hotel...",
                 isShowLeading: false,
                 title: "Search Your Profile On Google",
-                onSelected: (placeId, lat, lng, address) {
+                onSelected: (placeId, lat, lng, address) async {
                   controller.searchController.text = address;
+
+                  try {
+                    final detailsResponse = await PlaceRepo().getCompletePlaceDetails(placeId: placeId);
+                    final detailsData = detailsResponse.response?.data;
+                    final placeDetails = PlaceDetailsResponse.fromJson(detailsData);
+                    controller.lat.value=placeDetails.result?.geometry?.location?.lat??0.0;
+                    controller.lng.value=placeDetails.result?.geometry?.location?.lng??0.0;
+                    logs("placeDetails.result?.website ${placeDetails.result?.website}");
+                    controller.websiteController.text=placeDetails.result?.website??"";
+                  } catch (e) {
+                    print("Error fetching place details: $e");
+                  }
+
+
                   validateAiSchoolForm();
                   setstate(() {});
                 },
@@ -53,10 +70,10 @@ class _AIHotelProfileDialogState extends State<AIHotelProfileDialog> {
                 title: "Hotel Website",
                 controller: controller.websiteController,
                 hintText: "E.g. https://tajhotel.com",
-                onChange: (_) {
-                  validateAiSchoolForm();
-                  setstate(() {});
-                },
+                // onChange: (_) {
+                //   validateAiSchoolForm();
+                //   setstate(() {});
+                // },
               ),
 
               SizedBox(height: SizeConfig.size30),
@@ -100,8 +117,7 @@ class _AIHotelProfileDialogState extends State<AIHotelProfileDialog> {
 
   void validateAiSchoolForm() {
     // Check if all fields are not empty
-    isFormValid = controller.searchController.text.trim().isNotEmpty &&
-        controller.websiteController.text.trim().isNotEmpty;
+    isFormValid = controller.searchController.text.trim().isNotEmpty;
 
   }
 }

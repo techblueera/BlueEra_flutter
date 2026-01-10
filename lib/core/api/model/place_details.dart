@@ -14,8 +14,9 @@ class Result {
   final List<AddressComponent>? addressComponents;
   final Geometry? geometry;
   final String? formattedAddress;
+  final String? website;
 
-  Result({this.addressComponents, this.geometry, this.formattedAddress});
+  Result({this.addressComponents, this.website,  this.geometry, this.formattedAddress});
 
   factory Result.fromJson(Map<String, dynamic> json) {
     return Result(
@@ -26,6 +27,7 @@ class Result {
           ? Geometry.fromJson(json['geometry'])
           : null,
       formattedAddress: json['formatted_address'],
+      website: json['website'],
     );
   }
 }

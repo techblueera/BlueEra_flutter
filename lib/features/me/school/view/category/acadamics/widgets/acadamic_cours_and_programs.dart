@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/model/school_course_res_model.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/me/school/controller/course_controller.dart';
 import 'package:BlueEra/features/me/school/view/category/acadamics/add_more_course_screen.dart';
@@ -101,9 +102,9 @@ class CourseCard extends StatelessWidget {
           _infoRow("Admission: ", data.admissionProcess ?? "N/A"),
           _infoRow("Eligibility: ", data.eligibility ?? "N/A"),
           if ((data.courseFees?.yearly ?? 0) > 0)
-            _infoRow("Course Fee: ", "₹${data.courseFees?.yearly}/Year"),
+            _infoRow("Course Fee: ", "₹${formatNumber(data.courseFees?.yearly??0)}/Year"),
           if ((data.courseFees?.monthly ?? 0) > 0)
-            _infoRow("Course Fee: ", "₹${data.courseFees?.monthly}/Monthly"),
+            _infoRow("Course Fee: ", "₹${formatNumber(data.courseFees?.monthly??0)}/Monthly"),
           _infoRow("Course Duration: ", data.duration ?? "N/A"),
           SizedBox(height: 4),
           CustomText("Description: ${data.description}",
@@ -163,125 +164,5 @@ class CourseCard extends StatelessWidget {
     );
   }
 
-  void _showDeleteDialog(BuildContext context) {
-    Get.defaultDialog(
-      title: "Delete Course",
-      middleText: "Are you sure you want to delete this course?",
-      textConfirm: "Delete",
-      textCancel: "Cancel",
-      confirmTextColor: Colors.white,
-      onConfirm: () => Get.find<CourseController>().deleteCourse(data.id!),
-    );
-  }
 }
 
-/*
-class AcadamicCoursAndPrograms extends StatefulWidget {
-  const AcadamicCoursAndPrograms({super.key});
-
-  @override
-  State<AcadamicCoursAndPrograms> createState() =>
-      _AcadamicCoursAndProgramsState();
-}
-
-class _AcadamicCoursAndProgramsState extends State<AcadamicCoursAndPrograms> {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CommonBackAppBar(
-        showRightTextButton: true,
-        isShowMoreInfoIcon: true,
-        title: "Courses / Programs",
-        isShadowShow: false,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          children: [
-            /// Course Card
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.whiteE5),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      CustomText(
-                        "Course:",
-                        fontSize: 18,
-                        fontWeight: FontWeight.w400,
-                      ),
-                      CustomText(
-                        "NEET Foundation",
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: SizeConfig.size6),
-                  _courseRow("Admission", "Direct"),
-                  _courseRow("Eligibility", "10th Pass"),
-                  _courseRow("Course Fee", "90,000/Year"),
-                  _courseRow("Course Duration", "2 Years"),
-                  SizedBox(height: SizeConfig.size6),
-                  CustomText(
-                    "Description: Lorem Ipsum Dolor Amet set "
-                    "Lorem Ipsum Dolor Amet set...",
-                    fontSize: 16,
-                    color: AppColors.secondaryTextColor,
-                  ),
-                  SizedBox(height: SizeConfig.size16),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            /// Add More Course Button
-            AddMoreIconButton(
-              onTapEvent: () {
-                Get.to(AddMoreCourseScreen());
-              },
-              buttonName: "Add More Course",
-            ),
-            const SizedBox(height: 20),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Reusable Row Widget
-  Widget _courseRow(String title, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: RichText(
-        text: TextSpan(
-          text: "$title: ",
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w400,
-            color: AppColors.secondaryTextColor,
-          ),
-          children: [
-            TextSpan(
-              text: value,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w400,
-                color: AppColors.secondaryTextColor,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-*/

@@ -36,9 +36,35 @@ class SchoolRepo extends BaseService {
     return response;
   }
 
-  ///UPDATE SCHOOL/UNIVERSITY DETAILS...
-  Future<ResponseModel> updateSchoolAboutUsRepo(
+  ///CREATE SCHOOL/UNIVERSITY DETAILS...
+  Future<ResponseModel> createSchoolManagementRepo(
       {required String aboutUsID,
+      required Map<String, dynamic> reqBODY}) async {
+    final response = await ApiBaseHelper().postHTTP(
+        "${schoolAboutUsUpdate}$aboutUsID/management",
+        onError: (error) {},
+        params: reqBODY,
+        onSuccess: (data) {});
+    return response;
+  }
+
+  ///UPDATE SCHOOL/UNIVERSITY DETAILS...
+  Future<ResponseModel> updateSchoolManagementAboutUsRepo(
+      {
+        required String aboutUsID,
+        required int managementIndex,
+      required Map<String, dynamic> reqBODY}) async {
+    final response = await ApiBaseHelper().putHTTP(
+        "${schoolAboutUsUpdate}$aboutUsID/management/$managementIndex",
+        onError: (error) {},
+        params: reqBODY,
+        onSuccess: (data) {});
+    return response;
+  }
+
+  Future<ResponseModel> updateSchoolAboutUsRepo(
+      {
+        required String aboutUsID,
       required Map<String, dynamic> reqBODY}) async {
     final response = await ApiBaseHelper().putHTTP(
         "${schoolAboutUsUpdate}$aboutUsID",
@@ -97,6 +123,12 @@ class SchoolRepo extends BaseService {
   ///GET SCHOOL CONTACT REPO....
   Future<ResponseModel> getSchoolByUserIDRepo() async {
     final response = await ApiBaseHelper().getHTTP("${schoolUser}/$userId",
+        onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+  ///GET SCHOOL CONTACT REPO....
+  Future<ResponseModel> getSchoolByIDRepo() async {
+    final response = await ApiBaseHelper().getHTTP("${schoolUserID}$schoolIDGlobal",
         onError: (error) {}, onSuccess: (data) {});
     return response;
   }
@@ -445,6 +477,18 @@ class SchoolRepo extends BaseService {
   }) async {
     final response = await ApiBaseHelper().deleteHTTP(
         "${campusLife}/${entriesId}/images/$imageId",
+        onError: (error) {},
+        onSuccess: (data) {});
+    return response;
+  }
+
+
+  ///PUT  COURSE....
+  Future<ResponseModel> updateSchoolInfoRepo(
+      {required Map<String, dynamic> reqBODY,}) async {
+    final response = await ApiBaseHelper().putHTTP(
+        "${schoolUserID}$schoolIDGlobal",
+        params: reqBODY,
         onError: (error) {},
         onSuccess: (data) {});
     return response;

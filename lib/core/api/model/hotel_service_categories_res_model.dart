@@ -1,11 +1,19 @@
 import 'dart:convert';
-HotelServiceCategoriesResModel hotelServiceCategoriesResModelFromJson(String str) => HotelServiceCategoriesResModel.fromJson(json.decode(str));
-String hotelServiceCategoriesResModelToJson(HotelServiceCategoriesResModel data) => json.encode(data.toJson());
+
+HotelServiceCategoriesResModel hotelServiceCategoriesResModelFromJson(
+        String str) =>
+    HotelServiceCategoriesResModel.fromJson(json.decode(str));
+
+String hotelServiceCategoriesResModelToJson(
+        HotelServiceCategoriesResModel data) =>
+    json.encode(data.toJson());
+
 class HotelServiceCategoriesResModel {
   HotelServiceCategoriesResModel({
-      this.success, 
-      this.message, 
-      this.data,});
+    this.success,
+    this.message,
+    this.data,
+  });
 
   HotelServiceCategoriesResModel.fromJson(dynamic json) {
     success = json['success'];
@@ -17,6 +25,7 @@ class HotelServiceCategoriesResModel {
       });
     }
   }
+
   bool? success;
   String? message;
   List<HotelServiceCategoriesData>? data;
@@ -30,25 +39,29 @@ class HotelServiceCategoriesResModel {
     }
     return map;
   }
-
 }
 
-HotelServiceCategoriesData dataFromJson(String str) => HotelServiceCategoriesData.fromJson(json.decode(str));
-String dataToJson(HotelServiceCategoriesData data) => json.encode(data.toJson());
+HotelServiceCategoriesData dataFromJson(String str) =>
+    HotelServiceCategoriesData.fromJson(json.decode(str));
+
+String dataToJson(HotelServiceCategoriesData data) =>
+    json.encode(data.toJson());
+
 class HotelServiceCategoriesData {
   HotelServiceCategoriesData({
-      this.id, 
-      this.name, 
-      this.key, 
-      this.isEnabled,
-      this.parentId, 
-      this.level, 
-      this.type, 
-      this.rules, 
-      this.createdAt, 
-      this.updatedAt, 
-      this.v, 
-      this.children,});
+    this.id,
+    this.name,
+    this.key,
+    this.isEnabled,
+    this.parentId,
+    this.level,
+    this.type,
+    this.rules,
+    this.createdAt,
+    this.updatedAt,
+    this.v,
+    this.children,
+  });
 
   HotelServiceCategoriesData.fromJson(dynamic json) {
     id = json['_id'];
@@ -69,6 +82,7 @@ class HotelServiceCategoriesData {
       });
     }
   }
+
   String? id;
   String? name;
   String? key;
@@ -102,20 +116,23 @@ class HotelServiceCategoriesData {
     }
     return map;
   }
-
 }
 
 Rules rulesFromJson(String str) => Rules.fromJson(json.decode(str));
+
 String rulesToJson(Rules data) => json.encode(data.toJson());
+
 class Rules {
   Rules({
-      this.allowChildren, 
-      this.allowOfferings,});
+    this.allowChildren,
+    this.allowOfferings,
+  });
 
   Rules.fromJson(dynamic json) {
     allowChildren = json['allowChildren'];
     allowOfferings = json['allowOfferings'];
   }
+
   bool? allowChildren;
   bool? allowOfferings;
 
@@ -125,5 +142,4 @@ class Rules {
     map['allowOfferings'] = allowOfferings;
     return map;
   }
-
 }

@@ -2,6 +2,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:mappls_gl/mappls_gl.dart';
 
@@ -40,8 +41,7 @@ class _BusinessLocationWidgetState extends State<BusinessLocationWidget> {
         SymbolOptions(
             iconImage: AppImageAssets.markerBlue,
             geometry: LatLng(widget.latitude, widget.longitude),
-            iconSize: 1.5
-        ),
+            iconSize: 1.5),
       );
 
       // Move camera to the location
@@ -51,7 +51,6 @@ class _BusinessLocationWidgetState extends State<BusinessLocationWidget> {
           14.0,
         ),
       );
-
     } catch (e) {
       print('Error adding marker: $e');
     }
@@ -71,23 +70,27 @@ class _BusinessLocationWidgetState extends State<BusinessLocationWidget> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // const Icon(Icons.location_on_outlined,
-                //     color: AppColors.black1A),
-                // SizedBox(width: SizeConfig.size6),
-                // Expanded(
-                //     child: CustomText(
-                //
-                //   "KJCJKLJWEN",
-                //   fontSize: SizeConfig.size14,
-                //   fontWeight: FontWeight.w400,
-                //   color: AppColors.black1A,
-                // )),
-              ],
+            if (widget.locationText?.isNotEmpty ?? false)
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.location_on_outlined,
+                      color: AppColors.black1A),
+                  SizedBox(width: SizeConfig.size6),
+                  Expanded(
+                      child: CustomText(
+                    widget.locationText ?? "",
+                    fontSize: SizeConfig.size14,
+                    fontWeight: FontWeight.w400,
+                    color: AppColors.black1A,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  )),
+                ],
+              ),
+            SizedBox(
+              height: SizeConfig.size8,
             ),
-            SizedBox( height: SizeConfig.size8,),
             ClipRRect(
                 borderRadius: BorderRadius.circular(10),
                 // Adjust border radius here
@@ -115,7 +118,9 @@ class _BusinessLocationWidgetState extends State<BusinessLocationWidget> {
                         bottom: SizeConfig.size10,
                         child: InkWell(
                           onTap: () async {
-                            openGoogleMaps(latitude: widget.latitude, longitude: widget.longitude);
+                            openGoogleMaps(
+                                latitude: widget.latitude,
+                                longitude: widget.longitude);
                           },
                           child: Container(
                             padding: EdgeInsets.all(SizeConfig.size12),

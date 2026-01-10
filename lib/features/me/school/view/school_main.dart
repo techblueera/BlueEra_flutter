@@ -6,12 +6,14 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
 import 'package:BlueEra/features/me/school/controller/school_controller.dart';
 import 'package:BlueEra/features/me/school/repo/school_repo.dart';
-import 'package:BlueEra/features/me/school/view/school_home_screen.dart';
+import 'package:BlueEra/features/me/school/view/category/school_home/school_home_screen.dart';
 import 'package:BlueEra/features/me/school/view/school_statics_screen.dart';
 import 'package:BlueEra/features/me/school/view/school_update_screen.dart';
 import 'package:BlueEra/features/me/school/view/widget/add_school_service.dart';
+import 'package:BlueEra/features/me/school/view/widget/school_not_create_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -30,6 +32,8 @@ class SchoolMain extends StatefulWidget {
 class _SchoolMainState extends State<SchoolMain>
     with SingleTickerProviderStateMixin, RouteAware {
   late TabController _tabController;
+  final schoolAboutUsController = Get.put(SchoolAboutUsController());
+  final controller = Get.put(SchoolController());
 
   @override
   void initState() {
@@ -39,15 +43,26 @@ class _SchoolMainState extends State<SchoolMain>
   }
 
   apiCalling() async {
-    if (schoolIDGlobal.isEmpty) {
-      ResponseModel response = await SchoolRepo().getSchoolByUserIDRepo();
-      String? schoolID = response.response?.data['data'][0]['_id'];
-      if (schoolID != null && schoolID.isNotEmpty) {
-        await setSchoolID(schoolID);
-      } else {
-        await setSchoolID("");
+    try {
+      if (schoolIDGlobal.isEmpty) {
+        ResponseModel response = await SchoolRepo().getSchoolByUserIDRepo();
+        if (response.isSuccess) {
+          String? schoolID = response.response?.data['data'][0]['_id'];
+          if (schoolID != null && schoolID.isNotEmpty) {
+            await setSchoolID(schoolID);
+          } else {
+            await setSchoolID("");
+          }
+        }
       }
       await getSchoolID();
+      setState(() {
+        // Check if global ID was successfully populated
+        controller.hasSchool.value = schoolIDGlobal.isNotEmpty;
+      });
+      await schoolAboutUsController.getSchoolByIdController();
+    } on Exception catch (e) {
+      // TODO
     }
   }
 
@@ -61,40 +76,44 @@ class _SchoolMainState extends State<SchoolMain>
   Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: AppColors.white,
-        body: SafeArea(
-          child: Column(
-            children: [
-              SizedBox(
-                height: SizeConfig.size12,
-              ),
-              TabBar(
-                controller: _tabController,
-                labelColor: AppColors.mainTextColor,
-                unselectedLabelColor: AppColors.secondaryTextColor,
-                indicatorColor: AppColors.primaryColor,
-                indicatorWeight: 4,
-                tabAlignment: TabAlignment.fill,
-                indicatorSize: TabBarIndicatorSize.tab,
-                labelStyle: const TextStyle(
-                    fontWeight: FontWeight.w500,
-                    fontFamily: AppConstants.OpenSans),
-                tabs: [
-                  Tab(text: "Home"),
-                  Tab(text: "Update"),
-                  Tab(text: "Statics"),
-                ],
-              ),
-              Expanded(
-                  child: TabBarView(
-                controller: _tabController,
-                children: [
-                  SchoolHomeScreen(),
-                  SchoolUpdateScreen(),
-                  SchoolStaticsScreen(),
-                ],
-              ))
-            ],
-          ),
-        ));
+        body: Obx(() {
+          return SafeArea(
+            child: controller.hasSchool.value
+                ? Column(
+              children: [
+                SizedBox(
+                  height: SizeConfig.size12,
+                ),
+                TabBar(
+                  controller: _tabController,
+                  labelColor: AppColors.mainTextColor,
+                  unselectedLabelColor: AppColors.secondaryTextColor,
+                  indicatorColor: AppColors.primaryColor,
+                  indicatorWeight: 4,
+                  tabAlignment: TabAlignment.fill,
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  labelStyle: const TextStyle(
+                      fontWeight: FontWeight.w500,
+                      fontFamily: AppConstants.OpenSans),
+                  tabs: [
+                    Tab(text: "Home"),
+                    Tab(text: "Update"),
+                    Tab(text: "Statics"),
+                  ],
+                ),
+                Expanded(
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: [
+                        SchoolHomeScreen(),
+                        SchoolUpdateScreen(),
+                        SchoolStaticsScreen(),
+                      ],
+                    ))
+              ],
+            )
+                : SchoolNotCreateScreen(controller: controller),
+          );
+        }));
   }
 }

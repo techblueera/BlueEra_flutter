@@ -5,6 +5,8 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/school_about_us_model.dart';
 import 'package:BlueEra/core/api/model/school_contact_us_model.dart';
+import 'package:BlueEra/core/api/model/school_details_res_model.dart'
+    hide Management;
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -12,6 +14,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/reel/models/upload_init_response.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/me/school/repo/school_repo.dart';
+import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -26,9 +29,12 @@ class SchoolAboutUsController extends GetxController {
   RxString historyText = ''.obs;
   RxString directorMessageText = ''.obs;
   RxString managementDescriptionText = ''.obs;
+  final isDirectorImageUpdate = false.obs;
 
   final Rxn<File> historyImageFile = Rxn<File>();
   final Rxn<File> directorMessageImageFile = Rxn<File>();
+  RxString directorProfile = ''.obs;
+
   final Rxn<File> managementProfileImageFile = Rxn<File>();
   final isFormValid = false.obs;
   final isUploading = false.obs;
@@ -47,9 +53,7 @@ class SchoolAboutUsController extends GetxController {
 
   ///GET ABOUT US......
   Rx<AboutUsData>? aboutUsData = AboutUsData().obs;
-
-
-
+  Rx<SchoolDetailsData>? schoolDetailsData = SchoolDetailsData().obs;
 
   Future<void> getSchoolAboutUsController() async {
     // 1. Check if data is already loaded OR if it's currently loading
@@ -69,6 +73,56 @@ class SchoolAboutUsController extends GetxController {
         getAboutUsSchoolResponse.value =
             ApiResponse.error(AppStrings.somethingWentWrong);
       }
+      aboutUsData?.refresh();
+    } on Exception catch (e) {
+      logs("ERROR ${e}");
+      // TODO
+      getAboutUsSchoolResponse.value =
+          ApiResponse.error(AppStrings.somethingWentWrong);
+    }
+  }
+
+  uploadSchoolLogoOrBannerImage(
+      {required File uploadFile, required String uploadVia}) async {
+    try {
+      UploadResult? result = await S3UploadService.uploadFile(uploadFile);
+      if (result.isSuccess) {
+        ResponseModel response =
+            await SchoolRepo().updateSchoolInfoRepo(reqBODY: {
+          uploadVia: result.url,
+        });
+        if (response.isSuccess) {
+          commonSnackBar(message: response.response?.data['message']);
+        } else {
+          commonSnackBar(message: AppStrings.somethingWentWrong);
+        }
+      }
+    } on Exception catch (e) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+
+      // TODO
+    }
+  }
+
+  Future<void> getSchoolByIdController() async {
+    // 1. Check if data is already loaded OR if it's currently loading
+
+    // Logic for AI generation goes here
+    try {
+      ResponseModel response = await SchoolRepo().getSchoolByIDRepo();
+
+      SchoolDetailsResModel schoolAboutUsModel =
+          SchoolDetailsResModel.fromJson(response.response?.data);
+      schoolDetailsData?.value = schoolAboutUsModel.data ?? SchoolDetailsData();
+      // String? schoolID = schoolDetailsData?.value.id;
+      // if (schoolID != null && schoolID.isNotEmpty) {
+      //   await setSchoolID(schoolID);
+      // } else {
+      //   await setSchoolID("");
+      // }
+      // await getSchoolID();
+
+      schoolDetailsData?.refresh();
     } on Exception catch (e) {
       logs("ERROR ${e}");
       // TODO
@@ -90,6 +144,7 @@ class SchoolAboutUsController extends GetxController {
         commonSnackBar(
             message:
                 response.response?.data["message"] ?? AppStrings.successful);
+        await getSchoolByIdController();
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
         visionMissionResponse.value =
@@ -213,15 +268,106 @@ class SchoolAboutUsController extends GetxController {
   }
 
   ///ADD MANAGEMENT TRUST
-  Future<void> addManagementTrustController() async {
+  Future<void> addManagementTrustController({
+    required String name,
+    required String bio,
+    required String position,
+    required String managementId,
+    required List<String> qualificationList,
+  }) async {
     // Logic for AI generation goes here
     try {
-      ResponseModel response = await SchoolRepo().updateSchoolAboutUsRepo(
-        reqBODY: {
-          "management": {ApiKeys.management: aboutUsData?.value.management}
-        },
-        aboutUsID: aboutUsData?.value.id ?? "",
-      );
+      if (managementProfileImageFile.value == null) {
+        commonSnackBar(message: AppStrings.noImageSelected);
+        return;
+      }
+
+      UploadResult? result;
+      result = await S3UploadService.uploadFile(
+          File(managementProfileImageFile.value?.path ?? ""));
+      if (result.isSuccess) {
+        ResponseModel response = await SchoolRepo().createSchoolManagementRepo(
+          reqBODY: {
+            "name": name,
+            "position": position,
+            "photo": result.url,
+            "bio": bio,
+            "qualification": qualificationList
+          },
+          aboutUsID: aboutUsData?.value.id ?? "",
+        );
+
+        if (response.isSuccess) {
+          Get.back();
+          commonSnackBar(
+              message:
+                  response.response?.data["message"] ?? AppStrings.successful);
+          managementTrustResponse.value =
+              ApiResponse.complete(response.response?.data);
+          updateAboutInfo();
+        } else {
+          commonSnackBar(message: AppStrings.somethingWentWrong);
+          managementTrustResponse.value =
+              ApiResponse.error(AppStrings.somethingWentWrong);
+        }
+      } else {
+        commonSnackBar(message: AppStrings.somethingWentWrong);
+        managementTrustResponse.value =
+            ApiResponse.error(AppStrings.somethingWentWrong);
+      }
+    } on Exception catch (e) {
+      // TODO
+      managementTrustResponse.value =
+          ApiResponse.error(AppStrings.somethingWentWrong);
+    }
+  }
+
+  ///EDIT MANAGEMENT TRUST
+  Future<void> editManagementTrustController({
+    required int currentIndex,
+    required String name,
+    required String bio,
+    required String position,
+    required String managementId,
+    required List<String> qualificationList,
+  }) async {
+    // Logic for AI generation goes here
+    try {
+      if (isImageUpdated.value) {
+        if (managementProfileImageFile.value == null) {
+          commonSnackBar(message: AppStrings.noImageSelected);
+          return;
+        }
+      }
+      ResponseModel response;
+
+      if (isImageUpdated.value) {
+        UploadResult? result;
+        result = await S3UploadService.uploadFile(
+            File(managementProfileImageFile.value?.path ?? ""));
+        response = await SchoolRepo().updateSchoolManagementAboutUsRepo(
+          reqBODY: {
+            "name": name,
+            "position": position,
+            "photo": result.url,
+            "bio": bio,
+            "qualification": qualificationList
+          },
+          aboutUsID: aboutUsData?.value.id ?? "",
+          managementIndex: currentIndex,
+        );
+      } else {
+        response = await SchoolRepo().updateSchoolManagementAboutUsRepo(
+          reqBODY: {
+            "name": name,
+            "position": position,
+            "bio": bio,
+            "qualification": qualificationList
+          },
+          aboutUsID: aboutUsData?.value.id ?? "",
+          managementIndex: currentIndex,
+        );
+      }
 
       if (response.isSuccess) {
         Get.back();
@@ -230,6 +376,7 @@ class SchoolAboutUsController extends GetxController {
                 response.response?.data["message"] ?? AppStrings.successful);
         managementTrustResponse.value =
             ApiResponse.complete(response.response?.data);
+        updateAboutInfo();
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
         managementTrustResponse.value =
@@ -293,20 +440,37 @@ class SchoolAboutUsController extends GetxController {
   Future<void> updateDirectMessageController() async {
     // Logic for AI generation goes here
     try {
-      ResponseModel response = await SchoolRepo().updateSchoolAboutUsRepo(
-          aboutUsID: aboutUsData?.value.id ?? "",
-          reqBODY: {
-            "principalMessage": {
-              ApiKeys.photo: uploadDirectMessageInit.publicUrl,
-              ApiKeys.message: directorMessageText.value,
-            }
-          });
+      UploadResult? result;
+      if (isDirectorImageUpdate.value) {
+        result = await S3UploadService.uploadFile(
+            File(directorMessageImageFile.value?.path ?? ""));
+      }
+      ResponseModel response;
+      if (result?.isSuccess ?? false) {
+        response = await SchoolRepo().updateSchoolAboutUsRepo(
+            aboutUsID: aboutUsData?.value.id ?? "",
+            reqBODY: {
+              "principalMessage": {
+                ApiKeys.photo: result?.url,
+                ApiKeys.message: directorMessageText.value,
+              }
+            });
+      } else {
+        response = await SchoolRepo().updateSchoolAboutUsRepo(
+            aboutUsID: aboutUsData?.value.id ?? "",
+            reqBODY: {
+              "principalMessage": {
+                ApiKeys.message: directorMessageText.value,
+              }
+            });
+      }
 
       if (response.isSuccess) {
         Get.back();
         commonSnackBar(
             message:
                 response.response?.data["message"] ?? AppStrings.successful);
+        updateAboutInfo();
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
         visionMissionResponse.value =
@@ -316,85 +480,6 @@ class SchoolAboutUsController extends GetxController {
       // TODO
       visionMissionResponse.value =
           ApiResponse.error(AppStrings.somethingWentWrong);
-    }
-  }
-
-  ///UPLOAD PRINCIPAL DIRECT MESSAGE...
-
-  UploadInitResponse uploadManagementInit = UploadInitResponse();
-
-  Future<void> uploadManagementDocInit({
-    required String name,
-    required String bio,
-    required String position,
-    required String managementId,
-    required List<String> qualificationList,
-  }) async {
-    if (managementProfileImageFile.value == null) {
-      commonSnackBar(message: AppStrings.noImageSelected);
-      return;
-    }
-
-    try {
-      isUploading.value = true;
-      // 1. IMAGE
-      final imageFile = File(managementProfileImageFile.value?.path ?? "");
-      final vInfo = getFileInfo(imageFile);
-      Map<String, dynamic> queryParams = {
-        ApiKeys.fileName: vInfo['fileName'],
-        ApiKeys.fileType: vInfo['mimeType']
-      };
-
-      ResponseModel? response =
-          await SchoolRepo().uploadEducationDocRepo(queryParams: queryParams);
-
-      if (response?.isSuccess ?? false) {
-        uploadInitResponse.value = ApiResponse.complete(response);
-        uploadDirectMessageInit =
-            UploadInitResponse.fromJson(response?.response?.data);
-
-        try {
-          ResponseModel? response = await ChannelRepo().uploadVideoToS3(
-            file: imageFile,
-            fileType: vInfo['mimeType']!,
-            preSignedUrl: uploadDirectMessageInit.uploadUrl ?? "",
-            onProgress: (sent) {},
-          );
-
-          if (response?.isSuccess ?? false) {
-            aboutUsData?.value.management?.add(Management(
-                qualification: qualifications.map((item) => item.text).toList(),
-                name: name,
-                bio: bio,
-                photo: uploadDirectMessageInit.publicUrl,
-                position: position));
-            addManagementTrustController();
-          } else {
-            uploadFileToS3Response.value = ApiResponse.error('error');
-            commonSnackBar(
-                message: response?.message ?? AppStrings.somethingWentWrong);
-          }
-        } catch (e) {
-          isUploading.value = false;
-
-          uploadFileToS3Response.value = ApiResponse.error('error');
-          commonSnackBar(message: AppStrings.somethingWentWrong);
-        } finally {
-          isUploading.value = false;
-        }
-      } else {
-        isUploading.value = false;
-
-        uploadInitResponse.value = ApiResponse.error('error');
-        commonSnackBar(
-            message: response?.message ?? AppStrings.somethingWentWrong);
-      }
-    } catch (e) {
-      isUploading.value = false;
-      uploadInitResponse.value = ApiResponse.error('error');
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-    } finally {
-      isUploading.value = false;
     }
   }
 
@@ -479,5 +564,10 @@ class SchoolAboutUsController extends GetxController {
         (isTextChanged || directorMessageImageFile.value != null);
   }
 
+  updateAboutInfo() async {
+    final schoolAboutUsController = Get.find<SchoolAboutUsController>();
 
+    await schoolAboutUsController.getSchoolAboutUsController();
+    await schoolAboutUsController.getSchoolByIdController();
+  }
 }

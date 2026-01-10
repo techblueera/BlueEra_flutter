@@ -36,6 +36,8 @@ class _PrincipalMessageScreenState extends State<PrincipalMessageScreen> {
     // Listen for data load
     once(schoolAboutUsController.aboutUsData!, (AboutUsData? data) {
       if (data != null) {
+        schoolAboutUsController.directorProfile.value = data.principalMessage?.photo??"";
+
         // Set Initial Values for Comparison
         schoolAboutUsController.initialDirectText =
             data.principalMessage?.message ?? "";
@@ -124,7 +126,7 @@ class _PrincipalMessageScreenState extends State<PrincipalMessageScreen> {
                           onTap: schoolAboutUsController.isFormValid.value
                               ? () async {
                                   await schoolAboutUsController
-                                      .uploadDirectMessageDocInit();
+                                      . updateDirectMessageController();
                                 }
                               : null,
                           title: AppStrings.submit,
@@ -141,13 +143,57 @@ class _PrincipalMessageScreenState extends State<PrincipalMessageScreen> {
     );
   }
 
+
+
   Widget _buildImageSection() {
+    // If user picked a NEW local file
+    if (schoolAboutUsController.directorMessageImageFile.value != null) {
+      return CommonProfileImageUpload(
+        imageFile: schoolAboutUsController.directorMessageImageFile,
+        imgUrl: schoolAboutUsController.aboutUsData?.value.principalMessage?.photo ?? "",
+        onImageRemove: () {
+          schoolAboutUsController.directorMessageImageFile.value = null;
+          schoolAboutUsController.directorProfile.value =
+              schoolAboutUsController.directorMessageImageFile.value?.path ??
+                  "";
+          _runValidation();
+        },onImageSelected: (){
+
+      },
+        title: '',
+        context: context,
+      );
+    }
+
+    // If no local file but we have a NETWORK image from API
+    // Default: Show Upload Placeholder
+    return CommonProfileImageUpload(
+      title: "Upload Photo",
+      context: context,
+      imgUrl: schoolAboutUsController.aboutUsData?.value.principalMessage?.photo ?? "",
+      onImageSelected: () async {
+        final path = await CommonProfileImageUpload.pickImage(context: context);
+        if (path != null) {
+          schoolAboutUsController.directorProfile.value = path;
+          schoolAboutUsController.isDirectorImageUpdate.value = true;
+          schoolAboutUsController.directorMessageImageFile.value = File(path);
+          _runValidation();
+        }
+      },
+      imageFile: schoolAboutUsController.directorMessageImageFile,
+    );
+  }
+
+/*  Widget _buildImageSection__() {
     // If user picked a NEW local file
     if (schoolAboutUsController.directorMessageImageFile.value != null) {
       return CommonImageUploadTile(
         imageFile: schoolAboutUsController.directorMessageImageFile,
         onImageRemove: () {
+          schoolAboutUsController.isDirectorImageUpdate.value = false;
+
           schoolAboutUsController.directorMessageImageFile.value = null;
+          schoolAboutUsController.directorProfile.value = "";
           schoolAboutUsController.validateDirectMessageForm();
         },
         title: '',
@@ -176,7 +222,10 @@ class _PrincipalMessageScreenState extends State<PrincipalMessageScreen> {
                 icon: const Icon(Icons.delete, color: Colors.white),
                 onPressed: () {
                   // Clear initial URL to show "Change" happened
+                  schoolAboutUsController.isDirectorImageUpdate.value = false;
+
                   schoolAboutUsController.initialDirectImageUrl = "";
+                  schoolAboutUsController.directorProfile.value="";
                   schoolAboutUsController.validateDirectMessageForm();
                   setState(
                       () {}); // Refresh local UI to show upload placeholder
@@ -194,18 +243,21 @@ class _PrincipalMessageScreenState extends State<PrincipalMessageScreen> {
       onImageSelected: () async {
         final path = await CommonImageUploadTile.pickImage(context: context);
         if (path != null) {
+          schoolAboutUsController.directorProfile.value = path;
+          schoolAboutUsController.isDirectorImageUpdate.value = true;
+
           schoolAboutUsController.directorMessageImageFile.value = File(path);
           schoolAboutUsController.validateDirectMessageForm();
         }
       },
       imageFile: schoolAboutUsController.directorMessageImageFile,
     );
-  }
+  }*/
 
   void _runValidation() {
     schoolAboutUsController.noticesNewsValidateForm(
         noticeDescription: descriptionEditController.text,
         uploadPhoto:
-            schoolAboutUsController.directorMessageImageFile.value?.path ?? "");
+        schoolAboutUsController.directorProfile.value);
   }
 }

@@ -600,6 +600,7 @@ class AppIconAssets {
   static const String syllabus = "${iconPath}syllabus.svg";
   static const String  exam_schedule= "${iconPath}exam_schedule.svg";
   static const String downloads_new = "${iconPath}downloads_new.svg";
+  static const String edit_banner_icon = "${AppConstants.baseIconAssetsPath}edit_banner_icon.png";
   // static const String  = "${iconPath}.svg";
 
 }

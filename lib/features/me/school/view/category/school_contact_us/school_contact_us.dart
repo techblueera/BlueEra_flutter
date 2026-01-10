@@ -32,7 +32,6 @@ class SchoolContactUs extends StatefulWidget {
 }
 
 class _SchoolContactUsState extends State<SchoolContactUs> {
-  // final schoolAboutUsController = Get.find<SchoolAboutUsController>();
   final controller = Get.put(BranchContactController());
 
   @override
