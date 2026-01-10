@@ -44,6 +44,7 @@ class _BranchDetailsFormScreenState extends State<BranchDetailsFormScreen> {
     return Scaffold(
       appBar: CommonBackAppBar(title: "Contact Us"),
       body: CommonCardWidget(
+        padding: 0,
         child: SingleChildScrollView(
           padding: EdgeInsets.all(16),
           child: Column(

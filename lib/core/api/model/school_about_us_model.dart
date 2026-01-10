@@ -1,4 +1,6 @@
 import 'dart:convert';
+
+import 'package:BlueEra/core/api/model/school_details_res_model.dart';
 SchoolAboutUsModel schoolAboutUsModelFromJson(String str) => SchoolAboutUsModel.fromJson(json.decode(str));
 String schoolAboutUsModelToJson(SchoolAboutUsModel data) => json.encode(data.toJson());
 class SchoolAboutUsModel {
@@ -91,10 +93,10 @@ Management managementFromJson(String str) => Management.fromJson(json.decode(str
 String managementToJson(Management data) => json.encode(data.toJson());
 class Management {
   Management({
-      this.name, 
-      this.position, 
-      this.photo, 
-      this.bio, 
+      this.name,
+      this.position,
+      this.photo,
+      this.bio,
       this.qualification,
       this.id,});
 
@@ -127,33 +129,3 @@ class Management {
 
 }
 
-PrincipalMessage principalMessageFromJson(String str) => PrincipalMessage.fromJson(json.decode(str));
-String principalMessageToJson(PrincipalMessage data) => json.encode(data.toJson());
-class PrincipalMessage {
-  PrincipalMessage({
-      this.name, 
-      this.position, 
-      this.photo, 
-      this.message,});
-
-  PrincipalMessage.fromJson(dynamic json) {
-    name = json['name'];
-    position = json['position'];
-    photo = json['photo'];
-    message = json['message'];
-  }
-  String? name;
-  String? position;
-  String? photo;
-  String? message;
-
-  Map<String, dynamic> toJson() {
-    final map = <String, dynamic>{};
-    map['name'] = name;
-    map['position'] = position;
-    map['photo'] = photo;
-    map['message'] = message;
-    return map;
-  }
-
-}

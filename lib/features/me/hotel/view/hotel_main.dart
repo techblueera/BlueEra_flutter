@@ -5,7 +5,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/hotel/view/add_hotel_service_screen.dart';
 import 'package:BlueEra/features/me/hotel/view/hotel_home_screen.dart';
 import 'package:BlueEra/features/me/hotel/view/widget/add_hotel_service.dart';
-import 'package:BlueEra/features/me/school/view/school_home_screen.dart';
+import 'package:BlueEra/features/me/school/view/category/school_home/school_home_screen.dart';
 import 'package:BlueEra/features/me/school/view/school_update_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';

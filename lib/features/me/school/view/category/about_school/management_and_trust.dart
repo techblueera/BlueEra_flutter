@@ -75,7 +75,7 @@ class _ManagementAndTrustState extends State<ManagementAndTrust> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               /// Doctor Image
-                              Expanded(child: NetWorkOcToAssets(imgUrl: data?.photo ?? "")),
+                              Expanded(child: NetWorkOcToAssets(imgUrl: data?.photo ?? "",height: 140,)),
                               const SizedBox(width: 12),
 
                               /// Details
@@ -97,6 +97,7 @@ class _ManagementAndTrustState extends State<ManagementAndTrust> {
                                           onTap: () {
                                             Get.to(ManagementTrustFormScreen(
                                               isEdit: true,management: data,
+                                              editItemIndex: index,
                                             ));
                                           },
                                           child: const Icon(Icons.edit,

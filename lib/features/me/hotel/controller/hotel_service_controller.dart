@@ -12,7 +12,8 @@ class HotelServiceController extends GetxController {
   ///GENERATE VIA AI SCHOOL DETAILS....
   final searchController = TextEditingController();
   final websiteController = TextEditingController();
-
+  RxDouble lat = 0.0.obs;
+  RxDouble lng = 0.0.obs;
   // Text Editing Controllers for the Form
   final policeController = TextEditingController();
   final hospitalController = TextEditingController();

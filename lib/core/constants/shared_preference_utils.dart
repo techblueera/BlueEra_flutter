@@ -4,6 +4,8 @@ import 'package:BlueEra/core/language_localization_service/language_service_app.
 import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
+import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
+import 'package:BlueEra/features/me/school/controller/school_controller.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -211,6 +213,8 @@ class SharedPreferenceUtils {
           await SharedPreferenceUtils.getBaseUrlSecureValue();
       await _secureStorage.deleteAll();
       // await _secureStorage.isCupertinoProtectedDataAvailable();
+      Get.delete<SchoolAboutUsController>();
+      Get.delete<SchoolController>();
 
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove("last_dialog_shown");

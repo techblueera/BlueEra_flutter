@@ -81,21 +81,6 @@ class SchoolPreviewScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(InstitutionFetchData data) {
-    return Column(
-      children: [
-        if (data.logo != null) Image.network(data.logo!, height: 80),
-        SizedBox(height: 10),
-        CustomText(data.name ?? "",
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            textAlign: TextAlign.center),
-        Chip(
-            label: CustomText(data.type ?? ""),
-            backgroundColor: Colors.blue.shade50),
-      ],
-    );
-  }
 
   Widget _buildCourseList(List<Courses> courses) {
     return ListView.builder(

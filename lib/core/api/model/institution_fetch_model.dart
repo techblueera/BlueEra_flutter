@@ -28,8 +28,9 @@ InstitutionFetchData dataFromJson(String str) => InstitutionFetchData.fromJson(j
 String dataToJson(InstitutionFetchData data) => json.encode(data.toJson());
 class InstitutionFetchData {
   InstitutionFetchData({
-      this.name, 
-      this.type, 
+
+      this.name,
+      this.type,
       this.contactUs, 
       this.aboutUs, 
       this.academics, 
@@ -41,9 +42,11 @@ class InstitutionFetchData {
       this.logo, 
       this.newsAndEvents, 
       this.studentCorner, 
+      this.locationReq,
       this.website,});
 
   InstitutionFetchData.fromJson(dynamic json) {
+
     name = json['name'];
     type = json['type'];
     contactUs = json['contactUs'] != null ? ContactUs.fromJson(json['contactUs']) : null;
@@ -68,6 +71,7 @@ class InstitutionFetchData {
     }
     studentCorner = json['studentCorner'] != null ? StudentCorner.fromJson(json['studentCorner']) : null;
     website = json['website'];
+    locationReq = json['location'];
   }
   String? name;
   String? type;
@@ -83,9 +87,11 @@ class InstitutionFetchData {
   List<NewsAndEvents>? newsAndEvents;
   StudentCorner? studentCorner;
   String? website;
+dynamic? locationReq;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
+    map['location'] = locationReq;
     map['name'] = name;
     map['type'] = type;
     if (contactUs != null) {
@@ -114,6 +120,7 @@ class InstitutionFetchData {
       map['studentCorner'] = studentCorner?.toJson();
     }
     map['website'] = website;
+    map['location'] = locationReq;
     return map;
   }
 

@@ -92,7 +92,6 @@ class _AddMoreCourseScreenState extends State<AddMoreCourseScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        showRightTextButton: true,
         isShowMoreInfoIcon: true,
         title: "Add More Course",
         isShadowShow: false,
@@ -171,7 +170,7 @@ class _AddMoreCourseScreenState extends State<AddMoreCourseScreen> {
                   textEditController: courseDurationEditController,
                   hintText: "E.g. 4 Years",
                   title: "Course Duration",
-                  maxLength: 30,
+                  maxLength: 15,
                   onChange: (_) => _runValidation(),
                 ),
                 SizedBox(height: SizeConfig.paddingM),

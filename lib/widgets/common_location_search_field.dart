@@ -84,6 +84,7 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
       final response = await PlaceRepo().autoCompleteSearch(query: query);
       if (response.statusCode == 200) {
         final data = response.response?.data;
+        logs("SEARCH DATA === ${data}");
         final list = data?['predictions'] as List? ?? [];
 
         // Parse on background isolate to avoid frame drop
@@ -203,6 +204,7 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
                 fontWeight: FontWeight.w700,
               ),
               onTap: () {
+                logs("item==== ${item.lat}");
                 String placeId = item.placeId ?? '';
                 String currentAddress = item.description ?? '';
                 double latitude = item.lat ?? 0.0;

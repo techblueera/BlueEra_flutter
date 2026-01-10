@@ -1,11 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
-import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/school/controller/department_controller.dart';
 import 'package:BlueEra/features/me/school/view/category/acadamics/add_more_department_screen.dart';
-import 'package:BlueEra/features/me/school/view/widget/add_more_icon_button.dart';
-import 'package:BlueEra/features/me/school/view/widget/department_card_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';

@@ -6,7 +6,12 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/institution_fetch_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_bar_screen.dart';
+import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
 import 'package:BlueEra/features/me/school/repo/school_repo.dart';
 import 'package:BlueEra/features/me/school/view/category/school_preview_screen.dart';
 import 'package:flutter/material.dart';
@@ -14,145 +19,27 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
 class SchoolController extends GetxController {
-  final Rxn<File> directorMessageImageFile = Rxn<File>();
-  final Rxn<File> historyImageFile = Rxn<File>();
-  final Rxn<File> noticeNewsImageFile = Rxn<File>();
-  RxString historyText = ''.obs;
-  RxString notice_news_messageText = ''.obs;
-  RxString directorMessageText = ''.obs;
-  RxString departmentDescriptionText = ''.obs;
-  RxString courseDescriptionText = ''.obs;
-
-  ///DEPARTMENT SCREEN LOGIC
-  var selectedImages = <File>[].obs;
-  final ImagePicker _picker = ImagePicker();
-
-  // Pick images from gallery or camera
-  Future<void> pickImages(ImageSource source) async {
-    if (selectedImages.length >= 5) {
-      Get.snackbar("Limit Reached", "You can only add up to 5 images.");
-      return;
-    }
-
-    if (source == ImageSource.gallery) {
-      final List<XFile> pickedFiles = await _picker.pickMultiImage();
-      // Only add images up to the limit of 5
-      for (var file in pickedFiles) {
-        if (selectedImages.length < 5) {
-          selectedImages.add(File(file.path));
-        }
-      }
-    } else {
-      final XFile? pickedFile = await _picker.pickImage(source: source);
-      if (pickedFile != null) {
-        selectedImages.add(File(pickedFile.path));
-      }
-    }
-  }
-
-  void removeImage(int index) {
-    selectedImages.removeAt(index);
-  }
-
-  int maxDepartmentImageUpload = 5;
-  final RxList<File> addMoreImages = <File>[].obs;
-
-// Validation Variables
-  final isFormValid = false.obs;
-
-  // This function checks all conditions
-  void courseValidateForm({
-    required String courseName,
-    required String admissionProcess,
-    required String eligibility,
-    required String courseFee,
-    required String description,
-    required String courseDuration,
-  }) {
-    // Condition: All text fields not empty AND at least 1 image
-    isFormValid.value = courseName.isNotEmpty &&
-        admissionProcess.isNotEmpty &&
-        eligibility.isNotEmpty &&
-        courseFee.isNotEmpty &&
-        courseDuration.isNotEmpty &&
-        description.isNotEmpty;
-  }
-
-  // This function checks all conditions
-  void validateForm({
-    required String deptName,
-    required String hodName,
-    required String staffNames,
-    required String description,
-    required List images,
-  }) {
-    // Condition: All text fields not empty AND at least 1 image
-    isFormValid.value = deptName.isNotEmpty &&
-        hodName.isNotEmpty &&
-        staffNames.isNotEmpty &&
-        description.isNotEmpty &&
-        images.isNotEmpty;
-  }
-
-  void contactUsValidateForm({
-    required String branchName,
-    required String branchWebsiteUrl,
-    required String branchLocation,
-    required String departmentRole,
-    required String departmentEmailAddress,
-    required String departmentPhoneNo,
-  }) {
-    // Condition: All text fields not empty AND at least 1 image
-    isFormValid.value = branchName.isNotEmpty &&
-        branchWebsiteUrl.isNotEmpty &&
-        branchLocation.isNotEmpty &&
-        departmentRole.isNotEmpty &&
-        departmentPhoneNo.isNotEmpty &&
-        departmentEmailAddress.isNotEmpty;
-  }
-
-
-
-
-
-  ///ADD COURSE...
-// Radio button state
-  var feeType = 'Yearly'.obs; // Default selection
-
-  // Fee amount
-  var feeAmount = ''.obs;
-
-  void setFeeType(String? value) {
-    if (value != null) feeType.value = value;
-  }
-
-
-
-  ///Only Gallery Validation
-  void addPhotosValidateForm({
-    required String uploadPhoto,
-    required String title,
-  }) {
-    // Condition: All text fields not empty AND at least 1 image
-    isFormValid.value = title.isNotEmpty && uploadPhoto.isNotEmpty;
-  }
-
   ///GENERATE VIA AI SCHOOL DETAILS....
   final searchController = TextEditingController();
   final websiteController = TextEditingController();
-  final fullSchoolAddressController = TextEditingController();
+RxBool hasSchool = false.obs;
+  // final fullSchoolAddressController = TextEditingController();
+  RxDouble lat = 0.0.obs;
+  RxDouble lng = 0.0.obs;
 
   clearAiGenerateFiled() {
     searchController.clear();
     websiteController.clear();
-    fullSchoolAddressController.clear();
+    // fullSchoolAddressController.clear();
+    lat.value = 0.0;
+    lng.value = 0.0;
   }
 
   @override
   void onClose() {
     searchController.dispose();
     websiteController.dispose();
-    fullSchoolAddressController.dispose();
+    // fullSchoolAddressController.dispose();
     super.onClose();
   }
 
@@ -168,7 +55,6 @@ class SchoolController extends GetxController {
     // Logic for AI generation goes here
     Get.back();
     try {
-
       ResponseModel response =
           await SchoolRepo().aiInstitutionFetchDetailsRepo(reqBody: {
         ApiKeys.name: school,
@@ -196,12 +82,41 @@ class SchoolController extends GetxController {
   Future<void> createSchoolController() async {
     // Logic for AI generation goes here
     try {
-      ResponseModel response = await SchoolRepo().createSchoolRepo(
-          reqBody: (institutionFetchModel?.value.data ?? {}));
+      institutionFetchModel?.value.data?.locationReq = {
+        "name": searchController.text,
+        "type": "Point",
+        "coordinates": [lat.value, lng.value]
+      };
+
+      ResponseModel response = await SchoolRepo()
+          .createSchoolRepo(reqBody: (institutionFetchModel?.value.data ?? {}));
       if (response.isSuccess) {
         commonSnackBar(message: "School create successfully");
         createSchoolResponse.value =
             ApiResponse.complete(institutionFetchModel);
+        String? schoolID = response.response?.data['data']['_id'];
+
+        final controller = Get.isRegistered<SchoolAboutUsController>()
+            ? Get.find<SchoolAboutUsController>()
+            : Get.put(SchoolAboutUsController());
+
+        if (schoolID != null && schoolID.isNotEmpty) {
+          await setSchoolID(schoolID);
+        } else {
+          await setSchoolID("");
+        }
+        await getSchoolID();
+        hasSchool.value=schoolIDGlobal.isNotEmpty;
+
+        await controller.updateAboutInfo();
+
+        Get.until((route) =>
+        route.settings
+            .name ==
+            RouteHelper
+                .getBottomNavigationBarScreenRoute());
+        // Get.offAll(BottomNavigationBarScreen());
+
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
         createSchoolResponse.value =
