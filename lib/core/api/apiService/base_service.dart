@@ -581,8 +581,11 @@ abstract class BaseService {
   String enableHotelServiceStatus(String categoryId) =>  'health-service/api/categories/$categoryId/status';
   final String fetchHotelFromAi = 'ai-service/api/ai-hotel/fetch-details';
   final String createHotelService = 'hotel-service/api/businesses';
-  final String hotelBulkStatus = 'hotel-service/api/hotels/offerings/bulk-toggle';
-  final String hotelBulkCatalogStatus = 'hotel-service/api/businesses/hotels/catalog';
+  final String hotelBulkStatus = 'hotel-service/api/hotels//offerings/bulk-toggle';
+  final String hotelBulkCatalogStatus = 'hotel-service/api/businesses/hotels//catalog';
+  final String saveHospitalAiDetails = 'health-service/api/businesses/ai-hospital/offerings/save';
+  // final String hotelBulkStatus = 'hotel-service/api/hotels/offerings/bulk-toggle';
+  // final String hotelBulkCatalogStatus = 'hotel-service/api/businesses/hotels/catalog';
   final String schoolUserID = 'education-service/schools/';
   final String myGroceryOrders = 'rider-service/grocery/orders/business';
   final String groceryOrderItemAvailability = 'rider-service/grocery/orders/item-availability';

@@ -129,7 +129,7 @@ class _HospitalMainState extends State<HospitalMain>
               Expanded(child: TabBarView(
                 controller: _tabController,
                 children: [
-                  HospitalPreviewPage(),
+                  HospitalPreviewScreen(),
                   // NoProfileDetailsFound(content: "You Have not Upload Hospital Details"),
                   CategoryListView(),
                   const Center(child: CustomText(AppStrings.comingSoon)),

@@ -400,7 +400,9 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       }*/ else {
         return const InventoryScreen(fromBottomNavBar: true);
       }
-    } else {
+    } else if (businessCategoryGlobal == AppConstants.hostelsStayService) {
+      return const HotelMain();
+    }else{
       // 3. If it is NOT Food (e.g., Product, Service, etc.)
       return const InventoryScreen(fromBottomNavBar: true);
     }

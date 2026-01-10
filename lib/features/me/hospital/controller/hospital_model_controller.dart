@@ -22,14 +22,36 @@ class HospitalModelController extends GetxController {
   final hospitalAddressTextController=TextEditingController();
   final hospitalLinkTextController=TextEditingController();
   RxBool isAiBtnLoading=false.obs;
-  Rxn<HospitalData> hospitalData = Rxn<HospitalData>();
+  RxBool saveAiDetailsLoading=false.obs;
+  Rx<HospitalPreviewResponse> hospitalData = HospitalPreviewResponse().obs;
+  Map<String,dynamic> aiRawDetails={
+  };
+  // Controllers for editable fields
+  final phoneController = TextEditingController();
+  final emergencyController = TextEditingController();
+  final emailController = TextEditingController();
+  final addressController = TextEditingController();
 
-  void setHospitalData(dynamic responseData) {
-    final hospital =
-    HospitalResponse.fromJson({"success": true, "data": responseData});
-
-    hospitalData.value = hospital.data;
+  void setContactControllers(ContactUs? contact) {
+    phoneController.text = contact?.phone ?? '';
+    emergencyController.text = contact?.emergencyPhone ?? '';
+    emailController.text = contact?.email ?? '';
+    addressController.text = contact?.address ?? '';
   }
+  Rx<ApiResponse> hospitalAiDataResponse =
+      ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> hospitalAiDataSaveResponse =
+      ApiResponse.initial('Initial').obs;
+  /// Holds user edits
+  final Map<String, TextEditingController> editControllers = {};
+
+  TextEditingController getController(String key, String value) {
+    if (!editControllers.containsKey(key)) {
+      editControllers[key] = TextEditingController(text: value);
+    }
+    return editControllers[key]!;
+  }
+
 
 
   Future<void> fetchHospitalCategoryData(String categoryTopic) async {
@@ -108,13 +130,38 @@ class HospitalModelController extends GetxController {
     ResponseModel response =
     await medicalRepo.getHospitalFromAi(params);
     if (response.isSuccess) {
-      setHospitalData(response.response?.data);
+      aiRawDetails=response.response?.data;
+      hospitalData.value =HospitalPreviewResponse.fromJson(response.response?.data);
+      Get.back();
       isAiBtnLoading.value=false;
+      hospitalAiDataResponse.value =ApiResponse.complete(hospitalData.value );
     } else {
       isAiBtnLoading.value=false;
-      commonSnackBar(message: AppStrings.somethingWentWrong);
+      commonSnackBar(message: response.message??AppStrings.somethingWentWrong);
+      hospitalAiDataResponse.value =ApiResponse.error("Error");
     }
+  }
+  Future<void> saveAiHospitalDetails()async {
+    Map<String,dynamic> params ={
+      "data":aiRawDetails['data']
+    };
+    saveAiDetailsLoading.value=true;
+    ResponseModel response =
+    await medicalRepo.saveAiDetailsOfHospital(params);
+    if (response.isSuccess) {
+      log("dslkjcnskjdcnskjdc ${response.data}");
+      hospitalAiDataSaveResponse.value =ApiResponse.complete(response.response?.data);
+      saveAiDetailsLoading.value=false;
+    } else {
+      isAiBtnLoading.value=false;
+      commonSnackBar(message: response.message??AppStrings.somethingWentWrong);
+      hospitalAiDataSaveResponse.value =ApiResponse.error("Error");
+      saveAiDetailsLoading.value=false;
+    }
+
   }
 
 
 }
+//https://themissionhospital.com/
+//The Mission Hospital

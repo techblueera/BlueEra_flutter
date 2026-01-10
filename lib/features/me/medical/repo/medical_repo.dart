@@ -34,5 +34,13 @@ class MedicalRepo extends BaseService {
    onError: (error) {}, onSuccess: (data) {});
     return response;
   }
+  Future<ResponseModel> saveAiDetailsOfHospital(Map<String,dynamic> params) async {
+    final response = await ApiBaseHelper().postHTTP(
+        saveHospitalAiDetails,
+        params: params,
+        showProgress: false,
+   onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
 
 }
