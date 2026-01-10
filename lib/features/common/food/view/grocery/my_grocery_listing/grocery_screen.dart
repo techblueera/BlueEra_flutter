@@ -8,6 +8,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/food/controller/grocery_controller.dart';
 import 'package:BlueEra/features/common/food/controller/user_grocery_controller.dart';
 import 'package:BlueEra/features/common/food/view/grocery/my_grocery_listing/my_grocery_super_category_screen.dart';
+import 'package:BlueEra/features/common/food/view/grocery/my_grocery_orders/my_grocery_orders.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_search_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -29,7 +30,7 @@ class _GroceryScreenState extends State<GroceryScreen> with SingleTickerProvider
   TabController? _tabController;
   final TextEditingController searchController = TextEditingController();
   final List<Tab> _tabs = [
-    Tab(text: AppStrings.orders.tr),
+    Tab(text: AppStrings.myOrder.tr),
     Tab(text: AppStrings.myStore.tr),
     Tab(text: AppStrings.statistics.tr),
   ];
@@ -90,7 +91,7 @@ class _GroceryScreenState extends State<GroceryScreen> with SingleTickerProvider
             body: TabBarView(
               controller: _tabController,
               children: [
-                Center(child: CustomText(AppStrings.comingSoon)),
+                MyGroceryOrders(),
                 MyGrocerySuperCategoryScreen(),
                 Center(child: CustomText(AppStrings.comingSoon))
               ]

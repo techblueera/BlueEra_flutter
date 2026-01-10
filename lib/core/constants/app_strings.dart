@@ -304,6 +304,7 @@ class AppStrings {
   static const completed = "completed";
   static const canceled = "canceled";
   static const download = "download";
+  static const payment = "payment";
 
   static const myBusinessCard = "myBusinessCard";
   static const lekha = "lekha";
