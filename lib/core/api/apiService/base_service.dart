@@ -583,6 +583,11 @@ abstract class BaseService {
   final String createHotelService = 'hotel-service/api/businesses';
   final String hotelBulkStatus = 'hotel-service/api/hotels//offerings/bulk-toggle';
   final String hotelBulkCatalogStatus = 'hotel-service/api/businesses/hotels//catalog';
+  final String hotelBulkStatus = 'hotel-service/api/hotels/offerings/bulk-toggle';
+  final String hotelBulkCatalogStatus = 'hotel-service/api/businesses/hotels/catalog';
+  final String schoolUserID = 'education-service/schools/';
+  // final String hotelBulkStatus = 'hotel-service/api/hotels//offerings/bulk-toggle';
+  // final String hotelBulkCatalogStatus = 'hotel-service/api/businesses/hotels//catalog';
   final String saveHospitalAiDetails = 'health-service/api/businesses/ai-hospital/offerings/save';
   // final String hotelBulkStatus = 'hotel-service/api/hotels/offerings/bulk-toggle';
   // final String hotelBulkCatalogStatus = 'hotel-service/api/businesses/hotels/catalog';
