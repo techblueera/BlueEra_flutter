@@ -87,5 +87,18 @@ class EarnServiceRepo extends BaseService {
     return response;
   }
 
+  ///Fetch Predefined services Data...
+  Future<ResponseModel> predefinedServiceCategoryRepo(
+      {required String designation, required Map<String, String> queryParams}) async {
+    final response = await ApiBaseHelper().getHTTP(
+        predefinedServiceCategory(designation),
+        params: queryParams,
+        showProgress: false,
+        onError: (error) {},
+        onSuccess: (data) {});
+
+    return response;
+  }
+
 
 }

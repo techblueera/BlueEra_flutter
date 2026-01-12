@@ -591,5 +591,6 @@ abstract class BaseService {
   final String groceryOrderItemAvailability = 'rider-service/grocery/orders/item-availability';
   final String groceryOrderAvailableItem = 'rider-service/grocery/orders/available-items';
   final String groceryOrderUpdatePaymentStatus = 'rider-service/grocery/orders/payment-status';
+  String predefinedServiceCategory(String category) => 'earn-service/predefined/$category';
 
 }

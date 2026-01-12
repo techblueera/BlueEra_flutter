@@ -56,16 +56,16 @@ class EarnServiceController extends GetxController{
   void handleServiceTap(BuildContext context, IndividualProfileCategory service) async {
     switch (service.slugId) {
       case SELF_EMPLOYED:
-        if(earnServiceCreatedStatusGlobal == 'true'){
-          commonSnackBar(message: AppStrings.youCanOptOnlyOneService.tr);
-        }else{
+        // if(earnServiceCreatedStatusGlobal == 'true'){
+        //   commonSnackBar(message: AppStrings.youCanOptOnlyOneService.tr);
+        // }else{
           showModalBottomSheet(
             context: context,
             backgroundColor: Colors.transparent,
             isScrollControlled: true,
             builder: (_) => SelfWorkServiceGuideBottomSheet(),
           );
-        }
+        // }
 
         break;
 

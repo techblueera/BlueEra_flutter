@@ -1102,3 +1102,21 @@ enum GroceryPaymentMode {
   // Constructor
   const GroceryPaymentMode(this.label, this.apiValue);
 }
+
+enum ServiceType {
+  residential('Residential', 'residential'),
+  commercial('Commercial', 'commercial'),
+  industrial('Industrial', 'industrial'),
+  maintenance('Maintenance & Repair', 'maintenance'),
+  emergency('Emergency Service', 'emergency');
+
+  // Properties
+  final String label;    // What the user sees (e.g., "Residential")
+  final String apiValue; // What you send to the server (e.g., "residential")
+
+  // Constructor
+  const ServiceType(this.label, this.apiValue);
+
+  // Helper: Get just the labels for Dropdowns
+  static List<String> get labels => values.map((e) => e.label).toList();
+}

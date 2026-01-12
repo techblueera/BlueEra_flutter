@@ -12,7 +12,7 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/account_setting_screen/account_settings_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/controller/earn_service_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_profession_details_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/self_profession_details_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_orders.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
 import 'package:BlueEra/features/common/food/view/food_and_grocery_screen.dart';

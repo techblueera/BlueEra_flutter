@@ -600,4 +600,14 @@ class ApiKeys {
   static const paymentStatus = 'paymentStatus';
   static const paymentMode = 'paymentMode';
   static const amountPaid = 'amountPaid';
+  static const argWorkType = 'argWorkType';
+  static const segment = 'segment';
+  static const years = 'years';
+  static const months = 'months';
+  static const serviceOffered = 'serviceOffered';
+  static const typesOfWork = 'typesOfWork';
+  static const expertise = 'expertise';
+  static const workCategories = 'workCategories';
+  static const whyChooseMe = 'whyChooseMe';
+  static const serviceType = 'serviceType';
 }

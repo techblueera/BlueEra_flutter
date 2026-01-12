@@ -21,7 +21,6 @@ import 'package:BlueEra/features/common/delivery_partner/view/address_location_r
 import 'package:BlueEra/features/common/delivery_partner/view/driving_verification_riding_screen.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/personal_identification_riding_screen.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/personal_information_riding_screen.dart';
-import 'package:BlueEra/features/common/delivery_partner/view/rider_profile_status_screen.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/rider_store/rider_store_screen.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/vehicle_images_riding_screen.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/vehicle_information_riding_screen.dart';
@@ -83,6 +82,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/booking_enquirie
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/my_enquires_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/received_enquiries_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/send_enquiry_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/add_self_work_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/rider_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
@@ -467,6 +467,10 @@ class RouteHelper {
 
   static String getGroceryConfirmScreenRoute() =>
       RouteConstant.groceryConfirmScreen;
+
+  static String getAddSelfServiceRoute() =>
+      RouteConstant.addSelfServiceScreen;
+
 
 
   ///REDIRECT ROUTING SETUP.....
@@ -1456,6 +1460,19 @@ class RouteHelper {
             ),
             settings: RouteSettings(name: getHospitalDoctorViewCategory())
         );
+      case RouteConstant.addSelfServiceScreen:
+      final args = settings.arguments as Map<String, dynamic>;
+      final EarnServiceTypes serviceSubType = args[ApiKeys.serviceSubType] as EarnServiceTypes;
+      final String designation = args[ApiKeys.designation] as String;
+        return MaterialPageRoute(
+            builder: (_) => AddSelfServiceScreen(
+              designation: designation,
+              serviceSubType: serviceSubType
+            ),
+            settings: RouteSettings(name: getAddSelfServiceRoute())
+        );
+
+
       default:
         return MaterialPageRoute(
           builder: (_) => const Scaffold(
