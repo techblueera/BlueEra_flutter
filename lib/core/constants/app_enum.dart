@@ -1079,3 +1079,34 @@ extension BankAccountTypeExtension on BankAccountType {
     );
   }
 }
+
+
+enum BedType {
+  singleBed("Single Bed"),
+  twinBed("Twin Bed"),
+  doubleBed("Double Bed"),
+  queenBed("Queen Bed"),
+  kingBed("King Bed"),
+  superKingBed("Super King Bed"),
+  extraBed("Extra Bed"),
+  sofaBed("Sofa Bed"),
+  bunkBed("Bunk Bed"),
+  murphyBed("Murphy Bed");
+
+  final String name;
+  const BedType(this.name);
+}
+
+enum OccupancyType {
+  single("Single Occupancy"),
+  double("Double Occupancy"),
+  triple("Triple Occupancy"),
+  quad("Quad Occupancy"),
+  twinSharing("Twin Sharing"),
+  doubleSharing("Double Sharing"),
+  family("Family Occupancy"),
+  group("Group Occupancy");
+
+  final String name;
+  const OccupancyType(this.name);
+}

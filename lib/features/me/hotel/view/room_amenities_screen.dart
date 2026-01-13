@@ -38,7 +38,7 @@ class _RoomAmenitiesScreenState extends State<RoomAmenitiesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title:"${widget.hotelCategoryData.name}",
+        title: "${widget.hotelCategoryData.name}",
       ),
       body: Column(
         children: [
@@ -51,33 +51,38 @@ class _RoomAmenitiesScreenState extends State<RoomAmenitiesScreen> {
                   itemBuilder: (context, index) {
                     final room = hotelDetailController
                         .hotelServiceSubCategoryList[index];
-                   return CommonCardWidget(
-                        borderColorColor: AppColors.whiteE5,
-                        cardMargin: 7,
-                        padding: 10,
-                        child: Row(
-                          children: [
-                            LocalAssets(
-                                imagePath:
-                                "assets/category/hotel_service/${room.key}.svg"),
-                            SizedBox(
-                              width: SizeConfig.size10,
-                            ),
-                            Expanded(
-                              child: CustomText(
-                                room.name,
-                                color: AppColors.secondaryTextColor,
-                                fontSize: 18,
-                              ),
-                            ),
-                            Switch(
-                              value: room.isEnabled ?? false,
-                              activeColor: AppColors.primaryColor,
-                              onChanged: (val) =>
-                                  hotelDetailController.toggleRoom(index, val),
-                            ),
-                          ],
-                        ));
+                    return (room.name == "Spa")
+                        ? SizedBox.shrink()
+                        : CommonCardWidget(
+                            borderColorColor: AppColors.whiteE5,
+                            cardMargin: 7,
+                            padding: 10,
+                            child: Row(
+                              children: [
+                                LocalAssets(
+                                    imagePath:
+                                        "assets/category/hotel_service/${room.key}.svg"),
+                                SizedBox(
+                                  width: SizeConfig.size10,
+                                ),
+                                Expanded(
+                                  child: CustomText(
+                                    room.name,
+                                    color: AppColors.secondaryTextColor,
+                                    fontSize: 18,
+                                  ),
+                                ),
+                        Transform.scale(
+                            scale: 0.75,
+                                  child: Switch(
+                                    value: room.isEnabled ?? false,
+                                    activeColor: AppColors.primaryColor,
+                                    onChanged: (val) => hotelDetailController
+                                        .toggleRoom(index, val),
+                                  ),
+                                ),
+                              ],
+                            ));
                   },
                 )),
           ),

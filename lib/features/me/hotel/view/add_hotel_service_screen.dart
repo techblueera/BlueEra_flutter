@@ -5,13 +5,12 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/hotel/controller/hotel_category_controller.dart';
 import 'package:BlueEra/features/me/hotel/view/hotel_amenities_screen.dart';
-import 'package:BlueEra/features/me/hotel/view/hotel_policies_screen.dart';
+import 'package:BlueEra/features/me/hotel/view/hotel_contact_us/hotel_contact_us.dart';
 import 'package:BlueEra/features/me/hotel/view/hotel_property_screen.dart';
 import 'package:BlueEra/features/me/hotel/view/room_amenities_screen.dart';
 import 'package:BlueEra/features/me/hotel/view/room_detils_screen.dart';
-import 'package:BlueEra/features/me/school/view/category/school_contact_us/school_contact_us.dart';
+import 'package:BlueEra/features/me/hotel/view/room_listing_screen.dart';
 import 'package:BlueEra/features/me/school/view/school_update_screen.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -30,7 +29,9 @@ class _AddHotelServiceScreenState extends State<AddHotelServiceScreen> {
 
   void handleNavigation(dynamic data) {
     final Map<String, Widget Function()> routeMap = {
-      "ROOM_DETAILS": () => RoomSelectionScreen(
+      // "ROOM_DETAILS": () => RoomListingScreen(),
+      // "ROOM_DETAILS": () => RoomDesignScreen(),
+        "ROOM_DETAILS": () => RoomSelectionScreen(
             hotelCategoryData: data,
           ),
       "ROOM_AMENITIES": () => RoomAmenitiesScreen(
@@ -40,12 +41,14 @@ class _AddHotelServiceScreenState extends State<AddHotelServiceScreen> {
             hotelCategoryData: data,
           ),
       "HOTEL_POLICIES": () => HotelPropertySettingsScreen(
-        hotelCategoryData: data,
+            hotelCategoryData: data,
           ),
       "CAREER": () => ComingSoon(),
       "PROPERTY_PHOTOS": () => ComingSoon(),
       "RESTAURANT_MENU": () => ComingSoon(),
-      "CONTACT_US": () => ComingSoon(),
+      "CONTACT_US": () => HotelContactUs(
+            // hotelCategoryData: data,
+          ),
       "ABOUT_PROPERTY": () => ComingSoon(),
       "UPLOAD_DOCUMENT": () => ComingSoon(),
     };

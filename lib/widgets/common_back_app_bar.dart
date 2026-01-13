@@ -478,6 +478,10 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
       ),
       actions: [
+        if (actionText?.isNotEmpty ?? false) Padding(
+          padding: const EdgeInsets.only(right: 25),
+          child: CustomText(actionText),
+        ),
         if (isRejectButton ?? false)
           Builder(
             builder: (context) => rejectButton!(),
@@ -716,33 +720,33 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
               width: 24,
             ),
           ),
-        if(isShowAcceptOrRejectBtn??false)
-        InkWell(
-          onTap: onTabAcceptBtn,
-          child: Container(
-            margin: EdgeInsets.symmetric(horizontal: 20),
-            padding: EdgeInsets.symmetric(
-              horizontal: SizeConfig.size14,
-              vertical: SizeConfig.size6,
+        if (isShowAcceptOrRejectBtn ?? false)
+          InkWell(
+            onTap: onTabAcceptBtn,
+            child: Container(
+              margin: EdgeInsets.symmetric(horizontal: 20),
+              padding: EdgeInsets.symmetric(
+                horizontal: SizeConfig.size14,
+                vertical: SizeConfig.size6,
+              ),
+              decoration: BoxDecoration(
+                color: orderAcceptBgColor,
+                border: Border.all(color: orderAcceptBorderColor!),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CustomText(
+                    orderAcceptText,
+                    fontSize: SizeConfig.small,
+                    fontWeight: FontWeight.w400,
+                    color: orderAcceptTextColor,
+                  ),
+                ],
+              ),
             ),
-            decoration: BoxDecoration(
-              color: orderAcceptBgColor,
-              border: Border.all(color: orderAcceptBorderColor!),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                CustomText(
-                  orderAcceptText,
-                  fontSize: SizeConfig.small,
-                  fontWeight: FontWeight.w400,
-                  color: orderAcceptTextColor,
-                ),
-              ],
-            ),
-          ),
-        )
+          )
       ],
       bottom: bottomWidget,
     );

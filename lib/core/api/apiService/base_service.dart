@@ -581,5 +581,7 @@ abstract class BaseService {
   final String hotelBulkStatus = 'hotel-service/api/hotels/offerings/bulk-toggle';
   final String hotelBulkCatalogStatus = 'hotel-service/api/businesses/hotels/catalog';
   final String schoolUserID = 'education-service/schools/';
+  final String hotelsOfferings = 'hotel-service/api/hotels/offerings';
+  final String hotelsContactUsGet = 'hotel-service/api/businesses/profile/about-us';
 
 }

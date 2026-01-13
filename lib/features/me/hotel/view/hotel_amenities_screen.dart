@@ -49,7 +49,7 @@ class _HotelAmenitiesScreenState extends State<HotelAmenitiesScreen> {
                   itemBuilder: (context, index) {
                     final room = hotelDetailController
                         .hotelServiceSubCategoryList[index];
-                    return CommonCardWidget(
+                    return   ( room.name == "Spa")?SizedBox.shrink(): CommonCardWidget(
                         borderColorColor: AppColors.whiteE5,
                         cardMargin: 7,
                         padding: 10,
@@ -68,11 +68,14 @@ class _HotelAmenitiesScreenState extends State<HotelAmenitiesScreen> {
                                 fontSize: 18,
                               ),
                             ),
-                            Switch(
-                              value: room.isEnabled ?? false,
-                              activeColor: AppColors.primaryColor,
-                              onChanged: (val) =>
-                                  hotelDetailController.toggleRoom(index, val),
+                        Transform.scale(
+                            scale: 0.75,
+                              child: Switch(
+                                value: room.isEnabled ?? false,
+                                activeColor: AppColors.primaryColor,
+                                onChanged: (val) =>
+                                    hotelDetailController.toggleRoom(index, val),
+                              ),
                             ),
                           ],
                         ));

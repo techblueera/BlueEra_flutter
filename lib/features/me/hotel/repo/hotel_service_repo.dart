@@ -34,4 +34,29 @@ class HotelServiceRepo extends BaseService {
     return response;
   }
 
+  ///UPDATE HOTEL Bulk SERVICE DETAILS...
+  Future<ResponseModel> addHotelPoliciesRepo(
+      {required Map<String, dynamic> reqBody}) async {
+    final response = await ApiBaseHelper().postHTTP(hotelsOfferings,
+        params: reqBody, onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+  Future<ResponseModel> getHotelContactRepo() async {
+    final response = await ApiBaseHelper().getHTTP(
+        "${hotelsContactUsGet}",
+        onError: (error) {},
+        onSuccess: (data) {});
+    return response;
+  }
+  ///CREATE CONTACT US SCHOOL Course REPO....
+  Future<ResponseModel> createHotelBranchContactRepo(
+      {required Map<String, dynamic> reqParm}) async {
+    final response = await ApiBaseHelper().patchHTTP(
+        "${hotelsContactUsGet}",
+        params: reqParm,
+        onError: (error) {},
+        onSuccess: (data) {});
+    return response;
+  }
+
 }
