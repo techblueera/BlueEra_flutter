@@ -395,9 +395,9 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         BusinessType.Service.name.toUpperCase()) {
       if (businessCategoryGlobal == AppConstants.educationTraining) {
         return const SchoolMain();
-      }/*else if (businessCategoryGlobal == AppConstants.hostelsStayService) {
+      }else if (businessCategoryGlobal == AppConstants.hostelsStayService) {
         return const HotelMain();
-      }*/ else {
+      } else {
         return const InventoryScreen(fromBottomNavBar: true);
       }
     } else if (businessCategoryGlobal == AppConstants.hostelsStayService) {

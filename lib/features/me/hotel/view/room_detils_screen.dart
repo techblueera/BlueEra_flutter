@@ -68,11 +68,14 @@ class _RoomSelectionScreenState extends State<RoomSelectionScreen> {
                                 fontSize: 18,
                               ),
                             ),
-                            Switch(
-                              value: room.isEnabled ?? false,
-                              activeColor: AppColors.primaryColor,
-                              onChanged: (val) =>
-                                  hotelDetailController.toggleRoom(index, val),
+                            Transform.scale(
+                              scale: 0.75, // Makes the switch smaller
+                              child: Switch(
+                                value: room.isEnabled ?? false,
+                                activeColor: AppColors.primaryColor,
+                                onChanged: (val) =>
+                                    hotelDetailController.toggleRoom(index, val),
+                              ),
                             ),
                           ],
                         ));
