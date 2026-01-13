@@ -594,5 +594,6 @@ abstract class BaseService {
   String predefinedServiceCategory(String category) => 'earn-service/predefined/$category';
   final String hotelsOfferings = 'hotel-service/api/hotels/offerings';
   final String hotelsContactUsGet = 'hotel-service/api/businesses/profile/about-us';
+  final String foodAiGenerate = 'ai-service/api/ai-food/generate';
 
 }

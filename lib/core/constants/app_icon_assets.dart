@@ -580,5 +580,7 @@ class AppIconAssets {
   static const String searchJobIcon = "${iconPath}search_job_icon.svg";
   static const String riderIconColorful = "${iconPath}rider_icon_colorful.svg";
   static const String franchiseIcon = "${iconPath}franchise_icon.svg";
+  static const String food_category = "${iconPath}food_category.svg";
+  static const String boiled = "${iconPath}boiled.svg";
 
 }
