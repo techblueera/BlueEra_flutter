@@ -120,6 +120,7 @@ flutter:
     - assets/category/grocery/beauty_health_care/
     - assets/category/grocery/stationary/
     - assets/category/hotel_service/
+    - assets/category/grocery/menu/
 
 
   fonts:

@@ -3,20 +3,20 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/school/view/category/acadamics/academic_calender_screen.dart';
 import 'package:BlueEra/features/me/school/view/category/acadamics/department_screen.dart';
-import 'package:BlueEra/features/me/school/view/category/acadamics/faculty_details_screen.dart';
 import 'package:BlueEra/features/me/school/view/category/acadamics/faculty_profile_list_screen.dart';
 import 'package:BlueEra/features/me/school/view/category/acadamics/widgets/acadamic_cours_and_programs.dart';
-import 'package:BlueEra/features/me/school/view/school_update_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../laboratory/view/widgets/me_menu_card_design.dart';
+
 class SchoolAcademicsPage extends StatefulWidget {
   const SchoolAcademicsPage({super.key});
 
   @override
   State<SchoolAcademicsPage> createState() => _SchoolAcademicsPageState();
 }
+
 class _SchoolAcademicsPageState extends State<SchoolAcademicsPage> {
   final List<ServiceMenuItem> academicMenus = [
     ServiceMenuItem(
@@ -26,13 +26,13 @@ class _SchoolAcademicsPageState extends State<SchoolAcademicsPage> {
     ),
     ServiceMenuItem(
       title: "Courses / Programs",
-      icon:AppIconAssets.courses_programs,
+      icon: AppIconAssets.courses_programs,
       page: () => CourseListScreen(),
       // page: () => AcadamicCoursAndPrograms(),
     ),
     ServiceMenuItem(
       title: "Faculty Details",
-      icon:AppIconAssets.faculty_details,
+      icon: AppIconAssets.faculty_details,
       page: () => FacultyProfileListScreen(),
     ),
     ServiceMenuItem(
@@ -41,7 +41,6 @@ class _SchoolAcademicsPageState extends State<SchoolAcademicsPage> {
       page: () => AcademicCalenderScreen(),
     ),
   ];
-
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +58,6 @@ class _SchoolAcademicsPageState extends State<SchoolAcademicsPage> {
             return InkWell(
               onTap: () {
                 Get.to(item.page); // 👈 recommended GetX syntax
-
               },
               child: MeMenuCardDesign(
                 title: item.title,
@@ -67,9 +65,7 @@ class _SchoolAcademicsPageState extends State<SchoolAcademicsPage> {
               ),
             );
           }).toList(),
-
           SizedBox(height: SizeConfig.size14),
-
         ],
       ),
     );
