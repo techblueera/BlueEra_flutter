@@ -190,7 +190,7 @@ class ProfessionChangeDialogHelper {
         designation: designation,
         serviceSubType: serviceSubType,
       );
-      viewPersonalDetailsController.getEarnServiceStatus();
+      // viewPersonalDetailsController.getEarnServiceStatus();
     }
   }
 
@@ -206,30 +206,18 @@ class ProfessionChangeDialogHelper {
     required String designation,
     required EarnServiceTypes? serviceSubType,
   }) async {
-
     await Get.offNamedUntil(
-      RouteHelper.getAddSelfServiceRoute(),
+      RouteHelper.getAddServicesScreenRoute(),
       ModalRoute.withName(
         RouteHelper.getEarnServiceScreenRoute(),
       ),
       arguments: {
+        ApiKeys.providerType: ProviderType.user,
+        ApiKeys.isFromEarnWithBlueEraService: true,
         ApiKeys.designation: designation,
         ApiKeys.serviceSubType: serviceSubType,
       },
     );
-
-    // await Get.offNamedUntil(
-    //   RouteHelper.getAddServicesScreenRoute(),
-    //   ModalRoute.withName(
-    //     RouteHelper.getEarnServiceScreenRoute(),
-    //   ),
-    //   arguments: {
-    //     ApiKeys.providerType: ProviderType.user,
-    //     ApiKeys.isFromEarnWithBlueEraService: true,
-    //     ApiKeys.designation: designation,
-    //     ApiKeys.serviceSubType: serviceSubType,
-    //   },
-    // );
   }
 
   static void _handleDeliveryPartner() {

@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -114,10 +115,10 @@ class _EarnServiceScreenState extends State<EarnServiceScreen>
   Future<void> _checkEarnServiceStatus() async {
      await getEarnServiceOptData();
      controller.isEarnServiceOpt.value = isEarnServiceOpt;
-     print('isEarnServiceOpt -- ${controller.isEarnServiceOpt.value}');
-     WidgetsBinding.instance.addPostFrameCallback((_) {
-       if(controller.isEarnServiceOpt.value.toLowerCase() == 'false') ()=> _openEarnWithBlueEraSheet();
-     });
+     print('isEarnServiceOpt already opt -- ${controller.isEarnServiceOpt.value}');
+     // WidgetsBinding.instance.addPostFrameCallback((_) {
+     //   if(controller.isEarnServiceOpt.value.toLowerCase() == 'false') ()=> _openEarnWithBlueEraSheet();
+     // });
   }
 
   void _openEarnWithBlueEraSheet(){
@@ -562,10 +563,9 @@ class _EarnServiceScreenState extends State<EarnServiceScreen>
           ),
         ),
 
-           Container(
+         Container(
             margin: EdgeInsets.only(
               left: SizeConfig.size10,
-              right: SizeConfig.size10,
             ),
             height: SizeConfig.size40,
             decoration: BoxDecoration(
@@ -588,11 +588,18 @@ class _EarnServiceScreenState extends State<EarnServiceScreen>
             ),
           ),
 
+        // SizedBox(width: SizeConfig.paddingXSL),
+
+        IconButton(
+            onPressed: () async => await Get.toNamed(
+                RouteHelper.getAvailabilityScreenRoute(),
+                arguments: {
+                  ApiKeys.argId: userId,
+              }),
+            icon: LocalAssets(imagePath: AppIconAssets.clockIcon)
+        ),
+
         SizedBox(width: SizeConfig.paddingXSL),
-
-        LocalAssets(imagePath: AppIconAssets.clockIcon),
-
-        SizedBox(width: SizeConfig.paddingL),
       ],
     );
   }

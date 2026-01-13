@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
@@ -20,6 +21,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:croppy/croppy.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -51,6 +53,11 @@ class _AddSelfServiceScreenState extends State<AddSelfServiceScreen> {
     );
   }
 
+  // @override
+  // dispose(){
+  //   super.dispose();
+  //   deleteIfRegistered<SelfWorkServiceController>();
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -65,227 +72,267 @@ class _AddSelfServiceScreenState extends State<AddSelfServiceScreen> {
             vertical: SizeConfig.size15,
             horizontal: SizeConfig.size8
           ),
-          child: Obx(()=> Column(
-            children: [
+          child: Obx(()=> AbsorbPointer(
+            absorbing: controller.isCreateServiceLoading.value,
+            child: Form(
+              key: controller.formKey,
+              child: Column(
+                children: [
 
-              // --- TOP CARD: Uploads & Dropdowns ---
-              CustomFormCard(
-                padding: EdgeInsets.all(SizeConfig.paddingM),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-
-                    /// service work photo
-                    _sectionTitle("Upload Your Work Photo"),
-                    SizedBox(height: SizeConfig.size8),
-                    Row(
+                  // --- TOP CARD: Uploads & Dropdowns ---
+                  CustomFormCard(
+                    padding: EdgeInsets.all(SizeConfig.paddingM),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        ...List.generate(controller.selectedImages.length, (index) {
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 12),
-                            child: InkWell(
-                              onTap: () async {
-                                navigatePushTo(
-                                  context,
-                                  ImageViewScreen(
-                                    subTitle: '',
-                                    appBarTitle: AppStrings.imageViewer,
-                                    imageUrls: controller.selectedImages,
-                                    initialIndex: index,
-                                  ),
-                                );
-                              },
-                              child: Stack(
-                                children: [
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(12),
-                                    child: Image.file(
-                                        File(controller.selectedImages[index]),
-                                        width: SizeConfig.size80,
-                                        height: SizeConfig.size80,
-                                        fit: BoxFit.cover),
-                                  ),
-                                  Positioned(
-                                    top: 4,
-                                    right: 4,
-                                    child: GestureDetector(
-                                      onTap: () async {
-                                        controller.selectedImages.removeAt(index);
-                                      },
-                                      child: CircleAvatar(
-                                        radius: 10,
-                                        backgroundColor: AppColors.blackMite,
-                                        child: Icon(Icons.close, size: 12, color: AppColors.white),
+
+                        /// service work photo
+                        _sectionTitle("Upload Your Work Photo"),
+                        SizedBox(height: SizeConfig.size8),
+                        Row(
+                          children: [
+                            ...List.generate(controller.selectedImages.length, (index) {
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 12),
+                                child: InkWell(
+                                  onTap: () async {
+                                    navigatePushTo(
+                                      context,
+                                      ImageViewScreen(
+                                        subTitle: '',
+                                        appBarTitle: AppStrings.imageViewer,
+                                        imageUrls: controller.selectedImages,
+                                        initialIndex: index,
                                       ),
-                                    ),
+                                    );
+                                  },
+                                  child: Stack(
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(12),
+                                        child: Image.file(
+                                            File(controller.selectedImages[index]),
+                                            width: SizeConfig.size80,
+                                            height: SizeConfig.size80,
+                                            fit: BoxFit.cover),
+                                      ),
+                                      Positioned(
+                                        top: 4,
+                                        right: 4,
+                                        child: GestureDetector(
+                                          onTap: () async {
+                                            controller.selectedImages.removeAt(index);
+                                          },
+                                          child: CircleAvatar(
+                                            radius: 10,
+                                            backgroundColor: AppColors.blackMite,
+                                            child: Icon(Icons.close, size: 12, color: AppColors.white),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ],
-                              ),
-                            ),
-                          );
-                        }),
-                        if (controller.selectedImages.length < 2)
-                          InkWell(
-                            onTap: () async {
-                              final imgStr = await SelectProfilePictureDialog
-                                  .showLogoDialog(
-                                  context,
-                                  AppStrings.gallery,
-                                  cropAspectRatio: CropAspectRatio(width: 3, height: 4)
+                                ),
                               );
-                              if (imgStr != null) {
-                                controller.selectedImages.add(imgStr);
-                              }
-                            },
-                            child: Container(
-                              width: SizeConfig.size80,
-                              height: SizeConfig.size80,
-                              decoration: BoxDecoration(
-                                border: Border.all(color: AppColors.greyE5),
-                                borderRadius: BorderRadius.circular(10.0),
+                            }),
+                            if (controller.selectedImages.length < 2)
+                              InkWell(
+                                onTap: () async {
+                                  final imgStr = await SelectProfilePictureDialog
+                                      .showLogoDialog(
+                                      context,
+                                      AppStrings.gallery,
+                                      cropAspectRatio: CropAspectRatio(width: 3, height: 4)
+                                  );
+                                  if (imgStr != null) {
+                                    controller.selectedImages.add(imgStr);
+                                  }
+                                },
+                                child: Container(
+                                  width: SizeConfig.size80,
+                                  height: SizeConfig.size80,
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: AppColors.greyE5),
+                                    borderRadius: BorderRadius.circular(10.0),
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: LocalAssets(
+                                      imagePath: AppIconAssets.chat_input_gallery,
+                                      imgColor: AppColors.greyAF,
+                                      height: SizeConfig.size20,
+                                      width: SizeConfig.size20
+                                  ),
+                                ),
                               ),
-                              alignment: Alignment.center,
-                              child: LocalAssets(
-                                  imagePath: AppIconAssets.chat_input_gallery,
-                                  imgColor: AppColors.greyAF,
-                                  height: SizeConfig.size20,
-                                  width: SizeConfig.size20
+                          ],
+                        ),
+                        SizedBox(height: SizeConfig.size15),
+
+                        /// Experience
+                        _sectionTitle("Your Experience"),
+                        SizedBox(height: SizeConfig.size8),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: CommonDropdown<String>(
+                                items: controller.experienceYears,
+                                selectedValue: controller.selectedExperienceYear.value,
+                                hintText: "E.g 1 Year..",
+                                onChanged: (val) {
+
+                                  controller.selectedExperienceYear.value = val;
+                                  log('val -- $val');
+                                  log('experience -- ${controller.selectedExperienceYear.value}');
+                                },
+                                displayValue: (val) => val,
                               ),
                             ),
+                            SizedBox(width: SizeConfig.paddingM),
+                            Expanded(
+                              child: CommonDropdown<String>(
+                                items: controller.experienceMonths,
+                                selectedValue: controller.selectedExperienceMonth.value,
+                                hintText: "E.g 3 Months..",
+                                onChanged: (val)=> controller.selectedExperienceMonth.value = val,
+                                displayValue: (val) => val,
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: SizeConfig.size15),
+
+                        /// Service Type
+                        _sectionTitle("Service Type"),
+                        SizedBox(height: SizeConfig.size8),
+                        controller.isPredefinedCategoryServiceTypeLoading.value
+                        ?  Center(
+                          child: CircularProgressIndicator(),
+                        )
+                            : Container(
+                          padding: EdgeInsets.symmetric(
+                              horizontal: SizeConfig.size4,
+                              vertical: SizeConfig.size8
                           ),
+                          decoration: BoxDecoration(
+                              color: AppColors.white,
+                              borderRadius: BorderRadius.circular(10.0),
+                              border: Border.all(color: AppColors.greyE5),
+                              boxShadow: [AppShadows.textFieldShadow]
+                          ),
+                              child: Column(
+                              children: controller.serviceTypes.map((item) {
+                              return Theme(
+                                data: ThemeData(unselectedWidgetColor: Colors.grey.shade300),
+                                child: CheckboxListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  visualDensity: const VisualDensity(horizontal: -4, vertical: -3),
+                                  dense: true,
+                                  activeColor: AppColors.primaryColor,
+                                  controlAffinity: ListTileControlAffinity.leading,
+                                  title: CustomText(
+                                    item,
+                                    fontSize: SizeConfig.medium,
+                                    color: AppColors.secondaryTextColor,
+                                  ),
+                                  value: controller.selectedServiceTypes.contains(item),
+                                  onChanged: (val) {
+                                    if (val == true) {
+                                      controller.selectedServiceTypes.add(item);
+                                    } else {
+                                      controller.selectedServiceTypes.remove(item);
+                                    }
+                                  },
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        )
+
                       ],
                     ),
-                    SizedBox(height: SizeConfig.size15),
+                  ),
 
-                    /// Experience
-                    _sectionTitle("Your Experience"),
-                    SizedBox(height: SizeConfig.size8),
-                    Row(
+                  SizedBox(height: SizeConfig.paddingM),
+
+                  // --- EXPANSION CARDS ---
+                  CustomFormCard(
+                    padding: EdgeInsets.all(SizeConfig.paddingM),
+                    child: Column(
+                      children: controller.selectedCategoryMap.entries.map((item) {
+                        return Obx(() {
+                          final selectedKey = item.key;
+                          final selectedItems = item.value;
+
+                          // 1. Get Display Title
+                          final displayTitle = controller.categoryTitleMap[selectedKey] ?? selectedKey;
+
+                          Widget content;
+
+                          if (selectedItems.isNotEmpty) {
+                            // CASE 1: Data exists -> Show Expansion Tile
+                            content = _buildDynamicExpansionTile(
+                              title: displayTitle,
+                              selectedItems: selectedItems.toList(),
+                              onAddTap: () => _navigateToSelection(selectedKey, displayTitle),
+                            );
+                          } else {
+                            // CASE 2: No Data -> Show Normal Container
+                            content = _buildNormalContainer(
+                              title: displayTitle,
+                              onTap: () => _navigateToSelection(selectedKey, displayTitle),
+                            );
+                          }
+
+                          // 2. Check if this is the last item to remove bottom padding
+                          final isLastItem = controller.selectedCategoryMap.keys.last == selectedKey;
+
+                          return Padding(
+                            padding: EdgeInsets.only(bottom: isLastItem ? 0 : SizeConfig.size15),
+                            child: content,
+                          );
+                        });
+                      }).toList(),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // --- ABOUT SECTION ---
+                  CustomFormCard(
+                    padding: EdgeInsets.all(SizeConfig.paddingM),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: CommonDropdown<String>(
-                            items: controller.experienceYears,
-                            selectedValue: controller.selectedExperienceYear.value,
-                            hintText: "E.g 1 Year..",
-                            onChanged: (val) {
+                        _sectionTitle("About"),
+                        SizedBox(height: SizeConfig.size8),
+                        CommonTextField(
+                          textEditController: controller.aboutController,
+                          maxLine: 4,
+                          hintText: "Horem ipsum dolor sit amet, consectetur adipiscing...",
+                          maxLength: 250,
+                          isCounterVisible: true,
+                          isValidate: true,
+                          validator: ValidationMethod().professionDescValidation
+                        ),
 
-                              controller.selectedExperienceYear.value = val;
-                              log('val -- $val');
-                              log('experience -- ${controller.selectedExperienceYear.value}');
-                            },
-                            displayValue: (val) => val,
-                          ),
+                        SizedBox(height: SizeConfig.paddingL),
+
+                        // NEXT BUTTON
+                        CustomBtn(
+                          title: controller.isCreateServiceLoading.value ? null : 'Next',
+                          onTap: ()=> controller.createEarnServiceApi(serviceSubType: widget.serviceSubType),
+                          bgColor: AppColors.primaryColor,
+                          isLoading: controller.isCreateServiceLoading.value,
                         ),
-                        SizedBox(width: SizeConfig.paddingM),
-                        Expanded(
-                          child: CommonDropdown<String>(
-                            items: controller.experienceMonths,
-                            selectedValue: controller.selectedExperienceMonth.value,
-                            hintText: "E.g 3 Months..",
-                            onChanged: (val)=> controller.selectedExperienceMonth.value = val,
-                            displayValue: (val) => val,
-                          ),
-                        ),
+
                       ],
                     ),
-                    SizedBox(height: SizeConfig.size15),
+                  ),
 
-                    /// Service Type
-                    _sectionTitle("Service Type"),
-                    SizedBox(height: SizeConfig.size8),
-                    controller.isPredefinedCategoryServiceTypeLoading.value
-                    ?  Center(
-                      child: CircularProgressIndicator(),
-                    )
-                        : CommonDropdown<String>(
-                      items:  controller.serviceTypes,
-                      selectedValue: controller.selectedServiceType.value,
-                      hintText: "E.g ${controller.selectedServiceType.value?[0]}",
-                      onChanged: (val)=> controller.selectedServiceType.value = val!,
-                      displayValue: (val) => val,
-                    )
-                  ],
-                ),
+
+                  const SizedBox(height: 20),
+                ],
               ),
-
-              SizedBox(height: SizeConfig.paddingM),
-
-              // --- EXPANSION CARDS ---
-              CustomFormCard(
-                padding: EdgeInsets.all(SizeConfig.paddingM),
-                child: Column(
-                  children: controller.selectedCategoryMap.entries.map((item) {
-                    return Obx(() {
-                      final selectedKey = item.key;
-                      final selectedItems = item.value;
-
-                      // 1. Get Display Title
-                      final displayTitle = controller.categoryTitleMap[selectedKey] ?? selectedKey;
-
-                      Widget content;
-
-                      if (selectedItems.isNotEmpty) {
-                        // CASE 1: Data exists -> Show Expansion Tile
-                        content = _buildDynamicExpansionTile(
-                          title: displayTitle,
-                          selectedItems: selectedItems.toList(),
-                          onAddTap: () => _navigateToSelection(selectedKey, displayTitle),
-                        );
-                      } else {
-                        // CASE 2: No Data -> Show Normal Container
-                        content = _buildNormalContainer(
-                          title: displayTitle,
-                          onTap: () => _navigateToSelection(selectedKey, displayTitle),
-                        );
-                      }
-
-                      // 2. Check if this is the last item to remove bottom padding
-                      final isLastItem = controller.selectedCategoryMap.keys.last == selectedKey;
-
-                      return Padding(
-                        padding: EdgeInsets.only(bottom: isLastItem ? 0 : SizeConfig.size15),
-                        child: content,
-                      );
-                    });
-                  }).toList(),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // --- ABOUT SECTION ---
-              CustomFormCard(
-                padding: EdgeInsets.all(SizeConfig.paddingM),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _sectionTitle("About"),
-                    SizedBox(height: SizeConfig.size8),
-                    CommonTextField(
-                      textEditController: controller.aboutController,
-                      maxLine: 4,
-                      hintText: "Horem ipsum dolor sit amet, consectetur adipiscing...",
-                      maxLength: 200,
-                      isValidate: true,
-                    ),
-
-                    SizedBox(height: SizeConfig.paddingL),
-
-                    // NEXT BUTTON
-                    CustomBtn(
-                      title: 'Next',
-                      onTap: (){
-
-                      },
-                      bgColor: AppColors.primaryColor,
-                    ),
-
-                  ],
-                ),
-              ),
-
-
-              const SizedBox(height: 20),
-            ],
+            ),
           )),
         ),
       ),
@@ -401,16 +448,18 @@ class _AddSelfServiceScreenState extends State<AddSelfServiceScreen> {
                     onTap: onAddTap,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
-                      children: const [
-                        Icon(Icons.add, size: 18, color: Color(0xFF0088FF)),
+                      children: [
+                        Icon(
+                            CupertinoIcons.add,
+                            size: 16,
+                            color: AppColors.primaryColor
+                        ),
                         SizedBox(width: 4),
-                        Text(
+                        CustomText(
                           "Add More",
-                          style: TextStyle(
-                            color: Color(0xFF0088FF),
-                            fontWeight: FontWeight.w500,
-                            fontSize: 14,
-                          ),
+                          color: AppColors.primaryColor,
+                          fontWeight: FontWeight.w500,
+                          fontSize: SizeConfig.medium,
                         ),
                       ],
                     ),

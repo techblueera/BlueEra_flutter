@@ -167,6 +167,7 @@ Future<ResponseModel> getBookingByIds({String? bookingId}) async {
     final response = await ApiBaseHelper().getHTTP(
       setAvailability(id),
       params: queryParams,
+      showProgress: false,
       onError: (error) {},
       onSuccess: (res) {},
     );

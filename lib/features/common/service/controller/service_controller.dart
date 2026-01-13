@@ -191,13 +191,13 @@ class ServiceController extends GetxController {
         serviceDataList.removeWhere((service) => service.id == serviceId);
         serviceDataList.refresh();
 
-        if(isFromEarnWithBlueEra){
-          final viewPersonalDetailsController = Get.isRegistered<ViewPersonalDetailsController>()
-              ? Get.find<ViewPersonalDetailsController>()
-              : Get.put(ViewPersonalDetailsController());
-        earnServiceCreatedStatusGlobal = 'false';
-        viewPersonalDetailsController.getEarnServiceStatus();
-        }
+        // if(isFromEarnWithBlueEra){
+        //   final viewPersonalDetailsController = Get.isRegistered<ViewPersonalDetailsController>()
+        //       ? Get.find<ViewPersonalDetailsController>()
+        //       : Get.put(ViewPersonalDetailsController());
+        // earnServiceCreatedStatusGlobal = 'false';
+        // viewPersonalDetailsController.getEarnServiceStatus();
+        // }
 
         print('Total: ${serviceDataList.length}');
       } else {

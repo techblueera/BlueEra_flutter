@@ -582,3 +582,22 @@ Future<void> openGoogleMaps({
     throw 'Could not open Google Maps';
   }
 }
+
+String calculateExperience(String startDateString) {
+  try {
+    DateTime startDate = DateTime.parse(startDateString);
+    DateTime now = DateTime.now();
+
+    int years = now.year - startDate.year;
+    int months = now.month - startDate.month;
+
+    if (months < 0) {
+      years--;
+      months += 12;
+    }
+
+    return "$years Years $months Months";
+  } catch (e) {
+    return "0 Years 0 Months";
+  }
+}

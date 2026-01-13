@@ -74,7 +74,7 @@ class RouteConstant {
   static const String MyEnquiresScreen = "/MyEnquiriesPage";
   static const String addUpdateProductScreen = "/AddUpdateProductScreen";
   static const String BookingAndEnquiresScreen = "/BookingsScreen";
-  static const String SetAvailabilityScreen = "/SetAvailabilityScreen";
+  static const String setAvailabilityScreen = "/SetAvailabilityScreen";
   static const String AppointmentBookingScreen = "/AppointmentBookingScreen";
   static const String EnquiryForm = "/EnquiryFormScreen";
   static const String addBankAccountScreen = "/AddBankAccountScreen";

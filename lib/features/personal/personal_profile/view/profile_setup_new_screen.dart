@@ -23,6 +23,7 @@ import 'package:BlueEra/features/personal/personal_profile/controller/introducti
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/controller/booking_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/widget/availability_schedule_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/create_profile_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/controller/my_documents_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/model/upload_document_response.dart';
@@ -162,32 +163,11 @@ class _PersonalProfileSetupNewScreenState
   }
 
   Future<void> checkAndGetAvailabilityBookingData() async {
-    final cached = await bookingTabController.getCachedAvailability();
-
-    if (cached != null) {
-      logs('Loaded availability from cache');
-      viewProfileController.availabilityDetails.value = cached;
-    } else {
-      // No cache found, fetch from API
-      bookingTabController.getBookingAvailability(id: userId).then((response) {
-        if (response != null) {
-          viewProfileController.availabilityDetails.value = response;
-        }
-      });
-    }
+      await bookingTabController.checkAndGetAvailabilityBookingData(userId);
   }
 
   Future<void> getAllDocumentsData() async {
     myDocumentsController.fetchAllDocumentApi();
-  }
-
-  // after update availability we call this method
-  Future<void> getAvailabilityBookingData() async {
-    bookingTabController.getBookingAvailability(id: userId).then((response) {
-      if (response != null) {
-        viewProfileController.availabilityDetails.value = response;
-      }
-    });
   }
 
   void _initializeTabController() {
@@ -1635,20 +1615,15 @@ class _PersonalProfileSetupNewScreenState
             _buildCircleIcon(AppIconAssets.bookingEnquiries),
             SizedBox(width: SizeConfig.size6),
             _buildTitleWidget(AppStrings.myAvailabilityAndBookings),
-            if (viewProfileController.availabilityDetails.value != null) ...[
+            if (bookingTabController.availabilityDetails.value != null) ...[
               Spacer(),
               InkWell(
                 onTap: () async {
-                  bool isDataUpdate = await Get.toNamed(
+                   await Get.toNamed(
                       RouteHelper.getAvailabilityScreenRoute(),
                       arguments: {
-                        ApiKeys.channelId: userId,
-                        ApiKeys.availabilityBookingData:
-                            viewProfileController.availabilityDetails.value,
+                        ApiKeys.argId: userId,
                       });
-                  if (isDataUpdate) {
-                    getAvailabilityBookingData();
-                  }
                 },
                 child: LocalAssets(
                   height: 18,
@@ -1660,10 +1635,9 @@ class _PersonalProfileSetupNewScreenState
         ),
         SizedBox(height: SizeConfig.size16),
         _buildContainerOverlay(
-            child: viewProfileController.availabilityDetails.value != null
+            child: bookingTabController.availabilityDetails.value != null
                 ? Obx(() {
-                    AvailabilityModel data =
-                        viewProfileController.availabilityDetails.value!;
+                    AvailabilityData data = bookingTabController.availabilityDetails.value!;
                     final selectedType;
                     final bt = data.bookingType?.toLowerCase();
                     if (bt == 'online') {
@@ -1676,7 +1650,9 @@ class _PersonalProfileSetupNewScreenState
                     final landMark = data.location?.landmark ?? '';
                     final location = data.location?.address ?? '';
                     final instruction = data.instructions ?? '';
-                    final fee = data.fee?.toString() ?? '';
+                    final minFee = data.feeDetails?.minFee?.toString() ?? '';
+                    final maxFee = data.feeDetails?.maxFee?.toString() ?? '';
+                    final feeType = data.feeDetails?.feeType?.toString() ?? '';
                     final selectedTimeSlot;
                     if (data.durationInMinutes?.toString().isNotEmpty ??
                         false) {
@@ -1798,8 +1774,80 @@ class _PersonalProfileSetupNewScreenState
                             : const SizedBox.shrink(),
 
                         /// Booking Fee
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  CustomText(
+                                    'Min Fee',
+                                    fontSize: SizeConfig.small,
+                                    fontWeight: FontWeight.w400,
+                                    color: AppColors.mainTextColor,
+                                  ),
+                                  SizedBox(height: SizeConfig.size8),
+                                  Container(
+                                    width: SizeConfig.screenWidth,
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: SizeConfig.size12,
+                                      vertical: SizeConfig.size10,
+                                    ),
+                                    decoration: BoxDecoration(
+                                        color: AppColors.white,
+                                        borderRadius: BorderRadius.circular(10),
+                                        border: Border.all(color: AppColors.whiteE0),
+                                        boxShadow: [AppShadows.textFieldShadow]),
+                                    child: CustomText(
+                                      minFee,
+                                      fontSize: SizeConfig.medium,
+                                      fontWeight: FontWeight.w500,
+                                      color: AppColors.mainTextColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            SizedBox(width: SizeConfig.size8),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  CustomText(
+                                    'Max Fee',
+                                    fontSize: SizeConfig.small,
+                                    fontWeight: FontWeight.w400,
+                                    color: AppColors.mainTextColor,
+                                  ),
+                                  SizedBox(height: SizeConfig.size8),
+                                  Container(
+                                    width: SizeConfig.screenWidth,
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: SizeConfig.size12,
+                                      vertical: SizeConfig.size10,
+                                    ),
+                                    decoration: BoxDecoration(
+                                        color: AppColors.white,
+                                        borderRadius: BorderRadius.circular(10),
+                                        border: Border.all(color: AppColors.whiteE0),
+                                        boxShadow: [AppShadows.textFieldShadow]),
+                                    child: CustomText(
+                                      maxFee,
+                                      fontSize: SizeConfig.medium,
+                                      fontWeight: FontWeight.w500,
+                                      color: AppColors.mainTextColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: SizeConfig.size16),
+
+                        /// Fee Type
                         CustomText(
-                          'Fee',
+                          'Fee Type',
                           fontSize: SizeConfig.small,
                           fontWeight: FontWeight.w400,
                           color: AppColors.mainTextColor,
@@ -1817,7 +1865,7 @@ class _PersonalProfileSetupNewScreenState
                               border: Border.all(color: AppColors.whiteE0),
                               boxShadow: [AppShadows.textFieldShadow]),
                           child: CustomText(
-                            fee,
+                            feeType,
                             fontSize: SizeConfig.medium,
                             fontWeight: FontWeight.w500,
                             color: AppColors.mainTextColor,
@@ -1892,14 +1940,14 @@ class _PersonalProfileSetupNewScreenState
                         SizedBox(height: SizeConfig.size16),
 
                         /// Booking days and timings
-                        _buildSelectedDays(data)
+                        AvailabilityScheduleCard(data: data)
                       ],
                     );
                   })
                 : InkWell(
                     onTap: () {
                       Get.toNamed(RouteHelper.getAvailabilityScreenRoute(),
-                          arguments: {ApiKeys.channelId: userId});
+                          arguments: {ApiKeys.argId: userId});
                     },
                     child: Row(
                       children: [
@@ -1999,100 +2047,6 @@ class _PersonalProfileSetupNewScreenState
     );
   }
 
-  Widget _buildSelectedDays(AvailabilityModel data) {
-    final v = Get.isRegistered<VisitingHoursSelectorController>()
-        ? Get.find<VisitingHoursSelectorController>()
-        : Get.put(VisitingHoursSelectorController());
-
-    final Map<String, bool> visitingHours = {
-      'Monday': false,
-      'Tuesday': false,
-      'Wednesday': false,
-      'Thursday': false,
-      'Friday': false,
-      'Saturday': false,
-      'Sunday': false,
-    };
-
-    final Map<String, TimeOfDay> startTimes = {};
-    final Map<String, TimeOfDay> endTimes = {};
-
-    final schedule = data.schedule ?? [];
-    for (final sch in schedule) {
-      final apiDay = (sch.day ?? '').toLowerCase();
-      final uiDay = bookingTabController.mapApiDayToUiDay(apiDay);
-      if (uiDay == null) continue;
-
-      visitingHours[uiDay] = sch.isOpen ?? false;
-
-      final firstSlot =
-          (sch.timeSlots ?? []).isNotEmpty ? sch.timeSlots!.first : null;
-      if (firstSlot != null) {
-        final start = bookingTabController.parseTimeOfDay(firstSlot.startTime);
-        final end = bookingTabController.parseTimeOfDay(firstSlot.endTime);
-        if (start != null) startTimes[uiDay] = start;
-        if (end != null) endTimes[uiDay] = end;
-      }
-    }
-
-    final openDays = visitingHours.entries
-        .where((entry) => entry.value)
-        .map((entry) => entry.key)
-        .toList();
-
-    if (openDays.isEmpty) {
-      return CustomText(
-        AppStrings.noVisitingDaysSelected,
-        fontSize: SizeConfig.medium,
-        fontWeight: FontWeight.w600,
-        color: AppColors.secondaryTextColor,
-      );
-    }
-
-    return Container(
-      padding: EdgeInsets.all(SizeConfig.size12),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.greyE5, width: 1.2),
-        boxShadow: [AppShadows.textFieldShadow],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: openDays.map((day) {
-          final start = v.formatTime(v.startTimes[day]!);
-          final end = v.formatTime(v.endTimes[day]!);
-
-          return Padding(
-            padding: EdgeInsets.symmetric(vertical: SizeConfig.size6),
-            child: Row(
-              children: [
-                CustomText(
-                  day,
-                  fontSize: SizeConfig.medium,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.secondaryTextColor,
-                ),
-                Spacer(),
-                CustomText(
-                  "Open",
-                  fontSize: SizeConfig.large,
-                  color: AppColors.green7F,
-                  fontWeight: FontWeight.w600,
-                ),
-                SizedBox(width: SizeConfig.size8),
-                CustomText(
-                  "$start - $end",
-                  fontSize: SizeConfig.medium,
-                  color: AppColors.grey9A,
-                ),
-              ],
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
 }
 
 class _CustomTabBarDelegate extends SliverPersistentHeaderDelegate {
