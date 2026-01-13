@@ -353,7 +353,7 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Expanded(child: _buildTitle('Expertise')),
+                              Expanded(child: _buildTitle('Service Offered')),
                               _editIcon(onTap: () {  })
                             ],
                           ),
@@ -407,7 +407,7 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Expanded(child: _buildTitle('Expertise')),
+                              Expanded(child: _buildTitle('Types of Installations')),
                               _editIcon(onTap: () {  })
                             ],
                           ),
@@ -461,7 +461,7 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Expanded(child: _buildTitle('Expertise')),
+                              Expanded(child: _buildTitle('Work Categories')),
                               _editIcon(onTap: () {  })
                             ],
                           ),
@@ -515,7 +515,7 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Expanded(child: _buildTitle('Expertise')),
+                              Expanded(child: _buildTitle('Why Choose Me')),
                               _editIcon(onTap: () {  })
                             ],
                           ),
