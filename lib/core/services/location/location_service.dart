@@ -22,7 +22,26 @@ class LocationService extends GetxService {
     final gps = await Geolocator.isLocationServiceEnabled();
     return permission.isGranted && gps;
   }
+  static Future<String> getAddressUsingLatLng({required double latitude,required double longitude})async{
+    final placeMarks = await placemarkFromCoordinates(latitude, longitude);
 
+    if (placeMarks.isNotEmpty) {
+      final place = placeMarks.first;
+
+      userCurrentAddress.value = UserAddress(
+        street: place.thoroughfare ?? '',
+        subLocality: place.subLocality ?? '',
+        city: place.locality ?? '',
+        state: place.administrativeArea ?? '',
+        country: place.country ?? '',
+        postalCode: place.postalCode ?? '',
+      );
+      return "${place.thoroughfare ?? ''}${place.locality ?? ''}, ${place.administrativeArea ?? ''}, ${place.country ?? ''} ,${place.postalCode}";
+    } else {
+      return "Address Cannot Found";
+    }
+
+  }
 
   /// 🌍 Fetches current location and address
   static Future<Map<String, dynamic>?> fetchLocation({

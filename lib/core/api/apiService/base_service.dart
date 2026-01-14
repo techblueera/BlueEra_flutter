@@ -591,5 +591,7 @@ abstract class BaseService {
   final String groceryOrderItemAvailability = 'rider-service/grocery/orders/item-availability';
   final String groceryOrderAvailableItem = 'rider-service/grocery/orders/available-items';
   final String groceryOrderUpdatePaymentStatus = 'rider-service/grocery/orders/payment-status';
+  final String createBusinessPostApi = 'health-service/api/businesses';
+  final String fetchHospitalDetails = 'health-service/api/businesses/ai-hospital/fetch-details';
 
 }

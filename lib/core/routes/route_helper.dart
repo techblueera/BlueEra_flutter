@@ -1437,12 +1437,12 @@ class RouteHelper {
       case RouteConstant.hospitalOptCategory:
         final args = settings.arguments as Map<String, dynamic>;
         List<MedicalLabDataListModel>? children=args[ApiKeys.medicalOtcChildren] as List<MedicalLabDataListModel>?;
-        String categoryId= args[ApiKeys.categoryId] as String;
+        // String categoryId= args[ApiKeys.categoryId] as String;
         String title= args[ApiKeys.title] as String;
         return MaterialPageRoute(
             builder: (_) => OpdOutPatientPage(
               title: title,
-              categoryId: categoryId,
+              categoryId: '',
               children:children??[],
             ),
             settings: RouteSettings(name: getHospitalOptCategory())

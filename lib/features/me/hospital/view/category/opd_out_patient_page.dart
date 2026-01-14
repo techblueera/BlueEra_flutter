@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -10,6 +11,7 @@ import '../../../laboratory/view/widgets/me_menu_card_design.dart';
 import '../../../medical/model/medical_lab_details.dart';
 import '../../controller/hospital_model_controller.dart';
 import '../widget/general_medicine.dart';
+import 'contact_us_details_page.dart';
 
 class OpdOutPatientPage extends StatefulWidget {
   const OpdOutPatientPage({super.key,required this.children, required this.categoryId, required this.title});
@@ -36,8 +38,6 @@ class _OpdOutPatientPageState extends State<OpdOutPatientPage> {
   @override
   Widget build(BuildContext context) {
     final controller = getOrPut(() => HospitalModelController());
-
-
     return Scaffold(
       appBar: CommonBackAppBar(
         showRightTextButton: true,
@@ -45,30 +45,41 @@ class _OpdOutPatientPageState extends State<OpdOutPatientPage> {
         title: widget.title,
         isShadowShow: false,
       ),
-      body: Column(
-        children: [
-          SizedBox(height: 12),
-          ...widget.children.map((title) {
-            return InkWell(
-              onTap: () {
-                Get.toNamed(RouteHelper.getHospitalDoctorViewCategory(),);
-              },
-              child: MeMenuCardDesign(
-                onToggleChanged: (val){
-                  Map<String,dynamic> params ={
-                    ApiKeys.isActive: val
-                  };
-                  controller.updateEnableStatus(title.id??'',params);
-                },
-                isToggleOn: title.isActive??false,
-                showToggleButton: true,
-                title: title.name??'',
-                icon: 'assets/icons/service_icon.svg',
-              ),
-            );
-          }).toList(),
-          SizedBox(height: SizeConfig.size14),
-        ],
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              SizedBox(height: 12),
+              ...widget.children.map((title) {
+                return InkWell(
+                  onTap: ()async {
+                    if(widget.title.toLowerCase()=='contact'){
+                     Get.to(()=>ContactUsDetailsPage(
+                        title: title.name,
+                        data:title.data ,
+                      ));
+                    }
+
+                    // Get.toNamed(RouteHelper.getHospitalDoctorViewCategory(),);
+                  },
+                  child: MeMenuCardDesign(
+                    onToggleChanged: (val){
+                      Map<String,dynamic> params ={
+                        ApiKeys.isActive: val
+                      };
+                      controller.updateEnableStatus(title.id??'',params);
+                    },
+                    isToggleOn: title.isActive??false,
+                    showToggleButton: true,
+                    title: title.name??'',
+                    icon: 'assets/icons/service_icon.svg',
+                  ),
+                );
+              }).toList(),
+              SizedBox(height: SizeConfig.size14),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -397,12 +397,13 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         return const SchoolMain();
       }/*else if (businessCategoryGlobal == AppConstants.hostelsStayService) {
         return const HotelMain();
-      }*/ else {
+      }*/
+      else if (businessCategoryGlobal == AppConstants.healthcareMedicalServices) {
+        return const HospitalMain();
+      } else {
         return const InventoryScreen(fromBottomNavBar: true);
       }
-    } else if (businessCategoryGlobal == AppConstants.hostelsStayService) {
-      return const HotelMain();
-    }else{
+    } else {
       // 3. If it is NOT Food (e.g., Product, Service, etc.)
       return const InventoryScreen(fromBottomNavBar: true);
     }
