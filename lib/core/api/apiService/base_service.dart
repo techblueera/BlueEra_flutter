@@ -595,5 +595,7 @@ abstract class BaseService {
   final String hotelsOfferings = 'hotel-service/api/hotels/offerings';
   final String hotelsContactUsGet = 'hotel-service/api/businesses/profile/about-us';
   final String foodAiGenerate = 'ai-service/api/ai-food/generate';
+  final String createBusinessPostApi = 'health-service/api/businesses';
+  final String fetchHospitalDetails = 'health-service/api/businesses/ai-hospital/fetch-details';
 
 }

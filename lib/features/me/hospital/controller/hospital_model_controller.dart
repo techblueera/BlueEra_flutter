@@ -8,6 +8,7 @@ import 'package:get/get.dart';
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/snackbar_helper.dart';
+import '../../../../core/services/location/location_service.dart';
 import '../../medical/model/medical_lab_details.dart';
 import '../../medical/repo/medical_repo.dart';
 import '../model/hospital_model_class.dart';
@@ -22,10 +23,13 @@ class HospitalModelController extends GetxController {
   final hospitalAddressTextController=TextEditingController();
   final hospitalLinkTextController=TextEditingController();
   RxBool isAiBtnLoading=false.obs;
+  RxString hospitalCurrentAddress=''.obs;
   RxBool saveAiDetailsLoading=false.obs;
   Rx<HospitalPreviewResponse> hospitalData = HospitalPreviewResponse().obs;
   Map<String,dynamic> aiRawDetails={
   };
+  RxMap<String,dynamic> hospitalFacilitiesMap=<String,dynamic>{}.obs;
+
   // Controllers for editable fields
   final phoneController = TextEditingController();
   final emergencyController = TextEditingController();
@@ -52,18 +56,35 @@ class HospitalModelController extends GetxController {
     return editControllers[key]!;
   }
 
-
+Future<void> fetchAddressByLatLng({required double lat,required double lng})async{
+  String? address=await LocationService.getAddressUsingLatLng(latitude: lat, longitude: lng);
+  hospitalCurrentAddress.value=address;
+}
 
   Future<void> fetchHospitalCategoryData(String categoryTopic) async {
-    ResponseModel response =
-    await medicalRepo.fetchMedicalCategoryData(categoryTopic);
+    ResponseModel response = await medicalRepo.fetchHospitalDetailsAPi();
     if (response.isSuccess) {
 
-      final modelJson = response.response?.data['data'];
+       hospitalFacilitiesMap.value =
+      response.response?.data['data']['offerings'];
+      log("sdlcnsldkc ${response.response?.data}");
 
-      List<dynamic> modelList = modelJson;
-      hospitalCategoryDataList.value =
-          modelList.map((e) => MedicalLabDataListModel.fromJson(e)).toList();
+      // List<MedicalLabDataListModel> tempList = [];
+      //
+      // if (offeringsMap is Map<String, dynamic>) {
+      //   offeringsMap.forEach((key, value) {
+      //     if (value is List) {
+      //       tempList.addAll(
+      //         value.map(
+      //               (e) => MedicalLabDataListModel.fromJson(e),
+      //         ),
+      //       );
+      //     }
+      //   });
+      // }
+      //
+      // hospitalCategoryDataList.value = tempList;
+
       getMedicalCategoryResponse.value =
           ApiResponse.complete(hospitalCategoryDataList);
     } else {
@@ -72,6 +93,7 @@ class HospitalModelController extends GetxController {
           ApiResponse.error(AppStrings.somethingWentWrong);
     }
   }
+
   List<MedicalLabDataListModel> updateCategoryStatusById({
     required List<MedicalLabDataListModel> list,
     required String id,
@@ -141,6 +163,7 @@ class HospitalModelController extends GetxController {
       hospitalAiDataResponse.value =ApiResponse.error("Error");
     }
   }
+
   Future<void> saveAiHospitalDetails()async {
     Map<String,dynamic> params ={
       "data":aiRawDetails['data']
@@ -149,7 +172,7 @@ class HospitalModelController extends GetxController {
     ResponseModel response =
     await medicalRepo.saveAiDetailsOfHospital(params);
     if (response.isSuccess) {
-      log("dslkjcnskjdcnskjdc ${response.data}");
+      log("dslkjcnskjdcnskjdc ${response.response?.data}");
       hospitalAiDataSaveResponse.value =ApiResponse.complete(response.response?.data);
       saveAiDetailsLoading.value=false;
     } else {
@@ -158,7 +181,19 @@ class HospitalModelController extends GetxController {
       hospitalAiDataSaveResponse.value =ApiResponse.error("Error");
       saveAiDetailsLoading.value=false;
     }
+  }
 
+
+  Future<void> createBusinessPost(Map<String,dynamic> params)async {
+
+    ResponseModel response =
+    await medicalRepo.createBusinessPost(params);
+    if (response.isSuccess) {
+      log("dslkjcnskjdcnskjdc Save Hospital ${response.response?.data}");
+
+    } else {
+
+    }
   }
 
 
