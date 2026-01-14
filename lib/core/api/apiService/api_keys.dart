@@ -615,4 +615,7 @@ class ApiKeys {
   static const minFee = 'minFee';
   static const maxFee = 'maxFee';
   static const feeType = 'feeType';
+  static const userIds = 'userIds';
+  static const groceryorderId = 'groceryorderId';
+  static const riderId = 'riderId';
 }
