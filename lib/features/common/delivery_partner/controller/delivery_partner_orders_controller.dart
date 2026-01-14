@@ -1,12 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:get/get.dart';
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/api/apiService/response_model.dart';
+import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/snackbar_helper.dart';
 import '../../../../core/services/location/location_service.dart';
@@ -83,14 +85,18 @@ class DeliverPartnerOrdersController extends GetxController {
         updateOrders(riderOrdersList);
 
       } else {
+        log("kadskasdjchnsdkjsEE OOO");
         ordersListResponse.value =
             ApiResponse.error(AppStrings.somethingWentWrong);
       }
     }, onError: (error) {
+      log("kadskasdjchnsdkjsEE ${error}");
       ordersListResponse.value =
           ApiResponse.error(AppStrings.somethingWentWrong);
     }, onDone: () {});
   }
+
+
 
   void updateOrders(List<RiderOrdersDetailsModel> list) {
     riderOrdersList.value = list;
@@ -287,7 +293,33 @@ class DeliverPartnerOrdersController extends GetxController {
       ResponseModel? response = await MakeOrderRepo().groceryRejctOrderApi(
           orderId: orderId, params: buildGroceryOrderBody(selectedShops));
       if (response.isSuccess ) {
+
+      } else {
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+  }
+  Future<void> makeGroceryOrderConversationApi({required String orderId,required Map<String,dynamic> orderDetails}) async {
+    try {
+      List<String> shopsUserId=selectedShops.map((e)=>e.businessId).toList();
+      Map<String,dynamic> params={
+        ApiKeys.userIds:shopsUserId,
+        ApiKeys.groceryorderId: orderId,
+        ApiKeys.order: orderDetails,
+        ApiKeys.rider: {
+          ApiKeys.riderId: userId,
+        },
+        ApiKeys.riderId: userId,
+        ApiKeys.ride_by: MakeOrderType.rider
+      };
+      ResponseModel? response = await MakeOrderRepo().createGroceryOrderConvo(
+          params: params);
       log("skdjcksjcsjkdc ${response.response?.data}");
+      if (response.isSuccess ) {
+
       } else {
         commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);

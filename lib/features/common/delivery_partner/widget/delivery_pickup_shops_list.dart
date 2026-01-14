@@ -10,14 +10,16 @@ import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/getx_utils.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../../../widgets/horizontal_tab_selector.dart';
+import '../../../chat/auth/model/rider_orders_details_model.dart';
 import '../controller/delivery_partner_orders_controller.dart';
 import '../model/rider_shops_list_grocery.dart';
 
 class DeliveryPickupShopsList extends StatefulWidget {
-  const DeliveryPickupShopsList({super.key, required this.orderId, required this.rideOrderId});
+  const DeliveryPickupShopsList({super.key, required this.orderId, required this.rideOrderId, required this.order});
 
   final String orderId;
   final String rideOrderId;
+  final RiderOrdersDetailsModel order;
 
   @override
   State<DeliveryPickupShopsList> createState() =>
@@ -50,6 +52,7 @@ class _DeliveryPickupShopsListState extends State<DeliveryPickupShopsList> {
               controller.rejectOrder(widget.rideOrderId);
             }else{
               controller.acceptOrder(widget.rideOrderId);
+              controller.makeGroceryOrderConversationApi(orderId: widget.rideOrderId, orderDetails: widget.order.toJson());
             }
           },
           isShowAcceptOrRejectBtn: true,
@@ -122,7 +125,7 @@ class _DeliveryPickupShopsListState extends State<DeliveryPickupShopsList> {
                                       ),
                                       SizedBox(height: SizeConfig.size6,),
                                       CustomText(
-                                        "${model.distance} Distance",
+                                        "${double.parse(model.distance.toString()).roundToDouble()} Distance",
                                         fontSize: 12,
                                         fontWeight: FontWeight.w400,
                                       ),

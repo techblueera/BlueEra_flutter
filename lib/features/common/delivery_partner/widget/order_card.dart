@@ -22,6 +22,7 @@ import 'package:intl/intl.dart';
 import 'package:pinput/pinput.dart';
 import '../../../chat/auth/model/rider_orders_details_model.dart';
 import '../../../chat/view/orders_chat/widget/lat_lng_to_location_text.dart';
+import '../../../me/laboratory/view/widgets/me_menu_card_design.dart';
 import '../controller/delivery_partner_orders_controller.dart';
 import 'delivery_pickup_shops_list.dart';
 
@@ -273,21 +274,41 @@ class OrderCard extends StatelessWidget {
   // ============================================
 
   Widget _buildLocationSection() {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: AppColors.whiteE5),
-        color: AppColors.whiteFE,
-        borderRadius: BorderRadius.circular(10.0),
-        boxShadow: [AppShadows.textFieldShadow],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildPickupLocation(),
-          _buildDivider(),
-          _buildDropLocation(),
-        ],
-      ),
+    return Column(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: AppColors.whiteE5),
+            color: AppColors.whiteFE,
+            borderRadius: BorderRadius.circular(10.0),
+            boxShadow: [AppShadows.textFieldShadow],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildPickupLocation(),
+              _buildDivider(),
+              _buildDropLocation(),
+            ],
+          ),
+        ),
+        if(order.orderFor=='grocery')
+        Container(
+          margin: EdgeInsets.only(top: 10),
+          decoration: BoxDecoration(
+            border: Border.all(color: AppColors.whiteE5),
+            color: AppColors.whiteFE,
+            borderRadius: BorderRadius.circular(10.0),
+            boxShadow: [AppShadows.textFieldShadow],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildGroceryShopList(),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -349,6 +370,72 @@ class OrderCard extends StatelessWidget {
     );
   }
 
+  Widget _buildGroceryShopList() {
+    return Padding(
+      padding: EdgeInsets.all(SizeConfig.size10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              CustomText("Pick-Up From",fontSize: 10,fontWeight: FontWeight.w400,),
+            ],
+          ),
+           SizedBox(height: SizeConfig.size10),
+          ...order.groceryOrderDetails?.businesses.map((business) {
+            return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CustomText(
+                      business.businessId, // or business name if available
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                     SizedBox(height: SizeConfig.size4),
+                    Row(
+                      children: [
+                        CustomText('${business.items.length} Items',
+                        fontWeight: FontWeight.w400,
+                          fontSize: 10,
+                          color: AppColors.primaryColor,
+                        ),
+                        SizedBox(width: SizeConfig.size4,),
+                        CustomText('₹ ${business.amountPaid} Price',
+                        fontWeight: FontWeight.w400,
+                          fontSize: 10,
+                          color: AppColors.black,
+                        )
+                      ],
+                    )
+                    //
+                    // ...business.items.map((item) {
+                    //   return Padding(
+                    //     padding: const EdgeInsets.only(bottom: 4),
+                    //     child: CustomText(
+                    //       item.productDetails.product.name,
+                    //       fontSize: 11,
+                    //       fontWeight: FontWeight.w400,
+                    //     ),
+                    //   );
+                    // }).toList(),
+                  ],
+                ),
+                CustomToggleSwitch(
+                  isOn: true,
+                  onChanged: (val){
+
+                  },
+                )
+              ],
+            );
+          }).toList()??[],
+        ],
+      ),
+    );
+  }
+
   Widget _buildDropLocation() {
     return Padding(
       padding: EdgeInsets.all(SizeConfig.size10),
@@ -383,13 +470,16 @@ class OrderCard extends StatelessWidget {
             color: AppColors.secondaryTextColor,
           ),
           CustomText(
-            '${order.distancePickupToDrop}',
+            ' ${(order.distancePickupToDrop=="N/A"||order.distancePickupToDrop==''||order.distancePickupToDrop=="null")?"":order.distancePickupToDrop}',
             fontSize: SizeConfig.small11,
             fontWeight: FontWeight.w400,
             color: AppColors.primaryColor,
           ),
           SizedBox(width: SizeConfig.size2),
-          Icon(
+          if((order.distancePickupToDrop=="N/A"||order.distancePickupToDrop==''||order.distancePickupToDrop=="null"))
+            SizedBox()
+          else
+            Icon(
             Icons.location_on_outlined,
             size: SizeConfig.size12,
             color: AppColors.primaryColor,
@@ -408,7 +498,7 @@ class OrderCard extends StatelessWidget {
         ),
         if (_shouldShowContactNumber())
           CustomText(
-            '+91 ${order.user?.contactNo}',
+            '  +91 ${order.user?.contactNo}',
             fontSize: SizeConfig.small11,
             fontWeight: FontWeight.w400,
             color: AppColors.secondaryTextColor,
@@ -471,7 +561,9 @@ class OrderCard extends StatelessWidget {
         SizedBox(width: SizeConfig.size6),
         _buildActionButton(
           onTap: () {
-            Get.to(DeliveryPickupShopsList(orderId: order.orderId??'', rideOrderId: order.id??'',));
+            Get.to(DeliveryPickupShopsList(
+              order: order,
+              orderId: order.orderId??'', rideOrderId: order.id??'',));
             // _handleAcceptOrder(controller);
           },
           text: AppStrings.accept,
