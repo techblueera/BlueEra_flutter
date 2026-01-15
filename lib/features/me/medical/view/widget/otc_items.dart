@@ -4,12 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import '../../../../../core/api/apiService/api_keys.dart';
+import '../../../../../core/api/apiService/api_response.dart';
+import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/getx_utils.dart';
 import '../../../../../core/constants/size_config.dart';
 import '../../../../../core/routes/route_helper.dart';
 
+import '../../../../../widgets/custom_text_cm.dart';
 import '../../../hospital/controller/hospital_model_controller.dart';
 import '../../../laboratory/view/widgets/me_menu_card_design.dart';
+import '../../../widget/no_product_profile.dart';
 import '../../model/medical_lab_details.dart';
 
 class CategoryListView extends StatefulWidget {
@@ -41,76 +45,75 @@ class _CategoryListViewState extends State<CategoryListView> {
   Widget build(BuildContext context) {
 
     return Obx(() {
-      return SingleChildScrollView(
-        child: Column(
-          children: [
-            const SizedBox(height: 12),
-            ...controller.hospitalFacilitiesMap.keys.map((key) {
-              return InkWell(
-                onTap: (){
-                  List<dynamic> modelList = controller.hospitalFacilitiesMap[key];
-                  List<MedicalLabDataListModel> hospitalCategoryDataList =
-                      modelList.map((e) => MedicalLabDataListModel.fromJson(e)).toList();
-
-                  Get.toNamed(RouteHelper.getHospitalOptCategory(),
+      if(controller.getHospitalMainResponse.value.status==Status.COMPLETE){
+        return SingleChildScrollView(
+          child: Column(
+            children: [
+              const SizedBox(height: 12),
+              if(controller.hospitalMainPageData.value.data?.isEmpty??false)
+                NoProfileDetailsFound(content: "Hospital Details not Available Yet")
+              else
+              ...controller.hospitalMainPageData.value.data
+                  ?.map((department) {
+                return InkWell(
+                  onTap: () async{
+                    // final modelList =
+                    //     controller.hospitalFacilitiesMap[department.id] ?? [];
+                    //
+                    //
+                    // final List<MedicalLabDataListModel> hospitalCategoryDataList =
+                    // modelList
+                    //     .map((e) => MedicalLabDataListModel.fromJson(e))
+                    //     .toList();
+                    //
+                    Get.toNamed(
+                      RouteHelper.getHospitalOptCategory(),
                       arguments: {
-                        ApiKeys.medicalOtcChildren:hospitalCategoryDataList,
-                        // ApiKeys.categoryId:title.id,
-                        ApiKeys.title:key.toString(),
-                      });
-                },
-                child: MeMenuCardDesign(
-                  title: key,                 // 👈 KEY NAME
-                  isToggleOn: false,
-                  showToggleButton: false,
-                  icon: 'assets/icons/service_icon.svg',
-                ),
-              );
-            }).toList(),
-            // ...List.generate(
-            //   controller.hospitalFacilitiesMap.length,
-            //       (index) {
-            //     // final title = controller.hospitalCategoryDataList[index];
-            //
-            //     return InkWell(
-            //       onTap: () {
-            //         // if (title.children?.isNotEmpty ?? false) {
-            //         //   Get.toNamed(
-            //         //     RouteHelper.getHospitalOptCategory(),
-            //         //     arguments: {
-            //         //       ApiKeys.medicalOtcChildren: title.children,
-            //         //       ApiKeys.categoryId: title.id,
-            //         //       ApiKeys.title: title.name,
-            //         //     },
-            //         //   );
-            //         // }
-            //       },
-            //       child: MeMenuCardDesign(
-            //         onToggleChanged: (val) {
-            //           // /// ✅ 1. UPDATE UI FIRST
-            //           // controller.hospitalCategoryDataList[index] =
-            //           //     title.copyWith(isActive: val);
-            //           //
-            //           // /// ✅ 2. CALL API
-            //           // Map<String, dynamic> params = {
-            //           //   ApiKeys.isActive: val,
-            //           // };
-            //           //
-            //           // controller.updateEnableStatus(title.id ?? '', params);
-            //         },
-            //         isToggleOn: false,
-            //         showToggleButton:false,
-            //         title: 'Good',
-            //         icon: 'assets/icons/service_icon.svg',
-            //       ),
-            //     );
-            //   },
-            // ),
+                        ApiKeys.title: department.name,
+                        ApiKeys.categoryId: department.id,
+                      },
+                    );
+                  },
+                  child: MeMenuCardDesign(
+                    title: department.name ?? '', // ✅ department name
+                    isToggleOn: department.isActive,
+                    showToggleButton: true,
+                    icon: 'assets/icons/service_icon.svg',
+                  ),
+                );
+              }).toList() ?? [],
+              // SizedBox(height: SizeConfig.size10,),
+              // Container(
+              //   margin: EdgeInsets.symmetric(horizontal: 8),
+              //   decoration: BoxDecoration(
+              //     borderRadius: BorderRadius.circular(10),
+              //     border: Border.all(color: AppColors.primaryColor),
+              //     color: AppColors.primaryColor.withOpacity(0.1),
+              //   ),
+              //   padding: EdgeInsets.symmetric(horizontal: 14, vertical: 15),
+              //   child: Row(
+              //     mainAxisAlignment: MainAxisAlignment.center,
+              //     children: [
+              //       Icon(Icons.add_circle_outline,color: AppColors.primaryColor,),
+              //       SizedBox(width: SizeConfig.size6,),
+              //       CustomText(
+              //         "Add New Department",
+              //         fontSize: 14,
+              //         textAlign: TextAlign.center,
+              //         fontWeight: FontWeight.w700,
+              //         color: AppColors.primaryColor,
+              //       ),
+              //     ],
+              //   ),
+              // ),
+              SizedBox(height: SizeConfig.size100),
+            ],
+          ),
+        );
+      }else{
+        return SizedBox();
+      }
 
-            SizedBox(height: SizeConfig.size100),
-          ],
-        ),
-      );
     })
     ;
   }

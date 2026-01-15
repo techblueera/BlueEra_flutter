@@ -42,7 +42,7 @@ class _HospitalMainState extends State<HospitalMain>
   void initState() {
 
     _tabController = TabController(length: 3, vsync: this);
-    controller.fetchHospitalCategoryData(MedicalStoreType.hospital);
+    controller.fetchHospitalCategoryData();
 
     super.initState();
   }
