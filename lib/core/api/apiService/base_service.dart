@@ -598,6 +598,9 @@ abstract class BaseService {
   final String foodAiGenerate = 'ai-service/api/ai-food/generate';
   final String createBusinessPostApi = 'health-service/api/businesses';
   final String fetchHospitalDetails = 'health-service/api/businesses/ai-hospital/fetch-details';
+  final String fetchHospitalMainCate = 'health-service/api/departments/main';
+  final String addHospitalDepartment = 'health-service/api/departments';
+  String fetchHospitalSubCate(String id) =>  'health-service/api/departments/${id}/with-children';
   final String aiGenerateSelfProfession = 'ai-service/api/ai-earn/generate-about';
 
 
