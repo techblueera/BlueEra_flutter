@@ -38,7 +38,7 @@ enum BookingType {
   String get title => name[0].toUpperCase() + name.substring(1);
 }
 
-class BookingTabController extends GetxController {
+class BookingController extends GetxController {
   ApiResponse getAvailabilityResponse = ApiResponse.initial('Initial');
   ApiResponse addUpdateAvailabilityResponse = ApiResponse.initial('Initial');
   var isLoading = false.obs;
@@ -374,31 +374,45 @@ class BookingTabController extends GetxController {
     // }
 
     // Prefill visiting hours
-    final v = getOrPut(() => VisitingHoursSelectorController());
+    syncScheduleToController(availabilityData);
+  }
 
+  void syncScheduleToController(AvailabilityData? availabilityData) {
+    // 1. Safety Check
+    if (availabilityData == null) return;
+
+    // 2. Get the Controller
+    // We use Get.put to ensure it exists if not already created
+    final controller = getOrPut(() => VisitingHoursSelectorController());
+
+    // 3. Prepare Batch Data (Processing in pure memory first)
     final Map<String, bool> newVisitingHours = {};
     final Map<String, TimeOfDay> newStartTimes = {};
     final Map<String, TimeOfDay> newEndTimes = {};
 
-    // Default all days to closed in the temp map first
-    for (final day in v.visitingHours.keys) {
+    // Initialize all days to 'Closed' first to clear old states
+    for (final day in controller.visitingHours.keys) {
       newVisitingHours[day] = false;
     }
 
-    final schedule = availabilityData?.schedule ?? [];
+    // 4. Process API Data
+    final schedule = availabilityData.schedule ?? [];
 
-    // Loop through data and fill TEMP maps (No UI updates here!)
     for (final sch in schedule) {
       final apiDay = (sch.day ?? '').toLowerCase();
-      final uiDay = mapApiDayToUiDay(apiDay); // Ensure this function is efficient
+
+      // Ensure you have this helper method available in this class
+      final uiDay = mapApiDayToUiDay(apiDay);
+
       if (uiDay == null) continue;
 
-      // Set open/close
+      // Set Status
       newVisitingHours[uiDay] = sch.isOpen ?? false;
 
-      // Set times
+      // Set Times
       final firstSlot = (sch.timeSlots ?? []).isNotEmpty ? sch.timeSlots!.first : null;
       if (firstSlot != null) {
+        // Ensure you have this helper method available
         final start = parseTimeOfDay(firstSlot.startTime);
         final end = parseTimeOfDay(firstSlot.endTime);
 
@@ -407,10 +421,10 @@ class BookingTabController extends GetxController {
       }
     }
 
-    // --- 3. APPLY UPDATES ONCE (TRIGGER REBUILD ONLY ONCE) ---
-    v.visitingHours.assignAll(newVisitingHours);
-    v.startTimes.addAll(newStartTimes); // or assignAll if you want to clear old ones
-    v.endTimes.addAll(newEndTimes);     // or assignAll
+    // 5. Apply Updates Once (Triggers UI Rebuild only 1-3 times)
+    controller.visitingHours.assignAll(newVisitingHours);
+    controller.startTimes.addAll(newStartTimes);
+    controller.endTimes.addAll(newEndTimes);
   }
 
   Future<void> getMyBookingList() async {

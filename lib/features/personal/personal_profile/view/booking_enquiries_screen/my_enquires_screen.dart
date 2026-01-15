@@ -8,7 +8,7 @@ import '../../../../../widgets/custom_text_cm.dart';
 import 'controller/booking_controller.dart';
 
 class MyEnquiriesPage extends StatelessWidget {
-  final BookingTabController controller = Get.put(BookingTabController());
+  final BookingController controller = Get.put(BookingController());
 
   Color _getStatusColor(String status) {
     switch (status) {

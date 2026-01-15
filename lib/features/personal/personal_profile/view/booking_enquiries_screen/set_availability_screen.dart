@@ -27,7 +27,7 @@ class SetAvailabilityScreen extends StatefulWidget {
 }
 
 class _SetAvailabilityScreenState extends State<SetAvailabilityScreen> {
-  final controller = getOrPut(() => BookingTabController());
+  final controller = getOrPut(() => BookingController());
   final locationController = getOrPut(() => LocationController());
   final ScrollController _scrollController = ScrollController();
   final LayerLink _layerLink = LayerLink();
@@ -186,7 +186,7 @@ class _SetAvailabilityScreenState extends State<SetAvailabilityScreen> {
 
   @override
   void dispose() {
-    deleteIfRegistered<BookingTabController>();
+    deleteIfRegistered<BookingController>();
     _debounce?.cancel();
     _scrollController.dispose();
     _removeOverlay();
@@ -489,7 +489,7 @@ class _SetAvailabilityScreenState extends State<SetAvailabilityScreen> {
                             child: CustomBtn(
                                 height: SizeConfig.size45,
                                 radius: SizeConfig.size10,
-                                bgColor: Colors.blue,
+                                bgColor: AppColors.primaryColor,
                                 onTap: () => controller.addBookingAvailability(id: widget.id ?? ''),
                                 title: controller.isAddBookingAvailability.value ? null : AppStrings.save,
                                 textColor: AppColors.white,

@@ -22,7 +22,7 @@ class VideographyTutorialScreen2 extends StatefulWidget {
 
 class _VideographyTutorialScreen2State
     extends State<VideographyTutorialScreen2> {
-  final controller = Get.put(BookingTabController());
+  final controller = Get.put(BookingController());
   int selectedIndex = 0;
   final List<Map<String, dynamic>> bookings = [
     {

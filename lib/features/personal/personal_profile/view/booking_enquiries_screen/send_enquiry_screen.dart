@@ -34,7 +34,7 @@ class _SendEnquiryScreenState extends State<SendEnquiryScreen> {
   final mobileController = TextEditingController();
   final emailController = TextEditingController();
   final enquiryController = TextEditingController();
-  final BookingTabController bookingController = Get.put(BookingTabController());
+  final BookingController bookingController = Get.put(BookingController());
 
   @override
   void initState() {

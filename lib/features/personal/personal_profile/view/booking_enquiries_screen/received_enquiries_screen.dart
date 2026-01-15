@@ -17,7 +17,7 @@ final  String channelId;
 
   @override
   Widget build(BuildContext context) {
-     final controller = Get.put(BookingTabController());
+     final controller = Get.put(BookingController());
     controller.getReceivedEnquiryList(channelId:channelId,);
 
     return Scaffold(

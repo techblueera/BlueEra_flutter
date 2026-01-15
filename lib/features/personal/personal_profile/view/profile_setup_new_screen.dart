@@ -105,7 +105,7 @@ class _PersonalProfileSetupNewScreenState
     extends State<PersonalProfileSetupNewScreen> with TickerProviderStateMixin {
   final viewProfileController = getOrPut(() => ViewPersonalDetailsController());
   final personalCreateProfileController = getOrPut(() => PersonalCreateProfileController());
-  final bookingTabController = getOrPut(() => BookingTabController());
+  final bookingTabController = getOrPut(() => BookingController());
   final myDocumentsController = getOrPut(() => MyDocumentsController());
   final introVideoController = getOrPut(() => IntroductionVideoController());
 

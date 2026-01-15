@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'dart:io';
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -7,6 +8,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/controller/self_work_service_controller.dart';
@@ -53,11 +55,11 @@ class _AddSelfServiceScreenState extends State<AddSelfServiceScreen> {
     );
   }
 
-  // @override
-  // dispose(){
-  //   super.dispose();
-  //   deleteIfRegistered<SelfWorkServiceController>();
-  // }
+  @override
+  dispose(){
+    super.dispose();
+    deleteIfRegistered<SelfWorkServiceController>();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -302,7 +304,41 @@ class _AddSelfServiceScreenState extends State<AddSelfServiceScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _sectionTitle("About"),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            _sectionTitle("About"),
+                            Obx(()=> !controller.isGenerateDescLoading.value
+                                ? InkWell(
+                                onTap: () {
+                                  if(controller.selectedExperienceYear.value == null ||
+                                      controller.selectedExperienceMonth.value == null){
+                                    commonSnackBar(
+                                        message: "Cannot generate description without Experience Year and Month"
+                                    );
+                                    return;
+                                  }
+
+                                  controller
+                                      .generateDescriptions(bodyRequest: {
+                                    ApiKeys.category: controller.designation,
+                                    ApiKeys.expYears: controller.selectedExperienceYear.value,
+                                    ApiKeys.expMonths: controller.selectedExperienceMonth.value,
+                                  });
+                                },
+                                child: LocalAssets(
+                                  height: 25,
+                                  width: 25,
+                                  imgColor: AppColors.primaryColor,
+                                  imagePath: AppIconAssets.ai_generative,
+                                )) : SizedBox(
+                                height: 25,
+                                width: 25,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.0,
+                                )))
+                          ],
+                        ),
                         SizedBox(height: SizeConfig.size8),
                         CommonTextField(
                           textEditController: controller.aboutController,
@@ -482,6 +518,7 @@ class _AddSelfServiceScreenState extends State<AddSelfServiceScreen> {
       selectedCategoryKey: key,
       pageTitle: title,
       preSelectedOptions: selectedItems,
+      isDataUpdate: false
     ));
   }
 

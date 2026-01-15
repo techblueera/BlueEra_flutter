@@ -100,5 +100,17 @@ class EarnServiceRepo extends BaseService {
     return response;
   }
 
+  /// Self Profession Desc Via AI
+  Future<ResponseModel> aiGenerateDescriptionRepo(
+      {required Map<String, dynamic> bodyParam}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      "$aiGenerateSelfProfession",
+      params: bodyParam,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 
 }

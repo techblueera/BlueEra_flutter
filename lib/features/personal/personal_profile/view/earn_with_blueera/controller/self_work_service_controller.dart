@@ -18,6 +18,7 @@ import 'package:BlueEra/features/personal/personal_profile/controller/perosonal_
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/model/predefined_category_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/repo/earn_service_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/self_profession_desc_selection_dialog.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import '../../../../../../core/api/apiService/api_keys.dart';
@@ -82,14 +83,14 @@ class SelfWorkServiceController extends GetxController{
 
   static const String keyServiceTypes = "serviceTypes";
   static const String keyServicesOffered = "servicesOffered";
-  static const String keyWork = "typesOfWork";
+  static const String keyTypeOfWork = "typesOfWork";
   static const String keyExpertise = "expertise";
   static const String keyWorkCategories = "workCategories";
   static const String keyWhyChooseMe = "whyChooseMe";
 
   Map<String, RxList<String>> get allCategoryMap => {
     keyServicesOffered: serviceOptions,
-    keyWork: installationOptions,
+    keyTypeOfWork: installationOptions,
     keyExpertise: expertiseOptions,
     keyWorkCategories: workCategoryOptions,
     keyWhyChooseMe: whyChooseMeOptions,
@@ -97,7 +98,7 @@ class SelfWorkServiceController extends GetxController{
 
   Map<String, RxList<String>> get selectedCategoryMap => {
     keyServicesOffered: selectedServices,
-    keyWork: selectedInstallations,
+    keyTypeOfWork: selectedInstallations,
     keyExpertise: selectedExpertise,
     keyWorkCategories: selectedWorkCategories,
     keyWhyChooseMe: selectedWhyChooseMe,
@@ -105,7 +106,7 @@ class SelfWorkServiceController extends GetxController{
 
   Map<String, String> get categoryTitleMap => {
     keyServicesOffered: "Service Offered",
-    keyWork: "Types of Installations",
+    keyTypeOfWork: "Types of Installations",
     keyExpertise: "Expertise",
     keyWorkCategories: "Work Categories",
     keyWhyChooseMe: "Why Choose Me",
@@ -171,8 +172,8 @@ class SelfWorkServiceController extends GetxController{
 
       if (response.isSuccess) {
         predefinedCategoryResponse.value = ApiResponse.complete(response);
-        final predifinedCategoryModel = PredefinedCategoryModel.fromJson(response.response?.data);
-        List<String> newItems = predifinedCategoryModel.items ?? [];
+        final predefinedCategoryModel = PredefinedCategoryModel.fromJson(response.response?.data);
+        List<String> newItems = predefinedCategoryModel.items ?? [];
 
         RxList<String>? targetList = allCategoryMap[selectedServiceKey];
 
@@ -408,6 +409,42 @@ class SelfWorkServiceController extends GetxController{
     } catch (e) {
       uploadFileToS3Response.value = ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong.tr);
+    }
+  }
+
+  RxBool isGenerateDescLoading = false.obs;
+  var descriptionSuggestions = <String>[].obs;
+  var selectedDescription = "".obs;
+  Future<void> generateDescriptions({
+    required Map<String, dynamic> bodyRequest,
+    VoidCallback? onSaved, // <-- add this callback
+  }) async {
+    try {
+      isGenerateDescLoading.value = true;
+      descriptionSuggestions.clear();
+      selectedDescription.value = '';
+
+      final ResponseModel response = await EarnServiceRepo()
+          .aiGenerateDescriptionRepo(bodyParam: bodyRequest);
+
+      if (response.isSuccess && response.response?.data != null) {
+        final rawData = response.response?.data['data']['description_suggestions'];
+
+        if (rawData != null && rawData is List) {
+          descriptionSuggestions.value = rawData.map((e) => e.toString()).toList();
+        }
+
+        await selfProfessionDescSelectionDialog(onSaved: onSaved);
+      } else {
+        commonSnackBar(
+            message:
+            "Error ${response.message ?? AppStrings.somethingWentWrong.tr}");
+      }
+    } catch (e) {
+      logs("ERROR ${e}");
+      commonSnackBar(message: e.toString());
+    } finally {
+      isGenerateDescLoading.value = false;
     }
   }
 

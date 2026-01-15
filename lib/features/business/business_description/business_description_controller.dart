@@ -10,10 +10,9 @@ import 'package:BlueEra/features/business/widgets/description_selection_dialoge.
 import 'package:get/get.dart';
 
 class BusinessDescriptionController extends GetxController {
-  // RxList<String> descriptionSuggestions = <String>[].obs;
   RxBool isLoading = false.obs;
-
-  // RxString selectedDescription = ''.obs;
+  var descriptionSuggestions = <String>[].obs;
+  var selectedDescription = "".obs;
 
   Future<void> generateDescriptions({
     required Map<String, dynamic> bodyRequest,
@@ -49,8 +48,6 @@ class BusinessDescriptionController extends GetxController {
     selectedDescription.value = description;
   }
 
-  var descriptionSuggestions = <String>[].obs;
-  var selectedDescription = "".obs;
 
   void setSuggestions(dynamic json) {
     final data = json as List<dynamic>;
