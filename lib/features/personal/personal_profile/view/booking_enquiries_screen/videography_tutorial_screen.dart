@@ -21,7 +21,7 @@ class VideographyTutorialScreen extends StatefulWidget {
 
 class _VideographyTutorialScreenState extends State<VideographyTutorialScreen> {
   
-final controller = Get.put(BookingTabController());
+final controller = Get.put(BookingController());
   int selectedIndex = 0;
 
   Color getStatusColor(String status) {

@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/map/controller/visiting_hour_selector_controller.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -8,8 +9,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class VisitingHoursSelector extends StatelessWidget {
-  final VisitingHoursSelectorController controller = Get.put(VisitingHoursSelectorController());
-  
+  final controller = getOrPut(() => VisitingHoursSelectorController());
+
   VisitingHoursSelector({Key? key}) : super(key: key);
 
   @override

@@ -451,6 +451,16 @@ class ValidationMethod {
     return null;
   }
 
+  String? professionDescValidation(value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Please enter your description';
+    } if (value.length < 10) {
+      return "Validation Error, Instructions must be at least 10 characters";
+    }
+
+    return null;
+  }
+
 }
 
 

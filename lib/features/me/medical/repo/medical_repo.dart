@@ -42,5 +42,42 @@ class MedicalRepo extends BaseService {
    onError: (error) {}, onSuccess: (data) {});
     return response;
   }
+  Future<ResponseModel> createBusinessPost(Map<String,dynamic> params) async {
+    final response = await ApiBaseHelper().postHTTP(
+        createBusinessPostApi,
+        params: params,
+        showProgress: false,
+   onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+  Future<ResponseModel> fetchHospitalDetailsAPi() async {
+    final response = await ApiBaseHelper().getHTTP(
+        fetchHospitalDetails,
+        showProgress: false,
+   onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+  Future<ResponseModel> fetchHospitalMainCateApi() async {
+    final response = await ApiBaseHelper().getHTTP(
+        fetchHospitalMainCate,
+        showProgress: false,
+   onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+  Future<ResponseModel> fetchHospitalSubCateApi(String id) async {
+    final response = await ApiBaseHelper().getHTTP(
+        fetchHospitalSubCate(id),
+        showProgress: false,
+   onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+  Future<ResponseModel> addHospitalDepartmentApi(Map<String,dynamic> params) async {
+    final response = await ApiBaseHelper().postHTTP(
+        params: params,
+        addHospitalDepartment,
+        showProgress: false,
+   onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
 
 }

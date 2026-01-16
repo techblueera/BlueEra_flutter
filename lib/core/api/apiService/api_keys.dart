@@ -610,4 +610,14 @@ class ApiKeys {
   static const workCategories = 'workCategories';
   static const whyChooseMe = 'whyChooseMe';
   static const serviceType = 'serviceType';
+  static const argId = 'argId';
+  static const feeDetails = 'feeDetails';
+  static const minFee = 'minFee';
+  static const maxFee = 'maxFee';
+  static const feeType = 'feeType';
+  static const userIds = 'userIds';
+  static const groceryorderId = 'groceryorderId';
+  static const riderId = 'riderId';
+  static const expYears = 'expYears';
+  static const expMonths = 'expMonths';
 }

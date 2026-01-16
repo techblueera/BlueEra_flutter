@@ -17,6 +17,7 @@ class ServiceSelectionScreen extends StatefulWidget {
   final String pageTitle;
   final String selectedCategoryKey;
   final List<String> preSelectedOptions;
+  final bool isDataUpdate;
 
   const ServiceSelectionScreen({
     super.key,
@@ -25,6 +26,7 @@ class ServiceSelectionScreen extends StatefulWidget {
     required this.pageTitle,
     required this.selectedCategoryKey,
     required this.preSelectedOptions,
+    this.isDataUpdate = false,
   });
 
   @override
@@ -67,124 +69,136 @@ class _ServiceSelectionScreenState extends State<ServiceSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.whiteF3,
-      appBar: CommonBackAppBar(title: widget.pageTitle), // Use pageTitle for display
-      body: SingleChildScrollView(
-        padding: EdgeInsets.symmetric(
-            vertical: SizeConfig.size15,
-            horizontal: SizeConfig.size8
-        ),
-        child: CustomFormCard(
-          padding: EdgeInsets.symmetric(vertical: SizeConfig.size15),
-          child: Column(
-            children: [
-              // 1. Wrap the List in Obx to listen for API updates
-              Obx(() {
-                // Show Loader
-                if (_controller.isServiceSelectionLoading.value) {
-                  return const Padding(
-                    padding: EdgeInsets.all(20.0),
-                    child: Center(child: CircularProgressIndicator()),
-                  );
-                }
 
-                final allOptions = _controller.allCategoryMap[_selectedCategoryKey] ?? <String>[].obs;
+    final Widget contentBody = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // 1. Wrap the List in Obx to listen for API updates
+        Obx(() {
+          // Show Loader
+          if (_controller.isServiceSelectionLoading.value) {
+            return const Padding(
+              padding: EdgeInsets.all(20.0),
+              child: Center(child: CircularProgressIndicator()),
+            );
+          }
 
-                return ListView.builder(
-                  // Add +1 for the "Add More" button
-                  itemCount: allOptions.length + 1,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(), // Important inside SingleChildScrollView
-                  padding: EdgeInsets.zero,
-                  itemBuilder: (context, index) {
+          final allOptions = _controller.allCategoryMap[_selectedCategoryKey] ?? <String>[].obs;
 
-                    // --- Case 1: "Add More Services" Button (Last Item) ---
-                    if (index == allOptions.length) {
-                      return TextButton(
-                        onPressed: () => showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          backgroundColor: Colors.transparent,
-                          builder: (_) => AddServiceBottomSheet(
-                            onUpload: (List<String> newServices) {
-                              // A. Update the Controller's Main List (Source of Truth)
-                              final RxList<String>? mainList = _controller.allCategoryMap[_selectedCategoryKey];
-                              if (mainList != null) {
-                                mainList.addAll(newServices);
-                              }
+          return ListView.builder(
+            // Add +1 for the "Add More" button
+            itemCount: allOptions.length + 1,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(), // Important inside SingleChildScrollView
+            padding: EdgeInsets.zero,
+            itemBuilder: (context, index) {
 
-                              setState(() {
-                                _tempSelectedOptions.addAll(newServices);
-                              });
-                            },
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(CupertinoIcons.add, color: AppColors.primaryColor, size: 20),
-                            SizedBox(width: SizeConfig.size8),
-                            CustomText(
-                                "Add More Services",
-                                fontSize: SizeConfig.large,
-                                fontWeight: FontWeight.w400,
-                                color: AppColors.primaryColor
-                            ),
-                          ],
-                        ),
-                      );
-                    }
+              // --- Case 1: "Add More Services" Button (Last Item) ---
+              if (index == allOptions.length) {
+                return TextButton(
+                  onPressed: () => showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (_) => AddServiceBottomSheet(
+                      onUpload: (List<String> newServices) {
+                        // A. Update the Controller's Main List (Source of Truth)
+                        final RxList<String>? mainList = _controller.allCategoryMap[_selectedCategoryKey];
+                        if (mainList != null) {
+                          mainList.addAll(newServices);
+                        }
 
-                    // --- Case 2: Standard Option Item ---
-                    final option = allOptions[index];
-                    final isSelected = _tempSelectedOptions.contains(option);
-
-                    return Theme(
-                      data: ThemeData(unselectedWidgetColor: Colors.grey.shade300),
-                      child: CheckboxListTile(
-                        contentPadding: EdgeInsets.zero,
-                        visualDensity: const VisualDensity(horizontal: -4, vertical: -2),
-                        dense: true,
-                        activeColor: AppColors.primaryColor,
-                        controlAffinity: ListTileControlAffinity.leading,
-                        title: CustomText(
-                            option,
-                            fontSize: SizeConfig.large,
-                            fontWeight: FontWeight.w400,
-                            color: AppColors.secondaryTextColor
-                        ),
-                        value: isSelected,
-                        onChanged: (val) => _toggleSelection(option),
+                        setState(() {
+                          _tempSelectedOptions.addAll(newServices);
+                        });
+                      },
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(CupertinoIcons.add, color: AppColors.primaryColor, size: 20),
+                      SizedBox(width: SizeConfig.size8),
+                      CustomText(
+                          "Add More Services",
+                          fontSize: SizeConfig.large,
+                          fontWeight: FontWeight.w400,
+                          color: AppColors.primaryColor
                       ),
-                    );
-                  },
+                    ],
+                  ),
                 );
-              }),
+              }
 
-              // --- SAVE BUTTON ---
-              Padding(
-                padding: EdgeInsets.only(
-                  left: SizeConfig.size10,
-                  top: SizeConfig.size10,
-                  right: SizeConfig.size10,
+              // --- Case 2: Standard Option Item ---
+              final option = allOptions[index];
+              final isSelected = _tempSelectedOptions.contains(option);
+
+              return Theme(
+                data: ThemeData(unselectedWidgetColor: Colors.grey.shade300),
+                child: CheckboxListTile(
+                  contentPadding: EdgeInsets.zero,
+                  visualDensity: const VisualDensity(horizontal: -4, vertical: -2),
+                  dense: true,
+                  activeColor: AppColors.primaryColor,
+                  controlAffinity: ListTileControlAffinity.leading,
+                  title: CustomText(
+                      option,
+                      fontSize: SizeConfig.large,
+                      fontWeight: FontWeight.w400,
+                      color: AppColors.secondaryTextColor
+                  ),
+                  value: isSelected,
+                  onChanged: (val) => _toggleSelection(option),
                 ),
-                child: CustomBtn(
-                  title: AppStrings.save,
-                  onTap: () {
-                    _controller.updateSelection(
-                        _selectedCategoryKey,
-                        _tempSelectedOptions
-                    );
-                    _tempSelectedOptions.clear();
-                    Get.back();
-                  },
-                  bgColor: AppColors.primaryColor,
-                ),
-              ),
-            ],
+              );
+            },
+          );
+        }),
+
+        // --- SAVE BUTTON ---
+        Padding(
+          padding: EdgeInsets.only(
+            left: SizeConfig.size10,
+            top: SizeConfig.size10,
+            right: SizeConfig.size10,
+          ),
+          child: CustomBtn(
+            title: AppStrings.save,
+            onTap: () {
+              _controller.updateSelection(
+                  _selectedCategoryKey,
+                  _tempSelectedOptions
+              );
+              _tempSelectedOptions.clear();
+              Get.back();
+            },
+            bgColor: AppColors.primaryColor,
           ),
         ),
-      ),
+      ],
     );
+
+    if (!widget.isDataUpdate) {
+      return Scaffold(
+        backgroundColor: AppColors.whiteF3,
+        appBar: CommonBackAppBar(title: widget.pageTitle),
+        body: SingleChildScrollView(
+          padding: EdgeInsets.symmetric(
+              vertical: SizeConfig.size15,
+              horizontal: SizeConfig.size8
+          ),
+          child: CustomFormCard(
+            padding: EdgeInsets.symmetric(vertical: SizeConfig.size15),
+            child: contentBody, // <--- Reusing content here
+          ),
+        ),
+      );
+    } else {
+      // Bottom Sheet view
+      return Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        child: contentBody, // <--- Reusing content here
+      );
+    }
   }
 }

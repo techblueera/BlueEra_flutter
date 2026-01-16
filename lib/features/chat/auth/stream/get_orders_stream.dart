@@ -35,20 +35,31 @@ Stream<dynamic> getOrderFromUserStream() async* {
   }
 
   // Listen to the stream
+  final buffer = StringBuffer();
+
   await for (final chunk in response.stream.transform(utf8.decoder)) {
     for (final line in chunk.split('\n')) {
 
       if (line.startsWith('data:')) {
-        final jsonStr = line.substring(5).trim();
-        if (jsonStr.isNotEmpty) {
-          try {
-            final data = jsonDecode(jsonStr);
-            yield data;
-          } catch (e) {
-            print('Invalid JSON in SSE: $jsonStr');
-          }
+        // IMPORTANT: keep newline
+        buffer.writeln(line.substring(5));
+      }
+
+      // SSE event ends with empty line
+      if (line.trim().isEmpty && buffer.isNotEmpty) {
+        try {
+          final jsonStr = buffer.toString().trim();
+          buffer.clear();
+
+          final decoded = jsonDecode(jsonStr);
+          yield decoded;
+        } catch (e) {
+          print('❌ JSON DECODE FAILED');
+          print(buffer.toString());
+          buffer.clear();
         }
       }
     }
   }
+
 }

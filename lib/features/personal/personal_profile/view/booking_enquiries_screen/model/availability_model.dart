@@ -1,298 +1,240 @@
-
 class AvailabilityResponse {
-  final bool? success;
-  final String? message;
-  final AvailabilityModel? data;
+  bool? success;
+  AvailabilityData? data;
 
-  AvailabilityResponse({
-    this.success,
-    this.message,
-    this.data,
-  });
+  AvailabilityResponse({this.success, this.data});
 
-  factory AvailabilityResponse.fromJson(Map<String, dynamic> json) {
-    return AvailabilityResponse(
-      success: json['success'],
-      message: json['message'],
-      data: json['data'] != null
-          ? AvailabilityModel.fromJson(json['data'])
-          : null,
-    );
+  AvailabilityResponse.fromJson(Map<String, dynamic> json) {
+    success = json['success'];
+    data = json['data'] != null ? new AvailabilityData.fromJson(json['data']) : null;
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['success'] = this.success;
+    if (this.data != null) {
+      data['data'] = this.data!.toJson();
+    }
+    return data;
   }
 }
 
+class AvailabilityData {
+  String? sId;
+  String? availableForType;
+  String? availableForId;
+  int? iV;
+  String? bookingType;
+  String? createdAt;
+  int? durationInMinutes;
+  int? fee;
+  Location? location;
+  List<Schedule>? schedule;
+  List<SpecialOverrides>? specialOverrides;
+  String? timezone;
+  String? updatedAt;
+  FeeDetails? feeDetails;
+  String? instructions;
 
-class AvailabilityModel {
-  final String? id;
-  final String? availableForType;
-  final String? availableForId;
-  final String? bookingType;
-  final DateTime? createdAt;
-  final DateTime? updatedAt;
-  final int? durationInMinutes;
-  final int? fee;
-  final String? instructions;
-  final Location? location;
-  final List<Schedule>? schedule;
-  final List<SpecialOverride>? specialOverrides;
-  final String? timezone;
-  final int? v;
+  AvailabilityData(
+      {this.sId,
+        this.availableForType,
+        this.availableForId,
+        this.iV,
+        this.bookingType,
+        this.createdAt,
+        this.durationInMinutes,
+        this.fee,
+        this.location,
+        this.schedule,
+        this.specialOverrides,
+        this.timezone,
+        this.updatedAt,
+        this.feeDetails,
+        this.instructions});
 
-  AvailabilityModel({
-    this.id,
-    this.availableForType,
-    this.availableForId,
-    this.bookingType,
-    this.createdAt,
-    this.updatedAt,
-    this.durationInMinutes,
-    this.fee,
-    this.instructions,
-    this.location,
-    this.schedule,
-    this.specialOverrides,
-    this.timezone,
-    this.v,
-  });
+  AvailabilityData.fromJson(Map<String, dynamic> json) {
+    sId = json['_id'];
+    availableForType = json['availableForType'];
+    availableForId = json['availableForId'];
+    iV = json['__v'];
+    bookingType = json['bookingType'];
+    createdAt = json['createdAt'];
+    durationInMinutes = json['durationInMinutes'];
+    fee = json['fee'];
+    location = json['location'] != null
+        ? new Location.fromJson(json['location'])
+        : null;
+    if (json['schedule'] != null) {
+      schedule = <Schedule>[];
+      json['schedule'].forEach((v) {
+        schedule!.add(new Schedule.fromJson(v));
+      });
+    }
+    if (json['specialOverrides'] != null) {
+      specialOverrides = <SpecialOverrides>[];
+      json['specialOverrides'].forEach((v) {
+        specialOverrides!.add(new SpecialOverrides.fromJson(v));
+      });
+    }
+    timezone = json['timezone'];
+    updatedAt = json['updatedAt'];
+    feeDetails = json['feeDetails'] != null
+        ? new FeeDetails.fromJson(json['feeDetails'])
+        : null;
+    instructions = json['instructions'];
+  }
 
-  factory AvailabilityModel.fromJson(Map<String, dynamic> json) =>
-      AvailabilityModel(
-        id: json["_id"],
-        availableForType: json["availableForType"],
-        availableForId: json["availableForId"],
-        bookingType: json["bookingType"],
-        createdAt: json["createdAt"] == null
-            ? null
-            : DateTime.parse(json["createdAt"]),
-        updatedAt: json["updatedAt"] == null
-            ? null
-            : DateTime.parse(json["updatedAt"]),
-        durationInMinutes: json["durationInMinutes"],
-        fee: json["fee"],
-        instructions: json["instructions"],
-        location: json["location"] == null
-            ? null
-            : Location.fromJson(json["location"]),
-        schedule: json["schedule"] == null
-            ? []
-            : List<Schedule>.from(
-            json["schedule"].map((x) => Schedule.fromJson(x))),
-        specialOverrides: json["specialOverrides"] == null
-            ? []
-            : List<SpecialOverride>.from(
-            json["specialOverrides"].map((x) => SpecialOverride.fromJson(x))),
-        timezone: json["timezone"],
-        v: json["__v"],
-      );
-
-  Map<String, dynamic> toJson() => {
-    "_id": id,
-    "availableForType": availableForType,
-    "availableForId": availableForId,
-    "bookingType": bookingType,
-    "createdAt": createdAt?.toIso8601String(),
-    "updatedAt": updatedAt?.toIso8601String(),
-    "durationInMinutes": durationInMinutes,
-    "fee": fee,
-    "instructions": instructions,
-    "location": location?.toJson(),
-    "schedule": schedule == null
-        ? []
-        : List<dynamic>.from(schedule!.map((x) => x.toJson())),
-    "specialOverrides": specialOverrides == null
-        ? []
-        : List<dynamic>.from(specialOverrides!.map((x) => x.toJson())),
-    "timezone": timezone,
-    "__v": v,
-  };
-
-  AvailabilityModel copyWith({
-    String? id,
-    String? availableForType,
-    String? availableForId,
-    String? bookingType,
-    DateTime? createdAt,
-    DateTime? updatedAt,
-    int? durationInMinutes,
-    int? fee,
-    String? instructions,
-    Location? location,
-    List<Schedule>? schedule,
-    List<SpecialOverride>? specialOverrides,
-    String? timezone,
-    int? v,
-  }) =>
-      AvailabilityModel(
-        id: id ?? this.id,
-        availableForType: availableForType ?? this.availableForType,
-        availableForId: availableForId ?? this.availableForId,
-        bookingType: bookingType ?? this.bookingType,
-        createdAt: createdAt ?? this.createdAt,
-        updatedAt: updatedAt ?? this.updatedAt,
-        durationInMinutes: durationInMinutes ?? this.durationInMinutes,
-        fee: fee ?? this.fee,
-        instructions: instructions ?? this.instructions,
-        location: location ?? this.location,
-        schedule: schedule ?? this.schedule,
-        specialOverrides: specialOverrides ?? this.specialOverrides,
-        timezone: timezone ?? this.timezone,
-        v: v ?? this.v,
-      );
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['_id'] = this.sId;
+    data['availableForType'] = this.availableForType;
+    data['availableForId'] = this.availableForId;
+    data['__v'] = this.iV;
+    data['bookingType'] = this.bookingType;
+    data['createdAt'] = this.createdAt;
+    data['durationInMinutes'] = this.durationInMinutes;
+    data['fee'] = this.fee;
+    if (this.location != null) {
+      data['location'] = this.location!.toJson();
+    }
+    if (this.schedule != null) {
+      data['schedule'] = this.schedule!.map((v) => v.toJson()).toList();
+    }
+    if (this.specialOverrides != null) {
+      data['specialOverrides'] =
+          this.specialOverrides!.map((v) => v.toJson()).toList();
+    }
+    data['timezone'] = this.timezone;
+    data['updatedAt'] = this.updatedAt;
+    if (this.feeDetails != null) {
+      data['feeDetails'] = this.feeDetails!.toJson();
+    }
+    data['instructions'] = this.instructions;
+    return data;
+  }
 }
 
 class Location {
-  final String? landmark;
-  final String? address;
-  final String? latitude;
-  final String? longitude;
+  String? landmark;
+  String? latitude;
+  String? longitude;
+  String? address;
 
-  Location({
-    this.landmark,
-    this.address,
-    this.latitude,
-    this.longitude,
-  });
+  Location({this.landmark, this.latitude, this.longitude, this.address});
 
-  factory Location.fromJson(Map<String, dynamic> json) => Location(
-    landmark: json["landmark"],
-    address: json["address"],
-    latitude: json["latitude"],
-    longitude: json["longitude"],
-    // latitude: (json["latitude"] is int)
-    //     ? (json["latitude"] as int).toDouble()
-    //     : json["latitude"],
-    // longitude: (json["longitude"] is int)
-    //     ? (json["longitude"] as int).toDouble()
-    //     : json["longitude"],
-  );
+  Location.fromJson(Map<String, dynamic> json) {
+    landmark = json['landmark'];
+    latitude = json['latitude'];
+    longitude = json['longitude'];
+    address = json['address'];
+  }
 
-  Map<String, dynamic> toJson() => {
-    "landmark": landmark,
-    "address": address,
-    "latitude": latitude,
-    "longitude": longitude,
-  };
-
-  Location copyWith({
-    String? landmark,
-    String? address,
-    String? latitude,
-    String? longitude,
-  }) =>
-      Location(
-        landmark: landmark ?? this.landmark,
-        address: address ?? this.address,
-        latitude: latitude ?? this.latitude,
-        longitude: longitude ?? this.longitude,
-      );
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['landmark'] = this.landmark;
+    data['latitude'] = this.latitude;
+    data['longitude'] = this.longitude;
+    data['address'] = this.address;
+    return data;
+  }
 }
 
 class Schedule {
-  final String? day;
-  final bool? isOpen;
-  final List<TimeSlot>? timeSlots;
+  String? day;
+  bool? isOpen;
+  List<TimeSlots>? timeSlots;
 
-  Schedule({
-    this.day,
-    this.isOpen,
-    this.timeSlots,
-  });
+  Schedule({this.day, this.isOpen, this.timeSlots});
 
-  factory Schedule.fromJson(Map<String, dynamic> json) => Schedule(
-    day: json["day"],
-    isOpen: json["isOpen"],
-    timeSlots: json["timeSlots"] == null
-        ? []
-        : List<TimeSlot>.from(
-        json["timeSlots"].map((x) => TimeSlot.fromJson(x))),
-  );
+  Schedule.fromJson(Map<String, dynamic> json) {
+    day = json['day'];
+    isOpen = json['isOpen'];
+    if (json['timeSlots'] != null) {
+      timeSlots = <TimeSlots>[];
+      json['timeSlots'].forEach((v) {
+        timeSlots!.add(new TimeSlots.fromJson(v));
+      });
+    }
+  }
 
-  Map<String, dynamic> toJson() => {
-    "day": day,
-    "isOpen": isOpen,
-    "timeSlots": timeSlots == null
-        ? []
-        : List<dynamic>.from(timeSlots!.map((x) => x.toJson())),
-  };
-
-  Schedule copyWith({
-    String? day,
-    bool? isOpen,
-    List<TimeSlot>? timeSlots,
-  }) =>
-      Schedule(
-        day: day ?? this.day,
-        isOpen: isOpen ?? this.isOpen,
-        timeSlots: timeSlots ?? this.timeSlots,
-      );
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['day'] = this.day;
+    data['isOpen'] = this.isOpen;
+    if (this.timeSlots != null) {
+      data['timeSlots'] = this.timeSlots!.map((v) => v.toJson()).toList();
+    }
+    return data;
+  }
 }
 
-class TimeSlot {
-  final String? startTime;
-  final String? endTime;
+class TimeSlots {
+  String? startTime;
+  String? endTime;
 
-  TimeSlot({
-    this.startTime,
-    this.endTime,
-  });
+  TimeSlots({this.startTime, this.endTime});
 
-  factory TimeSlot.fromJson(Map<String, dynamic> json) => TimeSlot(
-    startTime: json["startTime"],
-    endTime: json["endTime"],
-  );
+  TimeSlots.fromJson(Map<String, dynamic> json) {
+    startTime = json['startTime'];
+    endTime = json['endTime'];
+  }
 
-  Map<String, dynamic> toJson() => {
-    "startTime": startTime,
-    "endTime": endTime,
-  };
-
-  TimeSlot copyWith({
-    String? startTime,
-    String? endTime,
-  }) =>
-      TimeSlot(
-        startTime: startTime ?? this.startTime,
-        endTime: endTime ?? this.endTime,
-      );
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['startTime'] = this.startTime;
+    data['endTime'] = this.endTime;
+    return data;
+  }
 }
 
-class SpecialOverride {
-  final DateTime? date;
-  final bool? isOpen;
-  final List<TimeSlot>? timeSlots;
+class SpecialOverrides {
+  String? date;
+  bool? isOpen;
+  List<TimeSlots>? timeSlots;
 
-  SpecialOverride({
-    this.date,
-    this.isOpen,
-    this.timeSlots,
-  });
+  SpecialOverrides({this.date, this.isOpen, this.timeSlots});
 
-  factory SpecialOverride.fromJson(Map<String, dynamic> json) =>
-      SpecialOverride(
-        date: json["date"] == null ? null : DateTime.parse(json["date"]),
-        isOpen: json["isOpen"],
-        timeSlots: json["timeSlots"] == null
-            ? []
-            : List<TimeSlot>.from(
-            json["timeSlots"].map((x) => TimeSlot.fromJson(x))),
-      );
+  SpecialOverrides.fromJson(Map<String, dynamic> json) {
+    date = json['date'];
+    isOpen = json['isOpen'];
+    if (json['timeSlots'] != null) {
+      timeSlots = <TimeSlots>[];
+      json['timeSlots'].forEach((v) {
+        timeSlots!.add(new TimeSlots.fromJson(v));
+      });
+    }
+  }
 
-  Map<String, dynamic> toJson() => {
-    "date": date?.toIso8601String(),
-    "isOpen": isOpen,
-    "timeSlots": timeSlots == null
-        ? []
-        : List<dynamic>.from(timeSlots!.map((x) => x.toJson())),
-  };
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['date'] = this.date;
+    data['isOpen'] = this.isOpen;
+    if (this.timeSlots != null) {
+      data['timeSlots'] = this.timeSlots!.map((v) => v.toJson()).toList();
+    }
+    return data;
+  }
+}
 
-  SpecialOverride copyWith({
-    DateTime? date,
-    bool? isOpen,
-    List<TimeSlot>? timeSlots,
-  }) =>
-      SpecialOverride(
-        date: date ?? this.date,
-        isOpen: isOpen ?? this.isOpen,
-        timeSlots: timeSlots ?? this.timeSlots,
-      );
+class FeeDetails {
+  int? minFee;
+  int? maxFee;
+  String? feeType;
+
+  FeeDetails({this.minFee, this.maxFee, this.feeType});
+
+  FeeDetails.fromJson(Map<String, dynamic> json) {
+    minFee = json['minFee'];
+    maxFee = json['maxFee'];
+    feeType = json['feeType'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['minFee'] = this.minFee;
+    data['maxFee'] = this.maxFee;
+    data['feeType'] = this.feeType;
+    return data;
+  }
 }

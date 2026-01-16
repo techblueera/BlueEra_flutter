@@ -1,13 +1,17 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/constants/string_utils.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/individual_profiile_category.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/change_profession_dialog.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/change_profession_warning_dialog.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/horizonatal_video_player.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/widget/service_item.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -144,12 +148,28 @@ class _SelfWorkServiceGuideBottomSheetState extends State<SelfWorkServiceGuideBo
                   return;
                 }
 
-                ProfessionChangeDialogHelper().shouldShowUpdateDesignationDialog(
-                  context: context,
-                  designation: selectedService?.slugId ?? OTHER,
-                  serviceSubType: EarnServiceTypes.selfWork,
+                if(isEarnServiceOpt=='true' && selectedService?.slugId == userWorkTypeGlobal){
+                  commonSnackBar(message: 'You are already ${userWorkTypeGlobal.withArticle}');
+                  return;
+                }
+
+
+                ChangeProfessionWarningDialog.show(
+                  context,
+                  onConfirm: ()=>   Get.toNamed(
+                    RouteHelper.getAddSelfServiceRoute(),
+                    arguments: {
+                      ApiKeys.designation: selectedService?.slugId ?? OTHER,
+                      ApiKeys.serviceSubType: EarnServiceTypes.selfWork,
+                    },
+                  ),
                 );
 
+                // ProfessionChangeDialogHelper().shouldShowUpdateDesignationDialog(
+                //   context: context,
+                //   designation: selectedService?.slugId ?? OTHER,
+                //   serviceSubType: EarnServiceTypes.selfWork,
+                // );
 
               },
               bgColor: AppColors.primaryColor,

@@ -583,6 +583,7 @@ abstract class BaseService {
   final String createHotelService = 'hotel-service/api/hotel-profile';
   final String hotelBulkStatus = 'hotel-service/api/hotels//offerings/bulk-toggle';
   final String hotelBulkCatalogStatus = 'hotel-service/api/businesses/hotels//catalog';
+  final String createGroceryOrderConvoApi = 'chat-service/grocery-order/send-message';
   // final String hotelBulkStatus = 'hotel-service/api/hotels/offerings/bulk-toggle';
   // final String hotelBulkCatalogStatus = 'hotel-service/api/businesses/hotels/catalog';
   final String schoolUserID = 'education-service/schools/';
@@ -595,6 +596,13 @@ abstract class BaseService {
   final String hotelsOfferings = 'hotel-service/api/hotels/offerings';
   final String hotelsContactUsGet = 'hotel-service/api/businesses/profile/about-us';
   final String foodAiGenerate = 'ai-service/api/ai-food/generate';
+  final String createBusinessPostApi = 'health-service/api/businesses';
+  final String fetchHospitalDetails = 'health-service/api/businesses/ai-hospital/fetch-details';
+  final String fetchHospitalMainCate = 'health-service/api/departments/main';
+  final String addHospitalDepartment = 'health-service/api/departments';
+  String fetchHospitalSubCate(String id) =>  'health-service/api/departments/${id}/with-children';
+  final String aiGenerateSelfProfession = 'ai-service/api/ai-earn/generate-about';
+
   ///HOTEL....
   final String hotelAmenities = 'hotel-service/api/hotel-amenities';
   final String hotelRoomAmenities = 'hotel-service/api/room-amenities';

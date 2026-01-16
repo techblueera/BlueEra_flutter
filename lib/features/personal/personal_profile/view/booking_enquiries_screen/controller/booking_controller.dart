@@ -8,6 +8,7 @@ import 'package:BlueEra/core/api/model/place_prediction.dart';
 import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -37,19 +38,21 @@ enum BookingType {
   String get title => name[0].toUpperCase() + name.substring(1);
 }
 
-class BookingTabController extends GetxController {
+class BookingController extends GetxController {
   ApiResponse getAvailabilityResponse = ApiResponse.initial('Initial');
   ApiResponse addUpdateAvailabilityResponse = ApiResponse.initial('Initial');
   var isLoading = false.obs;
   final formKey = GlobalKey<FormState>();
   TextEditingController locationController = TextEditingController();
   TextEditingController landmarkController = TextEditingController();
-  TextEditingController feeController = TextEditingController();
+  TextEditingController minFeeController = TextEditingController();
+  TextEditingController maxFeeController = TextEditingController();
+  TextEditingController feeTypeController = TextEditingController();
   TextEditingController instructionController = TextEditingController();
   RxInt selectedIndex = 0.obs;
   RxInt selectedIndex2 = 0.obs;
   var selectedType = BookingType.offline.obs;
-  RxString selectedTimeSlot = '30 Min'.obs;
+  // RxString selectedTimeSlot = '30 Min'.obs;
   var bookings = <Booking>[].obs;
   var receivedbookingList = <ReceivedBookingData>[].obs;
   var receivedenquiryList = <ReceivedEnquiryData>[].obs;
@@ -64,7 +67,7 @@ class BookingTabController extends GetxController {
   var availableTimeSlots = <String>[].obs;
   var charges = ''.obs;
   var isLoadingCalendar = false.obs;
-  var availabilityDetails = Rxn<AvailabilityModel>();
+  var availabilityDetails = Rxn<AvailabilityData>();
   bool _userChangedBookingType = false;
 
   Rx<LocationMode> selectedLocationMode = LocationMode.current.obs;
@@ -79,8 +82,8 @@ class BookingTabController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    getMyBookingList();
-    getMyEnquiry();
+    // getMyBookingList();
+    // getMyEnquiry();
   }
 
   Future<void> addBooingAppointment({required Map<String, dynamic> params}) async {
@@ -155,6 +158,8 @@ class BookingTabController extends GetxController {
 
   String get selectedTab2 => filters2[selectedIndex2.value];
 
+
+  RxBool isAddBookingAvailability = false.obs;
   Future<void> addBookingAvailability({required String id}) async {
    
     if (formKey.currentState?.validate() ?? false) {
@@ -188,6 +193,8 @@ class BookingTabController extends GetxController {
         // }
 
       }
+
+      isAddBookingAvailability.value = true;
 
       final visitingHoursSelectorController = Get.find<VisitingHoursSelectorController>();
 
@@ -226,12 +233,15 @@ class BookingTabController extends GetxController {
           ApiKeys.address: currentAddress.value,
         },
         ApiKeys.instructions: instructionController.text,
-        ApiKeys.fee: feeController.text,
-        ApiKeys.durationInMinutes: selectedTimeSlot.value.replaceAll(' Min', ''),
+        ApiKeys.minFee: minFeeController.text.trim(),
+        ApiKeys.maxFee: maxFeeController.text.trim(),
+        ApiKeys.feeType: feeTypeController.text.trim(),
+        // ApiKeys.durationInMinutes: selectedTimeSlot.value.replaceAll(' Min', ''),
         if(visitingHoursData.isNotEmpty) ApiKeys.schedule: visitingHoursData,
       };
 
       try {
+
         ResponseModel? response = await BookingRepo().addUpdateBookingAvailability(
             id: id,
             params: params
@@ -240,6 +250,7 @@ class BookingTabController extends GetxController {
         if (response.isSuccess) {
           addUpdateAvailabilityResponse = ApiResponse.complete(response);
           Get.back(result: true);
+          getBookingAvailability(id: id);
           commonSnackBar(message: "Availability added");
         } else {
           addUpdateAvailabilityResponse = ApiResponse.error('error');
@@ -248,25 +259,44 @@ class BookingTabController extends GetxController {
       } catch (e) {
         addUpdateAvailabilityResponse = ApiResponse.error('error');
         commonSnackBar(message: AppStrings.somethingWentWrong);
+      } finally{
+        isAddBookingAvailability.value = false;
       }
     }
   }
 
-  Future<AvailabilityModel?> getCachedAvailability() async {
+
+  RxBool isGetBookingAvailabilityLoading = false.obs;
+  Future<void> checkAndGetAvailabilityBookingData(String id) async {
+    isGetBookingAvailabilityLoading.value = true;
+    final cached = await getCachedAvailability();
+
+    if (cached != null) {
+      logs('Loaded availability from cache');
+      isGetBookingAvailabilityLoading.value = false;
+      availabilityDetails.value = cached;
+      setAvailabilityData(availabilityDetails.value);
+    } else {
+      // No cache found, fetch from API
+      getBookingAvailability(id: id);
+    }
+  }
+
+  Future<AvailabilityData?> getCachedAvailability() async {
     try {
       final savedData = await SharedPreferenceUtils.getBookingAvailabilityDetail();
       if (savedData == null) return null;
 
       final decoded = jsonDecode(savedData);
-      final model = AvailabilityModel.fromJson(decoded);
-      return model;
+      final model = AvailabilityResponse.fromJson(decoded);
+      return model.data;
     } catch (e) {
       logs('⚠️ Error decoding cached availability: $e');
       return null;
     }
   }
 
-  Future<AvailabilityModel?> getBookingAvailability({required String id}) async {
+  Future<AvailabilityData?> getBookingAvailability({required String id}) async {
 
     try {
       final availabilityRes = await BookingRepo().getUserAvailability(
@@ -288,7 +318,7 @@ class BookingTabController extends GetxController {
           SharedPreferenceUtils.availabilityDetails,
           jsonEncode(availability.data?.toJson()),
         );
-
+        setAvailabilityData(availabilityDetails.value);
         logs('💾 Saved availability to SharedPreferences');
 
         return availabilityDetails.value;
@@ -302,10 +332,12 @@ class BookingTabController extends GetxController {
       logs('stack trace error: $s');
       clearValues();
       return null;
+    }finally{
+      isGetBookingAvailabilityLoading.value = false;
     }
   }
 
-  void setAvailabilityData(AvailabilityModel? availabilityData){
+  void setAvailabilityData(AvailabilityData? availabilityData){
     // Prefill booking type only if user hasn't changed it yet
     if (availabilityData?.bookingType != null && !_userChangedBookingType) {
       final bt = availabilityData?.bookingType!.toLowerCase();
@@ -319,42 +351,80 @@ class BookingTabController extends GetxController {
     }
 
     // Prefill location, fee, duration
-    locationController.text = availabilityData?.location?.address ?? '';
-    feeController.text = availabilityData?.fee?.toString() ?? '';
-    if ((availabilityData?.durationInMinutes ?? '0').toString().isNotEmpty) {
-      final candidate = '${availabilityData?.durationInMinutes} Min';
-      const allowed = ['15 Min', '30 Min', '60 Min'];
-      selectedTimeSlot.value = allowed.contains(candidate) ? candidate : '30 Min';
-    }
+
+    // if(selectedLocationMode.value == LocationMode.current){
+    //   currentAddress.value = availabilityData?.location?.address ?? '';
+    // } else{
+    //   locationController.text = availabilityData?.location?.address ?? '';
+    // }
+
+    latitude = double.tryParse(availabilityData?.location?.latitude ?? '0.0') ?? 0.0;
+    longitude = double.tryParse(availabilityData?.location?.longitude ?? '0.0') ?? 0.0;
+    currentAddress.value = availabilityData?.location?.address ?? '';
+    landmarkController.text = availabilityData?.location?.landmark ?? '';
+    instructionController.text = availabilityData?.instructions ?? '';
+    minFeeController.text = availabilityData?.feeDetails?.minFee?.toString() ?? '';
+    maxFeeController.text = availabilityData?.feeDetails?.maxFee?.toString() ?? '';
+    feeTypeController.text = availabilityData?.feeDetails?.feeType?.toString() ?? '';
+
+    // if ((availabilityData?.durationInMinutes ?? '0').toString().isNotEmpty) {
+    //   final candidate = '${availabilityData?.durationInMinutes} Min';
+    //   const allowed = ['15 Min', '30 Min', '60 Min'];
+    //   selectedTimeSlot.value = allowed.contains(candidate) ? candidate : '30 Min';
+    // }
 
     // Prefill visiting hours
-    final v = Get.isRegistered<VisitingHoursSelectorController>()
-        ? Get.find<VisitingHoursSelectorController>()
-        : Get.put(VisitingHoursSelectorController());
+    syncScheduleToController(availabilityData);
+  }
 
-    // Reset all to closed first
-    for (final day in v.visitingHours.keys) {
-      v.visitingHours[day] = false;
+  void syncScheduleToController(AvailabilityData? availabilityData) {
+    // 1. Safety Check
+    if (availabilityData == null) return;
+
+    // 2. Get the Controller
+    // We use Get.put to ensure it exists if not already created
+    final controller = getOrPut(() => VisitingHoursSelectorController());
+
+    // 3. Prepare Batch Data (Processing in pure memory first)
+    final Map<String, bool> newVisitingHours = {};
+    final Map<String, TimeOfDay> newStartTimes = {};
+    final Map<String, TimeOfDay> newEndTimes = {};
+
+    // Initialize all days to 'Closed' first to clear old states
+    for (final day in controller.visitingHours.keys) {
+      newVisitingHours[day] = false;
     }
 
-    final schedule = availabilityData?.schedule ?? [];
+    // 4. Process API Data
+    final schedule = availabilityData.schedule ?? [];
+
     for (final sch in schedule) {
       final apiDay = (sch.day ?? '').toLowerCase();
+
+      // Ensure you have this helper method available in this class
       final uiDay = mapApiDayToUiDay(apiDay);
+
       if (uiDay == null) continue;
 
-      final isOpen = sch.isOpen ?? false;
-      v.visitingHours[uiDay] = isOpen;
+      // Set Status
+      newVisitingHours[uiDay] = sch.isOpen ?? false;
 
-      // Pick first slot
+      // Set Times
       final firstSlot = (sch.timeSlots ?? []).isNotEmpty ? sch.timeSlots!.first : null;
       if (firstSlot != null) {
+        // Ensure you have this helper method available
         final start = parseTimeOfDay(firstSlot.startTime);
         final end = parseTimeOfDay(firstSlot.endTime);
-        if (start != null) v.startTimes[uiDay] = start;
-        if (end != null) v.endTimes[uiDay] = end;
+
+        if (start != null) newStartTimes[uiDay] = start;
+        if (end != null) newEndTimes[uiDay] = end;
       }
     }
+
+    // 5. Apply Updates Once (Triggers UI Rebuild only 1-3 times)
+    controller.visitingHours.assignAll(newVisitingHours);
+    controller.startTimes.addAll(newStartTimes);
+    controller.endTimes.addAll(newEndTimes);
   }
 
   Future<void> getMyBookingList() async {
@@ -541,9 +611,11 @@ class BookingTabController extends GetxController {
 
   void clearValues() {
     selectedType.value = BookingType.offline;
-    selectedTimeSlot.value = '30 Min';
+    // selectedTimeSlot.value = '30 Min';
     locationController.clear();
-    feeController.clear();
+    minFeeController.clear();
+    maxFeeController.clear();
+    feeTypeController.clear();
     _userChangedBookingType = false;
     landmarkController.clear();
     instructionController.clear();

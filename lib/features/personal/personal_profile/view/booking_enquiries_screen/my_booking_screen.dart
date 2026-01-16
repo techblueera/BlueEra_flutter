@@ -17,7 +17,7 @@ class MyBookingsScreen extends StatefulWidget {
 }
 
 class _MyBookingsScreenState extends State<MyBookingsScreen> {
-  final controller = Get.put(BookingTabController());
+  final controller = Get.put(BookingController());
   int selectedIndex = 0;
   final List<Map<String, dynamic>> bookings = [
     {

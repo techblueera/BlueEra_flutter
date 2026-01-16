@@ -305,7 +305,7 @@ class RouteHelper {
       RouteConstant.BookingAndEnquiresScreen;
 
   static String getAvailabilityScreenRoute() =>
-      RouteConstant.SetAvailabilityScreen;
+      RouteConstant.setAvailabilityScreen;
 
   static String getAppointmentBookingScreenRoute() =>
       RouteConstant.AppointmentBookingScreen;
@@ -902,15 +902,14 @@ class RouteHelper {
           builder: (_) => MyEnquiriesPage(),
           settings: settings, // Pass the settings to preserve arguments
         );
-      case RouteConstant.SetAvailabilityScreen:
+      case RouteConstant.setAvailabilityScreen:
         final args = settings.arguments as Map<String, dynamic>;
-        final String channelId = args[ApiKeys.channelId] as String;
-        final AvailabilityModel? availabilityBookingData =
-            args[ApiKeys.availabilityBookingData] as AvailabilityModel?;
+        final String argId = args[ApiKeys.argId] as String;
         return MaterialPageRoute(
           builder: (_) => SetAvailabilityScreen(
-              id: channelId, availabilityBookingData: availabilityBookingData),
-          settings: settings, // Pass the settings to preserve arguments
+              id: argId
+          ),
+              settings: settings, // Pass the settings to preserve arguments
         );
       case RouteConstant.AppointmentBookingScreen:
         final args = settings.arguments as Map<String, dynamic>;
@@ -1440,14 +1439,13 @@ class RouteHelper {
         );
       case RouteConstant.hospitalOptCategory:
         final args = settings.arguments as Map<String, dynamic>;
-        List<MedicalLabDataListModel>? children=args[ApiKeys.medicalOtcChildren] as List<MedicalLabDataListModel>?;
         String categoryId= args[ApiKeys.categoryId] as String;
         String title= args[ApiKeys.title] as String;
         return MaterialPageRoute(
             builder: (_) => OpdOutPatientPage(
               title: title,
               categoryId: categoryId,
-              children:children??[],
+
             ),
             settings: RouteSettings(name: getHospitalOptCategory())
         );

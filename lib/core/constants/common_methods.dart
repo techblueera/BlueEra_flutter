@@ -44,7 +44,6 @@ bool isSuccessStatus(int? statusCode) {
   return statusCode == 200 || statusCode == 201;
 }
 
-List<String> businessType = ["Product", "Service", "Both"];
 //function to get year
 int getYear(DateTime date) {
   return date.year;
@@ -580,5 +579,28 @@ Future<void> openGoogleMaps({
     await launchUrl(uri, mode: LaunchMode.externalApplication);
   } else {
     throw 'Could not open Google Maps';
+  }
+}
+
+Map<String, int> calculateExperience(String startDateString) {
+  try {
+    DateTime startDate = DateTime.parse(startDateString);
+    DateTime now = DateTime.now();
+
+    int years = now.year - startDate.year;
+    int months = now.month - startDate.month;
+
+    // Adjust if the current month is before the start month
+    if (months < 0) {
+      years--;
+      months += 12;
+    }
+
+    return {
+      "years": years < 0 ? 0 : years, // Prevent negative years
+      "months": months
+    };
+  } catch (e) {
+    return {"years": 0, "months": 0};
   }
 }

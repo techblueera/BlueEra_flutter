@@ -229,7 +229,7 @@ class BusinessProfileRepo extends BaseService {
     return response;
   }
 
-  // Get products API call
+  // Business Desc Via AI
   Future<ResponseModel> aiGenerateDescriptionRepo(
       {required Map<String, dynamic> bodyParam}) async {
     final response = await ApiBaseHelper().postHTTP(

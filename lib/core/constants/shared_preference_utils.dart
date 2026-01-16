@@ -465,6 +465,7 @@ getEarnServiceOptData() async {
   isEarnServiceOpt = await SharedPreferenceUtils.getSecureValue(
       SharedPreferenceUtils.isEarnServiceUser);
 }
+
 ///SET SCHOOL ID....
 setSchoolID(String schoolIDValue) {
   SharedPreferenceUtils.setSecureValue(

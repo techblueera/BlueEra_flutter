@@ -1,59 +1,84 @@
 class MedicalLabDataListModel {
-  final String? moduleCode;
-  final String? name;
   final String? id;
-  final String? key;
+  final String? businessId;
+  final String? catalogNodeId;
+
+  final String? name; // title from API
   final bool? isActive;
   final String? type;
-  final String? description;
   final int? order;
+
+  final Map<String,dynamic>? data;
+
+  final String? createdAt;
+  final String? updatedAt;
+
   final UiModel? ui;
   final RulesModel? rules;
+
   final List<MedicalLabDataListModel>? children;
 
   MedicalLabDataListModel({
-    this.moduleCode,
-    this.name,
-    this.key,
-    this.isActive,
     this.id,
+    this.businessId,
+    this.catalogNodeId,
+    this.name,
+    this.isActive,
     this.type,
-    this.description,
     this.order,
+    this.data,
+    this.createdAt,
+    this.updatedAt,
     this.ui,
     this.rules,
     this.children,
   });
 
+  /// 🔁 copyWith (THIS is what you wanted)
   MedicalLabDataListModel copyWith({
+    String? id,
+    String? businessId,
+    String? catalogNodeId,
+    String? name,
     bool? isActive,
+    String? type,
+    int? order,
+    Map<String,dynamic>? data,
+    String? createdAt,
+    String? updatedAt,
+    UiModel? ui,
+    RulesModel? rules,
     List<MedicalLabDataListModel>? children,
   }) {
     return MedicalLabDataListModel(
-      moduleCode: moduleCode,
-      name: name,
-      key: key,
-      id: id,
-      type: type,
-      description: description,
-      order: order,
-      ui: ui,
-      rules: rules,
-      isActive: isActive ?? this.isActive,
+      id: id ?? this.id,
+      businessId: businessId ?? this.businessId,
+      catalogNodeId: catalogNodeId ?? this.catalogNodeId,
+      name: name ?? this.name,
+      isActive: isActive ?? this.isActive, // 👈 key line
+      type: type ?? this.type,
+      order: order ?? this.order,
+      data: data ?? this.data,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      ui: ui ?? this.ui,
+      rules: rules ?? this.rules,
       children: children ?? this.children,
     );
   }
 
   factory MedicalLabDataListModel.fromJson(Map<String, dynamic> json) {
     return MedicalLabDataListModel(
-      moduleCode: json['moduleCode'],
-      name: json['name'],
       id: json['_id'],
+      businessId: json['businessId'],
+      catalogNodeId: json['catalogNodeId'],
+      name: json['title'],
       isActive: json['isActive'],
-      key: json['key'],
       type: json['type'],
-      description: json['description'],
       order: json['order'],
+      data: json['data'],
+      createdAt: json['createdAt'],
+      updatedAt: json['updatedAt'],
       ui: json['ui'] != null ? UiModel.fromJson(json['ui']) : null,
       rules: json['rules'] != null ? RulesModel.fromJson(json['rules']) : null,
       children: json['children'] != null
@@ -63,16 +88,19 @@ class MedicalLabDataListModel {
           : null,
     );
   }
+
   Map<String, dynamic> toJson() {
     return {
-      'moduleCode': moduleCode,
-      'name': name,
-      'key': key,
+      '_id': id,
+      'businessId': businessId,
+      'catalogNodeId': catalogNodeId,
+      'title': name,
       'isActive': isActive,
-      'id': id,
       'type': type,
-      'description': description,
       'order': order,
+      'data': data,
+      'createdAt': createdAt,
+      'updatedAt': updatedAt,
       'ui': ui?.toJson(),
       'rules': rules?.toJson(),
       'children': children?.map((e) => e.toJson()).toList(),
@@ -80,59 +108,43 @@ class MedicalLabDataListModel {
   }
 }
 
-
 class UiModel {
   final String? icon;
-  final String? layout;
+  final String? color;
 
-  UiModel({this.icon, this.layout});
+  UiModel({this.icon, this.color});
 
   factory UiModel.fromJson(Map<String, dynamic> json) {
     return UiModel(
       icon: json['icon'],
-      layout: json['layout'],
+      color: json['color'],
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'icon': icon,
-      'layout': layout,
+      'color': color,
     };
   }
 }
-
 class RulesModel {
-  final bool? allowChildren;
-  final bool? allowOfferings;
-  final bool? prescriptionRequired;
-  final List<String>? visibilityRestrictions;
+  final bool? isEditable;
+  final bool? isDeletable;
 
-  RulesModel({
-    this.allowChildren,
-    this.allowOfferings,
-    this.prescriptionRequired,
-    this.visibilityRestrictions,
-  });
+  RulesModel({this.isEditable, this.isDeletable});
 
   factory RulesModel.fromJson(Map<String, dynamic> json) {
     return RulesModel(
-      allowChildren: json['allowChildren'],
-      allowOfferings: json['allowOfferings'],
-      prescriptionRequired: json['prescriptionRequired'],
-      visibilityRestrictions:
-      json['visibilityRestrictions'] != null
-          ? List<String>.from(json['visibilityRestrictions'])
-          : [],
+      isEditable: json['isEditable'],
+      isDeletable: json['isDeletable'],
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'allowChildren': allowChildren,
-      'allowOfferings': allowOfferings,
-      'prescriptionRequired': prescriptionRequired,
-      'visibilityRestrictions': visibilityRestrictions,
+      'isEditable': isEditable,
+      'isDeletable': isDeletable,
     };
   }
 }

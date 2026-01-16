@@ -37,7 +37,7 @@ class CircularCheckbox extends StatelessWidget {
             ? Center(
           child: Icon(
             Icons.check,
-            size: size * 0.6,
+            size: size * 0.7,
             color: Colors.white,
           ),
         )

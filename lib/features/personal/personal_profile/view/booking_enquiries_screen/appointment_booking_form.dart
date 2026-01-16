@@ -36,7 +36,7 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
   final nameController = TextEditingController();
   final mobileController = TextEditingController();
   final emailController = TextEditingController();
-  final BookingTabController bookingController = Get.put(BookingTabController());
+  final BookingController bookingController = Get.put(BookingController());
 
   @override
   void initState() {

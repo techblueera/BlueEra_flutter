@@ -429,7 +429,7 @@ class UserGroceryController extends GetxController{
 
   Future<void> executeOrderProcess({required String orderId, required String riderId}) async {
 
-    show(text: "Waiting for rider response..."); // Show Loader
+    show(text: "Waiting for rider response...");
 
     // Quick Check: If BOTH steps are already done for this rider, just restart stream.
     if (assignedRiderIds.contains(riderId) &&
@@ -609,6 +609,7 @@ class UserGroceryController extends GetxController{
     } else if(status == 'accepted') {
       hide(); // TERMINAL STATE: Hide loader
       commonSnackBar(message: "Rider $status the request");
+
     } else if(status == 'rejected' || status == 'cancelled'){
       hide(); // TERMINAL STATE: Hide loader
       commonSnackBar(message: "Rider $status the request");

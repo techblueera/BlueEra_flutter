@@ -64,11 +64,11 @@ class EarnServiceRepo extends BaseService {
 
   ///Upload Profession Photo...
   Future<ResponseModel> uploadProfessionImages(
-      Map<String, dynamic> params) async {
-    final response = await ApiBaseHelper().postHTTP(
+      {required String serviceId, required Map<String, dynamic> params}) async {
+    final response = await ApiBaseHelper().putHTTP(
         isMultipart: true,
         params: params,
-        businessLivePhotos,
+        earnServicesById(serviceId),
         showProgress: false,
         onError: (error) {},
         onSuccess: (data) {});
@@ -77,10 +77,10 @@ class EarnServiceRepo extends BaseService {
 
   ///Delete Profession Photos...
   Future<ResponseModel> deleteProfessionImage(
-      Map<String, dynamic> params) async {
+      {required String serviceId, required Map<String, dynamic> params}) async {
     final response = await ApiBaseHelper().deleteHTTP(
         params: params,
-        removeBusinessLivePhotos,
+        earnServicesById(serviceId),
         onError: (error) {},
         onSuccess: (data) {});
 
@@ -100,5 +100,17 @@ class EarnServiceRepo extends BaseService {
     return response;
   }
 
+  /// Self Profession Desc Via AI
+  Future<ResponseModel> aiGenerateDescriptionRepo(
+      {required Map<String, dynamic> bodyParam}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      "$aiGenerateSelfProfession",
+      params: bodyParam,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 
 }

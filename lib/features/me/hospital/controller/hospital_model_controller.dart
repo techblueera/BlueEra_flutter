@@ -8,24 +8,35 @@ import 'package:get/get.dart';
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/snackbar_helper.dart';
+import '../../../../core/services/location/location_service.dart';
 import '../../medical/model/medical_lab_details.dart';
 import '../../medical/repo/medical_repo.dart';
+import '../model/hospital_main_page_model.dart';
 import '../model/hospital_model_class.dart';
 
 class HospitalModelController extends GetxController {
   final medicalRepo = MedicalRepo();
-  final RxList<MedicalLabDataListModel> hospitalCategoryDataList =
-      <MedicalLabDataListModel>[].obs;
-  Rx<ApiResponse> getMedicalCategoryResponse =
+
+
+  Rx<ApiResponse> getHospitalMainResponse =
+      ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> getHospitalSubResponse =
       ApiResponse.initial('Initial').obs;
   final hospitalNameTextController=TextEditingController();
   final hospitalAddressTextController=TextEditingController();
   final hospitalLinkTextController=TextEditingController();
+  final TextEditingController nameController = TextEditingController();
+  RxBool isActive = true.obs;
   RxBool isAiBtnLoading=false.obs;
+  RxString hospitalCurrentAddress=''.obs;
   RxBool saveAiDetailsLoading=false.obs;
   Rx<HospitalPreviewResponse> hospitalData = HospitalPreviewResponse().obs;
+  Rx<MainHospitalDepartmentResponse> hospitalMainPageData = MainHospitalDepartmentResponse().obs;
+  RxList<Department> hospitalSubCate = <Department>[].obs;
   Map<String,dynamic> aiRawDetails={
   };
+  RxMap<String,dynamic> hospitalFacilitiesMap=<String,dynamic>{}.obs;
+
   // Controllers for editable fields
   final phoneController = TextEditingController();
   final emergencyController = TextEditingController();
@@ -52,26 +63,50 @@ class HospitalModelController extends GetxController {
     return editControllers[key]!;
   }
 
+Future<void> fetchAddressByLatLng({required double lat,required double lng})async{
+  String? address=await LocationService.getAddressUsingLatLng(latitude: lat, longitude: lng);
+  hospitalCurrentAddress.value=address;
+}
 
-
-  Future<void> fetchHospitalCategoryData(String categoryTopic) async {
-    ResponseModel response =
-    await medicalRepo.fetchMedicalCategoryData(categoryTopic);
+  Future<void> fetchHospitalCategoryData() async {
+    ResponseModel response = await medicalRepo.fetchHospitalMainCateApi();
     if (response.isSuccess) {
-
-      final modelJson = response.response?.data['data'];
-
-      List<dynamic> modelList = modelJson;
-      hospitalCategoryDataList.value =
-          modelList.map((e) => MedicalLabDataListModel.fromJson(e)).toList();
-      getMedicalCategoryResponse.value =
-          ApiResponse.complete(hospitalCategoryDataList);
+      hospitalMainPageData.value= MainHospitalDepartmentResponse.fromJson(response.response?.data);
+      getHospitalMainResponse.value =
+          ApiResponse.complete(hospitalMainPageData);
     } else {
       commonSnackBar(message: AppStrings.somethingWentWrong);
-      getMedicalCategoryResponse.value =
+      getHospitalMainResponse.value =
           ApiResponse.error(AppStrings.somethingWentWrong);
     }
   }
+  Future<void> addHospitalDepartmentApi(Map<String,dynamic> params) async {
+    ResponseModel response = await medicalRepo.addHospitalDepartmentApi(params);
+    if (response.isSuccess) {
+      log("dslkjcnskjdcnskjdc ${response.response?.data}");
+
+    } else {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+      // getHospitalMainResponse.value =
+      //     ApiResponse.error(AppStrings.somethingWentWrong);
+    }
+  }
+  Future<void> fetchHospitalSubCategoryData(String categoryTopic) async {
+    getHospitalSubResponse.value =
+        ApiResponse.initial("Initial");
+    ResponseModel response = await medicalRepo.fetchHospitalSubCateApi(categoryTopic);
+    if (response.isSuccess) {
+      List rawList=response.response?.data['data']['subDepartments'];
+      hospitalSubCate.value=rawList.map((e)=>Department.fromJson(e)).toList();
+      getHospitalSubResponse.value =
+      ApiResponse.complete(hospitalSubCate);
+    } else {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+      getHospitalSubResponse.value =
+      ApiResponse.error(AppStrings.somethingWentWrong);
+    }
+  }
+
   List<MedicalLabDataListModel> updateCategoryStatusById({
     required List<MedicalLabDataListModel> list,
     required String id,
@@ -104,16 +139,15 @@ class HospitalModelController extends GetxController {
     await medicalRepo.enableHotelServiceStatusApi(categoryTopicId, params);
     if (response.isSuccess) {
       final bool updatedStatus = params['isActive'];
-
-      hospitalCategoryDataList.value = updateCategoryStatusById(
-        list: hospitalCategoryDataList,
-        id: categoryTopicId,
-        isActive: updatedStatus,
-      );
+      //
+      // hospitalCategoryDataList.value = updateCategoryStatusById(
+      //   list: hospitalCategoryDataList,
+      //   id: categoryTopicId,
+      //   isActive: updatedStatus,
+      // );
 
       // reassign API response for UI
-      getMedicalCategoryResponse.value =
-          ApiResponse.complete(hospitalCategoryDataList);
+
 
       commonSnackBar(message: response.response?.statusMessage ?? '');
     } else {
@@ -141,6 +175,7 @@ class HospitalModelController extends GetxController {
       hospitalAiDataResponse.value =ApiResponse.error("Error");
     }
   }
+
   Future<void> saveAiHospitalDetails()async {
     Map<String,dynamic> params ={
       "data":aiRawDetails['data']
@@ -149,7 +184,7 @@ class HospitalModelController extends GetxController {
     ResponseModel response =
     await medicalRepo.saveAiDetailsOfHospital(params);
     if (response.isSuccess) {
-      log("dslkjcnskjdcnskjdc ${response.data}");
+      log("dslkjcnskjdcnskjdc ${response.response?.data}");
       hospitalAiDataSaveResponse.value =ApiResponse.complete(response.response?.data);
       saveAiDetailsLoading.value=false;
     } else {
@@ -158,7 +193,19 @@ class HospitalModelController extends GetxController {
       hospitalAiDataSaveResponse.value =ApiResponse.error("Error");
       saveAiDetailsLoading.value=false;
     }
+  }
 
+
+  Future<void> createBusinessPost(Map<String,dynamic> params)async {
+
+    ResponseModel response =
+    await medicalRepo.createBusinessPost(params);
+    if (response.isSuccess) {
+      log("dslkjcnskjdcnskjdc Save Hospital ${response.response?.data}");
+
+    } else {
+
+    }
   }
 
 

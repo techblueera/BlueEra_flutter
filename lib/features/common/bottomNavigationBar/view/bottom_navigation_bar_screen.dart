@@ -175,7 +175,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   }
 
   Future<void> _initializeIndividualUser() async {
-    viewPersonalDetailsController.getEarnServiceStatus();
+    // viewPersonalDetailsController.getEarnServiceStatus();
     await Future.delayed(Duration(seconds: 2));
     showEnableServiceDialog();
 

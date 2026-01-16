@@ -8,13 +8,17 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/common/service/model/add_service_response_model.dart';
+import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/model/predefined_category_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/repo/earn_service_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/self_profession_desc_selection_dialog.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import '../../../../../../core/api/apiService/api_keys.dart';
@@ -28,6 +32,8 @@ class SelfWorkServiceController extends GetxController{
   ApiResponse.initial('Initial').obs;
 
   String? designation;
+
+  final GlobalKey<FormState> formKey  = GlobalKey<FormState>();
 
   // --- Service images ---
   final RxList<String> selectedImages = <String>[].obs;
@@ -66,7 +72,7 @@ class SelfWorkServiceController extends GetxController{
   final selectedExperienceYear = Rxn<String>();
   final selectedExperienceMonth = Rxn<String>();
   final serviceTypes = <String>[].obs;
-  final selectedServiceType = Rxn<String>();
+  RxList<String> selectedServiceTypes = <String>[].obs;
 
   // Available options for each category (Mock Data)
   var selectedServices = <String>[].obs;
@@ -77,14 +83,14 @@ class SelfWorkServiceController extends GetxController{
 
   static const String keyServiceTypes = "serviceTypes";
   static const String keyServicesOffered = "servicesOffered";
-  static const String keyWork = "typesOfWork";
+  static const String keyTypeOfWork = "typesOfWork";
   static const String keyExpertise = "expertise";
   static const String keyWorkCategories = "workCategories";
   static const String keyWhyChooseMe = "whyChooseMe";
 
   Map<String, RxList<String>> get allCategoryMap => {
     keyServicesOffered: serviceOptions,
-    keyWork: installationOptions,
+    keyTypeOfWork: installationOptions,
     keyExpertise: expertiseOptions,
     keyWorkCategories: workCategoryOptions,
     keyWhyChooseMe: whyChooseMeOptions,
@@ -92,7 +98,7 @@ class SelfWorkServiceController extends GetxController{
 
   Map<String, RxList<String>> get selectedCategoryMap => {
     keyServicesOffered: selectedServices,
-    keyWork: selectedInstallations,
+    keyTypeOfWork: selectedInstallations,
     keyExpertise: selectedExpertise,
     keyWorkCategories: selectedWorkCategories,
     keyWhyChooseMe: selectedWhyChooseMe,
@@ -100,7 +106,7 @@ class SelfWorkServiceController extends GetxController{
 
   Map<String, String> get categoryTitleMap => {
     keyServicesOffered: "Service Offered",
-    keyWork: "Types of Installations",
+    keyTypeOfWork: "Types of Installations",
     keyExpertise: "Expertise",
     keyWorkCategories: "Work Categories",
     keyWhyChooseMe: "Why Choose Me",
@@ -166,8 +172,8 @@ class SelfWorkServiceController extends GetxController{
 
       if (response.isSuccess) {
         predefinedCategoryResponse.value = ApiResponse.complete(response);
-        final predifinedCategoryModel = PredefinedCategoryModel.fromJson(response.response?.data);
-        List<String> newItems = predifinedCategoryModel.items ?? [];
+        final predefinedCategoryModel = PredefinedCategoryModel.fromJson(response.response?.data);
+        List<String> newItems = predefinedCategoryModel.items ?? [];
 
         RxList<String>? targetList = allCategoryMap[selectedServiceKey];
 
@@ -191,73 +197,82 @@ class SelfWorkServiceController extends GetxController{
     }
   }
 
+  RxBool isCreateServiceLoading = false.obs;
   /// Create Self Service
-  Future<void> createServiceApi(
-      {required EarnServiceTypes serviceSubType}
-      ) async {
+  Future<void> createEarnServiceApi({required EarnServiceTypes serviceSubType}) async {
 
-    // if (!isValidate()) return;
+// 1. Validate Form Fields (TextInputs)
+    if (!formKey.currentState!.validate()) return;
+
+// 2. Validate Dropdowns & Single Selections
+    if (selectedExperienceYear.value == null) {
+      commonSnackBar(message: 'Please select experience (Years)');
+      return;
+    }
+
+    if (selectedExperienceMonth.value == null) {
+      commonSnackBar(message: 'Please select experience (Months)');
+      return;
+    }
+
+    if (selectedServiceTypes.isEmpty) {
+      commonSnackBar(message: 'Please select a service type');
+      return;
+    }
+
+// 3. Validate Multi-Selection Lists
+// Note: Using .isEmpty is safer for RxList than checking == null
+    if (selectedServices.isEmpty) {
+      commonSnackBar(message: 'Please select at least one Service Offered');
+      return;
+    }
+
+    if (selectedInstallations.isEmpty) {
+      commonSnackBar(message: 'Please add Types of Installations');
+      return;
+    }
+
+    if (selectedExpertise.isEmpty) {
+      commonSnackBar(message: 'Please add your Expertise');
+      return;
+    }
+
+    if (selectedWorkCategories.isEmpty) {
+      commonSnackBar(message: 'Please select Work Categories');
+      return;
+    }
+
+    if (selectedWhyChooseMe.isEmpty) {
+      commonSnackBar(message: 'Please add "Why Choose Me" points');
+      return;
+    }
 
     try {
-      // UploadProgressDialog.show(
-      //     initialProgress: 0.0, title: AppStrings.creatingService);
+
+      isCreateServiceLoading.value = true;
 
       Map<String, dynamic> params = {
         ApiKeys.type: AppConstants.service,
         ApiKeys.providerType: ProviderType.user.title,
         ApiKeys.subType: serviceSubType.label,
         ApiKeys.category: designation ?? ELECTRICIAN,
-        ApiKeys.serviceType: selectedServiceType,
+        ApiKeys.serviceType: selectedServiceTypes[0],
+        // ApiKeys.serviceType: selectedServiceTypes,
         ApiKeys.description: aboutController.text.trim(),
         ApiKeys.experience: {
-          ApiKeys.years: selectedExperienceYear,
-          ApiKeys.months:selectedExperienceMonth,
+          ApiKeys.years: selectedExperienceYear.value,
+          ApiKeys.months:selectedExperienceMonth.value,
         },
-
-
-        // ApiKeys.min: int.tryParse(minPriceCtrl.text.trim()),
-        // ApiKeys.max: int.tryParse(maxPriceCtrl.text.trim()),
-
-
-        // ApiKeys.title: serviceNameCtrl.text.trim(),
-        // ApiKeys.description: descriptionCtrl.text.trim(),
-        // ApiKeys.facilities: facilities,
-        // ApiKeys.timings: {
-        //   ApiKeys.start: formatTime(startTime.value),
-        //   ApiKeys.end: formatTime(endTime.value),
-        //   ApiKeys.special: isSpecial.value,
-        // },
-        // ApiKeys.perUnit: perUnitCtrl.text.trim(),
-        // if (coupons.isNotEmpty)
-        //   ApiKeys.discounts: coupons.map((e) => e.toJson()).toList(),
-        // if (detailsList.isNotEmpty)
-        //   ApiKeys.extraDetails: detailsList.map((e) => e.toJson()).toList()
+       // ApiKeys.priceType: 'range',
+       // ApiKeys.min: int.tryParse(minPriceCtrl.text.trim()),
+       // ApiKeys.max: int.tryParse(maxPriceCtrl.text.trim()),
       };
-
       if (selectedServices.isNotEmpty) params[ApiKeys.serviceOffered] = selectedServices;
       if (selectedInstallations.isNotEmpty) params[ApiKeys.typesOfWork] = selectedInstallations;
       if (selectedExpertise.isNotEmpty) params[ApiKeys.expertise] = selectedExpertise;
       if (selectedWorkCategories.isNotEmpty) params[ApiKeys.workCategories] = selectedWorkCategories;
       if (selectedWhyChooseMe.isNotEmpty) params[ApiKeys.whyChooseMe] = selectedWhyChooseMe;
 
-      // String? capitalizeFirst(String name) {
-      //   if (name.isEmpty) return null;
-      //   return this[0].toUpperCase() + substring(1).toLowerCase();
-      // }
-      // if(category!=null) params[ApiKeys.category] = category;
-      // if(serviceSubType!=null)  params[ApiKeys.subType] = serviceSubType.label;
-      // if(channelId!=null) params[ApiKeys.channelId] = channelId;
-      //
-      // if (isRange.isTrue) {
-      //   params[ApiKeys.priceType] = 'range';
-      //   params[ApiKeys.priceRange] = {
-      //     ApiKeys.min: int.tryParse(minPriceCtrl.text.trim()),
-      //     ApiKeys.max: int.tryParse(maxPriceCtrl.text.trim()),
-      //   };
-      // } else {
-      //   params[ApiKeys.priceType] = 'fixed';
-      //   params[ApiKeys.singlePrice] = priceCtrl.text.trim();
-      // }
 
       // Prepare images
       List<UploadS3ImageModel> images = [];
@@ -284,9 +299,6 @@ class SelfWorkServiceController extends GetxController{
       if (responseModel.isSuccess) {
         createServiceResponse.value = ApiResponse.complete(responseModel);
 
-        // First API progress = 20%
-        // UploadProgressDialog.update(0.2);
-
         // Set preSignedUrls from response
         final addServiceResponseModel = AddServiceResponseModel.fromJson(responseModel.response!.data);
         List<String> preSignedUrlImages =
@@ -301,21 +313,39 @@ class SelfWorkServiceController extends GetxController{
           await uploadAllImages(images);
         }
 
-
-        // ✅ Close dialog once and navigate back
-        // UploadProgressDialog.close();
         commonSnackBar(message: AppStrings.serviceAddedSuccess.tr);
 
-        await setEarnServiceOptData(true);
-        // Get.close(2);
+        isCreateServiceLoading.value = false;
+
+        Get.offNamedUntil(
+          RouteHelper.getAvailabilityScreenRoute(),
+          arguments: {
+            ApiKeys.argId: userId
+          }, // 1. The new page to push
+          ModalRoute.withName(RouteHelper.getEarnServiceScreenRoute()), // 2. Stop removing when you hit this page
+        );
+
+        final controller = getOrPut(() => PersonalCreateProfileController());
+
+        controller.updateUserProfileDetails(params: {
+          ApiKeys.profession: SELF_EMPLOYED,
+          ApiKeys.designation: designation,
+        },
+          isFromProfileOnly: true,
+          showProgress: false
+        );
+
       } else {
+        isCreateServiceLoading.value = false;
         createServiceResponse.value = ApiResponse.error('error');
-        // UploadProgressDialog.close();
         commonSnackBar(message: responseModel.message);
       }
-    } catch (e) {
-      // UploadProgressDialog.close();
+    } catch (e, s) {
+      log('stack trace -- $s');
+      isCreateServiceLoading.value = false;
       createServiceResponse.value = ApiResponse.error('error');
+    } finally {
+      // isCreateServiceLoading.value = false;
     }
   }
 
@@ -379,6 +409,42 @@ class SelfWorkServiceController extends GetxController{
     } catch (e) {
       uploadFileToS3Response.value = ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong.tr);
+    }
+  }
+
+  RxBool isGenerateDescLoading = false.obs;
+  var descriptionSuggestions = <String>[].obs;
+  var selectedDescription = "".obs;
+  Future<void> generateDescriptions({
+    required Map<String, dynamic> bodyRequest,
+    VoidCallback? onSaved, // <-- add this callback
+  }) async {
+    try {
+      isGenerateDescLoading.value = true;
+      descriptionSuggestions.clear();
+      selectedDescription.value = '';
+
+      final ResponseModel response = await EarnServiceRepo()
+          .aiGenerateDescriptionRepo(bodyParam: bodyRequest);
+
+      if (response.isSuccess && response.response?.data != null) {
+        final rawData = response.response?.data['data']['description_suggestions'];
+
+        if (rawData != null && rawData is List) {
+          descriptionSuggestions.value = rawData.map((e) => e.toString()).toList();
+        }
+
+        await selfProfessionDescSelectionDialog(onSaved: onSaved);
+      } else {
+        commonSnackBar(
+            message:
+            "Error ${response.message ?? AppStrings.somethingWentWrong.tr}");
+      }
+    } catch (e) {
+      logs("ERROR ${e}");
+      commonSnackBar(message: e.toString());
+    } finally {
+      isGenerateDescLoading.value = false;
     }
   }
 

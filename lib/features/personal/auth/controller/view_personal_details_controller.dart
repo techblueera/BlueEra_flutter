@@ -184,7 +184,7 @@ class ViewPersonalDetailsController extends GetxController {
   RxBool isMyProfileShow = false.obs;
   RxBool isChannelCreated = false.obs;
 
-  Rxn<AvailabilityModel> availabilityDetails = Rxn<AvailabilityModel>();
+  // Rxn<AvailabilityModel> availabilityDetails = Rxn<AvailabilityModel>();
 
   List<_ProfileFieldStatus> fields = [];
   RxDouble myProfileCompletionPercent = 0.0.obs;
@@ -300,8 +300,8 @@ class ViewPersonalDetailsController extends GetxController {
         isEarnServiceUser.value =  personalProfileDetails.value.isEarnServiceUser ?? false;
         await setRiderServiceOptData(isRiderServiceUser.value);
         await setEarnServiceOptData(isEarnServiceUser.value);
-        await getRiderServiceOptData();
-        await getEarnServiceOptData();
+        // await getRiderServiceOptData();
+        // await getEarnServiceOptData();
 
         /// need to verify (for checking is service exists or not)
         if (personalProfileDetails.value.user?.profession?.toUpperCase() == SELF_EMPLOYED) {
@@ -468,31 +468,31 @@ class ViewPersonalDetailsController extends GetxController {
   //   return earnServiceCreatedStatusGlobal;
   // }
 
-  ///GET STATUS OF USER SERVICE...
-  Future<void> getEarnServiceStatus() async {
-    try {
-      if(earnServiceCreatedStatusGlobal == "true"){
-        return;
-      }
-
-      ResponseModel responseModel =
-          await EarnServiceRepo().getEarnServiceExistsStatusRepo();
-
-      if (responseModel.isSuccess) {
-        final statusData = responseModel.response?.data['exists'] != null
-            ? responseModel.response!.data['exists'].toString()
-            : 'false';
-        await SharedPreferenceUtils.setSecureValue(
-            SharedPreferenceUtils.earnServiceCreatedStatusKey, statusData);
-        await getEarnServiceCreatedStatusUtils();
-      } else {
-        commonSnackBar(
-            message: responseModel.message ?? AppStrings.somethingWentWrong);
-      }
-    } catch (e) {
-      update();
-    }
-  }
+  ///GET STATUS OF EARN SERVICE...
+  // Future<void> getEarnServiceStatus() async {
+  //   try {
+  //     if(earnServiceCreatedStatusGlobal == "true"){
+  //       return;
+  //     }
+  //
+  //     ResponseModel responseModel =
+  //         await EarnServiceRepo().getEarnServiceExistsStatusRepo();
+  //
+  //     if (responseModel.isSuccess) {
+  //       final statusData = responseModel.response?.data['exists'] != null
+  //           ? responseModel.response!.data['exists'].toString()
+  //           : 'false';
+  //       await SharedPreferenceUtils.setSecureValue(
+  //           SharedPreferenceUtils.earnServiceCreatedStatusKey, statusData);
+  //       await getEarnServiceCreatedStatusUtils();
+  //     } else {
+  //       commonSnackBar(
+  //           message: responseModel.message ?? AppStrings.somethingWentWrong);
+  //     }
+  //   } catch (e) {
+  //     update();
+  //   }
+  // }
 
   void partiallyForceToCreateService(){
     final viewProfileController = Get.isRegistered<ViewPersonalDetailsController>()

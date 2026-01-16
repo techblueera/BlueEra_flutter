@@ -58,7 +58,7 @@ class BookingsScreen extends StatelessWidget {
                         print("channelId:$channelId");
                         Get.toNamed(
                             RouteHelper.getAvailabilityScreenRoute(),
-                            arguments: {ApiKeys.channelId: channelId}
+                            arguments: {ApiKeys.argId: channelId}
                         );
                       }
                     },

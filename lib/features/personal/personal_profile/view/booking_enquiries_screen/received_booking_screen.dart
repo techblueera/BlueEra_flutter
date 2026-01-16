@@ -17,7 +17,7 @@ class ReceivedBookingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(BookingTabController());
+    final controller = Get.put(BookingController());
     controller.getReceivedBookingList(
       channelId: channelId,
     );
