@@ -50,24 +50,47 @@ class _HotelBranchDetailsFormScreenState extends State<HotelBranchDetailsFormScr
           padding: EdgeInsets.all(16),
           child: Column(
             children: [
-              _buildHeader("Branch"),
-              CommonTextField(
-                textEditController: branchNameController,
-                hintText: "E.g. DPS Dehradun",
-                title: "Branch Name",
-                onChange: (_) => _triggerValidation(),
-              ),
-              SizedBox(height: 12),
-              HttpsTextField(
-                controller: websiteController,
-                hintText: "https://dpsdehradun.com",
-                title: "Website URL",
-                onChange: (_) => _triggerValidation(),
-              ),
-              SizedBox(height: 12),
+              // _buildHeader("Branch"),
+              // CommonTextField(
+              //   textEditController: branchNameController,
+              //   hintText: "E.g. DPS Dehradun",
+              //   title: "Branch Name",
+              //   onChange: (_) => _triggerValidation(),
+              // ),
+              // SizedBox(height: 12),
+              // HttpsTextField(
+              //   controller: websiteController,
+              //   hintText: "https://dpsdehradun.com",
+              //   title: "Website URL",
+              //   onChange: (_) => _triggerValidation(),
+              // ),
+              // SizedBox(height: 12),
+              // CommonLocationSearchField(
+              //   controller: addressController,
+              //   title: "Location",
+              //   onSelected: (placeId, lat, lng, address) {
+              //     addressController.text = address;
+              //     controller.selectedLat = lat;
+              //     controller.selectedLng = lng;
+              //     _triggerValidation();
+              //   },
+              // ),
+
+              // SizedBox(height: 24),
+              // _buildHeader("Department"),
+              //
+              // CommonTextField(
+              //   textEditController: titleController,
+              //   hintText: "E.g. Admission Cell",
+              //   title: "Department/Role",
+              //   onChange: (_) => _triggerValidation(),
+              // ),
+              // SizedBox(height: 12),
+              // SizedBox(height: 12),
               CommonLocationSearchField(
                 controller: addressController,
                 title: "Location",
+                isShowLeading: false,
                 onSelected: (placeId, lat, lng, address) {
                   addressController.text = address;
                   controller.selectedLat = lat;
@@ -75,23 +98,15 @@ class _HotelBranchDetailsFormScreenState extends State<HotelBranchDetailsFormScr
                   _triggerValidation();
                 },
               ),
-
-              SizedBox(height: 24),
-              _buildHeader("Department"),
-
-              CommonTextField(
-                textEditController: titleController,
-                hintText: "E.g. Admission Cell",
-                title: "Department/Role",
-                onChange: (_) => _triggerValidation(),
-              ),
               SizedBox(height: 12),
+
               CommonTextField(
                 textEditController: emailController,
                 hintText: "dpsdehradun@gmail.com",
                 title: "Email Address",
                 onChange: (_) => _triggerValidation(),
               ),
+
               SizedBox(height: 12),
               CommonTextField(
                 textEditController: phoneController,

@@ -580,7 +580,7 @@ abstract class BaseService {
   String groceryRejectOrder(String orderId) => 'rider-service/riders/orders/grocery/${orderId}/reject';
   String enableHotelServiceStatus(String categoryId) =>  'health-service/api/categories/$categoryId/status';
   final String fetchHotelFromAi = 'ai-service/api/ai-hotel/fetch-details';
-  final String createHotelService = 'hotel-service/api/businesses';
+  final String createHotelService = 'hotel-service/api/hotel-profile';
   final String hotelBulkStatus = 'hotel-service/api/hotels//offerings/bulk-toggle';
   final String hotelBulkCatalogStatus = 'hotel-service/api/businesses/hotels//catalog';
   // final String hotelBulkStatus = 'hotel-service/api/hotels/offerings/bulk-toggle';
@@ -595,5 +595,15 @@ abstract class BaseService {
   final String hotelsOfferings = 'hotel-service/api/hotels/offerings';
   final String hotelsContactUsGet = 'hotel-service/api/businesses/profile/about-us';
   final String foodAiGenerate = 'ai-service/api/ai-food/generate';
+  ///HOTEL....
+  final String hotelAmenities = 'hotel-service/api/hotel-amenities';
+  final String hotelRoomAmenities = 'hotel-service/api/room-amenities';
+  final String hotelPolicies = 'hotel-service/api/hotel-policies';
+  final String hotelPropertyPhotos = 'hotel-service/api/property-photos';
+  final String hotelRoom = 'hotel-service/api/rooms';
+  final String hotelContacts = 'hotel-service/api/contacts';
+  final String hotelProfile = 'hotel-service/api/hotel-profile';
+  final String hotelRoomType = 'hotel-service/api/room-types';
+  final String hotelRoomsType = 'hotel-service/api/rooms/type';
 
 }

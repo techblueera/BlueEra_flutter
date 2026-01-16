@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/logger_utils.dart';
@@ -27,9 +28,15 @@ class ApiBaseHelper {
       baseUrl: baseUrl ?? "",
       responseType: ResponseType.json,
       receiveTimeout: Duration(seconds: 60),
-      headers: {ApiKeys.authorization: 'Bearer $authTokenGlobal'});
+      headers: {
+        ApiKeys.authorization: 'Bearer $authTokenGlobal',
+        'Content-Type': 'application/json; charset=UTF-8',
+        'X-Device-Type': 'mobile', // Or 'desktop'
+        'X-Device-OS':
+            '${Platform.operatingSystem} ${deviceOsVersionGlobal}', // e.g., 'android 14'
+        'X-Browser-Name': AppConstants.appName, // Or your app name
+      });
 
-  // List of callbacks to retry queued requests after token is refreshed
   static Dio createDio() {
     return Dio(opts);
   }
@@ -63,8 +70,7 @@ class ApiBaseHelper {
             // // Increment the request count and show the loader
             final isFormData = options.data is FormData;
 
-
-            if(kDebugMode){
+            if (kDebugMode) {
               // ====== 🌟 Beautified Request Log ======
 
               if (isFormData) {
@@ -82,7 +88,6 @@ class ApiBaseHelper {
               } else {
                 log("🔹 Body: null");
               }
-
             }
             if (authTokenGlobal != null &&
                 (authTokenGlobal?.isNotEmpty ?? false)) {
@@ -103,7 +108,7 @@ class ApiBaseHelper {
           },
           onResponse: (response, handler) {
             numberOfReq--;
-            if (showProgressDialog && numberOfReq ==  0) {
+            if (showProgressDialog && numberOfReq == 0) {
               log('close dialog');
               ProgressDialog.showProgressDialog(false);
             }
@@ -145,7 +150,6 @@ class ApiBaseHelper {
                 response.statusCode == 401) {
               await SharedPreferenceUtils.clearPreference();
               getxObj.Get.offAllNamed(RouteHelper.getMobileNumberLoginRoute());
-
             }
             return handler.next(err);
           },
@@ -206,7 +210,7 @@ class ApiBaseHelper {
           url,
           data: params,
           options: Options(headers: {
-            'Content-Type': 'application/json', 
+            'Content-Type': 'application/json',
           }),
           onSendProgress: onSendProgress,
         );

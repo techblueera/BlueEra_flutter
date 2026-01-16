@@ -1,7 +1,11 @@
+import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/me/hotel/repo/hotel_service_repo.dart';
 import 'package:BlueEra/features/me/hotel/view/add_hotel_service_screen.dart';
 import 'package:BlueEra/features/me/hotel/view/hotel_home_screen.dart';
 import 'package:BlueEra/features/me/hotel/view/widget/add_hotel_service.dart';
@@ -25,12 +29,39 @@ class HotelMain extends StatefulWidget {
 class _HotelMainState extends State<HotelMain>
     with SingleTickerProviderStateMixin, RouteAware {
   late TabController _tabController;
+  bool hasHotel = false;
 
   @override
   void initState() {
+    apiCalling();
     _tabController = TabController(length: 3, vsync: this);
 
     super.initState();
+  }
+
+  apiCalling() async {
+    try {
+      if (hotelIDGlobal.isEmpty) {
+        ResponseModel response = await HotelServiceRepo().getHotelRepo();
+        if (response.isSuccess) {
+          String? hotelIDGlobal = response.response?.data['data']['_id'];
+          if (hotelIDGlobal != null && hotelIDGlobal.isNotEmpty) {
+            await setHotelID(hotelIDGlobal);
+          } else {
+            await setHotelID("");
+          }
+        }
+      }
+      await getHotelID();
+      setState(() {
+        // Check if global ID was successfully populated
+        hasHotel = hotelIDGlobal.isNotEmpty;
+        // controller.hasSchool.value = schoolIDGlobal.isNotEmpty;
+      });
+      // await schoolAboutUsController.getSchoolByIdController();
+    } on Exception catch (e) {
+      // TODO
+    }
   }
 
   @override
@@ -43,75 +74,39 @@ class _HotelMainState extends State<HotelMain>
   Widget build(BuildContext context) {
     return Scaffold(
         body: SafeArea(
-      child: Column(
-        children: [
-          SizedBox(
-            height: SizeConfig.size12,
-          ),
-          // Padding(
-          //   padding: const EdgeInsets.symmetric(horizontal: 26.0, vertical: 10),
-          //   child: Row(
-          //     children: [
-          //       Expanded(
-          //         child: CommonSearchBar(
-          //             controller: TextEditingController(),
-          //             isShowCursor: false,
-          //             onSearchTap: () {},
-          //             onClearCallback: () {},
-          //             hintText: "Search Hotel..."),
-          //       ),
-          //       SizedBox(
-          //         width: SizeConfig.size12,
-          //       ),
-          //       InkWell(
-          //         onTap: () {
-          //           Get.to(() => AddHotelServiceScreen());
-          //           // Get.to(() => AddHotelService());
-          //         },
-          //         child: Container(
-          //           height: SizeConfig.size40,
-          //           width: SizeConfig.size40,
-          //           decoration: BoxDecoration(
-          //               borderRadius: BorderRadius.circular(8),
-          //               color: AppColors.primaryColor),
-          //           child: Center(
-          //             child: Icon(
-          //               Icons.add,
-          //               size: 28,
-          //               color: AppColors.white,
-          //             ),
-          //           ),
-          //         ),
-          //       )
-          //     ],
-          //   ),
-          // ),
-          TabBar(
-            controller: _tabController,
-            labelColor: AppColors.primaryColor,
-            unselectedLabelColor: Colors.grey[600],
-            indicatorColor: AppColors.primaryColor,
-            indicatorWeight: 4,
-            tabAlignment: TabAlignment.fill,
-            indicatorSize: TabBarIndicatorSize.tab,
-            labelStyle: const TextStyle(fontWeight: FontWeight.w600),
-            tabs: [
-              Tab(text: "My Hotel"),
-              Tab(text: "Update Hotel"),
-              Tab(text: "Statics"),
-            ],
-          ),
-          Expanded(
-              child: TabBarView(
-            controller: _tabController,
-            children: [
-              HotelHomeScreen(),
-              AddHotelServiceScreen(),
-              ComingSoon(),
-            ],
-          ))
-        ],
-      ),
+      child: hasHotel
+          ? Column(
+              children: [
+                SizedBox(
+                  height: SizeConfig.size12,
+                ),
+                TabBar(
+                  controller: _tabController,
+                  labelColor: AppColors.primaryColor,
+                  unselectedLabelColor: Colors.grey[600],
+                  indicatorColor: AppColors.primaryColor,
+                  indicatorWeight: 4,
+                  tabAlignment: TabAlignment.fill,
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  labelStyle: const TextStyle(fontWeight: FontWeight.w600),
+                  tabs: [
+                    Tab(text: "My Hotel"),
+                    Tab(text: "Update Hotel"),
+                    Tab(text: "Statics"),
+                  ],
+                ),
+                Expanded(
+                    child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    ComingSoon(),
+                    AddHotelServiceScreen(),
+                    ComingSoon(),
+                  ],
+                ))
+              ],
+            )
+          : NoHotelCreatedScreen(),
     ));
   }
 }

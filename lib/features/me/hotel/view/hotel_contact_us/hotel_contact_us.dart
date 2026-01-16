@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
+import 'package:BlueEra/core/api/model/get_hotel_contact_us_res_model.dart';
 import 'package:BlueEra/core/api/model/hotel_contact_us_res_model.dart';
 import 'package:BlueEra/core/api/model/school_contact_us_model.dart';
 import 'package:BlueEra/core/api/model/school_contact_us_new_res_model.dart';
@@ -65,93 +66,19 @@ class _HotelContactUsState extends State<HotelContactUs> {
                   // if (controller.schoolContactUsData==null) {
                   //   return Center(child: CustomText("No Contact Us Found "));
                   // }
-                  HotelContactUsData data =
-                      controller.schoolContactUsData?.value ??
-                          HotelContactUsData();
+                  GetHotelContactUsResModel dataHotel =
+                      controller.hotelContactUsData?.value ??
+                          GetHotelContactUsResModel();
 
                   return CommonCardWidget(
                     child: Column(
                       children: [
-                        /// Course Card
-                        Row(
-                          children: [
-                            CustomText(
-                              "Branch: ",
-                              color: AppColors.secondaryTextColor,
-                              fontSize: SizeConfig.large,
-                            ),
-                            Expanded(
-                                child: CustomText(
-                              "${data.name}",
-                              color: AppColors.secondaryTextColor,
-                              fontSize: SizeConfig.large,
-                              fontWeight: FontWeight.w600,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            )),
-                            InkWell(
-                              onTap: () {
-                                // Get.to(HotelBranchOnlyScreen(schoolContactUsData: data,));
-                              },
-                              child: LocalAssets(
-                                imagePath: AppIconAssets.editIcon,
-                                imgColor: AppColors.black,
-                              ),
-                            ),
-                            SizedBox(
-                              width: SizeConfig.size10,
-                            ),
-                            // InkWell(
-                            //   onTap: () async {
-                            //     if (controller
-                            //         .schoolContactUsData?.length ==
-                            //         1) {
-                            //       commonSnackBar(
-                            //           message:
-                            //           "At least one school branch contact info is required");
-                            //     } else {
-                            //       await showCommonDialog(
-                            //           context: context,
-                            //           text:
-                            //           'Are you sure you want to delete this school branch contact info?',
-                            //           confirmCallback: () async {
-                            //             await controller
-                            //                 .deleteSchoolBranchController(
-                            //                 contactId: data.id ?? "");
-                            //           },
-                            //           cancelCallback: () {
-                            //             Navigator.of(context)
-                            //                 .pop(); // Close the dialog
-                            //           },
-                            //           confirmText: AppStrings.yes,
-                            //           cancelText: AppStrings.no);
-                            //     }
-                            //   },
-                            //   child: LocalAssets(
-                            //     imagePath: AppIconAssets.deleteIcon,
-                            //     imgColor: AppColors.red00,
-                            //   ),
-                            // ),
-                          ],
-                        ),
-                        iconTextRow(
-                            iconName: AppIconAssets.website_click,
-                            isPrimary: true,
-                            value: '${data.website}'),
-                        SizedBox(
-                          height: SizeConfig.size5,
-                        ),
-
-                        iconTextRow(
-                            iconName: AppIconAssets.location_new,
-                            value: '${data?.address}'),
-                        const SizedBox(height: 20),
                         ListView.builder(
                           shrinkWrap: true,
                           physics: NeverScrollableScrollPhysics(),
                           itemBuilder: (context, index) {
-                            Departments contactData =
-                                data.departments?[index] ?? Departments();
+                            HotelContactUsData contactData =
+                                dataHotel.data?[index] ?? HotelContactUsData();
                             return Container(
                               padding: EdgeInsets.all(8),
                               margin: EdgeInsets.only(bottom: 12),
@@ -165,15 +92,14 @@ class _HotelContactUsState extends State<HotelContactUs> {
                                       Expanded(
                                         child: iconTextRow(
                                             iconName: AppIconAssets.principal,
-                                            value:
-                                                contactData.department ?? ""),
+                                            value: contactData.email ?? ""),
                                       ),
                                       InkWell(
                                         onTap: () {
                                           Get.to(HotelDepartmentOnlyScreen(
                                             contactInfo: contactData,
                                             isContactInfoEdit: true,
-                                            branchId: data.id,
+                                            branchId: contactData.id,
                                           ));
                                         },
                                         child: LocalAssets(
@@ -186,23 +112,23 @@ class _HotelContactUsState extends State<HotelContactUs> {
                                       ),
                                       InkWell(
                                         onTap: () async {
-                                          if (data.departments?.length == 1) {
+                                             if (dataHotel.data?.length == 1) {
                                             commonSnackBar(
                                                 message:
-                                                    "At least one department is required");
-                                          } else {
+                                                    "At least one branch contact is required");
+                                          }
+                                          else {
                                             await showCommonDialog(
                                                 context: context,
                                                 text:
-                                                    'Are you sure you want to delete this department?',
+                                                    'Are you sure you want to delete this branch contact?',
                                                 confirmCallback: () async {
                                                   await controller
-                                                      .deleteSchoolBranchDepartmentController(
+                                                      .deleteHotelBranchDepartmentController(
                                                           departmentId:
                                                               contactData.id ??
                                                                   "",
-                                                          contactId:
-                                                              data.id ?? "");
+                                                        );
                                                 },
                                                 cancelCallback: () {
                                                   Navigator.of(context)
@@ -245,32 +171,8 @@ class _HotelContactUsState extends State<HotelContactUs> {
                               ),
                             );
                           },
-                          itemCount: data.departments?.length,
+                          itemCount: dataHotel.data?.length,
                         ),
-
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: TextButton.icon(
-                            style: TextButton.styleFrom(
-                              padding: EdgeInsets.zero,
-                              minimumSize: Size.zero,
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            ),
-                            icon: Icon(
-                              Icons.add,
-                              color: AppColors.primaryColor,
-                            ),
-                            label: CustomText(
-                              "Add More Department",
-                              color: AppColors.primaryColor,
-                            ),
-                            onPressed: () {
-                              Get.to(HotelDepartmentOnlyScreen(
-                                branchId: data.id,
-                              ));
-                            },
-                          ),
-                        )
                       ],
                     ),
                   );
@@ -287,13 +189,13 @@ class _HotelContactUsState extends State<HotelContactUs> {
             ),
 
             /// Add More Course Button
-            if (controller.schoolContactUsData?.value == null)
-              AddMoreIconButton(
-                onTapEvent: () {
-                  Get.to(HotelBranchDetailsFormScreen());
-                },
-                buttonName: "Add Another Branch",
-              ),
+            // if (controller.schoolContactUsData?.value == null)
+            AddMoreIconButton(
+              onTapEvent: () {
+                Get.to(HotelBranchDetailsFormScreen());
+              },
+              buttonName: "Add Another Branch",
+            ),
             SizedBox(
               height: SizeConfig.size25,
             ),

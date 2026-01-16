@@ -1,21 +1,44 @@
+import 'package:BlueEra/core/api/model/hotel_room_listing_res_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/me/hotel/controller/room_detail_controller.dart';
 import 'package:BlueEra/features/me/hotel/view/create_room_details_sccreen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class RoomListingScreen extends StatelessWidget {
+class RoomListingScreen extends StatefulWidget {
+  final String roomType;
+  final String roomName;
+
+  RoomListingScreen(
+      {super.key, required this.roomType, required this.roomName});
+
+  @override
+  State<RoomListingScreen> createState() => _RoomListingScreenState();
+}
+
+class _RoomListingScreenState extends State<RoomListingScreen> {
   final controller = Get.put(RoomDetailController());
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    controller.getHotelRoomDetails(roomTYPE: widget.roomType);
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Standard Room",
+        title: widget.roomName,
       ),
       bottomNavigationBar: SafeArea(child: _buildAddMoreButton()),
       body: SafeArea(
@@ -25,31 +48,39 @@ class RoomListingScreen extends StatelessWidget {
             double horizontalPadding =
                 constraints.maxWidth > 600 ? constraints.maxWidth * 0.2 : 16;
 
-            return Column(
-              children: [
-                Expanded(
-                  child: ListView.builder(
-                    padding: EdgeInsets.symmetric(
-                        horizontal: horizontalPadding, vertical: 16),
-                    itemCount: controller.roomList.length,
-                    itemBuilder: (context, index) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        child: _buildRoomCard(controller.roomList[index]),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            );
+            return Obx(() {
+              if (controller.hotelRoomDataList.isNotEmpty) {
+                return Column(
+                  children: [
+                    Expanded(
+                      child: ListView.builder(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: horizontalPadding, vertical: 16),
+                        itemCount: controller.hotelRoomDataList.length,
+                        itemBuilder: (context, index) {
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            child: _buildRoomCard(
+                                controller.hotelRoomDataList[index]),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                );
+              }
+              return Center(
+                  child: CustomText("No Rooms found please create room"));
+            });
           },
         ),
       ),
     );
   }
 
-  Widget _buildRoomCard(Map<String, dynamic> room) {
-    final List<String> images = List<String>.from(room['images']);
+  Widget _buildRoomCard(HotelRoomData room) {
+    final List<String> images =
+        List<String>.from(room.images?.exteriorImages ?? []);
     final RxInt currentImageIndex = 0.obs;
 
     return Container(
@@ -127,6 +158,63 @@ class RoomListingScreen extends StatelessWidget {
                       )),
                 ),
               // Menu Button
+              Positioned(
+                top: 12,
+                right: 12,
+                child: PopupMenuButton<String>(
+                  // Callback when a menu item is selected
+                  onSelected: (value) async {
+                    if (value == 'edit') {
+                      // Pass the index and the specific list to the picker
+                      // controller.pickImage(ImageSource.gallery, imageList, index: index);
+                    } else if (value == 'delete') {
+                      await showCommonDialog(
+                          context: context,
+                          text:
+                              'Are you sure you want to delete this hotel room?',
+                          confirmCallback: () async {
+                            await controller.deleteHotelRoomController(
+                                hotelRoomId: room.id ?? "",
+                                hotelRoomType: room.type ?? "");
+                          },
+                          cancelCallback: () {
+                            Navigator.of(context).pop(); // Close the dialog
+                          },
+                          confirmText: AppStrings.yes,
+                          cancelText: AppStrings.no);
+                    }
+                  },
+                  // The visual trigger for the menu
+                  child: CircleAvatar(
+                    backgroundColor: Colors.black.withOpacity(0.4),
+                    radius: 16,
+                    child: const Icon(Icons.more_vert,
+                        color: Colors.white, size: 18),
+                  ),
+                  itemBuilder: (BuildContext context) => [
+                    const PopupMenuItem(
+                      value: 'edit',
+                      child: Row(
+                        children: [
+                          Icon(Icons.edit, size: 20, color: Colors.blue),
+                          SizedBox(width: 10),
+                          Text("Edit"),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          Icon(Icons.delete, size: 20, color: Colors.red),
+                          SizedBox(width: 10),
+                          Text("Delete"),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               // Positioned(
               //   top: 12,
               //   right: 12,
@@ -151,22 +239,24 @@ class RoomListingScreen extends StatelessWidget {
                   children: [
                     Expanded(
                       child: CustomText(
-                        room['name'],
+                        room.name,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    const Icon(Icons.percent_rounded,
-                        color: AppColors.primaryColor, size: 22),
+
+                    // const Icon(Icons.percent_rounded,
+                    //     color: AppColors.primaryColor, size: 22),
                   ],
                 ),
                 const SizedBox(height: 6),
                 Text.rich(
                   TextSpan(children: [
                     TextSpan(
-                        text: "₹${formatNumber(int.parse(room['price']))}",
+                        text:
+                            "₹${formatNumber(int.parse(room.pricePerDay.toString()))}",
                         style: const TextStyle(
                             fontSize: 22, fontWeight: FontWeight.w900)),
                     const TextSpan(
@@ -174,17 +264,18 @@ class RoomListingScreen extends StatelessWidget {
                         style: TextStyle(color: Colors.grey, fontSize: 14)),
                   ]),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 10),
                 Container(
                   width: Get.width,
                   child: Row(
                     children: [
-                      Expanded(
-                          child: _amenityIcon(Icons.bed_outlined, room['bed'])),
-                      const SizedBox(width: 20),
-                      Expanded(
+                      Flexible(
                           child: _amenityIcon(
-                              Icons.people_outline, room['occupancy'])),
+                              AppIconAssets.bad, room.bedType ?? "")),
+                      const SizedBox(width: 20),
+                      Flexible(
+                          child: _amenityIcon(AppIconAssets.occupancy,
+                              room.maxOccupancy.toString())),
                     ],
                   ),
                 ),
@@ -196,15 +287,16 @@ class RoomListingScreen extends StatelessWidget {
     );
   }
 
-  Widget _amenityIcon(IconData icon, String label) {
+  Widget _amenityIcon(String icon, String label) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 20, color: Colors.grey[600]),
+        LocalAssets(imagePath: icon),
         const SizedBox(width: 8),
         Flexible(
           child: CustomText(
             label,
-            color: Colors.grey[700],
+            color: AppColors.secondaryTextColor,
           ),
         ),
       ],
@@ -218,7 +310,10 @@ class RoomListingScreen extends StatelessWidget {
       color: Colors.white,
       child: OutlinedButton.icon(
         onPressed: () {
-          Get.to(RoomDesignScreen());
+          Get.to(RoomDesignScreen(
+            roomType: widget.roomType,
+            roomName: widget.roomName,
+          ));
         },
         icon: const Icon(Icons.add_circle_outline, size: 20),
         label: const CustomText("Add more", fontWeight: FontWeight.w600),

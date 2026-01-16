@@ -2,10 +2,13 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/model/hotel_service_categories_res_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/hotel/controller/hotel_category_controller.dart';
 import 'package:BlueEra/features/me/hotel/view/hotel_amenities_screen.dart';
 import 'package:BlueEra/features/me/hotel/view/hotel_contact_us/hotel_contact_us.dart';
+import 'package:BlueEra/features/me/hotel/view/hotel_property_photos_screen.dart';
 import 'package:BlueEra/features/me/hotel/view/hotel_property_screen.dart';
 import 'package:BlueEra/features/me/hotel/view/room_amenities_screen.dart';
 import 'package:BlueEra/features/me/hotel/view/room_detils_screen.dart';
@@ -17,100 +20,87 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class AddHotelServiceScreen extends StatefulWidget {
-  const AddHotelServiceScreen({super.key});
+class AddHotelServiceScreen extends StatelessWidget {
+   AddHotelServiceScreen({super.key});
 
-  @override
-  State<AddHotelServiceScreen> createState() => _AddHotelServiceScreenState();
-}
-
-class _AddHotelServiceScreenState extends State<AddHotelServiceScreen> {
-  final hotelController = Get.put(HotelCategoryController());
-
-  void handleNavigation(dynamic data) {
-    final Map<String, Widget Function()> routeMap = {
-      // "ROOM_DETAILS": () => RoomListingScreen(),
-      // "ROOM_DETAILS": () => RoomDesignScreen(),
-        "ROOM_DETAILS": () => RoomSelectionScreen(
-            hotelCategoryData: data,
-          ),
-      "ROOM_AMENITIES": () => RoomAmenitiesScreen(
-            hotelCategoryData: data,
-          ),
-      "HOTEL_AMENITIES": () => HotelAmenitiesScreen(
-            hotelCategoryData: data,
-          ),
-      "HOTEL_POLICIES": () => HotelPropertySettingsScreen(
-            hotelCategoryData: data,
-          ),
-      "CAREER": () => ComingSoon(),
-      "PROPERTY_PHOTOS": () => ComingSoon(),
-      "RESTAURANT_MENU": () => ComingSoon(),
-      "CONTACT_US": () => HotelContactUs(
-            // hotelCategoryData: data,
-          ),
-      "ABOUT_PROPERTY": () => ComingSoon(),
-      "UPLOAD_DOCUMENT": () => ComingSoon(),
-    };
-
-    final routeBuilder = routeMap[data.key];
-
-    if (routeBuilder != null) {
-      Get.to(routeBuilder());
-    }
-  }
-
-  @override
-  void initState() {
-    // TODO: implement initState
-    hotelController.fetchAllHotelServiceCategories();
-
-    super.initState();
-  }
+  final List<Map<String, String>> menuList = [
+    {"name": "Upload Document", "key": "UPLOAD_DOCUMENT"},
+    {"name": "About Property", "key": "ABOUT_PROPERTY"},
+    {"name": "Room Details", "key": "ROOM_DETAILS"},
+    {"name": "Room Amenities", "key": "ROOM_AMENITIES"},
+    {"name": "Hotel Amenities", "key": "HOTEL_AMENITIES"},
+    {"name": "Hotel Policies", "key": "HOTEL_POLICIES"},
+    {"name": "Restaurant Menu", "key": "RESTAURANT_MENU"},
+    {"name": "Property Photos", "key": "PROPERTY_PHOTOS"},
+    {"name": "Career", "key": "CAREER"},
+    {"name": "Contact Us", "key": "CONTACT_US"},
+  ];
 
   @override
   Widget build(BuildContext context) {
+    logs("hotelIDGlobal==== $hotelIDGlobal");
     return Scaffold(
-      body: Obx(() {
-        if (hotelController.getAllHotelServiceResponse.value.status ==
-            Status.ERROR) {
-          return Center(child: CustomText(AppStrings.somethingWentWrong));
-        }
-        if (hotelController.hotelServiceCategoryList.isNotEmpty) {
-          return ListView.builder(
-            padding: EdgeInsets.only(bottom: 100, left: 10, right: 10),
-            itemBuilder: (context, hotelIndex) {
-              HotelServiceCategoriesData data =
-                  hotelController.hotelServiceCategoryList[hotelIndex];
-              return InkWell(
-                onTap: () {
-                  handleNavigation(data);
-                },
-                child: CommonCardWidget(
-                    borderColorColor: AppColors.whiteE5,
-                    cardMargin: 7,
-                    child: Row(
-                      children: [
-                        LocalAssets(
-                            imagePath:
-                                "assets/category/hotel_service/${data.key}.svg"),
-                        SizedBox(
-                          width: SizeConfig.size10,
-                        ),
-                        CustomText(
-                          data.name,
-                          color: AppColors.secondaryTextColor,
-                          fontSize: 18,
-                        )
-                      ],
-                    )),
-              );
+      body: ListView.builder(
+        itemCount: menuList.length,
+        shrinkWrap: true,
+        padding: const EdgeInsets.all(16),
+        itemBuilder: (context, index) {
+          final item = menuList[index];
+
+
+          return InkWell(
+            onTap: () {
+              handleNavigation({'key': item['key']});
             },
-            itemCount: hotelController.hotelServiceCategoryList.length,
+            child: CommonCardWidget(
+                borderColorColor: AppColors.whiteE5,
+                cardMargin: 7,
+                child: Row(
+                  children: [
+                    LocalAssets(
+                        imagePath:
+                        "assets/category/hotel_service/${item['key']}.svg"),
+                    SizedBox(
+                      width: SizeConfig.size10,
+                    ),
+                    CustomText(
+                      item['name'],
+                      color: AppColors.secondaryTextColor,
+                      fontSize: 18,
+                    )
+                  ],
+                )),
           );
-        }
-        return Center(child: CustomText("No Hotel Service Available"));
-      }),
+
+        },
+      ),
     );
   }
+
+  void handleNavigation(dynamic data) {
+    // Access the key from the data object (assuming Map or Object with .key)
+    final String? key = data is Map ? data['key'] : data.key;
+
+    final Map<String, Widget Function()> routeMap = {
+      "ROOM_DETAILS": () => RoomSelectionScreen(),
+      "ROOM_AMENITIES": () => RoomAmenitiesScreen(),
+      "HOTEL_AMENITIES": () => HotelAmenitiesScreen(),
+      "HOTEL_POLICIES": () => HotelPoliciesScreen(),
+      "CAREER": () => const ComingSoon(),
+      "PROPERTY_PHOTOS": () =>  PropertyPhotoScreen(),
+      "RESTAURANT_MENU": () => const ComingSoon(),
+      "CONTACT_US": () => const HotelContactUs(),
+      "ABOUT_PROPERTY": () => const ComingSoon(),
+      "UPLOAD_DOCUMENT": () => const ComingSoon(),
+    };
+
+    final routeBuilder = routeMap[key];
+
+    if (routeBuilder != null) {
+      Get.to(routeBuilder());
+    } else {
+      print("Route not found for key: $key");
+    }
+  }
 }
+

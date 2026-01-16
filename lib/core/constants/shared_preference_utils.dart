@@ -46,6 +46,8 @@ String businessTypeGlobal = '';
 String isRiderServiceOpt = '';
 String isEarnServiceOpt = '';
 String schoolIDGlobal = '';
+String hotelIDGlobal = '';
+String deviceOsVersionGlobal = '';
 // String schoolIDGlobal = '6954c5337ca7a9670dc99129';
 
 class SharedPreferenceUtils {
@@ -94,6 +96,7 @@ class SharedPreferenceUtils {
   static const isRiderServiceUser = 'isRiderServiceUser';
   static const isEarnServiceUser = 'isEarnServiceUser';
   static const schoolIDKey = 'schoolIDKey';
+  static const hotelIDKey = 'hotelIDKey';
 
   static Future<void> userLoggedInIndividualGuest({
     required String loginUserId_,
@@ -241,6 +244,7 @@ class SharedPreferenceUtils {
       businessCategoryGlobal = '';
       businessSubCategoryGlobal = '';
       schoolIDGlobal = '';
+      hotelIDGlobal = '';
       Get.find<AuthController>().imgPath.value = "";
       await SharedPreferenceUtils.setBaseUrlSecureValue(workManagerBaseUrl);
       AppNotificationHandler.getFcmToken();
@@ -470,5 +474,17 @@ setSchoolID(String schoolIDValue) {
 getSchoolID() async {
   schoolIDGlobal = await SharedPreferenceUtils.getSecureValue(
       SharedPreferenceUtils.schoolIDKey);
+}
+
+
+///SET HOTEL ID....
+setHotelID(String schoolIDValue) {
+  SharedPreferenceUtils.setSecureValue(
+      SharedPreferenceUtils.hotelIDKey, schoolIDValue.toString());
+}
+
+getHotelID() async {
+  hotelIDGlobal = await SharedPreferenceUtils.getSecureValue(
+      SharedPreferenceUtils.hotelIDKey);
 }
 

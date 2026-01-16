@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/me/hotel/controller/room_detail_controller.dart';
+import 'package:BlueEra/features/me/hotel/view/hotel_image_upload_screen.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_drop_down-dialoge.dart';
@@ -12,13 +13,20 @@ import 'package:get/get.dart';
 
 class RoomDesignScreen extends StatelessWidget {
   final controller = Get.put(RoomDetailController());
+  final String roomType;
+  final String roomName;
+
+  RoomDesignScreen({super.key, required this.roomType, required this.roomName});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
-     appBar: CommonBackAppBar(title: "Standard Room",actionText: "Step: 1/2",actionTextColor: Colors.black,),
-
+      appBar: CommonBackAppBar(
+        title: roomName,
+        actionText: "Step: 1/2",
+        actionTextColor: Colors.black,
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.all(16),
@@ -124,9 +132,6 @@ class RoomDesignScreen extends StatelessWidget {
               onChange: (_) => controller.triggerValidation(),
             ),
             SizedBox(height: 12),
-            // Example of your custom Dropdown
-            // _buildCouponButton(),
-            // The Discount Coupon Display
             Obx(() => ListView.separated(
                   shrinkWrap: true,
                   // Important for use inside SingleChildScrollView
@@ -243,13 +248,11 @@ class RoomDesignScreen extends StatelessWidget {
                   border: Border.all(color: Colors.blue.shade400, width: 1.5),
                 ),
               ),
-              Text(
+              CustomText(
                 isPercentage ? "%" : "₹",
-                style: TextStyle(
                     color: Colors.brown.shade700,
                     fontSize: 20,
                     fontWeight: FontWeight.bold),
-              ),
             ],
           ),
           // Optional: Delete Button
@@ -266,22 +269,20 @@ class RoomDesignScreen extends StatelessWidget {
     return GetBuilder<RoomDetailController>(
       builder: (_) {
         bool isValid = controller.isFormValid;
-        return SizedBox(
-          width: double.infinity,
-          height: 50,
-          child: ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: isValid ? Colors.blue : Colors.grey[300],
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8)),
-            ),
-            onPressed: isValid ? () => print("Navigating...") : null,
-            child: CustomText(
-              "Next",
-              color: isValid ? Colors.white : Colors.grey[600],
-            ),
-          ),
+
+        return CustomBtn(
+          isValidate: isValid,
+          title: "Next",
+          onTap: isValid
+              ? () {
+                  Get.to(HotelImageUploadScreen(
+                    roomName: roomName,
+                    roomType: roomType,
+                  ));
+                }
+              : null,
         );
+
       },
     );
   }
@@ -303,8 +304,17 @@ void showCouponModal(BuildContext context) {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              const CustomText("Discount Coupon",
-                  fontSize: 18, fontWeight: FontWeight.bold),
+              Row(
+                children: [
+                  const CustomText("Discount Coupon",
+                      fontSize: 18, fontWeight: FontWeight.bold),
+                  InkWell(
+                      onTap: () {
+                        Get.back();
+                      },
+                      child: Icon(Icons.close)),
+                ],
+              ),
               const SizedBox(height: 20),
               CommonTextField(
                 title: "Coupon Name",
@@ -351,6 +361,7 @@ void showCouponModal(BuildContext context) {
                 hintText: "e.g. 10% Off",
                 textEditController: controller.totalOff,
                 onChange: (_) {
+
                   controller.isCouponValidMethod();
                   // controller.update();
                 },

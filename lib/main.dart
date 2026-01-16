@@ -23,6 +23,7 @@ import 'package:BlueEra/features/common/onboarding/view/splash_screen.dart';
 import 'package:BlueEra/widgets/global_message_service.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:camera/camera.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -36,7 +37,6 @@ import 'core/services/home_cache_service.dart';
 import 'core/services/notifications/ride_notification_data_model.dart';
 import 'features/personal/personal_profile/controller/languge_list_controller.dart';
 
-
 final AudioPlayer audioPlayer = AudioPlayer();
 
 @pragma('vm:entry-point')
@@ -48,19 +48,38 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     await AppNotificationHandler().playCustomSound(message);
   }
 
-  if(message.data["operation"]=='RIDE_ORDER_RECEIVED'){
-    NotificationData rideNotification=NotificationData.fromJson(message.data);
-    AppNotificationHandler().callShow(orderId: '${rideNotification.metadata?.orderId}',lng: double.parse(rideNotification.deliveryLong.toString()),lat: double.parse(rideNotification.deliveryLat.toString()) );
+  if (message.data["operation"] == 'RIDE_ORDER_RECEIVED') {
+    NotificationData rideNotification = NotificationData.fromJson(message.data);
+    AppNotificationHandler().callShow(
+        orderId: '${rideNotification.metadata?.orderId}',
+        lng: double.parse(rideNotification.deliveryLong.toString()),
+        lat: double.parse(rideNotification.deliveryLat.toString()));
   }
+}
 
+getDeviceInfo() async {
+  DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+  if (Platform.isAndroid) {
+    AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+    // Get the major OS version number (e.g., "14", "15")
+    deviceOsVersionGlobal = androidInfo.version.release;
+    print('Android Release Version: $deviceOsVersionGlobal');
+  } else if (Platform.isIOS) {
+    IosDeviceInfo iosDeviceInfo = await deviceInfo.iosInfo;
+    // Get the major OS version number (e.g., "14", "15")
+    deviceOsVersionGlobal= iosDeviceInfo.systemVersion;
+
+    print('iosDeviceInfo Release Version: $deviceOsVersionGlobal');
+  }
 }
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   ///SET YOUR API CALLING ENV.
   await projectKeys(environmentType: AppConstants.prod);
   await firebaseInitializeApp();
-
+  await getDeviceInfo();
   // HttpOverrides.global = MyHttpOverrides();
   /// Hive Database
   await Hive.initFlutter();
@@ -104,7 +123,6 @@ Future<void> main() async {
 
   // await OnesignalService().initialize();
 
-
   await localizationService.preloadCachedLanguages();
 
   // Load saved language code (default: 'en')
@@ -127,10 +145,8 @@ Future<void> main() async {
 
   // 🔄 Check if app version changed
   await checkAppVersionAndResetIfNeeded();
-  if(kDebugMode)
-  {
+  if (kDebugMode) {
     await resetLanguageLocalization();
-
   }
   // await Hive.openBox('translations');
   //
@@ -233,9 +249,9 @@ class _MyAppState extends State<MyApp> {
         );
       },
       home: Obx(() {
-
         // Still loading (null or loading flag)
-        if (appController.isLoading.value || appController.isInMaintenance.value == null) {
+        if (appController.isLoading.value ||
+            appController.isInMaintenance.value == null) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );

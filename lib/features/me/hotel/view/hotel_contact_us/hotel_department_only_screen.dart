@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/api/model/get_hotel_contact_us_res_model.dart';
 import 'package:BlueEra/core/api/model/school_contact_us_model.dart';
 import 'package:BlueEra/core/api/model/school_contact_us_new_res_model.dart';
 import 'package:BlueEra/features/me/hotel/controller/hotel_branch_contact_controller.dart';
@@ -6,6 +7,7 @@ import 'package:BlueEra/features/me/school/controller/school_about_us_controller
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
+import 'package:BlueEra/widgets/common_location_search_field.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -13,7 +15,7 @@ import 'package:get/get.dart';
 import '../../../../../../core/api/model/school_contact_us_res_model.dart';
 
 class HotelDepartmentOnlyScreen extends StatefulWidget {
-  final Departments? contactInfo;
+  final HotelContactUsData? contactInfo;
   final bool? isContactInfoEdit;
   final String? branchId;
 
@@ -21,7 +23,8 @@ class HotelDepartmentOnlyScreen extends StatefulWidget {
       {super.key, this.isContactInfoEdit, this.contactInfo, this.branchId});
 
   @override
-  _HotelDepartmentOnlyScreenState createState() => _HotelDepartmentOnlyScreenState();
+  _HotelDepartmentOnlyScreenState createState() =>
+      _HotelDepartmentOnlyScreenState();
 }
 
 class _HotelDepartmentOnlyScreenState extends State<HotelDepartmentOnlyScreen> {
@@ -30,15 +33,18 @@ class _HotelDepartmentOnlyScreenState extends State<HotelDepartmentOnlyScreen> {
   final titleController = TextEditingController();
   final emailController = TextEditingController();
   final phoneController = TextEditingController();
+  final addressController = TextEditingController();
 
   @override
   void initState() {
     // TODO: implement initState
 
     if (widget.isContactInfoEdit ?? false) {
-      titleController.text = widget.contactInfo?.department ?? "";
+      // titleController.text = widget.contactInfo?.department ?? "";
       emailController.text = widget.contactInfo?.email ?? "";
       phoneController.text = widget.contactInfo?.phone ?? "";
+      addressController.text = widget.contactInfo?.address ?? "";
+      _runValidation();
     }
     super.initState();
   }
@@ -49,7 +55,11 @@ class _HotelDepartmentOnlyScreenState extends State<HotelDepartmentOnlyScreen> {
       departmentRole: titleController.text,
       departmentEmailAddress: emailController.text,
       departmentPhoneNo: phoneController.text,
+      departmentAddress: addressController.text
     );
+    setState(() {
+
+    });
   }
 
   @override
@@ -64,13 +74,23 @@ class _HotelDepartmentOnlyScreenState extends State<HotelDepartmentOnlyScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CommonTextField(
-                textEditController: titleController,
-                hintText: "E.g.Admission Cell",
-                title: "Department/Role",
-                onChange: (_) => _runValidation(),
+              CommonLocationSearchField(
+                controller: addressController,
+                title: "Location",
+                isShowLeading: false,
+                onSelected: (placeId, lat, lng, address) {
+                  addressController.text = address;
+                  _runValidation();
+                },
               ),
               SizedBox(height: 12),
+              // CommonTextField(
+              //   textEditController: titleController,
+              //   hintText: "E.g.Admission Cell",
+              //   title: "Department/Role",
+              //   onChange: (_) => _runValidation(),
+              // ),
+              // SizedBox(height: 12),
               CommonTextField(
                 textEditController: emailController,
                 hintText: "dpsdehradun@gmail.com",
@@ -90,17 +110,16 @@ class _HotelDepartmentOnlyScreenState extends State<HotelDepartmentOnlyScreen> {
                 return CustomBtn(
                     isValidate: schoolAboutUsController.isFormValid.value,
                     onTap: () async {
-                      if (widget.isContactInfoEdit ?? false) {
-                        await schoolAboutUsController
-                            .updateBranchContactDetailsController(
-                                reqBody: {
-                              "department": titleController.text,
-                              "email": emailController.text,
-                              "phone": phoneController.text,
-                            },
-                                branchID: widget.contactInfo?.id ?? "",
-                                contactID: widget.branchId ?? "");
-                      }
+                      // if (widget.isContactInfoEdit ?? false) {
+                      await schoolAboutUsController.updateBranchDetails(
+                          address: addressController.text,
+                          email: emailController.text,
+                          phone: phoneController.text,
+                          contactID: widget.branchId ?? "",
+                          branchName: '',
+                          website: '',
+                          department: '');
+                      /* }
                       else{
                         await schoolAboutUsController
                             .addBranchDepartmentController(
@@ -112,7 +131,7 @@ class _HotelDepartmentOnlyScreenState extends State<HotelDepartmentOnlyScreen> {
                             branchID:
                             widget.branchId ?? "");
                         // addBranchDepartmentController
-                      }
+                      }*/
                     },
                     title: "Submit");
               }),

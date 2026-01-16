@@ -114,14 +114,6 @@ class SchoolAboutUsController extends GetxController {
       SchoolDetailsResModel schoolAboutUsModel =
           SchoolDetailsResModel.fromJson(response.response?.data);
       schoolDetailsData?.value = schoolAboutUsModel.data ?? SchoolDetailsData();
-      // String? schoolID = schoolDetailsData?.value.id;
-      // if (schoolID != null && schoolID.isNotEmpty) {
-      //   await setSchoolID(schoolID);
-      // } else {
-      //   await setSchoolID("");
-      // }
-      // await getSchoolID();
-
       schoolDetailsData?.refresh();
     } on Exception catch (e) {
       logs("ERROR ${e}");

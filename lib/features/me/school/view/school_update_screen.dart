@@ -93,11 +93,9 @@ class ComingSoon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CommonBackAppBar(
-        title: "",
-      ),
-      body: Center(child: CustomText("Coming soon...")),
+    return Material(
+
+      child: Center(child: CustomText("Coming soon...")),
     );
   }
 }

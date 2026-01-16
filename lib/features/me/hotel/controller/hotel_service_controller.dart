@@ -2,7 +2,9 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/ai_hotel_res_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/me/hotel/repo/hotel_service_repo.dart';
 import 'package:BlueEra/features/me/hotel/view/ai_hotel_preview_screen.dart';
 import 'package:flutter/material.dart';
@@ -137,30 +139,14 @@ class HotelServiceController extends GetxController {
     try {
       AiHotelData data = aiHotelResModel?.value.data ?? AiHotelData();
       final reqData = {
+        ApiKeys.businessId:businessId,
         "name": data.appMetadata?.appName,
-        "pincode": pinCodeName.value,
-        "address":  hotelAddress.value,
-        "city": cityName.value,
-        "state": stateName.value,
-        "contactNumber": phoneNumber.value,
-        "email": data.screens?.contactUs?.reception?.email ?? "",
-        "checkInTime": data.screens?.hotelPolicies?.checkInTime ?? "12:00 PM",
-        "checkOutTime": data.screens?.hotelPolicies?.checkOutTime ?? "11:00 AM",
-        "website": data.screens?.contactUs?.website ?? "",
         "description": data.screens?.aboutProperty?.description ?? "",
-        "departments": [
-          {
-            "title": "Reception",
-            "email": data.screens?.contactUs?.reception?.email ?? "",
-            "phone": data.screens?.contactUs?.reception?.phone ?? "",
-          }
-        ],
-        "emergencyContacts": {
-          "phone": data.screens?.contactUs?.emergency?.phone ?? "",
-          "policeStation":
-              data.screens?.contactUs?.emergency?.policeStation ?? "",
-          "hospital": data.screens?.contactUs?.emergency?.hospital ?? "",
-          "fireBrigade": data.screens?.contactUs?.emergency?.fireBrigade ?? ""
+        "website": data.screens?.contactUs?.website ?? "",
+        "address":{
+          "city": cityName.value,
+          "state": stateName.value,
+          "pincode": pinCodeName.value
         }
       };
 
@@ -168,8 +154,20 @@ class HotelServiceController extends GetxController {
           await HotelServiceRepo().createHotelServiceRepo(reqBody: reqData);
       if (response.isSuccess) {
         hotelAddress.value="";
-        Get.back();
+        String? hotelID = response.response?.data['data']['_id'];
+        if (hotelID != null && hotelID.isNotEmpty) {
+          await setHotelID(hotelID);
+        } else {
+          await setHotelID("");
+        }
+        await getHotelID();
         commonSnackBar(message: response.response?.data['message']);
+
+        Get.until((route) =>
+        route.settings
+            .name ==
+            RouteHelper
+                .getBottomNavigationBarScreenRoute());
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }
