@@ -113,11 +113,13 @@ class SchoolHomeScreen extends StatelessWidget {
                 child: BusinessLocationWidget(
                     locationText:
                         schoolAboutUsController.schoolDetailsData?.value.name,
-                    latitude: double.parse(schoolAboutUsController.schoolDetailsData?.value
-                        .location?.coordinates?[0].toString() ??
+                    latitude: double.parse(schoolAboutUsController
+                            .schoolDetailsData?.value.location?.coordinates?[0]
+                            .toString() ??
                         "0.0"),
-                    longitude: double.parse(schoolAboutUsController.schoolDetailsData?.value
-                        .location?.coordinates?[1].toString() ??
+                    longitude: double.parse(schoolAboutUsController
+                            .schoolDetailsData?.value.location?.coordinates?[1]
+                            .toString() ??
                         "0.0"),
                     businessName:
                         schoolAboutUsController.schoolDetailsData?.value.name ??

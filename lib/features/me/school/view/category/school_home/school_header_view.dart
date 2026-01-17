@@ -166,7 +166,7 @@ class _SchoolHeaderViewState extends State<SchoolHeaderView> {
                 const SizedBox(height: 10),
                 CustomText(
                     widget.schoolAboutUsController.schoolDetailsData?.value.name ,
-                    fontSize: 18,
+                    fontSize: 20,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     fontWeight: FontWeight.bold),

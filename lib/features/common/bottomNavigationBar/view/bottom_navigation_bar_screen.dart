@@ -339,14 +339,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
           onHeaderVisibilityChanged: _toggleAppBar,
         );
       case 1:
-        // return StoreFeedScreen(
-        //   isHeaderVisible: isVisible,
-        //   onHeaderVisibilityChanged: _toggleAppBar,
-        // );
-        // return NewStoreScreen2(
-        //   isHeaderVisible: isVisible,
-        //   onHeaderVisibilityChanged: _toggleAppBar,
-        // );
         return DiscoverScreen(
           isHeaderVisible: isVisible,
           onHeaderVisibilityChanged: _toggleAppBar,
