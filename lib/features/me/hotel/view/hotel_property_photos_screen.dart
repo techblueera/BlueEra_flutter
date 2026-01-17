@@ -6,6 +6,7 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
 class PropertyPhotoScreen extends StatelessWidget {
   final controller = Get.put(PropertyPhotoController());
@@ -102,16 +103,13 @@ class PropertyPhotoScreen extends StatelessWidget {
                                 CustomText(item.category??"",
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold),
-                                Icon(Icons.more_vert, color: Colors.grey),
                               ],
                             ),
                             SizedBox(height: 4),
-                            Text("Last Update:",
-                                style: TextStyle(
-                                    color: Colors.grey, fontSize: 12)),
-                            Text("20 April, 2025",
-                                style: TextStyle(
-                                    fontSize: 13, fontWeight: FontWeight.w500)),
+                            CustomText("Last Update: ${formatIsoDate(item.updatedAt??"")}",
+
+                                    color: Colors.grey, fontSize: 12),
+
                           ],
                         ),
                       ),
@@ -124,5 +122,10 @@ class PropertyPhotoScreen extends StatelessWidget {
         );
       }),
     );
+  }
+  static String formatIsoDate(String isoString) {
+    if (isoString.isEmpty) return "";
+    DateTime dateTime = DateTime.parse(isoString);
+    return DateFormat('dd MMM, yyyy').format(dateTime);
   }
 }

@@ -147,7 +147,13 @@ class HotelServiceController extends GetxController {
           "city": cityName.value,
           "state": stateName.value,
           "pincode": pinCodeName.value
-        }
+        },
+        "location": {
+          "name": hotelAddress.value,
+          "type": "Point",
+          "coordinates": [lat.value, lng.value]
+
+        },
       };
 
       ResponseModel response =

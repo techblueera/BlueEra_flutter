@@ -8,6 +8,7 @@ import 'package:BlueEra/features/me/hotel/view/create_room_details_sccreen.dart'
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
@@ -101,35 +102,48 @@ class _RoomListingScreenState extends State<RoomListingScreen> {
           // Image Carousel
           Stack(
             children: [
-              ClipRRect(
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(16)),
-                child: CarouselSlider(
-                  options: CarouselOptions(
-                    height: 220,
-                    viewportFraction: 1.0,
-                    // Disable infinite scroll if there's only 1 image
-                    enableInfiniteScroll: images.length > 1,
-                    // Disable physics (scrolling) if there's only 1 image
-                    scrollPhysics: images.length > 1
-                        ? const BouncingScrollPhysics()
-                        : const NeverScrollableScrollPhysics(),
-                    onPageChanged: (index, reason) =>
-                        currentImageIndex.value = index,
+              InkWell(
+                onTap: () {
+                  navigatePushTo(
+                    context,
+                    ImageViewScreen(
+                      subTitle: room.name,
+                      appBarTitle: AppStrings.imageViewer,
+                      imageUrls: images,
+                      initialIndex: currentImageIndex.value,
+                    ),
+                  );
+                },
+                child: ClipRRect(
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(16)),
+                  child: CarouselSlider(
+                    options: CarouselOptions(
+                      height: 220,
+                      viewportFraction: 1.0,
+                      // Disable infinite scroll if there's only 1 image
+                      enableInfiniteScroll: images.length > 1,
+                      // Disable physics (scrolling) if there's only 1 image
+                      scrollPhysics: images.length > 1
+                          ? const BouncingScrollPhysics()
+                          : const NeverScrollableScrollPhysics(),
+                      onPageChanged: (index, reason) =>
+                          currentImageIndex.value = index,
+                    ),
+                    items: images
+                        .map((url) => Image.network(
+                              url,
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Container(
+                                color: Colors.grey[300],
+                                child: const Icon(Icons.image,
+                                    size: 50, color: Colors.grey),
+                              ),
+                            ))
+                        .toList(),
                   ),
-                  items: images
-                      .map((url) => Image.network(
-                            url,
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                            errorBuilder: (context, error, stackTrace) =>
-                                Container(
-                              color: Colors.grey[300],
-                              child: const Icon(Icons.image,
-                                  size: 50, color: Colors.grey),
-                            ),
-                          ))
-                      .toList(),
                 ),
               ),
 
@@ -192,23 +206,23 @@ class _RoomListingScreenState extends State<RoomListingScreen> {
                         color: Colors.white, size: 18),
                   ),
                   itemBuilder: (BuildContext context) => [
-                    const PopupMenuItem(
-                      value: 'edit',
-                      child: Row(
-                        children: [
-                          Icon(Icons.edit, size: 20, color: Colors.blue),
-                          SizedBox(width: 10),
-                          Text("Edit"),
-                        ],
-                      ),
-                    ),
+                    // const PopupMenuItem(
+                    //   value: 'edit',
+                    //   child: Row(
+                    //     children: [
+                    //       Icon(Icons.edit, size: 20, color: Colors.blue),
+                    //       SizedBox(width: 10),
+                    //       Text("Edit"),
+                    //     ],
+                    //   ),
+                    // ),
                     const PopupMenuItem(
                       value: 'delete',
                       child: Row(
                         children: [
                           Icon(Icons.delete, size: 20, color: Colors.red),
                           SizedBox(width: 10),
-                          Text("Delete"),
+                          CustomText("Delete"),
                         ],
                       ),
                     ),

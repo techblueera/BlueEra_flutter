@@ -68,6 +68,15 @@ class HotelServiceRepo extends BaseService {
     );
     return response;
   }
+  // GET: Get contacts by type
+  Future<ResponseModel> getHotelHomeRepo() async {
+    final response = await ApiBaseHelper().getHTTP(
+      "$hotelHomeFull",
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 
   // POST: Create a new contact
   Future<ResponseModel> addHotelContactRepo({
@@ -389,6 +398,16 @@ class HotelServiceRepo extends BaseService {
       {required Map<String, dynamic> reqBody}) async {
     final response = await ApiBaseHelper().postHTTP(createHotelService,
         params: reqBody, onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+  ///PUT  COURSE....
+  Future<ResponseModel> updateHotelProfileRepo(
+      {required Map<String, dynamic> reqBODY,}) async {
+    final response = await ApiBaseHelper().putHTTP(
+        createHotelService,
+        params: reqBODY,
+        onError: (error) {},
+        onSuccess: (data) {});
     return response;
   }
   ///GET HOTEL CONTACT REPO....

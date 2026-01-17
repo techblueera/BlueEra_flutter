@@ -237,6 +237,10 @@ class AppConstants {
   static const homeServices = "Home Services";
 
   static const storeAi = "StoreAi";
+  static const hotelServiceScreen = "hotelServiceScreen";
+  static const personalDocumentScreen = "personalDocumentScreen";
+  static const businessDocumentScreen = "businessDocumentScreen";
+
 }
 
 class DocumentKeys {

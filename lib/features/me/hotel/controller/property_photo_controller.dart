@@ -25,7 +25,13 @@ class PropertyPhotoController extends GetxController {
           HotelPropertyPhotoResModel.fromJson(response.response?.data);
 
       if ((hotelPropertyPhotoResModel.data?.isNotEmpty ?? false)) {
-        propertyPhotosList.addAll(hotelPropertyPhotoResModel.data ?? []);
+        for (var photo in hotelPropertyPhotoResModel.data ?? []) {
+          if (photo.imageReferences != null &&
+              photo.imageReferences!.isNotEmpty) {
+            propertyPhotosList.add(photo);
+          }
+        }
+        // propertyPhotosList.addAll(hotelPropertyPhotoResModel.data ?? []);
       }
     } else {
       commonSnackBar(message: AppStrings.somethingWentWrong);
@@ -34,9 +40,6 @@ class PropertyPhotoController extends GetxController {
     isLoading.value = false;
   }
 
-
-  // Map to store image paths for each category ID or Name
-  // Example: {"Rooms": ["path1", "path2"], "Lobby": ["path1"]}
   var categoryImages = <String, RxList<String>>{}.obs;
 
   final int maxImages = 6;
@@ -61,34 +64,6 @@ class PropertyPhotoController extends GetxController {
       categoryImages[cat] = <String>[].obs;
     }
   }
-
-  //
-  // void addImage(String category, String path) {
-  //   if (categoryImages[category]!.length < maxImages) {
-  //     categoryImages[category]!.add(path);
-  //   } else {
-  //     Get.snackbar(
-  //         "Limit Reached", "Max $maxImages images allowed for $category");
-  //   }
-  // }
-  //
-  // void removeImage(String category, int index) {
-  //   categoryImages[category]!.removeAt(index);
-  // }
-  //
-  // bool validateAll() {
-  //   logs("categoryImages==== ${categoryImages}");
-  //   // for (var cat in categories) {
-  //   bool allEmpty = categoryImages.values.every((rxList) => rxList.isEmpty);
-  //
-  //   if (allEmpty) {
-  //     commonSnackBar(message: "Please upload at least 1 image for");
-  //     // Get.snackbar("Error", "Please upload at least $minImages image for $cat");
-  //     return false;
-  //   }
-  //   // }
-  //   return true;
-  // }
 
   // Observable for the selected category string
   var selectedCategory = "".obs;
@@ -149,33 +124,27 @@ class PropertyPhotoController extends GetxController {
     }
   }
 
-
-
-
   ///DELETE NOTICE....
-  Future<void> deleteHotelRoomController(
-      {required String categoryType,required String imgUrl,}) async {
+  Future<void> deleteHotelRoomController({
+    required String categoryType,
+    required String imgUrl,
+  }) async {
     try {
-      ResponseModel response =
-      await HotelServiceRepo().deleteHotelPropertyPhotosRepo(reqBODY:{
-        "category": categoryType,
-        "imageReference": imgUrl
-      });
+      ResponseModel response = await HotelServiceRepo()
+          .deleteHotelPropertyPhotosRepo(
+              reqBODY: {"category": categoryType, "imageReferences": imgUrl});
 
       if (response.isSuccess) {
         Get.back();
         commonSnackBar(
             message:
-            response.response?.data['message'] ?? AppStrings.successful);
+                response.response?.data['message'] ?? AppStrings.successful);
         fetchPhotos();
-
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
-
       }
     } on Exception catch (e) {
       logs("ERROR ${e}");
-
     }
   }
 }

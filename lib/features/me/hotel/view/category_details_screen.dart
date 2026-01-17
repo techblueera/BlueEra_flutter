@@ -1,8 +1,10 @@
 import 'package:BlueEra/core/api/model/hotel_property_photo_res_model.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/me/hotel/controller/property_photo_controller.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
+import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -24,7 +26,7 @@ class CategoryDetailsScreen extends StatelessWidget {
           (item) => item.id == categoryData.id,
           orElse: () => categoryData,
         );
-        List images = currentCategory.imageReferences ?? [];
+        List<String> images = currentCategory.imageReferences ?? [];
 
         return GridView.builder(
           padding: EdgeInsets.all(16),
@@ -37,13 +39,28 @@ class CategoryDetailsScreen extends StatelessWidget {
           itemBuilder: (context, index) {
             return Stack(
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.network(
-                    images[index],
-                    width: double.infinity,
-                    height: double.infinity,
-                    fit: BoxFit.cover,
+                InkWell(
+                  onTap: (){
+
+                    navigatePushTo(
+                      context,
+                      ImageViewScreen(
+                        subTitle: categoryData.category,
+                        appBarTitle: AppStrings.imageViewer,
+                        imageUrls: images,
+                        initialIndex: index,
+                      ),
+                    );
+
+                  },
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.network(
+                      images[index],
+                      width: double.infinity,
+                      height: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
                 // Delete Button Overlay
@@ -56,6 +73,7 @@ class CategoryDetailsScreen extends StatelessWidget {
                           context: context,
                           text: 'Are you sure you want to delete this image?',
                           confirmCallback: () async {
+                            Get.back();
                             await controller.deleteHotelRoomController(
                                 categoryType: categoryData.category ?? "",
                                 imgUrl: images[index]);

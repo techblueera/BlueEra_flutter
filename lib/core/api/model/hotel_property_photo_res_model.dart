@@ -37,18 +37,21 @@ class HotelPropertyPhotoData {
       this.category, 
       this.businessId, 
       this.v, 
+      this.updatedAt,
       this.imageReferences,});
 
   HotelPropertyPhotoData.fromJson(dynamic json) {
     id = json['_id'];
     category = json['category'];
     businessId = json['businessId'];
+    updatedAt = json['updatedAt'];
     v = json['__v'];
     imageReferences = json['imageReferences'] != null ? json['imageReferences'].cast<String>() : [];
   }
   String? id;
   String? category;
   String? businessId;
+  String? updatedAt;
   int? v;
   List<String>? imageReferences;
 
@@ -59,6 +62,7 @@ class HotelPropertyPhotoData {
     map['businessId'] = businessId;
     map['__v'] = v;
     map['imageReferences'] = imageReferences;
+    map['updatedAt'] = updatedAt;
     return map;
   }
 
