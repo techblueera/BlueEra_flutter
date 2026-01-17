@@ -29,99 +29,99 @@ class _RiderStoreScreenState extends State<RiderStoreScreen> {
   static const List<CollapsibleGridModel> grocerySuperCategories = [
     CollapsibleGridModel(
         icon: AppIconAssets.groceryItemsColorful,
-        label: AppStrings.labelGroceryItems,
-        tagId: GroceryConstant.GROCERY_ITEMS),
+        name: AppStrings.labelGroceryItems,
+        slugId: GroceryConstant.GROCERY_ITEMS),
     CollapsibleGridModel(
         icon: AppIconAssets.vegetablesColorful,
-        label: AppStrings.labelVegetable,
-        tagId: GroceryConstant.VEGETABLES),
+        name: AppStrings.labelVegetable,
+        slugId: GroceryConstant.VEGETABLES),
     CollapsibleGridModel(
         icon: AppIconAssets.fruitsColorful,
-        label: AppStrings.labelFruit,
-        tagId: GroceryConstant.FRUITS),
+        name: AppStrings.labelFruit,
+        slugId: GroceryConstant.FRUITS),
     CollapsibleGridModel(
         icon: AppIconAssets.bakeryNamkeenItemsColorful,
-        label: AppStrings.labelBakeryBreadItems,
-        tagId: GroceryConstant.BAKERY_NAMKEEN_ITEMS),
+        name: AppStrings.labelBakeryBreadItems,
+        slugId: GroceryConstant.BAKERY_NAMKEEN_ITEMS),
     CollapsibleGridModel(
         icon: AppIconAssets.dairyFrozenItemsColorful,
-        label: AppStrings.labelDairyProducts,
-        tagId: GroceryConstant.DAIRY_FROZEN_ITEMS),
+        name: AppStrings.labelDairyProducts,
+        slugId: GroceryConstant.DAIRY_FROZEN_ITEMS),
     CollapsibleGridModel(
         icon: AppIconAssets.crockeryColorful,
-        label: AppStrings.labelCrockery,
-        tagId: GroceryConstant.CROCKERY),
+        name: AppStrings.labelCrockery,
+        slugId: GroceryConstant.CROCKERY),
     CollapsibleGridModel(
         icon: AppIconAssets.homeEssentialsColorful,
-        label: AppStrings.labelHomeEssentials,
-        tagId: GroceryConstant.HOME_ESSENTIALS),
+        name: AppStrings.labelHomeEssentials,
+        slugId: GroceryConstant.HOME_ESSENTIALS),
     CollapsibleGridModel(
         icon: AppIconAssets.cleaningMaintenanceColorful,
-        label: AppStrings.labelCleaningMaintenance,
-        tagId: GroceryConstant.CLEANING_MAINTENANCE),
+        name: AppStrings.labelCleaningMaintenance,
+        slugId: GroceryConstant.CLEANING_MAINTENANCE),
     CollapsibleGridModel(
         icon: AppIconAssets.beautyHealthCareColorful,
-        label: AppStrings.labelBeautyHealthCare,
-        tagId: GroceryConstant.BEAUTY_HEALTH_CARE),
+        name: AppStrings.labelBeautyHealthCare,
+        slugId: GroceryConstant.BEAUTY_HEALTH_CARE),
     CollapsibleGridModel(
         icon: AppIconAssets.stationaryColorful,
-        label: AppStrings.labelStationary,
-        tagId: GroceryConstant.STATIONARY),
+        name: AppStrings.labelStationary,
+        slugId: GroceryConstant.STATIONARY),
   ];
 
 
   static const List<CollapsibleGridModel> foodCategories = [
     CollapsibleGridModel(
         icon: AppIconAssets.tiffinColorful,
-        label: 'Tiffin',
-        tagId: 'TIFFIN'),
+        name: 'Tiffin',
+        slugId: 'TIFFIN'),
     CollapsibleGridModel(
         icon: AppIconAssets.breakfastColorful,
-        label: 'Breakfast',
-        tagId: 'BREAKFAST'),
+        name: 'Breakfast',
+        slugId: 'BREAKFAST'),
     CollapsibleGridModel(
         icon: AppIconAssets.lunchDinnerColorful,
-        label: 'Lunch, Dinner',
-        tagId: 'LUNCH_DINNER'),
+        name: 'Lunch, Dinner',
+        slugId: 'LUNCH_DINNER'),
     CollapsibleGridModel(
         icon: AppIconAssets.fastFoodColorful,
-        label: 'Fast-Food',
-        tagId: 'FAST_FOOD'),
+        name: 'Fast-Food',
+        slugId: 'FAST_FOOD'),
     CollapsibleGridModel(
         icon: AppIconAssets.sweetsColorful,
-        label: 'Sweets',
-        tagId: 'SWEETS'),
+        name: 'Sweets',
+        slugId: 'SWEETS'),
     CollapsibleGridModel(
         icon: AppIconAssets.restaurantColorful,
-        label: 'Restaurant',
-        tagId: 'RESTAURANT'),
+        name: 'Restaurant',
+        slugId: 'RESTAURANT'),
   ];
 
   static const List<CollapsibleGridModel> restaurantNearMe = [
     CollapsibleGridModel(
         icon: AppIconAssets.groceryItemsGrey,
-        label: 'Restaurant',
-        tagId: 'NEAR_RESTAURANT'),
+        name: 'Restaurant',
+        slugId: 'NEAR_RESTAURANT'),
     CollapsibleGridModel(
         icon: AppIconAssets.groceryItemsGrey,
-        label: 'Breakfast',
-        tagId: 'NEAR_BREAKFAST'),
+        name: 'Breakfast',
+        slugId: 'NEAR_BREAKFAST'),
     CollapsibleGridModel(
         icon: AppIconAssets.groceryItemsGrey,
-        label: 'Lunch, Dinner',
-        tagId: 'NEAR_LUNCH_DINNER'),
+        name: 'Lunch, Dinner',
+        slugId: 'NEAR_LUNCH_DINNER'),
     CollapsibleGridModel(
         icon: AppIconAssets.groceryItemsGrey,
-        label: 'Fast-Food',
-        tagId: 'NEAR_FAST_FOOD'),
+        name: 'Fast-Food',
+        slugId: 'NEAR_FAST_FOOD'),
     CollapsibleGridModel(
         icon: AppIconAssets.groceryItemsGrey,
-        label: 'Sweets',
-        tagId: 'NEAR_SWEETS'),
+        name: 'Sweets',
+        slugId: 'NEAR_SWEETS'),
     CollapsibleGridModel(
         icon: AppIconAssets.groceryItemsGrey, // Use a variation if available
-        label: 'Restaurant',
-        tagId: 'NEAR_RESTAURANT_ALT'),
+        name: 'Restaurant',
+        slugId: 'NEAR_RESTAURANT_ALT'),
   ];
 
 
@@ -215,15 +215,15 @@ class _RiderStoreScreenState extends State<RiderStoreScreen> {
                         itemBuilder: (context, index) {
                           var groceryData = grocerySuperCategories[index];
                           return _buildCategoryItem(
-                            label: groceryData.label,
+                            label: groceryData.name,
                             iconPath: groceryData.icon,
                             onTap: () {
-                              final categoryMap = getCategoriesByTag(groceryData.tagId);
+                              final categoryMap = getCategoriesByTag(groceryData.slugId);
                               Get.toNamed(
                                 RouteHelper.getGroceryCategoryScreenRoute(),
                                 arguments: {
                                   ApiKeys.argMyGrocery: false,
-                                  ApiKeys.argPageHeading: groceryData.label,
+                                  ApiKeys.argPageHeading: groceryData.name,
                                   ApiKeys.argArrGroceryCat: categoryMap,
                                 },
                               );
@@ -279,7 +279,7 @@ class _RiderStoreScreenState extends State<RiderStoreScreen> {
                         itemBuilder: (context, index) {
                           var foodCategoryData = foodCategories[index];
                           return _buildCategoryItem(
-                            label: foodCategoryData.label,
+                            label: foodCategoryData.name,
                             iconPath: foodCategoryData.icon,
                             onTap: () {
 
@@ -324,7 +324,7 @@ class _RiderStoreScreenState extends State<RiderStoreScreen> {
                         itemBuilder: (context, index) {
                           var restaurantNearMeData = restaurantNearMe[index];
                           return _buildCategoryItem(
-                            label: restaurantNearMeData.label,
+                            label: restaurantNearMeData.name,
                             iconPath: restaurantNearMeData.icon,
                             onTap: () {
 

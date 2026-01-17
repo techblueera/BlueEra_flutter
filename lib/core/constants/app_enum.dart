@@ -12,7 +12,41 @@ enum ValidationTypeEnum {
   lNumber
 }
 
-enum BusinessType { Food, Product, Service, Both }
+enum IndividualType {
+  SOCIAL_PROFILE(
+      tagId: "SOCIAL_PROFILE",
+      name: "Social Profile"
+  ),
+  SELF_EMPLOYED(
+      tagId: "SELF_EMPLOYED",
+      name: "Skill Work / Self Employee"
+  ),
+  GIG_WORKER(
+      tagId: "GIG_WORKER",
+      name: "Gig Worker / Transport"
+  ),
+  PROFESSIONAL(
+      tagId: "PROFESSIONAL",
+      name: "Professional / Consultant"
+  );
+
+  final String tagId;
+  final String name;
+
+  const IndividualType({
+    required this.tagId,
+    required this.name,
+  });
+
+  /// Helper to convert a String from API back to this Enum
+  static IndividualType fromString(String value) {
+    return IndividualType.values.firstWhere(
+          (e) => e.tagId == value,
+      orElse: () => IndividualType.SOCIAL_PROFILE, // Default fallback
+    );
+  }
+}
+enum BusinessType { Food, Product, Service, Grocery, Manufacturing, Both }
 // enum BusinessType { Food, Product, Service, Grocery, Health, HotelStay, Both }
 
 /// Modes of Communication

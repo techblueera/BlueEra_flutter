@@ -8,6 +8,7 @@ import 'package:BlueEra/core/api/model/guest_model_response.dart';
 import 'package:BlueEra/core/api/model/otp_verify_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -16,12 +17,16 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/auth/model/guest_res_model.dart';
+import 'package:BlueEra/features/common/auth/model/individual_field_response_model.dart';
 import 'package:BlueEra/features/common/auth/model/individual_profiile_category.dart';
+import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
+import 'package:BlueEra/features/common/auth/model/selected_category_response.dart';
 import 'package:BlueEra/features/common/auth/model/username_res_model.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
 import 'package:BlueEra/features/common/feed/models/block_user_response.dart';
 import 'package:BlueEra/features/common/auth/model/business_profile_category.dart';
+import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -36,6 +41,10 @@ class AuthController extends GetxController {
   Rx<ApiResponse> getUserNameCheckResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> deleteUserAccountResponse =
       ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> businessSubCategoryResponse =
+      ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> contentCreatorFieldResponse =
+      ApiResponse.initial('Initial').obs;
   ApiResponse blockUserResponse = ApiResponse.initial('Initial');
   final mobileNumberEditController = TextEditingController(text: '');
   final referralCodeController = TextEditingController();
@@ -47,6 +56,10 @@ class AuthController extends GetxController {
   RxString categorySpecializationText = ''.obs;
 
   RxInt? selectedDay = 0.obs, selectedMonth = 0.obs, selectedYear = 0.obs;
+
+  RxString selectedParentSlug = AppConstants.individual.obs;
+  Rxn<OnBoardingCategoryModel> selectedIndividualOnboardingProfile = Rxn<OnBoardingCategoryModel>();
+  Rxn<OnBoardingCategoryModel> selectedBusinessOnboardingProfile = Rxn<OnBoardingCategoryModel>();
 
   ///SEND OTP...
   Future<void> sendOTP() async {
@@ -297,7 +310,6 @@ class AuthController extends GetxController {
   }
 
   List<CategoryData> businessCategories = [];
-  List<SubCategories> businessSubCategoriesList = [];
 
   Future<void> getAllCategories() async {
     try {
@@ -563,7 +575,9 @@ clearSubCategoryData()
 
   RxBool isAppLoading = false.obs;
 
-  CategoryData? selectedCategoryData;
+  // CategoryData? selectedCategoryData;
+  String? selectedCategorySlugId;
+  String? selectedCategoryName;
   SubCategories? selectedSubCategoryData;
   BusinessType? selectedTypeOfBusiness;
   NatureOfBusiness? selectedNatureOfBusiness;
@@ -738,5 +752,67 @@ clearSubCategoryData()
     }
   }
 
+  RxBool isBusinessSubCategoriesLoading = false.obs;
+  List<SubCategories> businessSubCategoriesList = [];
+  String? subCategoryErrorMessage;
+  Future<void> fetchBusinessSubCategories({required String categorySlugId}) async {
+    try {
+      isBusinessSubCategoriesLoading.value = true;
+
+      final response = await AuthRepo().getBusinessSubCategoriesRepo(tagId: categorySlugId);
+
+      if (!response.isSuccess) {
+        subCategoryErrorMessage = response.message;
+        commonSnackBar(
+          message: response.message ?? AppStrings.somethingWentWrong,
+        );
+        return;
+      }
+
+      final jsonData = response.response?.data;
+      final businessCategoryModel = SelectedBusinessCategoryModelResponse.fromJson(jsonData);
+      businessSubCategoriesList = businessCategoryModel.subCategories ?? [];
+
+      businessSubCategoryResponse.value = ApiResponse.complete(response);
+      update();
+    } catch (e) {
+      subCategoryErrorMessage = e.toString();
+      businessSubCategoryResponse.value = ApiResponse.error('error');
+      update();
+    }finally{
+      isBusinessSubCategoriesLoading.value = false;
+    }
+  }
+
+
+  RxBool isIndividualFieldLoading = false.obs;
+  RxList<IndividualFields> arrIndividualFields = <IndividualFields>[].obs;
+  RxList<SubCategories> arrIndividualSubCategories = <SubCategories>[].obs;
+  Future<void> fetchIndividualFields({
+    required String tagId
+  }) async {
+    try {
+      isIndividualFieldLoading.value = true;
+      arrIndividualFields.clear();
+      arrIndividualSubCategories.clear();
+
+      final response = await AuthRepo().getIndividualFieldsRepo(
+        tagId: tagId,
+      );
+
+      if (response.isSuccess) {
+        contentCreatorFieldResponse.value = ApiResponse.complete(response);
+        final individualFieldsResponseModel = IndividualFieldsResponseModel.fromJson(response.response?.data);
+        arrIndividualFields.value = individualFieldsResponseModel.data?.fields ?? [];
+      } else {
+        contentCreatorFieldResponse.value = ApiResponse.error('error');
+      }
+    } catch (e, s) {
+      contentCreatorFieldResponse.value = ApiResponse.error('error');
+      print("stack trace: $s");
+    } finally {
+      isIndividualFieldLoading.value = false;
+    }
+  }
 
 }

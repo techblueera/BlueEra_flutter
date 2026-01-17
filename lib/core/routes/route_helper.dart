@@ -13,6 +13,7 @@ import 'package:BlueEra/features/common/auth/views/screens/new_screens/business/
 import 'package:BlueEra/features/common/auth/views/screens/new_screens/business/create_business_account_new_step_one.dart';
 import 'package:BlueEra/features/common/auth/views/screens/new_screens/business/create_business_account_new_step_three.dart';
 import 'package:BlueEra/features/common/auth/views/screens/new_screens/business/create_business_account_new_step_two.dart';
+import 'package:BlueEra/features/common/auth/views/screens/new_screens/create_account_type_screen.dart';
 import 'package:BlueEra/features/common/auth/views/screens/new_screens/create_new_account_screen.dart';
 import 'package:BlueEra/features/common/auth/views/screens/mobile_number_screen.dart';
 import 'package:BlueEra/features/common/auth/views/screens/otp_page_screen.dart';
@@ -471,7 +472,8 @@ class RouteHelper {
   static String getAddSelfServiceRoute() =>
       RouteConstant.addSelfServiceScreen;
 
-
+  static String getCreateAccountTypeScreenRoute() =>
+      RouteConstant.createAccountTypeScreen;
 
   ///REDIRECT ROUTING SETUP.....
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -1248,17 +1250,23 @@ class RouteHelper {
       case RouteConstant.personalAccountNewScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final accountType = args[ApiKeys.argAccountType] as String;
-        final professionTagId = args[ApiKeys.argProfessionTagId] as String;
-        final professionSubCategory = args[ApiKeys.argProfessionSubCategory]
-            as List<SubcategoriesFiledName>?;
+        final profileType = args[ApiKeys.argProfileType] as IndividualType;
+        final argProfessionTagId = args[ApiKeys.argProfessionTagId] as String;
+        final argProfession = args[ApiKeys.argProfession] as String;
+
+        /// old
+        // final professionTagId = args[ApiKeys.argProfessionTagId] as String;
+        final professionSubCategory = args[ApiKeys.argProfessionSubCategory] as List<SubcategoriesFiledName>?;
         final selfEmployment = args[ApiKeys.argSelfEmployment] as String?;
-        final selfEmploymentTagId =
-            args[ApiKeys.argSelfEmploymentTagId] as String?;
+        final selfEmploymentTagId = args[ApiKeys.argSelfEmploymentTagId] as String?;
 
         return MaterialPageRoute(
             builder: (_) => PersonalAccountNewScreen(
                   accountType: accountType,
-                  professionTagId: professionTagId,
+                  profileType: profileType,
+                  profession: argProfession,
+                  professionTagId: argProfessionTagId,
+
                   professionSubCategory: professionSubCategory,
                   selfEmployment: selfEmployment,
                   selfEmploymentTagId: selfEmploymentTagId,
@@ -1270,15 +1278,19 @@ class RouteHelper {
         final args = settings.arguments as Map<String, dynamic>;
         final accountType = args[ApiKeys.argAccountType] as String;
         final businessType = args[ApiKeys.argBusinessType] as BusinessType;
-        final categoryData = args[ApiKeys.argCategoryData] as CategoryData?;
-        final subCategory = args[ApiKeys.argSubCategory] as SubCategories?;
+        // final categoryData = args[ApiKeys.argCategoryData] as CategoryData?;
+        final argCategorySlugId = args[ApiKeys.argCategoryId] as String;
+        final argCategoryName = args[ApiKeys.argCategoryName] as String;
+        final argSubCategory = args[ApiKeys.argSubCategory] as SubCategories?;
 
         return MaterialPageRoute(
             builder: (_) => GstNumberScreen(
                   accountType: accountType,
                   businessType: businessType,
-                  categoryData: categoryData,
-                  subCategory: subCategory,
+                  // categoryData: categoryData,
+                  categorySlugId: argCategorySlugId,
+                  categoryName: argCategoryName,
+                  subCategory: argSubCategory,
                 ),
             settings:
                 RouteSettings(name: RouteHelper.getGstNumberScreenRoute()));
@@ -1470,6 +1482,13 @@ class RouteHelper {
             ),
             settings: RouteSettings(name: getAddSelfServiceRoute())
         );
+      case RouteConstant.createAccountTypeScreen:
+        return MaterialPageRoute(
+            builder: (_) => CreateAccountTypeScreen(
+            ),
+            settings: RouteSettings(name: getCreateAccountTypeScreenRoute())
+        );
+
 
 
       default:

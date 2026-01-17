@@ -767,7 +767,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
               imagePath: icon,
               height: size * 0.3,
               width: size * 0.3,
-          ),
+            ),
             SizedBox(height: SizeConfig.size3),
             CustomText(
                 text,

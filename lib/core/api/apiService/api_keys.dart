@@ -620,4 +620,10 @@ class ApiKeys {
   static const riderId = 'riderId';
   static const expYears = 'expYears';
   static const expMonths = 'expMonths';
+
+  static const argProfileType = 'argProfileType';
+  static const argProfileTypeTagId = 'argProfileTypeTagId';
+  static const profileType = 'profileType';
+
+
 }

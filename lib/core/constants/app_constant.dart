@@ -18,6 +18,8 @@ import 'package:BlueEra/features/business/visiting_card/view/business_own_profil
 import 'package:BlueEra/features/chat/contacts/view/contact_list_page.dart';
 import 'package:BlueEra/features/common/auth/model/individual_profiile_category.dart';
 import 'package:BlueEra/features/common/auth/model/mixed_profile_categrory.dart';
+import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
+import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
 import 'package:BlueEra/features/common/post/repo/post_repo.dart';
 import 'package:BlueEra/features/common/reel/models/social_input_fields_model.dart';
 import 'package:BlueEra/features/common/store/repo/store_repo.dart';
@@ -62,6 +64,10 @@ class AppConstants {
   static const String baseImageAssetsCategoryPath = "assets/category/";
   static const String baseImageAssetsGroceryCategoryPath =
       "assets/category/grocery/";
+  static const String baseImageAssetsOnboardingIndividualPath =
+      "assets/onboarding/individual/";
+  static const String baseImageAssetsOnboardingBusinessPath =
+      "assets/onboarding/business/";
   static const String baseIconAssetsPath = "assets/icons/";
   static const String baseSvgAssetsPath = "assets/svg/";
   static const String baseGifsAssetsPath = "assets/gifs/";
@@ -184,6 +190,7 @@ class AppConstants {
   static const String channelOTTList = "channelOTTList";
   static const String prepaid = "prepaid";
   static const String postpaid = "postpaid";
+  static const String manufacturingIndustry = "manufacturingIndustry";
 
   /// Services Category
   static const consulting = "Consulting Services";
@@ -414,10 +421,14 @@ void createProfileScreen() {
   //   RouteHelper.getSelectAccountScreenRoute(),
   //   arguments: {ApiKeys.argMobileNumber: userMobileGlobal},
   // );
+  // Get.toNamed(
+  //   RouteHelper.getCreateNewAccountScreenRoute(),
+  //   // arguments: {ApiKeys.argMobileNumber: userMobileGlobal},
+  // );
   Get.toNamed(
-    RouteHelper.getCreateNewAccountScreenRoute(),
-    // arguments: {ApiKeys.argMobileNumber: userMobileGlobal},
+    RouteHelper.getCreateAccountTypeScreenRoute(),
   );
+
 }
 
 void navigatePushTo(BuildContext context, Widget destination) {
@@ -1290,13 +1301,19 @@ final List<SocialInputFieldsModel> selectedInputFieldsPersonalProfile = [
   ),
 ];
 
-// Constants
+// Individual Profession
 const String SELF_EMPLOYED = "SELF_EMPLOYED";
+const String SKILL_WORKER = "SKILL_WORKER";
+const String GIG_WORKER = "GIG_WORKER";
+const String PROFESSIONAL = "PROFESSIONAL";
+
+// Constants
 const String PRIVATE_JOB = "PRIVATE_JOB";
 const String GOVERNMENT_JOB = "GOVERNMENT_JOB";
 const String CONTENT_CREATOR = "CONTENT_CREATOR";
 const String POLITICIAN = "POLITICIAN";
 const String GOVTPSU = "GOVTPSU";
+const String NGO = "NGO";
 const String REG_UNION = "REG_UNION";
 const String MEDIA = "MEDIA";
 const String ARTIST = "ARTIST";
@@ -1314,23 +1331,122 @@ const String OTHERS = "OTHERS"; // keep Others last
 const String ELECTRICIAN = "ELECTRICIAN";
 const String PLUMBER = "PLUMBER";
 const String TECHNICIAN = "TECHNICIAN";
-const String MAID = "MAID";
+const String MAID_FEMALE = "MAID_FEMALE";
 const String CLEANER = "CLEANER";
 const String CARPENTER = "CARPENTER";
-const String CAR_DRIVER_TAXI = "CAR_DRIVER_TAXI";
 const String DELIVERY_RIDER = "DELIVERY_RIDER";
+const String CAR_TAXI = "CAR_DRIVER_TAXI";
+const String GOODS_TAXI = "GOODS_TAXI";
+const String AUTO_TAXI = "AUTO_TAXI";
 const String MECHANIC = "MECHANIC";
 const String TAILOR = "TAILOR";
 const String BEAUTICIAN = "BEAUTICIAN";
-const String HOME_RENOVATION = "HOME_RENOVATION";
+const String HOME_RENOVATOR = "HOME_RENOVATOR";
 const String PAINTER = "PAINTER";
+const String LABOUR = "LABOUR";
 const String GARDENER = "GARDENER";
-const String SECURITY = "SECURITY";
+const String SECURITY_PERSON = "SECURITY_PERSON";
 const String INTERIOR_DESIGNER = "INTERIOR_DESIGNER";
 const String DIGITAL_MARKETING = "DIGITAL_MARKETING";
 const String TUTOR = "TUTOR";
 const String CONSULTANT = "CONSULTANT";
 const String OTHER = "OTHER";
+
+// Consulatant
+const String LEGAL_GOVT_CONSULTANT = "LEGAL_GOVT_CONSULTANT";
+const String FINANCE_TAX_CONSULTANT = "FINANCE_TAX_CONSULTANT";
+const String SPIRITUAL_CONSULTANT = "SPIRITUAL_CONSULTANT";
+const String TRAINEE_CAREER_CONSULTANT = "TRAINEE_CAREER_CONSULTANT";
+const String ADVERTISING_CONSULTANT = "ADVERTISING_CONSULTANT";
+const String EVENT_PLANNER_DETECTIVE = "EVENT_PLANNER_DETECTIVE";
+const String PROPERTY_BROKER_ARCHITECT = "PROPERTY_BROKER_ARCHITECT";
+const String BUSINESS_HR_CONSULTANT = "BUSINESS_HR_CONSULTANT";
+const String INDUSTRY_QUALITY_CONSULTANT = "INDUSTRY_QUALITY_CONSULTANT";
+const String TECH_DIGITAL_FREELANCER = "TECH_DIGITAL_FREELANCER";
+
+// Onboarding Category Constant
+const String SOCIAL_PROFILE = "SOCIAL_PROFILE";
+const String MANUFACTURING = "MANUFACTURING";
+
+// Grocery
+const String KIRANA_STORE = "KIRANA_STORE";
+const String GENERAL_STORE = "GENERAL_STORE";
+const String VEGETABLE_FRUIT = "VEGETABLE_FRUIT";
+const String DAIRY_BAKERY = "DAIRY_BAKERY";
+const String HOME_ESSENTIALS = "HOME_ESSENTIALS";
+const String STATIONARY_SHOP = "STATIONARY_SHOP";
+
+// Food
+const String MULTI_CUISINE_RESTAURANTS = "MULTI_CUISINE_RESTAURANTS";
+const String PURE_VEG_RESTAURANT = "PURE_VEG_RESTAURANT";
+const String NON_VEG_RESTAURANT = "NON_VEG_RESTAURANT";
+const String ECONOMY_DHABA = "ECONOMY_DHABA";
+const String GARDEN_BUFFET_RESTAURANT = "GARDEN_BUFFET_RESTAURANT";
+const String CLOUD_KITCHEN = "CLOUD_KITCHEN";
+const String BREAKFAST_FAST_FOOD = "BREAKFAST_FAST_FOOD";
+const String SWEET_NAMKEEN_SHOP = "SWEET_NAMKEEN_SHOP";
+const String ICE_CREAM_CORNER = "ICE_CREAM_CORNER";
+const String COFFEE_BEVERAGES_SHOP = "COFFEE_BEVERAGES_SHOP";
+
+// Product
+const String FASHION_LIFESTYLE = "FASHION_LIFESTYLE";
+const String FURNITURE_HOME_DECOR = "FURNITURE_HOME_DECOR";
+const String ELECTRONICS_APPLIANCES_STORE = "ELECTRONICS_APPLIANCES_STORE";
+const String BOOKS_STATIONERY_GIFTS = "BOOKS_STATIONERY_GIFTS";
+const String SPORTS_FITNESS_STORE = "SPORTS_FITNESS_STORE";
+const String TOYS_BABY_PRODUCTS_STORE = "TOYS_BABY_PRODUCTS_STORE";
+const String JEWELLERY_LUXURY_STORE = "JEWELLERY_LUXURY_STORE";
+const String CONSTRUCTION_HOME_ESSENTIALS = "CONSTRUCTION_HOME_ESSENTIALS";
+const String AUTOMOTIVE_STORE_SHOWROOM = "AUTOMOTIVE_STORE_SHOWROOM";
+const String PET_SUPPLIES_AGRICULTURE_STORE = "PET_SUPPLIES_AGRICULTURE_STORE";
+const String WHOLESALER_TRADER = "WHOLESALER_TRADER";
+const String INDUSTRIALS_GOODS = "INDUSTRIALS_GOODS";
+
+// Services
+const String CONSULTING_FIRM_ORG = "CONSULTING_FIRM_ORG";
+const String HEALTHCARE_MEDICAL_SERVICES = "HEALTHCARE_MEDICAL_SERVICES";
+const String EDUCATION_TRAINING = "EDUCATION_TRAINING";
+const String HOSTELS_STAY_SERVICE = "HOSTELS_STAY_SERVICE";
+const String BEAUTY_PERSONAL_CARE = "BEAUTY_PERSONAL_CARE";
+const String FINANCIAL_SERVICES = "FINANCIAL_SERVICES";
+const String SERVICE_CENTRE_ESSENTIAL_UTILITY = "SERVICE_CENTRE_ESSENTIAL_UTILITY";
+const String HOME_SERVICES_UTILITY = "HOME_SERVICES_UTILITY";
+const String IT_COMMUNICATION = "IT_COMMUNICATION";
+const String MEDIA_PUBLICITY_CREATIVE = "MEDIA_PUBLICITY_CREATIVE";
+const String AUTOMOTIVE_SERVICES = "AUTOMOTIVE_SERVICES";
+const String LOGISTICS_TRANSPORTATION = "LOGISTICS_TRANSPORTATION";
+const String CELEBRATION_EVENT_SERVICES = "CELEBRATION_EVENT_SERVICES";
+const String TOUR_TRAVEL_TOURISM = "TOUR_TRAVEL_TOURISM";
+
+// Manufacturing
+const String FASHION_WEARABLES = "FASHION_WEARABLES";
+const String FOOTWEAR = "FOOTWEAR";
+const String TOOLS_HOME_IMPROVEMENT = "TOOLS_HOME_IMPROVEMENT";
+const String BAGS_LUGGAGE = "BAGS_LUGGAGE";
+const String BEAUTY_PERSONAL_CARE_MFG = "BEAUTY_PERSONAL_CARE_MFG";
+const String HOUSEHOLD_CONSUMABLES = "HOUSEHOLD_CONSUMABLES";
+const String CLEANING_UTILITY = "CLEANING_UTILITY";
+const String HOME_LIVING = "HOME_LIVING";
+const String FURNITURE = "FURNITURE";
+const String BED_BATH_FURNISHINGS = "BED_BATH_FURNISHINGS";
+const String ELECTRICAL_LIGHTING = "ELECTRICAL_LIGHTING";
+const String HOME_APPLIANCES = "HOME_APPLIANCES";
+const String MOBILES_SMART_GADGETS = "MOBILES_SMART_GADGETS";
+ const String COMPUTERS_ACCESSORIES = "COMPUTERS_ACCESSORIES";
+ const String GAMING_ENTERTAINMENT = "GAMING_ENTERTAINMENT";
+ const String TOYS_KIDS_BABY_PRODUCTS = "TOYS_KIDS_BABY_PRODUCTS";
+ const String SPORTS_FITNESS_OUTDOOR = "SPORTS_FITNESS_OUTDOOR";
+ const String JEWELLERY_ORNAMENTS = "JEWELLERY_ORNAMENTS";
+ const String WATCHES_EYEWEAR = "WATCHES_EYEWEAR";
+ const String STATIONERY_SCHOOL_OFFICE = "STATIONERY_SCHOOL_OFFICE";
+ const String AUTO_BIKE_ACCESSORIES = "AUTO_BIKE_ACCESSORIES";
+ const String GARDEN_OUTDOOR_LIVING = "GARDEN_OUTDOOR_LIVING";
+ const String GIFTS_FESTIVE_LIFESTYLE = "GIFTS_FESTIVE_LIFESTYLE";
+ const String TRAVEL_PERSONAL_UTILITY = "TRAVEL_PERSONAL_UTILITY";
+ const String SAFETY_SECURITY_PROTECTION = "SAFETY_SECURITY_PROTECTION";
+ const String MISCELLANEOUS_RETAIL = "MISCELLANEOUS_RETAIL";
+
+
 
 int kmRadius1000 = 1000;
 int kmRadius1500 = 1500;
@@ -1348,85 +1464,6 @@ const VEHICLE = "VEHICLE";
 const FOOD = "FOOD";
 const PRODUCT = "PRODUCT";
 const SERVICE = "SERVICE";
-
-// biscuit & foods
-const String CHIPS_NAMKEEN = 'CHIPS_NAMKEEN';
-const String BISCUITS_COOKIES = 'BISCUITS_COOKIES';
-const String CHOCOLATES_CANDIES = 'CHOCOLATES_CANDIES';
-const String INDIAN_SWEETS = 'INDIAN_SWEETS';
-const String DRINKS_JUICES = 'DRINKS_JUICES';
-const String BREAKFAST_CEREALS = 'BREAKFAST_CEREALS';
-const String NOODLES_PASTA = 'NOODLES_PASTA';
-const String READY_TO_COOK = 'READY_TO_COOK';
-const String SPREAD = 'SPREAD';
-const String PICKLES = 'PICKLES';
-const String TEA = 'TEA';
-
-// fruits & veg
-const String FRESH_FRUITS = 'FRESH_FRUITS';
-const String BASIC_VEGETABLES = 'BASIC_VEGETABLES';
-const String PREMIUM_FV = 'PREMIUM_FV';
-
-// cooking essentials
-const String RICE = 'RICE';
-const String DALS_PULSES = 'DALS_PULSES';
-const String GHEE = 'GHEE';
-const String WHEAT_SOYA = 'WHEAT_SOYA';
-const String SALT_SUGAR_JAGGERY = 'SALT_SUGAR_JAGGERY';
-const String SNACK_BASES = 'SNACK_BASES';
-const String ATTA_FLOURS = 'ATTA_FLOURS';
-const String DRY_FRUITS = 'DRY_FRUITS';
-const String EDIBLE_OILS = 'EDIBLE_OILS';
-const String MILLET_ORGANIC = 'MILLET_ORGANIC';
-
-// dairy_items & bakery
-const String MILK_PRODUCTS = 'MILK_PRODUCTS';
-const String CHEESE_PANEER_TOFU = 'CHEESE_PANEER_TOFU';
-const String BUTTER_CHUTNEY = 'BUTTER_CHUTNEY';
-const String TOAST_KHARI = 'TOAST_KHARI';
-const String CAKES_MUFFINS = 'CAKES_MUFFINS';
-const String BREADS_CHAPATIS = 'BREADS_CHAPATIS';
-const String BAKERY_SNACKS = 'BAKERY_SNACKS';
-
-// mom & baby
-const String BABY_FOOD = 'BABY_FOOD';
-const String BABY_HYGIENE = 'BABY_HYGIENE';
-const String BABY_TOYS = 'BABY_TOYS';
-const String BABY_HEALTH = 'BABY_HEALTH';
-const String DIAPERS_WIPES = 'DIAPERS_WIPES';
-
-// kitchenware
-const String GAS_STOVE = 'GAS_STOVE';
-const String STORAGE_CONTAINERS = 'STORAGE_CONTAINERS';
-const String BOTTLES_FLASKS = 'BOTTLES_FLASKS';
-const String CUTTING_CHOPPING = 'CUTTING_CHOPPING';
-const String KITCHEN_TOOLS = 'KITCHEN_TOOLS';
-const String BAKEWARE = 'BAKEWARE';
-
-// tableware
-const String DINING = 'DINING';
-const String SERVEWARE = 'SERVEWARE';
-const String BARWARE = 'BARWARE';
-const String TABLE_ACCESSORIES = 'TABLE_ACCESSORIES';
-const String CUPS_MUGS = 'CUPS_MUGS';
-const String GLASSWARE = 'GLASSWARE';
-
-// gifts
-const String TEA_GIFTS = 'TEA_GIFTS';
-const String CHOCOLATE_GIFTS = 'CHOCOLATE_GIFTS';
-const String GOURMET_GIFTS = 'GOURMET_GIFTS';
-
-// home
-const String DETERGENTS = 'DETERGENTS';
-const String FRESHENERS = 'FRESHENERS';
-const String CLEANING_TOOLS = 'CLEANING_TOOLS';
-const String FURNISHING = 'FURNISHING';
-const String DISHWASH = 'DISHWASH';
-const String POOJA_NEEDS = 'POOJA_NEEDS';
-const String ELECTRICALS = 'ELECTRICALS';
-const String SHOE_CARE = 'SHOE_CARE';
-const String FURNITURE = 'FURNITURE';
-const String BAGS_TRAVEL = 'BAGS_TRAVEL';
 
 double calculateDistanceKm(double lat1, double lon1, double lat2, double lon2) {
   const R = 6371; // Radius of Earth in kilometers
@@ -2031,7 +2068,7 @@ final List<IndividualProfileCategory> earnWithBlueEraServiceList = [
   ),
   IndividualProfileCategory(
     name: AppStrings.taxiCarDriver,
-    slugId: CAR_DRIVER_TAXI,
+    slugId: CAR_TAXI,
     icon: AppImageAssets.taxiDriver
   ),
   IndividualProfileCategory(
@@ -2084,7 +2121,7 @@ final List<IndividualProfileCategory> selfWorkCategories = [
   ),
   IndividualProfileCategory(
     name: AppStrings.maid,
-    slugId: MAID,
+    slugId: MAID_FEMALE,
     icon: AppImageAssets.mainCleaner,
   ),
   IndividualProfileCategory(
@@ -2104,7 +2141,7 @@ final List<IndividualProfileCategory> selfWorkCategories = [
   ),
   IndividualProfileCategory(
     name: AppStrings.homeRenovator,
-    slugId: HOME_RENOVATION,
+    slugId: HOME_RENOVATOR,
     icon: AppImageAssets.homeRenovator
   ),
   IndividualProfileCategory(
@@ -2119,7 +2156,7 @@ final List<IndividualProfileCategory> selfWorkCategories = [
   ),
   IndividualProfileCategory(
     name: AppStrings.securityPerson,
-    slugId: SECURITY,
+    slugId: SECURITY_PERSON,
     icon: AppImageAssets.securityPerson
   ),
   IndividualProfileCategory(
@@ -2227,6 +2264,469 @@ final List<IndividualProfileCategory> homeServiceCategories = [
 ];
 
 /// Business Categories
+
+// --- OnBoarding Category ---
+
+final List<OnBoardingCategoryModel> businessOnboardingProfilesCategory = [
+  OnBoardingCategoryModel(
+    name: 'Grocery, Food\nRestaurant',
+    slugId: FOOD,
+    icon: OnboardingBusinessAssets.groceryFoodRestaurant,
+    accountType: AppConstants.business,
+    businessType: BusinessType.Food
+  ),
+  OnBoardingCategoryModel(
+    name: 'Shop Or Store',
+    slugId: PRODUCT,
+    icon: OnboardingBusinessAssets.shopOrStore,
+    accountType: AppConstants.business,
+    businessType: BusinessType.Product
+  ),
+  OnBoardingCategoryModel(
+    name: 'Services',
+    slugId: SERVICE,
+    icon: OnboardingBusinessAssets.services,
+      accountType: AppConstants.business,
+    businessType: BusinessType.Service
+  ),
+  OnBoardingCategoryModel(
+      name: 'Manufacturing /\nIndustry',
+      slugId: MANUFACTURING,
+      icon: OnboardingBusinessAssets.manufacturingIndustry,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Manufacturing
+  ),
+];
+
+final List<OnBoardingCategoryModel> businessOnboardingServicesCategories = [
+  OnBoardingCategoryModel(
+      name: 'Consulting\nFirm/Org.',
+      slugId: CONSULTING_FIRM_ORG,
+      icon: OnboardingBusinessAssets.consultingFirm,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Service),
+  OnBoardingCategoryModel(
+      name: 'Healthcare &\nMedical Services',
+      slugId: HEALTHCARE_MEDICAL_SERVICES,
+      icon: OnboardingBusinessAssets.healthcareMedicalServices,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Service),
+  OnBoardingCategoryModel(
+      name: 'Education &\nTraining',
+      slugId: EDUCATION_TRAINING,
+      icon: OnboardingBusinessAssets.educationAndTraining,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Service),
+  OnBoardingCategoryModel(
+      name: 'Hostels & Stay\nService',
+      slugId: HOSTELS_STAY_SERVICE,
+      icon: OnboardingBusinessAssets.hostelsAndStayService,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Service),
+  OnBoardingCategoryModel(
+      name: 'Beauty &\nPersonal Care',
+      slugId: BEAUTY_PERSONAL_CARE,
+      icon: OnboardingBusinessAssets.beautyAndPersonalCare,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Service),
+  OnBoardingCategoryModel(
+      name: 'Financial\nServices',
+      slugId: FINANCIAL_SERVICES,
+      icon: OnboardingBusinessAssets.financialServices,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Service),
+  OnBoardingCategoryModel(
+      name: 'Service Centre\n& Essential Utility',
+      slugId: SERVICE_CENTRE_ESSENTIAL_UTILITY,
+      icon: OnboardingBusinessAssets.serviceCenterAndEssentialUtils,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Service),
+  OnBoardingCategoryModel(
+      name: 'Home Services\n& Utility',
+      slugId: HOME_SERVICES_UTILITY,
+      icon: OnboardingBusinessAssets.homeServiceAndUtility,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Service),
+  OnBoardingCategoryModel(
+      name: 'IT &\nCommunication',
+      slugId: IT_COMMUNICATION,
+      icon: OnboardingBusinessAssets.itAndCommunication,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Service),
+  OnBoardingCategoryModel(
+      name: 'Media, Publicity\n& Creative',
+      slugId: MEDIA_PUBLICITY_CREATIVE,
+      icon: OnboardingBusinessAssets.mediaPublicityAndCreative,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Service),
+  OnBoardingCategoryModel(
+      name: 'Automotive\nServices',
+      slugId: AUTOMOTIVE_SERVICES,
+      icon: OnboardingBusinessAssets.automotiveServices,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Service),
+  OnBoardingCategoryModel(
+      name: 'Logistics &\nTransportation',
+      slugId: LOGISTICS_TRANSPORTATION,
+      icon: OnboardingBusinessAssets.logisticsAndTransport,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Service),
+  OnBoardingCategoryModel(
+      name: 'Celebration &\nEvent Services',
+      slugId: CELEBRATION_EVENT_SERVICES,
+      icon: OnboardingBusinessAssets.celebrationAndEventServices,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Service),
+  OnBoardingCategoryModel(
+      name: 'Tour, Travel\n& Tourism',
+      slugId: TOUR_TRAVEL_TOURISM,
+      icon: OnboardingBusinessAssets.tourTravelsAndTourism,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Service),
+];
+
+final List<OnBoardingCategoryModel> businessOnboardingProductsCategories = [
+  OnBoardingCategoryModel(
+      name: 'Fashion &\nLifestyle',
+      slugId: FASHION_LIFESTYLE,
+      icon: OnboardingBusinessAssets.fashionAndLifestyle,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Product),
+  OnBoardingCategoryModel(
+      name: 'Furniture &\nHome Decor',
+      slugId: FURNITURE_HOME_DECOR,
+      icon: OnboardingBusinessAssets.furnitureAndHomedecor,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Product),
+  OnBoardingCategoryModel(
+      name: 'Electronics &\nAppliances Store',
+      slugId: ELECTRONICS_APPLIANCES_STORE,
+      icon: OnboardingBusinessAssets.electronicsAndAppliances,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Product),
+  OnBoardingCategoryModel(
+      name: 'Books, Stationery &\nGifts store',
+      slugId: BOOKS_STATIONERY_GIFTS,
+      icon: OnboardingBusinessAssets.booksStationaryAndGifts,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Product),
+  OnBoardingCategoryModel(
+      name: 'Sports &\nFitness Store',
+      slugId: SPORTS_FITNESS_STORE,
+      icon: OnboardingBusinessAssets.sportsAndFitnessStore,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Product),
+  OnBoardingCategoryModel(
+      name: 'Toys & Baby\nProducts Store',
+      slugId: TOYS_BABY_PRODUCTS_STORE,
+      icon: OnboardingBusinessAssets.toysAndBabyProducts,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Product),
+  OnBoardingCategoryModel(
+      name: 'Jewellery &\nLuxury Store',
+      slugId: JEWELLERY_LUXURY_STORE,
+      icon: OnboardingBusinessAssets.jeweleryAndLuxury,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Product),
+  OnBoardingCategoryModel(
+      name: 'Construction &\nHome Essentials',
+      slugId: CONSTRUCTION_HOME_ESSENTIALS,
+      icon: OnboardingBusinessAssets.constructionAndHomeEssentials,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Product),
+  OnBoardingCategoryModel(
+      name: 'Automotive\nStore / Showroom',
+      slugId: AUTOMOTIVE_STORE_SHOWROOM,
+      icon: OnboardingBusinessAssets.automotiveShowroom,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Product),
+  OnBoardingCategoryModel(
+      name: 'Pet Supplies /\nAgriculture Store ',
+      slugId: PET_SUPPLIES_AGRICULTURE_STORE,
+      icon: OnboardingBusinessAssets.petAgricultureStore,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Product),
+  OnBoardingCategoryModel(
+      name: 'Wholesaler\nTrader',
+      slugId: WHOLESALER_TRADER,
+      icon: OnboardingBusinessAssets.wholesalerTrader,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Product),
+  OnBoardingCategoryModel(
+      name: 'Industrials\nGoods',
+      slugId: INDUSTRIALS_GOODS,
+      icon: OnboardingBusinessAssets.industrialsSupplies,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Product),
+];
+
+final List<OnBoardingCategoryModel> businessOnboardingGroceriesCategories = [
+  OnBoardingCategoryModel(
+      name: 'Kirana Store',
+      slugId: KIRANA_STORE,
+      icon: OnboardingBusinessAssets.kiranaStore,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Grocery),
+  OnBoardingCategoryModel(
+      name: 'General Store',
+      slugId: GENERAL_STORE,
+      icon: OnboardingBusinessAssets.generalStore,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Grocery),
+  OnBoardingCategoryModel(
+      name: 'Vegetable & Fruit',
+      slugId: VEGETABLE_FRUIT,
+      icon: OnboardingBusinessAssets.vegFruitStore,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Grocery),
+  OnBoardingCategoryModel(
+      name: 'Dairy & Bakery',
+      slugId: DAIRY_BAKERY,
+      icon: OnboardingBusinessAssets.dairyBakeryStore,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Grocery),
+  OnBoardingCategoryModel(
+      name: 'Home Essentials',
+      slugId: HOME_ESSENTIALS,
+      icon: OnboardingBusinessAssets.homeEssentialsStore,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Grocery),
+  OnBoardingCategoryModel(
+      name: 'Stationary Shop',
+      slugId: STATIONARY_SHOP,
+      icon: OnboardingBusinessAssets.stationaryStore,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Grocery),
+];
+
+final List<OnBoardingCategoryModel> businessOnboardingFoodsCategories = [
+  OnBoardingCategoryModel(
+      name: 'Multicuisine\nRestaurant',
+      slugId: MULTI_CUISINE_RESTAURANTS,
+      icon: OnboardingBusinessAssets.multicuisineRestaurant,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Food),
+  OnBoardingCategoryModel(
+      name: 'Pure Veg\nRestaurant',
+      slugId: PURE_VEG_RESTAURANT,
+      icon: OnboardingBusinessAssets.pureVegRestaurant,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Food),
+  OnBoardingCategoryModel(
+      name: 'Non-Veg\nRestaurant',
+      slugId: NON_VEG_RESTAURANT,
+      icon: OnboardingBusinessAssets.nonVegRestaurant,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Food),
+  OnBoardingCategoryModel(
+      name: 'Economy\nDhaba',
+      slugId: ECONOMY_DHABA,
+      icon: OnboardingBusinessAssets.economyDhaba,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Food),
+  OnBoardingCategoryModel(
+      name: 'Garden/Buffet\nRestaurant',
+      slugId: GARDEN_BUFFET_RESTAURANT,
+      icon: OnboardingBusinessAssets.gardenBuffetRestaurant,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Food),
+  OnBoardingCategoryModel(
+      name: 'Cloud Kitchen,\nMess',
+      slugId: CLOUD_KITCHEN,
+      icon: OnboardingBusinessAssets.cloudKitchenMess,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Food),
+  OnBoardingCategoryModel(
+      name: 'Breakfast/\nFast-food',
+      slugId: BREAKFAST_FAST_FOOD,
+      icon: OnboardingBusinessAssets.breakfastFastFood,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Food),
+  OnBoardingCategoryModel(
+      name: 'Sweet & Namkeen\nShop',
+      slugId: SWEET_NAMKEEN_SHOP,
+      icon: OnboardingBusinessAssets.sweetNamkeenShop,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Food),
+  OnBoardingCategoryModel(
+      name: 'Ice Cream\nCorner',
+      slugId: ICE_CREAM_CORNER,
+      icon: OnboardingBusinessAssets.iceCreamCorner,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Food),
+  OnBoardingCategoryModel(
+      name: 'Coffee / Beverages\nShop',
+      slugId: COFFEE_BEVERAGES_SHOP,
+      icon: OnboardingBusinessAssets.coffeeBeveragesShop,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Food),
+];
+
+final List<OnBoardingCategoryModel> businessOnboardingManufacturingCategories = [
+  OnBoardingCategoryModel(
+      name: 'Fashion &\nWearables',
+      slugId: FASHION_WEARABLES,
+      icon: OnboardingBusinessAssets.fashionAndWearables,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Manufacturing),
+  OnBoardingCategoryModel(
+      name: 'Footwear\nProduct',
+      slugId: FOOTWEAR,
+      icon: OnboardingBusinessAssets.footwear,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Manufacturing),
+  OnBoardingCategoryModel(
+      name: 'Health, Wellness\n& Self-Care',
+      slugId: AppConstants.groceryVegetablesDairy, // Ensure this slug is correct in your constants
+      icon: OnboardingBusinessAssets.healthWellnessAndSelfcare,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Manufacturing),
+  OnBoardingCategoryModel(
+      name: 'Tools &\nHome Improvement',
+      slugId: TOOLS_HOME_IMPROVEMENT,
+      icon: OnboardingBusinessAssets.toolsAndHomeImprovement,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Manufacturing),
+  OnBoardingCategoryModel(
+      name: 'Bags &\nLuggage',
+      slugId: BAGS_LUGGAGE,
+      icon: OnboardingBusinessAssets.bagsAndLuggage,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Manufacturing),
+  OnBoardingCategoryModel(
+      name: 'Beauty &\nPersonal Care',
+      slugId: BEAUTY_PERSONAL_CARE_MFG,
+      icon: OnboardingBusinessAssets.beautyAndPersonalCareMfg,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Manufacturing),
+  OnBoardingCategoryModel(
+      name: 'Household\nConsumables',
+      slugId: HOUSEHOLD_CONSUMABLES,
+      icon: OnboardingBusinessAssets.householdConsumables,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Manufacturing),
+  OnBoardingCategoryModel(
+      name: 'Cleaning &\nUtility',
+      slugId: CLEANING_UTILITY,
+      icon: OnboardingBusinessAssets.cleaningAndUtility,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Manufacturing),
+  OnBoardingCategoryModel(
+      name: 'Home &\nLiving',
+      slugId: HOME_LIVING,
+      icon: OnboardingBusinessAssets.homeAndLiving,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Manufacturing),
+  OnBoardingCategoryModel(
+      name: 'Furniture\nStore',
+      slugId: FURNITURE,
+      icon: OnboardingBusinessAssets.furniture,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Manufacturing),
+  OnBoardingCategoryModel(
+      name: 'Bed, Bath\n& Furnishings',
+      slugId: BED_BATH_FURNISHINGS,
+      icon: OnboardingBusinessAssets.bedBathAndFurnishing,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Manufacturing),
+  OnBoardingCategoryModel(
+      name: 'Electrical\n& Lighting',
+      slugId: ELECTRICAL_LIGHTING,
+      icon: OnboardingBusinessAssets.electricalAndLightning,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Manufacturing),
+  OnBoardingCategoryModel(
+      name: 'Home Appliances\n(Small)',
+      slugId: HOME_APPLIANCES,
+      icon: OnboardingBusinessAssets.homeAppliances,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Manufacturing),
+  OnBoardingCategoryModel(
+      name: 'Mobiles & Smart\nGadgets',
+      slugId: MOBILES_SMART_GADGETS,
+      icon: OnboardingBusinessAssets.mobileAndSmartGadgets,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Manufacturing),
+  OnBoardingCategoryModel(
+      name: 'Computers &\nAccessories',
+      slugId: COMPUTERS_ACCESSORIES,
+      icon: OnboardingBusinessAssets.computerAndAccessories,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Manufacturing),
+  OnBoardingCategoryModel(
+      name: 'Gaming &\nEntertainment',
+      slugId: GAMING_ENTERTAINMENT,
+      icon: OnboardingBusinessAssets.gamingAndEntertainment,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Manufacturing),
+  OnBoardingCategoryModel(
+      name: 'Toys, Kids &\nBaby Products',
+      slugId: TOYS_KIDS_BABY_PRODUCTS,
+      icon: OnboardingBusinessAssets.toysKidsAndBabyProducts,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Manufacturing),
+  OnBoardingCategoryModel(
+      name: 'Sports Fitness\n& Outdoor',
+      slugId: SPORTS_FITNESS_OUTDOOR,
+      icon: OnboardingBusinessAssets.sportsFitnessAndOutdoors,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Manufacturing),
+  OnBoardingCategoryModel(
+      name: 'Jewellery &\nOrnaments',
+      slugId: JEWELLERY_ORNAMENTS,
+      icon: OnboardingBusinessAssets.jewelleryAndOrnaments,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Manufacturing),
+  OnBoardingCategoryModel(
+      name: 'Watches &\nEyewear',
+      slugId: WATCHES_EYEWEAR,
+      icon: OnboardingBusinessAssets.watchesAndEyewear,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Manufacturing),
+  OnBoardingCategoryModel(
+      name: 'Stationery School\n& office',
+      slugId: STATIONERY_SCHOOL_OFFICE,
+      icon: OnboardingBusinessAssets.stationarySchoolAndOffice,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Manufacturing),
+  OnBoardingCategoryModel(
+      name: 'Auto & Bike\nAccessories',
+      slugId: AUTO_BIKE_ACCESSORIES,
+      icon: OnboardingBusinessAssets.autoAndBikeAccessories,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Manufacturing),
+  OnBoardingCategoryModel(
+      name: 'Garden, Balcony\n& Outdoor Living',
+      slugId: GARDEN_OUTDOOR_LIVING,
+      icon: OnboardingBusinessAssets.gardenBalconyAndOutdoorLiving,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Manufacturing),
+  OnBoardingCategoryModel(
+      name: 'Gifts, Festive\n& Lifestyle',
+      slugId: GIFTS_FESTIVE_LIFESTYLE,
+      icon: OnboardingBusinessAssets.giftsFestiveAndLifestyle,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Manufacturing),
+  OnBoardingCategoryModel(
+      name: 'Travel &\nPersonal Utility',
+      slugId: TRAVEL_PERSONAL_UTILITY,
+      icon: OnboardingBusinessAssets.travelAndPersonalUtility,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Manufacturing),
+  OnBoardingCategoryModel(
+      name: 'Safety, Security\n& Protection (Home)',
+      slugId: SAFETY_SECURITY_PROTECTION,
+      icon: OnboardingBusinessAssets.safetySecurityAndProtection,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Manufacturing),
+  OnBoardingCategoryModel(
+      name: 'Miscellaneous\nRetail',
+      slugId: MISCELLANEOUS_RETAIL,
+      icon: OnboardingBusinessAssets.miscellaneousRetails,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Manufacturing),
+];// --- End ---
+
 final List<BusinessProfileCategory> businessServicesCategories = [
   BusinessProfileCategory(
       name: AppStrings.consulting,
@@ -2436,6 +2936,350 @@ final List<BusinessProfileCategory> businessFoodsCategories = [
 ];
 
 /// Individual Categories
+
+// --- OnBoarding Category ---
+final List<OnBoardingCategoryModel> individualOnboardingProfilesCategory = [
+  OnBoardingCategoryModel(
+    name: 'Social profile',
+    slugId: SOCIAL_PROFILE,
+    icon: OnboardingIndividualAssets.socialProfile,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: 'Skill Work/\nSelf Employee',
+    slugId: SELF_EMPLOYED,
+    icon: OnboardingIndividualAssets.selfEmployee,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: 'Professional/\nConsultant',
+    slugId: CONSULTANT,
+    icon: OnboardingIndividualAssets.consultant,
+    accountType: AppConstants.individual,
+  ),
+];
+
+final List<OnBoardingCategoryModel> individualOnboardingSocialProfileList = [
+  OnBoardingCategoryModel(
+    name: AppStrings.politician,
+    slugId: POLITICIAN,
+    icon: OnboardingIndividualAssets.politician,
+    individualType: IndividualType.SOCIAL_PROFILE,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: AppStrings.contentCreator,
+    slugId: CONTENT_CREATOR,
+    icon: OnboardingIndividualAssets.contentCreator,
+    individualType: IndividualType.SOCIAL_PROFILE,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: AppStrings.govtEmployee,
+    slugId: GOVERNMENT_JOB,
+    icon: OnboardingIndividualAssets.govtEmp,
+    individualType: IndividualType.SOCIAL_PROFILE,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: AppStrings.pvtEmployee,
+    slugId: PRIVATE_JOB,
+    icon: OnboardingIndividualAssets.pvtEmp,
+    individualType: IndividualType.SOCIAL_PROFILE,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: AppStrings.journalist,
+    slugId: MEDIA,
+    icon: OnboardingIndividualAssets.journalist,
+    individualType: IndividualType.SOCIAL_PROFILE,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: AppStrings.artist,
+    slugId: ARTIST,
+    icon: OnboardingIndividualAssets.artist,
+    individualType: IndividualType.SOCIAL_PROFILE,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: AppStrings.director,
+    slugId: DIRECTOR,
+    icon: OnboardingIndividualAssets.director,
+    individualType: IndividualType.SOCIAL_PROFILE,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: AppStrings.industrialist,
+    slugId: INDUSTRIALIST,
+    icon: OnboardingIndividualAssets.industrialist,
+    individualType: IndividualType.SOCIAL_PROFILE,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: AppStrings.socialist,
+    slugId: SOCIALIST,
+    icon: OnboardingIndividualAssets.socialist,
+    individualType: IndividualType.SOCIAL_PROFILE,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: AppStrings.student,
+    slugId: STUDENT,
+    icon: OnboardingIndividualAssets.student,
+    individualType: IndividualType.SOCIAL_PROFILE,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: AppStrings.homeMaker,
+    slugId: HOMEMAKER,
+    icon: OnboardingIndividualAssets.homeMaker,
+    individualType: IndividualType.SOCIAL_PROFILE,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: AppStrings.farmer,
+    slugId: FARMER,
+    icon: OnboardingIndividualAssets.farmer,
+    individualType: IndividualType.SOCIAL_PROFILE,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: AppStrings.ngo,
+    slugId: NGO,
+    icon: OnboardingIndividualAssets.ngo,
+    individualType: IndividualType.SOCIAL_PROFILE,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: AppStrings.societyOrUnion,
+    slugId: REG_UNION,
+    icon: OnboardingIndividualAssets.society,
+    individualType: IndividualType.SOCIAL_PROFILE,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: AppStrings.govtDepartment,
+    slugId: GOVTPSU,
+    icon: OnboardingIndividualAssets.govtDept,
+    individualType: IndividualType.SOCIAL_PROFILE,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: AppStrings.seniorCitizen,
+    slugId: SENIOR_CITIZEN,
+    icon: OnboardingIndividualAssets.seniorCitizen,
+    individualType: IndividualType.SOCIAL_PROFILE,
+    accountType: AppConstants.individual,
+  ),
+];
+
+final List<OnBoardingCategoryModel> individualOnboardingSelfWorkTransportList = [
+  OnBoardingCategoryModel(
+    name: 'Bike Rider',
+    slugId: DELIVERY_RIDER,
+    icon: OnboardingIndividualAssets.bikeRider,
+    individualType: IndividualType.GIG_WORKER,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: 'Car Driver',
+    slugId: CAR_TAXI,
+    icon: OnboardingIndividualAssets.taxiCarDriver,
+    individualType: IndividualType.GIG_WORKER,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: 'Goods Transporter',
+    slugId: GOODS_TAXI,
+    icon: OnboardingIndividualAssets.goodsSupplier,
+    individualType: IndividualType.GIG_WORKER,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: 'Auto Driver',
+    slugId: AUTO_TAXI,
+    icon: OnboardingIndividualAssets.autoERickshaw,
+    individualType: IndividualType.GIG_WORKER,
+    accountType: AppConstants.individual,
+  ),
+];
+
+final List<OnBoardingCategoryModel> individualOnboardingSelfSkillWorkList = [
+  OnBoardingCategoryModel(
+    name: 'Electrician',
+    slugId: ELECTRICIAN,
+    icon: OnboardingIndividualAssets.electrician,
+    individualType: IndividualType.SELF_EMPLOYED,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: 'Plumber',
+    slugId: PLUMBER,
+    icon: OnboardingIndividualAssets.plumber,
+    individualType: IndividualType.SELF_EMPLOYED,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: 'Technician',
+    slugId: TECHNICIAN,
+    icon: OnboardingIndividualAssets.technician,
+    individualType: IndividualType.SELF_EMPLOYED,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: 'Mechanic',
+    slugId: MECHANIC,
+    icon: OnboardingIndividualAssets.mechanic,
+    individualType: IndividualType.SELF_EMPLOYED,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: 'Painter',
+    slugId: PAINTER,
+    icon: OnboardingIndividualAssets.painter,
+    individualType: IndividualType.SELF_EMPLOYED,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: 'Carpenter',
+    slugId: ARTIST,
+    icon: OnboardingIndividualAssets.carpenter,
+    individualType: IndividualType.SELF_EMPLOYED,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: 'Home Renovator',
+    slugId: HOME_RENOVATOR,
+    icon: OnboardingIndividualAssets.homeRenovator,
+    individualType: IndividualType.SELF_EMPLOYED,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: 'Labour',
+    slugId: LABOUR,
+    icon: OnboardingIndividualAssets.labour,
+    individualType: IndividualType.SELF_EMPLOYED,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: 'Gardener',
+    slugId: GARDENER,
+    icon: OnboardingIndividualAssets.gardener,
+    individualType: IndividualType.SELF_EMPLOYED,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: 'Security Person',
+    slugId: SECURITY_PERSON,
+    icon: OnboardingIndividualAssets.securityPerson,
+    individualType: IndividualType.SELF_EMPLOYED,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: 'Maid (Female)',
+    slugId: MAID_FEMALE,
+    icon: OnboardingIndividualAssets.homeMaker,
+    individualType: IndividualType.SELF_EMPLOYED,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: 'Cleaner',
+    slugId: CLEANER,
+    icon: OnboardingIndividualAssets.cleaner,
+    individualType: IndividualType.SELF_EMPLOYED,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: AppStrings.tailoring,
+    slugId: TAILOR,
+    icon: OnboardingIndividualAssets.tailoring,
+    individualType: IndividualType.SOCIAL_PROFILE,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: AppStrings.beautyCare,
+    slugId: BEAUTICIAN,
+    icon: OnboardingIndividualAssets.beautician,
+    individualType: IndividualType.SOCIAL_PROFILE,
+    accountType: AppConstants.individual,
+  ),
+];
+
+final List<OnBoardingCategoryModel> individualOnboardingConsultationList = [
+  OnBoardingCategoryModel(
+    name: 'Legal & Govt.\nConsultant',
+    slugId: LEGAL_GOVT_CONSULTANT,
+    icon: OnboardingIndividualAssets.legalGovtConsultant,
+    individualType: IndividualType.PROFESSIONAL,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: 'Finance & Tax\nConsultant',
+    slugId: FINANCE_TAX_CONSULTANT,
+    icon: OnboardingIndividualAssets.financeTaxConsultant,
+    individualType: IndividualType.PROFESSIONAL,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: 'Spiritual\nConsultant',
+    slugId: SPIRITUAL_CONSULTANT,
+    icon: OnboardingIndividualAssets.spiritualConsultant,
+    individualType: IndividualType.PROFESSIONAL,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: 'Trainee & Career\nConsultant',
+    slugId: TRAINEE_CAREER_CONSULTANT,
+    icon: OnboardingIndividualAssets.traineeCareerConsultant,
+    individualType: IndividualType.PROFESSIONAL,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: 'Advertising\nConsultant',
+    slugId: ADVERTISING_CONSULTANT,
+    icon: OnboardingIndividualAssets.advertisingConsultant,
+    individualType: IndividualType.PROFESSIONAL,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: 'Event Planner &\nDetective',
+    slugId: EVENT_PLANNER_DETECTIVE,
+    icon: OnboardingIndividualAssets.eventPlanDetective,
+    individualType: IndividualType.PROFESSIONAL,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: 'Property Broker &\nArchitect',
+    slugId: PROPERTY_BROKER_ARCHITECT,
+    icon: OnboardingIndividualAssets.propertyBrokerArchitect,
+    individualType: IndividualType.PROFESSIONAL,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: 'Business & HR\nConsultant',
+    slugId: BUSINESS_HR_CONSULTANT,
+    icon: OnboardingIndividualAssets.businessHrConsultant,
+    individualType: IndividualType.PROFESSIONAL,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: 'Industry & Quality\nConsultant',
+    slugId: INDUSTRY_QUALITY_CONSULTANT,
+    icon: OnboardingIndividualAssets.industryQualityConsultant,
+    individualType: IndividualType.PROFESSIONAL,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: 'Tech & Digital\nFreelancer',
+    slugId: TECH_DIGITAL_FREELANCER,
+    icon: OnboardingIndividualAssets.techDigitalFreelancer,
+    individualType: IndividualType.PROFESSIONAL,
+    accountType: AppConstants.individual,
+  ),
+];
+// --- End ---
+
 final List<IndividualProfileCategory> individualSocialProfileList = [
   IndividualProfileCategory(
     name: AppStrings.politician,
@@ -2555,7 +3399,7 @@ final List<IndividualProfileCategory> individualSelfEmployedList = [
   ),
   IndividualProfileCategory(
     name: AppStrings.maid,
-    slugId: MAID,
+    slugId: MAID_FEMALE,
     icon: AppIconAssets.mainCleanerIcon,
   ),
   IndividualProfileCategory(
@@ -2570,7 +3414,7 @@ final List<IndividualProfileCategory> individualSelfEmployedList = [
   ),
   IndividualProfileCategory(
     name: AppStrings.taxiCarDriver,
-    slugId: CAR_DRIVER_TAXI,
+    slugId: CAR_TAXI,
     icon: AppIconAssets.taxiDriverIcon,
   ),
   IndividualProfileCategory(
@@ -2580,7 +3424,7 @@ final List<IndividualProfileCategory> individualSelfEmployedList = [
   ),
   IndividualProfileCategory(
     name: AppStrings.homeRenovator,
-    slugId: HOME_RENOVATION,
+    slugId: HOME_RENOVATOR,
     icon: AppIconAssets.mistryIcon,
   ),
   IndividualProfileCategory(
@@ -2595,7 +3439,7 @@ final List<IndividualProfileCategory> individualSelfEmployedList = [
   ),
   IndividualProfileCategory(
     name: AppStrings.securityPerson,
-    slugId: SECURITY,
+    slugId: SECURITY_PERSON,
     icon: AppIconAssets.securityPersonIcon,
   )
 ];
@@ -2760,6 +3604,7 @@ List<PopupMenuEntry<String>> popupSchoolDepartmentMenuItems() {
 
   return entries;
 }
+
 extension UrlTypeChecker on String {
   bool get isPdf => lowerCase.endsWith('.pdf');
 
@@ -2777,3 +3622,4 @@ extension UrlTypeChecker on String {
  const examSchedule="examSchedule";
  const results="results";
  const downloads="downloads";
+

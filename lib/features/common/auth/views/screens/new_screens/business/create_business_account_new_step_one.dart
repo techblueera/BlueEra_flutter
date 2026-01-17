@@ -149,7 +149,7 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
                                       ),
                                       Expanded(
                                         child: CustomText(
-                                            authController.selectedCategoryData?.name,
+                                            authController.selectedCategoryName?.replaceAll('\n', ' '),
                                             color: AppColors.primaryColor,
                                             fontSize: SizeConfig.small,
                                             fontWeight: FontWeight.w400
@@ -576,10 +576,11 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
           ApiKeys.year: authController.selectedYear?.value
         },
         // Category logic based on "both"
-        ApiKeys.category_Of_Business:
-            (authController.selectedTypeOfBusiness == BusinessType.Both)
-                ? "68a80b766fdb4e82b42b77c0"
-                : authController.selectedCategoryData?.id,
+        // ApiKeys.category_Of_Business:
+        //     (authController.selectedTypeOfBusiness == BusinessType.Both)
+        //         ? "68a80b766fdb4e82b42b77c0"
+        //         : authController.selectedCategoryData?.id,
+        ApiKeys.category_Of_Business: authController.selectedCategorySlugId,
 
         if (authController.selectedTypeOfBusiness == BusinessType.Both)
           ApiKeys.category_other:

@@ -1650,7 +1650,9 @@ class AppStrings {
   static const String homeMaker      = 'homeMaker';
   static const String govtEmployee      = 'govtEmployee';
   static const String pvtEmployee      = 'pvtEmployee';
-  static const String ngoSociety     = 'ngoSociety';
+  static const String ngoSociety        = 'ngoSociety';
+  static const String ngo        = 'ngo';
+  static const String societyOrUnion     = 'societyOrUnion';
   static const String govtDepartment      = 'govtDepartment';
   static const String contentCreator      = 'contentCreator';
   static const String director      = 'director';

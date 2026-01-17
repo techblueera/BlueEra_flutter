@@ -66,7 +66,7 @@ class _GrocerySubCategoryScreenState extends State<GrocerySubCategoryScreen> {
   Widget build(BuildContext context) {
     return  Obx(()=> Scaffold(
       appBar: CommonBackAppBar(
-        title: controller.selectedGroceryData.value.label,
+        title: controller.selectedGroceryData.value?.name,
         isShadowShow: false,
         buildCustomWidget:()=>
         Obx(()=> controller.selectedGroceries.isEmpty
@@ -135,7 +135,6 @@ class _GrocerySubCategoryScreenState extends State<GrocerySubCategoryScreen> {
           ),
         );
       }),
-
       body: Row(
         children: [
           leftCategoryList(),
@@ -157,8 +156,8 @@ class _GrocerySubCategoryScreenState extends State<GrocerySubCategoryScreen> {
         itemBuilder: (context, index) {
           return Obx(()=> _categoryItem(
             widget.arrGroceries[index].icon,
-            widget.arrGroceries[index].label,
-            selected: controller.selectedGroceryData.value.tagId == widget.arrGroceries[index].tagId,
+            widget.arrGroceries[index].name,
+            selected: controller.selectedGroceryData.value?.slugId == widget.arrGroceries[index].slugId,
             onTap: () {
               controller.selectedGroceryData.value = widget.arrGroceries[index];
               controller.selectedTabIndex.value = 0;
@@ -376,7 +375,7 @@ class _GrocerySubCategoryScreenState extends State<GrocerySubCategoryScreen> {
                 padding: EdgeInsets.all(SizeConfig.size20),
                 child: EmptyStateWidget(
                     message:
-                    'No ${controller.selectedGroceryData.value.label.tr} found.')
+                    'No ${controller.selectedGroceryData.value?.name.tr} found.')
             ),
           )
 

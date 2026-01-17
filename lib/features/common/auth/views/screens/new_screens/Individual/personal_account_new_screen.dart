@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/common_singleton_class/user_session.dart';
@@ -14,6 +15,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/controller/location_controller.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
+import 'package:BlueEra/features/common/auth/model/individual_field_response_model.dart';
 import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -28,9 +30,14 @@ import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../model/get_categories_model.dart';
+
 class PersonalAccountNewScreen extends StatefulWidget {
   final String accountType;
+  final IndividualType profileType;
+  final String profession;
   final String professionTagId;
+
   final List<SubcategoriesFiledName>? professionSubCategory;
   final String? selfEmployment;
   final String? selfEmploymentTagId;
@@ -39,7 +46,10 @@ class PersonalAccountNewScreen extends StatefulWidget {
       {
         super.key,
         required this.accountType,
+        required this.profileType,
+        required this.profession,
         required this.professionTagId,
+
         this.professionSubCategory,
         this.selfEmployment,
         this.selfEmploymentTagId
@@ -68,45 +78,65 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
   final _CourseTextController = TextEditingController();
   final _companyNameTextController = TextEditingController();
   final _sectorTextController = TextEditingController();
+  final _governmentNameController = TextEditingController();
   bool _referralCodeEnable = false;
   final _referralCodeController = TextEditingController();
   final politicalPartyController = TextEditingController();
   final userNameController = TextEditingController();
   final departmentNameController = TextEditingController();
   final subDivision = TextEditingController();
+  final specializationController = TextEditingController();
   final authController = Get.find<AuthController>();
   final locationController = Get.put(LocationController());
   bool crBtnLoading=false;
 
   String? _imagePath;
+  IndividualType? _selectedProfileType;
+  String? _selectedProfileTypeTagId;
+  String? _selectedProfession;
   String? _selectedProfessionTagId;
-  String? _selectedSelfEmployment;
-  String? _selectedSelfEmploymentTagId;
+  // String? _selectedSelfEmployment;
+  // String? _selectedSelfEmploymentTagId;
   List<SubcategoriesFiledName>? professionSubCategory;
-  SubcategoriesFiledName? _selectedArtistObj;
+  // SubcategoriesFiledName? _selectedArtistObj;
+  IndividualFields? _selectedContentCreatorField;
+  SubCategories? _selectedContentCreatorSpecification;
+  SubCategories? _selectedArtistObj;
+  SubCategories? _selectedProfessionObj;
+  // SubCategories? selectedContentCreatorSpecification;
 
   @override
   void initState() {
     super.initState();
     print(
         "AccountType: ${widget.accountType} | "
-            // "Profession: ${widget.profession} | "
-            "ProfessionSId: ${widget.professionTagId} | "
-            "Profession sub category: ${widget.professionSubCategory ?? 'N/A'} | "
-            "SelfEmployment: ${widget.selfEmployment ?? 'N/A'} | "
-            "SelfEmploymentSId: ${widget.selfEmploymentTagId ?? 'N/A'}"
+            "Profile Type: ${widget.profileType.tagId} | "
+            "Profession Tag Id : ${widget.professionTagId} | "
+            "Profession: ${widget.profession} "
     );
 
+    _selectedProfileType = widget.profileType;
+    _selectedProfileTypeTagId = _selectedProfileType?.tagId;
+    _selectedProfession = widget.profession;
     _selectedProfessionTagId = widget.professionTagId;
-    if(_selectedProfessionTagId == SELF_EMPLOYED){
-      _selectedSelfEmployment = widget.selfEmployment;
-      _selectedSelfEmploymentTagId = widget.selfEmploymentTagId;
-    }
-    if(widget.professionSubCategory!=null){
-      professionSubCategory = widget.professionSubCategory;
-    }
-  }
 
+    // if(_selectedProfessionTagId == SELF_EMPLOYED){
+    //   _selectedSelfEmployment = widget.selfEmployment;
+    //   _selectedSelfEmploymentTagId = widget.selfEmploymentTagId;
+    // }
+    // if(widget.professionSubCategory!=null){
+    //   professionSubCategory = widget.professionSubCategory;
+    // }
+    if(_selectedProfileTypeTagId == PROFESSIONAL ||
+    _selectedProfessionTagId == CONTENT_CREATOR ||
+      _selectedProfessionTagId == ARTIST
+    ){
+      authController.fetchIndividualFields(
+        tagId: _selectedProfessionTagId ?? ''
+      );
+    }
+
+  }
 
   clearTextFiled() {
     _CourseTextController.clear();
@@ -120,11 +150,13 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
     _SeniorTextController.clear();
     _companyNameTextController.clear();
     _sectorTextController.clear();
+    _governmentNameController.clear();
     _referralCodeController.clear();
     politicalPartyController.clear();
     userNameController.clear();
     departmentNameController.clear();
     subDivision.clear();
+    specializationController.clear();
   }
 
   @override
@@ -220,14 +252,14 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 CustomText(
-                                    AppStrings.profession,
+                                    'Profile Type : ',
                                     color: AppColors.secondaryTextColor,
                                     fontSize: SizeConfig.small,
                                     fontWeight: FontWeight.w400
                                 ),
                                 Expanded(
                                   child: CustomText(
-                                      _selectedProfessionTagId,
+                                      _selectedProfileType?.name,
                                       color: AppColors.primaryColor,
                                       fontSize: SizeConfig.small,
                                       fontWeight: FontWeight.w400
@@ -236,21 +268,23 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                               ],
                             ),
 
-                            if(_selectedSelfEmployment!=null)
+                            SizedBox(height: SizeConfig.paddingXSmall),
+
+                            // if(_selectedSelfEmployment!=null)
                             Padding(
                               padding: EdgeInsets.only(top: SizeConfig.paddingXSmall),
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
                                   CustomText(
-                                      "${AppStrings.workType.tr}: ",
+                                      "${AppStrings.profession.tr}",
                                       color: AppColors.secondaryTextColor,
                                       fontSize: SizeConfig.small,
                                       fontWeight: FontWeight.w400
                                   ),
                                   Expanded(
                                     child: CustomText(
-                                        _selectedSelfEmployment,
+                                        _selectedProfession?.replaceAll('\n', ' '),
                                         color: AppColors.primaryColor,
                                         fontSize: SizeConfig.small,
                                         fontWeight: FontWeight.w400
@@ -284,7 +318,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                       'Your Details',
                       fontSize: SizeConfig.large,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.black,
+                      color: AppColors.mainTextColor,
                     ),
                     SizedBox(height: SizeConfig.size10),
 
@@ -319,6 +353,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                     CustomText(
                       'Date Of Birth',
                       fontSize: SizeConfig.medium,
+                      color: AppColors.mainTextColor,
                     ),
                     SizedBox(
                       height: SizeConfig.size10,
@@ -351,6 +386,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                     CustomText(
                       'Select Gender',
                       fontSize: SizeConfig.medium,
+                      color: AppColors.mainTextColor,
                     ),
                     SizedBox(
                       height: SizeConfig.size10,
@@ -379,65 +415,177 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                     //   height: SizeConfig.size20,
                     // ),
 
-                    if ((_selectedProfessionTagId == SELF_EMPLOYED)) ...[
+                    if ((_selectedProfileTypeTagId == SELF_EMPLOYED ||
+                        _selectedProfileTypeTagId == GIG_WORKER)) ...[
                       SizedBox(
                         height: SizeConfig.paddingL,
                       ),
 
                       CommonTextField(
                         isValidate: false,
-                        textEditController: _designationTextController,
+                        textEditController: specializationController,
                         // inputLength: 13,
                         inputLength: 24,
                         keyBoardType: TextInputType.text,
                         regularExpression:
                         RegularExpressionUtils.alphabetSpacePattern,
                         titleColor: Colors.black,
+                        title: 'Specialization',
                         hintText: "Please specify work type",
                       ),
+                    ],
+
+                    if (_selectedProfileTypeTagId == PROFESSIONAL) ...[
+                      SizedBox(
+                        height: SizeConfig.paddingL,
+                      ),
+
+                      CustomText(
+                        "Select Your Profession",
+                        fontSize: SizeConfig.medium,
+                        color: AppColors.mainTextColor,
+                      ),
+                      SizedBox(
+                        height: SizeConfig.size10,
+                      ),
+                      Obx(()=> authController.isIndividualFieldLoading.value
+                          ?  Center(
+                        child: CircularProgressIndicator(),
+                      )
+                          :
+                      CommonDropdownDialog<SubCategories>(
+                        items: authController.arrIndividualFields[0].subcategories ?? [],
+                        selectedValue: _selectedProfessionObj,
+                        title: 'Select Your Profession',
+                        hintText: 'Eg. Loan Consultant...',
+                        displayValue: (s) => s.name ?? "",
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedProfessionObj = value;
+                          });
+                        },
+                        // validator: (value) {
+                        //   if (value == null) {
+                        //     return 'Please Select Your Art / Skill';
+                        //   }
+                        //   return null;
+                        // },
+                      )),
                     ],
 
                     if ((_selectedProfessionTagId == CONTENT_CREATOR)) ...[
                       SizedBox(
                         height: SizeConfig.paddingL,
                       ),
-                      CommonTextField(
-                        isValidate: false,
-                        textEditController: _contentCraterTextController,
-                        // inputLength: 13,
-                        inputLength: 24,
-                        title: "Type Your Specification",
-                        keyBoardType: TextInputType.text,
-                        regularExpression:
-                        RegularExpressionUtils.alphabetSpacePattern,
-                        hintText: "eg. Education,Poetry",
-                      ),
+
+                      Obx(()=>  authController.isIndividualFieldLoading.value
+                          ?  Center(
+                        child: CircularProgressIndicator(),
+                      )
+                          : Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CustomText(
+                            'Select your Field',
+                            fontSize: SizeConfig.medium,
+                            color: AppColors.mainTextColor,
+                          ),
+                          SizedBox(
+                            height: SizeConfig.size10,
+                          ),
+                          CommonDropdownDialog<IndividualFields>(
+                            items: authController.arrIndividualFields,
+                            selectedValue: _selectedContentCreatorField,
+                            title: 'Select your Field',
+                            hintText: 'Eg. Media Creators, Writing Creators',
+                            displayValue: (value) => value.name ?? '',
+                            onChanged: (value) {
+                              _selectedContentCreatorField = value;
+                              authController
+                                  .arrIndividualSubCategories
+                                  .clear();
+                              authController.arrIndividualSubCategories.addAll(_selectedContentCreatorField?.subcategories ?? []);
+                              setState(() {});
+                            },
+                            // validator: (value) {
+                            //   if (value == null) {
+                            //     return 'Enter your Specification';
+                            //   }
+                            //   return null;
+                            // },
+                          ),
+
+                          SizedBox(
+                            height: SizeConfig.paddingM,
+                          ),
+
+                          CustomText(
+                            'Select Your Specification',
+                            fontSize: SizeConfig.medium,
+                            color: AppColors.mainTextColor,
+                          ),
+                          SizedBox(
+                            height: SizeConfig.size10,
+                          ),
+                          CommonDropdownDialog<SubCategories>(
+                            items: authController.arrIndividualSubCategories,
+                            selectedValue: _selectedContentCreatorSpecification,
+                            title: 'Select Your Specification',
+                            hintText: 'Eg. Video Creator, BLOGGER',
+                            displayValue: (s) => s.name ?? "",
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedContentCreatorSpecification = value;
+                              });
+                            },
+                            // validator: (value) {
+                            //   if (value == null) {
+                            //     return 'Please select your gender';
+                            //   }
+                            //   return null;
+                            // },
+                          )
+                        ],
+                      )
+                      )
+
+                      // CommonTextField(
+                      //   isValidate: false,
+                      //   textEditController: _contentCraterTextController,
+                      //   // inputLength: 13,
+                      //   inputLength: 24,
+                      //   title: "Select Your Specification",
+                      //   keyBoardType: TextInputType.text,
+                      //   regularExpression:
+                      //   RegularExpressionUtils.alphabetSpacePattern,
+                      //   hintText: "eg. Education, Poetry",
+                      // ),
                     ],
 
-                    if ((_selectedProfessionTagId == SKILLED_WORKER)) ...[
-                      SizedBox(
-                        height: SizeConfig.paddingL,
-                      ),
-                      CommonTextField(
-                        textEditController: _skillWorkerSpecificationTextController,
-                        inputLength: 24,
-                        title: "Type Your Work Specification",
-                        keyBoardType: TextInputType.text,
-                        regularExpression:
-                        RegularExpressionUtils.alphabetSpacePattern,
-                        hintText: "eg. Helper",
-                        isValidate: false,
-                        // autovalidateMode: _autoValidate,
-                        /*   validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter work specification';
-                            }
-                            return null;
-                          }*/
-                      ),
-                    ],
+                    // if ((_selectedProfessionTagId == SKILLED_WORKER)) ...[
+                    //   SizedBox(
+                    //     height: SizeConfig.paddingL,
+                    //   ),
+                    //   CommonTextField(
+                    //     textEditController: _skillWorkerSpecificationTextController,
+                    //     inputLength: 24,
+                    //     title: "Type Your Work Specification",
+                    //     keyBoardType: TextInputType.text,
+                    //     regularExpression:
+                    //     RegularExpressionUtils.alphabetSpacePattern,
+                    //     hintText: "eg. Helper",
+                    //     isValidate: false,
+                    //     // autovalidateMode: _autoValidate,
+                    //     /*   validator: (value) {
+                    //         if (value == null || value.isEmpty) {
+                    //           return 'Please enter work specification';
+                    //         }
+                    //         return null;
+                    //       }*/
+                    //   ),
+                    // ],
 
-                    if ((_selectedProfessionTagId == REG_UNION)) ...[
+                    if ((_selectedProfessionTagId == REG_UNION || _selectedProfessionTagId == NGO)) ...[
                       SizedBox(
                         height: SizeConfig.paddingL,
                       ),
@@ -568,46 +716,64 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                       CustomText(
                         "Select Your Art / Skill",
                         fontSize: SizeConfig.medium,
+                        color: AppColors.mainTextColor,
                       ),
                       SizedBox(
                         height: SizeConfig.size10,
                       ),
-                      CommonDropdownDialog<SubcategoriesFiledName>(
-                        items: professionSubCategory ?? [],
-                        selectedValue: _selectedArtistObj,
-                        hintText: 'eg.Painter...',
-                        title: "Select Your Art / Skill",
-                        displayValue: (selfEmployment) => selfEmployment.name ?? "",
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedArtistObj = value;
-                          });
-                        },
-                      ),
-                      if (_selectedArtistObj != null) ...[
-                        SizedBox(
-                          height: SizeConfig.size15,
-                        ),
-                        CommonTextField(
-                          isValidate: false,
 
-                          textEditController: _artTypeController,
-                          // inputLength: 13,
-                          inputLength: 24,
-                          keyBoardType: TextInputType.text,
-                          regularExpression:
-                          RegularExpressionUtils.alphabetSpacePattern,
-                          titleColor: Colors.black,
-                          hintText: "Please Specify Art Type",
-                          // autovalidateMode: _autoValidate,
-                          // validator: (value) {
-                          //   if (value == null || value.isEmpty) {
-                          //     return 'Please enter art specification';
-                          //   }
-                          //   return null;
-                          // }
-                        ),
-                      ],
+                      Obx(()=> authController.isIndividualFieldLoading.value
+                          ?  Center(
+                        child: CircularProgressIndicator(),
+                      )
+                          :
+                      Column(
+                        children: [
+                          CommonDropdownDialog<SubCategories>(
+                            items: authController.arrIndividualFields[0].subcategories ?? [],
+                            selectedValue: _selectedArtistObj,
+                            title: 'Select Your Art / Skill',
+                            hintText: 'Eg. Actor...',
+                            displayValue: (s) => s.name ?? "",
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedArtistObj = value;
+                              });
+                            },
+                            // validator: (value) {
+                            //   if (value == null) {
+                            //     return 'Please Select Your Art / Skill';
+                            //   }
+                            //   return null;
+                            // },
+                          ),
+                          if (_selectedArtistObj == OTHER) ...[
+                            SizedBox(
+                              height: SizeConfig.size15,
+                            ),
+                            CommonTextField(
+                              isValidate: false,
+                              textEditController: _artTypeController,
+                              // inputLength: 13,
+                              inputLength: 24,
+                              keyBoardType: TextInputType.text,
+                              regularExpression:
+                              RegularExpressionUtils.alphabetSpacePattern,
+                              titleColor: Colors.black,
+                              hintText: "Please Specify Art Type",
+                              // autovalidateMode: _autoValidate,
+                              // validator: (value) {
+                              //   if (value == null || value.isEmpty) {
+                              //     return 'Please enter art specification';
+                              //   }
+                              //   return null;
+                              // }
+                            ),
+                          ],
+                        ],
+                      )),
+
+
                     ],
 
                     if (_selectedProfessionTagId == POLITICIAN) ...[
@@ -615,7 +781,6 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                         height: SizeConfig.paddingL,
                       ),
 
-                      // if (shouldShowField('politicalParty')) ...[
                       CommonTextField(
                         isValidate: false,
                         title: "Political Party",
@@ -623,7 +788,6 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                         textEditController: politicalPartyController,
                         inputLength: 50,
                       ),
-                      SizedBox(height: SizeConfig.size18),
                     ],
 
                     if ((_selectedProfessionTagId == GOVTPSU)) ...[
@@ -660,7 +824,32 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                         titleColor: Colors.black,
                         hintText: "eg., Civil Engineering Division",
                       ),
-                      SizedBox(height: SizeConfig.size18),
+                    ],
+
+                    if (_selectedProfessionTagId == GOVERNMENT_JOB) ...[
+                      SizedBox(
+                        height: SizeConfig.paddingL,
+                      ),
+
+                      CommonTextField(
+                        isValidate: false,
+                        textEditController: _governmentNameController,
+                        inputLength: 24,
+                        keyBoardType: TextInputType.text,
+                        regularExpression:
+                        RegularExpressionUtils.alphabetSpacePattern,
+                        title: "Name of Government/PSU",
+                        hintText: "Eg. ONGC",
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your Name of Government/PSU';
+                          } if (value.trim().length > 24) {
+                            return 'Name of Government/PSU must not exceed 24 characters';
+                          }
+                          return null;
+                        },
+                        // autovalidateMode: _autoValidate,
+                      ),
                     ],
 
                     if (_selectedProfessionTagId == PRIVATE_JOB) ...[
@@ -687,7 +876,6 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                         },
                         // autovalidateMode: _autoValidate,
                       ),
-                      SizedBox(height: SizeConfig.size18),
                     ],
 
                     if ((_selectedProfessionTagId == DIRECTOR)) ...[
@@ -712,7 +900,6 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                           return null;
                         }
                       ),
-                      SizedBox(height: SizeConfig.size18)
                     ],
 
                     if (_selectedProfessionTagId == OTHERS) ...[
@@ -760,8 +947,11 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                       ),
                     ],
 
-                    if ((_selectedProfessionTagId != SELF_EMPLOYED) &&
-                        (_selectedProfessionTagId != SKILLED_WORKER) &&
+                    if (
+                        (_selectedProfileTypeTagId != SELF_EMPLOYED) &&
+                        (_selectedProfileTypeTagId != GIG_WORKER) &&
+                        (_selectedProfileTypeTagId != PROFESSIONAL) &&
+                        // (_selectedProfessionTagId != SKILLED_WORKER) &&
                         (_selectedProfessionTagId != ARTIST) &&
                         (_selectedProfessionTagId != CONTENT_CREATOR) &&
                         (_selectedProfessionTagId != HOMEMAKER) &&
@@ -777,11 +967,10 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                         textEditController: _designationTextController,
                         inputLength: 24,
                         keyBoardType: TextInputType.text,
-                        regularExpression:
-                        RegularExpressionUtils.alphabetSpacePattern,
+                        regularExpression: RegularExpressionUtils.alphabetSpacePattern,
                         title: 'Designation',
                         hintText: "Enter your designation",
-                        isValidate: false,
+                        isValidate: true,
                       ),
 
                     ],
@@ -790,6 +979,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                         (_selectedProfessionTagId == GOVTPSU) ||
                         (_selectedProfessionTagId == CONTENT_CREATOR) ||
                         (_selectedProfessionTagId == REG_UNION) ||
+                        (_selectedProfessionTagId == NGO) ||
                         (_selectedProfessionTagId == MEDIA) ||
                         (_selectedProfessionTagId == INDUSTRIALIST) ||
                         (_selectedProfessionTagId == ARTIST)||
@@ -916,6 +1106,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                         (_selectedProfessionTagId != POLITICIAN) &&
                         (_selectedProfessionTagId != MEDIA) &&
                         (_selectedProfessionTagId != REG_UNION) &&
+                        (_selectedProfessionTagId != NGO) &&
                         (_selectedProfessionTagId != INDUSTRIALIST) &&
                         (_selectedProfessionTagId != DIRECTOR)) ...[
                       ..._referralCodeEnable
@@ -1011,17 +1202,32 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
         commonSnackBar(message: 'Please select your date of birth');
         return;
       }
-      if (_selectedProfessionTagId == ARTIST) {
-        if (_selectedArtistObj?.name?.isEmpty ?? true) {
-          commonSnackBar(message: 'Select your art / skill');
-
+      if (_selectedProfileTypeTagId == PROFESSIONAL) {
+        if (_selectedProfessionObj?.name?.isEmpty ?? true) {
+          commonSnackBar(message: 'Select your profession');
           return;
         }
       }
-      if (_selectedProfessionTagId == REG_UNION) {
+
+      if (_selectedProfessionTagId == ARTIST) {
+        if (_selectedArtistObj?.name?.isEmpty ?? true) {
+          commonSnackBar(message: 'Select your art / skill');
+          return;
+        }
+      }
+      if (_selectedProfessionTagId == REG_UNION || _selectedProfessionTagId == NGO) {
         if (_ngoNameTextController.text.isEmpty) {
           commonSnackBar(message: 'Enter your NGO / Society Name');
-
+          return;
+        }
+      }
+      if (_selectedProfessionTagId == CONTENT_CREATOR) {
+        if (_selectedContentCreatorField?.name?.isEmpty ?? true) {
+          commonSnackBar(message: 'Enter your Specification');
+          return;
+        }
+        if (_selectedContentCreatorSpecification?.name?.isEmpty ?? true) {
+          commonSnackBar(message: 'Please select your gender');
           return;
         }
       }
@@ -1051,9 +1257,39 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
               filename: fileName);
         }
         String? designation;
-        if ((_selectedProfessionTagId == SELF_EMPLOYED)) {
-          designation = _selectedSelfEmploymentTagId ?? "";
-        } else {
+        if ((_selectedProfileTypeTagId == SELF_EMPLOYED ||
+            _selectedProfileTypeTagId == GIG_WORKER)) {
+            designation = _selectedProfessionTagId?.toLowerCase().capitalizeFirst ?? "";
+        } else if(_selectedProfileTypeTagId == PROFESSIONAL){
+          designation = _selectedProfessionObj?.name;
+          log('designation -- $designation');
+        }
+        else{
+          if(_selectedProfessionTagId == STUDENT){
+            designation = STUDENT.toLowerCase().capitalizeFirst;
+          } else if(_selectedProfessionTagId == FARMER){
+            designation = FARMER.toLowerCase().capitalizeFirst;
+          } else if(_selectedProfessionTagId == HOMEMAKER){
+            designation = _ExpertiseTextController.text.trim();
+          } else if(_selectedProfessionTagId == SENIOR_CITIZEN){
+            designation = _SeniorTextController.text.trim();
+          } else if(_selectedProfessionTagId == ARTIST){
+            if(_selectedArtistObj != OTHER){
+              designation = _selectedArtistObj?.name;
+              log('designation -- $designation');
+            }else{
+              designation = _artTypeController.text.trim();
+            }
+            // ApiKeys.art: jsonEncode({
+            //   ApiKeys.artName: _selectedArtistObj?.tagId,
+            //   ApiKeys.artType: _artTypeController.text
+            // }),
+          } else if(_selectedProfessionTagId == CONTENT_CREATOR){
+            designation = _selectedContentCreatorSpecification?.name;
+            log('designation -- ${_selectedContentCreatorSpecification?.name}');
+          } else if(_selectedProfessionTagId == OTHERS){
+            designation = _otherProfessionTextController.text.trim();
+          }
           designation = _designationTextController.text.trim();
         }
 
@@ -1068,21 +1304,25 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
           ApiKeys.gender: _selectedGender?.name,
 
           ///CONDITION....
+          ApiKeys.profileType: _selectedProfileTypeTagId,
           ApiKeys.profession: _selectedProfessionTagId,
           ApiKeys.designation: designation,
           if (_selectedProfessionTagId == PRIVATE_JOB)
             ApiKeys.sector: _sectorTextController.text,
-          if ((_selectedProfessionTagId == SELF_EMPLOYED))
-            ApiKeys.specilization: _designationTextController.text,
-          if (_selectedProfessionTagId == SKILLED_WORKER)
-            ApiKeys.specilization: _skillWorkerSpecificationTextController.text,
+          if ((_selectedProfileTypeTagId == SELF_EMPLOYED))
+            ApiKeys.specilization: specializationController.text,
+          // if (_selectedProfessionTagId == SKILLED_WORKER)
+          //   ApiKeys.specilization: _skillWorkerSpecificationTextController.text,
           if (_selectedProfessionTagId == CONTENT_CREATOR)
-            ApiKeys.specilization: _contentCraterTextController.text,
+            ApiKeys.specilization: _selectedContentCreatorField?.name,
+          if (_selectedProfessionTagId == GOVERNMENT_JOB)
+            ApiKeys.department: _governmentNameController.text.trim(),
 
           ///USER NAME
           if ((_selectedProfessionTagId == CONTENT_CREATOR) ||
               (_selectedProfessionTagId == POLITICIAN) ||
               (_selectedProfessionTagId == REG_UNION) ||
+              (_selectedProfessionTagId == NGO) ||
               (_selectedProfessionTagId == INDUSTRIALIST) ||
               (_selectedProfessionTagId == ARTIST) ||
               (_selectedProfessionTagId == MEDIA) ||
@@ -1096,7 +1336,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
             ApiKeys.department: departmentNameController.text,
           if (_selectedProfessionTagId == GOVTPSU)
             ApiKeys.subDivision: subDivision.text,
-          if (_selectedProfessionTagId == REG_UNION)
+          if (_selectedProfessionTagId == REG_UNION || _selectedProfessionTagId == NGO)
             ApiKeys.department: _ngoNameTextController.text,
 
           if (_selectedProfessionTagId == INDUSTRIALIST)
@@ -1107,20 +1347,20 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
             ApiKeys.schoolOrCollegeName: _CourseTextController.text,
           if (_selectedProfessionTagId == OTHERS)
             ApiKeys.specilization: _otherProfessionTextController.text,
-          if (_selectedProfessionTagId == ARTIST)
-            ApiKeys.art: jsonEncode({
-              ApiKeys.artName: _selectedArtistObj?.tagId,
-              ApiKeys.artType: _artTypeController.text
-            }),
-          if (_selectedProfessionTagId == HOMEMAKER)
-            ApiKeys.art: jsonEncode({
-              ApiKeys.artName: _ExpertiseTextController.text,
-            }),
-
-          if (_selectedProfessionTagId == SENIOR_CITIZEN)
-            ApiKeys.art: jsonEncode({
-              ApiKeys.artName: _SeniorTextController.text,
-            }),
+          // if (_selectedProfessionTagId == ARTIST)
+          //   ApiKeys.art: jsonEncode({
+          //     ApiKeys.artName: _selectedArtistObj?.tagId,
+          //     ApiKeys.artType: _artTypeController.text
+          //   }),
+          // if (_selectedProfessionTagId == HOMEMAKER)
+          //   ApiKeys.art: jsonEncode({
+          //     ApiKeys.artName: _ExpertiseTextController.text,
+          //   }),
+          //
+          // if (_selectedProfessionTagId == SENIOR_CITIZEN)
+          //   ApiKeys.art: jsonEncode({
+          //     ApiKeys.artName: _SeniorTextController.text,
+          //   }),
 
           ApiKeys.referred_by_code:
           _referralCodeEnable ? _referralCodeController.text : null,

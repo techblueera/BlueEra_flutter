@@ -38,18 +38,14 @@ class UserGroceryController extends GetxController{
   // Rx<ApiResponse> userGroceryCategoryResponse =
   //     ApiResponse.initial('Initial').obs;
 
-  Rx<CollapsibleGridModel> selectedGroceryData = CollapsibleGridModel(
-      icon: "chips.png",
-      label: "Chips &\nNamkeens",
-      tagId: CHIPS_NAMKEEN
-  ).obs;
+  final selectedGroceryData = Rxn<CollapsibleGridModel>();
 
   RxBool isInitialLoading = false.obs;
 
   RxInt selectedTabIndex = 0.obs;
   String get currentTabKey =>
-      selectedTabIndex.value == 0                    // “All” tab
-          ? selectedGroceryData.value.tagId                    // top-level key
+      selectedTabIndex.value == 0
+          ? (selectedGroceryData.value?.slugId ?? '')
           : arrChildrenOfGroceryCategory[selectedTabIndex.value - 1].key ?? '';
 
   RxList<VariantsData> selectedGroceriesVariants = <VariantsData>[].obs;

@@ -87,7 +87,7 @@ class EarnServiceController extends GetxController{
 
         break;
 
-      case CAR_DRIVER_TAXI:
+      case CAR_TAXI:
         // ProfessionChangeDialogHelper().shouldShowUpdateDesignationDialog(
         //   context: context,
         //   designation: CAR_DRIVER_TAXI,
