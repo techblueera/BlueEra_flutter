@@ -141,35 +141,4 @@ class HotelImageUploadScreen extends StatelessWidget {
     );
   }
 
-  void _showPickerOptions(RxList<XFile> list) {
-
-
-
-
-    Get.bottomSheet(
-      Container(
-        color: Colors.white,
-        child: Wrap(
-          children: [
-            ListTile(
-                leading: Icon(Icons.camera_alt),
-                title: Text('Camera'),
-                onTap: () {
-                  Get.back();
-                  controller.pickImage(ImageSource.camera, list);
-                  controller.validate();
-                }),
-            ListTile(
-                leading: Icon(Icons.photo_library),
-                title: Text('Gallery'),
-                onTap: () {
-                  Get.back();
-                  controller.pickImage(ImageSource.gallery, list);
-                  controller.validate();
-                }),
-          ],
-        ),
-      ),
-    );
-  }
 }

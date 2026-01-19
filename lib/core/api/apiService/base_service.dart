@@ -614,5 +614,7 @@ abstract class BaseService {
   final String hotelRoomType = 'hotel-service/api/room-types';
   final String hotelRoomsType = 'hotel-service/api/rooms/type';
   final String hotelHomeFull = 'hotel-service/api/hotels/full';
+  final String foodCategory = 'food-service/api/categories';
+  final String foodProduct= 'food-service/api/foodProduct';
 
 }
