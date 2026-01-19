@@ -404,7 +404,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                                       icon: sideBoxItems[0].icon,
                                       onTap: () {
                                         Get.to(()=> AllSelfProfessionScreen(
-                                            selfEmployedCategories: selfWorkCategories, // Pass full list for context
+                                            selfEmployedCategories: selfWorkCategories,
                                             selectedSelfProfessionData: sideBoxItems[0]
                                         ));
                                       }

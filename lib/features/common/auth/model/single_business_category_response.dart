@@ -2,27 +2,21 @@ import 'dart:convert';
 
 import 'get_categories_model.dart';
 
-SelectedBusinessCategoryModelResponse selectedBusinessCategoryModelResponseFromJson(String str) =>
-    SelectedBusinessCategoryModelResponse.fromJson(json.decode(str));
-
-String selectedBusinessCategoryModelResponseToJson(SelectedBusinessCategoryModelResponse data) =>
-    json.encode(data.toJson());
-
-class SelectedBusinessCategoryModelResponse {
+class SingleBusinessCategoryModelResponse {
   bool? success;
   Category? category;
   int? count;
   List<SubCategories>? subCategories;
 
-  SelectedBusinessCategoryModelResponse({
+  SingleBusinessCategoryModelResponse({
     this.success,
     this.category,
     this.count,
     this.subCategories,
   });
 
-  factory SelectedBusinessCategoryModelResponse.fromJson(Map<String, dynamic> json) =>
-      SelectedBusinessCategoryModelResponse(
+  factory SingleBusinessCategoryModelResponse.fromJson(Map<String, dynamic> json) =>
+      SingleBusinessCategoryModelResponse(
         success: json["success"],
         category: json["category"] == null ? null : Category.fromJson(json["category"]),
         count: json["count"],

@@ -1278,10 +1278,10 @@ class RouteHelper {
         final args = settings.arguments as Map<String, dynamic>;
         final accountType = args[ApiKeys.argAccountType] as String;
         final businessType = args[ApiKeys.argBusinessType] as BusinessType;
-        // final categoryData = args[ApiKeys.argCategoryData] as CategoryData?;
         final argCategorySlugId = args[ApiKeys.argCategoryId] as String;
         final argCategoryName = args[ApiKeys.argCategoryName] as String;
         final argSubCategory = args[ApiKeys.argSubCategory] as SubCategories?;
+        // final categoryData = args[ApiKeys.argCategoryData] as CategoryData?;
 
         return MaterialPageRoute(
             builder: (_) => GstNumberScreen(

@@ -392,9 +392,10 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                       height: SizeConfig.size10,
                     ),
 
-                    CommonDropdown<GenderType>(
+                    CommonDropdownDialog<GenderType>(
                       items: GenderType.values,
                       selectedValue: _selectedGender,
+                      title: 'Select Gender',
                       hintText:'eg. Male, Female',
                       //appLocalizations?.selectGenderHint ?? '',
                       displayValue: (value) => value.displayName,
@@ -403,12 +404,12 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                           _selectedGender = value;
                         });
                       },
-                      validator: (value) {
-                        if (value == null) {
-                          return 'Please select your gender';
-                        }
-                        return null;
-                      },
+                      // validator: (value) {
+                      //   if (value == null) {
+                      //     return 'Please select your gender';
+                      //   }
+                      //   return null;
+                      // },
                     ),
 
                     // SizedBox(
@@ -1200,6 +1201,10 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
           _selectedMonth == null ||
           _selectedYear == null) {
         commonSnackBar(message: 'Please select your date of birth');
+        return;
+      }
+      if(_selectedGender == null){
+        commonSnackBar(message: 'Please select your gender');
         return;
       }
       if (_selectedProfileTypeTagId == PROFESSIONAL) {

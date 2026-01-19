@@ -28,7 +28,7 @@ class GstNumberScreen extends StatefulWidget {
     required this.categorySlugId,
     required this.categoryName,
     // this.categoryData,
-    this.subCategory
+    required this.subCategory
   });
 
   @override
@@ -45,20 +45,15 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
   initState(){
     super.initState();
     authController.selectedTypeOfBusiness = widget.businessType;
-    authController.selectedCategorySlugId = widget.categorySlugId;
     authController.selectedCategoryName = widget.categoryName;
-    if(widget.subCategory!=null){
-      authController.selectedSubCategoryData = widget.subCategory;
-      log('sub category --- ${authController.selectedSubCategoryData?.name}');
-      log('sub category --- ${authController.selectedSubCategoryData?.sId}');
-    }
-
-    // if(widget.categoryData!=null && widget.subCategory!=null){
-    //   authController.selectedCategoryData = widget.categoryData;
-    //   authController.selectedSubCategoryData = widget.subCategory;
-    //   log('category --- ${authController.selectedCategoryData?.name}');
-    // }
-
+    authController.selectedCategorySlugId = widget.categorySlugId;
+    authController.selectedSubCategoryData = widget.subCategory;
+    log("------------------ SELECTION DATA ------------------");
+    log("Business Type    : ${authController.selectedTypeOfBusiness}");
+    log("Category Name    : ${authController.selectedCategoryName}");
+    log("Category Slug Id  : ${authController.selectedCategorySlugId}");
+    log('sub category Name : ${authController.selectedSubCategoryData?.name}');
+    log('sub category Slug Id : ${authController.selectedSubCategoryData?.sId}');
   }
 
   @override

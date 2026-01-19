@@ -81,7 +81,8 @@ class AppImageAssets {
   static String plumber = "${imgPath}plumber.png";
   static String painter = "${imgPath}painter.png";
   static String homeRenovator = "${imgPath}home_renovator.png";
-  static String mainCleaner = "${imgPath}main_cleaner.png";
+  static String maid = "${imgPath}maid.png";
+  static String cleaner = "${imgPath}cleaner.png";
   static String carpenter = "${imgPath}carpenter.png";
   static String gardener = "${imgPath}gardener.png";
   static String securityPerson = "${imgPath}security_person.png";
@@ -110,6 +111,8 @@ class AppImageAssets {
   static String homeMadeFood = "${imgPath}home_made_food.png";
   static String homeMadeProduct = "${imgPath}home_made_product.png";
   static String homeService = "${imgPath}home_service.png";
+  static String rentalService = "${imgPath}rental_service.png";
+  static String all = "${imgPath}all.png";
 
 }
 
@@ -209,6 +212,12 @@ static String automotiveShowroom = "${imgPath}automotive_showroom.png";
 static String petAgricultureStore = "${imgPath}pet_agriculture_store.png";
 static String wholesalerTrader = "${imgPath}wholesaler_trader.png";
 static String industrialsSupplies = "${imgPath}industrials_supplies.png";
+static String homeAppliancesService = "${imgPath}home_appliances_service.png";
+static String beautyAndCosmetics = "${imgPath}beauty_and_cosmetics.png";
+static String homeKitchenAndUtensils = "${imgPath}home_kitchen_and_utensils.png";
+static String religiousAndSpeciality = "${imgPath}religious_and_speciality.png";
+static String packagingAndDisposable = "${imgPath}packaging_and_disposable.png";
+static String agricultureAndFarming = "${imgPath}agriculture_and_farming.png";
 
 /// Services
 static String consultingFirm = "${imgPath}consulting_firm.png";

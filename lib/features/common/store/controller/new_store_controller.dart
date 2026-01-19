@@ -256,7 +256,7 @@ class NewStoreController extends GetxController{
       if (response.isSuccess) {
         getAllStoreProductResponse.value = ApiResponse.complete(response);
         final getOwnProductModel =
-        GetProductModel.fromJson(response.response?.data);
+        GetProductModel.fromJson(response.response?.businessCategory);
 
         final List<GetProductData> newData = getOwnProductModel.data;
 

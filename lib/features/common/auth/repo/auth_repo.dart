@@ -224,4 +224,12 @@ class AuthRepo extends BaseService {
     return response;
   }
 
+  /// Get Business Sub Categories REPO...
+  Future<ResponseModel> fetchBusinessCategoriesByTypeRepo({required String businessType}) async {
+    final response = await ApiBaseHelper().getHTTP(getBusinessCategoryByType(businessType),
+        showProgress: false, onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+
+
 }

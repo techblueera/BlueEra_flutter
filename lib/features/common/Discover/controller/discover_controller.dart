@@ -106,8 +106,8 @@ class DiscoverController extends GetxController{
         List<ServiceData> tempNewItems = [];
 
         for (var service in responseModel.services ?? []) {
-          if (service.data != null && service.data!.isNotEmpty) {
-            for (ServiceData item in service.data!) {
+          if (service.businessCategory != null && service.businessCategory!.isNotEmpty) {
+            for (ServiceData item in service.businessCategory!) {
 
               // Distance Calculation Logic
               double itemLat = double.tryParse(item.userLocation?.lat.toString() ?? "0") ?? 0.0;

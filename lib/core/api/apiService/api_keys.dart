@@ -624,6 +624,8 @@ class ApiKeys {
   static const argProfileType = 'argProfileType';
   static const argProfileTypeTagId = 'argProfileTypeTagId';
   static const profileType = 'profileType';
+  static const number_of_Employees = 'number_of_Employees';
+  static const number_of_branch  = 'number_of_branch ';
 
 
 }

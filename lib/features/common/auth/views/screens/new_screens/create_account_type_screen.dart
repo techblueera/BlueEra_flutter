@@ -13,6 +13,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
+import 'package:BlueEra/features/common/auth/views/widget/business_category_selection_dialog.dart';
 import 'package:BlueEra/features/common/auth/views/widget/gradient_border_container.dart';
 import 'package:BlueEra/features/common/auth/views/widget/business_sub_category_selection_dialog.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -596,15 +597,24 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
     return GestureDetector(
       onTap: () {
         if(category.accountType == AppConstants.business){
-          if(category.businessType != BusinessType.Grocery){
+          if(category.businessType == BusinessType.Manufacturing){
+            if(category.businessType == null) return;
+            navigateToGstScreen(
+                context,
+                businessType: category.businessType!,
+                categorySlugId: category.slugId,
+                categoryName: category.name,
+            );
+          } else if(category.businessType == BusinessType.Motel ||
+              category.businessType == BusinessType.Healthcare ||
+              category.businessType == BusinessType.Siksha){
+            _showBusinessCategoryDialog(category.businessType!);
+          }else{
             _showBusinessSubCategoryDialog(
                 businessType: category.businessType!,
                 categorySlugId: category.slugId,
                 categoryName: category.name
             );
-          }
-          else{
-
           }
         }else{
           log("---------------- LOG DATA ----------------");
@@ -728,19 +738,47 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
 
     // 2. If user selected something and clicked Next
     if (selected != null) {
-      Navigator.pushNamed(
-        context,
-        RouteHelper.getGstNumberScreenRoute(),
-        arguments: {
-          ApiKeys.argAccountType: AppConstants.business,
-          ApiKeys.argBusinessType: businessType,
-          ApiKeys.argCategoryId: categorySlugId,
-          ApiKeys.argCategoryName: categoryName,
-          ApiKeys.argSubCategory: selected,
-        },
-      );
+      navigateToGstScreen(
+          context,
+          businessType: businessType,
+          categorySlugId: categorySlugId,
+          categoryName: categoryName,
+          subCategory: selected
+       );
+     }
     }
+
+  void navigateToGstScreen(
+      BuildContext context, {
+        required BusinessType businessType,
+        required String categorySlugId,
+        required String categoryName,
+        SubCategories? subCategory,
+      }) {
+    Navigator.pushNamed(
+      context,
+      RouteHelper.getGstNumberScreenRoute(),
+      arguments: {
+        ApiKeys.argAccountType: AppConstants.business,
+        ApiKeys.argBusinessType: businessType,
+        ApiKeys.argCategoryId: categorySlugId,
+        ApiKeys.argCategoryName: categoryName,
+        ApiKeys.argSubCategory: subCategory,
+      },
+    );
   }
 
+  Future<void>  _showBusinessCategoryDialog(BusinessType businessType){
+    return showDialog<SubCategories>(
+      context: context,
+      builder: (context) {
+        return BusinessCategorySelectionDialog(
+            authController: authController,
+            businessType: businessType
+        );
+      },
+    );
+  }
 
 }
+
