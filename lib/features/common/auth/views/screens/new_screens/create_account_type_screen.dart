@@ -40,7 +40,6 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
   @override
   void initState() {
     super.initState();
-    authController.loadIndividualAndBusinessCategoryData();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       authController.selectedIndividualOnboardingProfile.value = OnBoardingCategoryModel(
         name: 'Social profile',
