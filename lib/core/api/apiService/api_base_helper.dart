@@ -375,7 +375,7 @@ class ApiBaseHelper {
             logs("filePath====== ${filePath}");
             File file = File(filePath);
             // Save the file (image or document)
-            await file.writeAsBytes(response.data, flush: true);
+            await file.writeAsBytes(response.businessCategory, flush: true);
             commonSnackBar(message: successMessage ?? "Download successfully");
             logs("filePath 2222====== ${file.path}");
 

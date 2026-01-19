@@ -50,7 +50,7 @@ class _CollapsibleGridSectionState extends State<CollapsibleGridSection> {
               return Expanded(
                 child: index < rowItems.length
                     ? CircleIconGridItem(
-                  label: rowItems[index].label,
+                  label: rowItems[index].name,
                   icon: rowItems[index].icon,
                   onTap: () => widget.onTap?.call(rowItems[index]),
                 )

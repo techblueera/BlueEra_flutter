@@ -602,6 +602,9 @@ abstract class BaseService {
   final String addHospitalDepartment = 'health-service/api/departments';
   String fetchHospitalSubCate(String id) =>  'health-service/api/departments/${id}/with-children';
   final String aiGenerateSelfProfession = 'ai-service/api/ai-earn/generate-about';
+  String getBusinessSubCategory(String tagId) => 'user-service/business/by-tag/$tagId/subcategories';
+  String getIndividualFields(String tagId) => 'user-service/individual-professions/$tagId/designation';
+  String getBusinessCategoryByType(String type) => 'user-service/business/by-type/$type';
 
   ///HOTEL....
   final String hotelAmenities = 'hotel-service/api/hotel-amenities';

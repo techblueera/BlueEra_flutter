@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get/get.dart';
 
 class CommonDropdownDialog<T> extends StatefulWidget {
   final List<T> items;
@@ -49,13 +50,23 @@ class _CommonDropdownDialogState<T> extends State<CommonDropdownDialog<T>> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                CustomText(
-                  widget.title,
-                  color: AppColors.secondaryTextColor,
-                  fontWeight: FontWeight.w700,
-                  fontSize: SizeConfig.size16,
+                Row(
+                  children: [
+                    Expanded(
+                      child: CustomText(
+                        widget.title,
+                        color: AppColors.secondaryTextColor,
+                        fontWeight: FontWeight.w700,
+                        fontSize: SizeConfig.size16,
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Get.back(),
+                      icon: const Icon(Icons.close),
+                    ),
+                  ],
                 ),
-                SizedBox(height: SizeConfig.size12),
+                SizedBox(height: SizeConfig.size3),
                 Flexible(
                   child: ListView.builder(
                     shrinkWrap: true,

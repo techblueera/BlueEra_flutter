@@ -142,8 +142,8 @@ class MapServiceController extends GetxController {
         homeServiceList.clear();
 
         for (var service in responseModel.services ?? []) {
-          if (service.data != null && service.data!.isNotEmpty) {
-            for (ServiceData item in service.data!) {
+          if (service.businessCategory != null && service.businessCategory!.isNotEmpty) {
+            for (ServiceData item in service.businessCategory!) {
               logs("item==== ${item}");
               logs("item==== ${item.runtimeType}");
               logs("item==== ${item.userLocation?.lat}");
@@ -360,8 +360,8 @@ class MapServiceController extends GetxController {
         foodServicesList.value = foodServiceModelResponse.foodServices ?? [];
         foodServiceList.clear();
         for (var service in foodServiceModelResponse.foodServices ?? []) {
-          if (service.data != null && service.data!.isNotEmpty) {
-            foodServiceList.addAll(service.data!);
+          if (service.businessCategory != null && service.businessCategory!.isNotEmpty) {
+            foodServiceList.addAll(service.businessCategory!);
           }
         }
       } else {

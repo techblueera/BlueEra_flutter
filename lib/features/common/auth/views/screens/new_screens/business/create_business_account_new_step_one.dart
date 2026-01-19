@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/common_singleton_class/user_session.dart';
@@ -7,7 +8,6 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/no_leading_space_formatter.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -24,7 +24,6 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/new_common_date_selection_dropdown.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 class CreateBusinessAccountNewStepOne extends StatefulWidget {
@@ -41,8 +40,23 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
 
   bool _referralCodeEnable = false;
   final authController = Get.find<AuthController>();
-
   String? _imagePath;
+  bool isServiceOrManufacturing =  false;
+
+  @override
+  initState(){
+    super.initState();
+    if ([
+      BusinessType.Service,
+      BusinessType.Manufacturing,
+      BusinessType.Healthcare,
+      BusinessType.Motel,
+      BusinessType.Siksha
+    ].contains(authController.selectedTypeOfBusiness)){
+      isServiceOrManufacturing = true;
+    }
+    log('is Service or manufacturer -- $isServiceOrManufacturing');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -149,7 +163,7 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
                                       ),
                                       Expanded(
                                         child: CustomText(
-                                            authController.selectedCategoryData?.name,
+                                            authController.selectedCategoryName?.replaceAll('\n', ' '),
                                             color: AppColors.primaryColor,
                                             fontSize: SizeConfig.small,
                                             fontWeight: FontWeight.w400
@@ -157,25 +171,29 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
                                       )
                                     ],
                                   ),
-                                  SizedBox(height: SizeConfig.paddingXSmall),
-                                  Row(
-                                    children: [
-                                      CustomText(
-                                          "${AppStrings.subCategory.tr} - ",
-                                          color: AppColors.secondaryTextColor,
-                                          fontSize: SizeConfig.small,
-                                          fontWeight: FontWeight.w400
-                                      ),
-                                      Expanded(
-                                        child: CustomText(
-                                            authController.selectedSubCategoryData?.name,
-                                            color: AppColors.primaryColor,
+
+                                  if(authController.selectedSubCategoryData!=null)...[
+                                    SizedBox(height: SizeConfig.paddingXSmall),
+                                    Row(
+                                      children: [
+                                        CustomText(
+                                            "${AppStrings.subCategory.tr} - ",
+                                            color: AppColors.secondaryTextColor,
                                             fontSize: SizeConfig.small,
                                             fontWeight: FontWeight.w400
                                         ),
-                                      )
-                                    ],
-                                  ),
+                                        Expanded(
+                                          child: CustomText(
+                                              authController.selectedSubCategoryData?.name,
+                                              color: AppColors.primaryColor,
+                                              fontSize: SizeConfig.small,
+                                              fontWeight: FontWeight.w400
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                  ]
+
                                 ],
                               ),
                             ),
@@ -211,80 +229,83 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
                             //   ),
                             // ),
 
-                            SizedBox(
-                              height: SizeConfig.paddingM,
-                            ),
 
-                            CommonTextField(
-                              textEditController: authController
-                                  .subCategorySpecializationTextController,
-                              hintText:AppStrings.businessSpecializationHint,
-                              title: AppStrings.businessSpecializationOptional,
-                              maxLine: 1,
-                              maxLength: 24,
-                              keyBoardType: TextInputType.text,
-                              textInputAction: TextInputAction.done,
-                              isValidate: false,
-                              inputFormatters: [
-                                FilteringTextInputFormatter.allow(RegExp(
-                                    RegularExpressionUtils
-                                        .alphabetPatternSpace)),
-                                NoLeadingSpaceFormatter(),
-                                NoConsecutiveSpacesFormatter(),
-                              ],
-                              // we will handle validation manually
-                              onChange: (val) {
-                                String newVal = val;
-                                authController
-                                    .categorySpecializationText.value = val;
-                                // Allow only alphabets + spaces
-                                if (!RegExp(r'^[a-zA-Z ]*$')
-                                    .hasMatch(newVal)) {
-                                  authController.errorMessage.value =
-                                      AppStrings.specialCharactersNotAllowed.tr;
-                                } else if (newVal.isEmpty) {
-                                  authController.errorMessage.value =
-                                      AppStrings.pleaseEnterBusinessSpecialization.tr;
-                                } else if (newVal.length < 8) {
-                                  authController.errorMessage.value =
-                                      AppStrings.min8CharactersRequired.tr;
-                                } else if (newVal.length > 24) {
-                                  authController.errorMessage.value =
-                                      AppStrings.max24CharactersAllowed.tr;
-                                } else {
-                                  authController.errorMessage.value = "";
-                                }
+                            // SizedBox(
+                            //   height: SizeConfig.paddingM,
+                            // ),
 
-                              },
-                            ),
 
-                            SizedBox(height: SizeConfig.size5),
+                            /// Business Specialization
+                            // CommonTextField(
+                            //   textEditController: authController
+                            //       .subCategorySpecializationTextController,
+                            //   hintText:AppStrings.businessSpecializationHint,
+                            //   title: AppStrings.businessSpecializationOptional,
+                            //   maxLine: 1,
+                            //   maxLength: 24,
+                            //   keyBoardType: TextInputType.text,
+                            //   textInputAction: TextInputAction.done,
+                            //   isValidate: false,
+                            //   inputFormatters: [
+                            //     FilteringTextInputFormatter.allow(RegExp(
+                            //         RegularExpressionUtils
+                            //             .alphabetPatternSpace)),
+                            //     NoLeadingSpaceFormatter(),
+                            //     NoConsecutiveSpacesFormatter(),
+                            //   ],
+                            //   // we will handle validation manually
+                            //   onChange: (val) {
+                            //     String newVal = val;
+                            //     authController
+                            //         .categorySpecializationText.value = val;
+                            //     // Allow only alphabets + spaces
+                            //     if (!RegExp(r'^[a-zA-Z ]*$')
+                            //         .hasMatch(newVal)) {
+                            //       authController.errorMessage.value =
+                            //           AppStrings.specialCharactersNotAllowed.tr;
+                            //     } else if (newVal.isEmpty) {
+                            //       authController.errorMessage.value =
+                            //           AppStrings.pleaseEnterBusinessSpecialization.tr;
+                            //     } else if (newVal.length < 8) {
+                            //       authController.errorMessage.value =
+                            //           AppStrings.min8CharactersRequired.tr;
+                            //     } else if (newVal.length > 24) {
+                            //       authController.errorMessage.value =
+                            //           AppStrings.max24CharactersAllowed.tr;
+                            //     } else {
+                            //       authController.errorMessage.value = "";
+                            //     }
+                            //
+                            //   },
+                            // ),
 
-                            // 👇 Error/Helper Message
-                            Obx(() => authController
-                                .errorMessage.value.isNotEmpty &&
-                                (authController.categorySpecializationText
-                                    .value.isNotEmpty)
-                                ? Align(
-                              alignment: Alignment.centerLeft,
-                              child: CustomText(
-                                authController.errorMessage.value,
-                                color: Colors.red,
-                                fontSize: 12,
-                                textAlign: TextAlign.left,
-                              ),
-                            )
-                                : SizedBox()),
-
-                            // 👇 Counter (bottom right)
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: Obx(() => CustomText(
-                                "${authController.categorySpecializationText.value.length}/24",
-                                color: Colors.grey,
-                                fontSize: 12,
-                              )),
-                            ),
+                            // SizedBox(height: SizeConfig.size5),
+                            //
+                            // // 👇 Error/Helper Message
+                            // Obx(() => authController
+                            //     .errorMessage.value.isNotEmpty &&
+                            //     (authController.categorySpecializationText
+                            //         .value.isNotEmpty)
+                            //     ? Align(
+                            //   alignment: Alignment.centerLeft,
+                            //   child: CustomText(
+                            //     authController.errorMessage.value,
+                            //     color: Colors.red,
+                            //     fontSize: 12,
+                            //     textAlign: TextAlign.left,
+                            //   ),
+                            // )
+                            //     : SizedBox()),
+                            //
+                            // // 👇 Counter (bottom right)
+                            // Align(
+                            //   alignment: Alignment.centerRight,
+                            //   child: Obx(() => CustomText(
+                            //     "${authController.categorySpecializationText.value.length}/24",
+                            //     color: Colors.grey,
+                            //     fontSize: 12,
+                            //   )),
+                            // ),
 
                           ],
                         )
@@ -304,7 +325,7 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
                           AppStrings.businessDetailsTitle,
                           fontSize: SizeConfig.extraLarge,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.black,
+                          color: AppColors.mainTextColor
                         ),
                         SizedBox(
                           height: SizeConfig.paddingS,
@@ -364,6 +385,7 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
                         CustomText(
                           AppStrings.dateOfIncorporation,
                           fontSize: SizeConfig.medium,
+                          color: AppColors.mainTextColor
                         ),
                         SizedBox(
                           height: SizeConfig.paddingXSL,
@@ -391,11 +413,12 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
 
                         if (authController.selectedTypeOfBusiness == BusinessType.Product) ...[
                           SizedBox(
-                            height: SizeConfig.paddingXSL,
+                            height: SizeConfig.paddingM,
                           ),
                           CustomText(
                             AppStrings.natureOfBusiness,
                             fontSize: SizeConfig.medium,
+                            color: AppColors.mainTextColor
                           ),
                           SizedBox(
                             height: SizeConfig.paddingXSL,
@@ -432,8 +455,64 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
                               },
                             ),
                           ],
-                          SizedBox(height: SizeConfig.size20),
+
+                          // SizedBox(height: SizeConfig.paddingL),
                         ],
+
+                        if (isServiceOrManufacturing) ...[
+
+                          // Number Of Employees
+                          SizedBox(
+                            height: SizeConfig.paddingM,
+                          ),
+                          CustomText(
+                            AppStrings.numberOfEmployees,
+                            fontSize: SizeConfig.medium,
+                            color: AppColors.mainTextColor
+                          ),
+                          SizedBox(
+                            height: SizeConfig.paddingXSL,
+                          ),
+                          CommonDropdownDialog<String>(
+                            items: authController.employeeRangeOptions,
+                            selectedValue: authController.selectedNumberOfEmployees,
+                            hintText: AppStrings.numberOfEmployeesHintText,
+                            displayValue: (v) => v,
+                            title: AppStrings.numberOfEmployees,
+                            onChanged: (value) {
+                              setState(() {
+                                authController.selectedNumberOfEmployees = value;
+                              });
+                            },
+                          ),
+
+                          // Number Of Branch
+                          SizedBox(
+                            height: SizeConfig.paddingM,
+                          ),
+                          CustomText(
+                            AppStrings.numberOfBranchOrUnit,
+                            fontSize: SizeConfig.medium,
+                            color: AppColors.mainTextColor
+                          ),
+                          SizedBox(
+                            height: SizeConfig.paddingXSL,
+                          ),
+                          CommonDropdownDialog<String>(
+                            items: authController.branchUnitOptions,
+                            selectedValue: authController.selectedNumberOfBranch,
+                            hintText: AppStrings.numberOfBranchOrUnitHintText,
+                            displayValue: (v) => v,
+                            title: AppStrings.numberOfBranchOrUnit,
+                            onChanged: (value) {
+                              setState(() {
+                                authController.selectedNumberOfBranch = value;
+                              });
+                            },
+                          ),
+
+                        ],
+
 
                         SizedBox(
                           height: SizeConfig.size20,
@@ -538,6 +617,16 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
       return;
     }
 
+    if (isServiceOrManufacturing) {
+      if (authController.selectedNumberOfEmployees == null) {
+        commonSnackBar(message: AppStrings.pleaseEnterNumberOfEmployees.tr);
+        return;
+      }if (authController.selectedNumberOfBranch == null) {
+        commonSnackBar(message: AppStrings.pleaseEnterNumberOfBranchOrUnit.tr);
+        return;
+      }
+    }
+
     print("Selected Business Type: ${authController.selectedTypeOfBusiness}");
 
     // 2️⃣ Business name required
@@ -561,6 +650,9 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
     }
     final locationData = await locationController.checkPermissionAndSetData();
     if (locationData != null) {
+      log("Business Type    : ${authController.selectedTypeOfBusiness}");
+      log("Category Slug Id  : ${authController.selectedCategorySlugId}");
+      log('sub category --- ${authController.selectedSubCategoryData?.sId}');
       Map<String, dynamic> requestData = {
         ApiKeys.logo_image: imageByPart,
         ApiKeys.business_name: authController.businessNameTextController.text,
@@ -576,10 +668,11 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
           ApiKeys.year: authController.selectedYear?.value
         },
         // Category logic based on "both"
-        ApiKeys.category_Of_Business:
-            (authController.selectedTypeOfBusiness == BusinessType.Both)
-                ? "68a80b766fdb4e82b42b77c0"
-                : authController.selectedCategoryData?.id,
+        // ApiKeys.category_Of_Business:
+        //     (authController.selectedTypeOfBusiness == BusinessType.Both)
+        //         ? "68a80b766fdb4e82b42b77c0"
+        //         : authController.selectedCategoryData?.id,
+        ApiKeys.category_Of_Business: authController.selectedCategorySlugId,
 
         if (authController.selectedTypeOfBusiness == BusinessType.Both)
           ApiKeys.category_other:
@@ -597,7 +690,6 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
             (authController.gstVerifyModel?.value.data?.gstin?.isNotEmpty ??
                 false))
           ApiKeys.gst_number: authController.gstVerifyModel?.value.data?.gstin,
-
         ApiKeys.gst_verified: ((authController.gstVerifyModel?.value.success ??
                     false) &&
                 (authController.gstVerifyModel?.value.data?.gstin?.isNotEmpty ??
@@ -606,12 +698,19 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
             : false,
 
         if (authController.referralCodeController.text.isNotEmpty)
-          ApiKeys.referral_code: authController.referralCodeController.text,
+          ApiKeys.referral_code: authController.referralCodeController.text.trim(),
 
-        if (authController
-            .subCategorySpecializationTextController.text.isNotEmpty)
-          ApiKeys.specification:
-              authController.subCategorySpecializationTextController.text,
+        if(isServiceOrManufacturing && authController.selectedNumberOfEmployees!=null)
+         ApiKeys.number_of_Employees: authController.selectedNumberOfEmployees,
+
+        if(isServiceOrManufacturing && authController.selectedNumberOfBranch!=null)
+         ApiKeys.number_of_branch: authController.selectedNumberOfBranch,
+
+
+        // if (authController
+        //     .subCategorySpecializationTextController.text.isNotEmpty)
+        //   ApiKeys.specification:
+        //       authController.subCategorySpecializationTextController.text.trim(),
       };
 
       await authController.addBusinessUser(reqData: requestData);

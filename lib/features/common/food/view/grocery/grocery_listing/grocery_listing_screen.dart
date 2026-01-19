@@ -73,7 +73,7 @@ class _GroceryListingScreenState extends State<GroceryListingScreen> {
   Widget build(BuildContext context) {
     return Obx(() => Scaffold(
           appBar: CommonBackAppBar(
-              title: controller.selectedGroceryData.value.label,
+              title: controller.selectedGroceryData.value?.name,
               isShadowShow: false,
               buildCustomWidget: () => Obx(()=> controller
                   .selectedGroceriesVariants.isEmpty
@@ -174,14 +174,14 @@ class _GroceryListingScreenState extends State<GroceryListingScreen> {
         itemBuilder: (context, index) {
           return Obx(() => _categoryItem(
                 widget.arrGroceries[index].icon,
-                widget.arrGroceries[index].label,
-                selected: controller.selectedGroceryData.value.tagId ==
-                    widget.arrGroceries[index].tagId,
+                widget.arrGroceries[index].name,
+                selected: controller.selectedGroceryData.value?.slugId ==
+                    widget.arrGroceries[index].slugId,
             onTap: () {
               final selected = widget.arrGroceries[index];
 
               // If same category already selected → DO NOTHING
-              if (controller.selectedGroceryData.value.tagId == selected.tagId) {
+              if (controller.selectedGroceryData.value?.slugId == selected.slugId) {
                 return;
               }
 
@@ -410,7 +410,7 @@ class _GroceryListingScreenState extends State<GroceryListingScreen> {
                                     padding: EdgeInsets.all(SizeConfig.size20),
                                     child: EmptyStateWidget(
                                         message:
-                                            'No ${controller.selectedGroceryData.value.label} found.'))
+                                            'No ${controller.selectedGroceryData.value?.name} found.'))
                     )
                   ],
                 ),

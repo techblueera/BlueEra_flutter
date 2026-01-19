@@ -54,9 +54,8 @@ class _InventoryScreenState extends State<InventoryScreen>
   }
 
   void _initializeData() {
-    // final type = businessTypeGlobal;
-    // // final type = await getBusinessType();
     final business = businessTypeGlobal.toLowerCase();
+    log('business -- $business');
 
     _businessType = business;
     _tabs = [];

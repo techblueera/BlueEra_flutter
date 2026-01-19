@@ -209,4 +209,27 @@ class AuthRepo extends BaseService {
     );
     return response;
   }
+
+  /// Get Business Sub Categories REPO...
+  Future<ResponseModel> getBusinessSubCategoriesRepo({required String tagId}) async {
+    final response = await ApiBaseHelper().getHTTP(getBusinessSubCategory(tagId),
+        showProgress: false, onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+
+  /// Get Business Sub Categories REPO...
+  Future<ResponseModel> getIndividualFieldsRepo({required String tagId}) async {
+    final response = await ApiBaseHelper().getHTTP(getIndividualFields(tagId),
+        showProgress: false, onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+
+  /// Get Business Sub Categories REPO...
+  Future<ResponseModel> fetchBusinessCategoriesByTypeRepo({required String businessType}) async {
+    final response = await ApiBaseHelper().getHTTP(getBusinessCategoryByType(businessType),
+        showProgress: false, onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+
+
 }

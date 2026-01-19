@@ -16,15 +16,19 @@ import 'package:get/get.dart';
 class GstNumberScreen extends StatefulWidget {
   final String accountType;
   final BusinessType businessType;
-  final CategoryData? categoryData;
+  // final CategoryData? categoryData;
+  final String categorySlugId;
+  final String categoryName;
   final SubCategories? subCategory;
 
   GstNumberScreen({
     super.key,
     required this.accountType,
     required this.businessType,
-    this.categoryData,
-    this.subCategory
+    required this.categorySlugId,
+    required this.categoryName,
+    // this.categoryData,
+    required this.subCategory
   });
 
   @override
@@ -41,12 +45,15 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
   initState(){
     super.initState();
     authController.selectedTypeOfBusiness = widget.businessType;
-    if(widget.categoryData!=null && widget.subCategory!=null){
-      authController.selectedCategoryData = widget.categoryData;
-      authController.selectedSubCategoryData = widget.subCategory;
-      log('category --- ${authController.selectedCategoryData?.name}');
-      log('sub category --- ${authController.selectedSubCategoryData?.name}');
-    }
+    authController.selectedCategoryName = widget.categoryName;
+    authController.selectedCategorySlugId = widget.categorySlugId;
+    authController.selectedSubCategoryData = widget.subCategory;
+    log("------------------ SELECTION DATA ------------------");
+    log("Business Type    : ${authController.selectedTypeOfBusiness}");
+    log("Category Name    : ${authController.selectedCategoryName}");
+    log("Category Slug Id  : ${authController.selectedCategorySlugId}");
+    log('sub category Name : ${authController.selectedSubCategoryData?.name}');
+    log('sub category Slug Id : ${authController.selectedSubCategoryData?.sId}');
   }
 
   @override

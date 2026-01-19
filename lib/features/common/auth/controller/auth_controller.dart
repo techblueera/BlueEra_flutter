@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
@@ -14,10 +13,14 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/common/auth/model/business_category_response_model.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/auth/model/guest_res_model.dart';
+import 'package:BlueEra/features/common/auth/model/individual_field_response_model.dart';
 import 'package:BlueEra/features/common/auth/model/individual_profiile_category.dart';
+import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
+import 'package:BlueEra/features/common/auth/model/single_business_category_response.dart';
 import 'package:BlueEra/features/common/auth/model/username_res_model.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
 import 'package:BlueEra/features/common/feed/models/block_user_response.dart';
@@ -36,6 +39,10 @@ class AuthController extends GetxController {
   Rx<ApiResponse> getUserNameCheckResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> deleteUserAccountResponse =
       ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> businessSubCategoryResponse =
+      ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> contentCreatorFieldResponse =
+      ApiResponse.initial('Initial').obs;
   ApiResponse blockUserResponse = ApiResponse.initial('Initial');
   final mobileNumberEditController = TextEditingController(text: '');
   final referralCodeController = TextEditingController();
@@ -47,6 +54,50 @@ class AuthController extends GetxController {
   RxString categorySpecializationText = ''.obs;
 
   RxInt? selectedDay = 0.obs, selectedMonth = 0.obs, selectedYear = 0.obs;
+
+  RxString selectedParentSlug = AppConstants.individual.obs;
+  Rxn<OnBoardingCategoryModel> selectedIndividualOnboardingProfile = Rxn<OnBoardingCategoryModel>();
+  Rxn<OnBoardingCategoryModel> selectedBusinessOnboardingProfile = Rxn<OnBoardingCategoryModel>();
+
+
+  RxBool isAppLoading = false.obs;
+
+  // CategoryData? selectedCategoryData;
+  String? selectedCategorySlugId;
+  String? selectedCategoryName;
+  SubCategories? selectedSubCategoryData;
+  BusinessType? selectedTypeOfBusiness;
+  NatureOfBusiness? selectedNatureOfBusiness;
+  String? selectedNumberOfEmployees;
+  String? selectedNumberOfBranch;
+
+  final List<String> employeeRangeOptions = [
+    "1–10 Employees",
+    "11–50 Employees",
+    "51–100 Employees",
+    "100+ Employees",
+    "200+ Employees",
+    "500+ Employees",
+    "1000+ Employees",
+    "1500+ Employees",
+    "2000+ Employees",
+    "5000+ Employees",
+    "9999+ Employees",
+  ];
+
+  final List<String> branchUnitOptions = [
+    "Single Branch/Unit",
+    "2-5 Branch/Units",
+    "5–10 Branch/Units",
+    "10+ Branch/Units",
+    "15+ Branch/Units",
+    "20+ Branch/Units",
+    "50+ Branch/Units",
+    "100+ Branch/Units",
+    "150+ Branch/Units",
+    "200+ Branch/Units",
+    "500+ Branch/Units",
+  ];
 
   ///SEND OTP...
   Future<void> sendOTP() async {
@@ -274,8 +325,6 @@ class AuthController extends GetxController {
               Get.put(ViewBusinessDetailsController());
           await viewProfileController.viewBusinessProfile();
 
-          // Get.offAll(CreateBusinessAccountStepTwo());
-
           Get.toNamed(RouteHelper.getCreateBusinessAccountNewStepTwoRoute());
 
           clearAllData();
@@ -297,7 +346,6 @@ class AuthController extends GetxController {
   }
 
   List<CategoryData> businessCategories = [];
-  List<SubCategories> businessSubCategoriesList = [];
 
   Future<void> getAllCategories() async {
     try {
@@ -559,15 +607,6 @@ clearSubCategoryData()
     }
   }
 
-  /// New Flow For Categories
-
-  RxBool isAppLoading = false.obs;
-
-  CategoryData? selectedCategoryData;
-  SubCategories? selectedSubCategoryData;
-  BusinessType? selectedTypeOfBusiness;
-  NatureOfBusiness? selectedNatureOfBusiness;
-
   Future<void> loadIndividualAndBusinessCategoryData() async {
     try {
       isAppLoading.value = true;
@@ -738,5 +777,99 @@ clearSubCategoryData()
     }
   }
 
+  RxBool isBusinessSubCategoriesLoading = false.obs;
+  List<SubCategories> businessSubCategoriesList = [];
+  Rxn<String> subCategoryErrorMessage = Rxn<String>();
+  Future<void> fetchBusinessSubCategories({required String categorySlugId}) async {
+    try {
+      isBusinessSubCategoriesLoading.value = true;
+      businessSubCategoriesList.clear();
+      subCategoryErrorMessage.value = null;
+
+      final response = await AuthRepo().getBusinessSubCategoriesRepo(tagId: categorySlugId);
+
+      if (!response.isSuccess) {
+        subCategoryErrorMessage = response.message;
+        commonSnackBar(
+          message: response.message ?? AppStrings.somethingWentWrong,
+        );
+        return;
+      }
+
+      final jsonData = response.response?.data;
+      final businessCategoryModel = SingleBusinessCategoryModelResponse.fromJson(jsonData);
+      businessSubCategoriesList = businessCategoryModel.subCategories ?? [];
+
+      businessSubCategoryResponse.value = ApiResponse.complete(response);
+    } catch (e) {
+      subCategoryErrorMessage.value = e.toString();
+      businessSubCategoryResponse.value = ApiResponse.error('error');
+    }finally{
+      isBusinessSubCategoriesLoading.value = false;
+    }
+  }
+
+  RxBool isBusinessCategoriesLoading = false.obs;
+  List<BusinessCategory> businessCategoriesList = [];
+  Rxn<String> categoryErrorMessage = Rxn<String>();
+  Future<void> fetchBusinessCategoriesByType({required BusinessType businessTpe}) async {
+    try {
+      isBusinessCategoriesLoading.value = true;
+      businessCategoriesList.clear();
+      categoryErrorMessage.value = null;
+
+      final response = await AuthRepo().fetchBusinessCategoriesByTypeRepo(businessType: businessTpe.name);
+
+      if (!response.isSuccess) {
+        subCategoryErrorMessage = response.message;
+        commonSnackBar(
+          message: response.message ?? AppStrings.somethingWentWrong,
+        );
+        return;
+      }
+
+      final jsonData = response.response?.data;
+      final businessCategoryResponseModel = BusinessCategoryResponseModel.fromJson(jsonData);
+      businessCategoriesList = businessCategoryResponseModel.businessCategory ?? [];
+
+      businessCategoryResponse = ApiResponse.complete(response);
+    } catch (e) {
+      categoryErrorMessage.value = e.toString();
+      businessCategoryResponse = ApiResponse.error('error');
+    }finally{
+      isBusinessCategoriesLoading.value = false;
+    }
+  }
+
+
+  RxBool isIndividualFieldLoading = false.obs;
+  RxList<IndividualFields> arrIndividualFields = <IndividualFields>[].obs;
+  RxList<SubCategories> arrIndividualSubCategories = <SubCategories>[].obs;
+  Future<void> fetchIndividualFields({
+    required String tagId
+  }) async {
+    try {
+      isIndividualFieldLoading.value = true;
+      arrIndividualFields.clear();
+      arrIndividualSubCategories.clear();
+
+      final response = await AuthRepo().getIndividualFieldsRepo(
+        tagId: tagId,
+      );
+
+      if (response.isSuccess) {
+        contentCreatorFieldResponse.value = ApiResponse.complete(response);
+        final individualFieldsResponseModel = IndividualFieldsResponseModel.fromJson(response.response?.data);
+        arrIndividualFields.value = individualFieldsResponseModel.data?.fields ?? [];
+      } else {
+        contentCreatorFieldResponse.value = ApiResponse.error('error');
+      }
+    } catch (e, s) {
+      contentCreatorFieldResponse.value = ApiResponse.error('error');
+      print("stack trace: $s");
+    } finally {
+      isIndividualFieldLoading.value = false;
+    }
+  }
 
 }

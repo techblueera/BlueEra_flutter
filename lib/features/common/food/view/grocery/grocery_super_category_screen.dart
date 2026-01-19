@@ -53,16 +53,16 @@ class GrocerySuperCategoryScreen extends StatelessWidget {
 
           return GroceryCategoryItem(
             url: groceryData.icon,
-            label: groceryData.label,
+            label: groceryData.name,
             onTap: () {
               final categoryMap
-                  = getCategoriesByTag(groceryData.tagId);
+                  = getCategoriesByTag(groceryData.slugId);
 
               Get.toNamed(
                 RouteHelper.getGroceryCategoryScreenRoute(),
                 arguments: {
                   ApiKeys.argMyGrocery: isMyGrocery,
-                  ApiKeys.argPageHeading: groceryData.label,
+                  ApiKeys.argPageHeading: groceryData.name,
                   ApiKeys.argArrGroceryCat: categoryMap,
                 },
               );

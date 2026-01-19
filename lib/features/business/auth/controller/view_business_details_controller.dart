@@ -184,14 +184,17 @@ class ViewBusinessDetailsController extends GetxController {
       selectedSubCategoryOfBusinessNew.value = SubCategories(
           sId: businessProfileDetails?.data?.subCategoryDetails?.id,
           name: businessProfileDetails?.data?.subCategoryDetails?.name);
-      selectedBusinessType?.value =
-      businessProfileDetails?.data?.typeOfBusiness == "Product"
+      selectedBusinessType?.value = businessProfileDetails?.data?.typeOfBusiness == "Product"
           ? BusinessType.Product
           : businessProfileDetails?.data?.typeOfBusiness == "Service"
           ? BusinessType.Service
           : businessProfileDetails?.data?.typeOfBusiness == "Food"
           ? BusinessType.Food
-          : BusinessType.Both;
+          : businessProfileDetails?.data?.typeOfBusiness == "Grocery"
+          ? BusinessType.Grocery
+          : businessProfileDetails?.data?.typeOfBusiness == "Manufacturing"
+          ? BusinessType.Manufacturing
+          : BusinessType.Both; // Default fallback
 
       if (businessProfileDetails?.data?.typeOfBusiness ==
           BusinessType.Product.name) {
@@ -241,7 +244,7 @@ class ViewBusinessDetailsController extends GetxController {
       }
       Get.find<AuthController>().imgPath.value =
           businessProfileDetails?.data?.logo ?? "";
-
+      log('business type -- ${businessProfileDetails?.data?.typeOfBusiness}');
       await SharedPreferenceUtils.userLoggedInBusiness(
         profileImage: businessProfileDetails?.data?.logo ?? '',
         businessName: businessProfileDetails?.data?.businessName ?? '',

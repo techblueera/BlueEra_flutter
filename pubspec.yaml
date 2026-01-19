@@ -121,6 +121,8 @@ flutter:
     - assets/category/grocery/stationary/
     - assets/category/hotel_service/
     - assets/category/grocery/menu/
+    - assets/onboarding/individual/
+    - assets/onboarding/business/
 
 
   fonts:

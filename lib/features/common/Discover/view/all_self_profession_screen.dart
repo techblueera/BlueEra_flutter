@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -151,7 +152,7 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
           // --- CASE 1: The "All" Item (Index 0) ---
           if (index == 0) {
             return Obx(() => ServiceCategoryItem(
-              icon: AppIconAssets.electricianIcon,
+              icon: AppImageAssets.all,
               label: "All",
               selected: controller.selectedEarnServiceData.value == null,
               onTap: () {

@@ -1,11 +1,13 @@
+import 'package:BlueEra/core/constants/app_enum.dart';
+
 class CollapsibleGridModel {
-  final String label;
+  final String name;
   final String icon;
-  final String tagId;
+  final String slugId;
 
   const CollapsibleGridModel({
-     required this.label,
+     required this.name,
      required this.icon,
-     required this.tagId
+     required this.slugId
   });
 }
