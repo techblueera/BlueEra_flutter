@@ -93,10 +93,11 @@ class _CreateBusinessAccountNewStepThreeState
     setState(() {
       isFormValid = nameTextController.text.trim().isNotEmpty &&
           yourRoleController.text.trim().isNotEmpty &&
-          viewBusinessDetailsController.businessDescription.value
+          emailTextController.text.trim().isNotEmpty &&
+          viewBusinessDetailsController.listingDescriptionController.value
+              .text
               .trim()
-              .isNotEmpty &&
-          emailTextController.text.trim().isNotEmpty;
+              .isNotEmpty;
     });
   }
 
@@ -185,8 +186,8 @@ class _CreateBusinessAccountNewStepThreeState
                       isValidate: false,
                       maxLength: AppConstants.inputCharterLimit400,
                       onChange: (val) {
-                        viewBusinessDetailsController.businessDescription.value =
-                            val;
+                        viewBusinessDetailsController.businessDescription.value = val;
+                        viewBusinessDetailsController.listingDescriptionController.value.text = val;
                         _validateForm();
                       },
                       inputFormatters: [

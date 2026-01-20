@@ -396,8 +396,8 @@ class RouteHelper {
   static String getRentalServiceFullDetailsScreenRoute() =>
       RouteConstant.rentalServiceFullDetailsScreen;
 
-  static String getCreateNewAccountScreenRoute() =>
-      RouteConstant.createNewAccountScreen;
+  // static String getCreateNewAccountScreenRoute() =>
+  //     RouteConstant.createNewAccountScreen;
 
   static String getCreateBusinessAccountNewStepOneRoute() =>
       RouteConstant.createBusinessAccountNewStepOne;
@@ -1221,11 +1221,11 @@ class RouteHelper {
                 rentalServiceData: rentalServiceData),
             settings:
                 RouteSettings(name: getRentalServiceFullDetailsScreenRoute()));
-      case RouteConstant.createNewAccountScreen:
-        // final args = settings.arguments as Map<String, dynamic>;
-        return MaterialPageRoute(
-            builder: (_) => CreateNewAccountScreen(),
-            settings: RouteSettings(name: getCreateNewAccountScreenRoute()));
+      // case RouteConstant.createNewAccountScreen:
+      //   // final args = settings.arguments as Map<String, dynamic>;
+      //   return MaterialPageRoute(
+      //       builder: (_) => CreateNewAccountScreen(),
+      //       settings: RouteSettings(name: getCreateNewAccountScreenRoute()));
       case RouteConstant.createBusinessAccountNewStepOne:
         return MaterialPageRoute(
             builder: (_) => CreateBusinessAccountNewStepOne(),

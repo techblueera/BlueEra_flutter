@@ -583,6 +583,7 @@ class AppIconAssets {
   static const String warningRedIcon = "${iconPath}warning_red_icon.svg";
   static const String food_category = "${iconPath}food_category.svg";
   static const String boiled = "${iconPath}boiled.svg";
+  static const String locationMarkerIcon = "${iconPath}location_marker_icon.svg";
   static const String occupancy = "assets/category/hotel_service/occupancy.svg";
   static const String bad = "assets/category/hotel_service/bad.svg";
   static const String UPLOAD_DOCUMENT = "assets/category/hotel_service/UPLOAD_DOCUMENT.svg";

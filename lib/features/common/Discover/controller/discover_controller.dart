@@ -26,6 +26,17 @@ enum CategoryFilter {
   const CategoryFilter(this.label);
 }
 
+enum DiscoverFilter {
+  home('Home'),
+  deals('Deals'),
+  events('Events'),
+  careerJobs('Career / Jobs');
+
+  final String label;
+
+  const DiscoverFilter(this.label);
+}
+
 
 class DiscoverController extends GetxController{
   var selfProfessionServiceResponse =
@@ -39,6 +50,9 @@ class DiscoverController extends GetxController{
   final RxBool isHeaderVisible = true.obs;
   final RxDouble headerOffset = 0.0.obs;
   double headerHeight = 0;
+
+  final List<DiscoverFilter> discoverFilters = DiscoverFilter.values;
+  Rx<DiscoverFilter> selectedDiscoverFilter = DiscoverFilter.home.obs;
 
   Rx<IndividualProfileCategory?> selectedEarnServiceData = Rx<IndividualProfileCategory?>(null);
   RxInt selectedTabIndex = 0.obs;

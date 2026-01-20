@@ -632,16 +632,6 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
             },
           );
 
-          // Get.toNamed(
-          //   RouteHelper.getPersonalAccountNewScreenRoute(),
-          //   arguments: {
-          //     ApiKeys.argAccountType: AppConstants.individual,
-          //     ApiKeys.argProfessionTagId: c.professionTagId,
-          //     ApiKeys.argSelfEmployment: c.selfEmployment,
-          //     ApiKeys.argSelfEmploymentTagId: c.selfEmploymentTagId,
-          //   },
-          // );
-
         }
       },
       child: Container(
