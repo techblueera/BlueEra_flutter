@@ -99,7 +99,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       _checkAndShowDialog();
     }
     _checkAndFetchLocationData();
-    _getAllBusinessCategories();
+    // _getAllBusinessCategories();
     _initializeControllers();
     _initializeUserData();
     _initializeSocketConnections();
@@ -153,9 +153,9 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     await LocationService.fetchLocation();
   }
 
-  void _getAllBusinessCategories() {
-    bottomBarController.getAllCategories();
-  }
+  // void _getAllBusinessCategories() {
+  //   bottomBarController.getAllCategories();
+  // }
 
   void _initializeControllers() {
     if (!isGuestUser()) {
