@@ -36,6 +36,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
         actions: [
           InkWell(
             onTap: () {
+
               Get.to(FoodEntryScreen());
             },
             child: Container(
@@ -333,7 +334,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                     final vc = Get.put(GroceryVariantController());
                     vc.clearAllField();
 
-                    showAddVariantSheet();
+                    showVariantBottomSheet();
                   },
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,

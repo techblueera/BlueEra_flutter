@@ -10,4 +10,23 @@ class FoodRepo extends BaseService {
         onError: (error) {}, onSuccess: (data) {});
     return response;
   }
+
+  ///GET FOOD CATEGORY...
+  Future<ResponseModel> getFoodCategoryRepo() async {
+    final response = await ApiBaseHelper().getHTTP("${categoryTree}",
+        onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+
+  Future<ResponseModel> createFoodCategoryRepo({required Map<String, dynamic> params}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      foodProduct,
+      params: params,
+      isMultipart: true,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 }

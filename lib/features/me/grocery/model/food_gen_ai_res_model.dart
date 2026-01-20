@@ -8,21 +8,19 @@ class FoodGenAiResModel {
 
   FoodGenAiResModel.fromJson(dynamic json) {
     success = json['success'];
-    if (json['data'] != null) {
-      data = [];
-      json['data'].forEach((v) {
-        data?.add(FoodGenAiData.fromJson(v));
-      });
-    }
+
+    data = json['data'] != null ? FoodGenAiData.fromJson(json['data']) : null;
+
   }
   bool? success;
-  List<FoodGenAiData>? data;
+  FoodGenAiData? data;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
     map['success'] = success;
+
     if (data != null) {
-      map['data'] = data?.map((v) => v.toJson()).toList();
+      map['data'] = data?.toJson();
     }
     return map;
   }

@@ -264,8 +264,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       key: _scaffoldKey,
       // floatingActionButton:kDebugMode? FloatingActionButton(onPressed: () {
       //   // Get.to(ItemsScreen());
-      //   // Get.to(GroceryCategoryMenuScreen());
-      //   Get.to(HotelMain());
+      //   Get.to(GroceryCategoryMenuScreen());
+      //   // Get.to(HotelMain());
       //   // Get.to(SchoolMain());
       //   // Get.to(RiderProfileStatusScreen());
       // }):null,
