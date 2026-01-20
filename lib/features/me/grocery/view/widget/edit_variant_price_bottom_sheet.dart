@@ -1,3 +1,4 @@
+import 'package:BlueEra/features/me/grocery/controller/food_service_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_variant_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -9,7 +10,7 @@ import 'package:BlueEra/features/me/grocery/model/dummy_category_product_res_mod
 
 void showEditVariantPriceSheet(Variants vData) {
   // Use Get.put but don't delete it manually in a .then() block
-  final vc = Get.find<GroceryVariantController>();
+  final vc = Get.find<FoodServiceController>();
   vc.mrpController.text = vData.mrp.toString();
   vc.priceController.text = vData.price.toString();
   vc.validateVariantPrice();

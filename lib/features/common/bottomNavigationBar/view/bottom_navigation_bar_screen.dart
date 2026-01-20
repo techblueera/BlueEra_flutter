@@ -20,10 +20,11 @@ import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/more/controller/more_cards_screen_controller.dart';
 import 'package:BlueEra/features/common/reel/models/channel_model.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
-import 'package:BlueEra/features/common/store/view/new_store/new_store_screen2.dart';
 import 'package:BlueEra/features/me/grocery/view/grocery_category_screen.dart';
 import 'package:BlueEra/features/me/hotel/view/hotel_main.dart';
+import 'package:BlueEra/features/me/others/others_main.dart';
 import 'package:BlueEra/features/me/school/view/school_main.dart';
+import 'package:BlueEra/features/me/other_business_services/view/timing_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/rider_service_screen.dart';
@@ -264,6 +265,9 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       key: _scaffoldKey,
       // floatingActionButton:kDebugMode? FloatingActionButton(onPressed: () {
       //   // Get.to(ItemsScreen());
+      //   // Get.to(BusinessDetailsScreen());
+      //   Get.to(() => OthersMain());
+      //   // Get.to(() => TimingScreen());
       //   Get.to(GroceryCategoryMenuScreen());
       //   // Get.to(HotelMain());
       //   // Get.to(SchoolMain());
@@ -374,7 +378,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   }
 
   Widget resolveBusinessScreen() {
-    log('Resolving Screen... Type: $businessTypeGlobal | Category: $businessCategoryGlobal');
+    log('Resolving Screen... Type: $businessTypeGlobal | Category:');
 
     // 1. First, check if it is a Food business
     if (businessTypeGlobal.toUpperCase() == BusinessType.Food.name.toUpperCase()) {
@@ -392,7 +396,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     } else if (businessTypeGlobal.toUpperCase() ==
         BusinessType.Service.name.toUpperCase()) {
       return const InventoryScreen(fromBottomNavBar: true);
-    } else{
+    }
+   else{
       // 3. If it is NOT Food (e.g., Product, Service, etc.)
       return const InventoryScreen(fromBottomNavBar: true);
     }

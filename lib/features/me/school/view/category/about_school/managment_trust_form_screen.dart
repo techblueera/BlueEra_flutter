@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
+import 'package:BlueEra/features/me/school/view/common_ai_genereted_button.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
@@ -163,10 +164,32 @@ class _ManagementTrustFormScreenState extends State<ManagementTrustFormScreen> {
                   onChange: (_) => _runValidation(),
                 ),
                 SizedBox(height: SizeConfig.paddingM),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    CustomText("Our Vision & Mission",
+                        fontWeight: FontWeight.bold),
+                    // The Reusable AI Widget
+                    AIGeneratorButton(
+                      type: "Management,Trust",
+                      data: {
+                        "name":nameEditController.text,
+                        "profession":professionEditController.text,
+                        "qualification": schoolAboutUsController.qualifications.join(","),
+                      },
+                      onSelected: (generatedText) {
+                        schoolAboutUsController.managementDescriptionText.value =
+                            generatedText;
+                        messageEditController.text = generatedText;
+                        _runValidation();
 
+                      },
+                    ),
+                  ],
+                ),
                 CommonTextField(
                   textEditController: messageEditController,
-                  title: AppStrings.message,
+                  title:"",
                   hintText:
                       "Hello Everyone @India User Now I am Using https://blueera.ai It’s Amazing, I suggest to Join Me.",
                   maxLine: 5,

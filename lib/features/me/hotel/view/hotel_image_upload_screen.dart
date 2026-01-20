@@ -1,9 +1,12 @@
 import 'dart:io';
+import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
 import 'package:BlueEra/features/me/hotel/controller/room_detail_controller.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/progrss_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -79,8 +82,8 @@ class HotelImageUploadScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(title, style: TextStyle(fontWeight: FontWeight.w500)),
-              Text("Min-2 Images",
-                  style: TextStyle(color: Colors.grey, fontSize: 12)),
+              CustomText("Min-2 Images",
+               color: AppColors.secondaryTextColor, fontSize: SizeConfig.size12),
             ],
           ),
           SizedBox(height: 12),

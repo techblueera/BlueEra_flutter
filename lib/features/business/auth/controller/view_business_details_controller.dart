@@ -257,6 +257,7 @@ class ViewBusinessDetailsController extends GetxController {
         categoryOfBusiness: businessProfileDetails?.data?.categoryDetails?.name ?? '',
         subCategoryOfBusiness: businessProfileDetails?.data?.subCategoryDetails?.name ?? '',
         typeOfBusiness: businessProfileDetails?.data?.typeOfBusiness ?? '',
+        // typeOfBusiness: businessProfileDetails?.data?.typeOfBusiness ?? '',
       );
 
       await getUserLoginData();

@@ -42,7 +42,7 @@ class MeMenuCardDesign extends StatelessWidget {
         children: [
           Row(
             children: [
-              // LocalAssets(imagePath: icon),
+              if (icon.isNotEmpty) LocalAssets(imagePath: icon),
               SizedBox(width: SizeConfig.size12),
               CustomText(
                 title,
@@ -51,7 +51,6 @@ class MeMenuCardDesign extends StatelessWidget {
               ),
             ],
           ),
-
           if (showCount ?? false)
             SizedBox(
               width: 25,
@@ -68,7 +67,6 @@ class MeMenuCardDesign extends StatelessWidget {
                 ),
               ),
             ),
-
           if (showToggleButton ?? false)
             CustomToggleSwitch(
               isOn: isToggleOn ?? false,
@@ -83,8 +81,8 @@ class MeMenuCardDesign extends StatelessWidget {
 class CustomToggleSwitch extends StatelessWidget {
   const CustomToggleSwitch({
     super.key,
-     this.isOn,
-     this.onChanged,
+    this.isOn,
+    this.onChanged,
   });
 
   final bool? isOn;
@@ -103,11 +101,12 @@ class CustomToggleSwitch extends StatelessWidget {
         padding: const EdgeInsets.all(2),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
-          color: (isOn??false) ? Colors.green : Colors.grey.shade400,
+          color: (isOn ?? false) ? Colors.green : Colors.grey.shade400,
         ),
         child: AnimatedAlign(
           duration: const Duration(milliseconds: 200),
-          alignment: (isOn??false) ? Alignment.centerRight : Alignment.centerLeft,
+          alignment:
+              (isOn ?? false) ? Alignment.centerRight : Alignment.centerLeft,
           child: Container(
             width: 18,
             height: 18,

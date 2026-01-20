@@ -35,16 +35,16 @@ class _GroceryCategoryMenuScreenState extends State<GroceryCategoryMenuScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(
-        title: 'Add Products',
-      ),
+      // appBar: CommonBackAppBar(
+      //   title: 'Add Products',
+      // ),
       body: SafeArea(
         child: Obx(() {
           if (foodServiceController.getFoodCategoryResponse.value.status ==
               Status.COMPLETE) {
             if (foodServiceController.foodSubCateList.isNotEmpty) {
               return Padding(
-                padding: EdgeInsets.only(bottom: 50.0),
+                padding: EdgeInsets.only(bottom: 80.0),
                 child: ListView.builder(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -84,7 +84,7 @@ class _GroceryCategoryMenuScreenState extends State<GroceryCategoryMenuScreen> {
                           onTap: () {
                             foodServiceController.selectedFoodTypeID.value= item.id??"";
                             // Action for item tap
-                            Get.to(ProductSelectionScreen());
+                            Get.to(ProductSelectionScreen(foodCategoryData: item,));
                           },
                         ),
                       ),

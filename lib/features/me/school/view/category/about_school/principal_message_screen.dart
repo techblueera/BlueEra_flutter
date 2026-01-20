@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
+import 'package:BlueEra/features/me/school/view/common_ai_genereted_button.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -35,12 +36,14 @@ class _PrincipalMessageScreenState extends State<PrincipalMessageScreen> {
     // Listen for data load
     once(schoolAboutUsController.aboutUsData!, (AboutUsData? data) {
       if (data != null) {
-        schoolAboutUsController.directorProfile.value = data.principalMessage?.photo??"";
+        schoolAboutUsController.directorProfile.value =
+            data.principalMessage?.photo ?? "";
 
         // Set Initial Values for Comparison
         schoolAboutUsController.initialDirectText =
             data.principalMessage?.message ?? "";
-        schoolAboutUsController.initialDirectImageUrl =  data.principalMessage?.photo??"";
+        schoolAboutUsController.initialDirectImageUrl =
+            data.principalMessage?.photo ?? "";
         // Populate UI
         descriptionEditController.text = data.principalMessage?.message ?? "";
         schoolAboutUsController.directorMessageText.value =
@@ -92,9 +95,50 @@ class _PrincipalMessageScreenState extends State<PrincipalMessageScreen> {
                     _buildImageSection(),
 
                     SizedBox(height: SizeConfig.size20),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            CustomText("Principal / Director Message",
+                                fontWeight: FontWeight.bold),
+                            // The Reusable AI Widget
+                            AIGeneratorButton(
+                              type: "Principal Director Message",
+                              data: {},
+                              onSelected: (generatedText) {
+                                descriptionEditController.text = generatedText;
+                                schoolAboutUsController
+                                    .directorMessageText.value = generatedText;
+                                _runValidation();
+                              },
+                            ),
+                          ],
+                        ),
+                        CommonTextField(
+                          textEditController: descriptionEditController,
+                          title: "",
+                          // Title moved to Row for AI button alignment
+                          hintText: "Enter description...",
+                          maxLine: 5,
+                          maxLength: 1500,
+                          isValidate: false,
+                          keyBoardType: TextInputType.multiline,
+                          textInputAction: TextInputAction.newline,
+                          onChange: (value) {
+                            String newVal =
+                                value.replaceAll(RegExp(r'\n{3,}'), '\n\n');
+                            schoolAboutUsController.directorMessageText.value =
+                                newVal;
+                            _runValidation();
+                          },
+                        ),
+                      ],
+                    ),
 
                     /// Apply Button
-                    CommonTextField(
+                    /*     CommonTextField(
                       textEditController: descriptionEditController,
                       title: "Principal / Director Message",
                       hintText:
@@ -111,7 +155,7 @@ class _PrincipalMessageScreenState extends State<PrincipalMessageScreen> {
                             newVal;
                         _runValidation();
                       },
-                    ),
+                    ),*/
                     Align(
                       alignment: Alignment.centerRight,
                       child: Obx(() => CustomText(
@@ -125,7 +169,7 @@ class _PrincipalMessageScreenState extends State<PrincipalMessageScreen> {
                           onTap: schoolAboutUsController.isFormValid.value
                               ? () async {
                                   await schoolAboutUsController
-                                      . updateDirectMessageController();
+                                      .updateDirectMessageController();
                                 }
                               : null,
                           title: AppStrings.submit,
@@ -142,23 +186,22 @@ class _PrincipalMessageScreenState extends State<PrincipalMessageScreen> {
     );
   }
 
-
-
   Widget _buildImageSection() {
     // If user picked a NEW local file
     if (schoolAboutUsController.directorMessageImageFile.value != null) {
       return CommonProfileImageUpload(
         imageFile: schoolAboutUsController.directorMessageImageFile,
-        imgUrl: schoolAboutUsController.aboutUsData?.value.principalMessage?.photo ?? "",
+        imgUrl: schoolAboutUsController
+                .aboutUsData?.value.principalMessage?.photo ??
+            "",
         onImageRemove: () {
           schoolAboutUsController.directorMessageImageFile.value = null;
           schoolAboutUsController.directorProfile.value =
               schoolAboutUsController.directorMessageImageFile.value?.path ??
                   "";
           _runValidation();
-        },onImageSelected: (){
-
-      },
+        },
+        onImageSelected: () {},
         title: '',
         context: context,
       );
@@ -169,7 +212,9 @@ class _PrincipalMessageScreenState extends State<PrincipalMessageScreen> {
     return CommonProfileImageUpload(
       title: "Upload Photo",
       context: context,
-      imgUrl: schoolAboutUsController.aboutUsData?.value.principalMessage?.photo ?? "",
+      imgUrl:
+          schoolAboutUsController.aboutUsData?.value.principalMessage?.photo ??
+              "",
       onImageSelected: () async {
         final path = await CommonProfileImageUpload.pickImage(context: context);
         if (path != null) {
@@ -256,7 +301,6 @@ class _PrincipalMessageScreenState extends State<PrincipalMessageScreen> {
   void _runValidation() {
     schoolAboutUsController.noticesNewsValidateForm(
         noticeDescription: descriptionEditController.text,
-        uploadPhoto:
-        schoolAboutUsController.directorProfile.value);
+        uploadPhoto: schoolAboutUsController.directorProfile.value);
   }
 }

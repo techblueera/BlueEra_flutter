@@ -25,7 +25,7 @@ class _OthersMainState extends State<OthersMain>
 
   @override
   void initState() {
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
 
     super.initState();
   }
@@ -45,43 +45,43 @@ class _OthersMainState extends State<OthersMain>
               SizedBox(
                 height: SizeConfig.size12,
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 26.0, vertical: 10),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: CommonSearchBar(
-                          controller: TextEditingController(),
-                          isShowCursor: false,
-                          onSearchTap: () {},
-                          onClearCallback: () {},
-                          hintText: "Search Products..."),
-                    ),
-                    SizedBox(
-                      width: SizeConfig.size12,
-                    ),
-                    InkWell(
-                      onTap: () {
-                        Get.to(() => AddOthersServices());
-                      },
-                      child: Container(
-                        height: SizeConfig.size40,
-                        width: SizeConfig.size40,
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(8),
-                            color: AppColors.primaryColor),
-                        child: Center(
-                          child: Icon(
-                            Icons.add,
-                            size: 28,
-                            color: AppColors.white,
-                          ),
-                        ),
-                      ),
-                    )
-                  ],
-                ),
-              ),
+              // Padding(
+              //   padding: const EdgeInsets.symmetric(horizontal: 26.0, vertical: 10),
+              //   child: Row(
+              //     children: [
+              //       Expanded(
+              //         child: CommonSearchBar(
+              //             controller: TextEditingController(),
+              //             isShowCursor: false,
+              //             onSearchTap: () {},
+              //             onClearCallback: () {},
+              //             hintText: "Search Products..."),
+              //       ),
+              //       SizedBox(
+              //         width: SizeConfig.size12,
+              //       ),
+              //       InkWell(
+              //         onTap: () {
+              //           Get.to(() => AddOthersServices());
+              //         },
+              //         child: Container(
+              //           height: SizeConfig.size40,
+              //           width: SizeConfig.size40,
+              //           decoration: BoxDecoration(
+              //               borderRadius: BorderRadius.circular(8),
+              //               color: AppColors.primaryColor),
+              //           child: Center(
+              //             child: Icon(
+              //               Icons.add,
+              //               size: 28,
+              //               color: AppColors.white,
+              //             ),
+              //           ),
+              //         ),
+              //       )
+              //     ],
+              //   ),
+              // ),
               TabBar(
                 controller: _tabController,
                 labelColor: AppColors.primaryColor,
@@ -93,6 +93,7 @@ class _OthersMainState extends State<OthersMain>
                 labelStyle: const TextStyle(fontWeight: FontWeight.w600),
                 tabs: [
                   Tab(text: "Others"),
+                  Tab(text: "Update"),
                   Tab(text: "Statics"),
                 ],
               ),
@@ -105,6 +106,7 @@ class _OthersMainState extends State<OthersMain>
                           imagePath: AppImageAssets.noMeContent,
                         ),
                       ),
+                      AddOthersServices(),
                       const Center(child: CustomText(AppStrings.comingSoon)),
                     ],
                   ))

@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
+import 'package:BlueEra/features/me/grocery/controller/food_service_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_variant_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/food_gen_ai_res_model.dart';
 import 'package:BlueEra/features/me/grocery/view/widget/add_variant_bottom_sheet.dart';
@@ -31,7 +32,7 @@ class FoodDetailScreen extends StatefulWidget {
 
 class _FoodDetailScreenState extends State<FoodDetailScreen> {
   FoodGenAiData product = FoodGenAiData();
-  final vc = Get.put(GroceryVariantController());
+  final vc = Get.find<FoodServiceController>();
 
   @override
   void initState() {

@@ -42,7 +42,7 @@ class HotelAmenityController extends GetxController {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }
     } catch (e) {
-      Get.snackbar("Error", "Failed to load amenities");
+      commonSnackBar(message:"Error Failed to load amenities");
     } finally {
       isLoading(false);
     }
@@ -59,7 +59,7 @@ class HotelAmenityController extends GetxController {
     } catch (e) {
       // Revert if API fails
       hotelAmenityStatus[key] = !value;
-      Get.snackbar("Error", "Update failed");
+      commonSnackBar(message:"Error Update failed");
     }
   }
 
@@ -67,7 +67,7 @@ class HotelAmenityController extends GetxController {
   submitAPI() async {
     try {
       Map<String, dynamic> requestBody = {
-        "roomId": "696865c8e7a5527686fedfc4",
+        "roomId": "",
         ...hotelAmenityStatus.value,
       };
       ResponseModel response =
