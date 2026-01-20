@@ -561,11 +561,14 @@ class OrderCard extends StatelessWidget {
         SizedBox(width: SizeConfig.size6),
         _buildActionButton(
           onTap: () {
-            Get.to(DeliveryPickupShopsList(
-              order: order,
-              orderId: order.orderId??'', rideOrderId: order.id??'',));
-            // _handleAcceptOrder(controller);
-          },
+            if(order.orderFor?.toLowerCase()==AppConstants.grocery){
+              Get.to(DeliveryPickupShopsList(
+                order: order,
+                orderId: order.orderId??'', rideOrderId: order.id??'',));
+            }else if(order.orderFor?.toLowerCase()==AppConstants.product){
+              _handleAcceptOrder(controller);
+            }
+           },
           text: AppStrings.accept,
           bgColor: AppColors.green0B.withValues(alpha: 0.1),
           borderColor: AppColors.green0B,

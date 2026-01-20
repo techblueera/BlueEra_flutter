@@ -400,7 +400,9 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         return const SchoolMain();
       }else if (businessCategoryGlobal == AppConstants.hostelsStayService) {
         return const HotelMain();
-      } else {
+      } else if(businessCategoryGlobal == AppConstants.healthcareMedicalServices) {
+        return const HospitalMain();
+      }else{
         return const InventoryScreen(fromBottomNavBar: true);
       }
     } else if (businessCategoryGlobal == AppConstants.hostelsStayService) {

@@ -371,8 +371,6 @@ class ChatViewController extends GetxController {
       //   }
       // });
       chatSocket.listenEvent(ChatEmitEvents.isOnlineFromChatList, (data) {
-        log("isOnlineFromChatList: $data");
-
         final List<Map<String, dynamic>> datas =
         List<Map<String, dynamic>>.from(data);
 

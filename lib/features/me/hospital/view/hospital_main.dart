@@ -19,6 +19,7 @@ import '../../../../core/constants/getx_utils.dart';
 import '../../../../widgets/common_search_bar.dart';
 import '../../medical/view/widget/otc_items.dart';
 import '../controller/hospital_model_controller.dart';
+import 'category/hospital_home_page.dart';
 
 
 class HospitalMain extends StatefulWidget {
@@ -129,8 +130,8 @@ class _HospitalMainState extends State<HospitalMain>
               Expanded(child: TabBarView(
                 controller: _tabController,
                 children: [
-                  HospitalPreviewScreen(),
-                  // NoProfileDetailsFound(content: "You Have not Upload Hospital Details"),
+                  // HospitalPreviewScreen(),
+                  HospitalHomePage(),
                   CategoryListView(),
                   const Center(child: CustomText(AppStrings.comingSoon)),
                 ],

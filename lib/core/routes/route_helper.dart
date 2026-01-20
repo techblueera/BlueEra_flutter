@@ -119,6 +119,7 @@ import '../../features/common/food/model/my_grocery_products_reponse.dart';
 import '../../features/common/food/view/grocery/my_grocery_listing/my_grocery_variant_screen.dart';
 import '../../features/common/store/add_update_product/add_update_product_screen.dart';
 import '../../features/common/store/models/get_channel_product_model.dart';
+import '../../features/me/hospital/view/category/ipd_in_patient_department_page.dart';
 import '../../features/me/hospital/view/category/opd_out_patient_page.dart';
 import '../../features/me/hospital/view/widget/general_medicine.dart';
 import '../../features/me/medical/model/medical_lab_details.dart';
@@ -461,6 +462,8 @@ class RouteHelper {
       RouteConstant.hospitalOptCategory;
   static String getHospitalDoctorViewCategory() =>
       RouteConstant.hospitalDoctorViewCategory;
+  static String getHospitalWardViewCategory() =>
+      RouteConstant.hospitalWardViewCategory;
 
   static String getRiderStoreScreenRoute() =>
       RouteConstant.riderStoreScreen;
@@ -1441,8 +1444,10 @@ class RouteHelper {
         final args = settings.arguments as Map<String, dynamic>;
         String categoryId= args[ApiKeys.categoryId] as String;
         String title= args[ApiKeys.title] as String;
+        String type= args[ApiKeys.type] as String;
         return MaterialPageRoute(
             builder: (_) => OpdOutPatientPage(
+              type: type,
               title: title,
               categoryId: categoryId,
 
@@ -1450,13 +1455,28 @@ class RouteHelper {
             settings: RouteSettings(name: getHospitalOptCategory())
         );
       case RouteConstant.hospitalDoctorViewCategory:
-        // final args = settings.arguments as Map<String, dynamic>;
+        final args = settings.arguments as Map<String, dynamic>;
         // List<MedicalLabDataListModel>? children=args[ApiKeys.medicalOtcChildren] as List<MedicalLabDataListModel>?;
-        // String categoryId= args[ApiKeys.categoryId] as String;
+        String categoryId= args[ApiKeys.categoryId] as String;
+        String title= args[ApiKeys.title] as String;
         return MaterialPageRoute(
             builder: (_) => DoctorListView(
+              title: title,
+              documentId: categoryId,
             ),
             settings: RouteSettings(name: getHospitalDoctorViewCategory())
+        );
+      case RouteConstant.hospitalWardViewCategory:
+        final args = settings.arguments as Map<String, dynamic>;
+        // List<MedicalLabDataListModel>? children=args[ApiKeys.medicalOtcChildren] as List<MedicalLabDataListModel>?;
+        String categoryId= args[ApiKeys.categoryId] as String;
+        String title= args[ApiKeys.title] as String;
+        return MaterialPageRoute(
+            builder: (_) => IpdInPatientWardViewPage(
+              title: title,
+              documentId: categoryId,
+            ),
+            settings: RouteSettings(name: getHospitalWardViewCategory())
         );
       case RouteConstant.addSelfServiceScreen:
       final args = settings.arguments as Map<String, dynamic>;
