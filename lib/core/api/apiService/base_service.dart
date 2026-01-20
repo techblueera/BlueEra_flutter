@@ -630,5 +630,7 @@ abstract class BaseService {
   final String hotelHomeFull = 'hotel-service/api/hotels/full';
   final String foodCategory = 'food-service/api/categories';
   final String foodProduct= 'food-service/api/foodProduct';
+  final String generateAIDescription= 'ai-service/api/ai-description/generate-description';
+  final String foodServiceProduct= 'food-service/api/foodProduct?page=1&limit=10&';
 
 }

@@ -3,6 +3,7 @@ import 'package:BlueEra/core/api/model/school_about_us_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
+import 'package:BlueEra/features/me/school/view/common_ai_genereted_button.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -74,9 +75,29 @@ class _VisionAndMissionState extends State<VisionAndMission> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          CustomText("Our Vision & Mission",
+                              fontWeight: FontWeight.bold),
+                          // The Reusable AI Widget
+                          AIGeneratorButton(
+                            type: "Our Vision & Mission",
+                            data: {
+                              "for":"education"
+                            },
+                            onSelected: (generatedText) {
+                              schoolAboutUsController
+                                  .visionMissionText.value = generatedText;
+                              visionMissionEditController.text = generatedText;
+
+                            },
+                          ),
+                        ],
+                      ),
                       CommonTextField(
                         textEditController: visionMissionEditController,
-                        title: "Our Vision & Mission",
+                        title: "",
                         hintText: "Enter your vision and mission...",
                         maxLine: 5,
                         maxLength: 1000,

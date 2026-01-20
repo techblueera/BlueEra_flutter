@@ -1,3 +1,4 @@
+import 'package:BlueEra/features/me/grocery/controller/food_service_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_variant_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -7,7 +8,7 @@ import 'package:get/get.dart';
 
 void showAddVariantSheet() {
   // Use Get.put but don't delete it manually in a .then() block
-  final vc = Get.find<GroceryVariantController>();
+  final vc = Get.find<FoodServiceController>();
 
   Get.bottomSheet(
     isScrollControlled: true,
@@ -120,7 +121,7 @@ void showAddVariantSheet() {
 }
 
 void showVariantBottomSheet() {
-  final vc = Get.find<GroceryVariantController>();
+  final vc = Get.find<FoodServiceController>();
 
   Get.bottomSheet(
     isScrollControlled: true,

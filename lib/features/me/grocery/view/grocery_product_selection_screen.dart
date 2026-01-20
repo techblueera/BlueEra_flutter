@@ -1,6 +1,8 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/features/me/grocery/controller/food_service_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_variant_controller.dart';
+import 'package:BlueEra/features/me/grocery/model/category_food_product_res_model.dart';
 import 'package:BlueEra/features/me/grocery/model/dummy_category_product_res_model.dart';
 import 'package:BlueEra/features/me/grocery/view/food_entry_ai_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/widget/add_variant_bottom_sheet.dart';
@@ -12,16 +14,30 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../../../common/food/model/food_category_res_model.dart';
 
 import '../controller/product_controller.dart';
 
 class ProductSelectionScreen extends StatefulWidget {
+  final FoodCategoryData foodCategoryData;
+
+  ProductSelectionScreen({super.key, required this.foodCategoryData});
+
   @override
   State<ProductSelectionScreen> createState() => _ProductSelectionScreenState();
 }
 
 class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
-  final ProductController controller = Get.put(ProductController());
+  final controller = Get.find<FoodServiceController>();
+
+  @override
+  void initState() {
+    controller.selectedCategoryId.value=widget.foodCategoryData.children?.firstOrNull?.id ?? "";
+    // TODO: implement initState...
+    controller.getFoodByCategoryIDController(
+        categoryId: widget.foodCategoryData.children?.firstOrNull?.id ?? "");
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,8 +52,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
         actions: [
           InkWell(
             onTap: () {
-
-              Get.to(FoodEntryScreen());
+              Get.to(FoodEntryScreen(foodCategoryData: widget.foodCategoryData,));
             },
             child: Container(
               margin: EdgeInsets.only(right: 15),
@@ -74,55 +89,57 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
               color: Colors.white,
               border: Border(right: BorderSide(color: Colors.grey.shade200)),
             ),
-            child: Obx(() => ListView.builder(
-                  itemCount: controller.categories.length,
-                  itemBuilder: (context, index) {
-                    final cat = controller.categories[index];
-                    bool isSelected =
-                        controller.selectedCategoryId.value == cat.id;
-                    return GestureDetector(
-                      onTap: () {
-                        controller.changeCategory(cat.id ?? "");
-                        setState(() {});
-                      },
-                      child: Container(
-                        color: isSelected
-                            ? Colors.blue.withOpacity(0.1)
-                            : Colors.transparent,
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 16, horizontal: 8),
-                        child: Column(
-                          children: [
-                            CircleAvatar(
-                              radius: 25,
-                              backgroundColor: Colors.blue.shade50,
-                              backgroundImage:
-                                  CachedNetworkImageProvider(cat.image ?? ""),
-                            ),
-                            const SizedBox(height: 8),
-                            CustomText(
-                              cat.name,
-                              fontSize: 12,
-                              textAlign: TextAlign.center,
-                              color: isSelected
-                                  ? Colors.blue
-                                  : AppColors.secondaryTextColor,
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
+            child: ListView.builder(
+              itemCount: widget.foodCategoryData.children?.length,
+              itemBuilder: (context, index) {
+                final cat = widget.foodCategoryData.children?[index];
+                bool isSelected =
+                    controller.selectedCategoryId.value == cat?.id;
+                return GestureDetector(
+                  onTap: () {
+                    controller.changeCategory(cat?.id ?? "");
+                    controller.getFoodByCategoryIDController(
+                        categoryId: cat?.id ?? "");
+                    setState(() {});
                   },
-                )),
+                  child: Container(
+                    color: isSelected
+                        ? Colors.blue.withOpacity(0.1)
+                        : Colors.transparent,
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+                    child: Column(
+                      children: [
+                        CircleAvatar(
+                          radius: 25,
+                          backgroundColor: Colors.blue.shade50,
+                          backgroundImage: CachedNetworkImageProvider(""),
+                        ),
+                        const SizedBox(height: 8),
+                        CustomText(
+                          cat?.name,
+                          fontSize: 12,
+                          textAlign: TextAlign.center,
+                          color: isSelected
+                              ? Colors.blue
+                              : AppColors.secondaryTextColor,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
           ),
 
           // 2. Right Side: Product List
           Expanded(
             child: Obx(() => ListView.builder(
                   padding: const EdgeInsets.all(12),
-                  itemCount: controller.filteredProducts.length,
+                  itemCount: controller.categoryFoodProductDataList.length,
                   itemBuilder: (context, index) {
-                    final product = controller.filteredProducts[index];
+                    final product =
+                        controller.categoryFoodProductDataList[index];
                     return _buildProductCard(context, product);
                   },
                 )),
@@ -132,7 +149,8 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
     );
   }
 
-  Widget _buildProductCard(BuildContext context, DummyProducts product) {
+  Widget _buildProductCard(
+      BuildContext context, CategoryFoodProductData product) {
     return Card(
       elevation: 0,
       margin: const EdgeInsets.only(bottom: 10),
@@ -147,10 +165,13 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: CachedNetworkImage(
-                    imageUrl: product.imageUrl ?? "",
+                    imageUrl: product.images?.firstOrNull ?? "",
                     width: 100,
                     height: 100,
                     fit: BoxFit.cover,
+                    errorWidget: (context, url, error) => Center(
+                      child: LocalAssets(imagePath: AppIconAssets.foodIcon),
+                    ),
                     placeholder: (context, url) =>
                         Container(color: Colors.grey[200]),
                   ),
@@ -167,7 +188,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                         overflow: TextOverflow.ellipsis,
                       ),
                       CustomText(
-                        product.description,
+                        product.dietaryType,
                         fontSize: 12,
                         color: AppColors.secondaryTextColor,
                         maxLines: 2,
@@ -178,12 +199,14 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                         children: [
                           LocalAssets(
                             imagePath: AppIconAssets.food_category,
-                            imgColor: (product.isVeg ?? false)
-                                ? Color(0xff008000)
-                                : AppColors.red00,
+                            imgColor:
+                                product.dietaryType?.toLowerCase() == "non-veg"
+                                    ? AppColors.red00
+                                    : Color(0xff008000),
                           ),
                           const SizedBox(width: 5),
-                          _tagWidget((product.tag ?? ""), Colors.grey),
+                          _tagWidget(
+                              (product.cookingMethod ?? ""), Colors.grey),
                         ],
                       ),
                     ],
@@ -198,7 +221,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                 TextButton(
                   onPressed: () => _showVariantSheet(context, product),
                   child: CustomText(
-                    "${product.variants?.length} Variants",
+                    "0 Variants",
                     color: AppColors.primaryColor,
                     fontWeight: FontWeight.bold,
                   ),
@@ -235,7 +258,8 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
   }
 
   // 3. Bottom Sheet Implementation
-  void _showVariantSheet(BuildContext context, DummyProducts product) {
+  void _showVariantSheet(
+      BuildContext context, CategoryFoodProductData product) {
     Get.bottomSheet(
       SafeArea(
         child: Container(
@@ -264,7 +288,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: CachedNetworkImage(
-                      imageUrl: product.imageUrl ?? "",
+                      imageUrl: product.images?.first ?? "",
                       width: 100,
                       height: 100,
                       fit: BoxFit.cover,
@@ -284,7 +308,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                           overflow: TextOverflow.ellipsis,
                         ),
                         CustomText(
-                          product.description,
+                          product.dietaryType,
                           fontSize: 12,
                           color: AppColors.secondaryTextColor,
                           maxLines: 2,
@@ -295,12 +319,11 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                           children: [
                             LocalAssets(
                               imagePath: AppIconAssets.food_category,
-                              imgColor: (product.isVeg ?? false)
-                                  ? Color(0xff008000)
-                                  : AppColors.red00,
+                              imgColor:
+                                  (false) ? Color(0xff008000) : AppColors.red00,
                             ),
                             const SizedBox(width: 5),
-                            _tagWidget((product.tag ?? ""), Colors.grey),
+                            _tagWidget((""), Colors.grey),
                           ],
                         ),
                       ],
@@ -310,7 +333,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
               ),
 
               const Divider(),
-              ...product.variants
+              /*  ...product.variants
                       ?.map((v) => ListTile(
                             title: CustomText(v.name, fontSize: 15),
                             subtitle: CustomText("${v.weight} | ₹${v.price}"),
@@ -326,12 +349,13 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                                     const Icon(Icons.edit_outlined, size: 20)),
                           ))
                       .toList() ??
-                  [],
+                  [],*/
               // const SizedBox(height: 20),
               InkWell(
                   onTap: () {
                     Get.back();
-                    final vc = Get.put(GroceryVariantController());
+
+                    final vc = Get.find<FoodServiceController>();
                     vc.clearAllField();
 
                     showVariantBottomSheet();

@@ -55,15 +55,6 @@ class HotelDetailController extends GetxController {
         ResponseModel response = await HotelServiceRepo()
             .updateHotelProfileRepo(reqBODY: {
           uploadVia: result.url,
-          // "name": "Space X Hotel",
-          // "description": "A hotel is a commercial establishment offering paid, short-term lodging with amenities like beds, bathrooms, and often food, services (room service, laundry), and facilities (pools, gyms, meeting rooms), varying from budget to luxury and classified by star ratings or type (boutique, resort, extended-stay) to indicate expected quality and offerings for travelers.",
-          // "location": {
-          //   "name": "Saputara",
-          //   "type": "Point",
-          //   "coordinates": [
-          //     20.57669291042334, 73.7400462812614
-          //   ]
-          // },
           "name": hotelData.value?.profile?.name
         });
         if (response.isSuccess) {

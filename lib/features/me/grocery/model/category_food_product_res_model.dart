@@ -1,0 +1,201 @@
+import 'dart:convert';
+CategoryFoodProductResModel categoryFoodProductResModelFromJson(String str) => CategoryFoodProductResModel.fromJson(json.decode(str));
+String categoryFoodProductResModelToJson(CategoryFoodProductResModel data) => json.encode(data.toJson());
+class CategoryFoodProductResModel {
+  CategoryFoodProductResModel({
+      this.success, 
+      this.count, 
+      this.totalPages, 
+      this.currentPage, 
+      this.data,});
+
+  CategoryFoodProductResModel.fromJson(dynamic json) {
+    success = json['success'];
+    count = json['count'];
+    totalPages = json['totalPages'];
+    currentPage = json['currentPage'];
+    if (json['data'] != null) {
+      data = [];
+      json['data'].forEach((v) {
+        data?.add(CategoryFoodProductData.fromJson(v));
+      });
+    }
+  }
+  bool? success;
+  int? count;
+  int? totalPages;
+  int? currentPage;
+  List<CategoryFoodProductData>? data;
+
+  Map<String, dynamic> toJson() {
+    final map = <String, dynamic>{};
+    map['success'] = success;
+    map['count'] = count;
+    map['totalPages'] = totalPages;
+    map['currentPage'] = currentPage;
+    if (data != null) {
+      map['data'] = data?.map((v) => v.toJson()).toList();
+    }
+    return map;
+  }
+
+}
+
+CategoryFoodProductData dataFromJson(String str) => CategoryFoodProductData.fromJson(json.decode(str));
+String dataToJson(CategoryFoodProductData data) => json.encode(data.toJson());
+class CategoryFoodProductData {
+  CategoryFoodProductData({
+      this.id, 
+      this.name, 
+      this.images, 
+      this.category, 
+      this.dietaryType, 
+      this.cookingMethod, 
+      this.ingredients, 
+      this.servingInfo, 
+      this.nutritionalInfo, 
+      this.tags, 
+      this.isActive, 
+      this.createdAt, 
+      this.updatedAt, 
+      this.v, 
+      this.displayPrice, 
+      this.displayMrp, 
+      this.variantId,});
+
+  CategoryFoodProductData.fromJson(dynamic json) {
+    id = json['_id'];
+    name = json['name'];
+    images = json['images'] != null ? json['images'].cast<String>() : [];
+    category = json['category'] != null ? Category.fromJson(json['category']) : null;
+    dietaryType = json['dietaryType'];
+    cookingMethod = json['cookingMethod'];
+    ingredients = json['ingredients'] != null ? json['ingredients'].cast<String>() : [];
+    if (json['servingInfo'] != null) {
+      servingInfo = [];
+      json['servingInfo'].forEach((v) {
+        // servingInfo?.add(Dynamic.fromJson(v));
+      });
+    }
+    nutritionalInfo = json['nutritionalInfo'] != null ? NutritionalInfo.fromJson(json['nutritionalInfo']) : null;
+    if (json['tags'] != null) {
+      tags = [];
+      json['tags'].forEach((v) {
+        // tags?.add(Dynamic.fromJson(v));
+      });
+    }
+    isActive = json['isActive'];
+    createdAt = json['createdAt'];
+    updatedAt = json['updatedAt'];
+    v = json['__v'];
+    displayPrice = json['displayPrice'];
+    displayMrp = json['displayMrp'];
+    variantId = json['variantId'];
+  }
+  String? id;
+  String? name;
+  List<String>? images;
+  Category? category;
+  String? dietaryType;
+  String? cookingMethod;
+  List<String>? ingredients;
+  List<dynamic>? servingInfo;
+  NutritionalInfo? nutritionalInfo;
+  List<dynamic>? tags;
+  bool? isActive;
+  String? createdAt;
+  String? updatedAt;
+  int? v;
+  int? displayPrice;
+  int? displayMrp;
+  String? variantId;
+
+  Map<String, dynamic> toJson() {
+    final map = <String, dynamic>{};
+    map['_id'] = id;
+    map['name'] = name;
+    map['images'] = images;
+    if (category != null) {
+      map['category'] = category?.toJson();
+    }
+    map['dietaryType'] = dietaryType;
+    map['cookingMethod'] = cookingMethod;
+    map['ingredients'] = ingredients;
+    if (servingInfo != null) {
+      map['servingInfo'] = servingInfo?.map((v) => v.toJson()).toList();
+    }
+    if (nutritionalInfo != null) {
+      map['nutritionalInfo'] = nutritionalInfo?.toJson();
+    }
+    if (tags != null) {
+      map['tags'] = tags?.map((v) => v.toJson()).toList();
+    }
+    map['isActive'] = isActive;
+    map['createdAt'] = createdAt;
+    map['updatedAt'] = updatedAt;
+    map['__v'] = v;
+    map['displayPrice'] = displayPrice;
+    map['displayMrp'] = displayMrp;
+    map['variantId'] = variantId;
+    return map;
+  }
+
+}
+
+NutritionalInfo nutritionalInfoFromJson(String str) => NutritionalInfo.fromJson(json.decode(str));
+String nutritionalInfoToJson(NutritionalInfo data) => json.encode(data.toJson());
+class NutritionalInfo {
+  NutritionalInfo({
+      this.calories, 
+      this.protein, 
+      this.carbs, 
+      this.fats, 
+      this.fiber,});
+
+  NutritionalInfo.fromJson(dynamic json) {
+    calories = json['calories'];
+    protein = json['protein'];
+    carbs = json['carbs'];
+    fats = json['fats'];
+    fiber = json['fiber'];
+  }
+  int? calories;
+  int? protein;
+  int? carbs;
+  int? fats;
+  int? fiber;
+
+  Map<String, dynamic> toJson() {
+    final map = <String, dynamic>{};
+    map['calories'] = calories;
+    map['protein'] = protein;
+    map['carbs'] = carbs;
+    map['fats'] = fats;
+    map['fiber'] = fiber;
+    return map;
+  }
+
+}
+
+Category categoryFromJson(String str) => Category.fromJson(json.decode(str));
+String categoryToJson(Category data) => json.encode(data.toJson());
+class Category {
+  Category({
+      this.id, 
+      this.name,});
+
+  Category.fromJson(dynamic json) {
+    id = json['_id'];
+    name = json['name'];
+  }
+  String? id;
+  String? name;
+
+  Map<String, dynamic> toJson() {
+    final map = <String, dynamic>{};
+    map['_id'] = id;
+    map['name'] = name;
+    return map;
+  }
+
+}
