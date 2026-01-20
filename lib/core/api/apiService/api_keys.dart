@@ -620,6 +620,17 @@ class ApiKeys {
   static const riderId = 'riderId';
   static const expYears = 'expYears';
   static const expMonths = 'expMonths';
+  static const icon = 'icon';
+  static const departmentId = 'departmentId';
+  static const specialization = 'specialization';
+  static const fees = 'fees';
+  static const leaveFrom = 'leaveFrom';
+  static const leaveTo = 'leaveTo';
+  static const wardId = 'wardId';
+  static const bedNumber = 'bedNumber';
+  static const hospitalName = 'hospitalName';
+  static const admissionPhone = 'admissionPhone';
+  static const principalPhone = 'principalPhone';
 
   static const argProfileType = 'argProfileType';
   static const argProfileTypeTagId = 'argProfileTypeTagId';

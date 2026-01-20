@@ -602,6 +602,17 @@ abstract class BaseService {
   final String addHospitalDepartment = 'health-service/api/departments';
   String fetchHospitalSubCate(String id) =>  'health-service/api/departments/${id}/with-children';
   final String aiGenerateSelfProfession = 'ai-service/api/ai-earn/generate-about';
+  final String addDoctorsApi = 'health-service/api/doctors';
+  final String healthAndServiceImageUpload = 'health-service/api/upload/init';
+  String  updateDoctorsFees(String id) => 'health-service/api/doctors/$id';
+  String fetchDoctorsByDepartment(String id) => 'health-service/api/doctors/department/$id';
+  String updateDoctorsLeave(String id) => 'health-service/api/doctors/$id/leave';
+  String deleteDoctorApi(String id) => 'health-service/api/doctors/$id';
+  String fetchBedsByDepartment(String id) => 'health-service/api/beds/ward/$id';
+  String editBedDetails(String id) => 'health-service/api/beds/$id';
+  String deleteBedDetails(String id) => 'health-service/api/beds/$id';
+  final String addBedsApi = 'health-service/api/beds';
+  final String addHospitalContactUs = 'health-service/api/contact';
   String getBusinessSubCategory(String tagId) => 'user-service/business/by-tag/$tagId/subcategories';
   String getIndividualFields(String tagId) => 'user-service/individual-professions/$tagId/designation';
   String getBusinessCategoryByType(String type) => 'user-service/business/by-type/$type';

@@ -11,28 +11,23 @@ import '../../../../../core/api/apiService/api_response.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/getx_utils.dart';
 import '../../../../../core/routes/route_helper.dart';
+import '../../../../../widgets/common_drop_down.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 import '../../../laboratory/view/widgets/me_menu_card_design.dart';
 import '../../../medical/model/medical_lab_details.dart';
 import '../../../widget/no_product_profile.dart';
 import '../../controller/hospital_model_controller.dart';
+import '../widget/add_department_dialog.dart';
 import '../widget/general_medicine.dart';
 import 'contact_us_details_page.dart';
-enum DepartmentType {
-  opd,
-  ipd,
-  emergency,
-  diagnostic,
-  medicalStore,
-  other,
-}
+
 
 class OpdOutPatientPage extends StatefulWidget {
   const OpdOutPatientPage(
-      {super.key, required this.categoryId, required this.title});
-
+      {super.key, required this.categoryId, required this.title, required this.type});
   final String categoryId;
   final String title;
+  final String type;
 
   @override
   State<OpdOutPatientPage> createState() => _OpdOutPatientPageState();
@@ -41,18 +36,18 @@ class OpdOutPatientPage extends StatefulWidget {
 class _OpdOutPatientPageState extends State<OpdOutPatientPage> {
   final controller = getOrPut(() => HospitalModelController());
 
-  final Map<String, Widget Function()> opdPages = {
-    "General Medicine": () => DoctorListView(),
-    "General Surgery": () => DoctorListView(),
-    "Orthopedics": () => DoctorListView(),
-    "Obstetrics & Gynecology": () => DoctorListView(),
-    "Pediatrics": () => DoctorListView(),
-    "ENT (Ear, Nose, Throat)": () => DoctorListView(),
-    "Ophthalmology (Eye)": () => DoctorListView(),
-    "Dermatology (Skin)": () => DoctorListView(),
-    "Psychiatry": () => DoctorListView(),
-    "Dental OPD": () => DoctorListView(),
-  };
+  // final Map<String, Widget Function()> opdPages = {
+  //   "General Medicine": () => DoctorListView(),
+  //   "General Surgery": () => DoctorListView(),
+  //   "Orthopedics": () => DoctorListView(),
+  //   "Obstetrics & Gynecology": () => DoctorListView(),
+  //   "Pediatrics": () => DoctorListView(),
+  //   "ENT (Ear, Nose, Throat)": () => DoctorListView(),
+  //   "Ophthalmology (Eye)": () => DoctorListView(),
+  //   "Dermatology (Skin)": () => DoctorListView(),
+  //   "Psychiatry": () => DoctorListView(),
+  //   "Dental OPD": () => DoctorListView(),
+  // };
 
   @override
   void initState() {
@@ -80,27 +75,51 @@ class _OpdOutPatientPageState extends State<OpdOutPatientPage> {
                   children: [
                     const SizedBox(height: 12),
                     if(controller.hospitalSubCate.isEmpty)
-                      NoProfileDetailsFound(
-                          content: "${widget.title} not Available Yet")
+                      Padding(
+                        padding: const EdgeInsets.only(top: 30.0),
+                        child: NoProfileDetailsFound(
+                            content: "No Details Found Under ${widget.title}"),
+                      )
                     else
                       ...controller.hospitalSubCate.map((department) {
                         return InkWell(
                           onTap: () async {
-                            Get.toNamed(
-                              RouteHelper.getHospitalDoctorViewCategory(),);
+                            if(widget.type.toLowerCase().contains("opd")){
+                              Get.toNamed(
+                                RouteHelper.getHospitalDoctorViewCategory(),
+                              arguments: {
+                                  ApiKeys.categoryId:department.id,
+                                  ApiKeys.title:department.name
+                              }
+                              );
+                            }else if(widget.type.toLowerCase().contains('ipd')){
+                              Get.toNamed(
+                                  RouteHelper.getHospitalWardViewCategory(),
+                                  arguments: {
+                                    ApiKeys.categoryId:department.id,
+                                    ApiKeys.title:department.name
+                                  }
+                              );
+                            }
                           },
                           child: MeMenuCardDesign(
                             title: department.name ?? '', // ✅ department name
-                            isToggleOn: false,
-                            showToggleButton: false,
+                            isToggleOn: department.isActive,
+                            showToggleButton: true,
                             icon: 'assets/icons/service_icon.svg',
                           ),
                         );
                       }).toList(),
-                    SizedBox(height: SizeConfig.size10,),
+                    SizedBox(height: SizeConfig.size20,),
                     InkWell(
                       onTap: () {
-                        showAddDepartmentDialog(context);
+                        controller.nameController.clear();
+                        HospitalDepartmentDialog.show(
+                          preDepartmentType: widget.type,
+                          context: context,
+                          categoryId: widget.categoryId,
+                          type: widget.type,
+                        );
                       },
                       child: Container(
                         margin: EdgeInsets.symmetric(horizontal: 8),
@@ -147,78 +166,4 @@ class _OpdOutPatientPageState extends State<OpdOutPatientPage> {
       ),
     );
   }
- // String findDepartmentName(String department) {
- // return (widget.title.toLowerCase().contains('opd'))?DepartmentType.:'';
- //  }
-  void showAddDepartmentDialog(BuildContext context) {
-    final controller = getOrPut(() => HospitalModelController());
-    Get.dialog(
-      AlertDialog(
-        title: const CustomText('Add Department'),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-        content: StatefulBuilder(
-          builder: (context, setState) {
-            return SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-
-                  /// Name
-                  CommonTextField(
-                    title: "Name of the Department",
-                    textEditController: controller.nameController,
-                    hintText: 'E.g.General Surgery',
-                  ),
-                  SizedBox(height: SizeConfig.size12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const CustomText('Active Status'),
-                      Obx(() {
-                        return CustomToggleSwitch(
-                          isOn: controller.isActive.value,
-                          onChanged: (val) {
-                            controller.isActive.value = val;
-                          },
-                        );
-                      })
-                    ],
-                  ),
-                  SizedBox(height: SizeConfig.size20),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: CustomBtn(
-                            isValidate: false,
-                            onTap: () {
-                              Get.back();
-                            }, title: "Cancel"),
-                      ),
-                      SizedBox(width: SizeConfig.size12,),
-                      Expanded(
-                        child: CustomBtn(
-                            isValidate: true,
-                            onTap: () {
-                              Map<String,dynamic> params={
-                                "name": "string",
-                                "type": "OPD",
-                                "icon": "string",
-                                "isActive": true
-                              };
-                              controller.addHospitalDepartmentApi(params);
-                            }, title: "Add"),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
-      ),
-    );
-  }
-
 }
