@@ -22,8 +22,17 @@ class FoodRepo extends BaseService {
     final response = await ApiBaseHelper().postHTTP(
       foodProduct,
       params: params,
-      isMultipart: true,
+      isMultipart: false,
       showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  Future<ResponseModel> getFoodByCategoryIdRepo({required String catID}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      "${foodServiceProduct}category=$catID",
       onError: (error) {},
       onSuccess: (data) {},
     );

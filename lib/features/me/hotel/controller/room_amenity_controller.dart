@@ -24,7 +24,7 @@ class RoomAmenityController extends GetxController {
       // Simulated GET Response based on your provided JSON
       await Future.delayed(const Duration(seconds: 1));
       ResponseModel response = await HotelServiceRepo()
-          .getHotelRoomAmenitiesRepo(roomId: "696865c8e7a5527686fedfc4");
+          .getHotelRoomAmenitiesRepo(roomId: "");
 
       if (response.isSuccess) {
         final Map<String, dynamic> allData = response.response?.data['data'];
@@ -70,7 +70,7 @@ class RoomAmenityController extends GetxController {
   submitAPI() async {
     try {
       Map<String, dynamic> requestBody = {
-        "roomId": "696865c8e7a5527686fedfc4",
+        "roomId": "",
         ...roomAmenityStatus.value,
       };
       ResponseModel response = await HotelServiceRepo()

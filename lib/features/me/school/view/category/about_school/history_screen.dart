@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
+import 'package:BlueEra/features/me/school/view/common_ai_genereted_button.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -69,9 +70,28 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        CustomText("Our History",
+                            fontWeight: FontWeight.bold),
+                        // The Reusable AI Widget
+                        AIGeneratorButton(
+                          type: "Our History",
+                          data: {
+                            "for":"school/collage"
+                          },
+                          onSelected: (generatedText) {
+                            descriptionEditController.text = generatedText;
+                            schoolAboutUsController.historyText.value = generatedText;
+                            schoolAboutUsController.validateHistoryForm();
+                          },
+                        ),
+                      ],
+                    ),
                     CommonTextField(
                       textEditController: descriptionEditController,
-                      title: "Our History",
+                      title: "",
                       maxLine: 5,
                       onChange: (value) {
                         schoolAboutUsController.historyText.value = value;

@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'dart:ui';
+import 'dart:ui' as ui;
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -22,6 +23,7 @@ import 'package:BlueEra/features/common/Discover/view/home_service_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/product_local_market_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/all_self_profession_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/services_near_screen.dart';
+import 'package:BlueEra/features/common/Discover/widget/tooltip_generator.dart';
 import 'package:BlueEra/features/common/auth/model/business_profile_category.dart';
 import 'package:BlueEra/features/common/auth/model/individual_profiile_category.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
@@ -29,14 +31,18 @@ import 'package:BlueEra/features/common/jobs/view/jobs_screen.dart';
 import 'package:BlueEra/features/common/store/view/new_store/all_product_store_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/create_profile_screen.dart';
-import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/gradient_floating_button.dart';
+import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/setup_scroll_visibility_notification.dart';
 import 'package:BlueEra/widgets/update_live_photo_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import 'package:mappls_gl/mappls_gl.dart';
 
 class DiscoverScreen extends StatefulWidget {
   final bool isHeaderVisible;
@@ -52,10 +58,15 @@ class DiscoverScreen extends StatefulWidget {
 }
 
 class _DiscoverScreenState extends State<DiscoverScreen> {
-  final DiscoverController controller = Get.put(DiscoverController());
+  final controller = getOrPut(() => DiscoverController());
+  late MapplsMapController mapController;
+  late final double userLat;
+  late final double userLng;
 
   @override
   void initState() {
+    userLat = LocationService.lat;
+    userLng = LocationService.lng;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       _calculateHeaderHeight();
     });
@@ -78,12 +89,71 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     }
   }
 
+  Future<void> _onMapCreated(MapplsMapController controller) async {
+    mapController = controller;
+  }
+
+
+  Future<Uint8List> getBytesFromSvg(String assetName, int width) async {
+    // 1. Load the SVG string
+    String svgString = await rootBundle.loadString(assetName);
+
+    // 2. Create a PictureInfo from the SVG string
+    final PictureInfo pictureInfo = await vg.loadPicture(SvgStringLoader(svgString), null);
+
+    // 3. Create a canvas to draw on
+    // Calculate height to maintain aspect ratio
+    int height = (width * pictureInfo.size.height / pictureInfo.size.width).round();
+
+    ui.PictureRecorder pictureRecorder = ui.PictureRecorder();
+    ui.Canvas canvas = ui.Canvas(pictureRecorder);
+
+    // 4. Scale the canvas to the desired width
+    double scale = width / pictureInfo.size.width;
+    canvas.scale(scale);
+
+    // 5. Draw the picture
+    canvas.drawPicture(pictureInfo.picture);
+
+    // 6. Convert to Image and then to ByteData
+    ui.Picture picture = pictureRecorder.endRecording();
+    ui.Image image = await picture.toImage(width, height);
+    ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+
+    return byteData!.buffer.asUint8List();
+  }
+
+  Future<void> _onStyleLoadedCallback() async {
+    try {
+
+     // 1. Create the combined image
+      final Uint8List markerBytes = await TooltipGenerator.createTooltipWithSvg(
+        title: "BlueEra Partner\nNear you",
+        svgAssetPath: AppIconAssets.locationMarkerIcon,
+      );
+
+      // 2. Add to Map
+      await mapController.addImage("svg-composite-icon", markerBytes);
+
+      // 3. Display Symbol
+      await mapController.addSymbol(
+        SymbolOptions(
+          geometry: LatLng(userLat, userLng),
+          iconImage: "svg-composite-icon",
+          iconSize: 1.0,
+        ),
+      );
+    } catch (e) {
+      print('Error adding marker: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        extendBodyBehindAppBar: true,
-        floatingActionButton: _buildStoreAiAssistant(),
+        // extendBodyBehindAppBar: true,
+        // floatingActionButton: _buildStoreAiAssistant(),
         body: Obx(()=> setupScrollVisibilityNotification(
             controller: controller.scrollController,
             onVisibilityChanged: (visible, offset) {
@@ -133,74 +203,113 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
             padding: EdgeInsets.only(
                 left: SizeConfig.size15,
                 right: SizeConfig.size20,
-                top: SizeConfig.size10,
-                bottom: SizeConfig.size10),
-            color: AppColors.white,
-            child: Row(
+                top: SizeConfig.size15,
+                bottom: SizeConfig.size20
+            ),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(16.0)),
+              color: AppColors.white,
+            ),
+
+            child: Column(
               children: [
-                Expanded(
-                  child: Row(children: [
-                    LocalAssets(
-                      imagePath:
-                      AppIconAssets.currentLocationIcon,
-                      height: SizeConfig.size24,
-                      width: SizeConfig.size24,
-                    ),
-                    SizedBox(width: SizeConfig.size10),
+                Row(
+                  children: [
                     Expanded(
-                      child: CustomText(
-                        [
-                          LocationService.userCurrentAddress.value.city,
-                          LocationService.userCurrentAddress.value.state,
-                        ].where((e) => e.isNotEmpty).join(', '),
-                        fontSize: SizeConfig.large,
-                        color: AppColors.primaryColor,
-                        fontWeight: FontWeight.w600,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                      child: Row(children: [
+                        LocalAssets(
+                          imagePath:
+                          AppIconAssets.currentLocationIcon,
+                          height: SizeConfig.size24,
+                          width: SizeConfig.size24,
+                        ),
+                        SizedBox(width: SizeConfig.size10),
+                        Expanded(
+                          child: CustomText(
+                            [
+                              LocationService.userCurrentAddress.value.city,
+                              LocationService.userCurrentAddress.value.state,
+                            ].where((e) => e.isNotEmpty).join(', '),
+                            fontSize: SizeConfig.large,
+                            color: AppColors.primaryColor,
+                            fontWeight: FontWeight.w600,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ]),
                     ),
-                  ]),
-                ),
-                SizedBox(width: SizeConfig.size8),
-                InkWell(
-                  onTap: () {
-                    if (isBusinessUser()) {
-                      final controller = getOrPut(() => ViewBusinessDetailsController());
+                    SizedBox(width: SizeConfig.size8),
+                    InkWell(
+                      onTap: () {
+                        if (isBusinessUser()) {
+                          final controller = getOrPut(() => ViewBusinessDetailsController());
 
-                      if ((controller.businessProfileDetails?.data
-                          ?.livePhotos ??
-                          [])
-                          .length <
-                          3) {
-                        showLivePhotoDialog(
-                          context: context,
-                        );
-                      } else {
-                        Get.toNamed(RouteHelper.getInventoryScreenRoute());
-                      }
-                    } else {
-                      final controller = getOrPut(() => ViewPersonalDetailsController());
+                          if ((controller.businessProfileDetails?.data
+                              ?.livePhotos ??
+                              [])
+                              .length <
+                              3) {
+                            showLivePhotoDialog(
+                              context: context,
+                            );
+                          } else {
+                            Get.toNamed(RouteHelper.getInventoryScreenRoute());
+                          }
+                        } else {
+                          final controller = getOrPut(() => ViewPersonalDetailsController());
 
-                      if (controller.personalProfileDetails.value
-                          .isProfileCreated ==
-                          false) {
-                        Get.to(() => CreateProfileScreen());
-                      } else {
-                        if(userWorkTypeGlobal == DELIVERY_RIDER){
-                          Get.toNamed(RouteHelper
-                              .getRiderServiceScreenRoute());
-                        }else{
-                          Get.toNamed(RouteHelper
-                              .getEarnServiceScreenRoute());
+                          if (controller.personalProfileDetails.value
+                              .isProfileCreated ==
+                              false) {
+                            Get.to(() => CreateProfileScreen());
+                          } else {
+                            if(userWorkTypeGlobal == DELIVERY_RIDER){
+                              Get.toNamed(RouteHelper
+                                  .getRiderServiceScreenRoute());
+                            }else{
+                              Get.toNamed(RouteHelper
+                                  .getEarnServiceScreenRoute());
+                            }
+                          }
                         }
-                      }
-                    }
-                  },
-                  child: LocalAssets(
-                    imagePath: AppIconAssets.cartIcon,
-                  ),
-                )
+                      },
+                      child: LocalAssets(
+                        imagePath: AppIconAssets.cartIcon,
+                      ),
+                    )
+                  ],
+                ),
+
+                SizedBox(height: SizeConfig.paddingXL),
+
+                /// Mapple map
+                ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: SizeConfig.size160,
+                      child: Stack(
+                        children: [
+                          MapplsMap(
+                            onMapCreated: _onMapCreated,
+                            initialCameraPosition: CameraPosition(
+                              target: LatLng(userLat, userLng),
+                              zoom: 14.0,
+                            ),
+                            myLocationEnabled: false,
+                            compassEnabled: false,
+                            rotateGesturesEnabled: true,
+                            tiltGesturesEnabled: true,
+                            zoomGesturesEnabled: true,
+                            scrollGesturesEnabled: true,
+                            onStyleLoadedCallback:
+                                _onStyleLoadedCallback,
+                          ),
+                        ],
+                      ),
+                    )
+                ),
               ],
             ),
           ),
@@ -225,45 +334,73 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
             physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
 
-            /// Job
             SliverToBoxAdapter(
-              child: InkWell(
-                onTap: () {
-                  Widget dest = isGuestUser()
-                      ? GuestDashBoardScreen()
-                      : JobsScreen();
+              child: HorizontalTabSelector<DiscoverFilter>(
+                tabs: controller.discoverFilters,
+                selectedIndex: controller.discoverFilters.indexOf(controller.selectedDiscoverFilter.value),
+                horizontalMargin: 0.0,
+                onTabSelected: (index, _) {
+                  final selectedEnum = controller.discoverFilters[index];
 
-                  Get.to(() => dest);
+                  if (controller.discoverFilters == selectedEnum) return;
+
+                  controller.selectedDiscoverFilter.value = selectedEnum;
+                  // if(controller.selectedDiscoverFilter.value == ){
+                  //
+                  // }
+
                 },
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    vertical: SizeConfig.size10,
-                    horizontal: SizeConfig.size10,
-                  ),
-                  decoration: BoxDecoration(
-                      color: AppColors.white,
-                      borderRadius: BorderRadius.circular(10.0),
-                      border: Border.all(color: AppColors.greyE5, width: 1.2),
-                      boxShadow: [AppShadows.textFieldShadow]),
-                  child: Row(
-                    children: [
-                      LocalAssets(
-                        imagePath: AppIconAssets.searchJobIcon,
-                        height: SizeConfig.size30,
-                        width: SizeConfig.size30,
-                      ),
-                      SizedBox(width: SizeConfig.size10),
-                      CustomText(AppStrings.findYourDreamJobNow,
-                          fontSize: SizeConfig.medium,
-                          color: AppColors.secondaryTextColor,
-                          fontWeight: FontWeight.w400),
-                    ],
-                  ),
-                ),
+                labelBuilder: (r) => r.label,
+                unSelectedBackgroundColor: AppColors.white,
               ),
             ),
 
-            _buildGap(),
+
+            // /// Job
+            // SliverToBoxAdapter(
+            //   child: InkWell(
+            //     onTap: () {
+            //       Widget dest = isGuestUser()
+            //           ? GuestDashBoardScreen()
+            //           : JobsScreen();
+            //
+            //       Get.to(() => dest);
+            //     },
+            //     child: Container(
+            //       padding: EdgeInsets.symmetric(
+            //         vertical: SizeConfig.size10,
+            //         horizontal: SizeConfig.size10,
+            //       ),
+            //       decoration: BoxDecoration(
+            //           color: AppColors.white,
+            //           borderRadius: BorderRadius.circular(10.0),
+            //           border: Border.all(color: AppColors.greyE5, width: 1.2),
+            //           boxShadow: [AppShadows.textFieldShadow]),
+            //       child: Row(
+            //         children: [
+            //           LocalAssets(
+            //             imagePath: AppIconAssets.searchJobIcon,
+            //             height: SizeConfig.size30,
+            //             width: SizeConfig.size30,
+            //           ),
+            //           SizedBox(width: SizeConfig.size10),
+            //           CustomText(AppStrings.findYourDreamJobNow,
+            //               fontSize: SizeConfig.medium,
+            //               color: AppColors.secondaryTextColor,
+            //               fontWeight: FontWeight.w400),
+            //         ],
+            //       ),
+            //     ),
+            //   ),
+            // ),
+
+            _buildGap(gap: SizeConfig.paddingM),
+
+            SliverToBoxAdapter(
+              child: searchProductsViaAiWidget(),
+            ),
+
+            _buildGap(gap: SizeConfig.paddingM),
 
             /// Rider
             SliverToBoxAdapter(
@@ -286,11 +423,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Expanded(
-                              child: CustomText(
-                                  AppStrings.bookYourGroceryNdFood,
-                                  fontSize: SizeConfig.large,
-                                  color: AppColors.mainTextColor,
-                                  fontWeight: FontWeight.w600),
+                              child: _title(AppStrings.bookYourGroceryNdFood),
                             ),
               
                             SizedBox(width: SizeConfig.paddingXSL),
@@ -334,197 +467,83 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                   padding: EdgeInsets.all(
                       SizeConfig.size10
                   ),
+                  color: AppColors.primaryColor.withValues(alpha: 0.1),
                   child: Column(
                     children: [
-                      _bannerWidget(
-                          bannerImage: AppImageAssets.localMarketProducts,
-                          bannerHeight: SizeConfig.size180
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _title('Shopping'),
+                          ),
+                          SizedBox(
+                            width: SizeConfig.size8,
+                          ),
+                          CustomText(
+                              'View All',
+                              fontSize: SizeConfig.large,
+                              color: AppColors.primaryColor,
+                              fontWeight: FontWeight.w400),
+
+                        ],
                       ),
 
                       SizedBox(height: SizeConfig.paddingXSL),
 
-                      genericSquareRow<BusinessProfileCategory>(
-                        items: businessProductsCategories,
-                        itemsPerRow: 5,
-                        labelBuilder: (c) => c.name,
-                        iconBuilder: (c) => c.icon,
-                        onTap: (c) {
-                          Get.to(()=> ProductLocalMarketScreen(
-                            businessProductsCategories: businessProductsCategories,
-                          ));
-                        },
-                      )
-                    ],
-                  )
-              ),
-            ),
-
-           _buildGap(),
-
-            /// Self work
-            SliverToBoxAdapter(
-              child: CustomFormCard(
-                padding: EdgeInsets.all(SizeConfig.size10),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final double totalWidth = constraints.maxWidth;
-                    final double fixedBannerHeight = SizeConfig.size160;
-                    final double gap = SizeConfig.paddingXSL;
-                    final double sideBoxSize = (fixedBannerHeight - gap) / 2;
-                    final double bannerWidth = totalWidth - sideBoxSize - gap;
-
-                    final List<IndividualProfileCategory> sideBoxItems = selfWorkCategories.sublist(0, 2);
-                    final List<IndividualProfileCategory> bottomRowItems = selfWorkCategories.sublist(2, 7);
-
-                    return Column(
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SizedBox(
-                              width: bannerWidth,
-                              height: fixedBannerHeight,
-                              child: _bannerWidget(
-                                bannerImage: AppImageAssets.bookProfessional,
-                                bannerHeight: fixedBannerHeight,
+                      GridView.builder(
+                        physics: const NeverScrollableScrollPhysics(),
+                        padding: EdgeInsets.zero,
+                        shrinkWrap: true,
+                        itemCount: businessProductsCategories.take(9).length,
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 6,
+                          mainAxisSpacing: 6,
+                          childAspectRatio: 1.2,
+                        ),
+                        itemBuilder: (context, index) {
+                          var categoryItem = businessProductsCategories[index];
+                          return InkWell(
+                            onTap: () {
+                              Get.to(()=> ProductLocalMarketScreen(
+                                businessProductsCategories: businessProductsCategories,
+                              ));
+                            },
+                            borderRadius: BorderRadius.circular(12),
+                            child: Container(
+                              padding: EdgeInsets.all(SizeConfig.size5),
+                              decoration: BoxDecoration(
+                                color: AppColors.white,
+                                borderRadius: BorderRadius.circular(10.0),
+                                border: Border.all(
+                                  color: AppColors.greyE5,
+                                  width: 1,
+                                ),
                               ),
-                            ),
-
-                            SizedBox(width: gap),
-
-                            SizedBox(
-                              width: sideBoxSize,
-                              height: fixedBannerHeight,
                               child: Column(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  _buildContainer(
-                                      size: sideBoxSize,
-                                      text: sideBoxItems[0].name,
-                                      icon: sideBoxItems[0].icon,
-                                      onTap: () {
-                                        Get.to(()=> AllSelfProfessionScreen(
-                                            selfEmployedCategories: selfWorkCategories,
-                                            selectedSelfProfessionData: sideBoxItems[0]
-                                        ));
-                                      }
+                                  LocalAssets(
+                                    imagePath: categoryItem.icon,
+                                    scaleSize: 2.0,
                                   ),
-                                  _buildContainer(
-                                      size: sideBoxSize,
-                                      text: sideBoxItems[1].name,
-                                      icon: sideBoxItems[1].icon,
-                                      onTap: () {
-                                        Get.to(()=> AllSelfProfessionScreen(
-                                            selfEmployedCategories: selfWorkCategories,
-                                            selectedSelfProfessionData: sideBoxItems[1]
-                                        ));
-                                      }
+                                  SizedBox(height: SizeConfig.paddingXSL),
+                                  CustomText(
+                                    categoryItem.name,
+                                    fontSize: SizeConfig.extraSmall,
+                                    color: AppColors.secondaryTextColor,
+                                    fontWeight: FontWeight.w400,
+                                    textAlign: TextAlign.center,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ],
                               ),
                             ),
-                          ],
-                        ),
-
-                        SizedBox(height: SizeConfig.paddingXSL),
-
-                        // Bottom Section
-                        genericSquareRow<IndividualProfileCategory>(
-                          items: bottomRowItems,
-                          itemsPerRow: 5,
-                          labelBuilder: (s) => s.name,
-                          iconBuilder: (s) => s.icon,
-                          onTap: (s) {
-                            Get.to(()=> AllSelfProfessionScreen(
-                              selfEmployedCategories: selfWorkCategories,
-                              selectedSelfProfessionData: s
-                            ));
-                          },
-                        )
-                      ],
-                    );
-                  },
-                ),
-              ),
-            ),
-
-           _buildGap(),
-
-            SliverToBoxAdapter(
-              child: Row(
-                children: [
-                  _buildVerticalLayout(
-                      imageUrl: AppImageAssets.bookNowBanner,
-                      items: rentalServiceCategories,
-                      onTap: (c) {
-                        final typeMap = {
-                          Flat_ROOM: RentalServiceType.flatRoom,
-                          HOME_STAY: RentalServiceType.homeStay,
-                          VEHICLE:   RentalServiceType.vehicle,
-                        };
-
-                        final type = typeMap[c.slugId];
-
-                        if (type != null) {
-                          Get.to(() => AllRentalServiceScreen(type: type));
-                        } else {
-                          // Handle unknown slug (optional)
-                        }
-                      }
-                  ),
-                  SizedBox(width: SizeConfig.paddingXSL),
-                  _buildVerticalLayout(
-                      imageUrl: AppImageAssets.homeMadeBanner,
-                      items: homeServiceCategories,
-                    onTap:(c){
-                      if(c.slugId == SERVICE) {
-                        Get.to(()=> HomeServiceScreen());
-                      }else if(c.slugId == FOOD){
-                        Get.to(()=> HomeMadeFoodScreen());
-                      }else if(c.slugId == PRODUCT){
-                        Get.to(() => AllProductScreen(
-                            isShowInGrid: true,
-                            providerType: ProviderType.user,
-                        ));
-                      }else{
-                        log('No category');
-                      }
-                    }
-                  ),
-                ],
-              ),
-            ),
-
-            _buildGap(),
-
-            /// Service
-            SliverToBoxAdapter(
-              child: CustomFormCard(
-                padding: EdgeInsets.all(SizeConfig.size10),
-                child: Column(
-                  children: [
-                    _bannerWidget(
-                        bannerImage: AppImageAssets.findServiceNearMe,
-                        bannerHeight: SizeConfig.size180
-                    ),
-
-
-                    SizedBox(height: SizeConfig.paddingXSL),
-
-                    // Bottom Section
-                    genericSquareRow<BusinessProfileCategory>(
-                      items: businessServicesCategories,
-                      itemsPerRow: 5,
-                      labelBuilder: (c) => c.name,
-                      iconBuilder: (c) => c.icon,
-                      onTap: (c) {
-                        Get.to(()=> ServicesNearMeScreen(
-                          businessServicesCategories: businessServicesCategories,
-                        ));
-                      },
-                    )
-                  ],
-                ),
+                          );
+                        },
+                      ),
+                    ],
+                  )
               ),
             ),
 
@@ -535,25 +554,474 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
               child: CustomFormCard(
                 padding: EdgeInsets.all(SizeConfig.size10),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
 
-                    _bannerWidget(
-                        bannerImage: AppImageAssets.medicalHealthService,
-                        bannerHeight: SizeConfig.size180
+                    _title('Book Your Health care Service'),
+
+                    SizedBox(height: SizeConfig.paddingXSL),
+
+                    Stack(
+                      children: [
+                        _bannerWidget(
+                            bannerImage: AppImageAssets.medicalHealthService,
+                            bannerHeight: SizeConfig.size180
+                        ),
+                        Positioned(
+                            left: 0,
+                            right: 0,
+                            bottom: 10,
+                            child: _buildHorizontalTabs(
+                              ['Hospitals', 'Doctors', 'Labs', 'Pharmacy', 'Surgical ']
+                            )
+                        )
+                      ],
+                    ),
+
+                  ],
+                ),
+              ),
+            ),
+
+           _buildGap(),
+
+            /// Self work
+            SliverToBoxAdapter(
+              child: CustomFormCard(
+                color: AppColors.yellowE7,
+                padding: EdgeInsets.all(SizeConfig.size10),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _title('Book Home Services'),
+                        ),
+                        SizedBox(
+                          width: SizeConfig.size8,
+                        ),
+                        CustomText(
+                            'View All',
+                            fontSize: SizeConfig.large,
+                            color: AppColors.primaryColor,
+                            fontWeight: FontWeight.w400),
+                      ],
                     ),
 
                     SizedBox(height: SizeConfig.paddingXSL),
 
-                    // Bottom Section
-                    genericSquareRow<String>(
-                      items: ["Hospital", "Pharmacy", "Lab Test", "Clinic", "Doctors"],
-                      itemsPerRow: 5,
-                      labelBuilder: (c) => c,
-                      iconBuilder: (c) => AppIconAssets.electricianIcon,
-                      onTap: (c) {
-
+                    MasonryGridView.count(
+                      crossAxisCount: 3,
+                      crossAxisSpacing: 6,
+                      mainAxisSpacing: 6,
+                      itemCount: individualOnboardingSelfSkillWorkList.take(6).length,
+                      physics: NeverScrollableScrollPhysics(),
+                      itemBuilder: (context, index) {
+                        var item = individualOnboardingSelfSkillWorkList[index];
+                        return _commonCard(
+                          icon: item.icon,
+                          text: item.name
+                        );
                       },
-                    )
+                      shrinkWrap: true,
+                    ),
+
+                  ],
+                ),
+              ),
+            ),
+
+           _buildGap(),
+
+            /// Home made food, product, service
+            SliverToBoxAdapter(
+              child: CustomFormCard(
+                color: AppColors.pinkDE,
+                padding: EdgeInsets.all(SizeConfig.size10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+
+                    _title('Home Made Product, Food & Services'),
+
+                    SizedBox(height: SizeConfig.paddingXSL),
+
+                    Stack(
+                      children: [
+                        _bannerWidget(
+                            bannerImage: AppImageAssets.homeMadeBanner,
+                            bannerHeight: SizeConfig.size180
+                        ),
+                        Positioned(
+                            left: 0,
+                            right: 0,
+                            bottom: 10,
+                            child: _buildHorizontalTabs(
+                                ['Tiffin', 'Pickle', 'Sweets', 'Garment', 'Beauty']
+                            )
+                        )
+                      ],
+                    ),
+
+                  ],
+                ),
+              ),
+            ),
+
+            // SliverToBoxAdapter(
+            //   child: Row(
+            //     children: [
+            //       _buildVerticalLayout(
+            //           imageUrl: AppImageAssets.bookNowBanner,
+            //           items: rentalServiceCategories,
+            //           onTap: (c) {
+            //             final typeMap = {
+            //               Flat_ROOM: RentalServiceType.flatRoom,
+            //               HOME_STAY: RentalServiceType.homeStay,
+            //               VEHICLE:   RentalServiceType.vehicle,
+            //             };
+            //
+            //             final type = typeMap[c.slugId];
+            //
+            //             if (type != null) {
+            //               Get.to(() => AllRentalServiceScreen(type: type));
+            //             } else {
+            //               // Handle unknown slug (optional)
+            //             }
+            //           }
+            //       ),
+            //       SizedBox(width: SizeConfig.paddingXSL),
+            //       _buildVerticalLayout(
+            //           imageUrl: AppImageAssets.homeMadeBanner,
+            //           items: homeServiceCategories,
+            //         onTap:(c){
+            //           if(c.slugId == SERVICE) {
+            //             Get.to(()=> HomeServiceScreen());
+            //           }else if(c.slugId == FOOD){
+            //             Get.to(()=> HomeMadeFoodScreen());
+            //           }else if(c.slugId == PRODUCT){
+            //             Get.to(() => AllProductScreen(
+            //                 isShowInGrid: true,
+            //                 providerType: ProviderType.user,
+            //             ));
+            //           }else{
+            //             log('No category');
+            //           }
+            //         }
+            //       ),
+            //     ],
+            //   ),
+            // ),
+
+            _buildGap(),
+
+            /// Stay Service
+            SliverToBoxAdapter(
+              child: CustomFormCard(
+                color: AppColors.blueF4,
+                padding: EdgeInsets.all(SizeConfig.size10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _title('Book Your Stay'),
+                        ),
+                        SizedBox(
+                          width: SizeConfig.size8,
+                        ),
+                        CustomText(
+                            'View All',
+                            fontSize: SizeConfig.large,
+                            color: AppColors.primaryColor,
+                            fontWeight: FontWeight.w400),
+                      ],
+                    ),
+
+                    SizedBox(height: SizeConfig.paddingXSL),
+
+                    Stack(
+                      children: [
+                        _bannerWidget(
+                            bannerImage: AppImageAssets.medicalHealthService,
+                            bannerHeight: SizeConfig.size180
+                        ),
+
+                        Positioned(
+                          left: 0,
+                          top: 0,
+                          bottom: 0,
+                          child: Container(
+                            width: SizeConfig.size180,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10.0),
+                              gradient: LinearGradient(
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
+                                colors: [
+                                  AppColors.black.withValues(alpha: 0.7), // Dark on the left (text side)
+                                  AppColors.black.withValues(alpha: 0.0), // Transparent on the right
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        _buildVerticalBulletPoints(
+                          [
+                            'Hotel',
+                            'Home Stay',
+                            'Resort',
+                            'Economic Stay',
+                            'Rental (Flat/Room)'
+                          ],
+                          textColor: AppColors.white
+                        ),
+                      ],
+                    ),
+
+                  ],
+                ),
+              ),
+            ),
+
+            _buildGap(),
+
+            /// Consultation Service
+            SliverToBoxAdapter(
+              child: CustomFormCard(
+                color: AppColors.greenDB,
+                padding: EdgeInsets.all(SizeConfig.size10),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _title('Professionals Consultant'),
+                        ),
+                        SizedBox(
+                          width: SizeConfig.size8,
+                        ),
+                        CustomText(
+                            'View All',
+                            fontSize: SizeConfig.large,
+                            color: AppColors.primaryColor,
+                            fontWeight: FontWeight.w400),
+                      ],
+                    ),
+
+                    SizedBox(height: SizeConfig.paddingXSL),
+
+                    MasonryGridView.count(
+                      crossAxisCount: 3,
+                      crossAxisSpacing: 6,
+                      mainAxisSpacing: 6,
+                      itemCount: individualOnboardingConsultationList.take(6).length,
+                      physics: NeverScrollableScrollPhysics(),
+                      itemBuilder: (context, index) {
+                        var item = individualOnboardingConsultationList[index];
+                        return _commonCard(
+                            icon: item.icon,
+                            text: item.name
+                        );
+                      },
+                      shrinkWrap: true,
+                    ),
+
+                  ],
+                ),
+              ),
+            ),
+
+            _buildGap(),
+
+            /// Transport
+            SliverToBoxAdapter(
+              child: CustomFormCard(
+                color: AppColors.rating.withValues(alpha: 0.1),
+                padding: EdgeInsets.all(SizeConfig.size10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _title('Book Your Transport'),
+                        ),
+                        SizedBox(
+                          width: SizeConfig.size8,
+                        ),
+                        CustomText(
+                            'View All',
+                            fontSize: SizeConfig.large,
+                            color: AppColors.primaryColor,
+                            fontWeight: FontWeight.w400),
+                      ],
+                    ),
+
+                    SizedBox(height: SizeConfig.paddingXSL),
+
+                    Stack(
+                      children: [
+                        _bannerWidget(
+                            bannerImage: AppImageAssets.transportService,
+                            bannerHeight: SizeConfig.size180
+                        ),
+
+                        Positioned(
+                          left: 0,
+                          top: 0,
+                          bottom: 0,
+                          child: Container(
+                            width: SizeConfig.size180,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10.0),
+                              gradient: LinearGradient(
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
+                                colors: [
+                                  AppColors.black.withValues(alpha: 0.7), // Dark on the left (text side)
+                                  AppColors.black.withValues(alpha: 0.0), // Transparent on the right
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        _buildVerticalBulletPoints(
+                            [
+                              'Car',
+                              'Auto',
+                              'Bike',
+                              'Loader',
+                            ],
+                            iconSize: SizeConfig.size10,
+                            fontSize: SizeConfig.title,
+                            fontWeight: FontWeight.w400,
+                        ),
+                      ],
+                    ),
+
+                  ],
+                ),
+              ),
+            ),
+
+            _buildGap(),
+
+            /// Service
+            SliverToBoxAdapter(
+              child: CustomFormCard(
+                color: AppColors.primaryColor.withValues(alpha: 0.1),
+                padding: EdgeInsets.all(SizeConfig.size10),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _title('Find Services'),
+                        ),
+                        SizedBox(
+                          width: SizeConfig.size8,
+                        ),
+                        InkWell(
+                          onTap: ()=> Get.to(()=> ServicesNearMeScreen(
+                            businessServicesCategories: businessServicesCategories,
+                          )),
+                          child: CustomText(
+                              'View All',
+                              fontSize: SizeConfig.large,
+                              color: AppColors.primaryColor,
+                              fontWeight: FontWeight.w400),
+                        ),
+                      ],
+                    ),
+
+                    SizedBox(height: SizeConfig.paddingXSL),
+
+                    MasonryGridView.count(
+                      crossAxisCount: 3,
+                      crossAxisSpacing: 6,
+                      mainAxisSpacing: 6,
+                      itemCount: businessOnboardingServicesCategories.take(6).length,
+                      physics: NeverScrollableScrollPhysics(),
+                      itemBuilder: (context, index) {
+                        var item = businessOnboardingServicesCategories[index];
+                        return _commonCard(
+                            icon: item.icon,
+                            text: item.name
+                        );
+                      },
+                      shrinkWrap: true,
+                    ),
+
+                  ],
+                ),
+              ),
+            ),
+
+            // SliverToBoxAdapter(
+            //   child: CustomFormCard(
+            //     padding: EdgeInsets.all(SizeConfig.size10),
+            //     child: Column(
+            //       children: [
+            //         _bannerWidget(
+            //             bannerImage: AppImageAssets.findServiceNearMe,
+            //             bannerHeight: SizeConfig.size180
+            //         ),
+            //
+            //
+            //         SizedBox(height: SizeConfig.paddingXSL),
+            //
+            //         // Bottom Section
+            //         genericSquareRow<BusinessProfileCategory>(
+            //           items: businessServicesCategories,
+            //           itemsPerRow: 5,
+            //           labelBuilder: (c) => c.name,
+            //           iconBuilder: (c) => c.icon,
+            //           onTap: (c) {
+            //             Get.to(()=> ServicesNearMeScreen(
+            //               businessServicesCategories: businessServicesCategories,
+            //             ));
+            //           },
+            //         )
+            //       ],
+            //     ),
+            //   ),
+            // ),
+
+            _buildGap(),
+
+            /// Automotive Service
+            SliverToBoxAdapter(
+              child: CustomFormCard(
+                padding: EdgeInsets.all(SizeConfig.size10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+
+                    _title('Automotive Services'),
+
+                    SizedBox(height: SizeConfig.paddingXSL),
+
+                    Stack(
+                      children: [
+                        _bannerWidget(
+                            bannerImage: AppImageAssets.automotiveService,
+                            bannerHeight: SizeConfig.size180
+                        ),
+                        Positioned(
+                            left: 0,
+                            right: 0,
+                            bottom: 10,
+                            child: _buildHorizontalTabs(
+                                ['Accessories', 'Denting', 'Engine', 'Oil', 'Wheels ']
+                            )
+                        )
+                      ],
+                    ),
+
                   ],
                 ),
               ),
@@ -564,31 +1032,133 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
             /// Food
             SliverToBoxAdapter(
               child: CustomFormCard(
+                color: AppColors.yellowE7,
                 padding: EdgeInsets.all(SizeConfig.size10),
                 child: Column(
                   children: [
-
-                    _bannerWidget(
-                        bannerImage: AppImageAssets.foodDeliveryService,
-                        bannerHeight: SizeConfig.size180
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _title('Restaurant Near By'),
+                        ),
+                        SizedBox(
+                          width: SizeConfig.size8,
+                        ),
+                        InkWell(
+                          onTap: () {},
+                          // onTap: ()=> Get.to(()=> ServicesNearMeScreen(
+                          //   businessServicesCategories: businessServicesCategories,
+                          // )),
+                          child: CustomText(
+                              'View All',
+                              fontSize: SizeConfig.large,
+                              color: AppColors.primaryColor,
+                              fontWeight: FontWeight.w400),
+                        ),
+                      ],
                     ),
 
                     SizedBox(height: SizeConfig.paddingXSL),
 
-                    // Bottom Section
-                    genericSquareRow<BusinessProfileCategory>(
-                      items: businessFoodsCategories,
-                      itemsPerRow: 5,
-                      labelBuilder: (c) => c.name,
-                      iconBuilder: (c) => c.icon,
-                      onTap: (c) {
-
-
+                    MasonryGridView.count(
+                      crossAxisCount: 3,
+                      crossAxisSpacing: 6,
+                      mainAxisSpacing: 6,
+                      itemCount: businessOnboardingFoodsCategories.take(6).length,
+                      physics: NeverScrollableScrollPhysics(),
+                      itemBuilder: (context, index) {
+                        var item = businessOnboardingFoodsCategories[index];
+                        return _commonCard(
+                            icon: item.icon,
+                            text: item.name
+                        );
                       },
-                    )
+                      shrinkWrap: true,
+                    ),
+
                   ],
                 ),
               ),
+            ),
+
+            // SliverToBoxAdapter(
+            //   child: CustomFormCard(
+            //     padding: EdgeInsets.all(SizeConfig.size10),
+            //     child: Column(
+            //       children: [
+            //
+            //         _bannerWidget(
+            //             bannerImage: AppImageAssets.foodDeliveryService,
+            //             bannerHeight: SizeConfig.size180
+            //         ),
+            //
+            //         SizedBox(height: SizeConfig.paddingXSL),
+            //
+            //         // Bottom Section
+            //         genericSquareRow<BusinessProfileCategory>(
+            //           items: businessFoodsCategories,
+            //           itemsPerRow: 5,
+            //           labelBuilder: (c) => c.name,
+            //           iconBuilder: (c) => c.icon,
+            //           onTap: (c) {
+            //
+            //
+            //           },
+            //         )
+            //       ],
+            //     ),
+            //   ),
+            // ),
+
+            _buildGap(),
+
+            /// Near By Jobs
+            SliverToBoxAdapter(
+              child: InkWell(
+                onTap: (){
+                  Widget dest = isGuestUser()
+                      ? GuestDashBoardScreen()
+                      : JobsScreen();
+
+                  Get.to(() => dest);
+                },
+                child: CustomFormCard(
+                  padding: EdgeInsets.all(SizeConfig.size10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+
+                      _title('Find Your Dream Job - Near By'),
+
+                      SizedBox(height: SizeConfig.paddingXSL),
+
+                      Stack(
+                        children: [
+                          _bannerWidget(
+                              bannerImage: AppImageAssets.jobBanner,
+                              bannerHeight: SizeConfig.size180
+                          ),
+                          Positioned(
+                              left: 0,
+                              right: 0,
+                              bottom: 10,
+                              child: _buildHorizontalTabs(
+                                  ['Full-Time', 'Part-Time', 'Online', 'Offline', 'Near By']
+                              )
+                          )
+                        ],
+                      ),
+
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            _buildGap(),
+
+            SliverToBoxAdapter(
+              child: searchProductsViaAiWidget(),
             ),
 
             SliverToBoxAdapter(
@@ -603,9 +1173,17 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     );
   }
 
-  Widget _buildGap(){
+  Widget _title(String title){
+    return CustomText(
+        title,
+        fontSize: SizeConfig.large,
+        color: AppColors.mainTextColor,
+        fontWeight: FontWeight.w600);
+  }
+
+  Widget _buildGap({double? gap}){
     return  SliverToBoxAdapter(
-      child: SizedBox(height: SizeConfig.paddingXSL),
+      child: SizedBox(height: gap ?? SizeConfig.paddingXSL),
     );
   }
 
@@ -822,5 +1400,344 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     );
   }
 
+  Widget _buildHorizontalTabs(List<String> arrTabs) {
+    final displayTabs = arrTabs.length > 5 ? arrTabs.sublist(0, 5) : arrTabs;
+
+    return SizedBox(
+      height: SizeConfig.size26,
+      width: SizeConfig.screenWidth,
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: displayTabs.asMap().entries.map((entry) {
+            int index = entry.key;
+            String title = entry.value;
+
+            return Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(
+                  right: index == displayTabs.length - 1 ? 0 : SizeConfig.size8,
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(6.0),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.black.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(6.0),
+                        border: Border.all(
+                          color: AppColors.white.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      alignment: Alignment.center,
+                      child: CustomText(
+                        title,
+                        fontSize: SizeConfig.extraSmall,
+                        color: AppColors.white,
+                        fontWeight: FontWeight.w400,
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVerticalBulletPoints(
+        List<String> arrTabs, {
+        double? iconSize,
+        double? fontSize,
+        FontWeight? fontWeight,
+        Color? textColor
+  }){
+    return Padding(
+      padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size16,
+          vertical: SizeConfig.size10
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start, // Align text to left
+        mainAxisAlignment: MainAxisAlignment.center,  // Center vertically
+        children: arrTabs.asMap().entries.map((entry) {
+          int index = entry.key;
+          String title = entry.value;
+
+          Color itemColor = (index % 2 == 0) ? AppColors.darkBlue : AppColors.white;
+          return Padding(
+            padding: EdgeInsets.only(bottom: SizeConfig.size8), // Gap between items
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // The Bullet Point (White Dot)
+                Icon(
+                  Icons.circle,
+                  size: iconSize ?? SizeConfig.size8,
+                  color: AppColors.white,
+                ),
+                SizedBox(width: SizeConfig.size8),
+
+                // The Text
+                Flexible(
+                  child: CustomText(
+                    title,
+                    fontSize: fontSize ?? SizeConfig.large,
+                    color: textColor ?? itemColor,
+                    fontWeight: fontWeight ?? FontWeight.w400,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _commonCard({required String icon, required String text}){
+    return Container(
+      decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+              color: AppColors.greyE5
+          )
+      ),
+      child: Stack(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10.0),
+            child: SizedBox(
+              height: SizeConfig.size130,
+              width: double.infinity,
+              child: LocalAssets(
+                imagePath: icon,
+                boxFix: BoxFit.fill,
+                height: SizeConfig.size140,
+                width: double.infinity,
+              ),
+            ),
+          ),
+
+          Positioned(
+            left: 0.0,
+            right: 0.0,
+            bottom: 0.0,
+            child: Container(
+              height: SizeConfig.size60,
+              padding: EdgeInsets.symmetric(
+                  horizontal: SizeConfig.size8,
+                  vertical: SizeConfig.size8
+              ),
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.vertical(bottom: Radius.circular(10.0)),
+                  gradient: LinearGradient(
+                      colors: [
+                        AppColors.black.withValues(alpha: 0.0),
+                        AppColors.black.withValues(alpha:0.9),
+                      ],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter
+                  )
+              ),
+            ),
+          ),
+
+          Positioned(
+            left: 5.0,
+            right: 5.0,
+            bottom: 10.0,
+            child: CustomText(
+              text,
+              fontSize: SizeConfig.small,
+              fontWeight: FontWeight.w600,
+              color: AppColors.white,
+              textAlign: TextAlign.center,
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget searchProductsViaAiWidget(){
+    return InkWell(
+      onTap: (){
+        final chat =
+            ChatViewController.inventoryAiChatListSearchModule;
+
+        Get.to(() => AskInventoryChatScreen(
+          profileImage: chat?.sender?.profileImage,
+          name: chat?.sender?.name,
+          contactNo: chat?.sender?.contactNo,
+          conversationId: '',
+          userId: '',
+          businessId: '',
+          type: chat?.sender?.accountType,
+          isInitialMessage: false,
+        ));
+      },
+      child: Container(
+        padding: EdgeInsets.only(
+          left: SizeConfig.size14,
+          right: SizeConfig.size14,
+          top: SizeConfig.size14,
+        ),
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10.0),
+            border: Border.all(
+                color: AppColors.blueShade.withValues(alpha: 0.1)),
+            gradient: LinearGradient(colors: [
+              AppColors.blueShade.withValues(alpha: 0.02),
+              AppColors.blueShade.withValues(alpha: 0.3)
+            ], begin: Alignment.topCenter, end: Alignment.bottomCenter)),
+        child: Row(
+          children: [
+            LocalAssets(
+                imagePath: AppImageAssets.sampleGirlImage,
+                width: SizeConfig.size90,
+                boxFix: BoxFit.cover),
+            SizedBox(width: SizeConfig.size12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: CustomText('Hi!',
+                        fontSize: SizeConfig.medium,
+                        color: AppColors.mainTextColor,
+                        fontWeight: FontWeight.w400),
+                  ),
+                  SizedBox(
+                    height: SizeConfig.size5,
+                  ),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: RichText(
+                      text: TextSpan(
+                        style: TextStyle(
+                            fontSize: SizeConfig.medium,
+                            color: AppColors.mainTextColor,
+                            fontWeight: FontWeight.w400),
+                        children: [
+                          const TextSpan(text: 'May I '),
+                          TextSpan(
+                            text: 'Help You',
+                            style: TextStyle(
+                              color: AppColors.primaryColor,
+                              fontWeight: FontWeight.w600,
+                              fontSize: SizeConfig.medium,
+                            ),
+                          ),
+                          const TextSpan(text: ' to Find Out'),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    height: SizeConfig.size5,
+                  ),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: RichText(
+                      text: TextSpan(
+                        style: TextStyle(
+                            fontSize: SizeConfig.medium,
+                            color: AppColors.mainTextColor,
+                            fontWeight: FontWeight.w400),
+                        children: [
+                          const TextSpan(text: 'Your Product From '),
+                          TextSpan(
+                            text: 'Local Market.',
+                            style: TextStyle(
+                              color: AppColors.primaryColor,
+                              fontWeight: FontWeight.w600,
+                              fontSize: SizeConfig.medium,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: SizeConfig.size12),
+                  Container(
+                    height: SizeConfig.size32,
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                    alignment: Alignment.center,
+                    child: TextFormField(
+                      enabled: false,
+                      autofocus: false,
+                      controller: TextEditingController(),
+                      style: TextStyle(
+                          color: AppColors.mainTextColor,
+                          fontSize: SizeConfig.medium),
+                      textAlignVertical: TextAlignVertical.center,
+                      decoration: InputDecoration(
+                        hintText: 'Search Product....',
+                        hintStyle: TextStyle(
+                            fontSize: SizeConfig.medium,
+                            color: AppColors.secondaryTextColor),
+                        isDense: true,
+                        filled: false,
+                        contentPadding: EdgeInsets.zero,
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        prefixIcon: Padding(
+                          padding: EdgeInsets.only(
+                            top: SizeConfig.size5,
+                            bottom: SizeConfig.size5,
+                          ),
+                          child: Icon(Icons.search,
+                              color: AppColors.secondaryTextColor,
+                              size: SizeConfig.paddingXL),
+                        ),
+                        suffixIcon: Padding(
+                          padding: EdgeInsets.only(
+                              left: SizeConfig.size8,
+                              right: SizeConfig.size16,
+                              top: SizeConfig.size5,
+                              bottom: SizeConfig.size5),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.mic_none_outlined,
+                                  color: AppColors.secondaryTextColor,
+                                  size: SizeConfig.paddingXL),
+                              SizedBox(width: SizeConfig.size10),
+                              Icon(Icons.camera_alt_outlined,
+                                  color: AppColors.secondaryTextColor,
+                                  size: SizeConfig.paddingXL),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                ],
+              ),
+            )
+          ],
+        ),
+      ),
+    );
+  }
 
 }
+
+
+

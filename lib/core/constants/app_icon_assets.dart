@@ -583,10 +583,27 @@ class AppIconAssets {
   static const String warningRedIcon = "${iconPath}warning_red_icon.svg";
   static const String food_category = "${iconPath}food_category.svg";
   static const String boiled = "${iconPath}boiled.svg";
+  static const String locationMarkerIcon = "${iconPath}location_marker_icon.svg";
   static const String occupancy = "assets/category/hotel_service/occupancy.svg";
   static const String bad = "assets/category/hotel_service/bad.svg";
   static const String UPLOAD_DOCUMENT = "assets/category/hotel_service/UPLOAD_DOCUMENT.svg";
+  static const String other_privacy = "${iconPath}other_privacy.svg";
+  static const String  other_timing= "${iconPath}other_timing.svg";
+  static const String  other_services= "${iconPath}other_services.svg";
+  static const String other_announcements = "${iconPath}other_announcements.svg";
+  static const String  other_gallery= "${iconPath}other_gallery.svg";
+  static const String other_careers = "${iconPath}other_careers.svg";
+  static const String other_products = "${iconPath}other_products.svg";
+  static const String other_management = "${iconPath}other_management.svg";
+  static const String  other_staffs= "${iconPath}other_staffs.svg";
+  static const String other_office_facility = "${iconPath}other_office_facility.svg";
+  static const String  other_org_about= "${iconPath}other_org_about.svg";
+  static const String  other_download= "${iconPath}other_download.svg";
+  static const String  other_news= "${iconPath}other_news.svg";
+  static const String  other_blog= "${iconPath}other_blog.svg";
   static const String hospitalVisionIcon = "${AppConstants.baseImageAssetsPath}vision_hospital_icon.png";
   static const String hospitalHistoryIcon = "${AppConstants.baseImageAssetsPath}hospital_history_icon.png";
 
 }
+// assets/svg/other_management.svg
+// assets/svg/other_management.svg

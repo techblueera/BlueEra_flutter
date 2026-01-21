@@ -37,6 +37,9 @@ class AppImageAssets {
   static const String foodDeliveryService = "${imgPath}food_delivery_service.png";
   static const String bookNowBanner = "${imgPath}book_now_banner.png";
   static const String homeMadeBanner = "${imgPath}home_made_banner.png";
+  static const String automotiveService = "${imgPath}automotive_service.png";
+  static const String transportService = "${imgPath}transport_service.png";
+  static const String jobBanner = "${imgPath}job_banner.png";
 
   static String frontDeskImage = "${imgPath}front_desk_image.png";
   static String officeImage = "${imgPath}office_image.png";
@@ -57,6 +60,7 @@ class AppImageAssets {
   static String electronicsApplianceStore = "${imgPath}electronics_appliance_store_icon.png";
   static String constructionHomeEsse = "${imgPath}construction_home_esse_icon.png";
   static String fashionLifestyle = "${imgPath}fashion_lifestyle_icon.png";
+  static String beautyAndCosmetics = "${imgPath}beauty_and_cosmetics.png";
 
   /// Business services images
   static String consultingService = "${imgPath}consulting_service_icon.png";

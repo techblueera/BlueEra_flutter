@@ -10,6 +10,7 @@ import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/auth/model/business_profile_category.dart';
+import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/common/store/view/new_store/business_store_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/create_profile_screen.dart';
@@ -20,7 +21,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class ProductLocalMarketScreen extends StatefulWidget {
-  final List<BusinessProfileCategory> businessProductsCategories;
+  final List<OnBoardingCategoryModel> businessProductsCategories;
 
   const ProductLocalMarketScreen({
     super.key,
@@ -35,7 +36,7 @@ class ProductLocalMarketScreen extends StatefulWidget {
 class _ProductLocalMarketScreenState extends State<ProductLocalMarketScreen> {
   late PageController _pageController;
   int selectedTabIndex = 0;
-  late List<BusinessProfileCategory> _businessProductsCategories;
+  late List<OnBoardingCategoryModel> _businessProductsCategories;
 
   @override
   void initState() {
@@ -423,7 +424,7 @@ class _ProductLocalMarketScreenState extends State<ProductLocalMarketScreen> {
               // Handle Store Logic
               Get.to(() => BusinessStoreScreen(
                 typeOfBusiness: AppConstants.product,
-                selectedStoreCategoryId: c.categoryData?.id,
+                selectedStoreCategoryId: c.slugId,
                 selectedStoreCategoryName: c.name,
               ));
             }
@@ -477,8 +478,8 @@ class _ProductLocalMarketScreenState extends State<ProductLocalMarketScreen> {
 
   // --- Widget: Category Card ---
   Widget _buildCategoryItem({
-    required BusinessProfileCategory productCategory,
-    required Function(BusinessProfileCategory item)? onTap,
+    required OnBoardingCategoryModel productCategory,
+    required Function(OnBoardingCategoryModel item)? onTap,
   }) {
     return InkWell(
       onTap: () {

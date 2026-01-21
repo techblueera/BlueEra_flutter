@@ -29,7 +29,7 @@ class CustomFormCard extends StatelessWidget {
       margin: margin,
       padding: padding ?? EdgeInsets.all(SizeConfig.size15),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: color ?? AppColors.white,
         borderRadius: BorderRadius.circular(10.0),
         // boxShadow: [AppShadows.textFieldShadow],
       ),
