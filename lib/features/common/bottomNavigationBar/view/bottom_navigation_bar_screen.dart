@@ -390,9 +390,12 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     } else if (businessTypeGlobal.toUpperCase() ==
         BusinessType.Siksha.name.toUpperCase()) {
       return const SchoolMain();
-    }  else if (businessTypeGlobal.toUpperCase() ==
+    }  else  if(businessCategoryGlobal == AppConstants.healthcareMedicalServices) {
+      return const HospitalMain();
+    }else if (businessTypeGlobal.toUpperCase() ==
         BusinessType.Motel.name.toUpperCase()){
       return const HotelMain();
+
     } else if (businessTypeGlobal.toUpperCase() ==
         BusinessType.Service.name.toUpperCase()) {
       return const InventoryScreen(fromBottomNavBar: true);
