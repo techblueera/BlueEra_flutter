@@ -28,6 +28,7 @@ import 'package:BlueEra/features/common/Discover/widget/tooltip_generator.dart';
 import 'package:BlueEra/features/common/auth/model/business_profile_category.dart';
 import 'package:BlueEra/features/common/auth/model/individual_profiile_category.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
+import 'package:BlueEra/features/common/franchise/view/franchise_home.dart';
 import 'package:BlueEra/features/common/jobs/view/jobs_screen.dart';
 import 'package:BlueEra/features/common/store/view/new_store/all_product_store_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
@@ -396,7 +397,10 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
               initialCameraPosition: CameraPosition(
                 target: LatLng(userLat, userLng),
                 zoom: 14.0,
-              ),
+              ),onMapClick: (lat,long){
+              logs("logMsg");
+              Get.to(()=>FranchiseHome());
+            },
               onStyleLoadedCallback: () {
                 setState(() => isMapLoading = false);
                 _onStyleLoadedCallback();
