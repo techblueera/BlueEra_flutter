@@ -75,6 +75,12 @@ class AuthRepo extends BaseService {
     return response;
   }
 
+  Future<ResponseModel> getBusinessCategoriesByTypeRepo(String tagID) async {
+    final response = await ApiBaseHelper().getHTTP("${getAllcategoriesByType}$tagID",
+        showProgress: false, onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+
   /// Get Verify GST REPO...
   Future<ResponseModel> getUserVerifyGstRepo(
       {required String? gstNumber}) async {

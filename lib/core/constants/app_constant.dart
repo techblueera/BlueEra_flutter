@@ -2314,7 +2314,7 @@ final List<OnBoardingCategoryModel> businessOnboardingServicesCategories = [
       accountType: AppConstants.business,
       businessType: BusinessType.Service),
   OnBoardingCategoryModel(
-      name: 'Healthcare &\nMedical Services',
+      name: 'Healthcare',
       slugId: HEALTHCARE_MEDICAL_SERVICES,
       icon: OnboardingBusinessAssets.healthcareMedicalServices,
       accountType: AppConstants.business,
@@ -3372,6 +3372,137 @@ final List<OnBoardingCategoryModel> individualOnboardingConsultationList = [
     accountType: AppConstants.individual,
   ),
 ];
+final List<OnBoardingCategoryModel> individualOnboardingSelfWorkSkillWorkList = [
+
+  OnBoardingCategoryModel(
+    name: 'Bike Rider',
+    slugId: DELIVERY_RIDER,
+    icon: OnboardingIndividualAssets.bikeRider,
+    individualType: IndividualType.GIG_WORKER,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: 'Car Driver',
+    slugId: CAR_TAXI,
+    icon: OnboardingIndividualAssets.taxiCarDriver,
+    individualType: IndividualType.GIG_WORKER,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: 'Goods Transporter',
+    slugId: GOODS_TAXI,
+    icon: OnboardingIndividualAssets.goodsSupplier,
+    individualType: IndividualType.GIG_WORKER,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: 'Auto Driver',
+    slugId: AUTO_TAXI,
+    icon: OnboardingIndividualAssets.autoERickshaw,
+    individualType: IndividualType.GIG_WORKER,
+    accountType: AppConstants.individual,
+  ),
+
+  OnBoardingCategoryModel(
+    name: 'Electrician',
+    slugId: ELECTRICIAN,
+    icon: OnboardingIndividualAssets.electrician,
+    individualType: IndividualType.SELF_EMPLOYED,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: 'Plumber',
+    slugId: PLUMBER,
+    icon: OnboardingIndividualAssets.plumber,
+    individualType: IndividualType.SELF_EMPLOYED,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: 'Technician',
+    slugId: TECHNICIAN,
+    icon: OnboardingIndividualAssets.technician,
+    individualType: IndividualType.SELF_EMPLOYED,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: 'Mechanic',
+    slugId: MECHANIC,
+    icon: OnboardingIndividualAssets.mechanic,
+    individualType: IndividualType.SELF_EMPLOYED,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: 'Painter',
+    slugId: PAINTER,
+    icon: OnboardingIndividualAssets.painter,
+    individualType: IndividualType.SELF_EMPLOYED,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: 'Carpenter',
+    slugId: ARTIST,
+    icon: OnboardingIndividualAssets.carpenter,
+    individualType: IndividualType.SELF_EMPLOYED,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: 'Home Renovator',
+    slugId: HOME_RENOVATOR,
+    icon: OnboardingIndividualAssets.homeRenovator,
+    individualType: IndividualType.SELF_EMPLOYED,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: 'Labour',
+    slugId: LABOUR,
+    icon: OnboardingIndividualAssets.labour,
+    individualType: IndividualType.SELF_EMPLOYED,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: 'Gardener',
+    slugId: GARDENER,
+    icon: OnboardingIndividualAssets.gardener,
+    individualType: IndividualType.SELF_EMPLOYED,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: 'Security Person',
+    slugId: SECURITY_PERSON,
+    icon: OnboardingIndividualAssets.securityPerson,
+    individualType: IndividualType.SELF_EMPLOYED,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: 'Maid (Female)',
+    slugId: MAID_FEMALE,
+    icon: OnboardingIndividualAssets.homeMaker,
+    individualType: IndividualType.SELF_EMPLOYED,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: 'Cleaner',
+    slugId: CLEANER,
+    icon: OnboardingIndividualAssets.cleaner,
+    individualType: IndividualType.SELF_EMPLOYED,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: AppStrings.tailoring,
+    slugId: TAILOR,
+    icon: OnboardingIndividualAssets.tailoring,
+    individualType: IndividualType.SOCIAL_PROFILE,
+    accountType: AppConstants.individual,
+  ),
+  OnBoardingCategoryModel(
+    name: AppStrings.beautyCare,
+    slugId: BEAUTICIAN,
+    icon: OnboardingIndividualAssets.beautician,
+    individualType: IndividualType.SOCIAL_PROFILE,
+    accountType: AppConstants.individual,
+  ),
+];
+
 // --- End ---
 
 final List<IndividualProfileCategory> individualSocialProfileList = [

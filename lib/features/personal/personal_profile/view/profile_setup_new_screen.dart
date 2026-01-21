@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
+import 'package:BlueEra/core/api/model/campus_life_categories_res_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -16,6 +17,8 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
+import 'package:BlueEra/features/common/auth/model/individual_field_response_model.dart';
+import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/map/controller/visiting_hour_selector_controller.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
@@ -38,6 +41,8 @@ import 'package:BlueEra/features/personal/personal_profile/view/widget/introduct
 import 'package:BlueEra/features/personal/personal_profile/view/widget/update_profile_view.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
+import 'package:BlueEra/widgets/common_drop_down-dialoge.dart';
+import 'package:BlueEra/widgets/common_drop_down.dart';
 import 'package:BlueEra/widgets/common_horizontal_divider.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -104,7 +109,8 @@ class PersonalProfileSetupNewScreen extends StatefulWidget {
 class _PersonalProfileSetupNewScreenState
     extends State<PersonalProfileSetupNewScreen> with TickerProviderStateMixin {
   final viewProfileController = getOrPut(() => ViewPersonalDetailsController());
-  final personalCreateProfileController = getOrPut(() => PersonalCreateProfileController());
+  final personalCreateProfileController =
+      getOrPut(() => PersonalCreateProfileController());
   final bookingTabController = getOrPut(() => BookingController());
   final myDocumentsController = getOrPut(() => MyDocumentsController());
   final introVideoController = getOrPut(() => IntroductionVideoController());
@@ -163,7 +169,7 @@ class _PersonalProfileSetupNewScreenState
   }
 
   Future<void> checkAndGetAvailabilityBookingData() async {
-      await bookingTabController.checkAndGetAvailabilityBookingData(userId);
+    await bookingTabController.checkAndGetAvailabilityBookingData(userId);
   }
 
   Future<void> getAllDocumentsData() async {
@@ -653,6 +659,189 @@ class _PersonalProfileSetupNewScreenState
     );
   }
 
+  void _showCategoryBottomSheet() {
+
+    Get.bottomSheet(
+      SafeArea(
+        child: Container(
+          // padding: EdgeInsets.all(SizeConfig.size20),
+          padding: EdgeInsets.only(bottom: 30, right: 20, left: 20, top: 15),
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min, // Important to keep sheet compact
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CustomText(
+                "Select Profile Category",
+                fontSize: SizeConfig.large,
+                fontWeight: FontWeight.w500,
+              ),
+              SizedBox(height: SizeConfig.paddingM),
+
+              // The Dropdown with Obx inside the BottomSheet
+              Obx(() => CommonDropdownDialog<OnBoardingCategoryModel>(
+                    // Data from your controller
+                    items: viewProfileController.individualCategories,
+
+                    // Reactive selected value
+                    selectedValue:
+                        viewProfileController.selectedOnboardingCategory.value,
+
+                    title: 'Select Profile Category',
+                    hintText: 'Select Profile Category',
+
+                    // Clean up the display name
+                    displayValue: (item) => item.name.replaceAll('\n', ' '),
+
+                    onChanged: (val) {
+                      // Update GetX state instead of setState
+                      viewProfileController.updateOnboardingCategory(val);
+                      // Logic/Logs
+                      if (val != null) {
+                        logs("Selected SlugID: ${val.slugId}");
+                      }
+                    },
+                  )),
+
+              SizedBox(height: SizeConfig.paddingL),
+
+              Obx(() {
+                if (viewProfileController
+                        .selectedOnboardingCategory.value?.slugId ==
+                    SOCIAL_PROFILE) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomText(
+                        "Select Social Profile",
+                        fontSize: SizeConfig.large,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      SizedBox(height: SizeConfig.paddingXL),
+                      Obx(() => CommonDropdownDialog<OnBoardingCategoryModel>(
+                            // 1. Data Source from Controller
+                            items: viewProfileController.socialProfileList,
+
+                            // 2. Reactive Selection
+                            selectedValue: viewProfileController
+                                .selectedSocialProfile.value,
+
+                            // 3. UI Labels
+                            title: 'Select Social Profile',
+                            hintText: 'Eg. Politician, Student...',
+
+                            // 4. Display Logic (Handling Translations)
+                            displayValue: (item) => item.name.tr,
+
+                            // 5. State Update Logic
+                            onChanged: (val) {
+                              if (val != null) {
+                                viewProfileController.setSocialProfile(val);
+
+                                // Optional: Log for debugging
+                                logs(
+                                    "Selected Social Profile Slug: ${val.slugId}");
+                              }
+                            },
+
+                            // // 6. Validation Logic
+                            // validator: (value) {
+                            //   if (value == null) {
+                            //     return "Please select a social profile";
+                            //   }
+                            //   return null;
+                            // },
+                          )),
+                      SizedBox(height: SizeConfig.paddingXL),
+                    ],
+                  );
+                } else if (viewProfileController
+                        .selectedOnboardingCategory.value?.slugId ==
+                    SELF_EMPLOYED) {
+                  return CommonDropdownDialog<OnBoardingCategoryModel>(
+                    // Data source from controller
+                    items: viewProfileController.skillWorkList,
+
+                    // Reactive selected value
+                    selectedValue:
+                        viewProfileController.selectedSkillWorkProfile.value,
+
+                    // UI Labels
+                    title: 'Select Skill / Work',
+                    hintText: 'Eg. Electrician, Plumber...',
+
+                    // Display name logic: handle .tr for AppStrings items
+                    displayValue: (item) {
+                      // If the name is from AppStrings, it might need .tr
+                      // depending on your localization setup.
+                      return item.name.tr;
+                    },
+
+                    // Update state on change
+                    onChanged: (val) {
+                      if (val != null) {
+                        viewProfileController.setSkillWorkProfile(val);
+                        logs("Selected Skill Slug: ${val.slugId}");
+                      }
+                    },
+                  );
+                } else if (viewProfileController
+                        .selectedOnboardingCategory.value?.slugId ==
+                    CONSULTANT) {
+                  return CommonDropdownDialog<OnBoardingCategoryModel>(
+                    // Data source from controller
+                    items: viewProfileController.consultationList,
+
+                    // Reactive selected value
+                    selectedValue:
+                        viewProfileController.selectedConsultationProfile.value,
+
+                    // UI Labels
+                    title: 'Select Professional Service',
+                    hintText: 'Eg. Legal, Finance, Tech...',
+
+                    // Display name logic: remove newlines for the dropdown view
+                    displayValue: (item) => item.name.replaceAll('\n', ' '),
+
+                    // Update state on change
+                    onChanged: (val) {
+                      if (val != null) {
+                        viewProfileController.setConsultationProfile(val);
+                        logs("Selected Consultation Slug: ${val.slugId}");
+                      }
+                    },
+                  );
+                }
+                return SizedBox();
+              }),
+              SizedBox(height: SizeConfig.paddingL),
+
+
+
+              SizedBox(height: SizeConfig.paddingL),
+
+              // Optional Confirm Button
+              PositiveCustomBtn(
+                onTap: () {
+                  viewProfileController.personalProfileDetails.value.user
+                      ?.designation = viewProfileController
+                          .selectedOnboardingCategory.value?.name ??
+                      "";
+                },
+                title: "Done",
+              ),
+            ],
+          ),
+        ),
+      ),
+      isScrollControlled: true, // Allows content to define height
+      backgroundColor: Colors.transparent,
+    );
+  }
+
   Widget _buildHeaderSection() {
     String _capitalizeFirstLetter(String text) {
       if (text.isEmpty) return '';
@@ -847,7 +1036,8 @@ class _PersonalProfileSetupNewScreenState
                             //     params: reqProfile, isFromProfileOnly: true);
                           },
                           child: CircleAvatar(
-                            backgroundColor: AppColors.black.withValues(alpha: 0.3),
+                            backgroundColor:
+                                AppColors.black.withValues(alpha: 0.3),
                             child: LocalAssets(
                                 imagePath: 'assets/diwali_card/image.png'),
                           )))
@@ -862,6 +1052,7 @@ class _PersonalProfileSetupNewScreenState
               padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   CustomText(
                     _capitalizeFirstLetter(
@@ -901,25 +1092,37 @@ class _PersonalProfileSetupNewScreenState
                       const SizedBox(
                         width: 6,
                       ),
-                      viewProfileController.personalProfileDetails.value
-                          .user?.profession?.isNotEmpty??false?Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 4),
-                        decoration: BoxDecoration(
-                            color: AppColors.white,
-                            borderRadius: BorderRadius.circular(20),
-                            border: BoxBorder.all(
+                      if (viewProfileController.personalProfileDetails.value
+                              .user?.profession?.isNotEmpty ??
+                          false)
+                        InkWell(
+                          onTap: () {
+                            viewProfileController
+                                .selectedOnboardingCategory.value = null;
+                            viewProfileController.selectedSocialProfile.value =
+                                null;
+
+                            // _showCategoryBottomSheet();
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 14, vertical: 4),
+                            decoration: BoxDecoration(
+                                color: AppColors.white,
+                                borderRadius: BorderRadius.circular(20),
+                                border: BoxBorder.all(
+                                  color: AppColors.secondaryTextColor,
+                                )),
+                            child: CustomText(
+                              viewProfileController.personalProfileDetails.value
+                                      .user?.designation ??
+                                  '',
                               color: AppColors.secondaryTextColor,
-                            )),
-                        child: CustomText(
-                          viewProfileController.personalProfileDetails.value
-                                  .user?.profession ??
-                              '',
-                          color: AppColors.secondaryTextColor,
-                          fontSize: SizeConfig.small,
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ):SizedBox(),
+                              fontSize: SizeConfig.small,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        )
                     ],
                   ),
                 ],
@@ -976,26 +1179,30 @@ class _PersonalProfileSetupNewScreenState
             // === Bio Section ===
             // if (_shouldShowBioSection())
             viewProfileController
-                .personalProfileDetails.value.user?.bio?.isNotEmpty??false?Padding(
-              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
-              child: ExpandableText(
-                text: viewProfileController
-                        .personalProfileDetails.value.user?.bio ??
-                    "",
-                trimLines: 3,
-                style: TextStyle(
-                  color: AppColors.mainTextColor,
-                  fontSize: 14,
-                  wordSpacing: 0.4,
-                  letterSpacing: 0.2,
-                  fontWeight: FontWeight.w400,
-                  height:
-                      1.5, // 👈 increases vertical gap between lines (default is ~1.0)
-                ),
-                expandMode: ExpandMode.dialog,
-                dialogTitle: AppStrings.bio,
-              ),
-            ):SizedBox(),
+                        .personalProfileDetails.value.user?.bio?.isNotEmpty ??
+                    false
+                ? Padding(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: SizeConfig.size15),
+                    child: ExpandableText(
+                      text: viewProfileController
+                              .personalProfileDetails.value.user?.bio ??
+                          "",
+                      trimLines: 3,
+                      style: TextStyle(
+                        color: AppColors.mainTextColor,
+                        fontSize: 14,
+                        wordSpacing: 0.4,
+                        letterSpacing: 0.2,
+                        fontWeight: FontWeight.w400,
+                        height:
+                            1.5, // 👈 increases vertical gap between lines (default is ~1.0)
+                      ),
+                      expandMode: ExpandMode.dialog,
+                      dialogTitle: AppStrings.bio,
+                    ),
+                  )
+                : SizedBox(),
 
             //
             //
@@ -1359,14 +1566,12 @@ class _PersonalProfileSetupNewScreenState
                       builder: (context) => CreateProfileScreen()));
             } else {
               log('user work type-- $userWorkTypeGlobal');
-              if(userWorkTypeGlobal == DELIVERY_RIDER
+              if (userWorkTypeGlobal == DELIVERY_RIDER
                   // || userWorkTypeGlobal == 'Delivery Partner'
-              ){
-                Get.toNamed(RouteHelper
-                    .getRiderServiceScreenRoute());
-              }else{
-                Get.toNamed(RouteHelper
-                    .getEarnServiceScreenRoute());
+                  ) {
+                Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
+              } else {
+                Get.toNamed(RouteHelper.getEarnServiceScreenRoute());
               }
             }
           },
@@ -1381,8 +1586,7 @@ class _PersonalProfileSetupNewScreenState
 
   Widget _buildPaymentAccountWidget() {
     return CustomFormCard(
-        child: Column(
-            children: [
+        child: Column(children: [
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -1395,7 +1599,8 @@ class _PersonalProfileSetupNewScreenState
           ),
           SizedBox(width: SizeConfig.size6),
           InkWell(
-            onTap: () => Get.toNamed(RouteHelper.getPaymentSettingScreenRoute()),
+            onTap: () =>
+                Get.toNamed(RouteHelper.getPaymentSettingScreenRoute()),
             child: LocalAssets(
               height: 18,
               imagePath: AppIconAssets.pen_line,
@@ -1472,12 +1677,12 @@ class _PersonalProfileSetupNewScreenState
       Align(
         alignment: Alignment.centerRight,
         child: CustomBtn(
-            onTap: (){},
-            height: SizeConfig.size30,
-            width: SizeConfig.size90,
-            title: AppStrings.withdraw,
-            bgColor: AppColors.primaryColor,
-            radius: 10.0,
+          onTap: () {},
+          height: SizeConfig.size30,
+          width: SizeConfig.size90,
+          title: AppStrings.withdraw,
+          bgColor: AppColors.primaryColor,
+          radius: 10.0,
         ),
       )
       // _buildContainerOverlay(
@@ -1555,7 +1760,8 @@ class _PersonalProfileSetupNewScreenState
           child: (myDocumentsController.documents.isEmpty)
               ? ListTile(
                   dense: true,
-                  onTap: ()=> Get.toNamed(RouteHelper.getAddDocumentScreenRoute()),
+                  onTap: () =>
+                      Get.toNamed(RouteHelper.getAddDocumentScreenRoute()),
                   leading: Icon(
                     Icons.folder_open,
                     color: AppColors.primaryColor,
@@ -1619,8 +1825,7 @@ class _PersonalProfileSetupNewScreenState
               Spacer(),
               InkWell(
                 onTap: () async {
-                   await Get.toNamed(
-                      RouteHelper.getAvailabilityScreenRoute(),
+                  await Get.toNamed(RouteHelper.getAvailabilityScreenRoute(),
                       arguments: {
                         ApiKeys.argId: userId,
                       });
@@ -1637,7 +1842,8 @@ class _PersonalProfileSetupNewScreenState
         _buildContainerOverlay(
             child: bookingTabController.availabilityDetails.value != null
                 ? Obx(() {
-                    AvailabilityData data = bookingTabController.availabilityDetails.value!;
+                    AvailabilityData data =
+                        bookingTabController.availabilityDetails.value!;
                     final selectedType;
                     final bt = data.bookingType?.toLowerCase();
                     if (bt == 'online') {
@@ -1796,8 +2002,11 @@ class _PersonalProfileSetupNewScreenState
                                     decoration: BoxDecoration(
                                         color: AppColors.white,
                                         borderRadius: BorderRadius.circular(10),
-                                        border: Border.all(color: AppColors.whiteE0),
-                                        boxShadow: [AppShadows.textFieldShadow]),
+                                        border: Border.all(
+                                            color: AppColors.whiteE0),
+                                        boxShadow: [
+                                          AppShadows.textFieldShadow
+                                        ]),
                                     child: CustomText(
                                       minFee,
                                       fontSize: SizeConfig.medium,
@@ -1829,8 +2038,11 @@ class _PersonalProfileSetupNewScreenState
                                     decoration: BoxDecoration(
                                         color: AppColors.white,
                                         borderRadius: BorderRadius.circular(10),
-                                        border: Border.all(color: AppColors.whiteE0),
-                                        boxShadow: [AppShadows.textFieldShadow]),
+                                        border: Border.all(
+                                            color: AppColors.whiteE0),
+                                        boxShadow: [
+                                          AppShadows.textFieldShadow
+                                        ]),
                                     child: CustomText(
                                       maxFee,
                                       fontSize: SizeConfig.medium,
@@ -1972,7 +2184,6 @@ class _PersonalProfileSetupNewScreenState
 
   Widget _buildDocumentCard(
       DocumentsResponse document, MyDocumentsController controller) {
-
     return Container(
       padding: EdgeInsets.symmetric(
           vertical: SizeConfig.size12, horizontal: SizeConfig.size15),
@@ -2002,7 +2213,7 @@ class _PersonalProfileSetupNewScreenState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomText(
-                  controller.getDocumentName(document.documentType??''),
+                  controller.getDocumentName(document.documentType ?? ''),
                   fontSize: SizeConfig.small,
                   fontWeight: FontWeight.w400,
                   color: AppColors.mainTextColor,
@@ -2024,12 +2235,16 @@ class _PersonalProfileSetupNewScreenState
             onTap: () {
               Get.bottomSheet(
                 CommonDocumentBottomSheet(
-                  title: controller.getDocumentName(document.documentType??''),
-                  child: (document.isVerified ?? false) ? ViewDocumentWidget(
-                    document: document,
-                  ) : DocumentVerificationPendingWidget(
-                      documentName: controller.getDocumentName(document.documentType??''),
-                  ),
+                  title:
+                      controller.getDocumentName(document.documentType ?? ''),
+                  child: (document.isVerified ?? false)
+                      ? ViewDocumentWidget(
+                          document: document,
+                        )
+                      : DocumentVerificationPendingWidget(
+                          documentName: controller
+                              .getDocumentName(document.documentType ?? ''),
+                        ),
                 ),
                 isScrollControlled: true,
                 backgroundColor: Colors.transparent,
@@ -2046,7 +2261,6 @@ class _PersonalProfileSetupNewScreenState
       ),
     );
   }
-
 }
 
 class _CustomTabBarDelegate extends SliverPersistentHeaderDelegate {

@@ -73,8 +73,8 @@ class _AiSuggestionFieldState extends State<AiSuggestionField> {
         // --- 🔴 Show AI suggestion only when empty ---
         AnimatedSwitcher(
           duration: const Duration(milliseconds: 250),
-          child: isEmpty
-              ? InkWell(
+          child:/* isEmpty
+              ?*/ InkWell(
             onTap: () async {
               await aiController.fetchSuggestions(
                 bodyRequest: widget.bodyRequest,
@@ -100,7 +100,7 @@ class _AiSuggestionFieldState extends State<AiSuggestionField> {
               ],
             ),
           )
-              : const SizedBox.shrink(),
+            /*  : const SizedBox.shrink(),*/
         ),
         const SizedBox(height: 10),
         CommonTextField(

@@ -79,6 +79,7 @@ class _CommonDropdownIconDialogState<T>
                                 imagePath: widget.displayValueImagePath(item),
                                 width: SizeConfig.size30,
                                 height: SizeConfig.size30,
+                                imgColor: AppColors.mainTextColor,
                               ),
                               SizedBox(
                                 width: SizeConfig.size10,

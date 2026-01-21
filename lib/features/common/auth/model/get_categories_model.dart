@@ -43,9 +43,9 @@ class CategoryData {
     id = json['_id'];
     name = json['name'];
     imageUrl = json['image_url'];
-    if (json['subCategories'] != null) {
+    if (json['subcategories'] != null) {
       subCategories = <SubCategories>[];
-      json['subCategories'].forEach((v) {
+      json['subcategories'].forEach((v) {
         subCategories!.add(new SubCategories.fromJson(v));
       });
     }
@@ -58,7 +58,7 @@ class CategoryData {
     data['name'] = this.name;
     data['image_url'] = this.imageUrl;
     if (this.subCategories != null) {
-      data['subCategories'] =
+      data['subcategories'] =
           this.subCategories!.map((v) => v.toJson()).toList();
     }
     return data;

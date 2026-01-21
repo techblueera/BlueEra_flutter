@@ -549,7 +549,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                 },
                               ),
                               SizedBox(height: SizeConfig.size18),
-                              Row(
+                         /*     Row(
                                 children: [
                                   CustomText(
                                     AppStrings.selectYourProfession,
@@ -613,11 +613,11 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                     setState(() {});
                                   },
                                 );
-                              }),
+                              }),*/
 
                               // SizedBox(height: SizeConfig.size18),
 
-                              if (selectedProfession == OTHERS) ...[
+                          /*    if (selectedProfession == OTHERS) ...[
                                 CommonTextField(
                                   hintText: AppStrings.enterProfessionIfOthers,
                                   title: AppStrings.specifyProfession,
@@ -994,7 +994,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                   },
                                 ),
                                 SizedBox(height: SizeConfig.size18),
-                              ],
+                              ],*/
                               AiSuggestionField(
                                 title: AppStrings.aboutMe,
                                 apiType: AppStrings.bio,
