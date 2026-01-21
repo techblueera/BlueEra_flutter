@@ -52,6 +52,7 @@ class HospitalModelController extends GetxController {
   final qualificationController = TextEditingController();
   final availabilityController = TextEditingController();
   final feesController = TextEditingController();
+  late TabController tabController;
 
   //Api Response Models
   Rx<ApiResponse> getHospitalMainResponse = ApiResponse.initial('Initial').obs;
@@ -116,7 +117,9 @@ class HospitalModelController extends GetxController {
   String get formattedTo => toDate.value == null
       ? ''
       : DateFormat('dd/MM/yyyy').format(toDate.value!);
-
+   void onChangeTab(int index){
+     tabController.animateTo(index);
+   }
   Future<void> pickDate(
     BuildContext context,
     bool isFrom,

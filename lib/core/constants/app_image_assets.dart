@@ -10,6 +10,9 @@ class AppImageAssets {
   static const String splashBgImage = "assets/images/bg_splash.png";
   static const String chatBgDark = '${imgPath}chat_bg_dark.png';
   static const String chatBgLight = '${imgPath}chatting_bg_light.png';
+  static const String grocery_call_women = '${imgPath}grocery_call_women.png';
+  static const String franchise_home = '${imgPath}franchise_home.png';
+  static const String franchise_logo = '${imgPath}franchise_logo.png';
   static const String chatBgBlueShade = '${imgPath}chat_bg_blue_shade.png';
 
 

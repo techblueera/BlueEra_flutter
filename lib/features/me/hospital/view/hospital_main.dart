@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/hospital/view/widget/add_hospital_prev_widget.dart';
 import 'package:BlueEra/features/me/hospital/view/widget/add_hospital_service.dart';
 import 'package:BlueEra/features/me/hospital/view/widget/create_hotel_profile_via_ai.dart';
+import 'package:BlueEra/features/common/franchise/view/franchise_home.dart';
 import 'package:BlueEra/features/me/hospital/view/widget/general_medicine.dart';
 import 'package:BlueEra/features/me/laboratory/view/widgets/add_lab_services.dart';
 import 'package:BlueEra/features/me/medical/view/category/otc_items_page.dart';
@@ -33,7 +34,7 @@ class HospitalMain extends StatefulWidget {
 
 class _HospitalMainState extends State<HospitalMain>
     with SingleTickerProviderStateMixin, RouteAware {
-  late TabController _tabController;
+
   final controller = getOrPut(() => HospitalModelController());
 
 
@@ -42,7 +43,7 @@ class _HospitalMainState extends State<HospitalMain>
   @override
   void initState() {
 
-    _tabController = TabController(length: 3, vsync: this);
+    controller.tabController = TabController(length: 3, vsync: this);
     controller.fetchHospitalCategoryData();
     controller.getHospitalHomeDetails();
 
@@ -50,7 +51,7 @@ class _HospitalMainState extends State<HospitalMain>
   }
   @override
   void dispose() {
-    _tabController.dispose();
+    controller.tabController.dispose();
     super.dispose();
   }
 
@@ -114,7 +115,7 @@ class _HospitalMainState extends State<HospitalMain>
                 ),
               ),
               TabBar(
-                controller: _tabController,
+                controller: controller.tabController,
                 labelColor: AppColors.primaryColor,
                 unselectedLabelColor: Colors.grey[600],
                 indicatorColor: AppColors.primaryColor,
@@ -129,7 +130,7 @@ class _HospitalMainState extends State<HospitalMain>
                 ],
               ),
               Expanded(child: TabBarView(
-                controller: _tabController,
+                controller: controller.tabController,
                 children: [
                   // HospitalPreviewScreen(),
                   //hotel_home_gallery_widget

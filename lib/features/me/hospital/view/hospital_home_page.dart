@@ -1,10 +1,14 @@
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/features/me/hospital/view/widget/hospital_gallery_photo_widget.dart';
 import 'package:BlueEra/features/me/hospital/view/widget/slider_others_details.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/src/extension_navigation.dart';
+import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
+import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/custom_carousel_slider.dart';
@@ -13,6 +17,7 @@ import '../../../../core/constants/size_config.dart';
 import '../../../../widgets/common_card_widget.dart';
 import '../../../../widgets/expandable_text.dart';
 import '../controller/hospital_model_controller.dart';
+import '../model/hospital_home_page_details_model.dart';
 import 'widget/hospital_header_view.dart';
 
 class HospitalHomePage extends StatefulWidget {
@@ -28,298 +33,359 @@ class _HospitalHomePageState extends State<HospitalHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return CustomScrollView(
-      slivers: [
-        SliverAppBar(
-          expandedHeight: Get.height * 0.35,
-          flexibleSpace: FlexibleSpaceBar(
-            background: Container(
-              color: AppColors.appBackgroundColor,
-              child: HospitalHeaderView(
+    return Obx(() {
+      if(controller.getHospitalHomePageResponse.value.status==Status.COMPLETE){
+        HospitalHomePageDetailsModel details=controller.hospitalHomePageDetailsModel.value;
+
+        return CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              expandedHeight: Get.height * 0.32,
+              flexibleSpace: FlexibleSpaceBar(
+                background: Container(
+                  color: AppColors.appBackgroundColor,
+                  child: HospitalHeaderView(details: details.hospitalInfo,
+                  ),
+                ),
+                collapseMode: CollapseMode.parallax,
               ),
             ),
-            collapseMode: CollapseMode.parallax,
-          ),
-        ),
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // _quickActions(),
-                CommonCardWidget(
-                    padding: 10,
-                    cardMargin: 0,
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _sectionTitle("Doctors"),
-                        SizedBox(height: 12,),
-                        _doctorList(),
-                        SizedBox(height: 10,),
-                        Row(mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            CustomText("View All",color: AppColors.primaryColor,)
-                          ],
-                        )
-                      ],
-                    )),
-                SizedBox(height: 10,),
-                CommonCardWidget(
-                    padding: 10,
-                    cardMargin: 0,
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _sectionTitle("IPD"),
-                        SizedBox(height: 12,),
-                        _doctorList(),
-                        SizedBox(height: 10,),
-                        Row(mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            CustomText("View All",color: AppColors.primaryColor,)
-                          ],
-                        )
-                      ],
-                    )),
-                SizedBox(height: 10,),
-                CommonCardWidget(
-                    padding: 10,
-                    cardMargin: 0,
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _sectionTitle("Emergency & Critical Care"),
-                        SizedBox(height: 12,),
-                        _emergencyList(),
-
-
-                      ],
-                    )),
-                SizedBox(height: 10,),
-            CommonCardWidget(
-              padding: 10,
-              cardMargin: 0,
-              child:Column(crossAxisAlignment: CrossAxisAlignment.start,
+            SliverToBoxAdapter(
+              child: Column(
                 children: [
-                  _sectionTitle("Other Services"),
-                  SizedBox(height: SizeConfig.size20,),
-                  OtherServicesSlider(
-                    items: [
-                      ServiceSliderModel(
-                        image: "https://example.com/ambulance.jpg",
-                        title: "Ambulance",
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // _quickActions(),
+                        CommonCardWidget(
+                            padding: 10,
+                            cardMargin: 0,
+                            child: Column(crossAxisAlignment: CrossAxisAlignment
+                                .start,
+                              children: [
+                                _sectionTitle("Doctors"),
+                                SizedBox(height: 12,),
+                                _doctorList(details.doctors??[]),
+                                SizedBox(height: 10,),
+                                Row(mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    CustomText(
+                                      "View All", color: AppColors.primaryColor,)
+                                  ],
+                                )
+                              ],
+                            )),
+                        SizedBox(height: 10,),
+                        CommonCardWidget(
+                            padding: 10,
+                            cardMargin: 0,
+                            child: Column(crossAxisAlignment: CrossAxisAlignment
+                                .start,
+                              children: [
+                                _sectionTitle("IPD"),
+                                SizedBox(height: 12,),
+                                _doctorIPDList(details.ipd??[]),
+                                SizedBox(height: 10,),
+                                Row(mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    CustomText(
+                                      "View All", color: AppColors.primaryColor,)
+                                  ],
+                                )
+                              ],
+                            )),
+                        SizedBox(height: 10,),
+                        CommonCardWidget(
+                            padding: 10,
+                            cardMargin: 0,
+                            child: Column(crossAxisAlignment: CrossAxisAlignment
+                                .start,
+                              children: [
+                                _sectionTitle("Emergency & Critical Care"),
+                                SizedBox(height: 12,),
+                                _emergencyList(details.emergency??[]),
+                              ],
+                            )),
+                        SizedBox(height: 10,),
+                        CommonCardWidget(
+                            padding: 10,
+                            cardMargin: 0,
+                            child: Column(crossAxisAlignment: CrossAxisAlignment
+                                .start,
+                              children: [
+                                _sectionTitle("Other Services"),
+                                SizedBox(height: SizeConfig.size20,),
+                                if(details.otherServices?.isEmpty??false)
+                                  noDetailsWidget(title: 'No Other Service Updated Yet', btnText: 'Add More'),
+                                if(details.otherServices?.isNotEmpty??false)
+                                OtherServicesSlider(
+                                  items: [
+                                    ...details.otherServices?.map((e){
+                                    return ServiceSliderModel(
+                                    image: "",
+                                    title: "${e.name}",
                         description:
-                        "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+                        "${e.description}",
                         icon: Icons.local_hospital,
-                      ),
-                      ServiceSliderModel(
-                        image: "https://example.com/emergency.jpg",
-                        title: "Emergency",
-                        description:
-                        "24x7 emergency medical services available.",
-                        icon: Icons.emergency,
-                      ),
-                    ],
-                  ),
+                        );
+                                    }).toList()??[]
+                                  ],
+                                ),
 
-                ],
-              )
-            ),
-                SizedBox(height: 10,),
+                              ],
+                            )
+                        ),
+                        SizedBox(height: 10,),
 
-            CommonCardWidget(
-              padding: 10,
-              cardMargin: 0,
-              child:Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      _sectionTitle("About Us"),
-                    ],
-                  ),
-                  SizedBox(height: SizeConfig.size20,),
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: Colors.blue.shade300,
-                        width: 1,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.blue.withOpacity(0.45),
-                          blurRadius: 12,
-                          spreadRadius: -6,
+                        CommonCardWidget(
+                            padding: 10,
+                            cardMargin: 0,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    _sectionTitle("About Us"),
+                                  ],
+                                ),
+                                SizedBox(height: SizeConfig.size20,),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                      color: Colors.blue.shade300,
+                                      width: 1,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.blue.withOpacity(0.45),
+                                        blurRadius: 12,
+                                        spreadRadius: -6,
+                                      ),
+                                    ],
+                                    color: Colors.white,
+                                  ),
+                                  padding: const EdgeInsets.all(16),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          LocalAssets(height: 25,
+                                              width: 25,
+                                              imagePath: AppIconAssets
+                                                  .hospitalVisionIcon),
+                                          SizedBox(width: SizeConfig.size10,),
+                                          CustomText(
+                                            "Vision & Mission", fontSize: 18,
+                                            fontWeight: FontWeight.w600,),
+                                        ],
+                                      ),
+                                      SizedBox(height: 10,),
+                                      Container(
+                                        height: 1,
+                                        color: AppColors.whiteE5,
+                                      ),
+                                      SizedBox(height: 10,),
+                                      ExpandableText(
+                                        text: "${details.aboutUs?.visionMission}",
+                                        trimLines: 6,
+                                        isReadMoreNewLine: false,
+                                        expandMode: ExpandMode.dialog,
+                                        style: TextStyle(
+                                          color: AppColors.secondaryTextColor,
+                                          fontSize: SizeConfig.large,
+                                          fontWeight: FontWeight.w400,
+                                          fontFamily: AppConstants.OpenSans,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                SizedBox(height: SizeConfig.size10,),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                      color: Colors.blue.shade300,
+                                      width: 1,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.blue.withOpacity(0.45),
+                                        blurRadius: 12,
+                                        spreadRadius: -6,
+                                      ),
+                                    ],
+                                    color: Colors.white,
+                                  ),
+                                  padding: const EdgeInsets.all(16),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          LocalAssets(height: 25,
+                                              width: 25,
+                                              imagePath: AppIconAssets
+                                                  .hospitalHistoryIcon),
+                                          SizedBox(width: SizeConfig.size10,),
+                                          CustomText("History", fontSize: 18,
+                                            fontWeight: FontWeight.w600,),
+                                        ],
+                                      ),
+                                      SizedBox(height: 10,),
+                                      Container(
+                                        height: 1,
+                                        color: AppColors.whiteE5,
+                                      ),
+                                      SizedBox(height: 10,),
+                                      ExpandableText(
+                                        text: "${details.aboutUs?.history}",
+                                        trimLines: 6,
+                                        isReadMoreNewLine: false,
+                                        expandMode: ExpandMode.dialog,
+                                        style: TextStyle(
+                                          color: AppColors.secondaryTextColor,
+                                          fontSize: SizeConfig.large,
+                                          fontWeight: FontWeight.w400,
+                                          fontFamily: AppConstants.OpenSans,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            )
                         ),
+                        SizedBox(height: 10,),
+                        CommonCardWidget(
+                            padding: 0,
+                            cardMargin: 0,
+                            child: Column(
+                              children: [
+                                HospitalGalleryPhotoWidget(photos: [''],),
+                              ],
+                            )),
+                        SizedBox(height: 10,),
+                        _contactCard(),
+
                       ],
-                      color: Colors.white,
                     ),
-                    padding: const EdgeInsets.all(16),
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            LocalAssets(height: 25,width:25,imagePath: AppIconAssets.hospitalVisionIcon),
-                            SizedBox(width: SizeConfig.size10,),
-                            CustomText("Vision & Mission",fontSize: 18,fontWeight: FontWeight.w600,),
-                          ],
-                        ),
-                        SizedBox(height: 10,),
-                        Container(
-                          height: 1,
-                          color: AppColors.whiteE5,
-                        ),
-                        SizedBox(height: 10,),
-                        ExpandableText(
-                          text: "Worem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Curabitur tempus urna at turpis condimentum lobortis",
-                          trimLines: 6,
-                          isReadMoreNewLine: false,
-                          expandMode: ExpandMode.dialog,
-                          style: TextStyle(
-                            color: AppColors.secondaryTextColor,
-                            fontSize: SizeConfig.large,
-                            fontWeight: FontWeight.w400,
-                            fontFamily: AppConstants.OpenSans,
+                  ),
+                  CommonCardWidget(
+                      bgColor: AppColors.blueGrayShade,
+                      padding: 10,
+                      cardMargin: 0,
+                      borderRadius: 0,
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(height: 18,),
+                          Row(mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              CustomText("Testimonials", fontSize: 20,
+                                fontWeight: FontWeight.w700,),
+                            ],
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: SizeConfig.size10,),
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: Colors.blue.shade300,
-                        width: 1,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.blue.withOpacity(0.45),
-                          blurRadius: 12,
-                          spreadRadius: -6,
-                        ),
-                      ],
-                      color: Colors.white,
-                    ),
-                    padding: const EdgeInsets.all(16),
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            LocalAssets(height: 25,width:25,imagePath: AppIconAssets.hospitalHistoryIcon),
-                            SizedBox(width: SizeConfig.size10,),
-                            CustomText("History",fontSize: 18,fontWeight: FontWeight.w600,),
-                          ],
-                        ),
-                        SizedBox(height: 10,),
-                        Container(
-                          height: 1,
-                          color: AppColors.whiteE5,
-                        ),
-                        SizedBox(height: 10,),
-                        ExpandableText(
-                          text: "Worem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Curabitur tempus urna at turpis condimentum lobortis",
-                          trimLines: 6,
-                          isReadMoreNewLine: false,
-                          expandMode: ExpandMode.dialog,
-                          style: TextStyle(
-                            color: AppColors.secondaryTextColor,
-                            fontSize: SizeConfig.large,
-                            fontWeight: FontWeight.w400,
-                            fontFamily: AppConstants.OpenSans,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                          SizedBox(height: 18,),
+                          _testimonialCard(),
+                        ],
+                      )),
+                  const SizedBox(height: 150),
                 ],
-              )
+              ),
             ),
-                _sectionTitle("Management"),
-                _managementList(),
-                _sectionTitle("Gallery"),
-                _galleryGrid(),
-                _sectionTitle("Testimonials"),
-                _testimonialCard(),
-                _sectionTitle("Contact Us"),
-                _contactCard(),
-                const SizedBox(height: 24),
-                ],
-            ),
-          ),
-        ),
-      ],
-    );
+          ],
+        );
+      }else if(controller.getHospitalHomePageResponse.value.status==Status.ERROR){
+        return Center(
+          child:CustomText("${controller.getHospitalHomePageResponse.value.message}"),
+        );
+      }else{
+        return Center(
+          child:CircularProgressIndicator() ,
+        );
+      }
+
+    });
   }
 
   Widget _sectionTitle(String title) {
     return CustomText(
-      title,
-     fontSize: 16, fontWeight: FontWeight.bold
+        title,
+        fontSize: 16, fontWeight: FontWeight.bold
     );
   }
 
-  Widget _doctorList() {
+  Widget _doctorList(List<DoctorModel> doctors) {
     return SizedBox(
       height: 260,
-      child: ListView.builder(
+      child: (doctors.isEmpty)?
+      noDetailsWidget(title: 'No Doctors Details Updated Yet', btnText: 'Add More Doctors')
+          :ListView.builder(
         scrollDirection: Axis.horizontal,
-        itemCount: 5,
+        itemCount: doctors.length,
         itemBuilder: (_, index) {
+          DoctorModel doctor=doctors[index];
           return Container(
             width: 210,
             margin: const EdgeInsets.only(right: 12),
-           decoration: BoxDecoration(
-             borderRadius: BorderRadius.circular(10)
-           ),
-           child: Stack(
-             children: [
-               CustomImageSlideshow(
-                 isLoading: false,
-                 width: double.infinity,
-                 height: SizeConfig.size260,
-                 imagePaths: [''],
-                 borderRadius: BorderRadius.circular(10),
-                 onPhotoIndex: (index) {
-                   // productPhotoIndex = index;
-                 },
-               ),
-               Positioned(
-                   bottom: 0,
-                   child: Container(
-                     width:210,
-                     decoration: BoxDecoration(
-                       borderRadius: BorderRadius.only(bottomLeft: Radius.circular(10),bottomRight: Radius.circular(10)),
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10)
+            ),
+            child: Stack(
+              children: [
+                CustomImageSlideshow(
+                  isLoading: false,
+                  width: double.infinity,
+                  height: SizeConfig.size260,
+                  imagePaths: [doctor.photo??''],
+                  borderRadius: BorderRadius.circular(10),
+                  onPhotoIndex: (index) {
 
-                       color: AppColors.black.withOpacity(0.5)
-                     ),
-                     padding: EdgeInsets.all(10),
-                     child: Column(crossAxisAlignment: CrossAxisAlignment.start,
-                       children: [
-                       CustomText("Dr. Soumya Darshan S...",
-                         fontSize: 16,
-                         fontWeight: FontWeight.w600,
-                         color: AppColors.white,),
-                      SizedBox(
-                        height: 10,
+                  },
+                ),
+                Positioned(
+                    bottom: 0,
+                    child: Container(
+                      width: 210,
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.only(
+                              bottomLeft: Radius.circular(10),
+                              bottomRight: Radius.circular(10)),
+
+                          color: AppColors.black.withOpacity(0.5)
                       ),
-                         CustomText("ChilsSopacjilsi",
-                           fontSize: 12,
-                           fontWeight: FontWeight.w400,
-                           color: AppColors.white,),
-                         SizedBox(
-                           height: 10,
-                         ),
-                         CustomText("General & Laparoscopic Surgeon MBBS. MS (General Surgery)",
-                           fontSize: 12,
-                           fontWeight: FontWeight.w400,
-                           color: AppColors.white, )
-                       ],
-                     ),
-                   ))
-             ],
-           ),
+                      padding: EdgeInsets.all(10),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CustomText("${doctor.name}",
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.white,),
+                          SizedBox(
+                            height: 6,
+                          ),
+                          CustomText("${doctor.specialization}",
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                            color: AppColors.white,),
+                          SizedBox(
+                            height: 6,
+                          ),
+                          CustomText(
+                            "${doctor.departmentName}",
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                            color: AppColors.white,)
+                        ],
+                      ),
+                    ))
+              ],
+            ),
             // child: ,
           );
         },
@@ -327,42 +393,151 @@ class _HospitalHomePageState extends State<HospitalHomePage> {
     );
   }
 
-  Widget _emergencyList() {
-    final items = [
-      "Emergency / Casualty",
-      "Trauma Care",
-      "ICU",
-      "CCU",
-      "NICU",
-      "PICU",
-    ];
-    return Column(
-      children: items.map((e) {
-        return Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-              border: Border.all(
-                  color: AppColors.whiteE5
-              ),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          margin: EdgeInsets.symmetric(vertical: 10),
-          padding: EdgeInsets.symmetric(vertical: 10,horizontal: 8),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CustomText("$e",fontWeight: FontWeight.w600,fontSize: 16,),
-             SizedBox(height: 10,),
-              CustomText("Gorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet...",
-                color: AppColors.chat_input_icon_color,
-                fontWeight: FontWeight.w400,fontSize: 12,),
-            ],
-          ),
-        );
-      }).toList(),
+ Widget _doctorIPDList(List<IpdModel> ipdWard) {
+    return SizedBox(
+      height: 200,
+      child: (ipdWard.isEmpty)?
+      noDetailsWidget(title: 'No IPD Details Updated Yet', btnText: 'Add More Details')
+      :ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: ipdWard.length,
+        itemBuilder: (_, index) {
+          IpdModel ipd=ipdWard[index];
+          return Container(
+            width: 210,
+            margin: const EdgeInsets.only(right: 12),
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10)
+            ),
+            child: Stack(
+              children: [
+                CustomImageSlideshow(
+                  isLoading: false,
+                  width: double.infinity,
+                  height: SizeConfig.size260,
+                  imagePaths: [ipd.photo??''],
+                  borderRadius: BorderRadius.circular(10),
+                  onPhotoIndex: (index) {
+                    // productPhotoIndex = index;
+                  },
+                ),
+                Positioned(
+                    bottom: 0,
+                    child: Container(
+                      width: 210,
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.only(
+                              bottomLeft: Radius.circular(10),
+                              bottomRight: Radius.circular(10)),
+
+                          color: AppColors.black.withOpacity(0.5)
+                      ),
+                      padding: EdgeInsets.all(10),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CustomText("${ipd.name}",
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.white,),
+                          SizedBox(
+                            height: 6,
+                          ),
+                          CustomText("Available Beds: ${ipd.availableBeds}",
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                            color: AppColors.white,),
+                          SizedBox(
+                            height: 6,
+                          ),
+                          CustomText("Total Beds: ${ipd.totalBeds}",
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                            color: AppColors.white,),
+                          SizedBox(
+                            height: 6,
+                          ),
+                          CustomText(
+                            "${ipd.type}",
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                            color: AppColors.white,)
+                        ],
+                      ),
+                    ))
+              ],
+            ),
+            // child: ,
+          );
+        },
+      ),
     );
   }
 
+  Widget _emergencyList(List<EmergencyModel> emergency) {
 
+    return Column(
+      children: [
+        if(emergency.isEmpty)
+          noDetailsWidget(title: 'No Emergency Details Updated Yet', btnText: 'Add More'),
+        ...emergency.map((emergency) {
+          return Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              border: Border.all(
+                  color: AppColors.whiteE5
+              ),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            margin: EdgeInsets.symmetric(vertical: 10),
+            padding: EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomText("${emergency.name}", fontWeight: FontWeight.w600, fontSize: 16,),
+                SizedBox(height: 10,),
+                CustomText(
+                  "${emergency.description}",
+                  color: AppColors.chat_input_icon_color,
+                  fontWeight: FontWeight.w400, fontSize: 12,),
+              ],
+            ),
+          );
+        }).toList(),
+
+      ],
+    );
+  }
+  Widget noDetailsWidget(
+  {
+    required String title,
+    required String btnText,
+}
+      ){
+    return  Container(
+      width: double.infinity,
+      height: 260,
+      margin: const EdgeInsets.only(right: 12),
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+              color: AppColors.whiteE5
+          )
+      ),
+      child: Column(mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CustomText("${title}"),
+          SizedBox(height: 20,),
+          CustomBtn(
+              isValidate: true,
+              width: 140,
+              onTap: (){
+                controller.onChangeTab(1);
+              }, title: "${btnText}")
+        ],
+      ),
+      // child: ,
+    );
+  }
   Widget _managementList() {
     return SizedBox(
       height: 160,
@@ -393,29 +568,6 @@ class _HospitalHomePageState extends State<HospitalHomePage> {
     );
   }
 
-  Widget _galleryGrid() {
-    return Padding(
-      padding: const EdgeInsets.all(12),
-      child: GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: 6,
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,
-          crossAxisSpacing: 8,
-          mainAxisSpacing: 8,
-        ),
-        itemBuilder: (_, index) {
-          return Container(
-            decoration: BoxDecoration(
-              color: Colors.grey.shade300,
-              borderRadius: BorderRadius.circular(8),
-            ),
-          );
-        },
-      ),
-    );
-  }
 
   Widget _testimonialCard() {
     return Card(

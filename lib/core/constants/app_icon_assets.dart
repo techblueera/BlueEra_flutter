@@ -603,6 +603,7 @@ class AppIconAssets {
   static const String  other_blog= "${iconPath}other_blog.svg";
   static const String hospitalVisionIcon = "${AppConstants.baseImageAssetsPath}vision_hospital_icon.png";
   static const String hospitalHistoryIcon = "${AppConstants.baseImageAssetsPath}hospital_history_icon.png";
+  static const String admission_cell = "${AppConstants.baseImageAssetsPath}admission_cell.png";
 
 }
 // assets/svg/other_management.svg

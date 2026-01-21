@@ -71,6 +71,7 @@ class HospitalInfoModel {
 class DoctorModel {
   String? id;
   String? name;
+  String? photo;
   String? specialization;
   String? departmentName;
   String? availability;
@@ -78,6 +79,7 @@ class DoctorModel {
   DoctorModel({
     this.id,
     this.name,
+    this.photo,
     this.specialization,
     this.departmentName,
     this.availability,
@@ -87,6 +89,7 @@ class DoctorModel {
     return DoctorModel(
       id: json['_id'],
       name: json['name'],
+      photo: json['photo'],
       specialization: json['specialization'],
       departmentName: json['departmentName'],
       availability: json['availability'],
@@ -97,6 +100,7 @@ class IpdModel {
   String? id;
   String? name;
   String? type;
+  String? photo;
   int? totalBeds;
   int? availableBeds;
   int? fees;
@@ -106,6 +110,7 @@ class IpdModel {
     this.name,
     this.type,
     this.totalBeds,
+    this.photo,
     this.availableBeds,
     this.fees,
   });
@@ -115,6 +120,7 @@ class IpdModel {
       id: json['_id'],
       name: json['name'],
       type: json['type'],
+      photo: json['photo'],
       totalBeds: json['totalBeds'],
       availableBeds: json['availableBeds'],
       fees: json['fees'],

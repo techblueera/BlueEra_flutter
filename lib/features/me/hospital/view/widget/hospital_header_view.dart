@@ -12,11 +12,14 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../model/hospital_home_page_details_model.dart';
+
 class HospitalHeaderView extends StatefulWidget {
 
   const HospitalHeaderView({
-    super.key,
+    super.key, this.details,
   });
+  final HospitalInfoModel? details;
 
   @override
   State<HospitalHeaderView> createState() => _HospitalHeaderViewState();
@@ -58,7 +61,7 @@ class _HospitalHeaderViewState extends State<HospitalHeaderView> {
         children: [
           // --- HEADER SECTION (Banner & Logo) ---
           SizedBox(
-            height: size.height * 0.21,
+            height: size.height * 0.19,
             child: Stack(
               clipBehavior: Clip.none,
               children: [
@@ -203,27 +206,27 @@ class _HospitalHeaderViewState extends State<HospitalHeaderView> {
               children: [
                 const SizedBox(height: 10),
                 CustomText(
-                    "Hospital Name",
+                    "${widget.details?.name}",
                     fontSize: 18,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     fontWeight: FontWeight.bold),
                 const SizedBox(height: 10),
-                Row(
-                  children: [
-                    Icon(Icons.star,color: AppColors.yellow,),
-                    CustomText("4.8",color:AppColors.yellow,),
-                    CustomText(" (48 reviews)"),
-                    SizedBox(width: 4,),
-                    LocalAssets(imagePath: AppIconAssets.location_new),
-                    CustomText(" 2.7 Km"),
-
-                  ],
-                ),
+                // Row(
+                //   children: [
+                //     Icon(Icons.star,color: AppColors.yellow,),
+                //     CustomText("4.8",color:AppColors.yellow,),
+                //     CustomText(" (48 reviews)"),
+                //     SizedBox(width: 4,),
+                //     LocalAssets(imagePath: AppIconAssets.location_new),
+                //     CustomText(" 2.7 Km"),
+                //
+                //   ],
+                // ),
                 SizedBox(height: SizeConfig.size10),
                 ExpandableText(
-                  text: "dalkcl;akdcm;alc",
-                  trimLines: 4,
+                  text:"${widget.details?.tagline}",
+                  trimLines: 3,
                   isReadMoreNewLine: false,
                   expandMode: ExpandMode.dialog,
                   style: TextStyle(
@@ -233,7 +236,7 @@ class _HospitalHeaderViewState extends State<HospitalHeaderView> {
                     fontFamily: AppConstants.OpenSans,
                   ),
                 ),
-                const SizedBox(height: 10),
+
               ],
             ),
           ),
