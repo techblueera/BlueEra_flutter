@@ -160,6 +160,13 @@ class MedicalRepo extends BaseService {
    onError: (error) {}, onSuccess: (data) {});
     return response;
   }
+  Future<ResponseModel> getHospitalHomeDetailsApi() async {
+    final response = await ApiBaseHelper().getHTTP(
+        getHospitalHomeDetails,
+        showProgress: false,
+   onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
   Future<ResponseModel> updateLeaveStatus(String id,Map<String,dynamic> params) async {
     final response = await ApiBaseHelper().putHTTP(
       params: params,

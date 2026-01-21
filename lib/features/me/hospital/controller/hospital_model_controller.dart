@@ -19,6 +19,7 @@ import '../../medical/model/medical_lab_details.dart';
 import '../../medical/repo/medical_repo.dart';
 import '../model/get_beds_details_model.dart';
 import '../model/get_contact_us_details_model.dart';
+import '../model/hospital_home_page_details_model.dart';
 import '../model/hospital_main_page_model.dart';
 import '../model/hospital_model_class.dart';
 import '../view/category/opd_out_patient_page.dart';
@@ -60,6 +61,7 @@ class HospitalModelController extends GetxController {
   Rx<ApiResponse> getDoctorsResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> getBedsResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> getContactUsResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> getHospitalHomePageResponse = ApiResponse.initial('Initial').obs;
 
   //Repo
   final medicalRepo = MedicalRepo();
@@ -68,6 +70,7 @@ class HospitalModelController extends GetxController {
   RxList<DoctorsDetailsModel> staffList = <DoctorsDetailsModel>[].obs;
   RxList<BedDetailsModel> bedsList = <BedDetailsModel>[].obs;
   Rx<HospitalPreviewResponse> hospitalData = HospitalPreviewResponse().obs;
+  Rx<HospitalHomePageDetailsModel> hospitalHomePageDetailsModel = HospitalHomePageDetailsModel().obs;
   Rx<HospitalContactUsDetailsModel> hospitalContactUsDetailsModel = HospitalContactUsDetailsModel().obs;
   Rx<MainHospitalDepartmentResponse> hospitalMainPageData =
       MainHospitalDepartmentResponse().obs;
@@ -373,6 +376,17 @@ class HospitalModelController extends GetxController {
           ApiResponse.error(AppStrings.somethingWentWrong);
     }
   }
+Future<void> getHospitalHomeDetails() async {
+    ResponseModel response = await medicalRepo.getHospitalHomeDetailsApi();
+    if (response.isSuccess) {
+      log("ksdajcnsjdncksjdc ${response.response?.data}");
+      hospitalHomePageDetailsModel.value=HospitalHomePageDetailsModel.fromJson(response.data);
+      getHospitalHomePageResponse.value =ApiResponse.complete(hospitalHomePageDetailsModel.value);
+    } else {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+      getHospitalHomePageResponse.value =ApiResponse.error("Error");
+    }
+  }
 
   Future<void> addNewBedsDetails({String? departmentId}) async {
     addDoctorLoading.value = true;
@@ -422,7 +436,6 @@ class HospitalModelController extends GetxController {
     }
   }
   Future<void> deleteBedsDetails({required BedDetailsModel model}) async {
-
     ResponseModel response = await medicalRepo.deleteBeds(model.id??'');
     if (response.isSuccess) {
       bedsList.remove(model);

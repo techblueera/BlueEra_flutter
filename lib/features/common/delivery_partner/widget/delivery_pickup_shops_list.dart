@@ -52,7 +52,7 @@ class _DeliveryPickupShopsListState extends State<DeliveryPickupShopsList> {
               controller.rejectOrder(widget.rideOrderId);
             }else{
               controller.acceptOrder(widget.rideOrderId);
-              controller.makeGroceryOrderConversationApi(orderId: widget.rideOrderId, orderDetails: widget.order.toJson());
+              // controller.makeGroceryOrderConversationApi(orderId: widget.rideOrderId, orderDetails: widget.order.toJson());
             }
           },
           isShowAcceptOrRejectBtn: true,

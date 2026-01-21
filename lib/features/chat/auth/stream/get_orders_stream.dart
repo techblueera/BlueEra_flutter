@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 import 'package:http/http.dart' as http;
 
 import '../../../../core/constants/shared_preference_utils.dart';
@@ -38,28 +39,29 @@ Stream<dynamic> getOrderFromUserStream() async* {
   final buffer = StringBuffer();
 
   await for (final chunk in response.stream.transform(utf8.decoder)) {
-    for (final line in chunk.split('\n')) {
+    buffer.write(chunk);
 
-      if (line.startsWith('data:')) {
-        // IMPORTANT: keep newline
-        buffer.writeln(line.substring(5));
-      }
+    while (true) {
+      final data = buffer.toString();
+      final eventEndIndex = data.indexOf('\n\n');
 
-      // SSE event ends with empty line
-      if (line.trim().isEmpty && buffer.isNotEmpty) {
+      if (eventEndIndex == -1) break;
+
+      final event = data.substring(0, eventEndIndex).trim();
+      buffer.clear();
+      buffer.write(data.substring(eventEndIndex + 2));
+
+      if (event.startsWith('data:')) {
+        final jsonStr = event.substring(5).trim();
+
         try {
-          final jsonStr = buffer.toString().trim();
-          buffer.clear();
-
           final decoded = jsonDecode(jsonStr);
           yield decoded;
         } catch (e) {
-          print('❌ JSON DECODE FAILED');
-          print(buffer.toString());
-          buffer.clear();
+          log('❌ JSON decode failed');
+          log(jsonStr);
         }
       }
     }
   }
-
 }

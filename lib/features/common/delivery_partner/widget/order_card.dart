@@ -19,11 +19,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:path/path.dart';
 import 'package:pinput/pinput.dart';
 import '../../../chat/auth/model/rider_orders_details_model.dart';
 import '../../../chat/view/orders_chat/widget/lat_lng_to_location_text.dart';
 import '../../../me/laboratory/view/widgets/me_menu_card_design.dart';
 import '../controller/delivery_partner_orders_controller.dart';
+import '../model/grocery_order_details.dart';
 import 'delivery_pickup_shops_list.dart';
 
 class OrderCard extends StatelessWidget {
@@ -47,7 +49,7 @@ class OrderCard extends StatelessWidget {
         children: [
           _buildHeaderSection(context, controller),
           SizedBox(height: SizeConfig.size14),
-          _buildLocationSection(),
+          _buildLocationSection(context),
           if (_shouldShowActions())
             SizedBox(height: SizeConfig.size14),
           _buildActionSection(controller),
@@ -273,7 +275,7 @@ class OrderCard extends StatelessWidget {
   // LOCATION SECTION BUILDERS
   // ============================================
 
-  Widget _buildLocationSection() {
+  Widget _buildLocationSection(BuildContext context) {
     return Column(
       children: [
         Container(
@@ -292,7 +294,7 @@ class OrderCard extends StatelessWidget {
             ],
           ),
         ),
-        if(order.orderFor=='grocery')
+        if(order.orderFor==AppConstants.grocery&&selectedPickUp ==PickUpTab.onGoing)
         Container(
           margin: EdgeInsets.only(top: 10),
           decoration: BoxDecoration(
@@ -304,7 +306,7 @@ class OrderCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildGroceryShopList(),
+              _buildGroceryShopList(context),
             ],
           ),
         ),
@@ -370,7 +372,7 @@ class OrderCard extends StatelessWidget {
     );
   }
 
-  Widget _buildGroceryShopList() {
+  Widget _buildGroceryShopList(BuildContext context) {
     return Padding(
       padding: EdgeInsets.all(SizeConfig.size10),
       child: Column(
@@ -383,56 +385,265 @@ class OrderCard extends StatelessWidget {
           ),
            SizedBox(height: SizeConfig.size10),
           ...order.groceryOrderDetails?.businesses.map((business) {
-            return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            return InkWell(
+              onTap: (){
+                showItemsReceivedDialog(
+                  context,
+                  businessName: 'Gupta General Store',
+                  items: business.items,
+                  onSubmit: (allReceived, missingItems) {
+                    // handle submit
+                  },
+                );
+
+              },
+              child: Container(
+                child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    CustomText(
-                      business.businessId, // or business name if available
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                     SizedBox(height: SizeConfig.size4),
-                    Row(
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        CustomText('${business.items.length} Items',
-                        fontWeight: FontWeight.w400,
-                          fontSize: 10,
-                          color: AppColors.primaryColor,
+                        CustomText(
+                          business.businessId, // or business name if available
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
                         ),
-                        SizedBox(width: SizeConfig.size4,),
-                        CustomText('₹ ${business.amountPaid} Price',
-                        fontWeight: FontWeight.w400,
-                          fontSize: 10,
-                          color: AppColors.black,
+                         SizedBox(height: SizeConfig.size4),
+                        Row(
+                          children: [
+                            CustomText('${business.items.length} Items',
+                            fontWeight: FontWeight.w400,
+                              fontSize: 10,
+                              color: AppColors.primaryColor,
+                            ),
+                            SizedBox(width: SizeConfig.size4,),
+                            CustomText('₹ ${business.amountPaid} Price',
+                            fontWeight: FontWeight.w400,
+                              fontSize: 10,
+                              color: AppColors.black,
+                            )
+                          ],
                         )
+                        //
+                        // ...business.items.map((item) {
+                        //   return Padding(
+                        //     padding: const EdgeInsets.only(bottom: 4),
+                        //     child: CustomText(
+                        //       item.productDetails.product.name,
+                        //       fontSize: 11,
+                        //       fontWeight: FontWeight.w400,
+                        //     ),
+                        //   );
+                        // }).toList(),
                       ],
+                    ),
+                    CustomToggleSwitch(
+                      isOn: true,
+                      onChanged: (val){
+
+                      },
                     )
-                    //
-                    // ...business.items.map((item) {
-                    //   return Padding(
-                    //     padding: const EdgeInsets.only(bottom: 4),
-                    //     child: CustomText(
-                    //       item.productDetails.product.name,
-                    //       fontSize: 11,
-                    //       fontWeight: FontWeight.w400,
-                    //     ),
-                    //   );
-                    // }).toList(),
                   ],
                 ),
-                CustomToggleSwitch(
-                  isOn: true,
-                  onChanged: (val){
-
-                  },
-                )
-              ],
+              ),
             );
           }).toList()??[],
         ],
       ),
+    );
+  }
+  void showItemsReceivedDialog(
+      BuildContext context, {
+        required String businessName,
+        required List<OrderItem> items,
+        required Function(bool allReceived, List<OrderItem> missingItems) onSubmit,
+      }) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            final selectedIds = <String>{};
+
+            void toggleItem(OrderItem item, bool value) {
+              log("ksjdcksjdnc ${item.toJson()}");
+              setState(() {
+                if (value) {
+                  selectedIds.add(item.inventoryId);
+                } else {
+                  selectedIds.remove(item.inventoryId);
+                }
+              });
+            }
+
+            final allSelected = selectedIds.length == items.length;
+            final missingCount = items.length - selectedIds.length;
+
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    /// HEADER
+                    Row(
+                      children: [
+                        Expanded(
+                          child: CustomText(
+                            businessName,
+
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+
+                          ),
+                        ),
+                        InkWell(
+                            onTap: (){
+                              Get.back();
+                            },
+                            child: Icon(Icons.close))
+                      ],
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    /// ITEM LIST
+                    Flexible(
+                      child: ListView.separated(
+                        shrinkWrap: true,
+                        itemCount: items.length,
+                        separatorBuilder: (_, __) => const Divider(),
+                        itemBuilder: (_, index) {
+                          final item = items[index];
+                          final product =
+                              item.productDetails.product.name ?? 'Item';
+                          final variant = item.productDetails.variantName ?? '';
+
+                          return Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: AppColors.whiteE5
+                              )
+                            ),
+                            padding: EdgeInsets.all(10),
+                            child: Row(
+                              children: [
+                                /// IMAGE
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.network(
+                                    // item.productDetails.product?.images
+                                    //     ?.first.url ??
+                                    //     '',
+                                    "",
+                                    width: 42,
+                                    height: 42,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) =>
+                                    const Icon(Icons.image_not_supported),
+                                  ),
+                                ),
+
+                                const SizedBox(width: 10),
+
+                                /// NAME
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      CustomText(
+                                        product,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                            fontWeight: FontWeight.w500
+                                      ),
+                                      Row(
+                                        children: [
+
+                                          CustomText(
+                                            variant,
+                                                fontSize: 12, color: AppColors.grayText
+                                          ),
+                                          SizedBox(width: 10,),
+                                          CustomText(
+                                              item.productDetails.product.brand,
+                                              fontSize: 12, color: AppColors.black
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+
+                                /// CHECKBOX
+                                Checkbox(
+                                  value: selectedIds.contains(item.inventoryId),
+                                  onChanged: (v) =>
+                                      toggleItem(item, v ?? false),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    /// STATUS TEXT
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 12, horizontal: 14),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.shade50,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        allSelected
+                            ? 'All Items Received'
+                            : '$missingCount item(s) missing',
+                        style: TextStyle(
+                          color: allSelected
+                              ? Colors.green
+                              : Colors.redAccent,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 14),
+
+                    /// SUBMIT BUTTON
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: selectedIds.isEmpty
+                            ? null
+                            : () {
+                          final missingItems = items
+                              .where((e) =>
+                          !selectedIds.contains(e.inventoryId))
+                              .toList();
+
+                          onSubmit(allSelected, missingItems);
+                          Navigator.pop(context);
+                        },
+                        child: const Text('Submit'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 

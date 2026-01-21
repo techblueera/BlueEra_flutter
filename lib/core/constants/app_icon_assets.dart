@@ -586,5 +586,7 @@ class AppIconAssets {
   static const String occupancy = "assets/category/hotel_service/occupancy.svg";
   static const String bad = "assets/category/hotel_service/bad.svg";
   static const String UPLOAD_DOCUMENT = "assets/category/hotel_service/UPLOAD_DOCUMENT.svg";
+  static const String hospitalVisionIcon = "${AppConstants.baseImageAssetsPath}vision_hospital_icon.png";
+  static const String hospitalHistoryIcon = "${AppConstants.baseImageAssetsPath}hospital_history_icon.png";
 
 }

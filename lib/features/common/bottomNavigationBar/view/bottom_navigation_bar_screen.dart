@@ -391,7 +391,11 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       return const HotelMain();
     } else if (businessTypeGlobal.toUpperCase() ==
         BusinessType.Service.name.toUpperCase()) {
-      return const InventoryScreen(fromBottomNavBar: true);
+      if(businessCategoryGlobal == AppConstants.healthcareMedicalServices) {
+      return const HospitalMain();
+    }else{
+        return const InventoryScreen(fromBottomNavBar: true);
+      }
     } else{
       // 3. If it is NOT Food (e.g., Product, Service, etc.)
       return const InventoryScreen(fromBottomNavBar: true);
