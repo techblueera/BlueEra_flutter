@@ -117,6 +117,7 @@ class AppImageAssets {
   static String homeService = "${imgPath}home_service.png";
   static String rentalService = "${imgPath}rental_service.png";
   static String all = "${imgPath}all.png";
+  static String hotel_service = "${imgPath}hotel_service.png";
 
 }
 

@@ -12,6 +12,7 @@ abstract class BaseService {
   final String verifyOtp = 'auth-service/verify-otp';
   final String addUser = 'user-service/user/add-user';
   final String getAllcategories = 'user-service/business/getAllcategories';
+  final String getAllcategoriesByType = 'user-service/business/by-type/';
   final String viewBusinessProfile = '/user-service/business/$businessId';
   final String updateBusinessProfile =
       '/user-service/business/updateBusinessProfile';

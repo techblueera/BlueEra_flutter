@@ -43,20 +43,18 @@ class PersonalAccountNewScreen extends StatefulWidget {
   final String? selfEmploymentTagId;
 
   PersonalAccountNewScreen(
-      {
-        super.key,
-        required this.accountType,
-        required this.profileType,
-        required this.profession,
-        required this.professionTagId,
-
-        this.professionSubCategory,
-        this.selfEmployment,
-        this.selfEmploymentTagId
-      });
+      {super.key,
+      required this.accountType,
+      required this.profileType,
+      required this.profession,
+      required this.professionTagId,
+      this.professionSubCategory,
+      this.selfEmployment,
+      this.selfEmploymentTagId});
 
   @override
-  State<PersonalAccountNewScreen> createState() => _PersonalAccountNewScreenState();
+  State<PersonalAccountNewScreen> createState() =>
+      _PersonalAccountNewScreenState();
 }
 
 class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
@@ -88,32 +86,33 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
   final specializationController = TextEditingController();
   final authController = Get.find<AuthController>();
   final locationController = Get.put(LocationController());
-  bool crBtnLoading=false;
+  bool crBtnLoading = false;
 
   String? _imagePath;
   IndividualType? _selectedProfileType;
   String? _selectedProfileTypeTagId;
   String? _selectedProfession;
   String? _selectedProfessionTagId;
+
   // String? _selectedSelfEmployment;
   // String? _selectedSelfEmploymentTagId;
   List<SubcategoriesFiledName>? professionSubCategory;
+
   // SubcategoriesFiledName? _selectedArtistObj;
   IndividualFields? _selectedContentCreatorField;
   SubCategories? _selectedContentCreatorSpecification;
   SubCategories? _selectedArtistObj;
   SubCategories? _selectedProfessionObj;
+
   // SubCategories? selectedContentCreatorSpecification;
 
   @override
   void initState() {
     super.initState();
-    print(
-        "AccountType: ${widget.accountType} | "
-            "Profile Type: ${widget.profileType.tagId} | "
-            "Profession Tag Id : ${widget.professionTagId} | "
-            "Profession: ${widget.profession} "
-    );
+    print("AccountType: ${widget.accountType} | "
+        "Profile Type: ${widget.profileType.tagId} | "
+        "Profession Tag Id : ${widget.professionTagId} | "
+        "Profession: ${widget.profession} ");
 
     _selectedProfileType = widget.profileType;
     _selectedProfileTypeTagId = _selectedProfileType?.tagId;
@@ -127,15 +126,12 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
     // if(widget.professionSubCategory!=null){
     //   professionSubCategory = widget.professionSubCategory;
     // }
-    if(_selectedProfileTypeTagId == PROFESSIONAL ||
-    _selectedProfessionTagId == CONTENT_CREATOR ||
-      _selectedProfessionTagId == ARTIST
-    ){
+    if (_selectedProfileTypeTagId == PROFESSIONAL ||
+        _selectedProfessionTagId == CONTENT_CREATOR ||
+        _selectedProfessionTagId == ARTIST) {
       authController.fetchIndividualFields(
-        tagId: _selectedProfessionTagId ?? ''
-      );
+          tagId: _selectedProfessionTagId ?? '');
     }
-
   }
 
   clearTextFiled() {
@@ -179,136 +175,113 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
             children: [
               CustomFormCard(
                   child: Column(
-                    children: [
-                      InkWell(
-                        onTap: () => _selectImage(context),
-                        child: Container(
-                          padding: EdgeInsets.all(SizeConfig.size2),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: Colors.grey.shade400,
-                              width: 1.0,
-                            ),
-                          ),
-                          child: CircleAvatar(
-                            radius: 40,
-                            backgroundColor: AppColors.whiteF3,
-                            child: _imagePath?.isNotEmpty == true
-                                ? ClipRRect(
-                              borderRadius: BorderRadius.circular(40),
-                              child: Image(
-                                image: FileImage(File(_imagePath!))
-                                  ..evict(),
+                children: [
+                  InkWell(
+                    onTap: () => _selectImage(context),
+                    child: Container(
+                      padding: EdgeInsets.all(SizeConfig.size2),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.grey.shade400,
+                          width: 1.0,
+                        ),
+                      ),
+                      child: CircleAvatar(
+                        radius: 40,
+                        backgroundColor: AppColors.whiteF3,
+                        child: _imagePath?.isNotEmpty == true
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(40),
+                                child: Image(
+                                  image: FileImage(File(_imagePath!))..evict(),
+                                ),
+                              )
+                            : LocalAssets(
+                                imagePath: AppIconAssets.user_out_line,
+                                imgColor: AppColors.secondaryTextColor,
                               ),
-                            )
-                                : LocalAssets(
-                              imagePath: AppIconAssets.user_out_line,
-                              imgColor: AppColors.secondaryTextColor,
-                            ),
-                          ),
-                        ),
                       ),
-                      SizedBox(height: SizeConfig.size8),
-                      InkWell(
-                        onTap: () => _selectImage(context),
-                        child: CustomText(
-                          AppStrings.uploadYourPhotoLogo,
-                          color: AppColors.mainTextColor,
-                          textAlign: TextAlign.center,
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-                    ],
-                  )
-              ),
-
-              SizedBox(
-                  height: SizeConfig.paddingXSL
-              ),
-
+                    ),
+                  ),
+                  SizedBox(height: SizeConfig.size8),
+                  InkWell(
+                    onTap: () => _selectImage(context),
+                    child: CustomText(
+                      AppStrings.uploadYourPhotoLogo,
+                      color: AppColors.mainTextColor,
+                      textAlign: TextAlign.center,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ],
+              )),
+              SizedBox(height: SizeConfig.paddingXSL),
               CustomFormCard(
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CustomText(
-                          AppStrings.youHaveChosen,
-                          fontSize: SizeConfig.large,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.mainTextColor
-                      ),
-                      SizedBox(
-                        height: SizeConfig.paddingS,
-                      ),
-                      Container(
-                        padding: EdgeInsets.all(10.0),
-                        decoration: BoxDecoration(
-                            color: AppColors.primaryColor.withValues(alpha: 0.05),
-                            borderRadius: BorderRadius.circular(10.0)
-                        ),
-                        child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomText(AppStrings.youHaveChosen,
+                      fontSize: SizeConfig.large,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.mainTextColor),
+                  SizedBox(
+                    height: SizeConfig.paddingS,
+                  ),
+                  Container(
+                    padding: EdgeInsets.all(10.0),
+                    decoration: BoxDecoration(
+                        color: AppColors.primaryColor.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(10.0)),
+                    child: Column(
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                CustomText(
-                                    'Profile Type : ',
-                                    color: AppColors.secondaryTextColor,
-                                    fontSize: SizeConfig.small,
-                                    fontWeight: FontWeight.w400
-                                ),
-                                Expanded(
-                                  child: CustomText(
-                                      _selectedProfileType?.name,
-                                      color: AppColors.primaryColor,
-                                      fontSize: SizeConfig.small,
-                                      fontWeight: FontWeight.w400
-                                  ),
-                                )
-                              ],
-                            ),
-
-                            SizedBox(height: SizeConfig.paddingXSmall),
-
-                            // if(_selectedSelfEmployment!=null)
-                            Padding(
-                              padding: EdgeInsets.only(top: SizeConfig.paddingXSmall),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  CustomText(
-                                      "${AppStrings.profession.tr}",
-                                      color: AppColors.secondaryTextColor,
-                                      fontSize: SizeConfig.small,
-                                      fontWeight: FontWeight.w400
-                                  ),
-                                  Expanded(
-                                    child: CustomText(
-                                        _selectedProfession?.replaceAll('\n', ' '),
-                                        color: AppColors.primaryColor,
-                                        fontSize: SizeConfig.small,
-                                        fontWeight: FontWeight.w400
-                                    ),
-                                  )
-                                ],
-                              ),
-                            ),
+                            CustomText('Profile Type : ',
+                                color: AppColors.secondaryTextColor,
+                                fontSize: SizeConfig.small,
+                                fontWeight: FontWeight.w400),
+                            Expanded(
+                              child: CustomText(_selectedProfileType?.name,
+                                  color: AppColors.primaryColor,
+                                  fontSize: SizeConfig.small,
+                                  fontWeight: FontWeight.w400),
+                            )
                           ],
                         ),
-                      ),
 
-                    ],
-                  )
-              ),
+                        SizedBox(height: SizeConfig.paddingXSmall),
 
-              SizedBox(
-                height: SizeConfig.paddingXSL
-              ),
-
+                        // if(_selectedSelfEmployment!=null)
+                        Padding(
+                          padding:
+                              EdgeInsets.only(top: SizeConfig.paddingXSmall),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              CustomText("${AppStrings.profession.tr}",
+                                  color: AppColors.secondaryTextColor,
+                                  fontSize: SizeConfig.small,
+                                  fontWeight: FontWeight.w400),
+                              Expanded(
+                                child: CustomText(
+                                    _selectedProfession?.replaceAll('\n', ' '),
+                                    color: AppColors.primaryColor,
+                                    fontSize: SizeConfig.small,
+                                    fontWeight: FontWeight.w400),
+                              )
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              )),
+              SizedBox(height: SizeConfig.paddingXSL),
               CustomFormCard(
-                padding: EdgeInsets.all(
-                  SizeConfig.paddingXSL
-                ),
+                padding: EdgeInsets.all(SizeConfig.paddingXSL),
                 child: Column(
                   mainAxisSize: MainAxisSize.max,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -322,13 +295,13 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                     ),
                     SizedBox(height: SizeConfig.size10),
 
-
                     ///ENTER NAME...
                     CommonTextField(
                       textEditController: _nameTextController,
                       inputLength: 30,
                       keyBoardType: TextInputType.text,
-                      regularExpression: RegularExpressionUtils.alphabetSpacePattern,
+                      regularExpression:
+                          RegularExpressionUtils.alphabetSpacePattern,
                       title: 'Your Name',
                       titleColor: Colors.black,
                       hintText: AppConstants.name,
@@ -396,7 +369,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                       items: GenderType.values,
                       selectedValue: _selectedGender,
                       title: 'Select Gender',
-                      hintText:'eg. Male, Female',
+                      hintText: 'eg. Male, Female',
                       //appLocalizations?.selectGenderHint ?? '',
                       displayValue: (value) => value.displayName,
                       onChanged: (value) {
@@ -421,7 +394,6 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                       SizedBox(
                         height: SizeConfig.paddingL,
                       ),
-
                       CommonTextField(
                         isValidate: false,
                         textEditController: specializationController,
@@ -429,7 +401,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                         inputLength: 24,
                         keyBoardType: TextInputType.text,
                         regularExpression:
-                        RegularExpressionUtils.alphabetSpacePattern,
+                            RegularExpressionUtils.alphabetSpacePattern,
                         titleColor: Colors.black,
                         title: 'Specialization',
                         hintText: "Please specify work type",
@@ -440,7 +412,6 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                       SizedBox(
                         height: SizeConfig.paddingL,
                       ),
-
                       CustomText(
                         "Select Your Profession",
                         fontSize: SizeConfig.medium,
@@ -449,29 +420,30 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                       SizedBox(
                         height: SizeConfig.size10,
                       ),
-                      Obx(()=> authController.isIndividualFieldLoading.value
-                          ?  Center(
-                        child: CircularProgressIndicator(),
-                      )
-                          :
-                      CommonDropdownDialog<SubCategories>(
-                        items: authController.arrIndividualFields[0].subcategories ?? [],
-                        selectedValue: _selectedProfessionObj,
-                        title: 'Select Your Profession',
-                        hintText: 'Eg. Loan Consultant...',
-                        displayValue: (s) => s.name ?? "",
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedProfessionObj = value;
-                          });
-                        },
-                        // validator: (value) {
-                        //   if (value == null) {
-                        //     return 'Please Select Your Art / Skill';
-                        //   }
-                        //   return null;
-                        // },
-                      )),
+                      Obx(() => authController.isIndividualFieldLoading.value
+                          ? Center(
+                              child: CircularProgressIndicator(),
+                            )
+                          : CommonDropdownDialog<SubCategories>(
+                              items: authController
+                                      .arrIndividualFields[0].subcategories ??
+                                  [],
+                              selectedValue: _selectedProfessionObj,
+                              title: 'Select Your Profession',
+                              hintText: 'Eg. Loan Consultant...',
+                              displayValue: (s) => s.name ?? "",
+                              onChanged: (value) {
+                                setState(() {
+                                  _selectedProfessionObj = value;
+                                });
+                              },
+                              // validator: (value) {
+                              //   if (value == null) {
+                              //     return 'Please Select Your Art / Skill';
+                              //   }
+                              //   return null;
+                              // },
+                            )),
                     ],
 
                     if ((_selectedProfessionTagId == CONTENT_CREATOR)) ...[
@@ -479,76 +451,79 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                         height: SizeConfig.paddingL,
                       ),
 
-                      Obx(()=>  authController.isIndividualFieldLoading.value
-                          ?  Center(
-                        child: CircularProgressIndicator(),
-                      )
+                      Obx(() => authController.isIndividualFieldLoading.value
+                          ? Center(
+                              child: CircularProgressIndicator(),
+                            )
                           : Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          CustomText(
-                            'Select your Field',
-                            fontSize: SizeConfig.medium,
-                            color: AppColors.mainTextColor,
-                          ),
-                          SizedBox(
-                            height: SizeConfig.size10,
-                          ),
-                          CommonDropdownDialog<IndividualFields>(
-                            items: authController.arrIndividualFields,
-                            selectedValue: _selectedContentCreatorField,
-                            title: 'Select your Field',
-                            hintText: 'Eg. Media Creators, Writing Creators',
-                            displayValue: (value) => value.name ?? '',
-                            onChanged: (value) {
-                              _selectedContentCreatorField = value;
-                              authController
-                                  .arrIndividualSubCategories
-                                  .clear();
-                              authController.arrIndividualSubCategories.addAll(_selectedContentCreatorField?.subcategories ?? []);
-                              setState(() {});
-                            },
-                            // validator: (value) {
-                            //   if (value == null) {
-                            //     return 'Enter your Specification';
-                            //   }
-                            //   return null;
-                            // },
-                          ),
-
-                          SizedBox(
-                            height: SizeConfig.paddingM,
-                          ),
-
-                          CustomText(
-                            'Select Your Specification',
-                            fontSize: SizeConfig.medium,
-                            color: AppColors.mainTextColor,
-                          ),
-                          SizedBox(
-                            height: SizeConfig.size10,
-                          ),
-                          CommonDropdownDialog<SubCategories>(
-                            items: authController.arrIndividualSubCategories,
-                            selectedValue: _selectedContentCreatorSpecification,
-                            title: 'Select Your Specification',
-                            hintText: 'Eg. Video Creator, BLOGGER',
-                            displayValue: (s) => s.name ?? "",
-                            onChanged: (value) {
-                              setState(() {
-                                _selectedContentCreatorSpecification = value;
-                              });
-                            },
-                            // validator: (value) {
-                            //   if (value == null) {
-                            //     return 'Please select your gender';
-                            //   }
-                            //   return null;
-                            // },
-                          )
-                        ],
-                      )
-                      )
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                CustomText(
+                                  'Select your Field',
+                                  fontSize: SizeConfig.medium,
+                                  color: AppColors.mainTextColor,
+                                ),
+                                SizedBox(
+                                  height: SizeConfig.size10,
+                                ),
+                                CommonDropdownDialog<IndividualFields>(
+                                  items: authController.arrIndividualFields,
+                                  selectedValue: _selectedContentCreatorField,
+                                  title: 'Select your Field',
+                                  hintText:
+                                      'Eg. Media Creators, Writing Creators',
+                                  displayValue: (value) => value.name ?? '',
+                                  onChanged: (value) {
+                                    _selectedContentCreatorField = value;
+                                    authController.arrIndividualSubCategories
+                                        .clear();
+                                    authController.arrIndividualSubCategories
+                                        .addAll(_selectedContentCreatorField
+                                                ?.subcategories ??
+                                            []);
+                                    setState(() {});
+                                  },
+                                  // validator: (value) {
+                                  //   if (value == null) {
+                                  //     return 'Enter your Specification';
+                                  //   }
+                                  //   return null;
+                                  // },
+                                ),
+                                SizedBox(
+                                  height: SizeConfig.paddingM,
+                                ),
+                                CustomText(
+                                  'Select Your Specification',
+                                  fontSize: SizeConfig.medium,
+                                  color: AppColors.mainTextColor,
+                                ),
+                                SizedBox(
+                                  height: SizeConfig.size10,
+                                ),
+                                CommonDropdownDialog<SubCategories>(
+                                  items:
+                                      authController.arrIndividualSubCategories,
+                                  selectedValue:
+                                      _selectedContentCreatorSpecification,
+                                  title: 'Select Your Specification',
+                                  hintText: 'Eg. Video Creator, BLOGGER',
+                                  displayValue: (s) => s.name ?? "",
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _selectedContentCreatorSpecification =
+                                          value;
+                                    });
+                                  },
+                                  // validator: (value) {
+                                  //   if (value == null) {
+                                  //     return 'Please select your gender';
+                                  //   }
+                                  //   return null;
+                                  // },
+                                )
+                              ],
+                            ))
 
                       // CommonTextField(
                       //   isValidate: false,
@@ -586,7 +561,8 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                     //   ),
                     // ],
 
-                    if ((_selectedProfessionTagId == REG_UNION || _selectedProfessionTagId == NGO)) ...[
+                    if ((_selectedProfessionTagId == REG_UNION ||
+                        _selectedProfessionTagId == NGO)) ...[
                       SizedBox(
                         height: SizeConfig.paddingL,
                       ),
@@ -598,7 +574,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                         title: "Type Your NGO / Society Name",
                         keyBoardType: TextInputType.text,
                         regularExpression:
-                        RegularExpressionUtils.alphabetSpacePattern,
+                            RegularExpressionUtils.alphabetSpacePattern,
                         hintText: "eg. Auto Union",
                         // autovalidateMode: _autoValidate,
                         // validator: (value) {
@@ -623,7 +599,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                         title: "Type Your Company Name",
                         keyBoardType: TextInputType.text,
                         regularExpression:
-                        RegularExpressionUtils.alphabetSpacePattern,
+                            RegularExpressionUtils.alphabetSpacePattern,
                         hintText: "eg. TCS LTD",
                         // autovalidateMode: _autoValidate,
                         // validator: (value) {
@@ -648,7 +624,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                         title: "Type Your Expertise",
                         keyBoardType: TextInputType.text,
                         regularExpression:
-                        RegularExpressionUtils.alphabetSpacePattern,
+                            RegularExpressionUtils.alphabetSpacePattern,
                         hintText: "eg. Cooking,Dancing",
                         // autovalidateMode: _autoValidate,
                         // validator: (value) {
@@ -658,14 +634,12 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                         //   return null;
                         // }
                       ),
-
                     ],
 
                     if ((_selectedProfessionTagId == SENIOR_CITIZEN)) ...[
                       SizedBox(
                         height: SizeConfig.paddingL,
                       ),
-
                       CommonTextField(
                         isValidate: false,
                         textEditController: _SeniorTextController,
@@ -673,7 +647,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                         title: "Type Your Expertise",
                         keyBoardType: TextInputType.text,
                         regularExpression:
-                        RegularExpressionUtils.alphabetSpacePattern,
+                            RegularExpressionUtils.alphabetSpacePattern,
                         hintText: "eg. Banking,Teaching",
                         // autovalidateMode: _autoValidate,
                         // validator: (value) {
@@ -696,7 +670,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                         title: "Enter your Education",
                         keyBoardType: TextInputType.text,
                         regularExpression:
-                        RegularExpressionUtils.alphabetSpacePattern,
+                            RegularExpressionUtils.alphabetSpacePattern,
                         hintText: "eg. 10th,Diploma,BE,PHD",
                         // autovalidateMode: _autoValidate,
                         // validator: (value) {
@@ -723,65 +697,63 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                         height: SizeConfig.size10,
                       ),
 
-                      Obx(()=> authController.isIndividualFieldLoading.value
-                          ?  Center(
-                        child: CircularProgressIndicator(),
-                      )
-                          :
-                      Column(
-                        children: [
-                          CommonDropdownDialog<SubCategories>(
-                            items: authController.arrIndividualFields[0].subcategories ?? [],
-                            selectedValue: _selectedArtistObj,
-                            title: 'Select Your Art / Skill',
-                            hintText: 'Eg. Actor...',
-                            displayValue: (s) => s.name ?? "",
-                            onChanged: (value) {
-                              setState(() {
-                                _selectedArtistObj = value;
-                              });
-                            },
-                            // validator: (value) {
-                            //   if (value == null) {
-                            //     return 'Please Select Your Art / Skill';
-                            //   }
-                            //   return null;
-                            // },
-                          ),
-                          if (_selectedArtistObj == OTHER) ...[
-                            SizedBox(
-                              height: SizeConfig.size15,
-                            ),
-                            CommonTextField(
-                              isValidate: false,
-                              textEditController: _artTypeController,
-                              // inputLength: 13,
-                              inputLength: 24,
-                              keyBoardType: TextInputType.text,
-                              regularExpression:
-                              RegularExpressionUtils.alphabetSpacePattern,
-                              titleColor: Colors.black,
-                              hintText: "Please Specify Art Type",
-                              // autovalidateMode: _autoValidate,
-                              // validator: (value) {
-                              //   if (value == null || value.isEmpty) {
-                              //     return 'Please enter art specification';
-                              //   }
-                              //   return null;
-                              // }
-                            ),
-                          ],
-                        ],
-                      )),
-
-
+                      Obx(() => authController.isIndividualFieldLoading.value
+                          ? Center(
+                              child: CircularProgressIndicator(),
+                            )
+                          : Column(
+                              children: [
+                                CommonDropdownDialog<SubCategories>(
+                                  items: authController.arrIndividualFields[0]
+                                          .subcategories ??
+                                      [],
+                                  selectedValue: _selectedArtistObj,
+                                  title: 'Select Your Art / Skill',
+                                  hintText: 'Eg. Actor...',
+                                  displayValue: (s) => s.name ?? "",
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _selectedArtistObj = value;
+                                    });
+                                  },
+                                  // validator: (value) {
+                                  //   if (value == null) {
+                                  //     return 'Please Select Your Art / Skill';
+                                  //   }
+                                  //   return null;
+                                  // },
+                                ),
+                                if (_selectedArtistObj == OTHER) ...[
+                                  SizedBox(
+                                    height: SizeConfig.size15,
+                                  ),
+                                  CommonTextField(
+                                    isValidate: false,
+                                    textEditController: _artTypeController,
+                                    // inputLength: 13,
+                                    inputLength: 24,
+                                    keyBoardType: TextInputType.text,
+                                    regularExpression: RegularExpressionUtils
+                                        .alphabetSpacePattern,
+                                    titleColor: Colors.black,
+                                    hintText: "Please Specify Art Type",
+                                    // autovalidateMode: _autoValidate,
+                                    // validator: (value) {
+                                    //   if (value == null || value.isEmpty) {
+                                    //     return 'Please enter art specification';
+                                    //   }
+                                    //   return null;
+                                    // }
+                                  ),
+                                ],
+                              ],
+                            )),
                     ],
 
                     if (_selectedProfessionTagId == POLITICIAN) ...[
                       SizedBox(
                         height: SizeConfig.paddingL,
                       ),
-
                       CommonTextField(
                         isValidate: false,
                         title: "Political Party",
@@ -795,7 +767,6 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                       SizedBox(
                         height: SizeConfig.paddingL,
                       ),
-
                       CommonTextField(
                         isValidate: false,
                         title: "Name of Department/PSU",
@@ -803,7 +774,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                         inputLength: 24,
                         keyBoardType: TextInputType.text,
                         regularExpression:
-                        RegularExpressionUtils.alphabetSpacePattern_,
+                            RegularExpressionUtils.alphabetSpacePattern_,
                         titleColor: Colors.black,
                         hintText: "eg., Ministry of Education",
                         // validator: (value) {
@@ -821,7 +792,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                         inputLength: 24,
                         keyBoardType: TextInputType.text,
                         regularExpression:
-                        RegularExpressionUtils.alphabetSpacePattern_,
+                            RegularExpressionUtils.alphabetSpacePattern_,
                         titleColor: Colors.black,
                         hintText: "eg., Civil Engineering Division",
                       ),
@@ -831,20 +802,20 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                       SizedBox(
                         height: SizeConfig.paddingL,
                       ),
-
                       CommonTextField(
                         isValidate: false,
                         textEditController: _governmentNameController,
                         inputLength: 24,
                         keyBoardType: TextInputType.text,
                         regularExpression:
-                        RegularExpressionUtils.alphabetSpacePattern,
+                            RegularExpressionUtils.alphabetSpacePattern,
                         title: "Name of Government/PSU",
                         hintText: "Eg. ONGC",
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter your Name of Government/PSU';
-                          } if (value.trim().length > 24) {
+                          }
+                          if (value.trim().length > 24) {
                             return 'Name of Government/PSU must not exceed 24 characters';
                           }
                           return null;
@@ -857,20 +828,20 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                       SizedBox(
                         height: SizeConfig.paddingL,
                       ),
-
                       CommonTextField(
                         isValidate: false,
                         textEditController: _sectorTextController,
                         inputLength: 24,
                         keyBoardType: TextInputType.text,
                         regularExpression:
-                        RegularExpressionUtils.alphabetSpacePattern,
+                            RegularExpressionUtils.alphabetSpacePattern,
                         title: "Sector",
                         hintText: "eg. IT Sector",
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter your Sector';
-                          } if (value.trim().length > 24) {
+                          }
+                          if (value.trim().length > 24) {
                             return 'Sector must not exceed 24 characters';
                           }
                           return null;
@@ -884,37 +855,35 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                         height: SizeConfig.paddingL,
                       ),
                       CommonTextField(
-                        isValidate: false,
-                        textEditController: _companyNameTextController,
-                        // inputLength: 13,
-                        inputLength: 24,
-                        title: "Type Your Company Name",
-                        keyBoardType: TextInputType.text,
-                        regularExpression:
-                        RegularExpressionUtils.alphabetSpacePattern,
-                        hintText: "eg. TCS LTD",
-                        // autovalidateMode: _autoValidate,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter company name';
-                          }
-                          return null;
-                        }
-                      ),
+                          isValidate: false,
+                          textEditController: _companyNameTextController,
+                          // inputLength: 13,
+                          inputLength: 24,
+                          title: "Type Your Company Name",
+                          keyBoardType: TextInputType.text,
+                          regularExpression:
+                              RegularExpressionUtils.alphabetSpacePattern,
+                          hintText: "eg. TCS LTD",
+                          // autovalidateMode: _autoValidate,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter company name';
+                            }
+                            return null;
+                          }),
                     ],
 
                     if (_selectedProfessionTagId == OTHERS) ...[
                       SizedBox(
                         height: SizeConfig.paddingL,
                       ),
-
                       CommonTextField(
                         isValidate: false,
                         textEditController: _otherProfessionTextController,
                         inputLength: 24,
                         keyBoardType: TextInputType.text,
                         regularExpression:
-                        RegularExpressionUtils.alphabetSpacePattern,
+                            RegularExpressionUtils.alphabetSpacePattern,
                         titleColor: Colors.black,
                         hintText: 'Please specify (if other)',
                         // autovalidateMode: _autoValidate,
@@ -932,7 +901,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                         inputLength: 24,
                         keyBoardType: TextInputType.text,
                         regularExpression:
-                        RegularExpressionUtils.alphabetSpacePattern,
+                            RegularExpressionUtils.alphabetSpacePattern,
                         title: "Designation / Expertise",
                         hintText: "Enter your designation/expertise",
                         // autovalidateMode: _autoValidate,
@@ -948,8 +917,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                       ),
                     ],
 
-                    if (
-                        (_selectedProfileTypeTagId != SELF_EMPLOYED) &&
+                    if ((_selectedProfileTypeTagId != SELF_EMPLOYED) &&
                         (_selectedProfileTypeTagId != GIG_WORKER) &&
                         (_selectedProfileTypeTagId != PROFESSIONAL) &&
                         // (_selectedProfessionTagId != SKILLED_WORKER) &&
@@ -963,17 +931,16 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                       SizedBox(
                         height: SizeConfig.paddingL,
                       ),
-
                       CommonTextField(
                         textEditController: _designationTextController,
                         inputLength: 24,
                         keyBoardType: TextInputType.text,
-                        regularExpression: RegularExpressionUtils.alphabetSpacePattern,
+                        regularExpression:
+                            RegularExpressionUtils.alphabetSpacePattern,
                         title: 'Designation',
                         hintText: "Enter your designation",
                         isValidate: true,
                       ),
-
                     ],
 
                     if ((_selectedProfessionTagId == POLITICIAN) ||
@@ -983,14 +950,11 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                         (_selectedProfessionTagId == NGO) ||
                         (_selectedProfessionTagId == MEDIA) ||
                         (_selectedProfessionTagId == INDUSTRIALIST) ||
-                        (_selectedProfessionTagId == ARTIST)||
-                        (_selectedProfessionTagId == DIRECTOR)
-
-                    ) ...[
+                        (_selectedProfessionTagId == ARTIST) ||
+                        (_selectedProfessionTagId == DIRECTOR)) ...[
                       SizedBox(
                         height: SizeConfig.paddingL,
                       ),
-
                       Obx(() {
                         return Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1000,28 +964,29 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                               Align(
                                   alignment: Alignment.centerRight,
                                   child: Padding(
-                                    padding: EdgeInsets.symmetric(vertical: 0.0),
+                                    padding:
+                                        EdgeInsets.symmetric(vertical: 0.0),
                                     child: InkWell(
                                       onTap: userNameController.text.isNotEmpty
                                           ? () {
-                                        authController
-                                            .getCheckUsernameController(
-                                            value:
-                                            userNameController.text);
-                                      }
+                                              authController
+                                                  .getCheckUsernameController(
+                                                      value: userNameController
+                                                          .text);
+                                            }
                                           : null,
                                       child: CustomText(
                                         "Check",
-                                        color: userNameController.text.isNotEmpty
-                                            ? AppColors.primaryColor
-                                            : AppColors.secondaryTextColor,
+                                        color:
+                                            userNameController.text.isNotEmpty
+                                                ? AppColors.primaryColor
+                                                : AppColors.secondaryTextColor,
                                       ),
                                     ),
                                   )),
                           ],
                         );
                       }),
-
                       Obx(() {
                         return Padding(
                           padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -1035,12 +1000,13 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                               return GestureDetector(
                                 onTap: () {
                                   userNameController.text =
-                                  authController.userNameList[i];
+                                      authController.userNameList[i];
                                   authController.select(i);
                                 },
                                 child: Container(
                                   padding: EdgeInsets.symmetric(
-                                      horizontal: SizeConfig.size10, vertical: 5),
+                                      horizontal: SizeConfig.size10,
+                                      vertical: 5),
                                   decoration: BoxDecoration(
                                     color: isSelected
                                         ? AppColors.primaryColor
@@ -1054,17 +1020,19 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                                     borderRadius: BorderRadius.circular(12),
                                     boxShadow: isSelected
                                         ? [
-                                      BoxShadow(
-                                          blurRadius: 6,
-                                          spreadRadius: 0.5,
-                                          color:
-                                          Colors.black.withValues(alpha: 0.15))
-                                    ]
+                                            BoxShadow(
+                                                blurRadius: 6,
+                                                spreadRadius: 0.5,
+                                                color: Colors.black
+                                                    .withValues(alpha: 0.15))
+                                          ]
                                         : null,
                                   ),
                                   child: CustomText(
                                     authController.userNameList[i],
-                                    color: isSelected ? Colors.white : Colors.black,
+                                    color: isSelected
+                                        ? Colors.white
+                                        : Colors.black,
                                     fontWeight: FontWeight.w500,
                                     fontSize: SizeConfig.small,
                                   ),
@@ -1074,17 +1042,17 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                           ),
                         );
                       }),
-
                       CommonTextField(
                         textEditController: userNameController,
                         inputLength: 15,
                         keyBoardType: TextInputType.text,
                         regularExpression:
-                        RegularExpressionUtils.alphanumericPattern,
+                            RegularExpressionUtils.alphanumericPattern,
                         titleColor: Colors.black,
                         hintText: "eg @Sachin",
                         isValidate: false,
-                        prefixText: userNameController.text.isNotEmpty ? "@" : "",
+                        prefixText:
+                            userNameController.text.isNotEmpty ? "@" : "",
                         validator: (value) {
                           if (value == null || value.trim().length < 7) {
                             return "Username must be at least 7 characters";
@@ -1096,7 +1064,6 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                           setState(() {});
                         },
                       ),
-
                     ],
 
                     SizedBox(
@@ -1112,40 +1079,39 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                         (_selectedProfessionTagId != DIRECTOR)) ...[
                       ..._referralCodeEnable
                           ? [
-                        CommonTextField(
-                          isValidate: false,
-                          textEditController: _referralCodeController,
-                          inputLength: AppConstants.inputCharterLimit10,
-                          keyBoardType: TextInputType.text,
-                          regularExpression:
-                          RegularExpressionUtils.alphanumericPattern,
-                          title: "Referral Code",
-                          hintText: "Enter Referral Code",
-                          // autovalidateMode: _autoValidate,
-                          // validator: (value) {
-                          //   if (value == null || value.isEmpty) {
-                          //     return 'Please enter your referral code';
-                          //   }
-                          //   return null;
-                          // },
-                        )
-                      ]
+                              CommonTextField(
+                                isValidate: false,
+                                textEditController: _referralCodeController,
+                                inputLength: AppConstants.inputCharterLimit10,
+                                keyBoardType: TextInputType.text,
+                                regularExpression:
+                                    RegularExpressionUtils.alphanumericPattern,
+                                title: "Referral Code",
+                                hintText: "Enter Referral Code",
+                                // autovalidateMode: _autoValidate,
+                                // validator: (value) {
+                                //   if (value == null || value.isEmpty) {
+                                //     return 'Please enter your referral code';
+                                //   }
+                                //   return null;
+                                // },
+                              )
+                            ]
                           : [
-
-                        Center(
-                          child: InkWell(
-                            onTap: () =>
-                                setState(() => _referralCodeEnable = true),
-                            child: CustomText(
-                              'Do you have refer code?',
-                              color: AppColors.primaryColor,
-                              decoration: TextDecoration.underline,
-                              fontSize: SizeConfig.medium,
-                              decorationColor: AppColors.primaryColor,
-                            ),
-                          ),
-                        ),
-                      ],
+                              Center(
+                                child: InkWell(
+                                  onTap: () => setState(
+                                      () => _referralCodeEnable = true),
+                                  child: CustomText(
+                                    'Do you have refer code?',
+                                    color: AppColors.primaryColor,
+                                    decoration: TextDecoration.underline,
+                                    fontSize: SizeConfig.medium,
+                                    decorationColor: AppColors.primaryColor,
+                                  ),
+                                ),
+                              ),
+                            ],
                       // SizedBox(height: SizeConfig.size10,),
                       // Padding(
                       //   padding: EdgeInsets.symmetric(
@@ -1203,7 +1169,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
         commonSnackBar(message: 'Please select your date of birth');
         return;
       }
-      if(_selectedGender == null){
+      if (_selectedGender == null) {
         commonSnackBar(message: 'Please select your gender');
         return;
       }
@@ -1220,7 +1186,8 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
           return;
         }
       }
-      if (_selectedProfessionTagId == REG_UNION || _selectedProfessionTagId == NGO) {
+      if (_selectedProfessionTagId == REG_UNION ||
+          _selectedProfessionTagId == NGO) {
         if (_ngoNameTextController.text.isEmpty) {
           commonSnackBar(message: 'Enter your NGO / Society Name');
           return;
@@ -1244,14 +1211,12 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
         }
       }
 
-
       setState(() {
-        crBtnLoading=true;
+        crBtnLoading = true;
       });
       // final position = await getCurrentLocation();
       final locationData = await locationController.checkPermissionAndSetData();
       if (locationData != null) {
-
         final imageFile = (UserSession().imagePath != null)
             ? File(UserSession().imagePath!)
             : null;
@@ -1264,38 +1229,39 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
         String? designation;
         if ((_selectedProfileTypeTagId == SELF_EMPLOYED ||
             _selectedProfileTypeTagId == GIG_WORKER)) {
-            designation = _selectedProfessionTagId?.toLowerCase().capitalizeFirst ?? "";
-        } else if(_selectedProfileTypeTagId == PROFESSIONAL){
+          designation =
+              _selectedProfessionTagId?.toLowerCase().capitalizeFirst ?? "";
+        } else if (_selectedProfileTypeTagId == PROFESSIONAL) {
           designation = _selectedProfessionObj?.name;
           log('designation -- $designation');
-        }
-        else{
-          if(_selectedProfessionTagId == STUDENT){
+        } else {
+          if (_selectedProfessionTagId == STUDENT) {
             designation = STUDENT.toLowerCase().capitalizeFirst;
-          } else if(_selectedProfessionTagId == FARMER){
+          } else if (_selectedProfessionTagId == FARMER) {
             designation = FARMER.toLowerCase().capitalizeFirst;
-          } else if(_selectedProfessionTagId == HOMEMAKER){
+          } else if (_selectedProfessionTagId == HOMEMAKER) {
             designation = _ExpertiseTextController.text.trim();
-          } else if(_selectedProfessionTagId == SENIOR_CITIZEN){
+          } else if (_selectedProfessionTagId == SENIOR_CITIZEN) {
             designation = _SeniorTextController.text.trim();
-          } else if(_selectedProfessionTagId == ARTIST){
-            if(_selectedArtistObj != OTHER){
+          } else if (_selectedProfessionTagId == ARTIST) {
+            if (_selectedArtistObj != OTHER) {
               designation = _selectedArtistObj?.name;
               log('designation -- $designation');
-            }else{
+            } else {
               designation = _artTypeController.text.trim();
             }
             // ApiKeys.art: jsonEncode({
             //   ApiKeys.artName: _selectedArtistObj?.tagId,
             //   ApiKeys.artType: _artTypeController.text
             // }),
-          } else if(_selectedProfessionTagId == CONTENT_CREATOR){
+          } else if (_selectedProfessionTagId == CONTENT_CREATOR) {
             designation = _selectedContentCreatorSpecification?.name;
             log('designation -- ${_selectedContentCreatorSpecification?.name}');
-          } else if(_selectedProfessionTagId == OTHERS){
+          } else if (_selectedProfessionTagId == OTHERS) {
             designation = _otherProfessionTextController.text.trim();
+          } else {
+            designation = _designationTextController.text.trim();
           }
-          designation = _designationTextController.text.trim();
         }
 
         Map<String, dynamic> requestData = {
@@ -1341,7 +1307,8 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
             ApiKeys.department: departmentNameController.text,
           if (_selectedProfessionTagId == GOVTPSU)
             ApiKeys.subDivision: subDivision.text,
-          if (_selectedProfessionTagId == REG_UNION || _selectedProfessionTagId == NGO)
+          if (_selectedProfessionTagId == REG_UNION ||
+              _selectedProfessionTagId == NGO)
             ApiKeys.department: _ngoNameTextController.text,
 
           if (_selectedProfessionTagId == INDUSTRIALIST)
@@ -1368,7 +1335,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
           //   }),
 
           ApiKeys.referred_by_code:
-          _referralCodeEnable ? _referralCodeController.text : null,
+              _referralCodeEnable ? _referralCodeController.text : null,
           // if (position?.latitude != null && position?.longitude != null)
           ApiKeys.user_cordinates: jsonEncode({
             ApiKeys.lat: locationData.lat,
@@ -1378,16 +1345,14 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
         logs("requestData PERSONAL ==== ${requestData}");
         await authController.addIndivisualUser(reqData: requestData);
         setState(() {
-          crBtnLoading=false;
+          crBtnLoading = false;
         });
-      }
-      else{
+      } else {
         commonSnackBar(
             message:
-            "Please enable your location permission and gps to access app features.");
+                "Please enable your location permission and gps to access app features.");
         return;
       }
-
     } else {
       setState(() {
         _autoValidate = AutovalidateMode.always;
@@ -1440,11 +1405,11 @@ class UsernamePicker extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: isSelected
                       ? [
-                    BoxShadow(
-                        blurRadius: 6,
-                        spreadRadius: 0.5,
-                        color: Colors.black.withValues(alpha: 0.15))
-                  ]
+                          BoxShadow(
+                              blurRadius: 6,
+                              spreadRadius: 0.5,
+                              color: Colors.black.withValues(alpha: 0.15))
+                        ]
                       : null,
                 ),
                 child: CustomText(

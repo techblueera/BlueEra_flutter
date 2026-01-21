@@ -59,7 +59,28 @@ class _AddBioViaAiScreenState extends State<AddBioViaAiScreen> {
             "Month: ${widget.selectedMonth}, "
             "Day: ${widget.selectedDay}"
     );
+    apiCalling();
     super.initState();
+  }
+  apiCalling()async
+  {
+    await aiController.fetchSuggestions(
+        bodyRequest: {
+          ApiKeys.profession: widget.profession,
+          ApiKeys.designation: widget.designation,
+          ApiKeys.date_of_birth_Obj: {
+            ApiKeys.year: widget.selectedYear,
+            ApiKeys.month: widget.selectedMonth,
+            ApiKeys.date: widget.selectedDay
+          },
+          ApiKeys.gender: viewPersonalDetailsController.personalProfileDetails.value.user?.gender
+        },
+        apiType: "bio",
+        targetController: bioController,
+        onSaved: (){
+          validateForm();
+        }
+    );
   }
 
   @override

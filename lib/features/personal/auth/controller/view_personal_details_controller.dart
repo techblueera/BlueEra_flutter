@@ -1,4 +1,3 @@
-
 import 'dart:developer';
 import 'dart:io';
 
@@ -14,6 +13,8 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
+import 'package:BlueEra/features/common/auth/model/individual_field_response_model.dart';
+import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/repo/feed_repo.dart';
@@ -35,6 +36,7 @@ import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
 
 import '../../../chat/auth/service/location_update_service.dart';
+import '../../../common/auth/model/get_categories_model.dart';
 import '../../personal_profile/view/widget/ai_suggestion_field.dart';
 import '../../personal_profile/view/widget/introduction_video_widget.dart';
 import '../../personal_profile/view/widget/update_personal_profession_dialog.dart';
@@ -52,10 +54,66 @@ class _ProfileFieldStatus {
   });
 }
 
-
 class ViewPersonalDetailsController extends GetxController {
   bool updateBtnLoading = false;
 
+  RxBool isIndividualFieldLoading = false.obs;
+  RxList<IndividualFields> arrIndividualFields = <IndividualFields>[].obs;
+  // RxList<SubCategories> arrIndividualSubCategoriesList = <SubCategories>[].obs;
+  var arrIndividualSubCategoriesList = <SubCategories>[].obs;
+
+  // Method to update subcategories based on the parent selection
+  void updateSubCategories(List<SubCategories>? subCategories) {
+    // assignAll handles both clearing and adding in one go
+    arrIndividualSubCategoriesList.assignAll(subCategories ?? []);
+  }
+// Observable for the selected onboarding category
+  var selectedOnboardingCategory = Rxn<OnBoardingCategoryModel>();
+
+  // Your data list (usually kept in controller for clean architecture)
+  final List<OnBoardingCategoryModel> individualCategories =
+      individualOnboardingProfilesCategory;
+
+  void updateOnboardingCategory(OnBoardingCategoryModel? val) {
+    selectedOnboardingCategory.value = val;
+  }
+
+  // List of data
+  final List<OnBoardingCategoryModel> socialProfileList =
+      individualOnboardingSocialProfileList;
+
+  // Observable variable for selection
+  var selectedSocialProfile = Rxn<OnBoardingCategoryModel>();
+
+  // Method to update selection
+  void setSocialProfile(OnBoardingCategoryModel? value) {
+    selectedSocialProfile.value = value;
+  }
+
+
+  // Observable for the Consultation selection
+  var selectedConsultationProfile = Rxn<OnBoardingCategoryModel>();
+
+// The data list
+  final List<OnBoardingCategoryModel> consultationList =
+      individualOnboardingConsultationList;
+
+// Method to update selection
+  void setConsultationProfile(OnBoardingCategoryModel? val) {
+    selectedConsultationProfile.value = val;
+  }
+
+  // Observable for the Skill Work selection
+  var selectedSkillWorkProfile = Rxn<OnBoardingCategoryModel>();
+
+// The data list
+  final List<OnBoardingCategoryModel> skillWorkList =
+      individualOnboardingSelfWorkSkillWorkList;
+
+// Method to update selection
+  void setSkillWorkProfile(OnBoardingCategoryModel? val) {
+    selectedSkillWorkProfile.value = val;
+  }
 
   @override
   void onInit() {
@@ -66,11 +124,12 @@ class ViewPersonalDetailsController extends GetxController {
 
   RxBool shopStatusOpenClose = false.obs;
   final LiveLocationService locationService = LiveLocationService();
+
   Future<void> toggleShopStatus() async {
     shopStatusOpenClose.value = !shopStatusOpenClose.value;
-    if(shopStatusOpenClose.value){
+    if (shopStatusOpenClose.value) {
       locationService.start();
-    }else{
+    } else {
       locationService.stop();
     }
     await callApiForChangeStatus();
@@ -249,7 +308,6 @@ class ViewPersonalDetailsController extends GetxController {
             ),
           ];
 
-
           final int totalFields = fields.length;
           final int completedFields = fields.where((e) => e.isCompleted).length;
           final double percent =
@@ -257,11 +315,8 @@ class ViewPersonalDetailsController extends GetxController {
 
           myProfileCompletionPercent.value = percent;
         }
-        if(personalProfileDetails
-            .value
-            .user
-            ?.emailVerified??false){
-          verifiedEmail.value=personalProfileDetails.value.user?.email ?? "";
+        if (personalProfileDetails.value.user?.emailVerified ?? false) {
+          verifiedEmail.value = personalProfileDetails.value.user?.email ?? "";
         }
 
         ///SET SOCIAL DATA LINK...
@@ -279,7 +334,6 @@ class ViewPersonalDetailsController extends GetxController {
         ///SET OVERVIEW
         overView.value = personalProfileDetails.value.user?.objective ?? "";
 
-
         Get.find<AuthController>().imgPath.value =
             personalProfileDetails.value.user?.profileImage ?? "";
         // await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.userProfile, personalProfileDetails.value.user?.profileImage??"");
@@ -296,15 +350,18 @@ class ViewPersonalDetailsController extends GetxController {
         await getUserLoginData();
 
         /// Check Earn services
-        isRiderServiceUser.value = personalProfileDetails.value.isRiderServiceUser ?? false;
-        isEarnServiceUser.value =  personalProfileDetails.value.isEarnServiceUser ?? false;
+        isRiderServiceUser.value =
+            personalProfileDetails.value.isRiderServiceUser ?? false;
+        isEarnServiceUser.value =
+            personalProfileDetails.value.isEarnServiceUser ?? false;
         await setRiderServiceOptData(isRiderServiceUser.value);
         await setEarnServiceOptData(isEarnServiceUser.value);
         // await getRiderServiceOptData();
         // await getEarnServiceOptData();
 
         /// need to verify (for checking is service exists or not)
-        if (personalProfileDetails.value.user?.profession?.toUpperCase() == SELF_EMPLOYED) {
+        if (personalProfileDetails.value.user?.profession?.toUpperCase() ==
+            SELF_EMPLOYED) {
           //   if(isCheckServiceOpt){
           //   await getUserServiceCreatedStatusUtils();
           //   if (userServiceCreatedStatusGlobal.isEmpty || userServiceCreatedStatusGlobal == "false") {
@@ -312,19 +369,18 @@ class ViewPersonalDetailsController extends GetxController {
           //   }
           // }
 
-            await getServiceProviderStatusUtils();
-            if (serviceProviderStatusGlobal.isNotEmpty) {
-              if (serviceProviderStatusGlobal.toUpperCase() ==
-                  AppConstants.OPEN.toUpperCase()) {
-                shopStatusOpenClose.value = true;
-              } else {
-                shopStatusOpenClose.value = false;
-              }
+          await getServiceProviderStatusUtils();
+          if (serviceProviderStatusGlobal.isNotEmpty) {
+            if (serviceProviderStatusGlobal.toUpperCase() ==
+                AppConstants.OPEN.toUpperCase()) {
+              shopStatusOpenClose.value = true;
             } else {
-              getServiceProviderStatus();
+              shopStatusOpenClose.value = false;
             }
+          } else {
+            getServiceProviderStatus();
           }
-
+        }
 
         viewPersonalResponse.value = ApiResponse.complete(responseModel);
       } else {
@@ -364,7 +420,6 @@ class ViewPersonalDetailsController extends GetxController {
 
       ///SET OVERVIEW
       overView.value = personalProfileDetails.value.user?.objective ?? "";
-
 
       viewPersonalResponse.value = ApiResponse.complete(responseModel);
     } else {
@@ -419,7 +474,6 @@ class ViewPersonalDetailsController extends GetxController {
           //   personalProfileDetails.value =
           //       PersonalProfileDetailsModel.fromJson(data);
           // }
-
         }
       } else {
         getFollowerViewCountResponse.value = ApiResponse.error();
@@ -494,29 +548,25 @@ class ViewPersonalDetailsController extends GetxController {
   //   }
   // }
 
-  void partiallyForceToCreateService(){
-    final viewProfileController = Get.isRegistered<ViewPersonalDetailsController>()
-       ? Get.find<ViewPersonalDetailsController>()
-       : Get.put(ViewPersonalDetailsController());
+  void partiallyForceToCreateService() {
+    final viewProfileController =
+        Get.isRegistered<ViewPersonalDetailsController>()
+            ? Get.find<ViewPersonalDetailsController>()
+            : Get.put(ViewPersonalDetailsController());
 
     selfWorkCategories.any(
-          (service) => service.slugId == userProfessionGlobal,
+      (service) => service.slugId == userProfessionGlobal,
     );
 
-    if (viewProfileController
-        .personalProfileDetails.value.isProfileCreated ==
+    if (viewProfileController.personalProfileDetails.value.isProfileCreated ==
         false) {
-      Navigator.push(
-          Get.context!,
-          MaterialPageRoute(
-              builder: (context) => CreateProfileScreen()));
+      Navigator.push(Get.context!,
+          MaterialPageRoute(builder: (context) => CreateProfileScreen()));
     } else {
-      if(userWorkTypeGlobal == DELIVERY_RIDER){
-        Get.toNamed(RouteHelper
-            .getRiderServiceScreenRoute());
-      }else{
-        Get.toNamed(RouteHelper
-            .getEarnServiceScreenRoute());
+      if (userWorkTypeGlobal == DELIVERY_RIDER) {
+        Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
+      } else {
+        Get.toNamed(RouteHelper.getEarnServiceScreenRoute());
       }
 
       // Get.toNamed(
@@ -528,9 +578,7 @@ class ViewPersonalDetailsController extends GetxController {
       //     ApiKeys.serviceSubType: isSelfService ? EarnWithBlueEraServiceTypes.selfWork : EarnWithBlueEraServiceTypes.homeService,
       //   },
       // );
-
     }
-
   }
 
   RxString isUserServiceExistsKey = 'false'.obs;
@@ -539,10 +587,11 @@ class ViewPersonalDetailsController extends GetxController {
   Future<String> getUserServiceExistenceStatus() async {
     try {
       ResponseModel responseModel =
-      await AuthRepo().getServiceExistenceStatusRepo();
+          await AuthRepo().getServiceExistenceStatusRepo();
 
       if (responseModel.isSuccess) {
-        String isUserServiceExits = responseModel.response?.data['exists'].toString() ?? 'false';
+        String isUserServiceExits =
+            responseModel.response?.data['exists'].toString() ?? 'false';
         return isUserServiceExits;
       } else {
         commonSnackBar(
@@ -556,13 +605,12 @@ class ViewPersonalDetailsController extends GetxController {
   }
 
   void onFieldTap(_ProfileFieldStatus item) {
-
     switch (item.id) {
       case 1:
         showIntroductionVideoDialog();
         break;
       case 2:
-          showBioUpdateDialog();
+        showBioUpdateDialog();
         break;
       case 3:
         showProfessionUpdateDialog();
@@ -605,10 +653,10 @@ class ViewPersonalDetailsController extends GetxController {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                   CustomText(
-                   AppStrings.verifyYourEmail,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                  CustomText(
+                    AppStrings.verifyYourEmail,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
                   ),
                   const SizedBox(height: 12),
 
@@ -628,7 +676,7 @@ class ViewPersonalDetailsController extends GetxController {
                       Expanded(
                         child: TextButton(
                           onPressed: () => Navigator.pop(context),
-                          child:  CustomText(AppStrings.cancel),
+                          child: CustomText(AppStrings.cancel),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -642,14 +690,15 @@ class ViewPersonalDetailsController extends GetxController {
                             if (formKey.currentState?.validate() ?? false) {
                               final email = emailController.text.trim();
                               Navigator.pop(context); // Close dialog
-                              final emailVerificationController = Get.isRegistered<EmailVerificationController>()
-                                  ? Get.find<EmailVerificationController>()
-                                  : Get.put(EmailVerificationController());
+                              final emailVerificationController =
+                                  Get.isRegistered<
+                                          EmailVerificationController>()
+                                      ? Get.find<EmailVerificationController>()
+                                      : Get.put(EmailVerificationController());
 
                               emailVerificationController.verifyEmail(email);
                             }
                           },
-
                         ),
                       ),
                     ],
@@ -666,13 +715,12 @@ class ViewPersonalDetailsController extends GetxController {
   void showBioUpdateDialog() {
     final formKey = GlobalKey<FormState>();
     final personalCreateProfileController =
-    Get.put(PersonalCreateProfileController());
+        Get.put(PersonalCreateProfileController());
     final ViewPersonalDetailsController viewPersonalDetailsController =
-    Get.find<ViewPersonalDetailsController>();
+        Get.find<ViewPersonalDetailsController>();
     final TextEditingController bioController = TextEditingController();
     bioController.text =
-        viewPersonalDetailsController
-            .personalProfileDetails.value.user?.bio ??
+        viewPersonalDetailsController.personalProfileDetails.value.user?.bio ??
             '';
 
     showDialog(
@@ -698,44 +746,28 @@ class ViewPersonalDetailsController extends GetxController {
                     fontSize: 16,
                   ),
                   const SizedBox(height: 12),
-
                   AiSuggestionField(
                     title: "About Me / Bio",
                     apiType: "bio",
                     textController: bioController,
                     bodyRequest: {
-                      ApiKeys.profession:
-                      viewPersonalDetailsController
-                          .personalProfileDetails
-                          .value
-                          .user
-                          ?.profession,
-                      ApiKeys.designation:
-                      viewPersonalDetailsController
-                          .personalProfileDetails
-                          .value
-                          .user
-                          ?.designation,
+                      ApiKeys.profession: viewPersonalDetailsController
+                          .personalProfileDetails.value.user?.profession,
+                      ApiKeys.designation: viewPersonalDetailsController
+                          .personalProfileDetails.value.user?.designation,
                       ApiKeys.date_of_birth_Obj: {
-                        ApiKeys.year: personalCreateProfileController
-                            .selectedYear
-                            ?.value,
+                        ApiKeys.year:
+                            personalCreateProfileController.selectedYear?.value,
                         ApiKeys.month: personalCreateProfileController
-                            .selectedMonth
-                            ?.value,
-                        ApiKeys.date: personalCreateProfileController
-                            .selectedDay
-                            ?.value,
+                            .selectedMonth?.value,
+                        ApiKeys.date:
+                            personalCreateProfileController.selectedDay?.value,
                       },
                       ApiKeys.gender: personalCreateProfileController
-                          .selectedGender
-                          .value
-                          ?.name,
+                          .selectedGender.value?.name,
                     },
                   ),
-
                   const SizedBox(height: 20),
-
                   Row(
                     children: [
                       Expanded(
@@ -753,8 +785,6 @@ class ViewPersonalDetailsController extends GetxController {
                           radius: 10.0,
                           onTap: () {
                             if (formKey.currentState!.validate()) {
-
-
                               personalCreateProfileController
                                   .updateUserProfileDetails(
                                 params: {
@@ -779,19 +809,15 @@ class ViewPersonalDetailsController extends GetxController {
   void showEducationUpdateDialog() {
     final formKey = GlobalKey<FormState>();
     final personalCreateProfileController =
-    Get.put(PersonalCreateProfileController());
+        Get.put(PersonalCreateProfileController());
     final viewPersonalDetailsController =
-    Get.find<ViewPersonalDetailsController>();
+        Get.find<ViewPersonalDetailsController>();
 
     final TextEditingController educationController = TextEditingController();
 
-    educationController.text =
-        viewPersonalDetailsController
-            .personalProfileDetails
-            .value
-            .user
-            ?.highestEducation ??
-            '';
+    educationController.text = viewPersonalDetailsController
+            .personalProfileDetails.value.user?.highestEducation ??
+        '';
 
     showDialog(
       context: Get.context!,
@@ -816,7 +842,6 @@ class ViewPersonalDetailsController extends GetxController {
                     fontSize: 16,
                   ),
                   const SizedBox(height: 12),
-
                   CommonTextField(
                     title: AppStrings.highestEducation,
                     hintText: "eg. 12th, B.A, M.A, PhD",
@@ -832,9 +857,7 @@ class ViewPersonalDetailsController extends GetxController {
                       return null;
                     },
                   ),
-
                   const SizedBox(height: 20),
-
                   Row(
                     children: [
                       Expanded(
@@ -852,12 +875,11 @@ class ViewPersonalDetailsController extends GetxController {
                           radius: 10.0,
                           onTap: () {
                             if (formKey.currentState!.validate()) {
-
                               personalCreateProfileController
                                   .updateUserProfileDetails(
                                 params: {
                                   ApiKeys.highest_education:
-                                  educationController.text.trim(),
+                                      educationController.text.trim(),
                                 },
                               );
                             }
@@ -874,6 +896,7 @@ class ViewPersonalDetailsController extends GetxController {
       },
     );
   }
+
   void showIntroductionVideoDialog() {
     showDialog(
       context: Get.context!,
@@ -883,10 +906,11 @@ class ViewPersonalDetailsController extends GetxController {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-          insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+          insetPadding:
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
           child: ConstrainedBox(
             constraints: const BoxConstraints(
-              maxHeight: 500,   // prevents overflow
+              maxHeight: 500, // prevents overflow
               minHeight: 200,
             ),
             child: Padding(
@@ -924,9 +948,7 @@ class ViewPersonalDetailsController extends GetxController {
     );
   }
 
-
   void showProfessionUpdateDialog() {
-
     showDialog(
       context: Get.context!,
       barrierDismissible: false,
@@ -935,10 +957,9 @@ class ViewPersonalDetailsController extends GetxController {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-          child:UpdatePersonalProfessionDialog() ,
+          child: UpdatePersonalProfessionDialog(),
         );
       },
     );
   }
-
 }

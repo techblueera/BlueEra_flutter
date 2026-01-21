@@ -1,4 +1,3 @@
-
 import 'dart:developer';
 
 import 'package:BlueEra/core/api/model/type_of_business_model.dart';
@@ -6,6 +5,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -65,9 +65,9 @@ void openOwnerEditSheet({
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: const [
                     CustomText(
-                     AppStrings.ownerDetails,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
+                      AppStrings.ownerDetails,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
                     ),
                     CloseButton(),
                   ],
@@ -78,7 +78,7 @@ void openOwnerEditSheet({
                   inputLength: 50,
                   keyBoardType: TextInputType.text,
                   regularExpression:
-                  RegularExpressionUtils.alphabetSpacePattern,
+                      RegularExpressionUtils.alphabetSpacePattern,
                   title: AppStrings.yourName,
                   hintText: AppStrings.yourNameHint,
                   isValidate: false,
@@ -89,7 +89,7 @@ void openOwnerEditSheet({
                   inputLength: 50,
                   keyBoardType: TextInputType.text,
                   regularExpression:
-                  RegularExpressionUtils.alphabetSpacePattern,
+                      RegularExpressionUtils.alphabetSpacePattern,
                   title: AppStrings.yourRole,
                   hintText: AppStrings.yourRoleHint,
                   isValidate: false,
@@ -122,7 +122,7 @@ void openOwnerEditSheet({
 
 void openBusinessDetailsEditSheet(BuildContext context) {
   final viewBusinessDetailsController =
-  Get.find<ViewBusinessDetailsController>();
+      Get.find<ViewBusinessDetailsController>();
   final data = viewBusinessDetailsController.businessProfileDetails?.data;
 
   viewBusinessDetailsController.shopOpenTime.value =
@@ -133,7 +133,7 @@ void openBusinessDetailsEditSheet(BuildContext context) {
   // Controllers prSizeOfBusiness? selectedBusiness;e-filled with existing data
   TextEditingController specializationCtrl = TextEditingController(
     text: viewBusinessDetailsController
-        .businessProfileDetails?.data?.specification ??
+            .businessProfileDetails?.data?.specification ??
         '',
   );
   NatureOfBusiness? selectedBusiness;
@@ -141,7 +141,7 @@ void openBusinessDetailsEditSheet(BuildContext context) {
     if (input == null) return null;
 
     return NatureOfBusiness.values.firstWhere(
-          (e) => e.displayName.toLowerCase() == input.toLowerCase(),
+      (e) => e.displayName.toLowerCase() == input.toLowerCase(),
       orElse: () => NatureOfBusiness.OTHERS,
     );
   }
@@ -151,7 +151,7 @@ void openBusinessDetailsEditSheet(BuildContext context) {
 
   final subCategoryTextController = TextEditingController(
       text: viewBusinessDetailsController
-          .businessProfileDetails?.data?.category_other ??
+              .businessProfileDetails?.data?.category_other ??
           "");
   viewBusinessDetailsController.selectedCategoryOfBusiness.value = CategoryData(
       id: viewBusinessDetailsController
@@ -166,52 +166,50 @@ void openBusinessDetailsEditSheet(BuildContext context) {
               .businessProfileDetails?.data?.subCategoryDetails?.name);
 
   if (viewBusinessDetailsController
-      .businessProfileDetails?.data?.typeOfBusiness ==
+          .businessProfileDetails?.data?.typeOfBusiness ==
       BusinessType.Product.name) {
     viewBusinessDetailsController.selectedTypeOfBusiness.value =
         BusinessCategory(
-          title: AppStrings.productTitle.tr,
-          subTitle: AppStrings.productSubTitle.tr,
-          icon: AppIconAssets.product_sale,
-          type: BusinessType.Product.name,
-        );
+      title: AppStrings.productTitle.tr,
+      subTitle: AppStrings.productSubTitle.tr,
+      icon: AppIconAssets.product_sale,
+      type: BusinessType.Product.name,
+    );
     viewBusinessDetailsController.selectedBusinessType?.value =
         BusinessType.Product;
   } else if (viewBusinessDetailsController
-      .businessProfileDetails?.data?.typeOfBusiness ==
+          .businessProfileDetails?.data?.typeOfBusiness ==
       BusinessType.Service.name) {
     viewBusinessDetailsController.selectedTypeOfBusiness.value =
         BusinessCategory(
-          title: AppStrings.serviceTitle.tr,
-          subTitle: AppStrings.serviceSubTitle.tr,
-          icon: AppIconAssets.service_provider,
-          type: BusinessType.Service.name,
-        );
+      title: AppStrings.serviceTitle.tr,
+      subTitle: AppStrings.serviceSubTitle.tr,
+      icon: AppIconAssets.service_provider,
+      type: BusinessType.Service.name,
+    );
     viewBusinessDetailsController.selectedBusinessType?.value =
         BusinessType.Service;
   } else if (viewBusinessDetailsController
-      .businessProfileDetails?.data?.typeOfBusiness ==
+          .businessProfileDetails?.data?.typeOfBusiness ==
       BusinessType.Food.name) {
     viewBusinessDetailsController.selectedTypeOfBusiness.value =
         BusinessCategory(
-          title:  AppStrings.foodTitle.tr,
-          subTitle:
-          AppStrings.foodSubTitle.tr,
-          icon: AppIconAssets.food_service,
-          type: BusinessType.Food.name,
-        );
+      title: AppStrings.foodTitle.tr,
+      subTitle: AppStrings.foodSubTitle.tr,
+      icon: AppIconAssets.food_service,
+      type: BusinessType.Food.name,
+    );
     viewBusinessDetailsController.selectedBusinessType?.value =
         BusinessType.Food;
   } else {
     viewBusinessDetailsController.selectedTypeOfBusiness.value =
         BusinessCategory(
-          title:  AppStrings.otherTitle.tr,
-          subTitle:
-          AppStrings.otherSubTitle.tr,
-          icon: AppIconAssets.other_type,
-          type: BusinessType
-              .Both.name, // (requires Flutter 3.7+, else use Icons.work)
-        );
+      title: AppStrings.otherTitle.tr,
+      subTitle: AppStrings.otherSubTitle.tr,
+      icon: AppIconAssets.other_type,
+      type: BusinessType
+          .Both.name, // (requires Flutter 3.7+, else use Icons.work)
+    );
     viewBusinessDetailsController.selectedBusinessType?.value =
         BusinessType.Both;
   }
@@ -259,8 +257,8 @@ void openBusinessDetailsEditSheet(BuildContext context) {
                               children: const [
                                 CustomText(
                                   AppStrings.editBusinessDetails,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w600,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
                                 ),
                                 CloseButton(),
                               ],
@@ -280,13 +278,17 @@ void openBusinessDetailsEditSheet(BuildContext context) {
                                 items: typeOfBusinessList,
                                 selectedValue: viewBusinessDetailsController
                                     .selectedTypeOfBusiness.value,
-                                hintText:  AppStrings.selectNatureOfBusiness.tr,
+                                hintText: AppStrings.selectNatureOfBusiness.tr,
                                 displayValue: (profession) => profession.title,
-                                title:
-                                    AppStrings.selectNatureOfBusiness.tr,
+                                title: AppStrings.selectNatureOfBusiness.tr,
                                 onChanged: (value) {
+
+
+
                                   viewBusinessDetailsController
                                       .selectedTypeOfBusiness.value = value!;
+                                  logs("value ==${value.type}");
+                                  logs("viewBusinessDetailsController.selectedTypeOfBusiness.value ==${viewBusinessDetailsController.selectedTypeOfBusiness.value.type}");
                                   if (value.type == BusinessType.Product.name) {
                                     viewBusinessDetailsController
                                         .selectedBusinessType
@@ -306,98 +308,95 @@ void openBusinessDetailsEditSheet(BuildContext context) {
                                         .selectedBusinessType
                                         ?.value = BusinessType.Both;
                                   }
-                                  viewBusinessDetailsController
-                                      .selectedCategoryOfBusiness.value = null;
-                                  viewBusinessDetailsController
-                                      .selectedSubCategoryOfBusinessNew
-                                      .value = null;
-                                  viewBusinessDetailsController
-                                      .businessSubCategoriesList
-                                      .clear();
+
                                   viewBusinessDetailsController
                                       .getAllCategories();
                                 },
                                 displayValueSubTitle: (profession) =>
-                                profession.subTitle,
+                                    profession.subTitle,
                                 displayValueImagePath: (profession) =>
-                                profession.icon,
+                                    profession.icon,
                               );
                             }),
 
                             const SizedBox(height: 16),
                             viewBusinessDetailsController
-                                .selectedBusinessType?.value.name
-                                .toLowerCase() !=
-                                "both"
+                                        .selectedBusinessType?.value.name
+                                        .toLowerCase() !=
+                                    "both"
                                 ? Column(
-                              crossAxisAlignment:
-                              CrossAxisAlignment.start,
-                              children: [
-                                CustomText(
-                                  "${ AppStrings.categoryOfBusiness.tr} ${viewBusinessDetailsController.selectedBusinessType?.value.name}",
-                                  fontSize: SizeConfig.medium,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                SizedBox(height: SizeConfig.size10),
-                                CommonDropdownDialog<CategoryData>(
-                                  items: viewBusinessDetailsController
-                                      .businessCategoriesList.where((e) =>
-                                  e.type?.toLowerCase() ==
-                                      viewBusinessDetailsController
-                                          .selectedBusinessType
-                                          ?.value.name.toLowerCase())
-                                      .toList(),
-                                  title: AppStrings.categoryOfBusiness,
-                                  selectedValue:
-                                  viewBusinessDetailsController
-                                      .selectedCategoryOfBusiness
-                                      .value,
-                                  hintText: AppStrings.selectBusinessCategory,
-                                  displayValue: (category) =>
-                                  "${category.name}",
-                                  onChanged: (value) {
-                                    viewBusinessDetailsController
-                                        .businessSubCategoriesList
-                                        .clear();
-                                    viewBusinessDetailsController
-                                        .businessSubCategoriesList
-                                        .addAll(
-                                        value?.subCategories ?? []);
-                                    viewBusinessDetailsController
-                                        .selectedCategoryOfBusiness
-                                        .value = value!;
-                                    viewBusinessDetailsController
-                                        .selectedSubCategoryOfBusinessNew
-                                        .value = null;
-                                  },
-                                ),
-                                const SizedBox(height: 16),
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: CustomText(
-                                    AppStrings.subCategory,
-                                    fontSize: SizeConfig.medium,
-                                  ),
-                                ),
-                                SizedBox(height: SizeConfig.size10),
-                                CommonDropdownDialog<SubCategories>(
-                                  items: viewBusinessDetailsController
-                                      .businessSubCategoriesList,
-                                  title: AppStrings.subCategory,
-                                  selectedValue:
-                                  viewBusinessDetailsController
-                                      .selectedSubCategoryOfBusinessNew
-                                      .value,
-                                  hintText: AppStrings.selectSubCategory,
-                                  displayValue: (sub) => "${sub.name}",
-                                  onChanged: (value) {
-                                    viewBusinessDetailsController
-                                        .selectedSubCategoryOfBusinessNew
-                                        .value = value;
-                                  },
-                                ),
-                              ],
-                            )
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      CustomText(
+                                        "${AppStrings.categoryOfBusiness.tr} ${viewBusinessDetailsController.selectedBusinessType?.value.name}",
+                                        fontSize: SizeConfig.medium,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      SizedBox(height: SizeConfig.size10),
+                                      CommonDropdownDialog<CategoryData>(
+                                        items: viewBusinessDetailsController
+                                            .businessCategoriesList
+                                            .where((e) =>
+                                                e.type?.toLowerCase() ==
+                                                viewBusinessDetailsController
+                                                    .selectedBusinessType
+                                                    ?.value
+                                                    .name
+                                                    .toLowerCase())
+                                            .toList(),
+                                        title: AppStrings.categoryOfBusiness,
+                                        selectedValue:
+                                            viewBusinessDetailsController
+                                                .selectedCategoryOfBusiness
+                                                .value,
+                                        hintText:
+                                            AppStrings.selectBusinessCategory,
+                                        displayValue: (category) =>
+                                            "${category.name}",
+                                        onChanged: (value) {
+                                          viewBusinessDetailsController
+                                              .businessSubCategoriesList
+                                              .clear();
+                                          viewBusinessDetailsController
+                                              .businessSubCategoriesList
+                                              .addAll(
+                                                  value?.subCategories ?? []);
+                                          viewBusinessDetailsController
+                                              .selectedCategoryOfBusiness
+                                              .value = value!;
+                                          viewBusinessDetailsController
+                                              .selectedSubCategoryOfBusinessNew
+                                              .value = null;
+                                        },
+                                      ),
+                                      const SizedBox(height: 16),
+                                      Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: CustomText(
+                                          AppStrings.subCategory,
+                                          fontSize: SizeConfig.medium,
+                                        ),
+                                      ),
+                                      SizedBox(height: SizeConfig.size10),
+                                      CommonDropdownDialog<SubCategories>(
+                                        items: viewBusinessDetailsController
+                                            .businessSubCategoriesList,
+                                        title: AppStrings.subCategory,
+                                        selectedValue:
+                                            viewBusinessDetailsController
+                                                .selectedSubCategoryOfBusinessNew
+                                                .value,
+                                        hintText: AppStrings.selectSubCategory,
+                                        displayValue: (sub) => "${sub.name}",
+                                        onChanged: (value) {
+                                          viewBusinessDetailsController
+                                              .selectedSubCategoryOfBusinessNew
+                                              .value = value;
+                                        },
+                                      ),
+                                    ],
+                                  )
                                 : SizedBox(),
                             // Column(
                             //   crossAxisAlignment: CrossAxisAlignment.start,
@@ -439,18 +438,20 @@ void openBusinessDetailsEditSheet(BuildContext context) {
 
                             const SizedBox(height: 10),
                             viewBusinessDetailsController
-                                .selectedBusinessType?.value.name
-                                .toLowerCase() !=
-                                "both"
+                                        .selectedBusinessType?.value.name
+                                        .toLowerCase() !=
+                                    "both"
                                 ? CommonTextField(
-                              textEditController: specializationCtrl,
-                              title: AppStrings.businessSpecializationOptional,
-                              hintText: AppStrings.businessSpecializationHint,
-                              keyBoardType: TextInputType.text,
-                              maxLine: 1,
-                              maxLength: 24,
-                              isValidate: false,
-                            )
+                                    textEditController: specializationCtrl,
+                                    title: AppStrings
+                                        .businessSpecializationOptional,
+                                    hintText:
+                                        AppStrings.businessSpecializationHint,
+                                    keyBoardType: TextInputType.text,
+                                    maxLine: 1,
+                                    maxLength: 24,
+                                    isValidate: false,
+                                  )
                                 : SizedBox(),
                             const SizedBox(height: 16),
 
@@ -459,7 +460,7 @@ void openBusinessDetailsEditSheet(BuildContext context) {
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
-                                    CrossAxisAlignment.start,
+                                        CrossAxisAlignment.start,
                                     children: [
                                       CustomText(
                                         AppStrings.shopOpenTime,
@@ -476,15 +477,15 @@ void openBusinessDetailsEditSheet(BuildContext context) {
                                               .shopOpenTime.value,
                                           items: List.generate(
                                             48,
-                                                (i) =>
-                                            "${(i ~/ 2).toString().padLeft(2, '0')}:${(i % 2 == 0 ? "00" : "30")}",
+                                            (i) =>
+                                                "${(i ~/ 2).toString().padLeft(2, '0')}:${(i % 2 == 0 ? "00" : "30")}",
                                           ),
                                           onChanged: (val) {
                                             viewBusinessDetailsController
                                                 .shopOpenTime.value = val ?? '';
                                           }
-                                        // addServiceController.startTime.value = val!,
-                                      ),
+                                          // addServiceController.startTime.value = val!,
+                                          ),
                                     ],
                                   ),
                                 ),
@@ -492,7 +493,7 @@ void openBusinessDetailsEditSheet(BuildContext context) {
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
-                                    CrossAxisAlignment.start,
+                                        CrossAxisAlignment.start,
                                     children: [
                                       CustomText(
                                         AppStrings.shopCloseTime,
@@ -509,16 +510,16 @@ void openBusinessDetailsEditSheet(BuildContext context) {
                                               .shopCloseTime.value,
                                           items: List.generate(
                                             48,
-                                                (i) =>
-                                            "${(i ~/ 2).toString().padLeft(2, '0')}:${(i % 2 == 0 ? "00" : "30")}",
+                                            (i) =>
+                                                "${(i ~/ 2).toString().padLeft(2, '0')}:${(i % 2 == 0 ? "00" : "30")}",
                                           ),
                                           onChanged: (val) {
                                             viewBusinessDetailsController
                                                 .shopCloseTime
                                                 .value = val ?? '';
                                           }
-                                        // addServiceController.startTime.value = val!,
-                                      ),
+                                          // addServiceController.startTime.value = val!,
+                                          ),
                                     ],
                                   ),
                                 ),
@@ -533,19 +534,19 @@ void openBusinessDetailsEditSheet(BuildContext context) {
                               title: AppStrings.save,
                               onTap: () async {
                                 final controller =
-                                Get.find<ViewBusinessDetailsController>();
+                                    Get.find<ViewBusinessDetailsController>();
 
                                 final selectedType = controller
-                                    .selectedBusinessType?.value.name
-                                    .toLowerCase() ??
+                                        .selectedBusinessType?.value.name
+                                        .toLowerCase() ??
                                     '';
                                 if (selectedType != "both") {
                                   // Only validate these if NOT "both"
                                   if (controller.selectedCategoryOfBusiness
-                                      .value?.id ==
+                                          .value?.id ==
                                       null) {
                                     commonSnackBar(
-                                        message:AppStrings.selectSubCategory);
+                                        message: AppStrings.selectSubCategory);
                                     return;
                                   }
 
@@ -561,48 +562,48 @@ void openBusinessDetailsEditSheet(BuildContext context) {
                                 Map<String, dynamic> updatedParams = {
                                   ApiKeys.businessId: businessId,
                                   ApiKeys.opening_time:
-                                  viewBusinessDetailsController
-                                      .shopOpenTime.value,
+                                      viewBusinessDetailsController
+                                          .shopOpenTime.value,
                                   ApiKeys.closing_time:
-                                  viewBusinessDetailsController
-                                      .shopCloseTime.value,
+                                      viewBusinessDetailsController
+                                          .shopCloseTime.value,
                                   if (viewBusinessDetailsController
-                                      .selectedBusinessType?.value.name
-                                      .toLowerCase() ==
+                                          .selectedBusinessType?.value.name
+                                          .toLowerCase() ==
                                       "both")
                                     ApiKeys.category_other:
-                                    subCategoryTextController.text,
+                                        subCategoryTextController.text,
                                   ApiKeys.category:
-                                  viewBusinessDetailsController
-                                      .selectedCategoryOfBusiness.value?.id,
+                                      viewBusinessDetailsController
+                                          .selectedCategoryOfBusiness.value?.id,
                                   ApiKeys.sub_category_Of_Business:
-                                  viewBusinessDetailsController
-                                      .selectedSubCategoryOfBusinessNew
-                                      .value
-                                      ?.sId,
+                                      viewBusinessDetailsController
+                                          .selectedSubCategoryOfBusinessNew
+                                          .value
+                                          ?.sId,
                                   ApiKeys.type_of_business:
-                                  viewBusinessDetailsController
-                                      .selectedBusinessType
-                                      ?.value
-                                      .name ??
-                                      '',
+                                      viewBusinessDetailsController
+                                              .selectedBusinessType
+                                              ?.value
+                                              .name ??
+                                          '',
                                   ApiKeys.specification:
-                                  specializationCtrl.text.trim(),
+                                      specializationCtrl.text.trim(),
                                   ApiKeys.category_Of_Business:
-                                  (viewBusinessDetailsController
-                                      .selectedBusinessType
-                                      ?.value
-                                      .name
-                                      .toLowerCase() ==
-                                      "both")
-                                      ? '68a80b766fdb4e82b42b77c0'
-                                      : viewBusinessDetailsController
-                                      .selectedCategoryOfBusiness
-                                      .value
-                                      ?.id,
+                                      (viewBusinessDetailsController
+                                                  .selectedBusinessType
+                                                  ?.value
+                                                  .name
+                                                  .toLowerCase() ==
+                                              "both")
+                                          ? '68a80b766fdb4e82b42b77c0'
+                                          : viewBusinessDetailsController
+                                              .selectedCategoryOfBusiness
+                                              .value
+                                              ?.id,
                                   ApiKeys.Nature_of_Business:
-                                  selectedBusiness ==
-                                      selectedBusiness?.displayName,
+                                      selectedBusiness ==
+                                          selectedBusiness?.displayName,
                                 };
                                 await Get.find<ViewBusinessDetailsController>()
                                     .updateBusinessDetails(updatedParams);
@@ -643,8 +644,7 @@ Widget _buildDropdown({
       child: DropdownButton<String>(
         isDense: true,
         value: value.isEmpty ? null : value,
-        hint:
-        CustomText(hint,  color: Colors.grey[600]),
+        hint: CustomText(hint, color: Colors.grey[600]),
         icon: Icon(Icons.keyboard_arrow_down, color: Colors.grey[600]),
         style: TextStyle(color: Colors.black87, fontSize: 14),
         items: items.map((String t) {
@@ -658,8 +658,6 @@ Widget _buildDropdown({
     ),
   );
 }
-
-
 
 Widget buildInfo(String title, String value) {
   return Row(
