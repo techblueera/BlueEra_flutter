@@ -1,5 +1,3 @@
-import 'package:BlueEra/core/constants/app_enum.dart';
-
 class CollapsibleGridModel {
   final String name;
   final String icon;

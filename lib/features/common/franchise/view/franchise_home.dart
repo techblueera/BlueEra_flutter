@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
+import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/franchise/view/widget/franchise_header.dart';
 import 'package:BlueEra/features/common/franchise/view/widget/franchise_req_dialoge.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -8,6 +9,7 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/src/extension_navigation.dart';
 import 'package:mappls_gl/mappls_gl.dart';
@@ -36,14 +38,15 @@ class _FranchiseHomeState extends State<FranchiseHome> {
   Future<void> _onMapCreated(MapplsMapController controller) async {
     mapController = controller;
   }
-@override
+
+  @override
   void initState() {
-    // TODO: implement initState
     WidgetsBinding.instance.addPostFrameCallback((val){
       showDialogs();
     });
     super.initState();
   }
+
   void showDialogs(){
     showDialog(
       context: context,
@@ -74,7 +77,7 @@ class _FranchiseHomeState extends State<FranchiseHome> {
             child: Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                  padding: EdgeInsets.symmetric(horizontal: 10.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -136,208 +139,87 @@ class _FranchiseHomeState extends State<FranchiseHome> {
                           ],
                         ),
                       ),
-                      SizedBox(height: SizeConfig.size10,),
-                      CommonCardWidget(
-                          padding: 10,
-                          cardMargin: 0,
-                          child:Column(crossAxisAlignment: CrossAxisAlignment.start,
+
+                      SizedBox(height: SizeConfig.paddingXSL),
+
+                      CustomFormCard(
+                          padding: EdgeInsets.all(SizeConfig.size10),
+                          child: Column(crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              CustomText("Book Your Home Service",fontSize: 16,fontWeight: FontWeight.w600,),
-                              SizedBox(
-                                height: SizeConfig.size10,
-                              ),
-                              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              Row(
                                 children: [
-                                  for(int i=0;i<3;i++)
-                                    Container(
-                                      width: 114,
-                                      decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(10)
-                                      ),
-                                      margin: EdgeInsets.only(right: 10),
-                                      child: Stack(
-                                        children: [
-                                          CustomImageSlideshow(
-                                            isLoading: false,
-                                            width: double.infinity,
-                                            height: SizeConfig.size130,
-                                            imagePaths: [''],
-                                            borderRadius: BorderRadius.circular(10),
-                                            onPhotoIndex: (index) {
-
-                                            },
-                                          ),
-                                          Positioned(
-                                              bottom: 0,
-                                              child: Container(
-                                                width: 114,
-                                                decoration: BoxDecoration(
-                                                    borderRadius: BorderRadius.only(
-                                                        bottomLeft: Radius.circular(10),
-                                                        bottomRight: Radius.circular(10)),
-                                                    gradient: LinearGradient(
-                                                        begin: Alignment.bottomCenter,
-                                                        end: Alignment.topCenter,
-                                                        colors: [
-                                                          AppColors.black.withOpacity(0.5),
-                                                          AppColors.black.withOpacity(0.01),
-                                                        ])
-                                                ),
-                                                padding: EdgeInsets.all(10),
-                                                child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                                  children: [
-                                                    CustomText("Electrician",
-                                                      fontSize: 16,
-                                                      fontWeight: FontWeight.w600,
-                                                      color: AppColors.white,),
-                                                  ],
-                                                ),
-                                              ))
-                                        ],
-                                      ),
-                                      // child: ,
-                                    ),
-
+                                  Expanded(
+                                    child: _title("Book Your Home Service")
+                                  ),
+                                  SizedBox(
+                                    width: SizeConfig.size8,
+                                  ),
+                                  CustomText(
+                                      'View All',
+                                      fontSize: SizeConfig.medium,
+                                      color: AppColors.primaryColor,
+                                      fontWeight: FontWeight.w600
+                                  ),
                                 ],
                               ),
-                              SizedBox(height: SizeConfig.size10,),
-                              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  for(int i=0;i<3;i++)
-                                    Container(
-                                      width: 114,
-                                      decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(10)
-                                      ),
-                                      margin: EdgeInsets.only(right: 10),
-                                      child: Stack(
-                                        children: [
-                                          CustomImageSlideshow(
-                                            isLoading: false,
-                                            width: double.infinity,
-                                            height: SizeConfig.size130,
-                                            imagePaths: [''],
-                                            borderRadius: BorderRadius.circular(10),
-                                            onPhotoIndex: (index) {
-
-                                            },
-                                          ),
-                                          Positioned(
-                                              bottom: 0,
-                                              child: Container(
-                                                width: 114,
-                                                decoration: BoxDecoration(
-                                                    borderRadius: BorderRadius.only(
-                                                        bottomLeft: Radius.circular(10),
-                                                        bottomRight: Radius.circular(10)),
-                                                    gradient: LinearGradient(
-                                                        begin: Alignment.bottomCenter,
-                                                        end: Alignment.topCenter,
-                                                        colors: [
-                                                          AppColors.black.withOpacity(0.5),
-                                                          AppColors.black.withOpacity(0.01),
-                                                        ])
-                                                ),
-                                                padding: EdgeInsets.all(10),
-                                                child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                                  children: [
-                                                    CustomText("Plumber",
-                                                      fontSize: 16,
-                                                      fontWeight: FontWeight.w600,
-                                                      color: AppColors.white,),
-                                                  ],
-                                                ),
-                                              ))
-                                        ],
-                                      ),
-                                      // child: ,
-                                    ),
-
-                                ],
-                              )
+                              SizedBox(height: SizeConfig.paddingXSL),
+                              MasonryGridView.count(
+                                crossAxisCount: 3,
+                                crossAxisSpacing: 6,
+                                mainAxisSpacing: 6,
+                                itemCount: individualOnboardingSelfSkillWorkList
+                                    .take(6)
+                                    .length,
+                                physics: NeverScrollableScrollPhysics(),
+                                itemBuilder: (context, index) {
+                                  var item =
+                                  individualOnboardingSelfSkillWorkList[index];
+                                  return _commonCard(icon: item.icon, text: item.name);
+                                },
+                                padding: EdgeInsets.zero,
+                                shrinkWrap: true,
+                              ),
                             ],
                           )
                       ),
-                      SizedBox(height: SizeConfig.size10,),
-                      CommonCardWidget(
-                          padding: 10,
-                          cardMargin: 0,
-                          child:Column(crossAxisAlignment: CrossAxisAlignment.start,
+                      SizedBox(height: SizeConfig.paddingXSL),
+
+                      CustomFormCard(
+
+                          padding: EdgeInsets.all(SizeConfig.size10),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              CustomText("Bookings",fontSize: 16,fontWeight: FontWeight.w600,),
-                              SizedBox(
-                                height: SizeConfig.size14,
-                              ),
-                              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  for(int i=0;i<3;i++)
-                                    Container(
-                                      width: 114,
-                                      decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(10)
-                                      ),
-                                      margin: EdgeInsets.only(right: 10),
-                                      child: Stack(
-                                        children: [
-                                          CustomImageSlideshow(
-                                            isLoading: false,
-                                            width: double.infinity,
-                                            height: SizeConfig.size130,
-                                            imagePaths: [''],
-                                            borderRadius: BorderRadius.circular(10),
-                                            onPhotoIndex: (index) {
+                             _title('Bookings'),
 
-                                            },
-                                          ),
-                                          Positioned(
-                                              bottom: 0,
-                                              child: Container(
-                                                width: 114,
-                                                decoration: BoxDecoration(
-                                                    borderRadius: BorderRadius.only(
-                                                        bottomLeft: Radius.circular(10),
-                                                        bottomRight: Radius.circular(10)),
-                                                    gradient: LinearGradient(
-                                                        begin: Alignment.bottomCenter,
-                                                        end: Alignment.topCenter,
-                                                        colors: [
-                                                          AppColors.black.withOpacity(0.5),
-                                                          AppColors.black.withOpacity(0.01),
-                                                        ])
-                                                ),
-                                                padding: EdgeInsets.all(10),
-                                                child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                                  children: [
-                                                    CustomText("Parcel/Courier",
-                                                      fontSize: 16,
-                                                      fontWeight: FontWeight.w600,
-                                                      color: AppColors.white,),
-                                                  ],
-                                                ),
-                                              ))
-                                        ],
-                                      ),
-                                      // child: ,
-                                    ),
+                              SizedBox(height: SizeConfig.paddingXSL),
 
-                                ],
+                              MasonryGridView.count(
+                                crossAxisCount: 3,
+                                crossAxisSpacing: 6,
+                                mainAxisSpacing: 6,
+                                itemCount: bookingList.length,
+                                physics: NeverScrollableScrollPhysics(),
+                                itemBuilder: (context, index) {
+                                  var item = bookingList[index];
+                                  return _commonCard(icon: item.icon, text: item.name);
+                                },
+                                padding: EdgeInsets.zero,
+                                shrinkWrap: true,
                               ),
-                              SizedBox(height: SizeConfig.size10,),
                             ],
                           )
                       ),
-                      SizedBox(height: SizeConfig.size10,),
-                      CommonCardWidget(
-                        padding: 10,
-                        cardMargin: 0,
+
+                      SizedBox(height: SizeConfig.paddingXSL),
+
+                      CustomFormCard(
+                        padding: EdgeInsets.all(SizeConfig.size10),
                         child: Column(crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            CustomText("Complaints ",fontSize: 16,fontWeight: FontWeight.w600,),
+                            _title("Complaints"),
                             SizedBox(
-                              height: SizeConfig.size14,
+                              height: SizeConfig.paddingXSL,
                             ),
                             Container(
                               decoration: BoxDecoration(
@@ -420,16 +302,16 @@ class _FranchiseHomeState extends State<FranchiseHome> {
 
                           ],
                         ),),
-                      SizedBox(height: SizeConfig.size10,),
-                      CommonCardWidget(
-                          padding: 10,
-                          cardMargin: 0,
+                      SizedBox(height: SizeConfig.paddingXSL),
+
+                      CustomFormCard(
+                          padding: EdgeInsets.all(SizeConfig.size10),
                           child:
                           Column(crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              CustomText("Contact Us",fontSize: 16,fontWeight: FontWeight.w600,),
+                              _title("Contact Us"),
                               SizedBox(
-                                height: SizeConfig.size10,
+                                height: SizeConfig.paddingXSL,
                               ),
                               Container(
                                 width: double.infinity,
@@ -571,7 +453,7 @@ class _FranchiseHomeState extends State<FranchiseHome> {
                     ],
                   ),
                 ),
-                SizedBox(height: SizeConfig.size150,),
+                SizedBox(height: SizeConfig.size150),
               ],
             ),
           ),
@@ -580,5 +462,73 @@ class _FranchiseHomeState extends State<FranchiseHome> {
     );
   }
 
+  Widget _title(String title) {
+    return CustomText(title,
+        fontSize: SizeConfig.large,
+        color: AppColors.mainTextColor,
+        fontWeight: FontWeight.w600);
+  }
+
+  Widget _commonCard({required String icon, required String text}) {
+    return Container(
+      height: SizeConfig.size130,
+      decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: AppColors.greyE5)),
+      child: Stack(
+        children: [
+
+          // 1. Background Image
+          Positioned.fill( // Use Positioned.fill to ensure it covers the card
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10.0),
+              child: LocalAssets(
+                imagePath: icon,
+                height: SizeConfig.size130,
+                boxFix: BoxFit.cover, // Ensures image fills without stretching
+              ),
+            ),
+          ),
+
+          // 2. Bottom Gradient Overlay
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              height: SizeConfig.size40, // Reduced height for better balance
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.vertical(bottom: Radius.circular(10.0)),
+                  gradient: LinearGradient(
+                      colors: [
+                        AppColors.black.withOpacity(0.0),
+                        AppColors.black.withOpacity(0.8),
+                      ],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter
+                  )),
+            ),
+          ),
+
+          // 3. Text Label
+          Positioned(
+            left: 5.0,
+            right: 5.0,
+            bottom: 5.0,
+            child: CustomText(
+              text,
+              fontSize: SizeConfig.small,
+              fontWeight: FontWeight.w600,
+              color: AppColors.white,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          )
+        ],
+      ),
+    );
+  }
 
 }

@@ -15,19 +15,19 @@ enum ValidationTypeEnum {
 enum IndividualType {
   SOCIAL_PROFILE(
       tagId: "SOCIAL_PROFILE",
-      name: "Social Profile"
+      name: "Social Profile",
   ),
   SELF_EMPLOYED(
       tagId: "SELF_EMPLOYED",
-      name: "Skill Work / Self Employee"
+      name: "Skill Work / Self Employee",
   ),
   GIG_WORKER(
       tagId: "GIG_WORKER",
-      name: "Gig Worker / Transport"
+      name: "Gig Worker / Transport",
   ),
   PROFESSIONAL(
       tagId: "PROFESSIONAL",
-      name: "Professional / Consultant"
+      name: "Professional / Consultant",
   );
 
   final String tagId;
@@ -45,7 +45,9 @@ enum IndividualType {
       orElse: () => IndividualType.SOCIAL_PROFILE, // Default fallback
     );
   }
+
 }
+
 enum BusinessType { Food, Product, Service, Grocery, Manufacturing, Healthcare, Motel, Siksha, Both }
 // enum BusinessType { Food, Product, Service, Grocery, Health, HotelStay, Both }
 

@@ -102,7 +102,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
   IndividualFields? _selectedContentCreatorField;
   SubCategories? _selectedContentCreatorSpecification;
   SubCategories? _selectedArtistObj;
-  SubCategories? _selectedProfessionObj;
+  SubCategories? _selectedProfessionalObj;
 
   // SubCategories? selectedContentCreatorSpecification;
 
@@ -413,7 +413,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                         height: SizeConfig.paddingL,
                       ),
                       CustomText(
-                        "Select Your Profession",
+                        "Expertise",
                         fontSize: SizeConfig.medium,
                         color: AppColors.mainTextColor,
                       ),
@@ -428,13 +428,13 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                               items: authController
                                       .arrIndividualFields[0].subcategories ??
                                   [],
-                              selectedValue: _selectedProfessionObj,
-                              title: 'Select Your Profession',
+                              selectedValue: _selectedProfessionalObj,
+                              title: 'Expertise',
                               hintText: 'Eg. Loan Consultant...',
                               displayValue: (s) => s.name ?? "",
                               onChanged: (value) {
                                 setState(() {
-                                  _selectedProfessionObj = value;
+                                  _selectedProfessionalObj = value;
                                 });
                               },
                               // validator: (value) {
@@ -1174,7 +1174,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
         return;
       }
       if (_selectedProfileTypeTagId == PROFESSIONAL) {
-        if (_selectedProfessionObj?.name?.isEmpty ?? true) {
+        if (_selectedProfessionalObj?.name?.isEmpty ?? true) {
           commonSnackBar(message: 'Select your profession');
           return;
         }
@@ -1232,7 +1232,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
           designation =
               _selectedProfessionTagId?.toLowerCase().capitalizeFirst ?? "";
         } else if (_selectedProfileTypeTagId == PROFESSIONAL) {
-          designation = _selectedProfessionObj?.name;
+          designation = _selectedProfessionalObj?.name;
           log('designation -- $designation');
         } else {
           if (_selectedProfessionTagId == STUDENT) {

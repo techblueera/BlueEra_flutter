@@ -75,7 +75,7 @@ class User {
     this.skills,
     this.art,
     this.userLocation,
-
+    this.profileType
   });
 
   User.fromJson(dynamic json) {
@@ -106,6 +106,7 @@ class User {
     skills = json['skills'] != null ? json['skills'].cast<String>() : [];
     art = json['art'] != null ? new Art.fromJson(json['art']) : null;
     userLocation = json['user_location'] != null ? new UserLocation.fromJson(json['user_location']) : null;
+    profileType = json['profileType'];
   }
 
   String? id;
@@ -132,6 +133,7 @@ class User {
   List<String>? skills;
   Art? art;
   UserLocation? userLocation;
+  String? profileType;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -166,7 +168,7 @@ class User {
     if (this.userLocation != null) {
       map['user_location'] = this.userLocation!.toJson();
     }
-
+    map['profileType'] = profileType;
     return map;
   }
 }

@@ -64,6 +64,8 @@ class AppImageAssets {
   static String constructionHomeEsse = "${imgPath}construction_home_esse_icon.png";
   static String fashionLifestyle = "${imgPath}fashion_lifestyle_icon.png";
   static String beautyAndCosmetics = "${imgPath}beauty_and_cosmetics.png";
+  static String homeAppliances = "${imgPath}home_appliances.png";
+  static String homeKitchenAndUtensils = "${imgPath}home_kitchen_and_utensils.png";
 
   /// Business services images
   static String consultingService = "${imgPath}consulting_service_icon.png";
@@ -122,6 +124,10 @@ class AppImageAssets {
   static String all = "${imgPath}all.png";
   static String hotel_service = "${imgPath}hotel_service.png";
 
+  // Booking
+  static String courierParcel = "${imgPath}courier_parcel.png";
+  static String transportVehicle = "${imgPath}transport_vehicle.png";
+  static String hotelAndHomeStay = "${imgPath}hotel_and_home_stay.png";
 }
 
 class OnboardingIndividualAssets{
@@ -271,6 +277,7 @@ static String toolsAndHomeImprovement = "${imgPath}tools_and_home_improvement.pn
 static String toysKidsAndBabyProducts = "${imgPath}toys_kids_and_baby_products.png";
 static String travelAndPersonalUtility = "${imgPath}travel_and_personal_utility.png";
 static String watchesAndEyewear = "${imgPath}watches_and_eyewear.png";
+
 }
 
 class GroceryIconCategoryAssets{
