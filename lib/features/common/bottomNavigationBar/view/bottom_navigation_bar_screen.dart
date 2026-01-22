@@ -20,6 +20,7 @@ import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/more/controller/more_cards_screen_controller.dart';
 import 'package:BlueEra/features/common/reel/models/channel_model.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
+import 'package:BlueEra/features/me/food/view/food_main_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/grocery_category_screen.dart';
 import 'package:BlueEra/features/me/hotel/view/hotel_main.dart';
 import 'package:BlueEra/features/me/others/others_main.dart';
@@ -378,29 +379,28 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   }
 
   Widget resolveBusinessScreen() {
-    log('Resolving Screen... Type: $businessTypeGlobal | Category:');
+    log('Resolving Screen... Type: ${businessTypeGlobal.toUpperCase()}');
 
     // 1. First, check if it is a Food business
-    if (businessTypeGlobal.toUpperCase() == BusinessType.Food.name.toUpperCase()) {
-      log('goes into this');
-      return const InventoryScreen(fromBottomNavBar: true);
+    if (businessTypeGlobal.toUpperCase() ==
+        BusinessType.Food.name.toUpperCase()) {
+      return const FoodMainScreen();
     } else if (businessTypeGlobal.toUpperCase() ==
         BusinessType.Grocery.name.toUpperCase()) {
       return const GroceryScreen(fromBottomNavBar: true);
     } else if (businessTypeGlobal.toUpperCase() ==
         BusinessType.Siksha.name.toUpperCase()) {
       return const SchoolMain();
-    }  else  if(businessCategoryGlobal == AppConstants.healthcareMedicalServices) {
+    } else if (businessCategoryGlobal ==
+        AppConstants.healthcareMedicalServices) {
       return const HospitalMain();
-    }else if (businessTypeGlobal.toUpperCase() ==
-        BusinessType.Motel.name.toUpperCase()){
+    } else if (businessTypeGlobal.toUpperCase() ==
+        BusinessType.Motel.name.toUpperCase()) {
       return const HotelMain();
-
     } else if (businessTypeGlobal.toUpperCase() ==
         BusinessType.Service.name.toUpperCase()) {
       return const InventoryScreen(fromBottomNavBar: true);
-    }
-   else{
+    } else {
       // 3. If it is NOT Food (e.g., Product, Service, etc.)
       return const InventoryScreen(fromBottomNavBar: true);
     }

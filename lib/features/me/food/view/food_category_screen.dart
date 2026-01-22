@@ -12,15 +12,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart'; // Ensure you add this to pubspec.yaml
 
-class GroceryCategoryMenuScreen extends StatefulWidget {
-  const GroceryCategoryMenuScreen({super.key});
+class FoodCategoryMenuScreen extends StatefulWidget {
+  const FoodCategoryMenuScreen({super.key});
 
   @override
-  State<GroceryCategoryMenuScreen> createState() =>
-      _GroceryCategoryMenuScreenState();
+  State<FoodCategoryMenuScreen> createState() =>
+      _FoodCategoryMenuScreenState();
 }
 
-class _GroceryCategoryMenuScreenState extends State<GroceryCategoryMenuScreen> {
+class _FoodCategoryMenuScreenState extends State<FoodCategoryMenuScreen> {
   // List mapped to your specific local assets
   final foodServiceController = Get.put(FoodServiceController());
 
@@ -35,9 +35,6 @@ class _GroceryCategoryMenuScreenState extends State<GroceryCategoryMenuScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: CommonBackAppBar(
-      //   title: 'Add Products',
-      // ),
       body: SafeArea(
         child: Obx(() {
           if (foodServiceController.getFoodCategoryResponse.value.status ==

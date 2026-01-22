@@ -1,13 +1,11 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/features/me/grocery/controller/food_service_controller.dart';
-import 'package:BlueEra/features/me/grocery/controller/grocery_variant_controller.dart';
+import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
+import 'package:BlueEra/features/me/food/view/widget/edit_variant_price_bottom_sheet.dart';
 import 'package:BlueEra/features/me/grocery/model/category_food_product_res_model.dart';
-import 'package:BlueEra/features/me/grocery/model/dummy_category_product_res_model.dart';
-import 'package:BlueEra/features/me/grocery/view/food_entry_ai_screen.dart';
-import 'package:BlueEra/features/me/grocery/view/widget/add_variant_bottom_sheet.dart';
+import 'package:BlueEra/features/me/food/view/food_entry_ai_screen.dart';
+import 'package:BlueEra/features/me/food/view/widget/add_variant_bottom_sheet.dart';
 import 'package:BlueEra/features/me/grocery/view/widget/custom_add_button_widget.dart';
-import 'package:BlueEra/features/me/grocery/view/widget/edit_variant_price_bottom_sheet.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -32,7 +30,8 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
 
   @override
   void initState() {
-    controller.selectedCategoryId.value=widget.foodCategoryData.children?.firstOrNull?.id ?? "";
+    controller.selectedCategoryId.value =
+        widget.foodCategoryData.children?.firstOrNull?.id ?? "";
     // TODO: implement initState...
     controller.getFoodByCategoryIDController(
         categoryId: widget.foodCategoryData.children?.firstOrNull?.id ?? "");
@@ -52,7 +51,9 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
         actions: [
           InkWell(
             onTap: () {
-              Get.to(FoodEntryScreen(foodCategoryData: widget.foodCategoryData,));
+              Get.to(FoodEntryScreen(
+                foodCategoryData: widget.foodCategoryData,
+              ));
             },
             child: Container(
               margin: EdgeInsets.only(right: 15),
@@ -113,7 +114,8 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                         CircleAvatar(
                           radius: 25,
                           backgroundColor: Colors.blue.shade50,
-                          backgroundImage: CachedNetworkImageProvider(""),
+                          child: LocalAssets(imagePath: "assets/category/foods/${cat?.key}.svg"),
+                          // backgroundImage:,
                         ),
                         const SizedBox(height: 8),
                         CustomText(
@@ -121,7 +123,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                           fontSize: 12,
                           textAlign: TextAlign.center,
                           color: isSelected
-                              ? Colors.blue
+                              ? AppColors.primaryColor
                               : AppColors.secondaryTextColor,
                         ),
                       ],
@@ -221,7 +223,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                 TextButton(
                   onPressed: () => _showVariantSheet(context, product),
                   child: CustomText(
-                    "0 Variants",
+                    "${product.variants?.length} Variants",
                     color: AppColors.primaryColor,
                     fontWeight: FontWeight.bold,
                   ),
@@ -287,13 +289,10 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: CachedNetworkImage(
-                      imageUrl: product.images?.first ?? "",
-                      width: 100,
-                      height: 100,
-                      fit: BoxFit.cover,
-                      placeholder: (context, url) =>
-                          Container(color: Colors.grey[200]),
+                    child: LocalAssets(
+                      imagePath: AppIconAssets.foodIcon,
+                      width: 50,
+                      height: 50,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -319,8 +318,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                           children: [
                             LocalAssets(
                               imagePath: AppIconAssets.food_category,
-                              imgColor:
-                                  (false) ? Color(0xff008000) : AppColors.red00,
+                              imgColor:product.dietaryType?.toLowerCase()=="veg"? Color(0xff008000) : AppColors.red00,
                             ),
                             const SizedBox(width: 5),
                             _tagWidget((""), Colors.grey),
@@ -333,23 +331,89 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
               ),
 
               const Divider(),
-              /*  ...product.variants
-                      ?.map((v) => ListTile(
-                            title: CustomText(v.name, fontSize: 15),
-                            subtitle: CustomText("${v.weight} | ₹${v.price}"),
-                            trailing: InkWell(
+
+
+              ...product.variants?.map((vc) {
+                    final item = vc;
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(15),
+                        border:
+                            Border.all(color: Colors.grey.shade300, width: 1),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Title: Name - Quantity
+                                CustomText(
+                                  "${item.variantName} - ${item.quantityLabel} ",
+                                  fontSize: 16,
+                                  color: AppColors.secondaryTextColor,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 8),
+                                // Prices: Selling | MRP
+                                Row(
+                                  children: [
+                                    Flexible(
+                                      child: CustomText(
+                                        "Selling-₹${item.baseSellingPrice}",
+                                        fontSize: 15,
+                                        color: AppColors.secondaryTextColor,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Container(
+                                      height: 15,
+                                      width: 1.5,
+                                      color: Colors.grey.shade300,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    CustomText(
+                                      "₹${item.mrp}",
+                                      fontSize: 15,
+                                      color: AppColors.secondaryTextColor,
+                                      decoration: TextDecoration
+                                          .lineThrough, // Strikethrough
+                                      decorationColor: Colors.black54,
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Actions Column
+                          Column(
+                            children: [
+                              InkWell(
                                 onTap: () {
                                   Get.back();
-                                  final vc =
-                                      Get.put(GroceryVariantController());
-                                  vc.clearAllField();
-                                  showEditVariantPriceSheet(v);
+                                  controller.clearAllField();
+                                  showEditVariantPriceSheet(item,product.id??"");
                                 },
-                                child:
-                                    const Icon(Icons.edit_outlined, size: 20)),
-                          ))
-                      .toList() ??
-                  [],*/
+                                child: LocalAssets(
+                                  imagePath: AppIconAssets.editIcon,
+                                  imgColor: Colors.black,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList() ??
+                  [],
               // const SizedBox(height: 20),
               InkWell(
                   onTap: () {
@@ -358,7 +422,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                     final vc = Get.find<FoodServiceController>();
                     vc.clearAllField();
 
-                    showVariantBottomSheet();
+                    showVariantBottomSheet(foodID:product.id??"");
                   },
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,

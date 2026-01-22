@@ -41,104 +41,112 @@ class _CampusLifeListingScreenState extends State<CampusLifeListingScreen> {
               title: "Add Campus Life"),
         ),
       ),
-      body: Obx(() => ListView.builder(
-            itemCount: controller.getAllCampusLifeDataList.length,
-            padding: EdgeInsets.symmetric(horizontal: 0, vertical: 10),
-            itemBuilder: (context, index) {
-              final category = controller.getAllCampusLifeDataList[index];
-              final filteredSubcategories =
-                  category.subcategories?.where((sub) {
-                        return (sub.entries?.isNotEmpty ?? false) &&
-                            (sub.entries!.first.images?.isNotEmpty ?? false);
-                      }).toList() ??
-                      [];
-              return filteredSubcategories.isNotEmpty
-                  ? CommonCardWidget(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (filteredSubcategories.isNotEmpty)
-                            CustomText(category.name ?? "",
-                                fontSize: 16, fontWeight: FontWeight.bold),
-                          SizedBox(
-                            height: SizeConfig.size10,
-                          ),
-                          // 2. Use the filtered list in the GridView
-                          filteredSubcategories.isEmpty
-                              ? SizedBox
-                                  .shrink() // Hide the whole category if no subcategories have images
-                              : GridView.builder(
-                                  shrinkWrap: true,
-                                  physics: NeverScrollableScrollPhysics(),
-                                  gridDelegate:
-                                      SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: 3,
-                                    crossAxisSpacing: 12,
-                                    mainAxisSpacing: 12,
-                                    childAspectRatio: 0.85,
-                                  ),
-                                  itemCount: filteredSubcategories.length,
-                                  // Use filtered length
-                                  itemBuilder: (context, subIndex) {
-                                    final sub = filteredSubcategories[subIndex];
-                                    final imageUrl =
-                                        sub.entries!.first.images!.first.url ??
-                                            "";
+      body: Obx((){
+        if(controller.getAllCampusLifeDataList.isEmpty)
+        {
+          return Center(child: CustomText("No Campus Photos found"));
+        }
 
-                                    return InkWell(
-                                      onTap: () {
-                                        Get.to(CampusLifeDetailsScreen(
-                                          subcategories: sub,
-                                        ));
-                                      },
-                                      child: Column(
-                                        children: [
-                                          Expanded(
-                                            child: Container(
-                                              width: double.infinity,
-                                              decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(15),
-                                                border: Border.all(
-                                                    color:
-                                                        Colors.grey.shade300),
-                                              ),
-                                              child: ClipRRect(
-                                                borderRadius:
-                                                    BorderRadius.circular(15),
-                                                child: imageUrl.isNotEmpty
-                                                    ? Image.network(
-                                                        imageUrl,
-                                                        fit: BoxFit.cover,
-                                                        width: double.infinity,
-                                                        errorBuilder:
-                                                            (c, e, s) =>
-                                                                _placeholder(),
-                                                      )
-                                                    : _placeholder(),
-                                              ),
-                                            ),
-                                          ),
-                                          SizedBox(height: 6),
-                                          CustomText(
-                                            sub.name ?? "",
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.w500,
-                                            textAlign: TextAlign.center,
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          )
-                                        ],
-                                      ),
-                                    );
-                                  },
+       return ListView.builder(
+          itemCount: controller.getAllCampusLifeDataList.length,
+          padding: EdgeInsets.symmetric(horizontal: 0, vertical: 10),
+          itemBuilder: (context, index) {
+            final category = controller.getAllCampusLifeDataList[index];
+            final filteredSubcategories =
+                category.subcategories?.where((sub) {
+                  return (sub.entries?.isNotEmpty ?? false) &&
+                      (sub.entries!.first.images?.isNotEmpty ?? false);
+                }).toList() ??
+                    [];
+
+            return filteredSubcategories.isNotEmpty
+                ? CommonCardWidget(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (filteredSubcategories.isNotEmpty)
+                    CustomText(category.name ?? "",
+                        fontSize: 16, fontWeight: FontWeight.bold),
+                  SizedBox(
+                    height: SizeConfig.size10,
+                  ),
+                  // 2. Use the filtered list in the GridView
+                  filteredSubcategories.isEmpty
+                      ? SizedBox
+                      .shrink() // Hide the whole category if no subcategories have images
+                      : GridView.builder(
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    gridDelegate:
+                    SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: 0.85,
+                    ),
+                    itemCount: filteredSubcategories.length,
+                    // Use filtered length
+                    itemBuilder: (context, subIndex) {
+                      final sub = filteredSubcategories[subIndex];
+                      final imageUrl =
+                          sub.entries!.first.images!.first.url ??
+                              "";
+
+                      return InkWell(
+                        onTap: () {
+                          Get.to(CampusLifeDetailsScreen(
+                            subcategories: sub,
+                          ));
+                        },
+                        child: Column(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  borderRadius:
+                                  BorderRadius.circular(15),
+                                  border: Border.all(
+                                      color:
+                                      Colors.grey.shade300),
                                 ),
-                        ],
-                      ),
-                    )
-                  : SizedBox.shrink();
-            },
-          )),
+                                child: ClipRRect(
+                                  borderRadius:
+                                  BorderRadius.circular(15),
+                                  child: imageUrl.isNotEmpty
+                                      ? Image.network(
+                                    imageUrl,
+                                    fit: BoxFit.cover,
+                                    width: double.infinity,
+                                    errorBuilder:
+                                        (c, e, s) =>
+                                        _placeholder(),
+                                  )
+                                      : _placeholder(),
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: 6),
+                            CustomText(
+                              sub.name ?? "",
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                              textAlign: TextAlign.center,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            )
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            )
+                : SizedBox.shrink();
+          },
+        );
+      }),
     );
   }
 

@@ -39,9 +39,10 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
       appBar: CommonBackAppBar(title: "Departments"),
       bottomNavigationBar: SafeArea(
         child: Padding(
-          padding:  EdgeInsets.only(left: 15.0,right: 15.0,bottom: 30,top: 10),
+          padding:
+              EdgeInsets.only(left: 15.0, right: 15.0, bottom: 30, top: 10),
           child: PositiveCustomBtn(
-            bgColor: AppColors.white,
+              bgColor: AppColors.white,
               borderColor: AppColors.primaryColor,
               textColor: AppColors.primaryColor,
               onTap: () {
@@ -53,6 +54,9 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
       body: Obx(() {
         if (controller.isLoading.value && controller.departmentList.isEmpty) {
           return const Center(child: CircularProgressIndicator());
+        }
+        if (controller.departmentList.isEmpty) {
+          return Center(child: CustomText("No Department found."));
         }
         return RefreshIndicator(
           onRefresh: () => controller.fetchDepartments(isRefresh: true),

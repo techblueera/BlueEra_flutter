@@ -150,11 +150,11 @@ class CampusLifeController extends GetxController {
         String errorMsg =
             response.response?.data['message'] ?? AppStrings.somethingWentWrong;
         getAllCampusLifeResponse.value = ApiResponse.error(errorMsg);
-        commonSnackBar(message: errorMsg);
+        // commonSnackBar(message: errorMsg);
       }
     } catch (e) {
       getAllCampusLifeResponse.value = ApiResponse.error(e.toString());
-      commonSnackBar(message: e.toString());
+      // commonSnackBar(message: e.toString());
     } finally {
       isLoading.value = false;
     }

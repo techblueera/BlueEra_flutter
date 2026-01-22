@@ -5,10 +5,9 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/features/me/grocery/controller/food_entry_controller.dart';
+import 'package:BlueEra/features/me/food/repo/food_repo.dart';
 import 'package:BlueEra/features/me/grocery/model/category_food_product_res_model.dart';
-import 'package:BlueEra/features/me/grocery/model/food_gen_ai_res_model.dart';
-import 'package:BlueEra/features/me/grocery/repo/food_repo.dart';
+import 'package:BlueEra/features/me/food/model/food_gen_ai_res_model.dart';
 import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
@@ -17,9 +16,11 @@ import '../../../common/food/model/food_category_res_model.dart';
 
 class FoodServiceController extends GetxController {
   Rx<ApiResponse> getFoodCategoryResponse = ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> getFoodByCategoryIDResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> getFoodByCategoryIDResponse =
+      ApiResponse.initial('Initial').obs;
   RxList<FoodCategoryData> foodSubCateList = <FoodCategoryData>[].obs;
-  RxList<CategoryFoodProductData> categoryFoodProductDataList = <CategoryFoodProductData>[].obs;
+  RxList<CategoryFoodProductData> categoryFoodProductDataList =
+      <CategoryFoodProductData>[].obs;
   RxString selectedSubFoodTypeIDCat = "".obs;
   RxString selectedFoodTypeID = "".obs;
   var selectedCategoryId = '1'.obs;
@@ -49,22 +50,24 @@ class FoodServiceController extends GetxController {
     }
   }
 
-  Future<void> getFoodByCategoryIDController({required String categoryId}) async {
+  Future<void> getFoodByCategoryIDController(
+      {required String categoryId}) async {
     categoryFoodProductDataList.clear();
     getFoodByCategoryIDResponse.value = ApiResponse.initial("Initial");
-    ResponseModel response = await FoodRepo().getFoodByCategoryIdRepo(catID: categoryId);
+    ResponseModel response =
+        await FoodRepo().getFoodByCategoryIdRepo(catID: categoryId);
     if (response.isSuccess) {
       List rawList = response.response?.data['data'];
       categoryFoodProductDataList.value =
           rawList.map((e) => CategoryFoodProductData.fromJson(e)).toList();
-      getFoodByCategoryIDResponse.value = ApiResponse.complete(categoryFoodProductDataList);
+      getFoodByCategoryIDResponse.value =
+          ApiResponse.complete(categoryFoodProductDataList);
     } else {
       commonSnackBar(message: AppStrings.somethingWentWrong);
       getFoodByCategoryIDResponse.value =
           ApiResponse.error(AppStrings.somethingWentWrong);
     }
   }
-
 
   // Text Controllers
   final nameController = TextEditingController();
@@ -91,12 +94,14 @@ class FoodServiceController extends GetxController {
         priceController.text.trim().isNotEmpty;
   }
 
-  void addOrUpdateVariant() {
+  Future<void> addOrUpdateVariant(
+      {required String foodId,}) async {
     final variant = {
       "variantName": nameController.text.trim(),
       "mrp": int.tryParse(mrpController.text.trim()) ?? 0,
       "quantityLabel": quantityController.text.trim(),
       "baseSellingPrice": int.tryParse(priceController.text.trim()) ?? 0,
+      "isDefault": false
     };
 
     if (editingIndex != null) {
@@ -105,6 +110,29 @@ class FoodServiceController extends GetxController {
     } else {
       // Add new
       variantList.add(variant);
+      if (foodId.isNotEmpty) {
+        try {
+          // call repo
+          final responseModel = await FoodRepo().addFoodVariantRepo(
+              params: {"variantData": variant}, foodID: foodId);
+
+          if (responseModel.isSuccess) {
+            commonSnackBar(
+                message: responseModel.message ?? AppStrings.success);
+
+            Get.until((route) =>
+                route.settings.name ==
+                RouteHelper.getBottomNavigationBarScreenRoute());
+          } else {
+            commonSnackBar(
+                message:
+                    responseModel.message ?? AppStrings.somethingWentWrong);
+          }
+        } catch (e, s) {
+          print('stack trace-- $s');
+          commonSnackBar(message: e.toString());
+        }
+      }
     }
 
     clearAllField();
@@ -141,14 +169,12 @@ class FoodServiceController extends GetxController {
   Future<void> createFoodProductViaAiApi(
       {required FoodGenAiData foodData}) async {
     try {
-      // final foodServiceController = Get.find<FoodServiceController>();
-      // final foodEntryController = Get.find<FoodEntryController>();
       Map<String, dynamic> paramsReq = {};
 
       // prepare product details json
       final productDetailsMap = {
-        "name":foodData.name,
-        "category":  selectedSubFoodTypeIDCat.value,
+        "name": foodData.name,
+        "category": selectedSubFoodTypeIDCat.value,
         "dietaryType": foodData.dietaryType,
         "ingredients": foodData.ingredients
       };
@@ -156,30 +182,27 @@ class FoodServiceController extends GetxController {
       paramsReq['variantData'] = variantList;
 
       List<String> uploadedImages = [];
-
-      // 1. Handle Image Upload if a new file is selected
-      // if (isImageUpdated.value && localImageFile.value != null) {
-      // Upload each file to S3
       for (int i = 0; i < foodImages.length; i++) {
         UploadResult? result =
-        await S3UploadService.uploadFile(File(foodImages[i].path));
+            await S3UploadService.uploadFile(File(foodImages[i].path));
         if (result.isSuccess) {
           uploadedImages.add(result.url);
         } else {
           commonSnackBar(message: "Image upload failed");
         }
       }
-      if (uploadedImages.isNotEmpty) paramsReq["productImages"] = uploadedImages;
+      if (uploadedImages.isNotEmpty)
+        paramsReq["productImages"] = uploadedImages;
 
       // call repo
       final responseModel =
-      await FoodRepo().createFoodCategoryRepo(params: paramsReq);
+          await FoodRepo().createFoodCategoryRepo(params: paramsReq);
 
       if (responseModel.isSuccess) {
         commonSnackBar(message: responseModel.message ?? AppStrings.success);
 
         Get.until((route) =>
-        route.settings.name ==
+            route.settings.name ==
             RouteHelper.getBottomNavigationBarScreenRoute());
       } else {
         commonSnackBar(
@@ -191,5 +214,38 @@ class FoodServiceController extends GetxController {
     }
   }
 
+  Future<void> updateFoodProductVariantPriceController(
+      {required FoodVariants variantData, required String foodTyeID}) async {
+    try {
+      // prepare product details json
+      final productDetailsMap = {
+        "variantData": [
+          {
+            "_id": variantData.id,
+            "baseSellingPrice": priceController.text,
+            "mrp": mrpController.text,
+            "quantityLabel": variantData.quantityLabel
+          }
+        ]
+      };
 
+      // call repo
+      final responseModel = await FoodRepo()
+          .updateFoodVariantRepo(params: productDetailsMap, foodID: foodTyeID);
+
+      if (responseModel.isSuccess) {
+        commonSnackBar(message: responseModel.message ?? AppStrings.success);
+
+        Get.until((route) =>
+            route.settings.name ==
+            RouteHelper.getBottomNavigationBarScreenRoute());
+      } else {
+        commonSnackBar(
+            message: responseModel.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e, s) {
+      print('stack trace-- $s');
+      commonSnackBar(message: e.toString());
+    }
+  }
 }

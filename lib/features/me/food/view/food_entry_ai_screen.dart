@@ -1,8 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
-import 'package:BlueEra/features/me/grocery/controller/food_entry_controller.dart';
-import 'package:BlueEra/features/me/grocery/controller/food_service_controller.dart';
+import 'package:BlueEra/features/me/food/controller/food_entry_controller.dart';
+import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_drop_down.dart';

@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
 import 'package:BlueEra/features/me/school/controller/department_controller.dart';
+import 'package:BlueEra/features/me/school/view/common_ai_genereted_button.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -35,6 +36,9 @@ class _AddMoreDepartmentScreenState extends State<AddMoreDepartmentScreen> {
   void initState() {
     controller.selectedImages.clear();
     controller.networkImages.clear();
+    controller.hodName.value="";
+    controller.staffNames.value="";
+    controller.deptName.value="";
     if (widget.isEdit && widget.departmentData != null) {
       controller.initEditData(widget.departmentData ?? DepartmentData());
       nameCtrl.text = controller.deptName.value;
@@ -84,11 +88,34 @@ class _AddMoreDepartmentScreenState extends State<AddMoreDepartmentScreen> {
                 },
               ),
               SizedBox(height: SizeConfig.paddingM),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  CustomText(
+                    AppStrings.description,
+                  ),
+                  // The Reusable AI Widget
+                  Obx(() {
+                    return AIGeneratorButton(
+                      type: "Department",
+                      data: {
+                        "department_name": controller.deptName.value,
+                        "hod_name": controller.hodName.value
+                      },
+                      onSelected: (generatedText) {
+                        descCtrl.text = generatedText;
+                        controller.description.value = generatedText;
+                        controller.validateForm(isEdit: widget.isEdit);
+                      },
+                    );
+                  }),
+                ],
+              ),
               CommonTextField(
                 textEditController: descCtrl,
-                title: AppStrings.description,
+                title: "",
                 hintText:
-                    "Hello Everyone @India User Now I am Using https://blueera.ai It’s Amazing, I suggest to Join Me.",
+                "Hello Everyone @India User Now I am Using https://blueera.ai It’s Amazing, I suggest to Join Me.",
                 maxLine: 5,
                 maxLength: 1000,
                 isValidate: false,
@@ -103,7 +130,8 @@ class _AddMoreDepartmentScreenState extends State<AddMoreDepartmentScreen> {
               SizedBox(height: SizeConfig.paddingXSL),
               Align(
                 alignment: Alignment.centerRight,
-                child: Obx(() => CustomText(
+                child: Obx(() =>
+                    CustomText(
                       "${controller.description.value.length}/1000",
                       color: Colors.grey,
                       fontSize: 12,
@@ -111,13 +139,15 @@ class _AddMoreDepartmentScreenState extends State<AddMoreDepartmentScreen> {
               ),
               SizedBox(height: SizeConfig.paddingM),
               SizedBox(height: 40),
-              Obx(() => CustomBtn(
+              Obx(() =>
+                  CustomBtn(
                     title:
-                        widget.isEdit ? "Update Department" : "Add Department",
+                    widget.isEdit ? "Update Department" : "Add Department",
                     isValidate: controller.isFormValid.value &&
                         !controller.isUploading.value,
                     onTap: controller.isFormValid.value
-                        ? () => controller.submitDepartment(
+                        ? () =>
+                        controller.submitDepartment(
                             isEdit: widget.isEdit,
                             deptId: widget.departmentData?.id ?? "")
                         : null,
@@ -130,7 +160,8 @@ class _AddMoreDepartmentScreenState extends State<AddMoreDepartmentScreen> {
   }
 
   Widget _buildImagePicker() {
-    return Obx(() => Column(
+    return Obx(() =>
+        Column(
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -155,14 +186,14 @@ class _AddMoreDepartmentScreenState extends State<AddMoreDepartmentScreen> {
                     .map((file) => _imageTile(file.path, isNetwork: false)),
                 // 3. Add Button
                 if ((controller.networkImages.length +
-                        controller.selectedImages.length) <
+                    controller.selectedImages.length) <
                     5)
                   GestureDetector(
                     onTap: () async {
                       // Pick image logic and add to controller.selectedImages
                       final selectedPath =
-                          await CommonImageUploadTile.pickImage(
-                              context: context);
+                      await CommonImageUploadTile.pickImage(
+                          context: context);
                       controller.selectedImages.add(File(selectedPath ?? ""));
 
                       controller.validateForm(isEdit: widget.isEdit);
@@ -189,7 +220,7 @@ class _AddMoreDepartmentScreenState extends State<AddMoreDepartmentScreen> {
           height: 80,
           width: 80,
           decoration:
-              BoxDecoration(border: Border.all(color: AppColors.primaryColor)),
+          BoxDecoration(border: Border.all(color: AppColors.primaryColor)),
           child: isNetwork
               ? Image.network(path, fit: BoxFit.cover)
               : Image.file(File(path), fit: BoxFit.cover),
@@ -202,7 +233,7 @@ class _AddMoreDepartmentScreenState extends State<AddMoreDepartmentScreen> {
               isNetwork
                   ? controller.networkImages.remove(path)
                   : controller.selectedImages
-                      .removeWhere((element) => element.path == path);
+                  .removeWhere((element) => element.path == path);
               controller.validateForm(isEdit: widget.isEdit);
             },
             child: CircleAvatar(
@@ -215,5 +246,3 @@ class _AddMoreDepartmentScreenState extends State<AddMoreDepartmentScreen> {
     );
   }
 }
-
-

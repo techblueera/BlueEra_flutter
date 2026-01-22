@@ -1,22 +1,16 @@
-import 'package:BlueEra/features/me/grocery/controller/food_service_controller.dart';
-import 'package:BlueEra/features/me/grocery/controller/grocery_variant_controller.dart';
+import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
-import 'package:BlueEra/features/me/grocery/model/dummy_category_product_res_model.dart';
 
-void showEditVariantPriceSheet(Variants vData) {
-  // Use Get.put but don't delete it manually in a .then() block
+void showVariantBottomSheet({String? foodID}) {
   final vc = Get.find<FoodServiceController>();
-  vc.mrpController.text = vData.mrp.toString();
-  vc.priceController.text = vData.price.toString();
-  vc.validateVariantPrice();
+
   Get.bottomSheet(
     isScrollControlled: true,
-    // Wrap in a GestureDetector to dismiss keyboard when tapping outside
     GestureDetector(
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: Container(
@@ -28,23 +22,26 @@ void showEditVariantPriceSheet(Variants vData) {
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  CustomText(vData.name,
-                      fontSize: 18, fontWeight: FontWeight.bold),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () {
-                      FocusManager.instance.primaryFocus?.unfocus();
-                      Get.back();
-                    },
-                  ),
-                ],
-              ),
+              // ... keep your title row and CommonTextFields here ...
               const SizedBox(height: 15),
+              CommonTextField(
+                textEditController: vc.nameController,
+                hintText: "E.g. Half Plate",
+                title: "Variant Name",
+                inputFormatters: [LengthLimitingTextInputFormatter(20)],
+                // Manually trigger validation on change
+                onChange: (val) => vc.validate(),
+              ),
+              const SizedBox(height: 12),
+              CommonTextField(
+                textEditController: vc.quantityController,
+                hintText: "E.g. 100GM",
+                title: "Quantity",
+                inputFormatters: [LengthLimitingTextInputFormatter(30)],
+                onChange: (val) => vc.validate(),
+              ),
+              const SizedBox(height: 12),
               CommonTextField(
                 textEditController: vc.mrpController,
                 hintText: "E.g. ₹1,999",
@@ -54,7 +51,7 @@ void showEditVariantPriceSheet(Variants vData) {
                   FilteringTextInputFormatter.digitsOnly,
                   LengthLimitingTextInputFormatter(10)
                 ],
-                onChange: (val) => vc.validateVariantPrice(),
+                onChange: (val) => vc.validate(),
               ),
               const SizedBox(height: 12),
               CommonTextField(
@@ -66,7 +63,7 @@ void showEditVariantPriceSheet(Variants vData) {
                   LengthLimitingTextInputFormatter(10)
                 ],
                 keyBoardType: TextInputType.number,
-                onChange: (val) => vc.validateVariantPrice(),
+                onChange: (val) => vc.validate(),
               ),
               const SizedBox(height: 20),
               Align(
@@ -74,24 +71,14 @@ void showEditVariantPriceSheet(Variants vData) {
                 child: Obx(() => TextButton(
                       onPressed: vc.isFormValid.value
                           ? () {
-                              // IMPORTANT: Unfocus keyboard before closing
-                              FocusManager.instance.primaryFocus?.unfocus();
-
-                              // Small delay ensures keyboard starts closing
-                              // before controller is destroyed
-                              Future.delayed(const Duration(milliseconds: 100),
-                                  () {
-                                print("Data: ${vc.nameController.text}");
-                                Get.back();
-                              });
+                              vc.addOrUpdateVariant(
+                                foodId: foodID ?? "",
+                              ); // Logic to save/update
+                              Get.back(); // Close sheet
                             }
                           : null,
-                      child: CustomText(
-                        "Submit",
-                        fontSize: 16,
-                        color: vc.isFormValid.value ? Colors.blue : Colors.grey,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      child:
+                          CustomText(vc.editingIndex != null ? "Update" : "Submit"),
                     )),
               ),
               SizedBox(height: MediaQuery.of(Get.context!).viewInsets.bottom),

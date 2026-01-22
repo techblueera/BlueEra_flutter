@@ -1,10 +1,12 @@
 import 'dart:io';
 import 'package:BlueEra/core/api/model/get_faculty_res_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
 import 'package:BlueEra/features/me/school/controller/faculty_controller.dart';
+import 'package:BlueEra/features/me/school/view/common_ai_genereted_button.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
@@ -47,6 +49,7 @@ class _FacultyFormScreenState extends State<FacultyFormScreen> {
       posController: posController.text,
       profile: controller.facultyProfile.value,
     );
+    setState(() {});
   }
 
   @override
@@ -145,7 +148,8 @@ class _FacultyFormScreenState extends State<FacultyFormScreen> {
                       child: CommonTextField(
                         textEditController: expYearsController,
                         title: "Years",
-                        hintText: "10",keyBoardType: TextInputType.number,
+                        hintText: "10",
+                        keyBoardType: TextInputType.number,
                         onChange: (_) => _triggerValidation(),
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly,
@@ -169,10 +173,41 @@ class _FacultyFormScreenState extends State<FacultyFormScreen> {
 
                 _buildSectionTitle("Bio"),
 
+                Row(
+
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    CustomText(
+                      "Short Bio",
+                    ),
+                    // The Reusable AI Widget
+                    Obx(() {
+                      return AIGeneratorButton(
+                        type: "Faculty Bio",
+                        data: {
+                          "name": nameController.text,
+                          "position": posController.text,
+                          "email": emailController.text,
+                          "phone_number": phoneController.text,
+                          "qualifications": controller.qualifications.join(","),
+                          "years_of_experience": expYearsController.text,
+                          "experience_details": expDetailsController.text
+                        },
+                        onSelected: (generatedText) {
+                          bioController.text = generatedText;
+                          controller.faculty_short_bio_text.value =
+                              generatedText;
+                          _triggerValidation();
+                        },
+                      );
+                    }),
+                  ],
+                ),
+
                 /// Apply Button
                 CommonTextField(
                   textEditController: bioController,
-                  title: "Short Bio",
+                  title: "",
                   hintText: "Experienced professor with expertise in AI...",
                   maxLine: 5,
                   maxLength: 500,
@@ -296,7 +331,9 @@ class _FacultyFormScreenState extends State<FacultyFormScreen> {
           hintText: hint,
           isValidate: false,
         ),
-        SizedBox(height: SizeConfig.size10,),
+        SizedBox(
+          height: SizeConfig.size10,
+        ),
         Align(
           alignment: Alignment.centerRight,
           child: InkWell(
@@ -316,8 +353,8 @@ class _FacultyFormScreenState extends State<FacultyFormScreen> {
               )),
         ),
         Obx(() => Align(
-          alignment: Alignment.centerLeft,
-          child: Wrap(
+              alignment: Alignment.centerLeft,
+              child: Wrap(
                 spacing: 8,
                 alignment: WrapAlignment.start,
                 children: items
@@ -328,7 +365,7 @@ class _FacultyFormScreenState extends State<FacultyFormScreen> {
                         ))
                     .toList(),
               ),
-        ))
+            ))
       ],
     );
   }

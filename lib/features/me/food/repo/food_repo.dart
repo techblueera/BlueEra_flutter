@@ -30,6 +30,30 @@ class FoodRepo extends BaseService {
     return response;
   }
 
+  Future<ResponseModel> updateFoodVariantRepo({required Map<String, dynamic> params,required String foodID}) async {
+    final response = await ApiBaseHelper().putHTTP(
+      "${foodProduct}/${foodID}",
+      params: params,
+      isMultipart: false,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  Future<ResponseModel> addFoodVariantRepo({required Map<String, dynamic> params,required String foodID}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      "${foodProduct}/${foodID}/variants",
+      params: params,
+      isMultipart: false,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   Future<ResponseModel> getFoodByCategoryIdRepo({required String catID}) async {
     final response = await ApiBaseHelper().getHTTP(
       "${foodServiceProduct}category=$catID",

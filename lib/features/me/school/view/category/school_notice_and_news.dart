@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
 import 'package:BlueEra/features/me/school/controller/notice_news_controller.dart';
 import 'package:BlueEra/features/me/school/controller/school_controller.dart';
+import 'package:BlueEra/features/me/school/view/common_ai_genereted_button.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -58,7 +59,6 @@ class _SchoolNoticeAndNewsState extends State<SchoolNoticeAndNews> {
       noticeController.initialNoticeImageUrl = "";
       noticeController.notice_news_titleText.value = "";
       noticeController.notice_news_messageText.value = "";
-
     }
     super.initState();
   }
@@ -107,11 +107,39 @@ class _SchoolNoticeAndNewsState extends State<SchoolNoticeAndNews> {
                     },
                   ),
                   SizedBox(height: SizeConfig.size20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      CustomText(
+                        AppStrings.description,
+                      ),
+                      // The Reusable AI Widget
+                      Obx(() {
+                        return AIGeneratorButton(
+                          type: AppStrings.designation,
+                          data: {
+                            "for": "Notice News",
+                            if (noticeController
+                                .notice_news_titleText.value.isNotEmpty)
+                              "title":
+                                  noticeController.notice_news_titleText.value,
+                          },
+                          onSelected: (generatedText) {
+                            descriptionEditController.text = generatedText;
+                            noticeController.notice_news_messageText.value =
+                                generatedText;
+
+                            _runValidation();
+                          },
+                        );
+                      }),
+                    ],
+                  ),
 
                   /// Apply Button
                   CommonTextField(
                     textEditController: descriptionEditController,
-                    title: AppStrings.description,
+                    title: "",
                     hintText:
                         "Hello Everyone @India User Now I am Using https://blueera.ai It’s Amazing, I suggest to Join Me.",
                     maxLine: 5,
@@ -260,5 +288,4 @@ class _SchoolNoticeAndNewsState extends State<SchoolNoticeAndNews> {
           noticeController.isFormValid.value && changed;
     }
   }
-
 }

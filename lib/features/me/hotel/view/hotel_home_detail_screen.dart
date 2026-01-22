@@ -183,15 +183,14 @@ class HotelHomeDetailScreen extends StatelessWidget {
                     CommonCardWidget(
                       padding: 5,
                       child: BusinessLocationWidget(
-                          locationText:
-                          profile?.locationHotel?.name,
-                          latitude: double.parse( profile?.locationHotel?.latitude?.toString() ??
-                              "0.0"),
-                          longitude: double.parse( profile?.locationHotel?.longitude?.toString() ??
-                              "0.0"),
-                          businessName:
-                          profile?.name ??
-                              "",
+                          locationText: profile?.locationHotel?.name,
+                          latitude: double.parse(
+                              profile?.locationHotel?.latitude?.toString() ??
+                                  "0.0"),
+                          longitude: double.parse(
+                              profile?.locationHotel?.longitude?.toString() ??
+                                  "0.0"),
+                          businessName: profile?.name ?? "",
                           padding: 0,
                           isTitleShow: true),
                     ),
@@ -226,23 +225,24 @@ class HotelHomeDetailScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Logo and Hotel Name
-                Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    // color: Colors.white,
-                    shape: BoxShape.circle,
-                    // border: Border.all(color: Colors.white, width: 4),
-                    boxShadow: [
-                      BoxShadow(color: Colors.black12, blurRadius: 10)
-                    ],
-                    image: DecorationImage(
-                        image: NetworkImage(
-                            profile?.photos?.first.imageReferences?.first ??
-                                ''),
-                        fit: BoxFit.cover),
+                if (profile?.photos?.isNotEmpty ?? false)
+                  Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      // color: Colors.white,
+                      shape: BoxShape.circle,
+                      // border: Border.all(color: Colors.white, width: 4),
+                      boxShadow: [
+                        BoxShadow(color: Colors.black12, blurRadius: 10)
+                      ],
+                      image: DecorationImage(
+                          image: NetworkImage(
+                              profile?.photos?.first.imageReferences?.first ??
+                                  ''),
+                          fit: BoxFit.cover),
+                    ),
                   ),
-                ),
                 const SizedBox(height: 10),
                 CustomText(profile?.name,
                     fontSize: 20, fontWeight: FontWeight.bold),
@@ -268,10 +268,8 @@ class HotelHomeDetailScreen extends StatelessWidget {
                     AppIconAssets.phone_outline,
                     profile?.contacts?.firstOrNull?.phone ?? "",
                     AppColors.secondaryTextColor),
-                _contactItem(
-                    AppIconAssets.location_new,
-                    profile?.locationHotel?.name ?? "",
-                    Colors.grey[700]!),
+                _contactItem(AppIconAssets.location_new,
+                    profile?.locationHotel?.name ?? "", Colors.grey[700]!),
               ],
             ),
           ),

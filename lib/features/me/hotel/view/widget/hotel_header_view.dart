@@ -65,6 +65,12 @@ class _HotelHeaderViewState extends State<HotelHeaderView> {
               clipBehavior: Clip.none,
               children: [
                 // Banner Image
+                if(widget
+                    .schoolAboutUsController
+                    .hotelData
+                    .value
+                    ?.profile
+                    ?.photos?.isNotEmpty??false)
                 GestureDetector(
                   onTap: () => null,
                   // onTap: () => _pickImage(true),
@@ -158,8 +164,7 @@ class _HotelHeaderViewState extends State<HotelHeaderView> {
                                             .value
                                             ?.profile
                                             ?.photos
-                                            ?.first
-                                            .imageReferences
+                                            ?.firstOrNull?.imageReferences
                                             ?.first ??
                                         ""),
                                 fit: BoxFit.cover),

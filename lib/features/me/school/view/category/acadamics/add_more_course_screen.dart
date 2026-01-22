@@ -2,6 +2,7 @@ import 'package:BlueEra/core/api/model/school_course_res_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/school/controller/course_controller.dart';
+import 'package:BlueEra/features/me/school/view/common_ai_genereted_button.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
@@ -171,12 +172,42 @@ class _AddMoreCourseScreenState extends State<AddMoreCourseScreen> {
                   hintText: "E.g. 4 Years",
                   title: "Course Duration",
                   maxLength: 15,
+
                   onChange: (_) => _runValidation(),
                 ),
                 SizedBox(height: SizeConfig.paddingM),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    CustomText(
+                      AppStrings.description,
+                    ),
+                    // The Reusable AI Widget
+                    Obx(() {
+                      return AIGeneratorButton(
+                        type: "Course",
+                        data: {
+                          "course_name": courseNameEditController.text,
+                          "admission_process":
+                              admissionProcessEditController.text,
+                          "eligibility": eligibilityEditController.text,
+                          "admission_process": courseController.feeType.value,
+                          "course_fee": courseFeeEditController.text,
+                          "course_duration": courseDurationEditController.text
+                        },
+                        onSelected: (generatedText) {
+                          descriptionEditController.text = generatedText;
+                          courseController.courseDescriptionText.value =
+                              generatedText;
+                          _runValidation();
+                        },
+                      );
+                    }),
+                  ],
+                ),
                 CommonTextField(
                   textEditController: descriptionEditController,
-                  title: AppStrings.description,
+                  title: "",
                   hintText:
                       "Hello Everyone @India User Now I am Using https://blueera.ai It’s Amazing, I suggest to Join Me.",
                   maxLine: 5,
@@ -238,5 +269,8 @@ class _AddMoreCourseScreenState extends State<AddMoreCourseScreen> {
       admissionProcess: admissionProcessEditController.text,
       description: descriptionEditController.text,
     );
+    setState(() {
+
+    });
   }
 }

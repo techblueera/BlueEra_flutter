@@ -4,10 +4,9 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
-import 'package:BlueEra/features/me/grocery/controller/food_service_controller.dart';
-import 'package:BlueEra/features/me/grocery/controller/grocery_variant_controller.dart';
-import 'package:BlueEra/features/me/grocery/model/food_gen_ai_res_model.dart';
-import 'package:BlueEra/features/me/grocery/view/widget/add_variant_bottom_sheet.dart';
+import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
+import 'package:BlueEra/features/me/food/model/food_gen_ai_res_model.dart';
+import 'package:BlueEra/features/me/food/view/widget/add_variant_bottom_sheet.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -37,7 +36,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
   @override
   void initState() {
     // TODO: implement initState
-
+vc.variantList.clear();
     product = widget.foodData.data ?? FoodGenAiData();
     super.initState();
   }

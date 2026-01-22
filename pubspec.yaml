@@ -124,6 +124,7 @@ flutter:
     - assets/category/grocery/menu/
     - assets/onboarding/individual/
     - assets/onboarding/business/
+    - assets/category/foods/
 
 
   fonts:

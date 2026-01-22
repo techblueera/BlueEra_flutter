@@ -10,6 +10,7 @@ import 'package:BlueEra/features/me/school/controller/pdf_picker_controller.dart
 import 'package:BlueEra/features/me/school/controller/student_corder_controller.dart';
 import 'package:BlueEra/features/me/school/controller/student_pdf_picker_controller.dart';
 import 'package:BlueEra/features/me/school/view/category/student_corder/student_corner_pdf_preview_widget.dart';
+import 'package:BlueEra/features/me/school/view/common_ai_genereted_button.dart';
 import 'package:BlueEra/features/me/school/view/pdf_picker_widget.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -203,9 +204,38 @@ class _CommonStudentCornerFormScreenState
                   SizedBox(height: SizeConfig.size20),
 
                   /// Apply Button
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      CustomText(
+                        AppStrings.description,
+                      ),
+                      // The Reusable AI Widget
+                      Obx(() {
+                        return AIGeneratorButton(
+                          type: "Student Corner ${widget.title}",
+                          data: {
+                            "for": widget.title,
+                            if (studentController
+                                .notice_news_titleText.value.isNotEmpty)
+                              "title":
+                                  studentController.notice_news_titleText.value,
+                          },
+                          onSelected: (generatedText) {
+                            descriptionEditController.text = generatedText;
+                            studentController.notice_news_messageText.value =
+                                generatedText;
+                            _runValidation();
+                          },
+                        );
+                      }),
+                    ],
+                  ),
+
                   CommonTextField(
                     textEditController: descriptionEditController,
-                    title: AppStrings.description,
+                    title: "",
                     hintText:
                         "Hello Everyone @India User Now I am Using https://blueera.ai It’s Amazing, I suggest to Join Me.",
                     maxLine: 5,

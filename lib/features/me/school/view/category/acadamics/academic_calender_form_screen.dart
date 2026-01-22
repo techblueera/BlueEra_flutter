@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
 import 'package:BlueEra/features/me/school/controller/academic_calender_controller.dart';
 import 'package:BlueEra/features/me/school/controller/pdf_picker_controller.dart';
+import 'package:BlueEra/features/me/school/view/common_ai_genereted_button.dart';
 import 'package:BlueEra/features/me/school/view/pdf_picker_widget.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -51,7 +52,8 @@ class _AcademicCalenderFormScreenState
       // Store Original Values for Comparison
       academicCalenderController.originalImageUrl.value =
           widget.newsData?.uploadPhoto ?? "";
-      academicCalenderController.originalTitle.value = widget.newsData?.title ?? "";
+      academicCalenderController.originalTitle.value =
+          widget.newsData?.title ?? "";
       academicCalenderController.originalDescription.value =
           widget.newsData?.description ?? "";
 
@@ -100,7 +102,8 @@ class _AcademicCalenderFormScreenState
                   ),
                   SizedBox(height: SizeConfig.size10),
                   Obx(() {
-                    return (academicCalenderController.docUploadName.value == "")
+                    return (academicCalenderController.docUploadName.value ==
+                            "")
                         ? Row(
                             children: [
                               Expanded(child: _buildImageSection()),
@@ -110,11 +113,14 @@ class _AcademicCalenderFormScreenState
                           )
                         : Row(
                             children: [
-                              if (academicCalenderController.docUploadName.value ==
+                              if (academicCalenderController
+                                      .docUploadName.value ==
                                   "photo")
                                 Expanded(child: _buildImageSection()),
                               SizedBox(width: SizeConfig.size10),
-                              if (academicCalenderController.docUploadName.value == "pdf")
+                              if (academicCalenderController
+                                      .docUploadName.value ==
+                                  "pdf")
                                 Expanded(child: SinglePdfPreviewWidget()),
                             ],
                           );
@@ -126,16 +132,46 @@ class _AcademicCalenderFormScreenState
                     title: "Title (Optional)",
                     isValidate: false,
                     onChange: (value) {
-                      academicCalenderController.notice_news_titleText.value = value;
+                      academicCalenderController.notice_news_titleText.value =
+                          value;
                       _runValidation();
                     },
                   ),
                   SizedBox(height: SizeConfig.size20),
 
                   /// Apply Button
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      CustomText(
+                        AppStrings.description,
+                      ),
+                      // The Reusable AI Widget
+                      Obx(() {
+                        return AIGeneratorButton(
+                          type: "Academic Calender",
+                          data: {
+                            "for": "academic_calender",
+                            if (academicCalenderController
+                                .notice_news_titleText.value.isNotEmpty)
+                              "title": academicCalenderController
+                                  .notice_news_titleText.value,
+                          },
+                          onSelected: (generatedText) {
+                            descriptionEditController.text = generatedText;
+                            academicCalenderController
+                                .notice_news_messageText.value = generatedText;
+                            _runValidation();
+                          },
+                        );
+                      }),
+                    ],
+                  ),
+
                   CommonTextField(
                     textEditController: descriptionEditController,
-                    title: AppStrings.description,
+                    title:"",
                     hintText:
                         "Hello Everyone @India User Now I am Using https://blueera.ai It’s Amazing, I suggest to Join Me.",
                     maxLine: 5,
@@ -146,7 +182,8 @@ class _AcademicCalenderFormScreenState
                     onChange: (value) {
                       String newVal =
                           value.replaceAll(RegExp(r'\n{3,}'), '\n\n');
-                      academicCalenderController.notice_news_messageText.value = newVal;
+                      academicCalenderController.notice_news_messageText.value =
+                          newVal;
                       _runValidation();
                     },
                   ),
@@ -165,9 +202,10 @@ class _AcademicCalenderFormScreenState
                         onTap: academicCalenderController.isFormValid.value
                             ? () async {
                                 if (widget.isEdit) {
-                                  academicCalenderController.notice_news_id.value =
-                                      widget.newsData?.id ?? "";
-                                  if (academicCalenderController.noticeImageFile.value ==
+                                  academicCalenderController.notice_news_id
+                                      .value = widget.newsData?.id ?? "";
+                                  if (academicCalenderController
+                                          .noticeImageFile.value ==
                                       null) {
                                     await academicCalenderController
                                         .updateAcademicCalenderController(
@@ -185,7 +223,8 @@ class _AcademicCalenderFormScreenState
                             : null,
                         title: AppStrings.submit,
                         // Pass the validation state to change button color/opacity
-                        isValidate: academicCalenderController.isFormValid.value,
+                        isValidate:
+                            academicCalenderController.isFormValid.value,
                       )),
                 ],
               ),
@@ -280,7 +319,8 @@ class _AcademicCalenderFormScreenState
   void _runValidation() {
     // 1. Run your standard validation (e.g., checking if description is empty)
     academicCalenderController.noticesNewsValidateForm(
-        noticeDescription: academicCalenderController.notice_news_messageText.value ?? "",
+        noticeDescription:
+            academicCalenderController.notice_news_messageText.value ?? "",
         uploadPhoto: academicCalenderController.initialNoticeImageUrl);
 
     // 2. If in edit mode, add the 'Has Changed' requirement

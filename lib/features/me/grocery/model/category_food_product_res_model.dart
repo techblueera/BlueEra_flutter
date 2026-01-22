@@ -61,6 +61,7 @@ class CategoryFoodProductData {
       this.v, 
       this.displayPrice, 
       this.displayMrp, 
+      this.variants,
       this.variantId,});
 
   CategoryFoodProductData.fromJson(dynamic json) {
@@ -91,6 +92,12 @@ class CategoryFoodProductData {
     displayPrice = json['displayPrice'];
     displayMrp = json['displayMrp'];
     variantId = json['variantId'];
+    if (json['variants'] != null) {
+      variants = [];
+      json['variants'].forEach((v) {
+        variants?.add(FoodVariants.fromJson(v));
+      });
+    }
   }
   String? id;
   String? name;
@@ -109,9 +116,13 @@ class CategoryFoodProductData {
   int? displayPrice;
   int? displayMrp;
   String? variantId;
+  List<FoodVariants>? variants;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
+    if (variants != null) {
+      map['variants'] = variants?.map((v) => v.toJson()).toList();
+    }
     map['_id'] = id;
     map['name'] = name;
     map['images'] = images;
@@ -195,6 +206,67 @@ class Category {
     final map = <String, dynamic>{};
     map['_id'] = id;
     map['name'] = name;
+    return map;
+  }
+
+}
+
+FoodVariants variantsFromJson(String str) => FoodVariants.fromJson(json.decode(str));
+String variantsToJson(FoodVariants data) => json.encode(data.toJson());
+class FoodVariants {
+  FoodVariants({
+    this.id,
+    this.product,
+    this.variantName,
+    this.quantityLabel,
+    this.mrp,
+    this.baseSellingPrice,
+    this.isActive,
+    this.isDefault,
+    this.createdAt,
+    this.updatedAt,
+    this.v,});
+
+  FoodVariants.fromJson(dynamic json) {
+    id = json['_id'];
+    product = json['product'];
+    variantName = json['variantName'];
+    quantityLabel = json['quantityLabel'];
+    mrp = json['mrp'];
+    baseSellingPrice = json['baseSellingPrice'];
+    isActive = json['isActive'];
+    isDefault = json['isDefault'];
+
+    createdAt = json['createdAt'];
+    updatedAt = json['updatedAt'];
+    v = json['__v'];
+  }
+  String? id;
+  String? product;
+  String? variantName;
+  String? quantityLabel;
+  int? mrp;
+  int? baseSellingPrice;
+  bool? isActive;
+  bool? isDefault;
+  String? createdAt;
+  String? updatedAt;
+  int? v;
+
+  Map<String, dynamic> toJson() {
+    final map = <String, dynamic>{};
+    map['_id'] = id;
+    map['product'] = product;
+    map['variantName'] = variantName;
+    map['quantityLabel'] = quantityLabel;
+    map['mrp'] = mrp;
+    map['baseSellingPrice'] = baseSellingPrice;
+    map['isActive'] = isActive;
+    map['isDefault'] = isDefault;
+
+    map['createdAt'] = createdAt;
+    map['updatedAt'] = updatedAt;
+    map['__v'] = v;
     return map;
   }
 
