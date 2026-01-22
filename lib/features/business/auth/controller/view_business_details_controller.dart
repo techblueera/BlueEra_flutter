@@ -3,7 +3,6 @@ import 'dart:developer';
 
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/type_of_business_model.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -85,12 +84,6 @@ class ViewBusinessDetailsController extends GetxController {
 
   ViewBusinessProfileModel? visitedBusinessProfileDetails;
 
-  Rx<VisitBusinessDetailedRatingModel> visitBusinessDetailedRatingModel =
-      VisitBusinessDetailedRatingModel().obs;
-  Rx<BusinessCategory> selectedTypeOfBusiness =
-      BusinessCategory(type: '', title: '', subTitle: '', icon: '').obs;
-
-  // RxList<String> imgUploadL2 = <String>[].obs;
   RxList<String> imgLocalL3 = <String>[].obs;
   RxList<int> imgDeleteL3 = <int>[].obs;
   RxInt selectedIndex = 0.obs;
@@ -178,7 +171,7 @@ class ViewBusinessDetailsController extends GetxController {
           businessProfileDetails?.data?.dateOfIncorporation?.year ?? 0;
       imagePath?.value = businessProfileDetails?.data?.logo ?? "";
       coverImage?.value = businessProfileDetails?.data?.coverimage ?? "";
-      selectedCategoryOfBusiness.value = CategoryData(
+/*      selectedCategoryOfBusiness.value = CategoryData(
           id: businessProfileDetails?.data?.categoryDetails?.id,
           name: businessProfileDetails?.data?.categoryDetails?.name);
       selectedSubCategoryOfBusinessNew.value = SubCategories(
@@ -197,8 +190,9 @@ class ViewBusinessDetailsController extends GetxController {
                           : businessProfileDetails?.data?.typeOfBusiness ==
                                   "Manufacturing"
                               ? BusinessType.Manufacturing
-                              : BusinessType.Both; // Default fallback
+                              : BusinessType.Both; // Default fallback*/
 
+/*
       if (businessProfileDetails?.data?.typeOfBusiness ==
           BusinessType.Product.name) {
         selectedTypeOfBusiness.value = BusinessCategory(
@@ -235,6 +229,7 @@ class ViewBusinessDetailsController extends GetxController {
               .Both.name, // (requires Flutter 3.7+, else use Icons.work)
         );
       }
+*/
 
       businessDescription.value =
           businessProfileDetails?.data?.businessDescription ?? "";
@@ -354,34 +349,78 @@ class ViewBusinessDetailsController extends GetxController {
   RxString categorySpecializationText = "".obs;
   RxString errorMessage = "".obs;
 
-  Future<void> getAllCategories() async {
-    businessSubCategoriesList.clear();
-    isCategoriesLoading.value = true;
-    try {
-      ResponseModel responseModel =
-          await AuthRepo().getBusinessCategoriesRepo();
 
-      if (responseModel.isSuccess) {
-        final data = responseModel.response?.data;
-        businessCategoriesList.value = CategoryModel.fromJson(data).data ?? [];
-        final dataList = businessCategoriesList
-            .where((e) =>
-                e.type?.toLowerCase() ==
-                selectedCategoryOfBusiness.value?.type.toString())
-            .toList();
-        if (dataList.isNotEmpty) {
-          businessSubCategoriesList.addAll(dataList.first.subCategories ?? []);
-        }
-      } else {
-        commonSnackBar(
-            message: responseModel.message ?? AppStrings.somethingWentWrong);
+  /// Step 1 – Nature of Business
+  Rx<BusinessCategory?> selectedTypeOfBusiness =
+  Rx<BusinessCategory?>(null);
+
+  /// Step 2 – Parent Categories
+  RxList<CategoryData> categoryList = <CategoryData>[].obs;
+  Rx<CategoryData?> selectedCategory = Rx<CategoryData?>(null);
+
+  /// Step 3 – Sub Categories / Products
+  RxList<SubCategories> subCategoryList = <SubCategories>[].obs;
+  Rx<SubCategories?> selectedSubCategory = Rx<SubCategories?>(null);
+
+  /// API CALL BASED ON BUSINESS TYPE
+  Future<void> getAllCategories() async {
+    isCategoriesLoading.value = true;
+    categoryList.clear();
+    subCategoryList.clear();
+    selectedCategory.value = null;
+    selectedSubCategory.value = null;
+
+    try {
+      final response =
+      await AuthRepo().getBusinessCategoriesByTypeRepo(selectedTypeOfBusiness.value?.type??"");
+
+      if (response.isSuccess) {
+        categoryList.value =
+            CategoryModel.fromJson(response.response?.data).data ?? [];
       }
     } catch (e) {
-      logs("ERRO ${e}");
+      logs("ERROR: $e");
     } finally {
       isCategoriesLoading.value = false;
     }
   }
+
+  /// ON CATEGORY SELECT
+  void onCategorySelected(CategoryData category) {
+    selectedCategory.value = category;
+    selectedSubCategory.value = null;
+    subCategoryList.value = category.subCategories ?? [];
+  }
+
+  // Future<void> getAllCategories() async {
+  //   businessSubCategoriesList.clear();
+  //   isCategoriesLoading.value = true;
+  //   try {
+  //     ResponseModel responseModel =
+  //         await AuthRepo().getBusinessCategoriesByTypeRepo("Food");
+  //         // await AuthRepo().getBusinessCategoriesRepo();
+  //
+  //     if (responseModel.isSuccess) {
+  //       final data = responseModel.response?.data;
+  //       businessCategoriesList.value = CategoryModel.fromJson(data).data ?? [];
+  //       final dataList = businessCategoriesList
+  //           .where((e) =>
+  //               e.type?.toLowerCase() ==
+  //               selectedCategoryOfBusiness.value?.type.toString())
+  //           .toList();
+  //       if (dataList.isNotEmpty) {
+  //         businessSubCategoriesList.addAll(dataList.first.subCategories ?? []);
+  //       }
+  //     } else {
+  //       commonSnackBar(
+  //           message: responseModel.message ?? AppStrings.somethingWentWrong);
+  //     }
+  //   } catch (e) {
+  //     logs("ERRO ${e}");
+  //   } finally {
+  //     isCategoriesLoading.value = false;
+  //   }
+  // }
 
   Future<void> postVerifyBusinessDocs(Map<String, dynamic> params) async {
     try {

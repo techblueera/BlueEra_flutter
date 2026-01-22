@@ -438,7 +438,7 @@ class _BusinessDetailsEditPageOneState
                       ///ENTER ORG/COMPANY NAME...
 
                       ///Supply chain...
-                      if (viewBusinessDetailsController. selectedTypeOfBusiness.value.type ==
+                     /* if (viewBusinessDetailsController. selectedTypeOfBusiness.value.type ==
                           BusinessType.Product.name)...[
                         // SizedBox(
                         //   height: SizeConfig.size20,
@@ -496,7 +496,7 @@ class _BusinessDetailsEditPageOneState
                         // SizedBox(
                         //   height: SizeConfig.size20,
                         // ),
-                      ],
+                      ],*/
 
 
                       ///Mobile number

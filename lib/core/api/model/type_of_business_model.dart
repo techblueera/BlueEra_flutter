@@ -1,5 +1,7 @@
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:get/get.dart';
 
 class BusinessCategory {
   final String type;
@@ -14,7 +16,6 @@ class BusinessCategory {
     required this.icon,
   });
 }
-/*
 final List<BusinessCategory> typeOfBusinessList = [
   BusinessCategory(
     title: "Grocery, Vegetables & Dairy",
@@ -64,11 +65,25 @@ final List<BusinessCategory> typeOfBusinessList = [
     icon: AppIconAssets.other_type,
     type: BusinessType.Manufacturing.name,
   ),
-];*/
+];
+
+BusinessCategory getBusinessCategoryFromType(
+    String? type,
+    List<BusinessCategory> list,
+    ) {
+  return list.firstWhere(
+        (item) => item.type == type,
+    orElse: () => BusinessCategory(
+      title: AppStrings.otherTitle.tr,
+      subTitle: AppStrings.otherSubTitle.tr,
+      icon: AppIconAssets.other_type,
+      type: BusinessType.Both.name,
+    ),
+  );
+}
 
 
-
-final List<BusinessCategory> typeOfBusinessList = [
+/*final List<BusinessCategory> typeOfBusinessList = [
   BusinessCategory(
     title: "Grocerie /Food /Restaurant/Beverage",
     subTitle:
@@ -96,4 +111,4 @@ final List<BusinessCategory> typeOfBusinessList = [
     type: BusinessType
         .Both.name, // (requires Flutter 3.7+, else use Icons.work)
   ),
-];
+];*/
