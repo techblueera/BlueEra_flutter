@@ -19,6 +19,7 @@ import 'package:BlueEra/features/chat/contacts/view/contact_list_page.dart';
 import 'package:BlueEra/features/common/auth/model/individual_profiile_category.dart';
 import 'package:BlueEra/features/common/auth/model/mixed_profile_categrory.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
+import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
 import 'package:BlueEra/features/common/post/repo/post_repo.dart';
 import 'package:BlueEra/features/common/reel/models/social_input_fields_model.dart';
 import 'package:BlueEra/features/common/store/repo/store_repo.dart';
@@ -1473,6 +1474,11 @@ const FOOD = "FOOD";
 const PRODUCT = "PRODUCT";
 const SERVICE = "SERVICE";
 
+// Bookings
+const PARCEL_COURIER = "PARCEL_COURIER";
+const TRANSPORT_VEHICLE = "TRANSPORT_VEHICLE";
+const HOTEL_HOME_STAY = "HOTEL_HOME_STAY";
+
 double calculateDistanceKm(double lat1, double lon1, double lat2, double lon2) {
   const R = 6371; // Radius of Earth in kilometers
   final dLat = _deg2rad(lat2 - lat1);
@@ -2897,7 +2903,7 @@ final List<OnBoardingCategoryModel> businessProductsCategories = [
   OnBoardingCategoryModel(
       name: 'Home\nAppliances',
       slugId: HOME_APPLIANCES_STORE,
-      icon: AppImageAssets.automotiveStore,
+      icon: AppImageAssets.homeAppliances,
       accountType: AppConstants.business,
       businessType: BusinessType.Product),
   OnBoardingCategoryModel(
@@ -2936,7 +2942,7 @@ final List<OnBoardingCategoryModel> businessProductsCategories = [
   OnBoardingCategoryModel(
       name: 'Home Kitchen &\nUtensils',
       slugId: HOME_APPLIANCES_STORE,
-      icon: OnboardingBusinessAssets.homeKitchenAndUtensils,
+      icon: AppImageAssets.homeKitchenAndUtensils,
       accountType: AppConstants.business,
       businessType: BusinessType.Product),
   OnBoardingCategoryModel(
@@ -2956,25 +2962,25 @@ final List<OnBoardingCategoryModel> businessProductsCategories = [
   OnBoardingCategoryModel(
       name: 'Religious &\nSpecialty',
       slugId: RELIGIOUS_SPECIALTY,
-      icon: OnboardingBusinessAssets.religiousAndSpeciality,
+      icon: AppImageAssets.petSuppliesStore,
       accountType: AppConstants.business,
       businessType: BusinessType.Product),
   OnBoardingCategoryModel(
       name: 'Packaging &\nDisposable',
       slugId: PACKAGING_DISPOSABLE,
-      icon: OnboardingBusinessAssets.packagingAndDisposable,
+      icon: AppImageAssets.petSuppliesStore,
       accountType: AppConstants.business,
       businessType: BusinessType.Product),
   OnBoardingCategoryModel(
       name: 'Agriculture &\nFarming',
       slugId: AGRICULTURE_FARMING,
-      icon: OnboardingBusinessAssets.agricultureAndFarming,
+      icon: AppImageAssets.petSuppliesStore,
       accountType: AppConstants.business,
       businessType: BusinessType.Product),
   OnBoardingCategoryModel(
       name: 'Industrials &\nWholesale',
       slugId: INDUSTRIAL_WHOLESALE,
-      icon: OnboardingBusinessAssets.industrialsSupplies,
+      icon: AppImageAssets.petSuppliesStore,
       accountType: AppConstants.business,
       businessType: BusinessType.Product),
 
@@ -3372,136 +3378,6 @@ final List<OnBoardingCategoryModel> individualOnboardingConsultationList = [
     accountType: AppConstants.individual,
   ),
 ];
-final List<OnBoardingCategoryModel> individualOnboardingSelfWorkSkillWorkList = [
-
-  OnBoardingCategoryModel(
-    name: 'Bike Rider',
-    slugId: DELIVERY_RIDER,
-    icon: OnboardingIndividualAssets.bikeRider,
-    individualType: IndividualType.GIG_WORKER,
-    accountType: AppConstants.individual,
-  ),
-  OnBoardingCategoryModel(
-    name: 'Car Driver',
-    slugId: CAR_TAXI,
-    icon: OnboardingIndividualAssets.taxiCarDriver,
-    individualType: IndividualType.GIG_WORKER,
-    accountType: AppConstants.individual,
-  ),
-  OnBoardingCategoryModel(
-    name: 'Goods Transporter',
-    slugId: GOODS_TAXI,
-    icon: OnboardingIndividualAssets.goodsSupplier,
-    individualType: IndividualType.GIG_WORKER,
-    accountType: AppConstants.individual,
-  ),
-  OnBoardingCategoryModel(
-    name: 'Auto Driver',
-    slugId: AUTO_TAXI,
-    icon: OnboardingIndividualAssets.autoERickshaw,
-    individualType: IndividualType.GIG_WORKER,
-    accountType: AppConstants.individual,
-  ),
-
-  OnBoardingCategoryModel(
-    name: 'Electrician',
-    slugId: ELECTRICIAN,
-    icon: OnboardingIndividualAssets.electrician,
-    individualType: IndividualType.SELF_EMPLOYED,
-    accountType: AppConstants.individual,
-  ),
-  OnBoardingCategoryModel(
-    name: 'Plumber',
-    slugId: PLUMBER,
-    icon: OnboardingIndividualAssets.plumber,
-    individualType: IndividualType.SELF_EMPLOYED,
-    accountType: AppConstants.individual,
-  ),
-  OnBoardingCategoryModel(
-    name: 'Technician',
-    slugId: TECHNICIAN,
-    icon: OnboardingIndividualAssets.technician,
-    individualType: IndividualType.SELF_EMPLOYED,
-    accountType: AppConstants.individual,
-  ),
-  OnBoardingCategoryModel(
-    name: 'Mechanic',
-    slugId: MECHANIC,
-    icon: OnboardingIndividualAssets.mechanic,
-    individualType: IndividualType.SELF_EMPLOYED,
-    accountType: AppConstants.individual,
-  ),
-  OnBoardingCategoryModel(
-    name: 'Painter',
-    slugId: PAINTER,
-    icon: OnboardingIndividualAssets.painter,
-    individualType: IndividualType.SELF_EMPLOYED,
-    accountType: AppConstants.individual,
-  ),
-  OnBoardingCategoryModel(
-    name: 'Carpenter',
-    slugId: ARTIST,
-    icon: OnboardingIndividualAssets.carpenter,
-    individualType: IndividualType.SELF_EMPLOYED,
-    accountType: AppConstants.individual,
-  ),
-  OnBoardingCategoryModel(
-    name: 'Home Renovator',
-    slugId: HOME_RENOVATOR,
-    icon: OnboardingIndividualAssets.homeRenovator,
-    individualType: IndividualType.SELF_EMPLOYED,
-    accountType: AppConstants.individual,
-  ),
-  OnBoardingCategoryModel(
-    name: 'Labour',
-    slugId: LABOUR,
-    icon: OnboardingIndividualAssets.labour,
-    individualType: IndividualType.SELF_EMPLOYED,
-    accountType: AppConstants.individual,
-  ),
-  OnBoardingCategoryModel(
-    name: 'Gardener',
-    slugId: GARDENER,
-    icon: OnboardingIndividualAssets.gardener,
-    individualType: IndividualType.SELF_EMPLOYED,
-    accountType: AppConstants.individual,
-  ),
-  OnBoardingCategoryModel(
-    name: 'Security Person',
-    slugId: SECURITY_PERSON,
-    icon: OnboardingIndividualAssets.securityPerson,
-    individualType: IndividualType.SELF_EMPLOYED,
-    accountType: AppConstants.individual,
-  ),
-  OnBoardingCategoryModel(
-    name: 'Maid (Female)',
-    slugId: MAID_FEMALE,
-    icon: OnboardingIndividualAssets.homeMaker,
-    individualType: IndividualType.SELF_EMPLOYED,
-    accountType: AppConstants.individual,
-  ),
-  OnBoardingCategoryModel(
-    name: 'Cleaner',
-    slugId: CLEANER,
-    icon: OnboardingIndividualAssets.cleaner,
-    individualType: IndividualType.SELF_EMPLOYED,
-    accountType: AppConstants.individual,
-  ),
-  OnBoardingCategoryModel(
-    name: AppStrings.tailoring,
-    slugId: TAILOR,
-    icon: OnboardingIndividualAssets.tailoring,
-    individualType: IndividualType.SOCIAL_PROFILE,
-    accountType: AppConstants.individual,
-  ),
-  OnBoardingCategoryModel(
-    name: AppStrings.beautyCare,
-    slugId: BEAUTICIAN,
-    icon: OnboardingIndividualAssets.beautician,
-    individualType: IndividualType.SOCIAL_PROFILE,
-    accountType: AppConstants.individual,
-  ),
-];
 
 // --- End ---
 
@@ -3668,6 +3544,26 @@ final List<IndividualProfileCategory> individualSelfEmployedList = [
     icon: AppIconAssets.securityPersonIcon,
   )
 ];
+
+final List<CollapsibleGridModel> bookingList = [
+  CollapsibleGridModel(
+      name: 'Parcel/\nCourier',
+      slugId: PARCEL_COURIER,
+      icon: AppImageAssets.courierParcel
+  ),
+  CollapsibleGridModel(
+      name: 'Transport & Vehicle',
+      slugId: TRANSPORT_VEHICLE,
+      icon: AppImageAssets.transportVehicle
+  ),
+  CollapsibleGridModel(
+      name: 'Hotel & Home Stay',
+      slugId: HOTEL_HOME_STAY,
+      icon: AppImageAssets.hotelAndHomeStay
+  ),
+];
+
+
 
 List<PopupMenuEntry<String>> groceryPopupMenuItems() {
   final List<Map<String, String>> items = [

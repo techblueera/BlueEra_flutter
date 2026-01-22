@@ -1,9 +1,7 @@
-import 'dart:developer';
-import 'dart:ui';
 import 'dart:ui' as ui;
+import 'dart:ui';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -18,23 +16,16 @@ import 'package:BlueEra/features/business/auth/controller/view_business_details_
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/ai_chat/ask_inventory_chat_screen.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
-import 'package:BlueEra/features/common/Discover/view/all_rental_service_screen.dart';
-import 'package:BlueEra/features/common/Discover/view/home_made_food_screen.dart';
-import 'package:BlueEra/features/common/Discover/view/home_service_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/product_local_market_screen.dart';
-import 'package:BlueEra/features/common/Discover/view/all_self_profession_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/services_near_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/tooltip_generator.dart';
-import 'package:BlueEra/features/common/auth/model/business_profile_category.dart';
 import 'package:BlueEra/features/common/auth/model/individual_profiile_category.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
 import 'package:BlueEra/features/common/franchise/view/franchise_home.dart';
 import 'package:BlueEra/features/common/jobs/view/jobs_screen.dart';
-import 'package:BlueEra/features/common/store/view/new_store/all_product_store_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/create_profile_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/gradient_floating_button.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/setup_scroll_visibility_notification.dart';
@@ -170,6 +161,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
           geometry: LatLng(userLat, userLng),
           iconImage: "svg-composite-icon",
           iconSize: 1.0,
+
         ),
       );
     } catch (e) {
@@ -251,10 +243,10 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                         Expanded(
                           child: CustomText(
                             [
+                              LocationService.userCurrentAddress.value.subLocality,
                               LocationService.userCurrentAddress.value.city,
-                              LocationService.userCurrentAddress.value.state,
                             ].where((e) => e.isNotEmpty).join(', '),
-                            fontSize: SizeConfig.large,
+                            fontSize: SizeConfig.medium,
                             color: AppColors.primaryColor,
                             fontWeight: FontWeight.w600,
                             maxLines: 1,
@@ -384,6 +376,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
       ),
     );
   }
+
   Widget _buildMapWidget() {
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
@@ -396,18 +389,42 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
               onMapCreated: _onMapCreated,
               initialCameraPosition: CameraPosition(
                 target: LatLng(userLat, userLng),
-                zoom: 14.0,
-              ),onMapClick: (lat,long){
-              logs("logMsg");
-              Get.to(()=>FranchiseHome());
-            },
+                zoom: 12.0,
+              ),
+              onMapClick: (lat,long) {
+                 logs("logMsg");
+                 Get.to(()=> FranchiseHome());
+              },
               onStyleLoadedCallback: () {
                 setState(() => isMapLoading = false);
                 _onStyleLoadedCallback();
               },
+              zoomGesturesEnabled: false
+              // onSymbolTapped: _onSymbolTapped,
             ),
+            Positioned(
+                left: 8,
+                top: 8,
+                child: Container(
+                  padding: EdgeInsets.all(6.0),
+                  decoration: BoxDecoration(
+                    color: Color(0xFFE0E9EA),
+                    borderRadius: BorderRadius.circular(10),
+                    // border: Border.all(
+                    //   color: AppColors.primaryColor
+                    // )
+                  ),
+                  child: CustomText(
+                      LocationService.userCurrentAddress.value.postalCode,
+                      color: AppColors.primaryColor,
+                      fontSize: SizeConfig.medium,
+                      fontWeight: FontWeight.w600
+                  )
+                )
+            ),
+
             if (isMapLoading)
-              Container(
+            Container(
                 color: Colors.grey[200],
                 child: const Center(
                   child: CircularProgressIndicator(
@@ -420,6 +437,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
       ),
     );
   }
+
   Widget _buildMainBody() {
     return Padding(
       padding: EdgeInsets.symmetric(
@@ -432,7 +450,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
             // 1. The Map Section (Scrolls away)
             SliverToBoxAdapter(
               child: Padding(
-                padding: EdgeInsets.only(bottom: SizeConfig.paddingM,top: 50),
+                padding: EdgeInsets.only(bottom: SizeConfig.paddingM, top: SizeConfig.size70),
                 child: _buildMapWidget(), // Extract your map code here
               ),
             ),
@@ -588,38 +606,30 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                           SizedBox(
                             width: SizeConfig.size8,
                           ),
-                          CustomText('View All',
-                              fontSize: SizeConfig.large,
-                              color: AppColors.primaryColor,
-                              fontWeight: FontWeight.w400),
+                          _viewAll(),
                         ],
                       ),
                       SizedBox(height: SizeConfig.paddingXSL),
-                      GridView.builder(
-                        physics: const NeverScrollableScrollPhysics(),
+                      MasonryGridView.count(
+                        crossAxisCount: 3,
+                        crossAxisSpacing: 6,
+                        mainAxisSpacing: 6,
                         padding: EdgeInsets.zero,
-                        shrinkWrap: true,
                         itemCount: businessProductsCategories.take(9).length,
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3,
-                          crossAxisSpacing: 6,
-                          mainAxisSpacing: 6,
-                          childAspectRatio: 1.2,
-                        ),
+                        physics: NeverScrollableScrollPhysics(),
                         itemBuilder: (context, index) {
                           var categoryItem =
-                              businessProductsCategories[index];
+                          businessProductsCategories[index];
                           return InkWell(
                             onTap: () {
                               Get.to(() => ProductLocalMarketScreen(
-                                    businessProductsCategories:
-                                        businessProductsCategories,
-                                  ));
+                                businessProductsCategories:
+                                businessProductsCategories,
+                              ));
                             },
                             borderRadius: BorderRadius.circular(12),
                             child: Container(
-                              padding: EdgeInsets.all(SizeConfig.size5),
+                              padding: EdgeInsets.all(SizeConfig.size10),
                               decoration: BoxDecoration(
                                 color: AppColors.white,
                                 borderRadius: BorderRadius.circular(10.0),
@@ -631,33 +641,91 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Expanded(
-                                    flex:2 ,
-                                    child: LocalAssets(
-                                      imagePath: categoryItem.icon,
-                                      // width: 35,
-                                      // height: 35,
-                                      // scaleSize: 2.0,
-                                    ),
+                                  LocalAssets(
+                                    imagePath: categoryItem.icon,
+                                    height: SizeConfig.size80,
                                   ),
                                   SizedBox(height: SizeConfig.paddingXSL),
-                                  Expanded(
-                                    child: CustomText(
-                                      categoryItem.name,
-                                      fontSize: SizeConfig.extraSmall,
-                                      color: AppColors.secondaryTextColor,
-                                      fontWeight: FontWeight.w400,
-                                      textAlign: TextAlign.center,
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
+                                  CustomText(
+                                    categoryItem.name,
+                                    fontSize: SizeConfig.extraSmall,
+                                    color: AppColors.secondaryTextColor,
+                                    fontWeight: FontWeight.w400,
+                                    textAlign: TextAlign.center,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ],
                               ),
                             ),
                           );
                         },
+                        shrinkWrap: true,
                       ),
+
+                      // GridView.builder(
+                      //   physics: const NeverScrollableScrollPhysics(),
+                      //   padding: EdgeInsets.zero,
+                      //   shrinkWrap: true,
+                      //   itemCount: businessProductsCategories.take(9).length,
+                      //   gridDelegate:
+                      //       const SliverGridDelegateWithFixedCrossAxisCount(
+                      //     crossAxisCount: 3,
+                      //     crossAxisSpacing: 6,
+                      //     mainAxisSpacing: 6,
+                      //     childAspectRatio: 1.2,
+                      //   ),
+                      //   itemBuilder: (context, index) {
+                      //     var categoryItem =
+                      //         businessProductsCategories[index];
+                      //     return InkWell(
+                      //       onTap: () {
+                      //         Get.to(() => ProductLocalMarketScreen(
+                      //               businessProductsCategories:
+                      //                   businessProductsCategories,
+                      //             ));
+                      //       },
+                      //       borderRadius: BorderRadius.circular(12),
+                      //       child: Container(
+                      //         padding: EdgeInsets.all(SizeConfig.size5),
+                      //         decoration: BoxDecoration(
+                      //           color: AppColors.white,
+                      //           borderRadius: BorderRadius.circular(10.0),
+                      //           border: Border.all(
+                      //             color: AppColors.greyE5,
+                      //             width: 1,
+                      //           ),
+                      //         ),
+                      //         child: Column(
+                      //           mainAxisAlignment: MainAxisAlignment.center,
+                      //           children: [
+                      //             Expanded(
+                      //               flex:2 ,
+                      //               child: LocalAssets(
+                      //                 imagePath: categoryItem.icon,
+                      //                 // width: 35,
+                      //                 // height: 35,
+                      //                 // scaleSize: 2.0,
+                      //               ),
+                      //             ),
+                      //             SizedBox(height: SizeConfig.paddingXSL),
+                      //             Expanded(
+                      //               child: CustomText(
+                      //                 categoryItem.name,
+                      //                 fontSize: SizeConfig.extraSmall,
+                      //                 color: AppColors.secondaryTextColor,
+                      //                 fontWeight: FontWeight.w400,
+                      //                 textAlign: TextAlign.center,
+                      //                 maxLines: 2,
+                      //                 overflow: TextOverflow.ellipsis,
+                      //               ),
+                      //             ),
+                      //           ],
+                      //         ),
+                      //       ),
+                      //     );
+                      //   },
+                      // ),
                     ],
                   )),
             ),
@@ -757,10 +825,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                         SizedBox(
                           width: SizeConfig.size8,
                         ),
-                        CustomText('View All',
-                            fontSize: SizeConfig.large,
-                            color: AppColors.primaryColor,
-                            fontWeight: FontWeight.w400),
+                        _viewAll(),
                       ],
                     ),
                     SizedBox(height: SizeConfig.paddingXSL),
@@ -772,6 +837,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                           .take(6)
                           .length,
                       physics: NeverScrollableScrollPhysics(),
+                      padding: EdgeInsets.zero,
                       itemBuilder: (context, index) {
                         var item =
                             individualOnboardingSelfSkillWorkList[index];
@@ -882,10 +948,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                         SizedBox(
                           width: SizeConfig.size8,
                         ),
-                        CustomText('View All',
-                            fontSize: SizeConfig.large,
-                            color: AppColors.primaryColor,
-                            fontWeight: FontWeight.w400),
+                        _viewAll(),
                       ],
                     ),
                     SizedBox(height: SizeConfig.paddingXSL),
@@ -946,10 +1009,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                         SizedBox(
                           width: SizeConfig.size8,
                         ),
-                        CustomText('View All',
-                            fontSize: SizeConfig.large,
-                            color: AppColors.primaryColor,
-                            fontWeight: FontWeight.w400),
+                        _viewAll(),
                       ],
                     ),
                     SizedBox(height: SizeConfig.paddingXSL),
@@ -960,6 +1020,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                       itemCount:
                           individualOnboardingConsultationList.take(6).length,
                       physics: NeverScrollableScrollPhysics(),
+                      padding: EdgeInsets.zero,
                       itemBuilder: (context, index) {
                         var item =
                             individualOnboardingConsultationList[index];
@@ -990,10 +1051,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                         SizedBox(
                           width: SizeConfig.size8,
                         ),
-                        CustomText('View All',
-                            fontSize: SizeConfig.large,
-                            color: AppColors.primaryColor,
-                            fontWeight: FontWeight.w400),
+                        _viewAll(),
                       ],
                     ),
                     SizedBox(height: SizeConfig.paddingXSL),
@@ -1063,10 +1121,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                                 businessServicesCategories:
                                     businessServicesCategories,
                               )),
-                          child: CustomText('View All',
-                              fontSize: SizeConfig.large,
-                              color: AppColors.primaryColor,
-                              fontWeight: FontWeight.w400),
+                          child: _viewAll(),
                         ),
                       ],
                     ),
@@ -1078,6 +1133,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                       itemCount:
                           businessOnboardingServicesCategories.take(6).length,
                       physics: NeverScrollableScrollPhysics(),
+                      padding: EdgeInsets.zero,
                       itemBuilder: (context, index) {
                         var item =
                             businessOnboardingServicesCategories[index];
@@ -1176,10 +1232,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                           // onTap: ()=> Get.to(()=> ServicesNearMeScreen(
                           //   businessServicesCategories: businessServicesCategories,
                           // )),
-                          child: CustomText('View All',
-                              fontSize: SizeConfig.large,
-                              color: AppColors.primaryColor,
-                              fontWeight: FontWeight.w400),
+                          child: _viewAll(),
                         ),
                       ],
                     ),
@@ -1191,6 +1244,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                       itemCount:
                           businessOnboardingFoodsCategories.take(6).length,
                       physics: NeverScrollableScrollPhysics(),
+                      padding: EdgeInsets.zero,
                       itemBuilder: (context, index) {
                         var item = businessOnboardingFoodsCategories[index];
                         return _commonCard(icon: item.icon, text: item.name);
@@ -1295,72 +1349,81 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
         fontWeight: FontWeight.w600);
   }
 
+  Widget _viewAll(){
+    return  CustomText(
+        'View All',
+        fontSize: SizeConfig.medium,
+        color: AppColors.primaryColor,
+        fontWeight: FontWeight.w600
+    );
+  }
+
   Widget _buildGap({double? gap}) {
     return SliverToBoxAdapter(
       child: SizedBox(height: gap ?? SizeConfig.paddingXSL),
     );
   }
 
-  Widget _buildStoreAiAssistant() {
-    return Obx(() => AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300), // Animation speed
-          reverseDuration: const Duration(milliseconds: 200),
-          transitionBuilder: (Widget child, Animation<double> animation) {
-            return ScaleTransition(scale: animation, child: child);
-          },
-          child: controller.isHeaderVisible.value
-              ? Padding(
-                  key: const ValueKey('ai_assistant_button'),
-                  padding: EdgeInsets.only(
-                      bottom: kBottomNavigationBarHeight + SizeConfig.size10),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(SizeConfig.size35),
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10.0),
-                      child: GradientFloatingButton(
-                        height: SizeConfig.size70,
-                        width: SizeConfig.size70,
-                        borderRadius: SizeConfig.size35,
-                        borderWidth: 1.0,
-                        padding: const EdgeInsets.all(8.0),
-                        boxShadow: [
-                          BoxShadow(
-                              color: AppColors.black.withValues(alpha: 0.30),
-                              blurRadius: 4.0,
-                              offset: const Offset(0, 2))
-                        ],
-                        backgroundGradientColors: const [
-                          Color(0xFFFFFFFF),
-                          Color(0xFFCCE0FF),
-                        ],
-                        borderGradientColors: const [
-                          Color(0xFF004FCE),
-                          Color(0xFF5C9BFF),
-                        ],
-                        onPressed: () {
-                          final chat = ChatViewController
-                              .inventoryAiChatListSearchModule;
-
-                          Get.to(() => AskInventoryChatScreen(
-                                profileImage: chat?.sender?.profileImage,
-                                name: chat?.sender?.name,
-                                contactNo: chat?.sender?.contactNo,
-                                conversationId: '',
-                                userId: '',
-                                businessId: '',
-                                type: chat?.sender?.accountType,
-                                isInitialMessage: false,
-                              ));
-                        },
-                        child:
-                            LocalAssets(imagePath: AppIconAssets.aiChatbotIcon),
-                      ),
-                    ),
-                  ),
-                )
-              : const SizedBox.shrink(),
-        ));
-  }
+  // Widget _buildStoreAiAssistant() {
+  //   return Obx(() => AnimatedSwitcher(
+  //         duration: const Duration(milliseconds: 300), // Animation speed
+  //         reverseDuration: const Duration(milliseconds: 200),
+  //         transitionBuilder: (Widget child, Animation<double> animation) {
+  //           return ScaleTransition(scale: animation, child: child);
+  //         },
+  //         child: controller.isHeaderVisible.value
+  //             ? Padding(
+  //                 key: const ValueKey('ai_assistant_button'),
+  //                 padding: EdgeInsets.only(
+  //                     bottom: kBottomNavigationBarHeight + SizeConfig.size10),
+  //                 child: ClipRRect(
+  //                   borderRadius: BorderRadius.circular(SizeConfig.size35),
+  //                   child: BackdropFilter(
+  //                     filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10.0),
+  //                     child: GradientFloatingButton(
+  //                       height: SizeConfig.size70,
+  //                       width: SizeConfig.size70,
+  //                       borderRadius: SizeConfig.size35,
+  //                       borderWidth: 1.0,
+  //                       padding: const EdgeInsets.all(8.0),
+  //                       boxShadow: [
+  //                         BoxShadow(
+  //                             color: AppColors.black.withValues(alpha: 0.30),
+  //                             blurRadius: 4.0,
+  //                             offset: const Offset(0, 2))
+  //                       ],
+  //                       backgroundGradientColors: const [
+  //                         Color(0xFFFFFFFF),
+  //                         Color(0xFFCCE0FF),
+  //                       ],
+  //                       borderGradientColors: const [
+  //                         Color(0xFF004FCE),
+  //                         Color(0xFF5C9BFF),
+  //                       ],
+  //                       onPressed: () {
+  //                         final chat = ChatViewController
+  //                             .inventoryAiChatListSearchModule;
+  //
+  //                         Get.to(() => AskInventoryChatScreen(
+  //                               profileImage: chat?.sender?.profileImage,
+  //                               name: chat?.sender?.name,
+  //                               contactNo: chat?.sender?.contactNo,
+  //                               conversationId: '',
+  //                               userId: '',
+  //                               businessId: '',
+  //                               type: chat?.sender?.accountType,
+  //                               isInitialMessage: false,
+  //                             ));
+  //                       },
+  //                       child:
+  //                           LocalAssets(imagePath: AppIconAssets.aiChatbotIcon),
+  //                     ),
+  //                   ),
+  //                 ),
+  //               )
+  //             : const SizedBox.shrink(),
+  //       ));
+  // }
 
   // ---------------- REUSABLE BANNER WIDGET ---------------- //
   Widget _bannerWidget({required String bannerImage, required double bannerHeight}) {
@@ -1378,6 +1441,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
       ),
     );
   }
+
   Widget _bannerWidget_(
       {required String bannerImage, required double bannerHeight}) {
     return ClipRRect(
@@ -1530,31 +1594,59 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
       ),
     );
   }
-  Widget _buildHorizontalTabs(List<String> labels) {
+
+  Widget _buildHorizontalTabs(List<String> arrTabs) {
+    final displayTabs = arrTabs.length > 5 ? arrTabs.sublist(0, 5) : arrTabs;
+
     return SizedBox(
-      height: 35, // Fixed height for the button row
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: EdgeInsets.symmetric(horizontal: 10),
-        itemCount: labels.length,
-        separatorBuilder: (context, index) => SizedBox(width: 8),
-        itemBuilder: (context, index) {
-          return Container(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-            decoration: BoxDecoration(
-              // Glassmorphism effect as seen in your image
-              color: AppColors.mainTextColor.withOpacity(0.6),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.white24),
-            ),
-            child: Center(
-              child: CustomText(
-                labels[index],
-               color: Colors.white,fontWeight: FontWeight.w500, fontSize: 12,
+      height: SizeConfig.size30,
+      width: SizeConfig.screenWidth,
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: displayTabs.asMap().entries.map((entry) {
+            int index = entry.key;
+            String title = entry.value;
+
+            return Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(
+                  right: index == displayTabs.length - 1 ? 0 : SizeConfig.size6,
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(6.0),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 2.0),
+                      decoration: BoxDecoration(
+                        color: AppColors.black.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(6.0),
+                        border: Border.all(
+                          color: AppColors.white.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      alignment: Alignment.center,
+                      child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                        child: CustomText(
+                          title,
+                          fontSize: SizeConfig.extraSmall,
+                          color: AppColors.white,
+                          fontWeight: FontWeight.w400,
+                          textAlign: TextAlign.center,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               ),
-            ),
-          );
-        },
+            );
+          }).toList(),
+        ),
       ),
     );
   }
@@ -1608,68 +1700,67 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
       ),
     );
   }
+
   Widget _commonCard({required String icon, required String text}) {
-    return AspectRatio(
-      aspectRatio: 1.0, // This keeps the card a perfect square
-      child: Container(
-        decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: AppColors.greyE5)),
-        child: Stack(
-          children: [
-            // 1. Background Image
-            Positioned.fill( // Use Positioned.fill to ensure it covers the card
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(10.0),
-                child: LocalAssets(
-                  imagePath: icon,
-                  boxFix: BoxFit.cover, // Ensures image fills without stretching
-                ),
+    return Container(
+      height: SizeConfig.size130,
+      decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: AppColors.greyE5)),
+      child: Stack(
+        children: [
+          // 1. Background Image
+          Positioned.fill( // Use Positioned.fill to ensure it covers the card
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10.0),
+              child: LocalAssets(
+                imagePath: icon,
+                boxFix: BoxFit.cover, // Ensures image fills without stretching
               ),
             ),
+          ),
 
-            // 2. Bottom Gradient Overlay
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: Container(
-                height: SizeConfig.size40, // Reduced height for better balance
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.vertical(bottom: Radius.circular(10.0)),
-                    gradient: LinearGradient(
-                        colors: [
-                          AppColors.black.withOpacity(0.0),
-                          AppColors.black.withOpacity(0.8),
-                        ],
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter
-                    )),
-              ),
+          // 2. Bottom Gradient Overlay
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              height: SizeConfig.size40, // Reduced height for better balance
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.vertical(bottom: Radius.circular(10.0)),
+                  gradient: LinearGradient(
+                      colors: [
+                        AppColors.black.withOpacity(0.0),
+                        AppColors.black.withOpacity(0.8),
+                      ],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter
+                  )),
             ),
+          ),
 
-            // 3. Text Label
-            Positioned(
-              left: 5.0,
-              right: 5.0,
-              bottom: 5.0,
-              child: CustomText(
-                text,
-                fontSize: SizeConfig.small,
-                fontWeight: FontWeight.w600,
-                color: AppColors.white,
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            )
-          ],
-        ),
+          // 3. Text Label
+          Positioned(
+            left: 5.0,
+            right: 5.0,
+            bottom: 5.0,
+            child: CustomText(
+              text,
+              fontSize: SizeConfig.small,
+              fontWeight: FontWeight.w600,
+              color: AppColors.white,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          )
+        ],
       ),
     );
   }
-  //
+
   // Widget _commonCard({required String icon, required String text}) {
   //   return Container(
   //     decoration: BoxDecoration(

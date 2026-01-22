@@ -1,5 +1,6 @@
 import 'dart:ui' as ui;
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -36,7 +37,7 @@ class TooltipGenerator {
     final double bubbleOffsetX = (totalWidth - bubbleWidth) / 2;
 
     final Paint bubblePaint = Paint()..color = const Color(0xFFE0E9EA)..style = PaintingStyle.fill;
-    final Paint borderPaint = Paint()..color = const Color(0xFF0085FE)..style = PaintingStyle.stroke..strokeWidth = 3.0;
+    final Paint borderPaint = Paint()..color = AppColors.primaryColor..style = PaintingStyle.stroke..strokeWidth = 3.0;
 
     final RRect bubbleRect = RRect.fromRectAndRadius(
       Rect.fromLTWH(bubbleOffsetX, 0, bubbleWidth, bubbleHeight),
@@ -47,12 +48,12 @@ class TooltipGenerator {
     canvas.drawRRect(bubbleRect, borderPaint);
 
     // Draw Title
-    final TextPainter titlePainter = TextPainter(
+    TextPainter titlePainter = TextPainter(
       text: TextSpan(
         text: title,
         style: TextStyle(
             color: AppColors.primaryColor,
-            fontSize: 24,
+            fontSize: SizeConfig.medium,
             fontWeight: FontWeight.w600),
 
       ),

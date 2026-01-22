@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/api/model/individual_profile_type_model.dart';
 import 'package:BlueEra/core/api/model/personal_profile_details_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -57,63 +58,63 @@ class _ProfileFieldStatus {
 class ViewPersonalDetailsController extends GetxController {
   bool updateBtnLoading = false;
 
-  RxBool isIndividualFieldLoading = false.obs;
-  RxList<IndividualFields> arrIndividualFields = <IndividualFields>[].obs;
-  // RxList<SubCategories> arrIndividualSubCategoriesList = <SubCategories>[].obs;
-  var arrIndividualSubCategoriesList = <SubCategories>[].obs;
-
-  // Method to update subcategories based on the parent selection
-  void updateSubCategories(List<SubCategories>? subCategories) {
-    // assignAll handles both clearing and adding in one go
-    arrIndividualSubCategoriesList.assignAll(subCategories ?? []);
-  }
-// Observable for the selected onboarding category
-  var selectedOnboardingCategory = Rxn<OnBoardingCategoryModel>();
-
-  // Your data list (usually kept in controller for clean architecture)
-  final List<OnBoardingCategoryModel> individualCategories =
-      individualOnboardingProfilesCategory;
-
-  void updateOnboardingCategory(OnBoardingCategoryModel? val) {
-    selectedOnboardingCategory.value = val;
-  }
-
-  // List of data
-  final List<OnBoardingCategoryModel> socialProfileList =
-      individualOnboardingSocialProfileList;
-
-  // Observable variable for selection
-  var selectedSocialProfile = Rxn<OnBoardingCategoryModel>();
-
-  // Method to update selection
-  void setSocialProfile(OnBoardingCategoryModel? value) {
-    selectedSocialProfile.value = value;
-  }
-
-
-  // Observable for the Consultation selection
-  var selectedConsultationProfile = Rxn<OnBoardingCategoryModel>();
-
-// The data list
-  final List<OnBoardingCategoryModel> consultationList =
-      individualOnboardingConsultationList;
-
-// Method to update selection
-  void setConsultationProfile(OnBoardingCategoryModel? val) {
-    selectedConsultationProfile.value = val;
-  }
-
-  // Observable for the Skill Work selection
-  var selectedSkillWorkProfile = Rxn<OnBoardingCategoryModel>();
-
-// The data list
-  final List<OnBoardingCategoryModel> skillWorkList =
-      individualOnboardingSelfWorkSkillWorkList;
-
-// Method to update selection
-  void setSkillWorkProfile(OnBoardingCategoryModel? val) {
-    selectedSkillWorkProfile.value = val;
-  }
+//   RxBool isIndividualFieldLoading = false.obs;
+//   RxList<IndividualFields> arrIndividualFields = <IndividualFields>[].obs;
+//   // RxList<SubCategories> arrIndividualSubCategoriesList = <SubCategories>[].obs;
+//   var arrIndividualSubCategoriesList = <SubCategories>[].obs;
+//
+//   // Method to update subcategories based on the parent selection
+//   void updateSubCategories(List<SubCategories>? subCategories) {
+//     // assignAll handles both clearing and adding in one go
+//     arrIndividualSubCategoriesList.assignAll(subCategories ?? []);
+//   }
+// // Observable for the selected onboarding category
+//   var selectedOnboardingCategory = Rxn<OnBoardingCategoryModel>();
+//
+//   // Your data list (usually kept in controller for clean architecture)
+//   final List<OnBoardingCategoryModel> individualCategories =
+//       individualOnboardingProfilesCategory;
+//
+//   void updateOnboardingCategory(OnBoardingCategoryModel? val) {
+//     selectedOnboardingCategory.value = val;
+//   }
+//
+//   // List of data
+//   final List<OnBoardingCategoryModel> socialProfileList =
+//       individualOnboardingSocialProfileList;
+//
+//   // Observable variable for selection
+//   var selectedSocialProfile = Rxn<OnBoardingCategoryModel>();
+//
+//   // Method to update selection
+//   void setSocialProfile(OnBoardingCategoryModel? value) {
+//     selectedSocialProfile.value = value;
+//   }
+//
+//
+//   // Observable for the Consultation selection
+//   var selectedConsultationProfile = Rxn<OnBoardingCategoryModel>();
+//
+// // The data list
+//   final List<OnBoardingCategoryModel> consultationList =
+//       individualOnboardingConsultationList;
+//
+// // Method to update selection
+//   void setConsultationProfile(OnBoardingCategoryModel? val) {
+//     selectedConsultationProfile.value = val;
+//   }
+//
+//   // Observable for the Skill Work selection
+//   var selectedSkillWorkProfile = Rxn<OnBoardingCategoryModel>();
+//
+// // The data list
+//   final List<OnBoardingCategoryModel> skillWorkList =
+//       individualOnboardingSelfWorkSkillWorkList;
+//
+// // Method to update selection
+//   void setSkillWorkProfile(OnBoardingCategoryModel? val) {
+//     selectedSkillWorkProfile.value = val;
+//   }
 
   @override
   void onInit() {
@@ -360,15 +361,9 @@ class ViewPersonalDetailsController extends GetxController {
         // await getEarnServiceOptData();
 
         /// need to verify (for checking is service exists or not)
-        if (personalProfileDetails.value.user?.profession?.toUpperCase() ==
-            SELF_EMPLOYED) {
-          //   if(isCheckServiceOpt){
-          //   await getUserServiceCreatedStatusUtils();
-          //   if (userServiceCreatedStatusGlobal.isEmpty || userServiceCreatedStatusGlobal == "false") {
-          //     await getUserServiceStatusController();
-          //   }
-          // }
-
+        if (personalProfileDetails.value.user?.profession?.toUpperCase() == SELF_EMPLOYED ||
+            personalProfileDetails.value.user?.profession?.toUpperCase() == GIG_WORKER
+        ) {
           await getServiceProviderStatusUtils();
           if (serviceProviderStatusGlobal.isNotEmpty) {
             if (serviceProviderStatusGlobal.toUpperCase() ==

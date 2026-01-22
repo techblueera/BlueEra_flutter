@@ -78,7 +78,7 @@ class _CommonDropdownDialogState<T> extends State<CommonDropdownDialog<T>> {
                             ? SvgPicture.asset(item.icon, height: 24, width: 24)
                             : null,
                         title: CustomText(
-                          widget.displayValue(item),
+                          widget.displayValue(item).replaceAll('\n', ' '),
                           fontWeight: FontWeight.w400,
                           fontSize: SizeConfig.size15,
                         ),
@@ -142,7 +142,7 @@ class _CommonDropdownDialogState<T> extends State<CommonDropdownDialog<T>> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                  child:widget.selectedValue != null
+                  child: widget.selectedValue != null
                       ? Row(
                     children: [
                       if (widget.selectedValue is CommentTypeModel)
@@ -155,7 +155,7 @@ class _CommonDropdownDialogState<T> extends State<CommonDropdownDialog<T>> {
                         const SizedBox(width: 8),
                       Flexible(
                         child: CustomText(
-                          widget.displayValue(widget.selectedValue as T),
+                          widget.displayValue(widget.selectedValue as T).replaceAll('\n', ' '),
                           color: Colors.black,
                           fontWeight: FontWeight.w400,
                           fontSize: SizeConfig.size15,

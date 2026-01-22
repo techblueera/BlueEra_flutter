@@ -2,7 +2,7 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
-import 'package:BlueEra/core/api/model/campus_life_categories_res_model.dart';
+import 'package:BlueEra/core/api/model/individual_profile_type_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -11,16 +11,17 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
+import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/individual_field_response_model.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
-import 'package:BlueEra/features/common/map/controller/visiting_hour_selector_controller.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/introduction_video_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
@@ -39,10 +40,12 @@ import 'package:BlueEra/features/personal/personal_profile/view/widget/count_clo
 import 'package:BlueEra/features/personal/personal_profile/view/widget/horizonatal_video_player.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/introduction_video_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/update_profile_view.dart';
+import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/common_drop_down-dialoge.dart';
 import 'package:BlueEra/widgets/common_drop_down.dart';
+import 'package:BlueEra/widgets/common_drop_down_icon_dialoge.dart';
 import 'package:BlueEra/widgets/common_horizontal_divider.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -54,6 +57,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../../widgets/common_back_app_bar.dart';
+import '../../../common/auth/model/get_categories_model.dart';
 import '../../../common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import '../../auth/controller/view_personal_details_controller.dart';
 
@@ -660,182 +664,344 @@ class _PersonalProfileSetupNewScreenState
   }
 
   void _showCategoryBottomSheet() {
+    final controller = Get.find<ViewPersonalDetailsController>();
+    final authController = Get.find<AuthController>();
+
+
+    final user = controller.personalProfileDetails.value.user;
+    IndividualProfileTypeModel selectedProfileType =
+        IndividualProfileTypeModel.fromString(user?.profileType ?? SOCIAL_PROFILE);
+    OnBoardingCategoryModel? selectedProfession;
+    RxList<OnBoardingCategoryModel> individualProfessionList = <OnBoardingCategoryModel>[].obs;
+
+    String designation = user?.designation ?? '';
+    IndividualFields? _selectedContentCreatorField;
+    SubCategories? _selectedContentCreatorSpecification;
+    SubCategories? _selectedArtistObj;
+    SubCategories? _selectedProfessionalObj;
+    final TextEditingController designationController = TextEditingController();
+
+    // Helper: Update the list based on Profile Type
+    void updateCategoryOfProfession(String typeId) {
+      switch (typeId) {
+        case SOCIAL_PROFILE:
+          individualProfessionList.value = individualOnboardingSocialProfileList;
+          break;
+        case GIG_WORKER:
+          individualProfessionList.value = individualOnboardingSelfWorkTransportList;
+          break;
+        case SELF_EMPLOYED:
+          individualProfessionList.value = individualOnboardingSelfSkillWorkList;
+          break;
+        case PROFESSIONAL:
+          individualProfessionList.value = individualOnboardingConsultationList;
+          break;
+        default:
+          individualProfessionList.clear();
+      }
+    }
+
+    void initData() {
+      updateCategoryOfProfession(selectedProfileType.type);
+
+      String? currentSlug = user?.profession;
+      if (currentSlug != null && currentSlug.isNotEmpty) {
+        var match = individualProfessionList.firstWhereOrNull((e) => e.slugId == currentSlug);
+        selectedProfession = match;
+      }
+
+      if(selectedProfileType.type == PROFESSIONAL ||
+          selectedProfession?.slugId == CONTENT_CREATOR ||
+          selectedProfession?.slugId == ARTIST
+      ){
+        // Dropdown values
+        authController.fetchIndividualFields(
+            tagId: currentSlug ?? ''
+        );
+      } else{
+         // Text field
+        designationController.text = designation;
+      }
+
+    }
+
+    initData();
 
     Get.bottomSheet(
-      SafeArea(
-        child: Container(
-          // padding: EdgeInsets.all(SizeConfig.size20),
-          padding: EdgeInsets.only(bottom: 30, right: 20, left: 20, top: 15),
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min, // Important to keep sheet compact
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CustomText(
-                "Select Profile Category",
-                fontSize: SizeConfig.large,
-                fontWeight: FontWeight.w500,
+      StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return SafeArea(
+            child: Container(
+              // padding: EdgeInsets.all(SizeConfig.size20),
+              padding: EdgeInsets.only(bottom: 30, right: 20, left: 20, top: 15),
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
               ),
-              SizedBox(height: SizeConfig.paddingM),
+              child: Column(
+                mainAxisSize: MainAxisSize.min, // Important to keep sheet compact
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
 
-              // The Dropdown with Obx inside the BottomSheet
-              Obx(() => CommonDropdownDialog<OnBoardingCategoryModel>(
-                    // Data from your controller
-                    items: viewProfileController.individualCategories,
-
-                    // Reactive selected value
-                    selectedValue:
-                        viewProfileController.selectedOnboardingCategory.value,
-
-                    title: 'Select Profile Category',
-                    hintText: 'Select Profile Category',
-
-                    // Clean up the display name
-                    displayValue: (item) => item.name.replaceAll('\n', ' '),
-
+                  CustomText(
+                    "Select Profile Type",
+                    fontSize: SizeConfig.large,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  SizedBox(height: SizeConfig.size8),
+                  CommonDropdownIconDialog<IndividualProfileTypeModel>(
+                    items: profileTypeList,
+                    selectedValue: selectedProfileType,
+                    title: 'Select Profile Type',
+                    hintText: 'Select Profile Type',
+                    displayValue: (item) => item.title,
                     onChanged: (val) {
-                      // Update GetX state instead of setState
-                      viewProfileController.updateOnboardingCategory(val);
-                      // Logic/Logs
-                      if (val != null) {
-                        logs("Selected SlugID: ${val.slugId}");
-                      }
+                      if(val == null || selectedProfileType.type == val.type) return;
+
+                      setState((){
+                        selectedProfileType = val;
+                        updateCategoryOfProfession(val.type);
+                        selectedProfession = null;
+                        designationController.clear();
+                        _selectedContentCreatorField = null;
+                        _selectedContentCreatorSpecification = null;
+                        _selectedArtistObj = null;
+                       _selectedProfessionalObj = null;
+                      });
+                      log('profile type-- ${selectedProfileType.type}');
                     },
-                  )),
+                    displayValueSubTitle: (item) => item.subTitle,
+                    displayValueImagePath: (item) => item.icon,
+                  ),
 
-              SizedBox(height: SizeConfig.paddingL),
+                  SizedBox(height: SizeConfig.paddingM),
 
-              Obx(() {
-                if (viewProfileController
-                        .selectedOnboardingCategory.value?.slugId ==
-                    SOCIAL_PROFILE) {
-                  return Column(
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CustomText(
-                        "Select Social Profile",
+                        "Select Profession",
                         fontSize: SizeConfig.large,
                         fontWeight: FontWeight.w500,
                       ),
-                      SizedBox(height: SizeConfig.paddingXL),
-                      Obx(() => CommonDropdownDialog<OnBoardingCategoryModel>(
-                            // 1. Data Source from Controller
-                            items: viewProfileController.socialProfileList,
+                      SizedBox(height: SizeConfig.size8),
+                     CommonDropdownDialog<OnBoardingCategoryModel>(
+                        items: individualProfessionList,
+                        selectedValue: selectedProfession,
+                        title: 'Select Profession',
+                        hintText: selectedProfileType.hintText,
+                        displayValue: (item) => item.name.tr,
+                        onChanged: (val) {
+                          if (val != null) {
+                            selectedProfession = val;
+                            logs("Selected Profession Slug: ${selectedProfession?.slugId}");
 
-                            // 2. Reactive Selection
-                            selectedValue: viewProfileController
-                                .selectedSocialProfile.value,
+                            if(selectedProfileType.type == PROFESSIONAL ||
+                                selectedProfession?.slugId == CONTENT_CREATOR ||
+                                selectedProfession?.slugId == ARTIST
+                            ){
+                              authController.fetchIndividualFields(
+                                  tagId: selectedProfession?.slugId ?? ''
+                              );
+                            }else{
+                              designationController.clear();
+                            }
 
-                            // 3. UI Labels
-                            title: 'Select Social Profile',
-                            hintText: 'Eg. Politician, Student...',
+                          setState(() {});
 
-                            // 4. Display Logic (Handling Translations)
-                            displayValue: (item) => item.name.tr,
-
-                            // 5. State Update Logic
-                            onChanged: (val) {
-                              if (val != null) {
-                                viewProfileController.setSocialProfile(val);
-
-                                // Optional: Log for debugging
-                                logs(
-                                    "Selected Social Profile Slug: ${val.slugId}");
-                              }
-                            },
-
-                            // // 6. Validation Logic
-                            // validator: (value) {
-                            //   if (value == null) {
-                            //     return "Please select a social profile";
-                            //   }
-                            //   return null;
-                            // },
-                          )),
-                      SizedBox(height: SizeConfig.paddingXL),
+                          }
+                        },
+                      ),
                     ],
-                  );
-                } else if (viewProfileController
-                        .selectedOnboardingCategory.value?.slugId ==
-                    SELF_EMPLOYED) {
-                  return CommonDropdownDialog<OnBoardingCategoryModel>(
-                    // Data source from controller
-                    items: viewProfileController.skillWorkList,
+                  ),
 
-                    // Reactive selected value
-                    selectedValue:
-                        viewProfileController.selectedSkillWorkProfile.value,
+                  SizedBox(height: SizeConfig.paddingM),
 
-                    // UI Labels
-                    title: 'Select Skill / Work',
-                    hintText: 'Eg. Electrician, Plumber...',
+                  if(selectedProfileType.type == PROFESSIONAL)...[
+                    CustomText(
+                      "Expertise",
+                      fontSize: SizeConfig.medium,
+                      color: AppColors.mainTextColor,
+                    ),
+                    SizedBox(
+                      height: SizeConfig.size10,
+                    ),
+                    Obx(() => authController.isIndividualFieldLoading.value
+                        ? Center(
+                      child: CircularProgressIndicator(),
+                    )
+                        : CommonDropdownDialog<SubCategories>(
+                      items: List<SubCategories>.from(
+                          authController.arrIndividualFields.isNotEmpty
+                              ? (authController.arrIndividualFields[0].subcategories ?? [])
+                              : []
+                      ),
+                      selectedValue: _selectedProfessionalObj,
+                      title: 'Expertise',
+                      hintText: 'Eg. Loan Consultant...',
+                      displayValue: (s) => s.name ?? "",
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedProfessionalObj = value;
+                        });
+                      },
+                    )),
+                  ],
 
-                    // Display name logic: handle .tr for AppStrings items
-                    displayValue: (item) {
-                      // If the name is from AppStrings, it might need .tr
-                      // depending on your localization setup.
-                      return item.name.tr;
+                  if(selectedProfession?.slugId == ARTIST)
+                    ...[
+
+                      ///selectYourProfession
+                      CustomText(
+                        "Select Your Art / Skill",
+                        fontSize: SizeConfig.medium,
+                        color: AppColors.mainTextColor,
+                      ),
+                      SizedBox(
+                        height: SizeConfig.size10,
+                      ),
+
+                      Obx(() => authController.isIndividualFieldLoading.value
+                          ? Center(
+                        child: CircularProgressIndicator(),
+                      )
+                          : Column(
+                        children: [
+                          CommonDropdownDialog<SubCategories>(
+                            items: List<SubCategories>.from(
+                                authController.arrIndividualFields.isNotEmpty
+                                    ? (authController.arrIndividualFields[0].subcategories ?? [])
+                                    : []
+                            ),
+                            selectedValue: _selectedArtistObj,
+                            title: 'Select Your Art / Skill',
+                            hintText: 'Eg. Actor...',
+                            displayValue: (s) => s.name ?? "",
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedArtistObj = value;
+                              });
+                            },
+                          ),
+                        ],
+                      )),
+                    ],
+
+                  if(selectedProfession?.slugId == CONTENT_CREATOR)...[
+                    Obx(() => authController.isIndividualFieldLoading.value
+                        ? Center(
+                      child: CircularProgressIndicator(),
+                    )
+                        : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CustomText(
+                          'Select your Field',
+                          fontSize: SizeConfig.medium,
+                          color: AppColors.mainTextColor,
+                        ),
+                        SizedBox(
+                          height: SizeConfig.size10,
+                        ),
+                        CommonDropdownDialog<IndividualFields>(
+                          items: authController.arrIndividualFields,
+                          selectedValue: _selectedContentCreatorField,
+                          title: 'Select your Field',
+                          hintText:
+                          'Eg. Media Creators, Writing Creators',
+                          displayValue: (value) => value.name ?? '',
+                          onChanged: (value) {
+                            _selectedContentCreatorField = value;
+                            authController.arrIndividualSubCategories
+                                .clear();
+                            authController.arrIndividualSubCategories
+                                .addAll(_selectedContentCreatorField
+                                ?.subcategories ??
+                                []);
+                            setState(() {});
+                          },
+                          // validator: (value) {
+                          //   if (value == null) {
+                          //     return 'Enter your Specification';
+                          //   }
+                          //   return null;
+                          // },
+                        ),
+                        SizedBox(
+                          height: SizeConfig.paddingM,
+                        ),
+                        CustomText(
+                          'Select Your Specification',
+                          fontSize: SizeConfig.medium,
+                          color: AppColors.mainTextColor,
+                        ),
+                        SizedBox(
+                          height: SizeConfig.size10,
+                        ),
+                        CommonDropdownDialog<SubCategories>(
+                          items: authController.arrIndividualSubCategories,
+                          selectedValue:
+                          _selectedContentCreatorSpecification,
+                          title: 'Select Your Specification',
+                          hintText: 'Eg. Video Creator, BLOGGER',
+                          displayValue: (s) => s.name ?? "",
+                          onChanged: (value) {
+                            setState(() {
+                              _selectedContentCreatorSpecification =
+                                  value;
+                            });
+                          },
+                          // validator: (value) {
+                          //   if (value == null) {
+                          //     return 'Please select your gender';
+                          //   }
+                          //   return null;
+                          // },
+                        )
+                      ],
+                    ))
+                  ],
+
+                  if((selectedProfileType.type  != SELF_EMPLOYED) &&
+                  (selectedProfileType.type  != GIG_WORKER) &&
+                  (selectedProfileType.type  != PROFESSIONAL) &&
+                  (selectedProfession?.slugId != ARTIST) &&
+                  (selectedProfession?.slugId != CONTENT_CREATOR) &&
+                  (selectedProfession?.slugId != HOMEMAKER) &&
+                  (selectedProfession?.slugId != SENIOR_CITIZEN) &&
+                  (selectedProfession?.slugId != FARMER) &&
+                  (selectedProfession?.slugId != STUDENT) &&
+                  (selectedProfession?.slugId != OTHERS)) ...[
+                    CommonTextField(
+                      isValidate: false,
+                      textEditController: designationController,
+                      inputLength: 24,
+                      keyBoardType: TextInputType.text,
+                      regularExpression:
+                      RegularExpressionUtils.alphabetSpacePattern,
+                      title: "Designation / Expertise",
+                      hintText: "Enter your designation/expertise",
+                    ),
+                  ],
+
+
+                  SizedBox(height: SizeConfig.paddingL),
+
+                  // Optional Confirm Button
+                  PositiveCustomBtn(
+                    onTap: () {
+                      // viewProfileController.personalProfileDetails.value.user
+                      //     ?.designation = viewProfileController
+                      //         .selectedOnboardingCategory.value?.name ??
+                      //     "";
                     },
-
-                    // Update state on change
-                    onChanged: (val) {
-                      if (val != null) {
-                        viewProfileController.setSkillWorkProfile(val);
-                        logs("Selected Skill Slug: ${val.slugId}");
-                      }
-                    },
-                  );
-                } else if (viewProfileController
-                        .selectedOnboardingCategory.value?.slugId ==
-                    CONSULTANT) {
-                  return CommonDropdownDialog<OnBoardingCategoryModel>(
-                    // Data source from controller
-                    items: viewProfileController.consultationList,
-
-                    // Reactive selected value
-                    selectedValue:
-                        viewProfileController.selectedConsultationProfile.value,
-
-                    // UI Labels
-                    title: 'Select Professional Service',
-                    hintText: 'Eg. Legal, Finance, Tech...',
-
-                    // Display name logic: remove newlines for the dropdown view
-                    displayValue: (item) => item.name.replaceAll('\n', ' '),
-
-                    // Update state on change
-                    onChanged: (val) {
-                      if (val != null) {
-                        viewProfileController.setConsultationProfile(val);
-                        logs("Selected Consultation Slug: ${val.slugId}");
-                      }
-                    },
-                  );
-                }
-                return SizedBox();
-              }),
-              SizedBox(height: SizeConfig.paddingL),
-
-
-
-              SizedBox(height: SizeConfig.paddingL),
-
-              // Optional Confirm Button
-              PositiveCustomBtn(
-                onTap: () {
-                  viewProfileController.personalProfileDetails.value.user
-                      ?.designation = viewProfileController
-                          .selectedOnboardingCategory.value?.name ??
-                      "";
-                },
-                title: "Done",
+                    title: "Done",
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
+            ),
+            );
+          }
       ),
       isScrollControlled: true, // Allows content to define height
       backgroundColor: Colors.transparent,
@@ -1097,12 +1263,7 @@ class _PersonalProfileSetupNewScreenState
                           false)
                         InkWell(
                           onTap: () {
-                            viewProfileController
-                                .selectedOnboardingCategory.value = null;
-                            viewProfileController.selectedSocialProfile.value =
-                                null;
-
-                            // _showCategoryBottomSheet();
+                            _showCategoryBottomSheet();
                           },
                           child: Container(
                             padding: const EdgeInsets.symmetric(
@@ -1113,13 +1274,24 @@ class _PersonalProfileSetupNewScreenState
                                 border: BoxBorder.all(
                                   color: AppColors.secondaryTextColor,
                                 )),
-                            child: CustomText(
-                              viewProfileController.personalProfileDetails.value
-                                      .user?.designation ??
-                                  '',
-                              color: AppColors.secondaryTextColor,
-                              fontSize: SizeConfig.small,
-                              fontWeight: FontWeight.w400,
+                            child: Row(
+                              children: [
+                                CustomText(
+                                  viewProfileController.personalProfileDetails.value
+                                          .user?.designation ??
+                                      '',
+                                  color: AppColors.secondaryTextColor,
+                                  fontSize: SizeConfig.small,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                                SizedBox(width: SizeConfig.size10),
+                                LocalAssets(
+                                  imagePath: AppIconAssets.editIcon,
+                                  height: SizeConfig.size12,
+                                  width: SizeConfig.size12,
+                                  imgColor: AppColors.primaryColor,
+                                ),
+                              ],
                             ),
                           ),
                         )
