@@ -125,6 +125,7 @@ class _EarnServiceScreenState extends State<EarnServiceScreen>
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
+      isScrollControlled: true,
       builder: (_) => EarnServiceBottomSheet(),
     );
   }

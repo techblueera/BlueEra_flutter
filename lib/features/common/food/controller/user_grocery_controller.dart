@@ -194,6 +194,8 @@ class UserGroceryController extends GetxController{
         userGroceryPage = 1;
         userGroceryHasMore = true;
       }
+
+
       String postalCode = LocationService.userCurrentAddress.value.postalCode;
       if(postalCode.isEmpty) return;
 

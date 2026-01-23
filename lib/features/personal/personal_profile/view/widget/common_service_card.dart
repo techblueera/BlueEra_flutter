@@ -1,14 +1,13 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/features/common/auth/model/individual_profiile_category.dart';
+import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
 import 'package:flutter/material.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/widget/service_item.dart';
 
 class CommonServiceCard extends StatelessWidget {
-  final IndividualProfileCategory service;
+  final CollapsibleGridModel service;
   final VoidCallback? onTap;
   final double spacing;
   final bool isSelected;
@@ -29,7 +28,7 @@ class CommonServiceCard extends StatelessWidget {
       // splashColor: Colors.red,
       // highlightColor: Colors.white,
       child: Container(
-        padding: EdgeInsets.all(SizeConfig.size5),
+        padding: EdgeInsets.all(SizeConfig.size4),
         decoration: BoxDecoration(
           color: AppColors.white,
           // color: service.bgColor,
@@ -45,22 +44,29 @@ class CommonServiceCard extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            LocalAssets(
-                imagePath: service.icon,
-                // imgColor: service.labelColor,
-                height: SizeConfig.size30,
-                width: SizeConfig.size30,
+            SizedBox(
+              height: SizeConfig.size45,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: LocalAssets(
+                    imagePath: service.icon,
+                    boxFix: BoxFit.cover,
+                    height: SizeConfig.size45,
+                    // width: SizeConfig.size40,
+                ),
+              ),
             ),
             SizedBox(height: spacing),
-            CustomText(
-              service.name,
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              fontSize: SizeConfig.small,
-              fontWeight: FontWeight.w400,
-              // color: service.labelColor,
-              color: AppColors.secondaryTextColor,
+            Flexible(
+              child: CustomText(
+                service.name,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                fontSize: SizeConfig.small,
+                fontWeight: FontWeight.w400,
+                color: AppColors.secondaryTextColor,
+              ),
             ),
           ],
         ),

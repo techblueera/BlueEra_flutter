@@ -41,7 +41,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      authController.selectedIndividualOnboardingProfile.value = OnBoardingCategoryModel(
+      authController.selectedIndividualOnboardingProfile.value = OnboardingCategoryModel(
         name: 'Social profile',
         slugId: SOCIAL_PROFILE,
         icon: AppIconAssets.politicianIcon,
@@ -124,8 +124,8 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
                             case SELF_EMPLOYED:
                               return _selfWorkContent(
                                   key: ValueKey(SELF_EMPLOYED),
-                                  arrSelfWorkTransportCategory: individualOnboardingSelfWorkTransportList,
-                                  arrSelfWorkSkilledCategory: individualOnboardingSelfSkillWorkList
+                                  arrSelfWorkTransportCategory: individualOnboardingGigWorkList,
+                                  arrSelfWorkSkilledCategory: individualOnboardingSkillWorkList
                               );
                             case CONSULTANT:
                               return _consultationContent(
@@ -350,7 +350,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
 
   Widget _socialProfilesContent({
     Key? key,
-    required List<OnBoardingCategoryModel> arrIndividualCategory}) {
+    required List<OnboardingCategoryModel> arrIndividualCategory}) {
     return SingleChildScrollView(
       key: key,
       padding: const EdgeInsets.all(8),
@@ -378,8 +378,8 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
 
   Widget _selfWorkContent({
     Key? key,
-    required List<OnBoardingCategoryModel> arrSelfWorkTransportCategory,
-    required List<OnBoardingCategoryModel> arrSelfWorkSkilledCategory,
+    required List<OnboardingCategoryModel> arrSelfWorkTransportCategory,
+    required List<OnboardingCategoryModel> arrSelfWorkSkilledCategory,
   }) {
     return SingleChildScrollView(
       key: key,
@@ -443,7 +443,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
 
   Widget _consultationContent({
     Key? key,
-    required List<OnBoardingCategoryModel> arrConsultationsCategory}) {
+    required List<OnboardingCategoryModel> arrConsultationsCategory}) {
     return SingleChildScrollView(
       key: key,
       padding: const EdgeInsets.all(8),
@@ -501,8 +501,8 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
 
   Widget _foodNdGroceryContent({
     Key? key,
-    required List<OnBoardingCategoryModel> arrGroceryCategory,
-    required List<OnBoardingCategoryModel> arrFoodNdRestaurantCategory,
+    required List<OnboardingCategoryModel> arrGroceryCategory,
+    required List<OnboardingCategoryModel> arrFoodNdRestaurantCategory,
   }) {
     return SingleChildScrollView(
       key: key,
@@ -566,7 +566,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
 
   Widget _businessContent({
     Key? key,
-    required List<OnBoardingCategoryModel> arrBusinessCategory}) {
+    required List<OnboardingCategoryModel> arrBusinessCategory}) {
     return SingleChildScrollView(
       key: key,
       padding: const EdgeInsets.all(8),
@@ -592,7 +592,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
     );
   }
 
-  Widget _commonCard(OnBoardingCategoryModel category, {int? textMaxLine}) {
+  Widget _commonCard(OnboardingCategoryModel category, {int? textMaxLine}) {
     return GestureDetector(
       onTap: () {
         if(category.accountType == AppConstants.business){

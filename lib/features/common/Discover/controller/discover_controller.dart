@@ -12,6 +12,7 @@ import 'package:BlueEra/features/business/auth/controller/view_business_details_
 import 'package:BlueEra/features/common/auth/model/individual_profiile_category.dart';
 import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
 import 'package:BlueEra/features/common/Discover/repo/discover_repo.dart';
+import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/model/rental_service_response.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -54,7 +55,7 @@ class DiscoverController extends GetxController{
   final List<DiscoverFilter> discoverFilters = DiscoverFilter.values;
   Rx<DiscoverFilter> selectedDiscoverFilter = DiscoverFilter.home.obs;
 
-  Rx<IndividualProfileCategory?> selectedEarnServiceData = Rx<IndividualProfileCategory?>(null);
+  Rx<CollapsibleGridModel?> selectedEarnServiceData = Rx<CollapsibleGridModel?>(null);
   RxInt selectedTabIndex = 0.obs;
   final List<CategoryFilter> filters = CategoryFilter.values;
   Rx<CategoryFilter> selectedFilter = CategoryFilter.nearest.obs;

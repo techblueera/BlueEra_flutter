@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/constants/string_utils.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/auth/model/individual_profiile_category.dart';
+import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/change_profession_dialog.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/change_profession_warning_dialog.dart';
@@ -26,7 +27,7 @@ class HomeServiceGuideBottomSheet extends StatefulWidget {
 
 class _HomeServiceGuideBottomSheetState extends State<HomeServiceGuideBottomSheet> {
   int? selectedIndex;
-  IndividualProfileCategory? selectedService;
+  CollapsibleGridModel? selectedService;
 
   @override
   Widget build(BuildContext context) {

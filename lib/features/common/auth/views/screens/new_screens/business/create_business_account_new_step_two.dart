@@ -349,7 +349,7 @@ class _CreateBusinessAccountNewStepTwoState
                           RegularExpressionUtils.alphabetSpacePattern,
                           title: AppStrings.city,
                           hintText: AppStrings.city,
-                          isValidate: false,
+                          isValidate: true,
                           readOnly: true,
                         ),
                         SizedBox(

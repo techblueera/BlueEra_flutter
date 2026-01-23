@@ -56,8 +56,8 @@ class AuthController extends GetxController {
   RxInt? selectedDay = 0.obs, selectedMonth = 0.obs, selectedYear = 0.obs;
 
   RxString selectedParentSlug = AppConstants.individual.obs;
-  Rxn<OnBoardingCategoryModel> selectedIndividualOnboardingProfile = Rxn<OnBoardingCategoryModel>();
-  Rxn<OnBoardingCategoryModel> selectedBusinessOnboardingProfile = Rxn<OnBoardingCategoryModel>();
+  Rxn<OnboardingCategoryModel> selectedIndividualOnboardingProfile = Rxn<OnboardingCategoryModel>();
+  Rxn<OnboardingCategoryModel> selectedBusinessOnboardingProfile = Rxn<OnboardingCategoryModel>();
 
 
   RxBool isAppLoading = false.obs;

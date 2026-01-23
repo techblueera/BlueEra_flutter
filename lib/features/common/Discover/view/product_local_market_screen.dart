@@ -21,7 +21,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class ProductLocalMarketScreen extends StatefulWidget {
-  final List<OnBoardingCategoryModel> businessProductsCategories;
+  final List<OnboardingCategoryModel> businessProductsCategories;
 
   const ProductLocalMarketScreen({
     super.key,
@@ -36,7 +36,7 @@ class ProductLocalMarketScreen extends StatefulWidget {
 class _ProductLocalMarketScreenState extends State<ProductLocalMarketScreen> {
   late PageController _pageController;
   int selectedTabIndex = 0;
-  late List<OnBoardingCategoryModel> _businessProductsCategories;
+  late List<OnboardingCategoryModel> _businessProductsCategories;
 
   @override
   void initState() {
@@ -478,8 +478,8 @@ class _ProductLocalMarketScreenState extends State<ProductLocalMarketScreen> {
 
   // --- Widget: Category Card ---
   Widget _buildCategoryItem({
-    required OnBoardingCategoryModel productCategory,
-    required Function(OnBoardingCategoryModel item)? onTap,
+    required OnboardingCategoryModel productCategory,
+    required Function(OnboardingCategoryModel item)? onTap,
   }) {
     return InkWell(
       onTap: () {

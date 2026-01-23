@@ -4,23 +4,19 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/constants/string_utils.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
-import 'package:BlueEra/features/common/auth/model/individual_profiile_category.dart';
-import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
-import 'package:BlueEra/features/common/delivery_partner/view/rider_profile_status_screen.dart';
+import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/model/earn_service_model_response.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/repo/earn_service_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/change_profession_dialog.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/change_profession_warning_dialog.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/repo/inventory_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/food_service_guide_bottom_sheet.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/widget/gig_work_service_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/home_service_guide_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/product_service_guide_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/rental_service_guide_bottom_sheet.dart';
@@ -28,7 +24,6 @@ import 'package:BlueEra/features/personal/personal_profile/view/widget/self_work
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../widget/service_item.dart';
 
 class EarnServiceController extends GetxController{
   Rx<ApiResponse> ownProductsResponse =
@@ -60,7 +55,7 @@ class EarnServiceController extends GetxController{
   final List<EarnServiceOrdersStatus> earnServiceOrdersTabs = EarnServiceOrdersStatus.values;
   RxInt selectedEarnServiceOrderIndex = 0.obs;
 
-  void handleServiceTap(BuildContext context, IndividualProfileCategory service) async {
+  void handleServiceTap(BuildContext context, CollapsibleGridModel service) async {
     switch (service.slugId) {
       case SELF_EMPLOYED:
         // if(earnServiceCreatedStatusGlobal == 'true'){
@@ -76,22 +71,15 @@ class EarnServiceController extends GetxController{
 
         break;
 
-      case DELIVERY_RIDER:
+      case GIG_WORKER:
 
-        // _handleDeliveryPartner();
-
-        ProfessionChangeDialogHelper().shouldShowUpdateDesignationDialog(
+        showModalBottomSheet(
           context: context,
-          designation: DELIVERY_RIDER,
+          backgroundColor: Colors.transparent,
+          isScrollControlled: true,
+          builder: (_) => GigWorkServiceGuideBottomSheet(),
         );
 
-        break;
-
-      case CAR_TAXI:
-        // ProfessionChangeDialogHelper().shouldShowUpdateDesignationDialog(
-        //   context: context,
-        //   designation: CAR_DRIVER_TAXI,
-        // );
         break;
 
       case HOME_MADE_PRODUCTS_OPTION:
@@ -197,61 +185,7 @@ class EarnServiceController extends GetxController{
     }
   }
 
-  void _handleDeliveryPartner() {
-    final controller = getOrPut(() => DeliveryPartnerController());
 
-    final stepStatus = controller.stepStatus;
-
-    if (stepStatus.isEmpty) {
-      Get.toNamed(RouteHelper.getPersonalInformationRidingScreenRoute());
-      return;
-    }
-
-    // Check if all completed
-    final allCompleted = stepStatus.values.every((status) => status == true);
-
-    if (allCompleted) {
-      commonSnackBar(message: AppStrings.allStepsSubmitted.tr);
-      return;
-    }
-
-    // Find first incomplete step
-    final firstIncompleteEntry =
-    stepStatus.entries.firstWhere((entry) => entry.value == false);
-
-
-    if (firstIncompleteEntry.key == RiderProfileStep.personalInfo) {
-      Get.toNamed(RouteHelper.getPersonalInformationRidingScreenRoute());
-    } else if (firstIncompleteEntry.key == RiderProfileStep.addressInfo) {
-      Get.toNamed(RouteHelper.getAddressLocationRidingScreenRoute());
-    } else {
-      Get.to(RiderProfileStatusScreen(
-        screeName: '',
-      ));
-      // Get.toNamed(RouteHelper.getRiderProfileStatusScreenRoute());
-    }
-
-    // switch (firstIncompleteEntry.key) {
-    //   case RiderProfileStep.personalInfo:
-    //     Get.toNamed(RouteHelper.getPersonalInformationRidingScreenRoute());
-    //     break;
-    //   case RiderProfileStep.addressInfo:
-    //     Get.toNamed(RouteHelper.getAddressLocationRidingScreenRoute());
-    //     break;
-    //   case RiderProfileStep.personalIdentificationInfo:
-    //     Get.toNamed(RouteHelper.getPersonalIdentificationRidingScreenRoute());
-    //     break;
-    //   case RiderProfileStep.drivingInfo:
-    //     Get.toNamed(RouteHelper.getDrivingVerificationRidingScreenRoute());
-    //     break;
-    //   case RiderProfileStep.vehicleImagesInfo:
-    //     Get.toNamed(RouteHelper.getVehicleImagesRidingScreenRoute());
-    //     break;
-    //   case RiderProfileStep.vehicleInfo:
-    //     Get.toNamed(RouteHelper.getVehicleInformationRidingScreenRoute());
-    //     break;
-    // }
-  }
 
   Future<void> fetchOwnProducts({bool isLoadMore = false}) async {
     if (isLoadMore) {

@@ -10,6 +10,7 @@ import 'package:BlueEra/features/common/Discover/widget/service_category_item.da
 import 'package:BlueEra/features/common/auth/model/individual_profiile_category.dart';
 import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
+import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -27,8 +28,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class AllSelfProfessionScreen extends StatefulWidget {
-  final List<IndividualProfileCategory> selfEmployedCategories;
-  final IndividualProfileCategory selectedSelfProfessionData;
+  final List<CollapsibleGridModel> selfEmployedCategories;
+  final CollapsibleGridModel selectedSelfProfessionData;
 
   const AllSelfProfessionScreen({
     super.key,
@@ -40,7 +41,7 @@ class AllSelfProfessionScreen extends StatefulWidget {
 }
 
 class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
-  late List<IndividualProfileCategory> selfEmployedCategories;
+  late List<CollapsibleGridModel> selfEmployedCategories;
   final controller = getOrPut(() => DiscoverController());
   ScrollController scrollController = ScrollController();
   String serviceSubType = EarnServiceTypes.selfWork.label;

@@ -53,7 +53,7 @@ class TooltipGenerator {
         text: title,
         style: TextStyle(
             color: AppColors.primaryColor,
-            fontSize: SizeConfig.medium,
+            fontSize: SizeConfig.title,
             fontWeight: FontWeight.w600),
 
       ),

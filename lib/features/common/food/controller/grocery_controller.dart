@@ -5,9 +5,11 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
+import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/food/model/children_of_grocery_category_response.dart';
 import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
 import 'package:BlueEra/features/common/food/model/grocery_product_model.dart';
@@ -416,6 +418,7 @@ class GroceryController extends GetxController {
       isAddGroceryProductsLoading.value = true;
 
       final payload = buildInventoryPayload();
+      if(payload.isEmpty) return;
 
       print(jsonEncode(payload));
 
@@ -449,9 +452,14 @@ class GroceryController extends GetxController {
 
   List<Map<String, dynamic>> buildInventoryPayload() {
     List<Map<String, dynamic>> payload = [];
+    final viewBusinessDetailsController = getOrPut(() => ViewBusinessDetailsController());
+    String city = viewBusinessDetailsController.businessProfileDetails?.data?.cityStatePincode ?? LocationService.userCurrentAddress.value.city;
+    String postalCode = viewBusinessDetailsController.businessProfileDetails?.data?.pincode ?? LocationService.userCurrentAddress.value.postalCode;
 
-    String city = LocationService.userCurrentAddress.value.city;
-    String postalCode = LocationService.userCurrentAddress.value.postalCode;
+    if(city.isEmpty || postalCode.isEmpty){
+      commonSnackBar(message: 'Please enable your location permission for adding grocery');
+      return [];
+    }
 
     selectedProductVariants.forEach((productId, variants) {
       for (final variant in variants) {
