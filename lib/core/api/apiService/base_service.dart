@@ -640,5 +640,7 @@ abstract class BaseService {
   final String getHospitalHomeDetails= 'health-service/api/hp/about-us/home';
   final String generateAIDescription= 'ai-service/api/ai-description/generate-description';
   final String foodServiceProduct= 'food-service/api/foodProduct?page=1&limit=10&';
-
+  final String createAboutOrganisation = "other-service/about-organisation";
+  final String management = "other-service/management";
+  final String staff = "other-service/staff";
 }
