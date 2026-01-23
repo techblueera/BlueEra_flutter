@@ -1,150 +1,171 @@
 import 'dart:io';
 
+import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/me/others/controller/about_organisation_controller.dart';
+import 'package:BlueEra/features/me/others/model/about_organisation_model.dart';
+import 'package:BlueEra/features/me/others/view/about_us/about_organization_form_screen.dart';
+import 'package:BlueEra/features/me/school/view/widget/add_more_icon_button.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/common_dialog.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/expandable_text.dart';
+import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
-import '../../../../../../../core/constants/app_colors.dart';
-import '../../../../../../../widgets/custom_text_cm.dart';
-import '../../../../../../core/constants/app_strings.dart';
-class AboutOrganization extends StatefulWidget {
-  const AboutOrganization({super.key});
+class AboutOrganization extends StatelessWidget {
+  AboutOrganization({super.key});
 
-  @override
-  State<AboutOrganization> createState() => _AboutOrganizationState();
-}
-class _AboutOrganizationState extends State<AboutOrganization> {
+  final AboutOrganisationController controller =
+      Get.put(AboutOrganisationController());
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        showRightTextButton: true,
-        isShowMoreInfoIcon: true,
         title: "About Organization",
-        isShadowShow: false,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(12),
-        child: Column(
+      body: Obx(() {
+        if (controller.isLoading.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        return Column(
           children: [
-            /// Course Card
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.whiteE5),
-
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CustomText(AppStrings.uploadPhotos,
-                      fontSize: SizeConfig.medium, fontWeight: FontWeight.w500),
-                  SizedBox(height: SizeConfig.size8),
-                  Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(color: AppColors.whiteE5),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    padding: EdgeInsets.symmetric(
-                        vertical: 16
-                    ),
-                    child: Center(
-                      child: Row(mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          LocalAssets(imagePath: AppIconAssets.uploadIcon,height: 18,width: 18,),
-                          SizedBox(width: 8,),
-                          CustomText(
-                            "Upload Photo",
-                            fontSize: 16,
-                            color: AppColors.secondaryTextColor,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: SizeConfig.size16),
-                  CustomText(
-                    "Title (Optional)",
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
-                  ),
-                  SizedBox(height: SizeConfig.size8),
-                  /// Apply Button
-                  CommonTextField(
-                    hintText: "E-g„ How do you commute to work?",
-                  ),
-                  SizedBox(height: SizeConfig.size16),
-                  CustomText(
-                    "Description",
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
-                  ),
-                  SizedBox(height: SizeConfig.size8),
-                  /// Apply Button
-                  CommonTextField(
-                    maxLine: 4,
-                    hintText: "Hello Everyone @India User Now I am Using https://blueera.ai It’s Amazing, I suggest to Join Me.",
-                  ),
-                  SizedBox(height: SizeConfig.size18),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 44,
-                    child: ElevatedButton(
-                      onPressed: (){}, // disabled like screenshot
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryColor,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: CustomText(
-                        "Continue",
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.white,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+            Expanded(
+              child: (controller.aboutList.isNotEmpty)
+                  ? ListView.builder(
+                      padding: const EdgeInsets.all(12),
+                      itemCount: controller.aboutList.length,
+                      itemBuilder: (context, index) {
+                        final item = controller.aboutList[index];
+                        return _buildItemCard(context, item);
+                      },
+                    )
+                  : Center(child: CustomText("No Organization Found")),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0,vertical: 16),
-              child: SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    // Add course action
-                  },
-                  icon: const Icon(Icons.add_circle_outline, size: 20,color: AppColors.primaryColor),
-                  label: CustomText(
-                      "Add More",
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.primaryColor
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: AppColors.primaryColor),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                ),
+            SafeArea(
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
+                child: AddMoreIconButton(onTapEvent: () {
+                  Get.to(AboutOrganizationFormScreen());
+                }),
               ),
             ),
           ],
-        ),
-      ),
+        );
+      }),
     );
   }
 
+  Widget _buildItemCard(BuildContext context, AboutOrganisationData item) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.whiteE5),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (item.imageUrl != null && item.imageUrl!.isNotEmpty)
+            InkWell(
+              onTap: () {
+                navigatePushTo(
+                  context,
+                  ImageViewScreen(
+                    subTitle: item.description,
+                    appBarTitle: AppStrings.imageViewer,
+                    imageUrls: [item.imageUrl ?? ""],
+                    initialIndex: 0,
+                  ),
+                );
+              },
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.network(
+                  item.imageUrl!,
+                  height: 150,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) =>
+                      const SizedBox.shrink(),
+                ),
+              ),
+            ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: CustomText(
+                  item.title ?? "",
+                  fontSize: 16,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              Row(
+                children: [
+                  IconButton(
+                    icon: const LocalAssets(
+                      imagePath: AppIconAssets.editIcon,
+                      imgColor: AppColors.black,
+                    ),
+                    onPressed: () => Get.to(AboutOrganizationFormScreen(
+                      item: item,
+                    )),
+                  ),
+                  IconButton(
+                    icon: const LocalAssets(
+                      imagePath: AppIconAssets.deleteIcon,
+                      imgColor: AppColors.black,
+                    ),
+                    onPressed: () async {
+                      await showCommonDialog(
+                          context: context,
+                          text: 'Are you sure you want to delete this data?',
+                          confirmCallback: () async {
+                            Get.back();
+                            await controller.deleteAboutOrganisation(item.sId!);
+                          },
+                          cancelCallback: () {
+                            Navigator.of(context).pop(); // Close the dialog
+                          },
+                          confirmText: AppStrings.yes,
+                          cancelText: AppStrings.no);
+                    },
+                    // controller.deleteAboutOrganisation(item.sId!),
+                  ),
+                ],
+              )
+            ],
+          ),
+          const SizedBox(height: 4),
+          ExpandableText(
+            text: item.description ?? "",
+            trimLines: 2,
+            isReadMoreNewLine: false,
+            expandMode: ExpandMode.dialog,
+            style: TextStyle(
+              color: AppColors.secondaryTextColor,
+              fontSize: SizeConfig.large,
+              fontWeight: FontWeight.w400,
+              fontFamily: AppConstants.OpenSans,
+            ),
+          ),
+
+        ],
+      ),
+    );
+  }
 }
