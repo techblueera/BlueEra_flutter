@@ -603,6 +603,8 @@ abstract class BaseService {
   final String addHospitalDepartment = 'health-service/api/hp/departments';
   String fetchHospitalSubCate(String id) =>  'health-service/api/hp/departments/${id}/with-children';
   final String aiGenerateSelfProfession = 'ai-service/api/ai-earn/generate-about';
+  final String getEmergencyCriticalCare = 'health-service/api/hp/emergency-services';
+  final String getOtherFacility = 'health-service/api/hp/facilities';
   final String addDoctorsApi = 'health-service/api/hp/doctors';
   final String addCoverImage = 'health-service/api/hp/about-us/images/cover';
   final String addLogoImage = 'health-service/api/hp/about-us/images/logo';

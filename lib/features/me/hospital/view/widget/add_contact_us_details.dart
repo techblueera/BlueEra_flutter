@@ -11,6 +11,7 @@ import '../../../../../widgets/commom_textfield.dart';
 import '../../../../../widgets/custom_btn.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 import '../../../../common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import '../../../school/view/common_ai_genereted_button.dart';
 import '../../controller/hospital_model_controller.dart';
 
 class AddContactUsDetailsDialog {
@@ -435,15 +436,59 @@ class AddContactUsDetailsDialog {
               children: [
 
                 /// Name
+                 Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          CustomText("Vision And Mission",
+                                              fontWeight: FontWeight.bold),
+                                          // The Reusable AI Widget
+                                          AIGeneratorButton(
+                                            type: "Vision And Mission",
+                                            data: {
+                                              "for":"hospital",
+                                              "data":"Vision And Mission",
+                                              "goal":"Hospital goals",
+
+                                            },
+                                            onSelected: (generatedText) {
+                                              controller.visionMissionText.value = generatedText;
+                                              controller.vissionAndMission.text = generatedText;
+
+                                            },
+                                          ),
+                                        ],
+                                      ),
                 CommonTextField(
-                  title: "Vision And Mission",
+                  //title: "Vision And Mission",
                   hintText: "E.g. Enter Future Vision And Mission",
                   textEditController: controller.vissionAndMission,
                   maxLine: 4,
                 ),
                 SizedBox(height: 10,),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    CustomText("History",
+                        fontWeight: FontWeight.bold),
+                    // The Reusable AI Widget
+                    AIGeneratorButton(
+                      type: "History",
+                      data: {
+                        "for":"hospital",
+                        "data":"History",
+
+
+                      },
+                      onSelected: (generatedText) {
+                        controller.historyMissionText.value = generatedText;
+                        controller.hospitalHistory.text = generatedText;
+
+                      },
+                    ),
+                  ],
+                ),
                 CommonTextField(
-                  title: "History",
+                  //title: "History",
                   hintText: "E.g. Since 1999 we successfully run our hospital",
                   textEditController: controller.hospitalHistory,
                   maxLine: 4,

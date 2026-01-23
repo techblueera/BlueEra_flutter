@@ -11,6 +11,7 @@ import '../../../../../widgets/common_drop_down.dart';
 import '../../../../../widgets/custom_btn.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 import '../../../laboratory/view/widgets/me_menu_card_design.dart';
+import '../../../school/view/common_ai_genereted_button.dart';
 import '../../controller/hospital_model_controller.dart';
 
 class HospitalDepartmentDialog {
@@ -19,6 +20,8 @@ class HospitalDepartmentDialog {
     String? preDepartmentType,
      String? categoryId,
     String? type,
+    bool? isEmergencyAdd,
+    bool? isOtherFacilityAdd,
   }) {
     final controller = getOrPut(() => HospitalModelController());
 
@@ -47,11 +50,47 @@ class HospitalDepartmentDialog {
               children: [
 
                 /// Name
+
                 CommonTextField(
                   title: "Name of the ${preDepartmentType == null?'':"Sub"}Department",
                   textEditController: controller.nameController,
                   hintText: 'E.g. Diagnostic Department',
                 ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    CustomText(
+                        "Description",
+                        fontWeight: FontWeight.bold),
+                    // The Reusable AI Widget
+                    AIGeneratorButton(
+                      type: "Hospital",
+                      data: {
+                        "for":"Emergency Department",
+                        "data":"Description",
+
+                      },
+                      onSelected: (generatedText) {
+                        controller.departmentMissionText.value = generatedText;
+                        controller.bedsDescriptionController.text = generatedText;
+
+                      },
+                    ),
+                  ],
+                ),
+                if((isEmergencyAdd!=null&&isEmergencyAdd)||(isOtherFacilityAdd!=null&&isOtherFacilityAdd))
+                  Column(crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                     // SizedBox(height: SizeConfig.size10,),
+                      CommonTextField(
+                        maxLine: 4,
+                        //title: "Description",
+                        textEditController: controller.bedsDescriptionController,
+                        hintText: 'E.g. Description of Department',
+                      ),
+                    ],
+                  ),
+                  //description
                 SizedBox(height: SizeConfig.size16),
 
                 /// Department Type
@@ -109,10 +148,26 @@ class HospitalDepartmentDialog {
                         isLoading:
                         controller.addDepartmentLoading.value,
                         onTap: () {
-                          controller.addHospitalDepartmentApi(
-                            preType: type,
-                            categoryId: categoryId,
-                          );
+                          if(isEmergencyAdd!=null&&isEmergencyAdd||(isOtherFacilityAdd!=null&&isOtherFacilityAdd)){
+                            if(isOtherFacilityAdd!=null&&isOtherFacilityAdd){
+                              controller.addOtherFacilityCat(
+                                preType: type,
+                                categoryId: categoryId,
+                              );
+                            }else{
+                              controller.addEmergencySubCat(
+                                preType: type,
+                                categoryId: categoryId,
+                              );
+                            }
+
+                          }else{
+                            controller.addHospitalDepartmentApi(
+                              preType: type,
+                              categoryId: categoryId,
+                            );
+                          }
+
                         },
                       ),
                     ),

@@ -38,6 +38,7 @@ class Department {
   final String? businessId;
   final String? name;
   final String? type;
+  final String? description;
   final String? parentId;
   final bool? isActive;
   final DateTime? createdAt;
@@ -53,7 +54,7 @@ class Department {
     this.isActive,
     this.createdAt,
     this.updatedAt,
-    this.v,
+    this.v, this.description,
   });
 
   factory Department.fromJson(Map<String, dynamic>? json) {
@@ -62,6 +63,7 @@ class Department {
     return Department(
       id: json['_id'],
       businessId: json['businessId'],
+      description: json['description'],
       name: json['name'],
       type: json['type'],
       parentId: json['parentId'],
@@ -81,6 +83,7 @@ class Department {
       '_id': id,
       'businessId': businessId,
       'name': name,
+      'description': description,
       'type': type,
       'parentId': parentId,
       'isActive': isActive,

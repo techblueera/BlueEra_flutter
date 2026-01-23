@@ -37,9 +37,10 @@ class _HospitalHeaderViewState extends State<HospitalHeaderView> {
     final String? image =
     await  SelectProfilePictureDialog.showLogoDialog(context, isBanner?"Hospital Banner":"Hospital Logo");
     if(image!=null){
-      controller.pickDoctorImage(File(image??''));
       setState(() {
+        print("lsddclksdmslkcmsdc ${isBanner}");
         if (isBanner) {
+          controller.pickDoctorImage(File(image??''));
           controller.addCoverImage();
         } else {
           controller.pickedHospitalLogo.value = File(image);
@@ -49,10 +50,23 @@ class _HospitalHeaderViewState extends State<HospitalHeaderView> {
     }
 
   }
+  // Future<void> _pickLogoImage() async {
+  //   final String? image =
+  //   await  SelectProfilePictureDialog.showLogoDialog(context, "Hospital Logo");
+  //   if(image!=null){
+  //
+  //
+  //         controller.pickedHospitalLogo.value = File(image);
+  //         controller.addLogoImage();
+  //     });
+  //   }
+
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    print("lsdjkclksdc ${controller.pickedDoctorImage.value==null} ___ ${widget.details?.coverImage != null &&
+        widget.details!.coverImage!.isNotEmpty} p[lplnkj ${widget.details?.coverImage}");
     return CommonCardWidget(
       padding: 0,
       cardMargin: 10,

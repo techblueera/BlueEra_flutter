@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/features/me/hospital/view/widget/hospital_gallery_photo_widget.dart';
 import 'package:BlueEra/features/me/hospital/view/widget/slider_others_details.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -11,12 +12,14 @@ import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/src/extension_navigation.dart';
 import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 import 'package:mappls_gl/mappls_gl.dart';
+import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/custom_carousel_slider.dart';
 import '../../../../core/constants/getx_utils.dart';
 import '../../../../core/constants/size_config.dart';
+import '../../../../core/routes/route_helper.dart';
 import '../../../../widgets/common_box_shadow.dart';
 import '../../../../widgets/common_card_widget.dart';
 import '../../../../widgets/expandable_text.dart';
@@ -125,6 +128,18 @@ class _HospitalHomePageState extends State<HospitalHomePage> {
                                 _sectionTitle("Emergency & Critical Care"),
                                 SizedBox(height: 12,),
                                 _emergencyList(details.emergency??[]),
+                                SizedBox(height: 10,),
+                                Row(mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    InkWell(
+                                      onTap: (){
+                                        controller.onChangeTab(1);
+                                      },
+                                      child: CustomText(
+                                        "View All", color: AppColors.primaryColor,),
+                                    )
+                                  ],
+                                )
                               ],
                             )),
                         SizedBox(height: 10,),
@@ -590,7 +605,7 @@ class _HospitalHomePageState extends State<HospitalHomePage> {
 
  Widget _doctorIPDList(List<IpdModel> ipdWard) {
     return SizedBox(
-      height: 200,
+      height: 260,
       child: (ipdWard.isEmpty)?
       noDetailsWidget(title: 'No IPD Details Updated Yet', btnText: 'Add More Details')
       :ListView.builder(
@@ -598,71 +613,83 @@ class _HospitalHomePageState extends State<HospitalHomePage> {
         itemCount: ipdWard.length,
         itemBuilder: (_, index) {
           IpdModel ipd=ipdWard[index];
-          return Container(
-            width: 210,
-            margin: const EdgeInsets.only(right: 12),
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10)
-            ),
-            child: Stack(
-              children: [
-                CustomImageSlideshow(
-                  isLoading: false,
-                  width: double.infinity,
-                  height: SizeConfig.size260,
-                  imagePaths: [ipd.photo??''],
-                  borderRadius: BorderRadius.circular(10),
-                  onPhotoIndex: (index) {
-                    // productPhotoIndex = index;
-                  },
-                ),
-                Positioned(
-                    bottom: 0,
-                    child: Container(
-                      width: 210,
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.only(
-                              bottomLeft: Radius.circular(10),
-                              bottomRight: Radius.circular(10)),
+          return InkWell(
+            onTap: (){
+              Get.toNamed(
+                  RouteHelper.getHospitalWardViewCategory(),
+                  arguments: {
+                    ApiKeys.categoryId:ipd.id,
+                    ApiKeys.title:ipd.name
+                  }
+              );
+            },
+            child: Container(
+              width: 210,
+              margin: const EdgeInsets.only(right: 12),
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10)
+              ),
+              child: Stack(
+                children: [
+                  CustomImageSlideshow(
+                    isLocal: true,
+                    isLoading: false,
+                    width: double.infinity,
+                    height: SizeConfig.size260,
+                    imagePaths: [AppImageAssets.hospitalIpd_ward],
+                    borderRadius: BorderRadius.circular(10),
+                    onPhotoIndex: (index) {
+                      // productPhotoIndex = index;
+                    },
+                  ),
+                  Positioned(
+                      bottom: 0,
+                      child: Container(
+                        width: 210,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.only(
+                                bottomLeft: Radius.circular(10),
+                                bottomRight: Radius.circular(10)),
 
-                          color: AppColors.black.withOpacity(0.5)
-                      ),
-                      padding: EdgeInsets.all(10),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          CustomText("${ipd.name}",
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.white,),
-                          SizedBox(
-                            height: 6,
-                          ),
-                          CustomText("Available Beds: ${ipd.availableBeds}",
-                            fontSize: 12,
-                            fontWeight: FontWeight.w400,
-                            color: AppColors.white,),
-                          SizedBox(
-                            height: 6,
-                          ),
-                          CustomText("Total Beds: ${ipd.totalBeds}",
-                            fontSize: 12,
-                            fontWeight: FontWeight.w400,
-                            color: AppColors.white,),
-                          SizedBox(
-                            height: 6,
-                          ),
-                          CustomText(
-                            "${ipd.type}",
-                            fontSize: 12,
-                            fontWeight: FontWeight.w400,
-                            color: AppColors.white,)
-                        ],
-                      ),
-                    ))
-              ],
+                            color: AppColors.black.withOpacity(0.5)
+                        ),
+                        padding: EdgeInsets.all(10),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            CustomText("${ipd.name}",
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.white,),
+                            SizedBox(
+                              height: 6,
+                            ),
+                            CustomText("Available Beds: ${ipd.availableBeds}",
+                              fontSize: 12,
+                              fontWeight: FontWeight.w400,
+                              color: AppColors.white,),
+                            SizedBox(
+                              height: 6,
+                            ),
+                            CustomText("Total Beds: ${ipd.totalBeds}",
+                              fontSize: 12,
+                              fontWeight: FontWeight.w400,
+                              color: AppColors.white,),
+                            SizedBox(
+                              height: 6,
+                            ),
+                            CustomText(
+                              "${ipd.type}",
+                              fontSize: 12,
+                              fontWeight: FontWeight.w400,
+                              color: AppColors.white,)
+                          ],
+                        ),
+                      ))
+                ],
+              ),
+              // child: ,
             ),
-            // child: ,
           );
         },
       ),
@@ -685,15 +712,15 @@ class _HospitalHomePageState extends State<HospitalHomePage> {
               borderRadius: BorderRadius.circular(10),
             ),
             margin: EdgeInsets.symmetric(vertical: 10),
-            padding: EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+            padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomText("${emergency.name}", fontWeight: FontWeight.w600, fontSize: 16,),
-                SizedBox(height: 10,),
+                SizedBox(height: 6,),
                 CustomText(
                   "${emergency.description}",
                   color: AppColors.chat_input_icon_color,
-                  fontWeight: FontWeight.w400, fontSize: 12,),
+                  fontWeight: FontWeight.w400, fontSize: 14,),
               ],
             ),
           );

@@ -5,6 +5,9 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../../core/constants/app_constant.dart';
+import '../../../../../widgets/expandable_text.dart';
+
 class MeMenuCardDesign extends StatelessWidget {
   const MeMenuCardDesign({
     super.key,
@@ -15,9 +18,11 @@ class MeMenuCardDesign extends StatelessWidget {
     this.showToggleButton,
     this.isToggleOn,
     this.onToggleChanged,
+    this.description,
   });
 
   final String title;
+  final String? description;
   final String icon;
   final bool? showCount;
   final bool? showToggleButton;
@@ -37,40 +42,65 @@ class MeMenuCardDesign extends StatelessWidget {
         color: AppColors.white,
       ),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 18),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              if (icon.isNotEmpty) LocalAssets(imagePath: icon),
-              SizedBox(width: SizeConfig.size12),
-              CustomText(
-                title,
-                fontSize: SizeConfig.size18,
-                color: AppColors.secondaryTextColor,
+              Row(
+                children: [
+                  if (icon.isNotEmpty) LocalAssets(imagePath: icon),
+                  // SizedBox(width: SizeConfig.size8),
+                  CustomText(
+                    title,
+                    fontSize: SizeConfig.size18,
+                    color: AppColors.black,
+                  ),
+                ],
               ),
-            ],
-          ),
-          if (showCount ?? false)
-            SizedBox(
-              width: 25,
-              height: 25,
-              child: CustomPaint(
-                painter: CircleProgressPainter(0.50),
-                child: Center(
-                  child: CustomText(
-                    "${(0.50 * 100).toInt()}%",
-                    fontSize: 8,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.mainTextColor,
+
+              if (showCount ?? false)
+                SizedBox(
+                  width: 25,
+                  height: 25,
+                  child: CustomPaint(
+                    painter: CircleProgressPainter(0.50),
+                    child: Center(
+                      child: CustomText(
+                        "${(0.50 * 100).toInt()}%",
+                        fontSize: 8,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.mainTextColor,
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
-          if (showToggleButton ?? false)
-            CustomToggleSwitch(
-              isOn: isToggleOn ?? false,
-              onChanged: onToggleChanged,
+              if (showToggleButton ?? false)
+                CustomToggleSwitch(
+                  isOn: isToggleOn ?? false,
+                  onChanged: onToggleChanged,
+                ),
+            ],
+          ),
+          if(description!=null)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(height:
+                SizeConfig.size6,),
+                ExpandableText(
+                  text:"${description}",
+                  trimLines: 3,
+                  isReadMoreNewLine: false,
+                  expandMode: ExpandMode.dialog,
+                  style: TextStyle(
+                    color: AppColors.grayText,
+                    fontSize: SizeConfig.large,
+                    fontWeight: FontWeight.w400,
+                    fontFamily: AppConstants.OpenSans,
+                  ),
+                ),
+              ],
             ),
         ],
       ),
