@@ -606,6 +606,7 @@ class AppIconAssets {
   static const String socialProfile = "${iconPath}social_profile.svg";
   static const String carTaxiGigWorker = "${iconPath}car_taxi_gig_worker.svg";
 
+  static const String  chat_find= "${iconPath}chat_find.svg";
   static const String hospitalVisionIcon = "${AppConstants.baseImageAssetsPath}vision_hospital_icon.png";
   static const String hospitalHistoryIcon = "${AppConstants.baseImageAssetsPath}hospital_history_icon.png";
   static const String admission_cell = "${AppConstants.baseImageAssetsPath}admission_cell.png";

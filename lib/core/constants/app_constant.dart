@@ -15,7 +15,6 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
-import 'package:BlueEra/features/chat/contacts/view/contact_list_page.dart';
 import 'package:BlueEra/features/common/auth/model/individual_profiile_category.dart';
 import 'package:BlueEra/features/common/auth/model/mixed_profile_categrory.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
@@ -36,6 +35,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../features/business/visit_business_profile/view/visit_business_profile_new.dart';
 import '../../features/chat/auth/controller/add_chat_symbol_controller.dart';
 import '../../features/chat/view/chat_theme/chat_theme.dart';
+import '../../features/chat/view/contacts/contact_list_page.dart';
 import '../../features/chat/view/symbol_view/symbol_view_images.dart';
 
 class AppConstants {

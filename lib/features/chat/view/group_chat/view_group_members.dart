@@ -20,7 +20,7 @@ import '../../../../widgets/local_assets.dart';
 import '../../../common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/view_group_members_model.dart';
-import '../../contacts/view/be_available_contacts_list.dart';
+import '../contacts/be_available_contacts_list.dart';
 
 class ViewGroupMembers extends StatefulWidget {
   const ViewGroupMembers(

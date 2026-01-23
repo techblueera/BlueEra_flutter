@@ -21,7 +21,7 @@ import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetListOfMessageData.dart';
 import '../../auth/model/getMediaMsgCommentsModel.dart';
-import '../chat_screen.dart';
+
 import '../chat_screen_new.dart';
 import 'component_widgets.dart';
 import 'media_message_full_view.dart';

@@ -4,11 +4,9 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
-import '../../../../../widgets/commom_textfield.dart';
 import '../../../../../widgets/common_box_shadow.dart';
 import '../../../auth/controller/add_chat_symbol_controller.dart';
-import '../../../contacts/view/be_available_contacts_list.dart';
+import '../../contacts/be_available_contacts_list.dart';
 
 class BottomCaptionField extends StatelessWidget {
   const BottomCaptionField({super.key});

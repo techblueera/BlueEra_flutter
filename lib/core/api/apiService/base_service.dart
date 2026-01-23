@@ -604,6 +604,9 @@ abstract class BaseService {
   String fetchHospitalSubCate(String id) =>  'health-service/api/departments/${id}/with-children';
   final String aiGenerateSelfProfession = 'ai-service/api/ai-earn/generate-about';
   final String addDoctorsApi = 'health-service/api/doctors';
+  final String addCoverImage = 'health-service/api/about-us/images/cover';
+  final String addLogoImage = 'health-service/api/about-us/images/logo';
+  final String addBuildGallery = 'health-service/api/about-us/images/gallery/bulk';
   final String healthAndServiceImageUpload = 'health-service/api/upload/init';
   String  updateDoctorsFees(String id) => 'health-service/api/doctors/$id';
   String fetchDoctorsByDepartment(String id) => 'health-service/api/doctors/department/$id';

@@ -15,7 +15,7 @@ import '../../../../core/constants/size_config.dart';
 import '../../../../core/services/notification_utils.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
-import '../chat_screen.dart';
+
 import '../chat_screen_new.dart';
 import '../widget/component_widgets.dart';
 import '../widget/message_card.dart';

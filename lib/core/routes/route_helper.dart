@@ -115,7 +115,7 @@ import 'package:BlueEra/features/personal/resume/sections/resume_templates_scree
 import 'package:BlueEra/permissionCentralize/permission_gate.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
-import '../../features/chat/contacts/view/contact_list_page.dart';
+import '../../features/chat/view/contacts/contact_list_page.dart';
 import '../../features/common/food/model/my_grocery_products_reponse.dart';
 import '../../features/common/food/view/grocery/my_grocery_listing/my_grocery_variant_screen.dart';
 import '../../features/common/store/add_update_product/add_update_product_screen.dart';
@@ -123,7 +123,6 @@ import '../../features/common/store/models/get_channel_product_model.dart';
 import '../../features/me/hospital/view/category/ipd_in_patient_department_page.dart';
 import '../../features/me/hospital/view/category/opd_out_patient_page.dart';
 import '../../features/me/hospital/view/widget/general_medicine.dart';
-import '../../features/me/medical/model/medical_lab_details.dart';
 import '../../features/me/medical/view/category/otc_items_page.dart';
 import '../../features/personal/personal_profile/view/booking_enquiries_screen/appointment_booking_form.dart';
 import '../../features/personal/personal_profile/view/booking_enquiries_screen/bookings_enquiries.dart';

@@ -12,6 +12,9 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../../../core/constants/getx_utils.dart';
+import '../../../../common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import '../../controller/hospital_model_controller.dart';
 import '../../model/hospital_home_page_details_model.dart';
 
 class HospitalHeaderView extends StatefulWidget {
@@ -26,28 +29,25 @@ class HospitalHeaderView extends StatefulWidget {
 }
 
 class _HospitalHeaderViewState extends State<HospitalHeaderView> {
-  File? _bannerImage;
   File? _logoImage;
   final ImagePicker _picker = ImagePicker();
+  final controller = getOrPut(() => HospitalModelController());
 
   Future<void> _pickImage(bool isBanner) async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-    if (image != null) {
+    final String? image =
+    await  SelectProfilePictureDialog.showLogoDialog(context, isBanner?"Hospital Banner":"Hospital Logo");
+    if(image!=null){
+      controller.pickDoctorImage(File(image??''));
       setState(() {
         if (isBanner) {
-          _bannerImage = File(image.path);
+          controller.addCoverImage();
         } else {
-          _logoImage = File(image.path);
+          controller.pickedHospitalLogo.value = File(image);
+          controller.addLogoImage();
         }
       });
-      // if (isBanner) {
-      //   await widget.schoolAboutUsController.uploadSchoolLogoOrBannerImage(
-      //       uploadFile: File(image.path), uploadVia: 'coverUrl');
-      // } else {
-      //   await widget.schoolAboutUsController.uploadSchoolLogoOrBannerImage(
-      //       uploadFile: File(image.path), uploadVia: 'logoUrl');
-      // }
     }
+
   }
 
   @override
@@ -67,8 +67,7 @@ class _HospitalHeaderViewState extends State<HospitalHeaderView> {
               children: [
                 // Banner Image
                 GestureDetector(
-                  onTap: () => null,
-                  // onTap: () => _pickImage(true),
+                  onTap: () => _pickImage(true),
                   child: Container(
                     width: double.infinity,
                     height: size.height * 0.17,
@@ -80,32 +79,18 @@ class _HospitalHeaderViewState extends State<HospitalHeaderView> {
                       image:
                       // _bannerImage != null
                       //     ?
+                      (controller.pickedDoctorImage.value==null)?
                       DecorationImage(
-                          image: FileImage(_bannerImage ?? File("")),
-                          fit: BoxFit.cover)
-                          // : DecorationImage(
-                          // image: NetworkImage((widget
-                          //     .schoolAboutUsController
-                          //     .hotelData
-                          //     .value
-                          //     ?.profile
-                          //     ?.coverUrl
-                          //     ?.isNotEmpty ??
-                          //     false)
-                          //     ? (widget.schoolAboutUsController.hotelData
-                          //     .value?.profile?.coverUrl ??
-                          //     "")
-                          //     : widget
-                          //     .schoolAboutUsController
-                          //     .hotelData
-                          //     .value
-                          //     ?.profile
-                          //     ?.photos
-                          //     ?.first
-                          //     .imageReferences
-                          //     ?.first ??
-                          //     ""),
-                          // fit: BoxFit.cover),
+                          image:
+                          NetworkImage(widget.details?.coverImage??''),
+                          fit: BoxFit.cover
+                      ):
+                      DecorationImage(
+                          image:
+                          FileImage(controller.pickedDoctorImage.value ?? File("")),
+                          fit: BoxFit.cover
+                      )
+
                     ),
                   ),
                 ),
@@ -140,34 +125,17 @@ class _HospitalHeaderViewState extends State<HospitalHeaderView> {
                           BoxShadow(color: Colors.black12, blurRadius: 10)
                         ],
                         image:
-                        // _logoImage != null
-                        //     ?
+                        (controller.pickedHospitalLogo.value==null)?
                         DecorationImage(
-                            image: FileImage(_logoImage ?? File("")),
-                            fit: BoxFit.cover)
-                            // : DecorationImage(
-                            // image: NetworkImage((widget
-                            //     .schoolAboutUsController
-                            //     .hotelData
-                            //     .value
-                            //     ?.profile
-                            //     ?.logoUrl
-                            //     ?.isNotEmpty ??
-                            //     false)
-                            //     ? (widget.schoolAboutUsController.hotelData
-                            //     .value?.profile?.logoUrl ??
-                            //     "")
-                            //     : widget
-                            //     .schoolAboutUsController
-                            //     .hotelData
-                            //     .value
-                            //     ?.profile
-                            //     ?.photos
-                            //     ?.first
-                            //     .imageReferences
-                            //     ?.first ??
-                            //     ""),
-                            // fit: BoxFit.cover),
+                            image:
+                            NetworkImage(widget.details?.logo??''),
+                            fit: BoxFit.cover
+                        ):
+                        DecorationImage(
+                            image:
+                            FileImage(controller.pickedHospitalLogo.value ?? File("")),
+                            fit: BoxFit.cover
+                        )
                       ),
                     ),
                   ),

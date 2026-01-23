@@ -54,17 +54,25 @@ class HospitalHomePageDetailsModel {
 class HospitalInfoModel {
   String? name;
   String? tagline;
+  String? website;
+  String? email;
+  String? admissionPhone;
   String? coverImage;
+  String? address;
   String? logo;
 
-  HospitalInfoModel({this.name, this.tagline, this.coverImage, this.logo});
+  HospitalInfoModel({this.website,this.admissionPhone,this.address,this.email,this.name, this.tagline, this.coverImage, this.logo});
 
   factory HospitalInfoModel.fromJson(Map<String, dynamic> json) {
     return HospitalInfoModel(
-      name: json['name'],
-      tagline: json['tagline'],
-      coverImage: json['coverImage'],
-      logo: json['logo'],
+      name: json['name']??"-",
+      tagline: json['tagline']??"-",
+      website: json['website']??"-",
+      email: json['email']??"-",
+      address: json['address']??"-",
+      admissionPhone: json['admissionPhone']??"-",
+      coverImage: json['coverImage']??"-",
+      logo: json['logo']??"-",
     );
   }
 }

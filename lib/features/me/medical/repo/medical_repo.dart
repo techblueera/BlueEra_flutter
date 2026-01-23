@@ -90,6 +90,29 @@ class MedicalRepo extends BaseService {
    onError: (error) {}, onSuccess: (data) {});
     return response;
   }
+  Future<ResponseModel> addCoverPhoto(Map<String,dynamic> params) async {
+    final response = await ApiBaseHelper().postHTTP(
+        params: params,
+        addCoverImage,
+        showProgress: true,
+   onError: (error) {}, onSuccess: (data) {});
+    return response;
+  } Future<ResponseModel> addLogoImageHospital(Map<String,dynamic> params) async {
+    final response = await ApiBaseHelper().postHTTP(
+        params: params,
+        addLogoImage,
+        showProgress: true,
+   onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+  Future<ResponseModel> addBuildGalleryHospital(Map<String,dynamic> params) async {
+    final response = await ApiBaseHelper().postHTTP(
+        params: params,
+        addBuildGallery,
+        showProgress: true,
+   onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
   Future<ResponseModel> addNewBeds(Map<String,dynamic> params) async {
     final response = await ApiBaseHelper().postHTTP(
         params: params,

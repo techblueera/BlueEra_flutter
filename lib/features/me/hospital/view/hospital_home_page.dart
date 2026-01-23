@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/features/me/hospital/view/widget/hospital_gallery_photo_widget.dart';
 import 'package:BlueEra/features/me/hospital/view/widget/slider_others_details.dart';
@@ -8,12 +10,14 @@ import 'package:flutter/material.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/src/extension_navigation.dart';
 import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
+import 'package:mappls_gl/mappls_gl.dart';
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/custom_carousel_slider.dart';
 import '../../../../core/constants/getx_utils.dart';
 import '../../../../core/constants/size_config.dart';
+import '../../../../widgets/common_box_shadow.dart';
 import '../../../../widgets/common_card_widget.dart';
 import '../../../../widgets/expandable_text.dart';
 import '../controller/hospital_model_controller.dart';
@@ -30,12 +34,17 @@ class HospitalHomePage extends StatefulWidget {
 class _HospitalHomePageState extends State<HospitalHomePage> {
   int selectedTab = 0;
   final controller = getOrPut(() => HospitalModelController());
+  late MapplsMapController mapController;
 
+  Future<void> _onMapCreated(MapplsMapController controller) async {
+    mapController = controller;
+  }
   @override
   Widget build(BuildContext context) {
     return Obx(() {
       if(controller.getHospitalHomePageResponse.value.status==Status.COMPLETE){
         HospitalHomePageDetailsModel details=controller.hospitalHomePageDetailsModel.value;
+
 
         return CustomScrollView(
           slivers: [
@@ -151,6 +160,9 @@ class _HospitalHomePageState extends State<HospitalHomePage> {
                                   ],
                                 ),
                                 SizedBox(height: SizeConfig.size20,),
+                                if(details.aboutUs?.visionMission==""&&details.aboutUs?.history=="")
+                                noDetailsWidget(title: 'No About Us Details', btnText: 'Add More'),
+                                if(details.aboutUs?.visionMission!="")
                                 Container(
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(10),
@@ -205,6 +217,7 @@ class _HospitalHomePageState extends State<HospitalHomePage> {
                                   ),
                                 ),
                                 SizedBox(height: SizeConfig.size10,),
+                                if(details.aboutUs?.history!="")
                                 Container(
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(10),
@@ -266,33 +279,205 @@ class _HospitalHomePageState extends State<HospitalHomePage> {
                             cardMargin: 0,
                             child: Column(
                               children: [
-                                HospitalGalleryPhotoWidget(photos: [''],),
+                                HospitalGalleryPhotoWidget(photos: details.gallery??[],),
                               ],
                             )),
                         SizedBox(height: 10,),
-                        _contactCard(),
+                        // _contactCard(),
+                        CommonCardWidget(
+                            padding: 10,
+                            cardMargin: 0,
+                            child:
+                            Column(crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                CustomText("Contact Us",fontSize: 16,fontWeight: FontWeight.w600,),
+                                SizedBox(
+                                  height: SizeConfig.size10,
+                                ),
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                      color: AppColors.white,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(color: AppColors.whiteE5),
+                                      // boxShadow: [
+                                      //   AppShadows.bottomShadow
+                                      // ]
+                                  ),
+                                  child: Column(mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                        width: 50,
+                                        height: 50,
+                                        decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            shape: BoxShape.circle,
+                                            border: Border.all(color: Colors.white, width: 4),
+                                            boxShadow: [
+                                              BoxShadow(color: Colors.black12, blurRadius: 10)
+                                            ],
+                                            image:
+                                            (controller.pickedHospitalLogo.value==null)?
+                                            DecorationImage(
+                                                image:
+                                                NetworkImage(details.hospitalInfo?.logo??''),
+                                                fit: BoxFit.cover
+                                            ):
+                                            DecorationImage(
+                                                image:
+                                                FileImage(controller.pickedHospitalLogo.value ?? File("")),
+                                                fit: BoxFit.cover
+                                            )
+                                        ),
+                                      ),
+                                      SizedBox(height: 6,),
+                                      CustomText("${details.hospitalInfo?.name}",fontSize: 16,fontWeight: FontWeight.w600,),
+                                      SizedBox(height: SizeConfig.size8,),
+                                      Row(
+                                        children: [
+                                          LocalAssets(imagePath: AppIconAssets.link
+                                            , height: 18, width: 18,),
+                                          SizedBox(
+                                            width: SizeConfig.size6,
+                                          ),
+                                          Expanded(child:
+                                          CustomText(
+                                            "${details.hospitalInfo?.website}",
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w400,
+                                            color: AppColors.primaryColor,
+                                          )),
+                                        ],
+                                      ),
 
+                                      SizedBox(height: SizeConfig.size8,),
+                                      Row(
+                                        children: [
+                                          LocalAssets(
+                                            imagePath: AppIconAssets.admission_cell
+                                            , height: 18, width: 18,),
+                                          SizedBox(
+                                            width: SizeConfig.size6,
+                                          ),
+                                          Expanded(child:
+                                          CustomText(
+                                            "Admission Cell",
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w400,
+                                            color: AppColors.black,
+                                          )),
+                                        ],
+                                      ),
+                                      SizedBox(height: SizeConfig.size8,),
+                                      Row(
+                                        children: [
+                                          LocalAssets(
+                                            imagePath: AppIconAssets.mail_new
+                                            , height: 16, width: 16,),
+                                          SizedBox(
+                                            width: SizeConfig.size6,
+                                          ),
+                                          Expanded(child:
+                                          CustomText(
+                                            "${details.hospitalInfo?.email}",
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w400,
+                                            color: AppColors.black,
+                                          )),
+                                        ],
+                                      ),
+                                      SizedBox(height: SizeConfig.size8,),
+                                      Row(
+                                        children: [
+                                          LocalAssets(
+                                            imagePath: AppIconAssets.chat_call
+                                            , height: 18, width: 18,),
+                                          SizedBox(
+                                            width: SizeConfig.size6,
+                                          ),
+                                          Expanded(child:
+                                          CustomText(
+                                            "${details.hospitalInfo?.admissionPhone}",
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w400,
+                                            color: AppColors.black,
+                                          )),
+                                        ],
+                                      ),
+                                      SizedBox(height: SizeConfig.size8,),
+                                      Row(
+                                        children: [
+                                          LocalAssets(
+                                            imagePath: AppIconAssets.location_new
+                                            , height: 18, width: 18,),
+                                          SizedBox(
+                                            width: SizeConfig.size6,
+                                          ),
+                                          Expanded(child:
+                                          CustomText(
+                                            "${details.hospitalInfo?.address}",
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w400,
+                                            color: AppColors.black,
+                                          )),
+                                        ],
+                                      ),
+
+                                    ],
+                                  ),
+                                ),
+
+                                SizedBox(height: SizeConfig.size10,),
+                                ClipRRect(
+                                    borderRadius: BorderRadius.circular(10),
+                                    child: SizedBox(
+                                      width: double.infinity,
+                                      height: SizeConfig.size160,
+                                      child: Stack(
+                                        children: [
+                                          MapplsMap(
+                                            onMapCreated: _onMapCreated,
+                                            initialCameraPosition: CameraPosition(
+                                              target:LatLng(26.8311, 80.9244),
+                                              zoom: 14.0,
+                                            ),
+                                            myLocationEnabled: false,
+                                            compassEnabled: false,
+                                            rotateGesturesEnabled: true,
+                                            tiltGesturesEnabled: true,
+                                            zoomGesturesEnabled: true,
+                                            scrollGesturesEnabled: true,
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                ),
+                              ],
+                            )),
                       ],
                     ),
                   ),
-                  CommonCardWidget(
-                      bgColor: AppColors.blueGrayShade,
-                      padding: 10,
-                      cardMargin: 0,
-                      borderRadius: 0,
-                      child: Column(crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(height: 18,),
-                          Row(mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              CustomText("Testimonials", fontSize: 20,
-                                fontWeight: FontWeight.w700,),
-                            ],
-                          ),
-                          SizedBox(height: 18,),
-                          _testimonialCard(),
-                        ],
-                      )),
+                  // CommonCardWidget(
+                  //     bgColor: AppColors.blueGrayShade,
+                  //     padding: 10,
+                  //     cardMargin: 0,
+                  //     borderRadius: 0,
+                  //     child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+                  //       children: [
+                  //         SizedBox(height: 18,),
+                  //         Row(mainAxisAlignment: MainAxisAlignment.center,
+                  //           children: [
+                  //             CustomText("Testimonials", fontSize: 20,
+                  //               fontWeight: FontWeight.w700,),
+                  //           ],
+                  //         ),
+                  //         SizedBox(height: 18,),
+                  //         _testimonialCard(),
+                  //       ],
+                  //     )),
+
                   const SizedBox(height: 150),
                 ],
               ),
@@ -515,7 +700,7 @@ class _HospitalHomePageState extends State<HospitalHomePage> {
       ){
     return  Container(
       width: double.infinity,
-      height: 260,
+      height: 100,
       margin: const EdgeInsets.only(right: 12),
       decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
@@ -523,13 +708,15 @@ class _HospitalHomePageState extends State<HospitalHomePage> {
               color: AppColors.whiteE5
           )
       ),
-      child: Column(mainAxisAlignment: MainAxisAlignment.center,
+      padding: EdgeInsets.symmetric(horizontal: 10),
+      child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           CustomText("${title}"),
           SizedBox(height: 20,),
           CustomBtn(
               isValidate: true,
-              width: 140,
+              width: 80,
+              height: 28,
               onTap: (){
                 controller.onChangeTab(1);
               }, title: "${btnText}")
@@ -538,35 +725,7 @@ class _HospitalHomePageState extends State<HospitalHomePage> {
       // child: ,
     );
   }
-  Widget _managementList() {
-    return SizedBox(
-      height: 160,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: 3,
-        itemBuilder: (_, index) {
-          return Container(
-            width: 140,
-            margin: const EdgeInsets.only(left: 12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                CircleAvatar(radius: 30),
-                SizedBox(height: 8),
-                Text("Dr. James Gupta"),
-                Text("Managing Director",
-                    style: TextStyle(fontSize: 12, color: Colors.grey)),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
+
 
 
   Widget _testimonialCard() {
@@ -588,25 +747,5 @@ class _HospitalHomePageState extends State<HospitalHomePage> {
     );
   }
 
-  Widget _contactCard() {
-    return Card(
-      margin: const EdgeInsets.all(12),
-      child: Column(
-        children: const [
-          ListTile(
-            leading: Icon(Icons.phone),
-            title: Text("+91 9876543210"),
-          ),
-          ListTile(
-            leading: Icon(Icons.email),
-            title: Text("support@missionhospital.com"),
-          ),
-          ListTile(
-            leading: Icon(Icons.location_on),
-            title: Text("Near XYZ Road, City"),
-          ),
-        ],
-      ),
-    );
-  }
+
 }

@@ -14,7 +14,6 @@ import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/common_methods.dart';
 import '../../../../core/constants/snackbar_helper.dart';
 import '../../../../core/services/location/location_service.dart';
-import '../../../common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import '../../medical/model/medical_lab_details.dart';
 import '../../medical/repo/medical_repo.dart';
 import '../model/get_beds_details_model.dart';
@@ -89,9 +88,11 @@ class HospitalModelController extends GetxController {
   Map<String, dynamic> aiRawDetails = {};
   String? prePhotoImage;
   Rx<File?> pickedDoctorImage = Rx<File?>(null);
+  Rx<File?> pickedHospitalLogo = Rx<File?>(null);
   Rx<DateTime?> fromDate = Rx<DateTime?>(null);
   Rx<DateTime?> toDate = Rx<DateTime?>(null);
-
+  final ImagePicker _picker = ImagePicker();
+  List<File> pickedHospitalGalleryImages = [];
   void setLeaveDatesFromResponse({
     required String leaveFrom,
     required String leaveTo,
@@ -148,6 +149,24 @@ class HospitalModelController extends GetxController {
       pickedDoctorImage.value = File(image.path);
     }
   }
+  Future<void> pickMultipleImages({int limit = 5}) async {
+    try {
+      final List<XFile> images = await _picker.pickMultiImage(limit: 5);
+
+      if (images.isEmpty) return;
+
+
+      // // take only allowed count
+      // final selectedImages = images.take(remaining);
+      //
+      // pickedHospitalGalleryImages.addAll(
+      //   selectedImages.map((e) => File(e.path)),
+      // );
+      addBuildGalleryHospital(images);
+    } catch (e) {
+      debugPrint("Image pick error: $e");
+    }
+  }
 
   void setContactControllers(ContactUs? contact) {
     phoneController.text = contact?.phone ?? '';
@@ -157,6 +176,7 @@ class HospitalModelController extends GetxController {
   }
 
   void clearStaffForm() {
+    pickedDoctorImage.value=null;
     nameController.clear();
     specializationController.clear();
     qualificationController.clear();
@@ -253,6 +273,57 @@ class HospitalModelController extends GetxController {
       clearStaffForm();
     } else {
       addDoctorLoading.value = false;
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+  }
+  Future<void> addCoverImage() async {
+
+    String? publicUrlOfPhoto = await getPreSignUrl();
+    final params =
+      {
+        ApiKeys.coverPage: publicUrlOfPhoto
+      };
+    ResponseModel response = await medicalRepo.addCoverPhoto(params);
+    if (response.isSuccess) {
+      clearStaffForm();
+    } else {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+  }
+  Future<void> addLogoImage() async {
+
+    String? publicUrlOfPhoto = await getPreSignUrl(selectedFile: pickedHospitalLogo.value);
+    final params =
+      {
+        ApiKeys.logoImage: publicUrlOfPhoto
+      };
+    ResponseModel response = await medicalRepo.addLogoImageHospital(params);
+    if (response.isSuccess) {
+      clearStaffForm();
+    } else {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+  }
+  Future<void> addBuildGalleryHospital(List<XFile> files) async {
+    List<String> values = [];
+
+    values = await Future.wait(
+      files.map((e) async {
+        String? publicUrlOfPhoto =
+        await getPreSignUrl(selectedFile: File(e.path));
+        return publicUrlOfPhoto ?? '';
+      }),
+    );
+
+    final params =
+    {
+      ApiKeys.images: values
+    };
+    ResponseModel response = await medicalRepo.addBuildGalleryHospital(params);
+    if (response.isSuccess) {
+      getHospitalHomeDetails();
+      clearStaffForm();
+    } else {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
   }
@@ -382,7 +453,6 @@ class HospitalModelController extends GetxController {
 Future<void> getHospitalHomeDetails() async {
     ResponseModel response = await medicalRepo.getHospitalHomeDetailsApi();
     if (response.isSuccess) {
-      log("ksdajcnsjdncksjdc ${response.response?.data}");
       hospitalHomePageDetailsModel.value=HospitalHomePageDetailsModel.fromJson(response.data);
       getHospitalHomePageResponse.value =ApiResponse.complete(hospitalHomePageDetailsModel.value);
     } else {
@@ -533,113 +603,6 @@ Future<void> getHospitalHomeDetails() async {
     }
   }
 
-  // Future<void> updateLeaveStatusToDoctor(String id) async {
-  //   final params = {
-  //     ApiKeys.leaveFrom: DateFormat('yyyy-MM-dd').format(fromDate.value!),
-  //     ApiKeys.leaveTo: DateFormat('yyyy-MM-dd').format(toDate.value!),
-  //   };
-  //
-  //   ResponseModel response = await medicalRepo.updateLeaveStatus(id, params);
-  //   if (response.isSuccess) {
-  //     DoctorsDetailsModel model = DoctorsDetailsModel.fromJson(response.data);
-  //     final index = staffList.indexWhere((e) => e.id == id);
-  //
-  //     if (index != -1) {
-  //       staffList[index] = staffList[index].copyWith(
-  //         leaveFrom: model.leaveFrom,
-  //         leaveTo: model.leaveTo,
-  //         isOnLeave: model.isOnLeave,
-  //       );
-  //       staffList.refresh();
-  //     }
-  //     Get.back();
-  //   } else {
-  //     commonSnackBar(message: AppStrings.somethingWentWrong);
-  //   }
-  // }
-  //
-  // Future<void> updateDoctorsFeesDetails(String id, bool isEditFee) async {
-  //   editFeeSubmitLoading.value = true;
-  //   Map<String, dynamic> params = {
-  //     if (isEditFee)
-  //       ApiKeys.fees: feesController.text.trim()
-  //     else
-  //       ApiKeys.availability: availabilityController.text.trim()
-  //   };
-  //
-  //   ResponseModel response =
-  //   await medicalRepo.updateDoctorsFeesDetails(id, params);
-  //   if (response.isSuccess) {
-  //     DoctorsDetailsModel model = DoctorsDetailsModel.fromJson(response.data);
-  //     final index = staffList.indexWhere((e) => e.id == id);
-  //     if (index != -1) {
-  //       staffList[index] = staffList[index]
-  //           .copyWith(fees: model.fees, availability: model.availability);
-  //       staffList.refresh();
-  //     }
-  //     editFeeSubmitLoading.value = false;
-  //
-  //     Get.back();
-  //   } else {
-  //     editFeeSubmitLoading.value = false;
-  //     commonSnackBar(message: AppStrings.somethingWentWrong);
-  //   }
-  // }
-  //
-  // Future<void> editDoctorDetails(String id) async {
-  //   addDoctorLoading.value = true;
-  //
-  //   Object? publicUrlOfPhoto = pickedDoctorImage.value != null
-  //       ? await getPreSignUrl()
-  //       : prePhotoImage ?? '';
-  //
-  //   Map<String, dynamic> params = {
-  //     ApiKeys.name: nameController.text.trim(),
-  //     ApiKeys.specialization: specializationController.text.trim(),
-  //     ApiKeys.qualification: qualificationController.text.trim(),
-  //     ApiKeys.photo: publicUrlOfPhoto,
-  //     ApiKeys.availability: availabilityController.text.trim(),
-  //     ApiKeys.fees: int.tryParse(feesController.text) ?? 0,
-  //   };
-  //   ResponseModel response =
-  //   await medicalRepo.updateDoctorsFeesDetails(id, params);
-  //   if (response.isSuccess) {
-  //     DoctorsDetailsModel model = DoctorsDetailsModel.fromJson(response.data);
-  //     final index = staffList.indexWhere((e) => e.id == id);
-  //     if (index != -1) {
-  //       staffList[index] = staffList[index].copyWith(
-  //           fees: model.fees,
-  //           availability: model.availability,
-  //           createdAt: model.createdAt,
-  //           name: model.name,
-  //           photo: model.photo,
-  //           qualification: model.qualification,
-  //           specialization: model.specialization,
-  //           updatedAt: model.updatedAt);
-  //       staffList.refresh();
-  //     }
-  //     addDoctorLoading.value = false;
-  //
-  //     Get.back();
-  //   } else {
-  //     addDoctorLoading.value = false;
-  //
-  //     commonSnackBar(message: AppStrings.somethingWentWrong);
-  //   }
-  // }
-  //
-  // Future<void> deleteDoctorDetails(String id) async {
-  //   ResponseModel response = await medicalRepo.deleteDoctor(id);
-  //   if (response.isSuccess) {
-  //     final index = staffList.indexWhere((e) => e.id == id);
-  //     if (index != -1) {
-  //       staffList.removeAt(index);
-  //       staffList.refresh();
-  //     }
-  //   } else {
-  //     commonSnackBar(message: AppStrings.somethingWentWrong);
-  //   }
-  // }
   Future<void> fetchHospitalSubCategoryData(String categoryTopic) async {
     getHospitalSubResponse.value = ApiResponse.initial("Initial");
     ResponseModel response =
@@ -688,14 +651,6 @@ Future<void> getHospitalHomeDetails() async {
         await medicalRepo.enableHotelServiceStatusApi(categoryTopicId, params);
     if (response.isSuccess) {
       final bool updatedStatus = params['isActive'];
-      //
-      // hospitalCategoryDataList.value = updateCategoryStatusById(
-      //   list: hospitalCategoryDataList,
-      //   id: categoryTopicId,
-      //   isActive: updatedStatus,
-      // );
-
-      // reassign API response for UI
 
       commonSnackBar(message: response.response?.statusMessage ?? '');
     } else {
@@ -743,8 +698,8 @@ Future<void> getHospitalHomeDetails() async {
     }
   }
 
-  Future<String?> getPreSignUrl() async {
-    File? selectedFiles = pickedDoctorImage.value;
+  Future<String?> getPreSignUrl({File? selectedFile}) async {
+    File? selectedFiles = selectedFile??pickedDoctorImage.value;
     String? fileNames;
     String? fileTypes;
 
@@ -761,17 +716,8 @@ Future<void> getHospitalHomeDetails() async {
     ResponseModel response =
         await medicalRepo.getHealthAndServiceImageUpload(uploadParams);
     if (response.isSuccess) {
-      //{uploadUrl: https://be-hospital-bkt.s3.ap-
-      // south-1.amazonaws.com/uploads/1768589161576-66
-      // 12fd23-b448-46ab-9b95-086bf8a402ea.png?X-Amz-Algorithm=AWS4
-      // -HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-C
-      // redential=AKIAXQIQALRC6IAIRZXD%2F20260116%2Fap-south-1%2Fs
-      // 3%2Faws4_request&X-Amz-Date=20260116T184601Z&X-Amz-Expires=
-      // 1800&X-Amz-Signature=a87c5175f28422942435fcd1a5f6917a25daf0d33
-      // 2c6449991d08aa9da5ab2fc&X-Amz-SignedHeaders=host&x-amz-acl=public-read&x-amz-checksum-c
-      // rc32=AAAAAA%3D%3D&x-amz-sdk-checksum-algorithm=CRC32&x-id=PutObject, publicUrl: https://be-hospital-bkt.s3.ap-south-1.amazonaws.com/uploads%2F1768589161576-6612fd23-b448-46ab-9b95-086bf8a402ea.png, fileKey: uploads/1768589161576-6612fd23-b448-46ab-9b95-086bf8a402ea.png}
-      await uploadFileToS3(
-          file: pickedDoctorImage.value ?? File(''),
+  await uploadFileToS3(
+          file: selectedFiles ?? File(''),
           fileType: fileTypes ?? '',
           preSignedUrl: response.response?.data['uploadUrl']);
       return response.response?.data['publicUrl'];
