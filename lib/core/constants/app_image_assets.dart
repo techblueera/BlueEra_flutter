@@ -56,6 +56,7 @@ class AppImageAssets {
   static String sportsFitnessStore = "${imgPath}sports_fitness_store_icon.png";
   static String jewelleryLuxuryStore = "${imgPath}jewellery_luxury_store_icon.png";
   static String automotiveStore = "${imgPath}automotive_store_icon.png";
+  static String constructionHardware = "${imgPath}construction_hardware_icon.png";
   static String booksStationaryGifts = "${imgPath}books_stationary_gifts_icon.png";
   static String pharmacyMedicalStore = "${imgPath}pharmacy_medical_store_icon.png";
   static String petSuppliesStore = "${imgPath}pet_supplies_store_icon.png";
@@ -66,6 +67,10 @@ class AppImageAssets {
   static String beautyAndCosmetics = "${imgPath}beauty_and_cosmetics.png";
   static String homeAppliances = "${imgPath}home_appliances.png";
   static String homeKitchenAndUtensils = "${imgPath}home_kitchen_and_utensils.png";
+  static String packagingAndDisposable = "${imgPath}packaging_and_disposable.png";
+  static String agricultureAndFarming = "${imgPath}agriculture_and_farming.png";
+  static String industrialWholesale = "${imgPath}industrial_wholesale.png";
+  static String religiousAndSpeciality = "${imgPath}religious_and_speciality.png";
 
   /// Business services images
   static String consultingService = "${imgPath}consulting_service_icon.png";
@@ -97,6 +102,8 @@ class AppImageAssets {
   static String securityPerson = "${imgPath}security_person.png";
   static String taxiDriver = "${imgPath}taxi_driver.png";
   static String deliveryPartner = "${imgPath}delivery_partner.png";
+  static String autoDriver = "${imgPath}auto_driver.png";
+  static String goodsTransporter = "${imgPath}goods_transporter.png";
 
   /// Home Service
   static String consultation = "${imgPath}consultation.png";
@@ -226,7 +233,7 @@ static String automotiveShowroom = "${imgPath}automotive_showroom.png";
 static String petAgricultureStore = "${imgPath}pet_agriculture_store.png";
 static String wholesalerTrader = "${imgPath}wholesaler_trader.png";
 static String industrialsSupplies = "${imgPath}industrials_supplies.png";
-static String homeAppliancesService = "${imgPath}home_appliances_service.png";
+static String homeAppliancesStore = "${imgPath}home_appliances_store.png";
 static String beautyAndCosmetics = "${imgPath}beauty_and_cosmetics.png";
 static String homeKitchenAndUtensils = "${imgPath}home_kitchen_and_utensils.png";
 static String religiousAndSpeciality = "${imgPath}religious_and_speciality.png";
@@ -248,6 +255,8 @@ static String automotiveServices = "${imgPath}automotive_services.png";
 static String logisticsAndTransport = "${imgPath}logistics_and_transport.png";
 static String celebrationAndEventServices = "${imgPath}celebration_and_event_services.png";
 static String tourTravelsAndTourism = "${imgPath}tour_travels_and_tourism.png";
+static String realEstateProperty = "${imgPath}real_estate_property.png";
+static String technicalTestingAndQualityLabs = "${imgPath}technical_testing_and_quality_labs.png";
 
 /// Manufacturing Industry
 static String autoAndBikeAccessories = "${imgPath}auto_and_bike_accessories.png";

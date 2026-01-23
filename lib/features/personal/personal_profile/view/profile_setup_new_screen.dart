@@ -664,65 +664,302 @@ class _PersonalProfileSetupNewScreenState
   }
 
   void _showCategoryBottomSheet() {
-    final controller = Get.find<ViewPersonalDetailsController>();
-    final authController = Get.find<AuthController>();
-
+    final controller = getOrPut(() => ViewPersonalDetailsController());
+    final authController = getOrPut(() => AuthController());
 
     final user = controller.personalProfileDetails.value.user;
-    IndividualProfileTypeModel selectedProfileType =
+    IndividualProfileTypeModel _selectedProfileType =
         IndividualProfileTypeModel.fromString(user?.profileType ?? SOCIAL_PROFILE);
-    OnBoardingCategoryModel? selectedProfession;
-    RxList<OnBoardingCategoryModel> individualProfessionList = <OnBoardingCategoryModel>[].obs;
+    OnboardingCategoryModel? _selectedProfession;
+    List<OnboardingCategoryModel> professionCategoryList = <OnboardingCategoryModel>[];
 
     String designation = user?.designation ?? '';
-    IndividualFields? _selectedContentCreatorField;
-    SubCategories? _selectedContentCreatorSpecification;
-    SubCategories? _selectedArtistObj;
-    SubCategories? _selectedProfessionalObj;
-    final TextEditingController designationController = TextEditingController();
+    IndividualFields? _selectedContentCreatorSpecialization;
+    SubCategories? _selectedDesignationObj;
+    final TextEditingController _designationController = TextEditingController();
+
+    final _specializationCtrl = TextEditingController();
+    final _ngoNameTextCtrl = TextEditingController();
+    final _expertiseTextCtrl = TextEditingController();
+    final _seniorTextCtrl = TextEditingController();
+    final _courseTextCtrl = TextEditingController();
+    final _companyNameCtrl = TextEditingController();
+    final _sectorTextCtrl = TextEditingController();
+    final _governmentNameCtrl = TextEditingController();
+    final _politicalPartyCtrl = TextEditingController();
+    final _departmentNameCtrl = TextEditingController();
+    final _subDivisionCtrl = TextEditingController();
+
+    final _formKey = GlobalKey<FormState>();
+    bool upBtnLoading = false;
 
     // Helper: Update the list based on Profile Type
     void updateCategoryOfProfession(String typeId) {
       switch (typeId) {
         case SOCIAL_PROFILE:
-          individualProfessionList.value = individualOnboardingSocialProfileList;
+          professionCategoryList = individualOnboardingSocialProfileList;
           break;
         case GIG_WORKER:
-          individualProfessionList.value = individualOnboardingSelfWorkTransportList;
+          professionCategoryList = individualOnboardingGigWorkList;
           break;
         case SELF_EMPLOYED:
-          individualProfessionList.value = individualOnboardingSelfSkillWorkList;
+          professionCategoryList = individualOnboardingSkillWorkList;
           break;
         case PROFESSIONAL:
-          individualProfessionList.value = individualOnboardingConsultationList;
+          professionCategoryList = individualOnboardingConsultationList;
           break;
         default:
-          individualProfessionList.clear();
+          professionCategoryList.clear();
       }
     }
 
     void initData() {
-      updateCategoryOfProfession(selectedProfileType.type);
+      updateCategoryOfProfession(_selectedProfileType.type);
 
       String? currentSlug = user?.profession;
       if (currentSlug != null && currentSlug.isNotEmpty) {
-        var match = individualProfessionList.firstWhereOrNull((e) => e.slugId == currentSlug);
-        selectedProfession = match;
+        var match = professionCategoryList.firstWhereOrNull((e) => e.slugId == currentSlug);
+        _selectedProfession = match;
       }
+      if(_selectedProfession==null) return;
 
-      if(selectedProfileType.type == PROFESSIONAL ||
-          selectedProfession?.slugId == CONTENT_CREATOR ||
-          selectedProfession?.slugId == ARTIST
+      StringBuffer logs = StringBuffer();
+      logs.writeln("\n🔎 --- FINAL EXECUTION LOG ---");
+
+      if(_selectedProfileType.type == PROFESSIONAL ||
+          _selectedProfession?.slugId == CONTENT_CREATOR ||
+          _selectedProfession?.slugId == ARTIST
       ){
+        logs.writeln("⚡ Profile Type ${_selectedProfileType.type}");
+        logs.writeln("⚡ Action: Triggered API Call for ${_selectedProfession?.slugId}");
+
         // Dropdown values
-        authController.fetchIndividualFields(
-            tagId: currentSlug ?? ''
-        );
-      } else{
-         // Text field
-        designationController.text = designation;
+        authController.fetchIndividualFields(tagId: _selectedProfession!.slugId)
+            .then((_) {
+
+          if (authController.arrIndividualFields.isNotEmpty) {
+
+            if(_selectedProfession?.slugId == CONTENT_CREATOR){
+              var mainList = authController.arrIndividualFields;
+              try {
+                var match = mainList.firstWhere((element) => element.name == designation);
+
+                setState(() {
+                  _selectedContentCreatorSpecialization = match;
+                });
+
+              } catch (e) {
+                // No match found, leave selection empty
+              }
+            }
+
+            var subList = authController.arrIndividualFields[0].subcategories ?? [];
+            try {
+              var match = subList.firstWhere((element) => element.name == designation);
+
+              setState(() {
+                _selectedDesignationObj = match;
+              });
+
+            } catch (e) {
+              // No match found, leave selection empty
+            }
+          }
+        });
+      } else if(_selectedProfession?.slugId == HOMEMAKER) {
+        // Text field
+        _expertiseTextCtrl.text = designation;
+        logs.writeln("✍️ Action: Set Homemaker Text -> '$designation'");
+      }else if(_selectedProfession?.slugId == SENIOR_CITIZEN) {
+        // Text field
+        _seniorTextCtrl.text = designation;
+        logs.writeln("✍️ Action: Set Senior Text -> '$designation'");
+      }else{
+        // Text field
+          _designationController.text = designation;
+          logs.writeln("✍️ Action: Set Default Text -> '$designation'");
       }
 
+      if (_selectedProfileType.type == SELF_EMPLOYED || _selectedProfileType.type == GIG_WORKER) {
+        _specializationCtrl.text = user?.specilization ?? '';
+        logs.writeln("📝 Field: Specialization -> '${_specializationCtrl.text}'");
+      }
+
+      if (_selectedProfession?.slugId == PRIVATE_JOB) {
+        _sectorTextCtrl.text = user?.sector ?? '';
+        logs.writeln("📝 Field: Private Sector -> '${_sectorTextCtrl.text}'");
+      }
+
+      if (_selectedProfession?.slugId == GOVERNMENT_JOB) {
+        _governmentNameCtrl.text = user?.department ?? '';
+        logs.writeln("📝 Field: Govt Dept -> '${_governmentNameCtrl.text}'");
+      }
+
+      if (_selectedProfession?.slugId == POLITICIAN) {
+        _politicalPartyCtrl.text = user?.department ?? '';
+        logs.writeln("📝 Field: Political Party -> '${_politicalPartyCtrl.text}'");
+      }
+
+      if (_selectedProfession?.slugId == GOVTPSU) {
+        _departmentNameCtrl.text = user?.department ?? '';
+        _subDivisionCtrl.text = user?.subDivision ?? '';
+        logs.writeln("📝 Field: PSU -> Dept: '${_departmentNameCtrl.text}', SubDiv: '${_subDivisionCtrl.text}'");
+      }
+
+      if (_selectedProfession?.slugId == REG_UNION || _selectedProfession?.slugId == NGO) {
+        _ngoNameTextCtrl.text = user?.department ?? '';
+        logs.writeln("📝 Field: NGO/Union -> '${_ngoNameTextCtrl.text}'");
+      }
+
+      if (_selectedProfession?.slugId == INDUSTRIALIST || _selectedProfession?.slugId == DIRECTOR) {
+        _companyNameCtrl.text = user?.department ?? '';
+        logs.writeln("📝 Field: Company -> '${_companyNameCtrl.text}'");
+      }
+
+      if (_selectedProfession?.slugId == STUDENT) {
+        _courseTextCtrl.text = user?.schoolOrCollegeName ?? '';
+        logs.writeln("📝 Field: School/College -> '${_courseTextCtrl.text}'");
+      }
+
+      logs.writeln("-----------------------------------");
+
+     // 2. PRINT EVERYTHING AT THE VERY END
+      print(logs.toString());
+
+    }
+
+    Future<void> _onSubmitPressed() async {
+      // if (_formKey.currentState?.validate() ?? false) {
+        if (_selectedProfileType.type == PROFESSIONAL) {
+          if (_selectedDesignationObj?.name?.isEmpty ?? true) {
+            commonSnackBar(message: 'Select your profession');
+            return;
+          }
+        }
+
+        if (_selectedProfession?.slugId == ARTIST) {
+          if (_selectedDesignationObj?.name?.isEmpty ?? true) {
+            commonSnackBar(message: 'Select your art / skill');
+            return;
+          }
+        }
+        if (_selectedProfession?.slugId == REG_UNION ||
+            _selectedProfession?.slugId == NGO) {
+          if (_ngoNameTextCtrl.text.isEmpty) {
+            commonSnackBar(message: 'Enter your NGO / Society Name');
+            return;
+          }
+        }
+        if (_selectedProfession?.slugId == CONTENT_CREATOR) {
+          if (_selectedContentCreatorSpecialization?.name?.isEmpty ?? true) {
+            commonSnackBar(message: 'Select your Field');
+            return;
+          }
+          if (_selectedDesignationObj?.name?.isEmpty ?? true) {
+            commonSnackBar(message: 'Select your Specification');
+            return;
+          }
+        }
+
+        // if (_selectedProfessionTagId == OTHERS) {
+        //   if (_otherProfessionTextController.text.isEmpty) {
+        //     commonSnackBar(message: 'Please enter your Skill and Expertise');
+        //     return;
+        //   }
+        // }
+
+        setState(() {
+          upBtnLoading = true;
+        });
+
+          String? designation;
+          if ((_selectedProfileType.type == SELF_EMPLOYED ||
+              _selectedProfileType.type == GIG_WORKER)) {
+            designation =
+                _selectedProfession?.slugId.toLowerCase().capitalizeFirst ?? "";
+          } else if (_selectedProfileType.type == PROFESSIONAL) {
+            designation = _selectedDesignationObj?.name;
+            log('designation -- $designation');
+          } else {
+            if (_selectedProfession?.slugId == STUDENT) {
+              designation = STUDENT.toLowerCase().capitalizeFirst;
+            } else if (_selectedProfession?.slugId == FARMER) {
+              designation = FARMER.toLowerCase().capitalizeFirst;
+            } else if (_selectedProfession?.slugId == HOMEMAKER) {
+              designation = _expertiseTextCtrl.text.trim();
+            } else if (_selectedProfession?.slugId == SENIOR_CITIZEN) {
+              designation = _seniorTextCtrl.text.trim();
+            } else if (_selectedProfession?.slugId == ARTIST) {
+                designation = _selectedDesignationObj?.name;
+            } else if (_selectedProfession?.slugId == CONTENT_CREATOR) {
+              designation = _selectedDesignationObj?.name;
+              log('designation -- ${_selectedDesignationObj?.name}');
+            }
+            // else if (_selectedProfessionTagId == OTHERS) {
+            //   designation = _otherProfessionTextController.text.trim();
+            // }
+            else {
+              designation = _designationController.text.trim();
+            }
+          }
+
+          Map<String, dynamic> requestData = {
+
+            ///CONDITION....
+            ApiKeys.profileType: _selectedProfileType.type,
+            ApiKeys.profession: _selectedProfession?.slugId,
+            ApiKeys.designation: designation,
+            if (_selectedProfession?.slugId == PRIVATE_JOB)
+              ApiKeys.sector: _sectorTextCtrl.text,
+            if (_selectedProfileType.type == SELF_EMPLOYED ||
+                _selectedProfileType.type == GIG_WORKER)
+              ApiKeys.specilization: _specializationCtrl.text.trim(),
+            if (_selectedProfession?.slugId == CONTENT_CREATOR)
+              ApiKeys.specilization: _selectedContentCreatorSpecialization?.name,
+            if (_selectedProfession?.slugId == GOVERNMENT_JOB)
+              ApiKeys.department: _governmentNameCtrl.text.trim(),
+            if (_selectedProfession?.slugId == POLITICIAN)
+              ApiKeys.department: _politicalPartyCtrl.text.trim(),
+            if (_selectedProfession?.slugId == GOVTPSU)
+              ApiKeys.department: _departmentNameCtrl.text.trim(),
+            if (_selectedProfession?.slugId == GOVTPSU)
+              ApiKeys.subDivision: _subDivisionCtrl.text.trim(),
+            if (_selectedProfession?.slugId == REG_UNION ||
+                _selectedProfession?.slugId == NGO)
+              ApiKeys.department: _ngoNameTextCtrl.text.trim(),
+            if (_selectedProfession?.slugId == INDUSTRIALIST)
+              ApiKeys.department: _companyNameCtrl.text.trim(),
+            if (_selectedProfession?.slugId == DIRECTOR)
+              ApiKeys.department: _companyNameCtrl.text.trim(),
+            if (_selectedProfession?.slugId == STUDENT)
+              ApiKeys.schoolOrCollegeName: _courseTextCtrl.text.trim(),
+            // if (_selectedProfessionTagId == OTHERS)
+            //   ApiKeys.specilization: _otherProfessionTextController.text,
+
+            ///USER NAME
+            // if ((_selectedProfessionTagId == CONTENT_CREATOR) ||
+            //     (_selectedProfessionTagId == POLITICIAN) ||
+            //     (_selectedProfessionTagId == REG_UNION) ||
+            //     (_selectedProfessionTagId == NGO) ||
+            //     (_selectedProfessionTagId == INDUSTRIALIST) ||
+            //     (_selectedProfessionTagId == ARTIST) ||
+            //     (_selectedProfessionTagId == MEDIA) ||
+            //     (_selectedProfessionTagId == GOVTPSU) ||
+            //     (_selectedProfessionTagId == DIRECTOR))
+            //   ApiKeys.username: userNameController.text,
+
+          };
+          logs("requestData PERSONAL ==== ${requestData}");
+          await personalCreateProfileController.updateUserProfileDetails(
+              params: requestData,
+             showProgress: false
+          );
+
+          setState(() {
+            upBtnLoading = false;
+          });
+
+        // }
     }
 
     initData();
@@ -733,280 +970,584 @@ class _PersonalProfileSetupNewScreenState
             return SafeArea(
             child: Container(
               // padding: EdgeInsets.all(SizeConfig.size20),
-              padding: EdgeInsets.only(bottom: 30, right: 20, left: 20, top: 15),
+              padding: EdgeInsets.only(bottom: 30, right: 20, left: 20, top: 5),
               decoration: BoxDecoration(
                 color: AppColors.white,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min, // Important to keep sheet compact
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min, // Important to keep sheet compact
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
 
-                  CustomText(
-                    "Select Profile Type",
-                    fontSize: SizeConfig.large,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  SizedBox(height: SizeConfig.size8),
-                  CommonDropdownIconDialog<IndividualProfileTypeModel>(
-                    items: profileTypeList,
-                    selectedValue: selectedProfileType,
-                    title: 'Select Profile Type',
-                    hintText: 'Select Profile Type',
-                    displayValue: (item) => item.title,
-                    onChanged: (val) {
-                      if(val == null || selectedProfileType.type == val.type) return;
+                    Row(
+                      children: [
+                        Expanded(
+                          child: CustomText(
+                            "Profile Data",
+                            fontWeight: FontWeight.w600,
+                            fontSize: SizeConfig.large,
+                            color: AppColors.mainTextColor,
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => Navigator.pop(context),
+                          icon: const Icon(Icons.close),
+                        ),
+                      ],
+                    ),
 
-                      setState((){
-                        selectedProfileType = val;
-                        updateCategoryOfProfession(val.type);
-                        selectedProfession = null;
-                        designationController.clear();
-                        _selectedContentCreatorField = null;
-                        _selectedContentCreatorSpecification = null;
-                        _selectedArtistObj = null;
-                       _selectedProfessionalObj = null;
-                      });
-                      log('profile type-- ${selectedProfileType.type}');
-                    },
-                    displayValueSubTitle: (item) => item.subTitle,
-                    displayValueImagePath: (item) => item.icon,
-                  ),
-
-                  SizedBox(height: SizeConfig.paddingM),
-
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CustomText(
-                        "Select Profession",
-                        fontSize: SizeConfig.large,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      SizedBox(height: SizeConfig.size8),
-                     CommonDropdownDialog<OnBoardingCategoryModel>(
-                        items: individualProfessionList,
-                        selectedValue: selectedProfession,
-                        title: 'Select Profession',
-                        hintText: selectedProfileType.hintText,
-                        displayValue: (item) => item.name.tr,
-                        onChanged: (val) {
-                          if (val != null) {
-                            selectedProfession = val;
-                            logs("Selected Profession Slug: ${selectedProfession?.slugId}");
-
-                            if(selectedProfileType.type == PROFESSIONAL ||
-                                selectedProfession?.slugId == CONTENT_CREATOR ||
-                                selectedProfession?.slugId == ARTIST
-                            ){
-                              authController.fetchIndividualFields(
-                                  tagId: selectedProfession?.slugId ?? ''
-                              );
-                            }else{
-                              designationController.clear();
-                            }
-
-                          setState(() {});
-
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-
-                  SizedBox(height: SizeConfig.paddingM),
-
-                  if(selectedProfileType.type == PROFESSIONAL)...[
+                    // Profile Type
                     CustomText(
-                      "Expertise",
+                      "Select Profile Type",
                       fontSize: SizeConfig.medium,
+                      fontWeight: FontWeight.w400,
                       color: AppColors.mainTextColor,
                     ),
-                    SizedBox(
-                      height: SizeConfig.size10,
-                    ),
-                    Obx(() => authController.isIndividualFieldLoading.value
-                        ? Center(
-                      child: CircularProgressIndicator(),
-                    )
-                        : CommonDropdownDialog<SubCategories>(
-                      items: List<SubCategories>.from(
-                          authController.arrIndividualFields.isNotEmpty
-                              ? (authController.arrIndividualFields[0].subcategories ?? [])
-                              : []
-                      ),
-                      selectedValue: _selectedProfessionalObj,
-                      title: 'Expertise',
-                      hintText: 'Eg. Loan Consultant...',
-                      displayValue: (s) => s.name ?? "",
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedProfessionalObj = value;
+                    SizedBox(height: SizeConfig.size8),
+                    CommonDropdownIconDialog<IndividualProfileTypeModel>(
+                      items: profileTypeList,
+                      selectedValue: _selectedProfileType,
+                      title: 'Select Profile Type',
+                      hintText: 'Select Profile Type',
+                      displayValue: (item) => item.title,
+                      onChanged: (val) {
+                        if(val == null || _selectedProfileType.type == val.type) return;
+
+                        _selectedProfession = null;
+                        _designationController.clear();
+                        _selectedContentCreatorSpecialization = null;
+                        _selectedDesignationObj = null;
+
+                        setState((){
+                          _selectedProfileType = val;
+                          updateCategoryOfProfession(val.type);
                         });
+                        log('profile type-- ${_selectedProfileType.type}');
                       },
-                    )),
-                  ],
+                      displayValueSubTitle: (item) => item.subTitle,
+                      displayValueImagePath: (item) => item.icon,
+                    ),
 
-                  if(selectedProfession?.slugId == ARTIST)
-                    ...[
+                    SizedBox(height: SizeConfig.paddingM),
 
-                      ///selectYourProfession
+
+                    // Profession
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CustomText(
+                          "Select Profession",
+                          fontSize: SizeConfig.medium,
+                          fontWeight: FontWeight.w400,
+                          color: AppColors.mainTextColor,
+                        ),
+                        SizedBox(height: SizeConfig.size8),
+                       CommonDropdownDialog<OnboardingCategoryModel>(
+                          items: professionCategoryList,
+                          selectedValue: _selectedProfession,
+                          title: 'Select Profession',
+                          hintText: _selectedProfileType.hintText,
+                          displayValue: (item) => item.name.tr,
+                          onChanged: (val) {
+                            if(val == null || _selectedProfession?.slugId == val.slugId) return;
+
+                            _designationController.clear();
+                            _selectedContentCreatorSpecialization = null;
+                            _selectedDesignationObj = null;
+
+                            _selectedProfession = val;
+                            logs("Selected Profession Slug: ${_selectedProfession?.slugId}");
+
+                            if(_selectedProfileType.type == PROFESSIONAL ||
+                                  _selectedProfession?.slugId == CONTENT_CREATOR ||
+                                  _selectedProfession?.slugId == ARTIST
+                              ){
+                                authController.fetchIndividualFields(
+                                    tagId: _selectedProfession?.slugId ?? ''
+                                );
+                              }
+
+                            setState(() {});
+
+                          },
+                        ),
+                      ],
+                    ),
+
+                    if (_selectedProfileType.type == SELF_EMPLOYED ||
+                        _selectedProfileType.type == GIG_WORKER) ...[
+                      SizedBox(height: SizeConfig.paddingM),
+                      CommonTextField(
+                        isValidate: false,
+                        textEditController: _specializationCtrl,
+                        inputLength: 24,
+                        keyBoardType: TextInputType.text,
+                        regularExpression:
+                        RegularExpressionUtils.alphabetSpacePattern,
+                        titleColor: Colors.black,
+                        title: 'Specialization',
+                        hintText: "Please specify work type",
+                      ),
+                    ],
+
+                    if(_selectedProfileType.type == PROFESSIONAL)...[
+                      SizedBox(height: SizeConfig.paddingM),
                       CustomText(
-                        "Select Your Art / Skill",
+                        "Expertise",
                         fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w400,
                         color: AppColors.mainTextColor,
                       ),
                       SizedBox(
                         height: SizeConfig.size10,
                       ),
+                      Obx(() => authController.isIndividualFieldLoading.value
+                          ? Center(
+                              child: CircularProgressIndicator(),
+                        )
+                          : CommonDropdownDialog<SubCategories>(
+                        items: List<SubCategories>.from(
+                            authController.arrIndividualFields.isNotEmpty
+                                ? (authController.arrIndividualFields[0].subcategories ?? [])
+                                : []
+                        ),
+                        selectedValue: _selectedDesignationObj,
+                        title: 'Expertise',
+                        hintText: 'Eg. Loan Consultant...',
+                        displayValue: (s) => s.name ?? "",
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedDesignationObj = value;
+                          });
+                        },
+                      )),
+                    ],
+
+                    if(_selectedProfession?.slugId == ARTIST)
+                      ...[
+                        SizedBox(height: SizeConfig.paddingM),
+                        CustomText(
+                          "Select Your Art / Skill",
+                          fontSize: SizeConfig.medium,
+                          fontWeight: FontWeight.w400,
+                          color: AppColors.mainTextColor,
+                        ),
+                        SizedBox(
+                          height: SizeConfig.size10,
+                        ),
+
+                        Obx(() => authController.isIndividualFieldLoading.value
+                            ? Center(
+                          child: CircularProgressIndicator(),
+                        )
+                            : Column(
+                          children: [
+                            CommonDropdownDialog<SubCategories>(
+                              items: List<SubCategories>.from(
+                                  authController.arrIndividualFields.isNotEmpty
+                                      ? (authController.arrIndividualFields[0].subcategories ?? [])
+                                      : []
+                              ),
+                              selectedValue: _selectedDesignationObj,
+                              title: 'Select Your Art / Skill',
+                              hintText: 'Eg. Actor...',
+                              displayValue: (s) => s.name ?? "",
+                              onChanged: (value) {
+                                setState(() {
+                                  _selectedDesignationObj = value;
+                                });
+                              },
+                            ),
+                          ],
+                        )),
+                      ],
+
+                    if(_selectedProfession?.slugId == CONTENT_CREATOR)...[
+                      SizedBox(height: SizeConfig.paddingM),
 
                       Obx(() => authController.isIndividualFieldLoading.value
                           ? Center(
                         child: CircularProgressIndicator(),
                       )
                           : Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          CustomText(
+                            'Select your Field',
+                            fontSize: SizeConfig.medium,
+                            fontWeight: FontWeight.w400,
+                            color: AppColors.mainTextColor,
+                          ),
+                          SizedBox(
+                            height: SizeConfig.size10,
+                          ),
+                          CommonDropdownDialog<IndividualFields>(
+                            items: authController.arrIndividualFields,
+                            selectedValue: _selectedContentCreatorSpecialization,
+                            title: 'Select your Field',
+                            hintText:
+                            'Eg. Media Creators, Writing Creators',
+                            displayValue: (value) => value.name ?? '',
+                            onChanged: (value) {
+                              _selectedContentCreatorSpecialization = value;
+                              authController.arrIndividualSubCategories
+                                  .clear();
+                              authController.arrIndividualSubCategories
+                                  .addAll(_selectedContentCreatorSpecialization
+                                  ?.subcategories ??
+                                  []);
+                              setState(() {});
+                            },
+                            // validator: (value) {
+                            //   if (value == null) {
+                            //     return 'Enter your Specification';
+                            //   }
+                            //   return null;
+                            // },
+                          ),
+                          SizedBox(
+                            height: SizeConfig.paddingM,
+                          ),
+                          CustomText(
+                            'Select Your Specification',
+                            fontSize: SizeConfig.medium,
+                            fontWeight: FontWeight.w400,
+                            color: AppColors.mainTextColor,
+                          ),
+                          SizedBox(
+                            height: SizeConfig.size10,
+                          ),
                           CommonDropdownDialog<SubCategories>(
-                            items: List<SubCategories>.from(
-                                authController.arrIndividualFields.isNotEmpty
-                                    ? (authController.arrIndividualFields[0].subcategories ?? [])
-                                    : []
-                            ),
-                            selectedValue: _selectedArtistObj,
-                            title: 'Select Your Art / Skill',
-                            hintText: 'Eg. Actor...',
+                            items: authController.arrIndividualSubCategories,
+                            selectedValue:
+                            _selectedDesignationObj,
+                            title: 'Select Your Specification',
+                            hintText: 'Eg. Video Creator, BLOGGER',
                             displayValue: (s) => s.name ?? "",
                             onChanged: (value) {
                               setState(() {
-                                _selectedArtistObj = value;
+                                _selectedDesignationObj = value;
                               });
                             },
-                          ),
+                            // validator: (value) {
+                            //   if (value == null) {
+                            //     return 'Please select your gender';
+                            //   }
+                            //   return null;
+                            // },
+                          )
                         ],
-                      )),
+                      ))
                     ],
 
-                  if(selectedProfession?.slugId == CONTENT_CREATOR)...[
-                    Obx(() => authController.isIndividualFieldLoading.value
-                        ? Center(
-                      child: CircularProgressIndicator(),
-                    )
-                        : Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CustomText(
-                          'Select your Field',
-                          fontSize: SizeConfig.medium,
-                          color: AppColors.mainTextColor,
-                        ),
-                        SizedBox(
-                          height: SizeConfig.size10,
-                        ),
-                        CommonDropdownDialog<IndividualFields>(
-                          items: authController.arrIndividualFields,
-                          selectedValue: _selectedContentCreatorField,
-                          title: 'Select your Field',
-                          hintText:
-                          'Eg. Media Creators, Writing Creators',
-                          displayValue: (value) => value.name ?? '',
-                          onChanged: (value) {
-                            _selectedContentCreatorField = value;
-                            authController.arrIndividualSubCategories
-                                .clear();
-                            authController.arrIndividualSubCategories
-                                .addAll(_selectedContentCreatorField
-                                ?.subcategories ??
-                                []);
-                            setState(() {});
-                          },
-                          // validator: (value) {
-                          //   if (value == null) {
-                          //     return 'Enter your Specification';
-                          //   }
-                          //   return null;
-                          // },
-                        ),
-                        SizedBox(
-                          height: SizeConfig.paddingM,
-                        ),
-                        CustomText(
-                          'Select Your Specification',
-                          fontSize: SizeConfig.medium,
-                          color: AppColors.mainTextColor,
-                        ),
-                        SizedBox(
-                          height: SizeConfig.size10,
-                        ),
-                        CommonDropdownDialog<SubCategories>(
-                          items: authController.arrIndividualSubCategories,
-                          selectedValue:
-                          _selectedContentCreatorSpecification,
-                          title: 'Select Your Specification',
-                          hintText: 'Eg. Video Creator, BLOGGER',
-                          displayValue: (s) => s.name ?? "",
-                          onChanged: (value) {
-                            setState(() {
-                              _selectedContentCreatorSpecification =
-                                  value;
-                            });
-                          },
-                          // validator: (value) {
-                          //   if (value == null) {
-                          //     return 'Please select your gender';
-                          //   }
-                          //   return null;
-                          // },
-                        )
-                      ],
-                    ))
-                  ],
+                    if (_selectedProfession?.slugId == REG_UNION ||
+                        _selectedProfession?.slugId == NGO) ...[
+                      SizedBox(
+                        height: SizeConfig.paddingM,
+                      ),
+                      CommonTextField(
+                        isValidate: false,
+                        textEditController: _ngoNameTextCtrl,
+                        inputLength: 40,
+                        title: "Type Your NGO / Society Name",
+                        keyBoardType: TextInputType.text,
+                        regularExpression:
+                        RegularExpressionUtils.alphabetSpacePattern,
+                        hintText: "eg. Auto Union",
+                        // autovalidateMode: _autoValidate,
+                        // validator: (value) {
+                        //   if (value == null || value.isEmpty) {
+                        //     return 'Please enter NGO / Society ';
+                        //   }
+                        //   return null;
+                        // }
+                      ),
+                    ],
 
-                  if((selectedProfileType.type  != SELF_EMPLOYED) &&
-                  (selectedProfileType.type  != GIG_WORKER) &&
-                  (selectedProfileType.type  != PROFESSIONAL) &&
-                  (selectedProfession?.slugId != ARTIST) &&
-                  (selectedProfession?.slugId != CONTENT_CREATOR) &&
-                  (selectedProfession?.slugId != HOMEMAKER) &&
-                  (selectedProfession?.slugId != SENIOR_CITIZEN) &&
-                  (selectedProfession?.slugId != FARMER) &&
-                  (selectedProfession?.slugId != STUDENT) &&
-                  (selectedProfession?.slugId != OTHERS)) ...[
-                    CommonTextField(
-                      isValidate: false,
-                      textEditController: designationController,
-                      inputLength: 24,
-                      keyBoardType: TextInputType.text,
-                      regularExpression:
-                      RegularExpressionUtils.alphabetSpacePattern,
-                      title: "Designation / Expertise",
-                      hintText: "Enter your designation/expertise",
+                    if (_selectedProfession?.slugId == INDUSTRIALIST ||
+                        _selectedProfession?.slugId == DIRECTOR
+                    ) ...[
+                      SizedBox(
+                        height: SizeConfig.paddingM,
+                      ),
+                      CommonTextField(
+                        isValidate: false,
+                        textEditController: _companyNameCtrl,
+                        inputLength: 24,
+                        title: "Type Your Company Name",
+                        keyBoardType: TextInputType.text,
+                        regularExpression:
+                        RegularExpressionUtils.alphabetSpacePattern,
+                        hintText: "eg. TCS LTD",
+                        // autovalidateMode: _autoValidate,
+                        // validator: (value) {
+                        //   if (value == null || value.isEmpty) {
+                        //     return 'Please enter company name';
+                        //   }
+                        //   return null;
+                        // }
+                      ),
+                    ],
+
+                    if (_selectedProfession?.slugId == HOMEMAKER) ...[
+                      SizedBox(
+                        height: SizeConfig.paddingM,
+                      ),
+                      CommonTextField(
+                        isValidate: false,
+                        textEditController: _expertiseTextCtrl,
+                        inputLength: 24,
+                        title: "Type Your Expertise",
+                        keyBoardType: TextInputType.text,
+                        regularExpression:
+                        RegularExpressionUtils.alphabetSpacePattern,
+                        hintText: "eg. Cooking,Dancing",
+                        // autovalidateMode: _autoValidate,
+                        // validator: (value) {
+                        //   if (value == null || value.isEmpty) {
+                        //     return 'Please enter Expertise';
+                        //   }
+                        //   return null;
+                        // }
+                      ),
+                    ],
+
+                    if (_selectedProfession?.slugId == SENIOR_CITIZEN) ...[
+                      SizedBox(
+                        height: SizeConfig.paddingM,
+                      ),
+                      CommonTextField(
+                        isValidate: false,
+                        textEditController: _seniorTextCtrl,
+                        inputLength: 24,
+                        title: "Type Your Expertise",
+                        keyBoardType: TextInputType.text,
+                        regularExpression:
+                        RegularExpressionUtils.alphabetSpacePattern,
+                        hintText: "eg. Banking,Teaching",
+                        // autovalidateMode: _autoValidate,
+                        // validator: (value) {
+                        //   if (value == null || value.isEmpty) {
+                        //     return 'Please enter Expertise';
+                        //   }
+                        //   return null;
+                        // }
+                      ),
+                    ],
+
+                    if (_selectedProfession?.slugId == STUDENT) ...[
+                      SizedBox(
+                        height: SizeConfig.paddingM,
+                      ),
+                      CommonTextField(
+                        isValidate: false,
+                        textEditController: _courseTextCtrl,
+                        inputLength: 24,
+                        title: "Enter your Education",
+                        keyBoardType: TextInputType.text,
+                        regularExpression:
+                        RegularExpressionUtils.alphabetSpacePattern,
+                        hintText: "eg. 10th,Diploma,BE,PHD",
+                        // autovalidateMode: _autoValidate,
+                        // validator: (value) {
+                        //   if (value == null || value.isEmpty) {
+                        //     return 'Please enter Expertise';
+                        //   }
+                        //   return null;
+                        // }
+                      ),
+                    ],
+
+                    if (_selectedProfession?.slugId == POLITICIAN) ...[
+                      SizedBox(
+                        height: SizeConfig.paddingM,
+                      ),
+                      CommonTextField(
+                        isValidate: false,
+                        title: "Political Party",
+                        hintText: "Enter political party or organization name",
+                        textEditController: _politicalPartyCtrl,
+                        inputLength: 50,
+                      ),
+                    ],
+
+                    if (_selectedProfession?.slugId == GOVTPSU) ...[
+                      SizedBox(
+                        height: SizeConfig.paddingM,
+                      ),
+                      CommonTextField(
+                        isValidate: false,
+                        title: "Name of Department/PSU",
+                        textEditController: _departmentNameCtrl,
+                        inputLength: 24,
+                        keyBoardType: TextInputType.text,
+                        regularExpression:
+                        RegularExpressionUtils.alphabetSpacePattern_,
+                        titleColor: Colors.black,
+                        hintText: "eg., Ministry of Education",
+                        // validator: (value) {
+                        //   if (value == null || value.isEmpty) {
+                        //     return 'Please enter your department name';
+                        //   }
+                        //   return null;
+                        // }
+                      ),
+                      SizedBox(height: SizeConfig.size18),
+                      CommonTextField(
+                        isValidate: false,
+                        title: "SUB Division/Branch",
+                        textEditController: _subDivisionCtrl,
+                        inputLength: 24,
+                        keyBoardType: TextInputType.text,
+                        regularExpression:
+                        RegularExpressionUtils.alphabetSpacePattern_,
+                        titleColor: Colors.black,
+                        hintText: "eg., Civil Engineering Division",
+                      ),
+                    ],
+
+                    if (_selectedProfession?.slugId == GOVERNMENT_JOB) ...[
+                      SizedBox(
+                        height: SizeConfig.paddingM,
+                      ),
+                      CommonTextField(
+                        isValidate: false,
+                        textEditController: _governmentNameCtrl,
+                        inputLength: 24,
+                        keyBoardType: TextInputType.text,
+                        regularExpression:
+                        RegularExpressionUtils.alphabetSpacePattern,
+                        title: "Name of Government/PSU",
+                        hintText: "Eg. ONGC",
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your Name of Government/PSU';
+                          }
+                          if (value.trim().length > 24) {
+                            return 'Name of Government/PSU must not exceed 24 characters';
+                          }
+                          return null;
+                        },
+                        // autovalidateMode: _autoValidate,
+                      ),
+                    ],
+
+                    if (_selectedProfession?.slugId == PRIVATE_JOB) ...[
+                      SizedBox(
+                        height: SizeConfig.paddingM,
+                      ),
+                      CommonTextField(
+                        isValidate: false,
+                        textEditController: _sectorTextCtrl,
+                        inputLength: 24,
+                        keyBoardType: TextInputType.text,
+                        regularExpression:
+                        RegularExpressionUtils.alphabetSpacePattern,
+                        title: "Sector",
+                        hintText: "eg. IT Sector",
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your Sector';
+                          }
+                          if (value.trim().length > 24) {
+                            return 'Sector must not exceed 24 characters';
+                          }
+                          return null;
+                        },
+                        // autovalidateMode: _autoValidate,
+                      ),
+                    ],
+
+                    if((_selectedProfileType.type  != SELF_EMPLOYED) &&
+                    (_selectedProfileType.type  != GIG_WORKER) &&
+                    (_selectedProfileType.type  != PROFESSIONAL) &&
+                    (_selectedProfession?.slugId != ARTIST) &&
+                    (_selectedProfession?.slugId != CONTENT_CREATOR) &&
+                    (_selectedProfession?.slugId != HOMEMAKER) &&
+                    (_selectedProfession?.slugId != SENIOR_CITIZEN) &&
+                    (_selectedProfession?.slugId != FARMER) &&
+                    (_selectedProfession?.slugId != STUDENT) &&
+                    (_selectedProfession?.slugId != OTHERS)) ...[
+                      SizedBox(height: SizeConfig.paddingM),
+                      CommonTextField(
+                        isValidate: false,
+                        textEditController: _designationController,
+                        inputLength: 24,
+                        keyBoardType: TextInputType.text,
+                        regularExpression:
+                        RegularExpressionUtils.alphabetSpacePattern,
+                        title: "Designation / Expertise",
+                        hintText: "Enter your designation/expertise",
+                      ),
+                    ],
+
+                    // if (selectedProfession?.slugId == OTHERS) ...[
+                    //   SizedBox(
+                    //     height: SizeConfig.paddingL,
+                    //   ),
+                    //   CommonTextField(
+                    //     isValidate: false,
+                    //     textEditController: _otherProfessionTextController,
+                    //     inputLength: 24,
+                    //     keyBoardType: TextInputType.text,
+                    //     regularExpression:
+                    //     RegularExpressionUtils.alphabetSpacePattern,
+                    //     titleColor: Colors.black,
+                    //     hintText: 'Please specify (if other)',
+                    //     // autovalidateMode: _autoValidate,
+                    //     // validator: (value) {
+                    //     //   if (value == null || value.isEmpty) {
+                    //     //     return 'Please enter other profession name';
+                    //     //   }
+                    //     //   return null;
+                    //     // }
+                    //   ),
+                    //   SizedBox(height: SizeConfig.size20),
+                    //   CommonTextField(
+                    //     isValidate: false,
+                    //     textEditController: _designationTextController,
+                    //     inputLength: 24,
+                    //     keyBoardType: TextInputType.text,
+                    //     regularExpression:
+                    //     RegularExpressionUtils.alphabetSpacePattern,
+                    //     title: "Designation / Expertise",
+                    //     hintText: "Enter your designation/expertise",
+                    //     // autovalidateMode: _autoValidate,
+                    //     // validator: (value) {
+                    //     //   if (value == null || value.isEmpty) {
+                    //     //     return 'Please enter your designation or expertise';
+                    //     //   }
+                    //     //   return null;
+                    //     // },
+                    //   ),
+                    // ],
+
+                    SizedBox(height: SizeConfig.paddingL),
+
+                    // Optional Confirm Button
+                    CustomBtn(
+                      isLoading: upBtnLoading,
+                      onTap: () => _onSubmitPressed(),
+                      title: upBtnLoading ? null : AppStrings.done,
+                      radius: SizeConfig.size8,
+                      bgColor: AppColors.primaryColor,
                     ),
                   ],
-
-
-                  SizedBox(height: SizeConfig.paddingL),
-
-                  // Optional Confirm Button
-                  PositiveCustomBtn(
-                    onTap: () {
-                      // viewProfileController.personalProfileDetails.value.user
-                      //     ?.designation = viewProfileController
-                      //         .selectedOnboardingCategory.value?.name ??
-                      //     "";
-                    },
-                    title: "Done",
-                  ),
-                ],
+                ),
               ),
             ),
             );
           }
       ),
       isScrollControlled: true, // Allows content to define height
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.white,
     );
   }
+
+
 
   Widget _buildHeaderSection() {
     String _capitalizeFirstLetter(String text) {

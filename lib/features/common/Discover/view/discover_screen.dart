@@ -1,4 +1,3 @@
-import 'dart:ui' as ui;
 import 'dart:ui';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -33,7 +32,6 @@ import 'package:BlueEra/widgets/update_live_photo_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:mappls_gl/mappls_gl.dart';
 
@@ -111,37 +109,6 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
 
   Future<void> _onMapCreated(MapplsMapController controller) async {
     mapController = controller;
-  }
-
-  Future<Uint8List> getBytesFromSvg(String assetName, int width) async {
-    // 1. Load the SVG string
-    String svgString = await rootBundle.loadString(assetName);
-
-    // 2. Create a PictureInfo from the SVG string
-    final PictureInfo pictureInfo =
-        await vg.loadPicture(SvgStringLoader(svgString), null);
-
-    // 3. Create a canvas to draw on
-    // Calculate height to maintain aspect ratio
-    int height =
-        (width * pictureInfo.size.height / pictureInfo.size.width).round();
-
-    ui.PictureRecorder pictureRecorder = ui.PictureRecorder();
-    ui.Canvas canvas = ui.Canvas(pictureRecorder);
-
-    // 4. Scale the canvas to the desired width
-    double scale = width / pictureInfo.size.width;
-    canvas.scale(scale);
-
-    // 5. Draw the picture
-    canvas.drawPicture(pictureInfo.picture);
-
-    // 6. Convert to Image and then to ByteData
-    ui.Picture picture = pictureRecorder.endRecording();
-    ui.Image image = await picture.toImage(width, height);
-    ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-
-    return byteData!.buffer.asUint8List();
   }
 
   Future<void> _onStyleLoadedCallback() async {
@@ -454,6 +421,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                 child: _buildMapWidget(), // Extract your map code here
               ),
             ),
+
             /*    SliverToBoxAdapter(
               child: HorizontalTabSelector<DiscoverFilter>(
                 tabs: controller.discoverFilters,
@@ -513,6 +481,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
             //   ),
             // ),
     // 2. The Sticky Tabs (Sticks to top)
+
             SliverPersistentHeader(
               pinned: true, // This makes it stick
               delegate: _SliverAppBarDelegate(
@@ -578,12 +547,28 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                             //     );
                             //   }),
                             // )
+
                           ],
                         ),
                         SizedBox(height: SizeConfig.paddingXSL),
-                        _bannerWidget(
-                            bannerImage: AppImageAssets.riderStoreBanner,
-                            bannerHeight: SizeConfig.size180),
+                        Stack(
+                          children: [
+                            _bannerWidget(
+                                bannerImage: AppImageAssets.riderStoreBanner,
+                                bannerHeight: SizeConfig.size180
+                            ),
+                            Positioned(
+                                left: 16.0,
+                                top: 10.0,
+                                child: CustomText(
+                                   'Rider, Grocery\nVegetables &\nMedicine',
+                                  fontSize: SizeConfig.title,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.white,
+                                )
+                            )
+                          ],
+                        ),
                       ],
                     ),
                   )),
@@ -756,7 +741,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                               gradient: LinearGradient(
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
-                                colors: [Colors.transparent, Colors.black.withOpacity(0.3)],
+                                colors: [Colors.transparent, Colors.black.withValues(alpha: 0.3)],
                               ),
                             ),
                           ),
@@ -833,14 +818,14 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                       crossAxisCount: 3,
                       crossAxisSpacing: 6,
                       mainAxisSpacing: 6,
-                      itemCount: individualOnboardingSelfSkillWorkList
+                      itemCount: individualOnboardingSkillWorkList
                           .take(6)
                           .length,
                       physics: NeverScrollableScrollPhysics(),
                       padding: EdgeInsets.zero,
                       itemBuilder: (context, index) {
                         var item =
-                            individualOnboardingSelfSkillWorkList[index];
+                            individualOnboardingSkillWorkList[index];
                         return _commonCard(icon: item.icon, text: item.name);
                       },
                       shrinkWrap: true,
@@ -1431,27 +1416,10 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
       borderRadius: BorderRadius.circular(10),
       child: SizedBox( // Using SizedBox is more lightweight than Container
         height: bannerHeight,
-        width: double.infinity,
-        child: LocalAssets(
-          imagePath: bannerImage,
-          // BoxFit.cover ensures the image fills the box without stretching,
-          // similar to how it appears in your screenshots.
-          boxFix: BoxFit.cover,
-        ),
-      ),
-    );
-  }
-
-  Widget _bannerWidget_(
-      {required String bannerImage, required double bannerHeight}) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        height: bannerHeight,
         width: SizeConfig.screenWidth,
         child: LocalAssets(
           imagePath: bannerImage,
-          boxFix: BoxFit.fitWidth,
+          boxFix: BoxFit.cover,
         ),
       ),
     );
@@ -1732,8 +1700,8 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                   borderRadius: BorderRadius.vertical(bottom: Radius.circular(10.0)),
                   gradient: LinearGradient(
                       colors: [
-                        AppColors.black.withOpacity(0.0),
-                        AppColors.black.withOpacity(0.8),
+                        AppColors.black.withValues(alpha: 0.0),
+                        AppColors.black.withValues(alpha: 0.8),
                       ],
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter

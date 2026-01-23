@@ -9,6 +9,7 @@ import 'package:BlueEra/features/common/Discover/controller/discover_controller.
 import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
 import 'package:BlueEra/features/common/Discover/widget/service_category_item.dart';
 import 'package:BlueEra/features/common/auth/model/individual_profiile_category.dart';
+import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -34,7 +35,7 @@ class HomeServiceScreen extends StatefulWidget {
 
 class _HomeServiceScreenState extends State<HomeServiceScreen> {
   final controller = getOrPut(() => DiscoverController());
-  final List<IndividualProfileCategory> _homeServicesCategories = homeServicesCategories;
+  final List<CollapsibleGridModel> _homeServicesCategories = homeServicesCategories;
   ScrollController scrollController = ScrollController();
   String serviceSubType = EarnServiceTypes.homeService.label;
   String earnServiceType = AppConstants.service;
