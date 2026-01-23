@@ -642,6 +642,8 @@ class ApiKeys {
   static const visionMission  = 'visionMission';
   static const totalBeds  = 'totalBeds';
   static const availableBeds  = 'availableBeds';
+  static const profile_type  = 'profile_type';
+  static const contact_list  = 'contact_list';
 
 
 }

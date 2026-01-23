@@ -39,17 +39,17 @@ class _ServiceMainState extends State<ServiceMain> {
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                for(int i=0;i<content.length;i++)
-                  CommonSubTabWidget(
-                    index: i,
-                    selectedIndex: selectedSubTab,
-                    title: content[i],
-                    onTap: () {
-                      setState(() {
-                        selectedSubTab = i;
-                      });
-                    },
-                  )
+                // for(int i=0;i<content.length;i++)
+                //   CommonSubTabWidget(
+                //     index: i,
+                //     selectedIndex: selectedSubTab,
+                //     title: content[i],
+                //     onTap: () {
+                //       setState(() {
+                //         selectedSubTab = i;
+                //       });
+                //     },
+                //   )
 
 
               ],

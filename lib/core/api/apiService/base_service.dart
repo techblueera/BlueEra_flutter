@@ -193,6 +193,7 @@ abstract class BaseService {
   final String getLatestChat = 'chat-service/chat/latest-chat';
   final String reactChatRequest = 'chat-service/connections/respond';
   final String connectionsSync = 'chat-service/connections/sync';
+  final String findServiceByContact = 'chat-service/connections/filter-by-profileType';
   final String myconnectionsSync = 'chat-service/connections/my';
   final String requestForPersonalChat = 'chat-service/connections/request';
   final String updateMessageOrderStatus = 'chat-service/chat/order-status';
