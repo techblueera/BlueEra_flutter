@@ -45,7 +45,7 @@ class AIGeneratorButton extends StatelessWidget {
     // Get.back(); // Close loading
 
     if (suggestions == null || suggestions.isEmpty) {
-      commonSnackBar(message:"Error Failed to generate suggestions");
+      commonSnackBar(message: "Error Failed to generate suggestions");
       return;
     }
 

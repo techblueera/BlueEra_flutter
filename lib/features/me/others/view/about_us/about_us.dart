@@ -2,6 +2,8 @@ import 'package:BlueEra/core/api/model/service_option_model.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/others/view/about_us/widget/about_organization.dart';
+import 'package:BlueEra/features/me/others/view/about_us/management_screen.dart';
+import 'package:BlueEra/features/me/others/view/staff/staff_screen.dart';
 import 'package:BlueEra/features/me/school/view/school_update_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
@@ -26,12 +28,12 @@ class _AddOthersServicesState extends State<OthersAboutUs> {
     ServiceMenuItem(
       title: "Management",
       icon: AppIconAssets.other_management,
-      page: () => ComingSoon(), // Update to your actual page
+      page: () => ManagementScreen(), // Update to your actual page
     ),
     ServiceMenuItem(
       title: "Staffs",
       icon: AppIconAssets.other_staffs,
-      page: () => ComingSoon(),
+      page: () => StaffScreen(),
     ),
     ServiceMenuItem(
       title: "Office Facility",

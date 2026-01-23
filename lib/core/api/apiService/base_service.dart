@@ -608,6 +608,9 @@ abstract class BaseService {
   final String addLogoImage = 'health-service/api/about-us/images/logo';
   final String addBuildGallery = 'health-service/api/about-us/images/gallery/bulk';
   final String healthAndServiceImageUpload = 'health-service/api/upload/init';
+  final String createAboutOrganisation = "other-service/about-organisation";
+  final String management = "other-service/management";
+  final String staff = "other-service/staff";
   String  updateDoctorsFees(String id) => 'health-service/api/doctors/$id';
   String fetchDoctorsByDepartment(String id) => 'health-service/api/doctors/department/$id';
   String updateDoctorsLeave(String id) => 'health-service/api/doctors/$id/leave';
