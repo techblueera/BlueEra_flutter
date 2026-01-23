@@ -9,6 +9,7 @@ import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 
 import '../../../../../core/constants/getx_utils.dart';
 import '../../controller/hospital_model_controller.dart';
+import 'add_hospital_prev_widget.dart';
 
 class CreateHotelProfileViaAi extends StatefulWidget {
   const CreateHotelProfileViaAi({super.key});
@@ -102,6 +103,7 @@ class _CreateHotelProfileViaAiState
                       onTap: () async {
                         if (_formKey.currentState!.validate()) {
                           await controller.fetchHospitalViaAi();
+                          Get.to(()=>HospitalPreviewScreen());
                         }
                       },
                     );

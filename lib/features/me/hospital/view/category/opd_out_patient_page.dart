@@ -17,6 +17,7 @@ import '../../../laboratory/view/widgets/me_menu_card_design.dart';
 import '../../../medical/model/medical_lab_details.dart';
 import '../../../widget/no_product_profile.dart';
 import '../../controller/hospital_model_controller.dart';
+import '../widget/add_contact_us_details.dart';
 import '../widget/add_department_dialog.dart';
 import '../widget/general_medicine.dart';
 import 'contact_us_details_page.dart';
@@ -35,20 +36,6 @@ class OpdOutPatientPage extends StatefulWidget {
 
 class _OpdOutPatientPageState extends State<OpdOutPatientPage> {
   final controller = getOrPut(() => HospitalModelController());
-
-  // final Map<String, Widget Function()> opdPages = {
-  //   "General Medicine": () => DoctorListView(),
-  //   "General Surgery": () => DoctorListView(),
-  //   "Orthopedics": () => DoctorListView(),
-  //   "Obstetrics & Gynecology": () => DoctorListView(),
-  //   "Pediatrics": () => DoctorListView(),
-  //   "ENT (Ear, Nose, Throat)": () => DoctorListView(),
-  //   "Ophthalmology (Eye)": () => DoctorListView(),
-  //   "Dermatology (Skin)": () => DoctorListView(),
-  //   "Psychiatry": () => DoctorListView(),
-  //   "Dental OPD": () => DoctorListView(),
-  // };
-
   @override
   void initState() {
     // TODO: implement initState
@@ -106,13 +93,14 @@ class _OpdOutPatientPageState extends State<OpdOutPatientPage> {
                             title: department.name ?? '', // ✅ department name
                             isToggleOn: department.isActive,
                             showToggleButton: true,
-                            icon: 'assets/icons/service_icon.svg',
+                            icon: '',
                           ),
                         );
                       }).toList(),
                     SizedBox(height: SizeConfig.size20,),
                     InkWell(
                       onTap: () {
+
                         controller.nameController.clear();
                         HospitalDepartmentDialog.show(
                           preDepartmentType: widget.type,

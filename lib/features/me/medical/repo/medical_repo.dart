@@ -74,6 +74,28 @@ class MedicalRepo extends BaseService {
    onError: (error) {}, onSuccess: (data) {});
     return response;
   }
+  Future<ResponseModel> fetchHospitalIpdWards() async {
+    final response = await ApiBaseHelper().getHTTP(
+        getHospitalWards,
+        showProgress: false,
+   onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+  Future<ResponseModel> editHospitalIpdWards(String id,Map<String,dynamic> params) async {
+    final response = await ApiBaseHelper().putHTTP(
+        editHospitalWards(id),
+        showProgress: false,
+   params: params,
+   onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+  Future<ResponseModel> deleteHospitalIpdWards(String id) async {
+    final response = await ApiBaseHelper().deleteHTTP(
+        editHospitalWards(id),
+        showProgress: false,
+   onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
   Future<ResponseModel> addHospitalDepartmentApi(Map<String,dynamic> params) async {
     final response = await ApiBaseHelper().postHTTP(
         params: params,
@@ -117,6 +139,14 @@ class MedicalRepo extends BaseService {
     final response = await ApiBaseHelper().postHTTP(
         params: params,
         addBedsApi,
+        showProgress: true,
+   onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+  Future<ResponseModel> addNewWard(Map<String,dynamic> params) async {
+    final response = await ApiBaseHelper().postHTTP(
+        params: params,
+        getHospitalWards,
         showProgress: true,
    onError: (error) {}, onSuccess: (data) {});
     return response;
@@ -194,6 +224,21 @@ class MedicalRepo extends BaseService {
     final response = await ApiBaseHelper().putHTTP(
       params: params,
         updateDoctorsLeave(id),
+        showProgress: false,
+   onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+  Future<ResponseModel> addAboutUsDetailsApi(Map<String,dynamic> params) async {
+    final response = await ApiBaseHelper().putHTTP(
+      params: params,
+        addAboutUsDetails,
+        showProgress: false,
+   onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+  Future<ResponseModel> getAboutUsDetailsApi() async {
+    final response = await ApiBaseHelper().getHTTP(
+        addAboutUsDetails,
         showProgress: false,
    onError: (error) {}, onSuccess: (data) {});
     return response;

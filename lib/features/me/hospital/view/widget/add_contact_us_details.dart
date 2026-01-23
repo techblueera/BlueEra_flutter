@@ -403,4 +403,85 @@ class AddContactUsDetailsDialog {
       ),
     );
   }
+  static void addAboutUsDetailsPage({
+    required BuildContext context,
+     String? preVision,
+     String? preHistory
+  }) {
+    final controller = getOrPut(() => HospitalModelController());
+    if(preVision!=null&&preHistory!=null){
+      controller.vissionAndMission.text=preVision;
+      controller.hospitalHistory.text=preHistory;
+    }
+
+    Get.dialog(
+      AlertDialog(
+        titlePadding: const EdgeInsets.only(left: 16, right: 16, top: 20),
+        contentPadding:
+        const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        title: const CustomText(
+          'Add About Us',
+          fontSize: 18,
+          fontWeight: FontWeight.w800,
+        ),
+        content: Obx(() {
+          return SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+
+                /// Name
+                CommonTextField(
+                  title: "Vision And Mission",
+                  hintText: "E.g. Enter Future Vision And Mission",
+                  textEditController: controller.vissionAndMission,
+                  maxLine: 4,
+                ),
+                SizedBox(height: 10,),
+                CommonTextField(
+                  title: "History",
+                  hintText: "E.g. Since 1999 we successfully run our hospital",
+                  textEditController: controller.hospitalHistory,
+                  maxLine: 4,
+                ),
+
+                SizedBox(height: SizeConfig.size24),
+
+                /// Buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: CustomBtn(
+                        title: "Cancel",
+                        isValidate: false,
+                        onTap: () {
+                          Get.back();
+                        },
+                      ),
+                    ),
+                    SizedBox(width: SizeConfig.size12),
+                    Expanded(
+                      child: CustomBtn(
+                        title: preVision!=null&&preHistory!=null?"Edit Details":"Add Details",
+                        isValidate: true,
+                        isLoading:
+                        controller.addDoctorLoading.value,
+                        onTap: () {
+                          controller.addAboutUs();
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        }),
+      ),
+    );
+  }
 }

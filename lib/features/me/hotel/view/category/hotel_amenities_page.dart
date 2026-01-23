@@ -52,7 +52,7 @@ class _HotelAmenitiesPageState extends State<HotelAmenitiesPage> {
                 child: MeMenuCardDesign(
                   showToggleButton: true,
                   title: title,
-                  icon: 'assets/icons/service_icon.svg',
+                  icon: '',
                 ),
               );
             }).toList(),

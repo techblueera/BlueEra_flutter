@@ -72,7 +72,7 @@ class _IpdInPatientWardViewPageState extends State<IpdInPatientWardViewPage> {
                   SizedBox(height: SizeConfig.size20,),
                   InkWell(
                     onTap: () {
-                      HospitalStaffDialog.showAddWardDialog(
+                      HospitalStaffDialog.showAddBedsDialog(
                         context: context,
                         departmentId: widget.documentId,
                       );
@@ -213,7 +213,7 @@ class WardListCard extends StatelessWidget {
                         padding: EdgeInsets.zero,
                         onSelected: (value) async {
                           if(value=='Edit'){
-                            HospitalStaffDialog.showAddWardDialog(
+                            HospitalStaffDialog.showAddBedsDialog(
                                 context: context,
                                 departmentId: '',
                                 preDoctorDetails: item

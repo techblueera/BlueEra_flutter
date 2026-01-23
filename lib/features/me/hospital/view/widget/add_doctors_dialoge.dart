@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:BlueEra/features/me/hospital/model/get_beds_details_model.dart';
+import 'package:BlueEra/features/me/hospital/model/hospital_ward_model.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +17,7 @@ import '../../../../../widgets/commom_textfield.dart';
 import '../../../../../widgets/custom_btn.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 import '../../../../common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import '../../../laboratory/view/widgets/me_menu_card_design.dart';
 import '../../controller/hospital_model_controller.dart';
 import '../../model/docters_details_model.dart';
 
@@ -182,7 +184,129 @@ class HospitalStaffDialog {
       ),
     );
   }
-  static void showAddWardDialog({
+  static void showAddIPDWardDialog({
+    required BuildContext context,
+    required String departmentId,
+    WardModel? preDoctorDetails,
+  }) {
+    final controller = getOrPut(() => HospitalModelController());
+
+    if(preDoctorDetails!=null){
+      controller.nameController.text=preDoctorDetails.name??'';
+      controller.totalBedsController.text=preDoctorDetails.totalBeds.toString()??'';
+      controller.availableBedsController.text=preDoctorDetails.availableBeds.toString()??'';
+      controller.feesController.text=preDoctorDetails.fees.toString()??'';
+    }else{
+      controller.clearStaffForm();
+    }
+    Get.dialog(
+      AlertDialog(
+        titlePadding: const EdgeInsets.only(left: 16, right: 16, top: 20),
+        contentPadding:
+        const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        title:  CustomText(
+          preDoctorDetails!=null?"Edit Ward":'Add Ward',
+          fontSize: 18,
+          fontWeight: FontWeight.w800,
+        ),
+        content: Obx(() {
+          return SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+
+                /// Specialization
+                CommonTextField(
+                  title: "Name",
+                  hintText: "E.g. General Bed Male",
+                  textEditController:
+                  controller.nameController,
+                ),
+                SizedBox(height: SizeConfig.size12),
+                CommonTextField(
+                  title: "Total Beds",
+                  hintText: "E.g. 50",
+                  textEditController:
+                  controller.totalBedsController,
+                ),
+                SizedBox(height: SizeConfig.size12),
+
+                /// Qualification
+                CommonTextField(
+                  title: "Available Beds",
+                  hintText: "E.g. We have best and clean beds",
+                  textEditController:
+                  controller.availableBedsController,
+                ),
+                SizedBox(height: SizeConfig.size12),
+
+
+                /// Fees
+                CommonTextField(
+                  title: "Fees",
+                  hintText: "E.g. 500",
+                  keyBoardType: TextInputType.number,
+                  textEditController: controller.feesController,
+                ),
+                SizedBox(height: SizeConfig.size20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const CustomText('Active Status'),
+                    CustomToggleSwitch(
+                      isOn: controller.isActive.value,
+                      onChanged: (val) {
+                        controller.isActive.value = val;
+                      },
+                    ),
+                  ],
+                ),
+                SizedBox(height: SizeConfig.size24),
+
+                /// Buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: CustomBtn(
+                        title: "Cancel",
+                        isValidate: false,
+                        onTap: () {
+                          Get.back();
+                          // controller.clearStaffForm();
+                        },
+                      ),
+                    ),
+                    SizedBox(width: SizeConfig.size12),
+                    Expanded(
+                      child: CustomBtn(
+                        title: (preDoctorDetails!=null)?"Edit Ward":"Add Ward",
+                        isValidate: true,
+                        isLoading:
+                        controller.addDoctorLoading.value,
+                        onTap: () {
+                          if(preDoctorDetails!=null){
+                            controller.editWardsDetails(departmentId: departmentId, wardId: preDoctorDetails.id??'');
+                          }else{
+                            controller.addNewWardsDetails(departmentId: departmentId);
+                          }
+
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        }),
+      ),
+    );
+  }
+  static void showAddBedsDialog({
     required BuildContext context,
     required String departmentId,
     BedDetailsModel? preDoctorDetails,
@@ -207,7 +331,7 @@ class HospitalStaffDialog {
           borderRadius: BorderRadius.circular(10),
         ),
         title:  CustomText(
-          preDoctorDetails!=null?"Edit Ward":'Add Ward',
+          preDoctorDetails!=null?"Edit Beds":'Add Beds',
           fontSize: 18,
           fontWeight: FontWeight.w800,
         ),
@@ -273,7 +397,7 @@ class HospitalStaffDialog {
                 ),
                 SizedBox(height: SizeConfig.size12),
                 CommonTextField(
-                  title: "Total Beds",
+                  title: "Total Number",
                   hintText: "E.g. 50",
                   textEditController:
                   controller.totalBedsController,
@@ -316,7 +440,7 @@ class HospitalStaffDialog {
                     SizedBox(width: SizeConfig.size12),
                     Expanded(
                       child: CustomBtn(
-                        title: (preDoctorDetails!=null)?"Edit Ward":"Add Ward",
+                        title: (preDoctorDetails!=null)?"Edit Bed":"Add Bed",
                         isValidate: true,
                         isLoading:
                         controller.addDoctorLoading.value,

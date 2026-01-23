@@ -115,6 +115,11 @@ class _HospitalMainState extends State<HospitalMain>
                 ),
               ),
               TabBar(
+                onTap: (index){
+                  if(index==0){
+                    controller.getHospitalHomeDetails();
+                  }
+                },
                 controller: controller.tabController,
                 labelColor: AppColors.primaryColor,
                 unselectedLabelColor: Colors.grey[600],
@@ -133,7 +138,6 @@ class _HospitalMainState extends State<HospitalMain>
                 controller: controller.tabController,
                 children: [
                   // HospitalPreviewScreen(),
-                  //hotel_home_gallery_widget
                   HospitalHomePage(),
                   CategoryListView(),
                   const Center(child: CustomText(AppStrings.comingSoon)),

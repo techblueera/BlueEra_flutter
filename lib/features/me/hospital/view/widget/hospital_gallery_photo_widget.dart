@@ -23,7 +23,7 @@ class HospitalGalleryPhotoWidget extends StatelessWidget {
     // 1. Consolidate all imageReferences into a single List<String>
     final List<String> allImages = photos;
 
-    if (allImages.isEmpty) return const SizedBox.shrink();
+    // if (allImages.isEmpty) return const SizedBox.shrink();
 
     return CommonCardWidget(
       padding: 10,
@@ -41,6 +41,15 @@ class HospitalGalleryPhotoWidget extends StatelessWidget {
                   child: Icon(Icons.add_circle_outline,color: AppColors.primaryColor,))
             ],
           ),
+          if(allImages.isEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 10.0),
+              child: Row(mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CustomText("No Hospital Images Added"),
+                ],
+              ),
+            ),
           const SizedBox(height: 16),
           StaggeredGrid.count(
             crossAxisCount: 4, // Total grid columns

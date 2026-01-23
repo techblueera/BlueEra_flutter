@@ -1,3 +1,4 @@
+
 import 'dart:developer';
 import 'dart:io';
 
@@ -16,12 +17,14 @@ import '../../../../core/constants/snackbar_helper.dart';
 import '../../../../core/services/location/location_service.dart';
 import '../../medical/model/medical_lab_details.dart';
 import '../../medical/repo/medical_repo.dart';
+import '../model/about_us_model.dart';
 import '../model/get_beds_details_model.dart';
 import '../model/get_contact_us_details_model.dart';
 import '../model/hospital_home_page_details_model.dart';
 import '../model/hospital_main_page_model.dart';
 import '../model/hospital_model_class.dart';
-import '../view/category/opd_out_patient_page.dart';
+import '../model/hospital_ward_model.dart';
+
 
 enum DepartmentType {
   OPD,
@@ -42,12 +45,15 @@ class HospitalModelController extends GetxController {
   final hospitalAddressTextController = TextEditingController();
   final hospitalLinkTextController = TextEditingController();
   final nameController = TextEditingController();
+  final vissionAndMission = TextEditingController();
+  final hospitalHistory = TextEditingController();
   final websiteController = TextEditingController();
   final admissionNoController = TextEditingController();
   final principalNoController = TextEditingController();
   final specializationController = TextEditingController();
   final totalBedsController = TextEditingController();
   final bedsDescriptionController = TextEditingController();
+  final availableBedsController = TextEditingController();
   final qualificationController = TextEditingController();
   final availabilityController = TextEditingController();
   final feesController = TextEditingController();
@@ -62,6 +68,7 @@ class HospitalModelController extends GetxController {
   Rx<ApiResponse> getBedsResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> getContactUsResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> getHospitalHomePageResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> getHospitalAboutUsResponse = ApiResponse.initial('Initial').obs;
 
   //Repo
   final medicalRepo = MedicalRepo();
@@ -74,7 +81,10 @@ class HospitalModelController extends GetxController {
   Rx<HospitalContactUsDetailsModel> hospitalContactUsDetailsModel = HospitalContactUsDetailsModel().obs;
   Rx<MainHospitalDepartmentResponse> hospitalMainPageData =
       MainHospitalDepartmentResponse().obs;
+  Rx<HospitalAboutUsModel> hospitalAboutUsModel =
+      HospitalAboutUsModel().obs;
   RxList<Department> hospitalSubCate = <Department>[].obs;
+  RxList<WardModel> wardModelList = <WardModel>[].obs;
   RxString hospitalCurrentAddress = ''.obs;
   RxString addDepartmentTypeValue = '${DepartmentType.OPD.name}'.obs;
   RxBool isActive = true.obs;
@@ -176,6 +186,9 @@ class HospitalModelController extends GetxController {
   }
 
   void clearStaffForm() {
+     vissionAndMission.clear();
+     availableBedsController.clear();
+     hospitalHistory.clear();
     pickedDoctorImage.value=null;
     nameController.clear();
     specializationController.clear();
@@ -461,9 +474,62 @@ Future<void> getHospitalHomeDetails() async {
     }
   }
 
+  Future<void> addNewWardsDetails({String? departmentId}) async {
+    addDoctorLoading.value = true;
+    final params = {
+      ApiKeys.departmentId: departmentId,
+      ApiKeys.name:nameController.text,
+      ApiKeys.type: "General",
+      ApiKeys.totalBeds: totalBedsController.text,
+      ApiKeys.availableBeds: availableBedsController.text,
+      ApiKeys.fees: int.tryParse(feesController.text) ?? 0,
+      ApiKeys.isActive: true,
+    };
+    ResponseModel response = await medicalRepo.addNewWard(params);
+    if (response.isSuccess) {
+      addDoctorLoading.value = false;
+
+      clearStaffForm();
+    } else {
+      addDoctorLoading.value = false;
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+  }
+  Future<void> editWardsDetails({String? departmentId,required String wardId}) async {
+    addDoctorLoading.value = true;
+    final params = {
+      ApiKeys.departmentId: departmentId,
+      ApiKeys.name:nameController.text,
+      ApiKeys.type: "General",
+      ApiKeys.totalBeds: totalBedsController.text,
+      ApiKeys.availableBeds: availableBedsController.text,
+      ApiKeys.fees: int.tryParse(feesController.text) ?? 0,
+      ApiKeys.isActive: true,
+    };
+    ResponseModel response = await medicalRepo.editHospitalIpdWards(wardId,params);
+    if (response.isSuccess) {
+      addDoctorLoading.value = false;
+      getHospitalIpdWardsList();
+      Get.back();
+      clearStaffForm();
+    } else {
+      addDoctorLoading.value = false;
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+  }
+  Future<void> deleteWardsDetails({required String wardId}) async {
+
+    ResponseModel response = await medicalRepo.deleteHospitalIpdWards(wardId);
+    if (response.isSuccess) {
+      getHospitalIpdWardsList();
+    } else {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+  }
   Future<void> addNewBedsDetails({String? departmentId}) async {
     addDoctorLoading.value = true;
     String? publicUrlOfPhoto = await getPreSignUrl();
+
     final params = {
       ApiKeys.wardId: departmentId,
       ApiKeys.name: nameController.text,
@@ -481,6 +547,33 @@ Future<void> getHospitalHomeDetails() async {
       clearStaffForm();
     } else {
       addDoctorLoading.value = false;
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+  }
+  Future<void> addAboutUs() async {
+    addDoctorLoading.value=true;
+    final params = {
+      ApiKeys.visionMission: vissionAndMission.text,
+      ApiKeys.history: hospitalHistory.text,
+    };
+    ResponseModel response = await medicalRepo.addAboutUsDetailsApi(params);
+    if (response.isSuccess) {
+     addDoctorLoading.value=false;
+     getAboutUs();
+     Get.back();
+      clearStaffForm();
+    } else {
+      addDoctorLoading.value = false;
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+  }
+  Future<void> getAboutUs() async {
+    ResponseModel response = await medicalRepo.getAboutUsDetailsApi();
+    if (response.isSuccess) {
+      hospitalAboutUsModel.value=HospitalAboutUsModel.fromJson(response.data);
+      getHospitalAboutUsResponse.value=ApiResponse.complete(hospitalAboutUsModel);
+    } else {
+      getHospitalAboutUsResponse.value=ApiResponse.error(response.message);
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
   }
@@ -611,6 +704,21 @@ Future<void> getHospitalHomeDetails() async {
       List rawList = response.response?.data['data']['subDepartments'];
       hospitalSubCate.value =
           rawList.map((e) => Department.fromJson(e)).toList();
+      getHospitalSubResponse.value = ApiResponse.complete(hospitalSubCate);
+    } else {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+      getHospitalSubResponse.value =
+          ApiResponse.error(AppStrings.somethingWentWrong);
+    }
+  }
+  Future<void> getHospitalIpdWardsList() async {
+    getHospitalSubResponse.value = ApiResponse.initial("Initial");
+    ResponseModel response =
+        await medicalRepo.fetchHospitalIpdWards();
+    if (response.isSuccess) {
+      List rawList = response.data;
+      wardModelList.value =
+          rawList.map((e) => WardModel.fromJson(e)).toList();
       getHospitalSubResponse.value = ApiResponse.complete(hospitalSubCate);
     } else {
       commonSnackBar(message: AppStrings.somethingWentWrong);

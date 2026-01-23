@@ -49,7 +49,7 @@ class _HospitalHomePageState extends State<HospitalHomePage> {
         return CustomScrollView(
           slivers: [
             SliverAppBar(
-              expandedHeight: Get.height * 0.32,
+              expandedHeight: Get.height * 0.36,
               flexibleSpace: FlexibleSpaceBar(
                 background: Container(
                   color: AppColors.appBackgroundColor,
@@ -80,8 +80,13 @@ class _HospitalHomePageState extends State<HospitalHomePage> {
                                 SizedBox(height: 10,),
                                 Row(mainAxisAlignment: MainAxisAlignment.end,
                                   children: [
-                                    CustomText(
-                                      "View All", color: AppColors.primaryColor,)
+                                    InkWell(
+                                      onTap: (){
+                                        controller.onChangeTab(1);
+                                      },
+                                      child: CustomText(
+                                        "View All", color: AppColors.primaryColor,),
+                                    )
                                   ],
                                 )
                               ],
@@ -99,8 +104,13 @@ class _HospitalHomePageState extends State<HospitalHomePage> {
                                 SizedBox(height: 10,),
                                 Row(mainAxisAlignment: MainAxisAlignment.end,
                                   children: [
-                                    CustomText(
-                                      "View All", color: AppColors.primaryColor,)
+                                    InkWell(
+                                      onTap: (){
+                                        controller.onChangeTab(1);
+                                      },
+                                      child: CustomText(
+                                        "View All", color: AppColors.primaryColor,),
+                                    )
                                   ],
                                 )
                               ],
@@ -320,11 +330,11 @@ class _HospitalHomePageState extends State<HospitalHomePage> {
                                             ],
                                             image:
                                             (controller.pickedHospitalLogo.value==null)?
-                                            DecorationImage(
+                                            (details.hospitalInfo?.logo!=null&&details.hospitalInfo?.logo!='')?DecorationImage(
                                                 image:
                                                 NetworkImage(details.hospitalInfo?.logo??''),
                                                 fit: BoxFit.cover
-                                            ):
+                                            ):null:
                                             DecorationImage(
                                                 image:
                                                 FileImage(controller.pickedHospitalLogo.value ?? File("")),
@@ -333,7 +343,7 @@ class _HospitalHomePageState extends State<HospitalHomePage> {
                                         ),
                                       ),
                                       SizedBox(height: 6,),
-                                      CustomText("${details.hospitalInfo?.name}",fontSize: 16,fontWeight: FontWeight.w600,),
+                                      CustomText("${details.contactUs?.hospitalName}",fontSize: 16,fontWeight: FontWeight.w600,),
                                       SizedBox(height: SizeConfig.size8,),
                                       Row(
                                         children: [
@@ -344,7 +354,7 @@ class _HospitalHomePageState extends State<HospitalHomePage> {
                                           ),
                                           Expanded(child:
                                           CustomText(
-                                            "${details.hospitalInfo?.website}",
+                                            "${details.contactUs?.website}",
                                             fontSize: 14,
                                             fontWeight: FontWeight.w400,
                                             color: AppColors.primaryColor,
@@ -381,7 +391,7 @@ class _HospitalHomePageState extends State<HospitalHomePage> {
                                           ),
                                           Expanded(child:
                                           CustomText(
-                                            "${details.hospitalInfo?.email}",
+                                            "${details.contactUs?.email}",
                                             fontSize: 14,
                                             fontWeight: FontWeight.w400,
                                             color: AppColors.black,
@@ -399,7 +409,7 @@ class _HospitalHomePageState extends State<HospitalHomePage> {
                                           ),
                                           Expanded(child:
                                           CustomText(
-                                            "${details.hospitalInfo?.admissionPhone}",
+                                            "${details.contactUs?.emergencyPhone}",
                                             fontSize: 14,
                                             fontWeight: FontWeight.w400,
                                             color: AppColors.black,
@@ -417,7 +427,7 @@ class _HospitalHomePageState extends State<HospitalHomePage> {
                                           ),
                                           Expanded(child:
                                           CustomText(
-                                            "${details.hospitalInfo?.address}",
+                                            "${details.contactUs?.address}",
                                             fontSize: 14,
                                             fontWeight: FontWeight.w400,
                                             color: AppColors.black,

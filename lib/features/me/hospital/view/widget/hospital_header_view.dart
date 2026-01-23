@@ -61,7 +61,7 @@ class _HospitalHeaderViewState extends State<HospitalHeaderView> {
         children: [
           // --- HEADER SECTION (Banner & Logo) ---
           SizedBox(
-            height: size.height * 0.19,
+            height: size.height * 0.22,
             child: Stack(
               clipBehavior: Clip.none,
               children: [
@@ -80,11 +80,14 @@ class _HospitalHeaderViewState extends State<HospitalHeaderView> {
                       // _bannerImage != null
                       //     ?
                       (controller.pickedDoctorImage.value==null)?
-                      DecorationImage(
-                          image:
-                          NetworkImage(widget.details?.coverImage??''),
-                          fit: BoxFit.cover
-                      ):
+                      (widget.details?.coverImage != null &&
+                          widget.details!.coverImage!.isNotEmpty)
+                          ? DecorationImage(
+                        image: NetworkImage(widget.details!.coverImage!),
+                        fit: BoxFit.cover,
+                        onError: (_, __) {}, // prevents crash
+                      )
+                          : null:
                       DecorationImage(
                           image:
                           FileImage(controller.pickedDoctorImage.value ?? File("")),
@@ -126,11 +129,14 @@ class _HospitalHeaderViewState extends State<HospitalHeaderView> {
                         ],
                         image:
                         (controller.pickedHospitalLogo.value==null)?
-                        DecorationImage(
-                            image:
-                            NetworkImage(widget.details?.logo??''),
-                            fit: BoxFit.cover
-                        ):
+                        (widget.details?.logo != null &&
+                            widget.details!.logo!.isNotEmpty)
+                            ? DecorationImage(
+                          image: NetworkImage(widget.details!.logo!),
+                          fit: BoxFit.cover,
+                          onError: (_, __) {},
+                        )
+                            : null:
                         DecorationImage(
                             image:
                             FileImage(controller.pickedHospitalLogo.value ?? File("")),
@@ -180,17 +186,17 @@ class _HospitalHeaderViewState extends State<HospitalHeaderView> {
                     overflow: TextOverflow.ellipsis,
                     fontWeight: FontWeight.bold),
                 const SizedBox(height: 10),
-                // Row(
-                //   children: [
-                //     Icon(Icons.star,color: AppColors.yellow,),
-                //     CustomText("4.8",color:AppColors.yellow,),
-                //     CustomText(" (48 reviews)"),
-                //     SizedBox(width: 4,),
-                //     LocalAssets(imagePath: AppIconAssets.location_new),
-                //     CustomText(" 2.7 Km"),
-                //
-                //   ],
-                // ),
+                Row(
+                  children: [
+                    Icon(Icons.star,color: AppColors.yellow,),
+                    CustomText("4.8",color:AppColors.yellow,),
+                    CustomText(" (48 reviews)"),
+                    SizedBox(width: 4,),
+                    LocalAssets(imagePath: AppIconAssets.location_new),
+                    CustomText(" 2.7 Km"),
+
+                  ],
+                ),
                 SizedBox(height: SizeConfig.size10),
                 ExpandableText(
                   text:"${widget.details?.tagline}",
@@ -204,7 +210,7 @@ class _HospitalHeaderViewState extends State<HospitalHeaderView> {
                     fontFamily: AppConstants.OpenSans,
                   ),
                 ),
-
+                SizedBox(height: SizeConfig.size10),
               ],
             ),
           ),

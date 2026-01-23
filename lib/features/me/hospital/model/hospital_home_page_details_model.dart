@@ -187,9 +187,9 @@ class AboutUsModel {
       visionMission: json['visionMission'],
       history: json['history'],
       hospitalImage: json['hospitalImage'],
-      management: (json['management'] as List?)
-          ?.map((e) => ManagementModel.fromJson(e))
-          .toList(),
+      // management: (json['management'] as List?)
+      //     ?.map((e) => ManagementModel.fromJson(e))
+      //     .toList(),
     );
   }
 }

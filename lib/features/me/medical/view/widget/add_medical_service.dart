@@ -49,7 +49,7 @@ class _AddMedicalServiceState extends State<AddMedicalService> {
               },
               child: MeMenuCardDesign(
                 title: title.name??'',
-                icon: 'assets/icons/service_icon.svg',
+                icon: '',
               ),
             );
           }).toList(),

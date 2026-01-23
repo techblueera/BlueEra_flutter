@@ -639,6 +639,9 @@ class ApiKeys {
   static const number_of_branch  = 'number_of_branch ';
   static const coverPage  = 'coverPage';
   static const logoImage  = 'logoImage';
+  static const visionMission  = 'visionMission';
+  static const totalBeds  = 'totalBeds';
+  static const availableBeds  = 'availableBeds';
 
 
 }

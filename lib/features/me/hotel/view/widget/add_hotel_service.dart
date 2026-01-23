@@ -54,7 +54,7 @@ class _AddHotelServiceState extends State<AddHotelService> {
               },
               child: MeMenuCardDesign(
                 title: title,
-                icon: 'assets/icons/service_icon.svg',
+                icon: '',
               ),
             );
           }).toList(),
