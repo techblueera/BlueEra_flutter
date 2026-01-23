@@ -855,7 +855,7 @@ class ChatViewController extends GetxController {
     if (contactsListModel?.value.data == null) {
       ResponseModel responseModel =
           await ChatViewRepo().getConnectionsSync(params);
-      log("sldkcmlskdcmsldkc ${responseModel.response?.data}");
+
       if (responseModel.isSuccess) {
         final data = responseModel.response?.data;
 

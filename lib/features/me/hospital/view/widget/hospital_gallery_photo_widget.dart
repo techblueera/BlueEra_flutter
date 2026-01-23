@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/model/hotel_details_home_res_model.dart';
+import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
@@ -7,6 +8,9 @@ import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
+import '../../../../../core/constants/getx_utils.dart';
+import '../../controller/hospital_model_controller.dart';
+
 class HospitalGalleryPhotoWidget extends StatelessWidget {
   final List<String> photos;
 
@@ -14,6 +18,8 @@ class HospitalGalleryPhotoWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final controller = getOrPut(() => HospitalModelController());
+
     // 1. Consolidate all imageReferences into a single List<String>
     final List<String> allImages = photos;
 
@@ -25,7 +31,16 @@ class HospitalGalleryPhotoWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CustomText("Gallery", fontSize: 18, fontWeight: FontWeight.bold),
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              CustomText("Gallery", fontSize: 18, fontWeight: FontWeight.bold),
+              InkWell(
+                  onTap: (){
+                    controller.pickMultipleImages();
+                  },
+                  child: Icon(Icons.add_circle_outline,color: AppColors.primaryColor,))
+            ],
+          ),
           const SizedBox(height: 16),
           StaggeredGrid.count(
             crossAxisCount: 4, // Total grid columns

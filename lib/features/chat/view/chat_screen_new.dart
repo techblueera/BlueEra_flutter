@@ -25,8 +25,9 @@ import '../auth/controller/add_chat_symbol_controller.dart';
 import '../auth/controller/chat_theme_controller.dart';
 import '../auth/controller/chat_view_controller.dart';
 import '../auth/model/GetListOfMessageData.dart';
-import '../contacts/view/contact_list_page.dart';
 import 'add_symbol/add_symbol_screen.dart';
+import 'contacts/contact_list_page.dart';
+import 'find_contacts_with_service/find_contact_with_service.dart';
 
 class NewChatMainScreen extends StatefulWidget {
   const NewChatMainScreen(
@@ -400,6 +401,46 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
           ),
         ),
         const SizedBox(width: 18),
+        InkWell(
+          onTap: (){
+            Get.to(FindContactWithService());
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              // gradient:  LinearGradient(
+              //   begin: Alignment.bottomCenter,
+              //   end: Alignment.topCenter,
+              //   transform: GradientRotation(10),
+              //   colors: [
+              //  AppColors.primaryColor.withOpacity(0.1),
+              //     AppColors.primaryColor.withOpacity(0.05),
+              //   ],
+              // ),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color:  AppColors.primaryColor
+              )
+            ),
+            margin: EdgeInsets.only(right: 6),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white, // inner background
+                borderRadius: BorderRadius.circular(14),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 8,vertical: 7),
+              child:  Row(
+                children: [
+                  SvgPicture.asset(AppIconAssets.chat_find,
+                      color: AppColors.primaryColor),
+                  SizedBox(width: 4,),
+                  CustomText("Find",
+                  color: AppColors.primaryColor,),
+                ],
+              ),
+            ),
+          ),
+        )
+
         // if (!_isFromForward())
         //   InkWell(
         //     onTap: () {

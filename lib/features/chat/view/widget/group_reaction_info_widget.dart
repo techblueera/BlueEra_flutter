@@ -10,7 +10,6 @@ import '../../../../widgets/custom_text_cm.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetListOfMessageData.dart';
-import '../chat_screen.dart';
 import '../chat_screen_new.dart';
 import 'component_widgets.dart';
 class GroupReactionInfoWidget extends StatefulWidget {
