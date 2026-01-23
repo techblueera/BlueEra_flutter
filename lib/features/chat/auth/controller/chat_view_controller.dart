@@ -25,6 +25,7 @@ import '../model/GetListOfMessageData.dart';
 import '../model/ai_chat_history_msg_model.dart';
 import '../model/ai_chat_reply_msg_model.dart';
 import '../model/contactListModel.dart';
+import '../model/find_service_by_contact_model.dart';
 import '../model/getChatRequestProfileDetailsModel.dart';
 import '../model/getMediaMsgCommentsModel.dart' as cmdImport;
 import '../model/getMediaMsgCommentsModel.dart';
@@ -47,6 +48,7 @@ class ChatViewController extends GetxController {
   Rx<ApiResponse> getListOfInventoryAiMessageResponse =
       ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> getGroupMembersResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> getServiceByContactResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> generateUploadUrlResponse =
       ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> chatMessageRequestResponse =
@@ -111,6 +113,7 @@ class ChatViewController extends GetxController {
   Rx<ContactListModel>? contactsListModel = ContactListModel().obs;
   Rx<GetMediaMsgCommentsModel>? getMediaMsgCommentsModel =
       GetMediaMsgCommentsModel().obs;
+  Rx<ProfessionalContactsResponse> professionalContactsResponse = ProfessionalContactsResponse().obs;
   Rx<TextEditingController> sendMessageController = TextEditingController().obs;
   RxBool isTextFieldEmpty = false.obs;
   RxBool socketConnected = false.obs;
@@ -125,6 +128,8 @@ class ChatViewController extends GetxController {
   RxString userOpenConversationId = ''.obs;
   RxString userOpenUserId = ''.obs;
   RxString readMessageStatus = ''.obs;
+  RxString selectedSubServiceToFind = ''.obs;
+  RxBool onFindContactLoading = false.obs;
   Rx<Messages> sendLoadingFile = Messages().obs;
   RxList selectedUserIds = <String>[].obs;
   RxList<ChatList?> selectedChatList = <ChatList?>[].obs;
@@ -841,7 +846,7 @@ class ChatViewController extends GetxController {
     chatSocket.disposeSocket();
   }
 
-  List<Map<String, dynamic>>? paramsData;
+  List<Map<String, dynamic>>? contactListParamsData;
 
   void loadContactsFromLocalStorage(Map<String, dynamic> value) {
     contactsListModel?.value = ContactListModel.fromJson(value);
@@ -851,7 +856,7 @@ class ChatViewController extends GetxController {
   Future<void> uploadContacts(List<Map<String, dynamic>> params) async {
     // try {
 
-    paramsData = params;
+    contactListParamsData = params;
     if (contactsListModel?.value.data == null) {
       ResponseModel responseModel =
           await ChatViewRepo().getConnectionsSync(params);
@@ -876,6 +881,29 @@ class ChatViewController extends GetxController {
     // } catch (e) {
     //   viewContactsListResponse.value = ApiResponse.error('error');
     // }
+  }
+  Future<void> setContact( String type,List<Map<String, dynamic>> params)async{
+    contactListParamsData=params;
+    await findServiceByContacts(type,params);
+  }
+  Future<void> findServiceByContacts( String type,List<Map<String, dynamic>>? contactList) async {
+    onFindContactLoading.value=true;
+    final params={
+      ApiKeys.profile_type: type,
+      ApiKeys.contact_list:contactList??contactListParamsData
+    };
+      ResponseModel responseModel =
+          await ChatViewRepo().findServiceByContactApi(params);
+      if (responseModel.isSuccess) {
+          professionalContactsResponse.value=ProfessionalContactsResponse.fromJson(responseModel.response?.data);
+          getServiceByContactResponse.value=ApiResponse.complete(professionalContactsResponse.value);
+          onFindContactLoading.value=false;
+      } else {
+        commonSnackBar(
+            message: responseModel.message ?? AppStrings.somethingWentWrong);
+        onFindContactLoading.value=false;
+
+      }
   }
 
   Future<void> loadGroupConnections(

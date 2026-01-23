@@ -3,22 +3,20 @@ import 'package:flutter/material.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 class CommonSubTabWidget extends StatelessWidget {
-  final int index;
-  final int selectedIndex;
   final String title;
+  final String selectedKey;
   final VoidCallback onTap;
 
   const CommonSubTabWidget({
     super.key,
-    required this.index,
-    required this.selectedIndex,
     required this.title,
     required this.onTap,
+    required this.selectedKey,
   });
 
   @override
   Widget build(BuildContext context) {
-    final bool isSelected = selectedIndex == index;
+    final bool isSelected = selectedKey == title;
 
     return InkWell(
       borderRadius: BorderRadius.circular(10),
@@ -57,7 +55,7 @@ class CommonSubTabWidget extends StatelessWidget {
                 child: Column(crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    CustomText(title,textAlign: TextAlign.center,),
+                    CustomText(title,textAlign: TextAlign.center,fontSize: 12,fontWeight: FontWeight.w600,),
                     const SizedBox(height: 8),
                   ],
                 ),

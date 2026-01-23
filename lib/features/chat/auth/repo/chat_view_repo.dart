@@ -139,6 +139,13 @@ class ChatViewRepo extends BaseService {
         onError: (error) {}, onSuccess: (data) {},showProgress: false);
     return response;
   }
+  Future<ResponseModel> findServiceByContactApi(Map<String,dynamic> params) async {
+    final response = await ApiBaseHelper()
+        .postHTTP(findServiceByContact,
+        params: params,
+        onError: (error) {}, onSuccess: (data) {},showProgress: false);
+    return response;
+  }
   Future<ResponseModel> getGroupConnectionsSync(Map<String, dynamic> query) async {
     final response = await ApiBaseHelper()
         .getHTTP(myconnectionsSync,
