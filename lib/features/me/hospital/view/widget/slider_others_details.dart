@@ -77,9 +77,18 @@ class _SliderCard extends StatelessWidget {
         children: [
           /// IMAGE
           Positioned.fill(
-            child: Image.network(
-              item.image,
-              fit: BoxFit.cover,
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: AppColors.whiteE5
+                )
+              ),
+              child: item.image==''?Container(
+
+              ):Image.network(
+                item.image,
+                fit: BoxFit.cover,
+              ),
             ),
           ),
 

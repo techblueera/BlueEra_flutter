@@ -397,7 +397,7 @@ class HospitalStaffDialog {
                 ),
                 SizedBox(height: SizeConfig.size12),
                 CommonTextField(
-                  title: "Total Number",
+                  title: "Bed Number",
                   hintText: "E.g. 50",
                   textEditController:
                   controller.totalBedsController,
@@ -412,7 +412,6 @@ class HospitalStaffDialog {
                   controller.bedsDescriptionController,
                 ),
                 SizedBox(height: SizeConfig.size12),
-
 
                 /// Fees
                 CommonTextField(

@@ -20,6 +20,7 @@ class AppImageAssets {
   static const String receivedIcon = '${imgPath}camera_stand.png';
 
   static const String dummy_resume = "assets/images/dummy_resume.png";
+  static const String hospitalIpd_ward = "assets/images/hospitalIpd_ward.png";
   static const String visitingCardBg = "${imgPath}visiting_card_background.jpg";
   static const String playStore = "${imgPath}play_store.png";
   static const String appStore = "${imgPath}app_store.png";

@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/features/me/hospital/model/docters_details_model.dart';
 import 'package:flutter/material.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
@@ -69,6 +70,11 @@ class HospitalModelController extends GetxController {
   Rx<ApiResponse> getContactUsResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> getHospitalHomePageResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> getHospitalAboutUsResponse = ApiResponse.initial('Initial').obs;
+  RxString visionMissionText = ''.obs;
+  RxString historyMissionText = ''.obs;
+  RxString departmentMissionText = ''.obs;
+
+
 
   //Repo
   final medicalRepo = MedicalRepo();
@@ -246,6 +252,49 @@ class HospitalModelController extends GetxController {
       } else {
         await fetchHospitalCategoryData();
       }
+    } else {
+      addDepartmentLoading.value = false;
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+  }
+  Future<void> addEmergencySubCat(
+      {String? preType, String? categoryId}) async {
+    addDepartmentLoading.value = true;
+    Map<String, dynamic> params = {
+        ApiKeys.departmentId: categoryId,
+      ApiKeys.name: nameController.text,
+      ApiKeys.description: bedsDescriptionController.text,
+      ApiKeys.type: AppConstants.emergency,
+      ApiKeys.isActive: isActive.value
+    };
+    ResponseModel response = await medicalRepo.addEmergencyCriticalCareApi(params);
+    if (response.isSuccess) {
+      addDepartmentLoading.value=false;
+      Get.back();
+      nameController.clear();
+      bedsDescriptionController.clear();
+     fetchEmergencySubCategoryData();
+    } else {
+      addDepartmentLoading.value = false;
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+  }
+  Future<void> addOtherFacilityCat(
+      {String? preType, String? categoryId,}) async {
+    addDepartmentLoading.value = true;
+    Map<String, dynamic> params = {
+      ApiKeys.name: nameController.text,
+      ApiKeys.description: bedsDescriptionController.text,
+      ApiKeys.type: AppConstants.other,
+      ApiKeys.isActive: isActive.value
+    };
+    ResponseModel response = await medicalRepo.addOtherFacilityApi(params);
+    if (response.isSuccess) {
+      addDepartmentLoading.value=false;
+      Get.back();
+      nameController.clear();
+      bedsDescriptionController.clear();
+     fetchOtherFacility();
     } else {
       addDepartmentLoading.value = false;
       commonSnackBar(message: AppStrings.somethingWentWrong);
@@ -702,6 +751,36 @@ Future<void> getHospitalHomeDetails() async {
         await medicalRepo.fetchHospitalSubCateApi(categoryTopic);
     if (response.isSuccess) {
       List rawList = response.response?.data['data']['subDepartments'];
+      hospitalSubCate.value =
+          rawList.map((e) => Department.fromJson(e)).toList();
+      getHospitalSubResponse.value = ApiResponse.complete(hospitalSubCate);
+    } else {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+      getHospitalSubResponse.value =
+          ApiResponse.error(AppStrings.somethingWentWrong);
+    }
+  }
+  Future<void> fetchEmergencySubCategoryData() async {
+    getHospitalSubResponse.value = ApiResponse.initial("Initial");
+    ResponseModel response =
+        await medicalRepo.getEmergencyCriticalCareApi();
+    if (response.isSuccess) {
+      List rawList = response.response?.data['data'];
+      hospitalSubCate.value =
+          rawList.map((e) => Department.fromJson(e)).toList();
+      getHospitalSubResponse.value = ApiResponse.complete(hospitalSubCate);
+    } else {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+      getHospitalSubResponse.value =
+          ApiResponse.error(AppStrings.somethingWentWrong);
+    }
+  }
+  Future<void> fetchOtherFacility() async {
+    getHospitalSubResponse.value = ApiResponse.initial("Initial");
+    ResponseModel response =
+        await medicalRepo.getOtherFacilityApi();
+    if (response.isSuccess) {
+      List rawList = response.response?.data['data'];
       hospitalSubCate.value =
           rawList.map((e) => Department.fromJson(e)).toList();
       getHospitalSubResponse.value = ApiResponse.complete(hospitalSubCate);

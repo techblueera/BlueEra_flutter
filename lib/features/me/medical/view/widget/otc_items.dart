@@ -17,8 +17,10 @@ import '../../../../../widgets/custom_btn.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 import '../../../hospital/controller/hospital_model_controller.dart';
 import '../../../hospital/view/category/contact_us_details_page.dart';
+import '../../../hospital/view/category/emergency_cricalcare.dart';
 import '../../../hospital/view/category/hospital_about_us.dart';
 import '../../../hospital/view/category/ipd_wards_list_page.dart';
+import '../../../hospital/view/category/other_facility.dart';
 import '../../../hospital/view/widget/add_department_dialog.dart';
 import '../../../laboratory/view/widgets/me_menu_card_design.dart';
 import '../../../widget/no_product_profile.dart';
@@ -67,14 +69,26 @@ class _CategoryListViewState extends State<CategoryListView> {
                     onTap: () async {
                       if(department.name?.toLowerCase().contains("contact us")??false){
                         Get.to(()=>ContactUsDetailsPage());
-                      }if(department.name?.toLowerCase().contains("about us")??false){
+                      }else if(department.name?.toLowerCase().contains("about us")??false){
                         Get.to(()=>HospitalAboutUs(
                           categoryId:  department.id??'',
                           title: department.name??"",
                           type: department.type??"",
                         ));
-                      }if(department.name?.toLowerCase().contains("ipd")??false){
+                      }else if(department.name?.toLowerCase().contains("ipd")??false){
                         Get.to(()=>IpdWardsListPage(
+                          categoryId:  department.id??'',
+                          title: department.name??"",
+                          type: department.type??"",
+                        ));
+                      }else if(department.name?.toLowerCase().contains("emergency")??false){
+                        Get.to(()=>EmergencyCriticalCare(
+                          categoryId:  department.id??'',
+                          title: department.name??"",
+                          type: department.type??"",
+                        ));
+                      }else if(department.name?.toLowerCase().contains("other")??false){
+                        Get.to(()=>OtherFacility(
                           categoryId:  department.id??'',
                           title: department.name??"",
                           type: department.type??"",

@@ -102,6 +102,8 @@ class AppConstants {
   static const String business_Chat_Type = 'business';
   static const String group_Chat_Type = 'group';
   static const String order_Chat_Type = 'order';
+  static const String emergency = 'Emergency';
+  static const String other = 'Other';
   static const String AiReply_Chat_Type = 'AiReply';
   static const String AiQuest_Chat_Type = 'AiQuest';
   static const String askInentory_Chat_Type = 'askInentory';
