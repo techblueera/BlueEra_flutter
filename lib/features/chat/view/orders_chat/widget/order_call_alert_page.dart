@@ -424,51 +424,7 @@ class _NewDeliveryRequestScreenState extends State<NewDeliveryRequestScreen>
     );
   }
 
-  Widget _bottomAction({
-    required Color color,
-    required IconData icon,
-    required String text,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 75,
-        width: 150,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(50),
-          gradient: LinearGradient(
-            colors: [
-              color.withOpacity(0.8),
-              color.withOpacity(0.5),
-            ],
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: color.withOpacity(0.4),
-              blurRadius: 20,
-              spreadRadius: 2,
-            )
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: Colors.black, size: 30),
-            const SizedBox(width: 10),
-            Text(
-              text,
-              style: const TextStyle(
-                color: Colors.black,
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-              ),
-            )
-          ],
-        ),
-      ),
-    );
-  }
+
 }
 
 class _ModernSwipeToActionState extends State<ModernSwipeToAction>

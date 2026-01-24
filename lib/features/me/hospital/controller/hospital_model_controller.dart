@@ -1,12 +1,11 @@
 
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/features/me/hospital/model/docters_details_model.dart';
 import 'package:flutter/material.dart';
-import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';

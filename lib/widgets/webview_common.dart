@@ -1,5 +1,4 @@
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/common/ott/widget/build_horizontal_video_list_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/horizonatal_video_player.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';

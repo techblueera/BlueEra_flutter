@@ -1,15 +1,9 @@
-import 'dart:developer';
-
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:video_player/video_player.dart';
 
-import '../../../../core/constants/app_icon_assets.dart';
 import '../../auth/controller/add_chat_symbol_controller.dart';
 import '../../auth/model/GetChatListModel.dart';
 import '../../auth/model/symbol_details_model.dart';

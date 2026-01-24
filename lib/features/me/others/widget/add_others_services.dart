@@ -10,6 +10,7 @@ import 'package:BlueEra/features/me/others/view/other_privacy_condition/other_pr
 import 'package:BlueEra/features/me/school/view/school_update_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../../laboratory/view/widgets/me_menu_card_design.dart';
 
 class AddOthersServices extends StatefulWidget {

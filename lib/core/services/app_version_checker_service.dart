@@ -1,6 +1,6 @@
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:hive/hive.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 Future<void> checkAppVersionAndResetIfNeeded() async {
   final box = await Hive.openBox('app_info');

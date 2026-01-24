@@ -1,12 +1,9 @@
-import 'dart:convert';
-import 'dart:developer';
-
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/features/chat/view/find_contacts_with_service/professionals/professionals_main.dart';
 import 'package:BlueEra/features/chat/view/find_contacts_with_service/services/service_main.dart';
 import 'package:BlueEra/features/chat/view/find_contacts_with_service/shopping/shopping_main.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:get/get.dart';
@@ -14,10 +11,6 @@ import 'package:get/get_core/src/get_main.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/api/apiService/api_response.dart';
-import '../../../../core/constants/app_strings.dart';
-import '../../../../core/constants/shared_preference_utils.dart';
-import '../../../../core/constants/snackbar_helper.dart';
-import '../../../../widgets/custom_text_cm.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/service/contact_store_service.dart';
 
@@ -38,6 +31,7 @@ class _FindContactWithServiceState extends State<FindContactWithService>
     // TODO: implement initState
     tabController = TabController(length: 4, vsync: this, initialIndex: 0);
     loadContacts();
+    chatViewController.selectedIndex.value=0;
     super.initState();
   }
 
@@ -47,7 +41,16 @@ class _FindContactWithServiceState extends State<FindContactWithService>
     );
 
     if (contacts.isNotEmpty) {
-      chatViewController.setContact(getType(0), contacts);
+      chatViewController.setContact(professionalContactCategories.first.slugId, contacts);
+    }
+  }
+  Future<void> releadContacts() async {
+    final contacts = await HiveContactService.getOrFetchContacts(
+      onFetch: fetchFormattedContacts,
+    );
+
+    if (contacts.isNotEmpty) {
+      chatViewController.reloadContact();
     }
   }
 
@@ -76,7 +79,7 @@ class _FindContactWithServiceState extends State<FindContactWithService>
 
     List<Map<String, String>> valueMap = formatContactsInIsolate(rawContacts);
 
-    chatViewController.setContact(getType(0), valueMap);
+    // chatViewController.setContact(professionalContactCategories.first.slugId, valueMap);
     return await valueMap;
   }
 
@@ -114,44 +117,7 @@ class _FindContactWithServiceState extends State<FindContactWithService>
 
 // Runs in isolate – must only use JSON-safe data
 
-  void _showPermissionDialog() {
-    showDialog(
-      context: context,
-      builder: (context) =>
-          AlertDialog(
-            title: const CustomText(AppStrings.permissionRequired),
-            content: const CustomText(AppStrings.allowContactAccess),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const CustomText(AppStrings.cancel),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  Navigator.pop(context);
-                  await openAppSettings();
-                },
-                child: const CustomText(AppStrings.allowPermission),
-              ),
-            ],
-          ),
-    );
-  }
 
-  String getType(int index) {
-    switch (index) {
-      case 0:
-        return "professional";
-      case 1:
-        return "shopping";
-      case 2:
-        return "services";
-      case 3:
-        return "others";
-      default:
-        return '';
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -159,61 +125,63 @@ class _FindContactWithServiceState extends State<FindContactWithService>
       appBar: CommonBackAppBar(
         isShadowShow: false,
         title: "Find In Your Contact",
+        isReloadContactButton: true,
+        onRefreshContact: () {
+          releadContacts();
+        },
       ),
-      body: Obx(() {
-        if(chatViewController.getServiceByContactResponse.value.status==Status.COMPLETE){
-          final details =chatViewController.professionalContactsResponse.value;
-          return Column(crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                color: AppColors.white,
-                child: TabBar(
-                  tabAlignment: TabAlignment.start,
-                  indicatorPadding: EdgeInsets.zero,
-                  padding: EdgeInsets.zero,
-                  isScrollable: true,
-                  onTap: (index) async {
-                    await chatViewController.findServiceByContacts(
-                        getType(index), null);
-                  },
-                  indicatorSize: TabBarIndicatorSize.tab,
-                  controller: tabController,
-                  dividerColor: AppColors.primaryColor.withOpacity(0.10),
-                  labelColor: Colors.black,
-                  unselectedLabelColor: Colors.black54,
-                  indicatorColor: AppColors.primaryColor,
-                  labelStyle: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500
-                  ),
-                  tabs: const [
-                    Tab(text: "Professionals",),
-                    Tab(text: "Shopping"),
-                    Tab(text: "Services"),
-                    Tab(text: "Others"),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: TabBarView(
-                  controller: tabController,
-                  children: [
-                    ProfessionalsMain(details: details,),
-                    ProfessionalsMain(details: details,),
-                    ProfessionalsMain(details: details,),
-                    ProfessionalsMain(details: details,),
-                  ],
-                ),
-              ),
-            ],
-          );
-        }else{
-          return Center(
-            child: CircularProgressIndicator(),
-          );
-        }
+      body:Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            color: AppColors.white,
+            child: TabBar(
+              physics: NeverScrollableScrollPhysics(),
+              tabAlignment: TabAlignment.start,
+              indicatorPadding: EdgeInsets.zero,
+              padding: EdgeInsets.zero,
+              isScrollable: true,
+              onTap: (index) async {
 
-      }),
+                if(index==0){
+                  chatViewController.findServiceByContacts(professionalContactCategories.first.slugId, null);
+                }else if(index==1){
+                  chatViewController.findServiceByContacts(
+                      fashionContactCategories.first.slugId, null);
+                }
+                chatViewController.selectedIndex.value=0;
+              },
+              indicatorSize: TabBarIndicatorSize.tab,
+              controller: tabController,
+              dividerColor: AppColors.primaryColor.withOpacity(0.10),
+              labelColor: Colors.black,
+              unselectedLabelColor: Colors.black54,
+              indicatorColor: AppColors.primaryColor,
+              labelStyle: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500
+              ),
+              tabs: const [
+                Tab(text: "Professionals",),
+                Tab(text: "Shopping"),
+                Tab(text: "Services"),
+                Tab(text: "Others"),
+              ],
+            ),
+          ),
+          Expanded(
+            child: TabBarView(
+              controller: tabController,
+              children: [
+                ProfessionalsMain(),
+                ShoppingMain(),
+                ServiceMain(),
+                Container(),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -1,7 +1,6 @@
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_profile_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
-import 'package:BlueEra/features/common/reel/view/sections/shorts_channel_section.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/testimonial_listing_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';

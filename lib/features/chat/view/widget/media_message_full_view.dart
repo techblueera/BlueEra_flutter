@@ -9,7 +9,7 @@ import 'custom_video_player.dart';
 class FullImagePreviewPage extends StatelessWidget {
   final List<MessageMediaUrl> images;
   final int initialIndex;
-  bool? isFromComment;
+  final bool? isFromComment;
 
   FullImagePreviewPage({
     super.key,

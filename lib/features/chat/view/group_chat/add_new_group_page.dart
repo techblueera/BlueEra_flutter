@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -155,8 +154,8 @@ class _AddNewGroupPageState extends State<AddNewGroupPage> {
                             pickedFile != null ? FileImage(pickedFile!) : null,
                         child: pickedFile == null
                             ? Icon(Icons.camera_alt,
-                                color: AppColors.white ??
-                                    AppColors.white.withOpacity(0.7),
+                                color: AppColors.white
+                                    ,
                                 size: 30)
                             : null,
                       ),

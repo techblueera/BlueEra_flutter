@@ -8,6 +8,7 @@ import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../../../../../../../widgets/custom_text_cm.dart';
 
 class CourseListScreen extends StatefulWidget {

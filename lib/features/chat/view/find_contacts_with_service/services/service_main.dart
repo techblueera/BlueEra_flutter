@@ -1,6 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
@@ -8,7 +7,6 @@ import 'package:get/get_core/src/get_main.dart';
 import '../../../../../core/constants/app_constant.dart';
 import '../../../auth/controller/chat_view_controller.dart';
 import '../../widget/component_widgets.dart';
-import '../widget/common_subtab_widget.dart';
 class ServiceMain extends StatefulWidget {
   const ServiceMain({super.key});
 

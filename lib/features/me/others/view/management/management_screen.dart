@@ -1,10 +1,9 @@
-
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/others/controller/management_controller.dart';
 import 'package:BlueEra/features/me/others/model/management_model.dart';
-import 'package:BlueEra/features/me/others/view/management/add_management_form_screen.dart';
+import 'package:BlueEra/features/me/others/view/about_us/add_management_form_screen.dart';
 import 'package:BlueEra/features/me/school/view/widget/add_more_icon_button.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';

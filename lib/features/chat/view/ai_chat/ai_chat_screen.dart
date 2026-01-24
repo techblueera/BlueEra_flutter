@@ -1,14 +1,11 @@
-import 'dart:developer';
 import 'dart:io';
 
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:dio/dio.dart' as dio;
 
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_icon_assets.dart';
@@ -18,7 +15,6 @@ import '../../../../core/constants/size_config.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetListOfMessageData.dart';
-import '../widget/chat_input_box.dart';
 import '../widget/component_widgets.dart';
 import '../widget/message_card.dart';
 import '../widget/picked_media_preview.dart';
@@ -475,38 +471,9 @@ class _AiChatScreenState extends State<AiChatScreen> {
                 mediaFiles: [File(pickedFile.path)],
                 onSend: (val, String? commands) async {
                   Navigator.pop(context);
-                  String? imagePath = File(pickedFile.path).path;
-                  String fileName = imagePath
-                      .split('/')
-                      .last;
-                  String fileExtension = fileName
-                      .split('.')
-                      .last
-                      .toLowerCase();
-                  String messageType = ['mp4', 'mov', 'avi', 'mkv'].contains(
-                      fileExtension)
-                      ? 'video'
-                      : 'image';
 
-                  dio.MultipartFile? imageByPart = await dio.MultipartFile
-                      .fromFile(
-                    imagePath,
-                    filename: fileName,
-                  );
 
-                  // Map<String, dynamic> data = {
-                  //   if(isInitialFlow)
-                  //     ApiKeys.other_user_id: widget.userId
-                  //   else
-                  //     ApiKeys.conversation_id: widget.conversationId,
-                  //   if(commands != null)
-                  //     ApiKeys.message: commands,
-                  //   ApiKeys.message_type: messageType,
-                  //   ApiKeys.files: imageByPart,
-                  // };
-                  // print('SEND PAYLOAD (camera ${messageType}): '+data.toString());
-                  // sendMessageToUser(
-                  //     data: data, isInitial: isInitialFlow);
+
                 },
               ),
         ),

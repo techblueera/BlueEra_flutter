@@ -7,7 +7,6 @@ import 'package:BlueEra/features/common/food/view/grocery/my_grocery_listing/my_
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 class MyGroceryVariantScreen extends StatefulWidget {
   final List<Variants> variants;

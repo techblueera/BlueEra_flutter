@@ -9,7 +9,6 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/map/controller/add_place_step_one_controller.dart';
-import 'package:BlueEra/features/common/map/controller/add_place_step_two_controller.dart';
 import 'package:BlueEra/features/common/map/controller/category_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';

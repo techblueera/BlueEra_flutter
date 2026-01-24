@@ -15,6 +15,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/foundation.dart'; // for compute
 
 import '../../../../core/api/apiService/api_response.dart';
+import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
 import '../../../../core/constants/snackbar_helper.dart';
@@ -108,30 +109,7 @@ class _ContactsPageState extends State<ContactsPage> {
     });
   }
 
-  void _onSearchChanged_() {
-    if (_debounce?.isActive ?? false) _debounce!.cancel();
-    _debounce = Timer(const Duration(milliseconds: 300), () {
-      final query = _searchController.text.toLowerCase();
-      final details = chatViewController.contactsListModel?.value.data;
-      if (details != null) {
-        setState(() {
-          _filteredExisting = details.existingNotConnected
-                  ?.where((c) =>
-                      (c.name?.toLowerCase().contains(query) ?? false) ||
-                      (c.contactNo?.toLowerCase().contains(query) ?? false))
-                  .toList() ??
-              [];
 
-          _filteredNonExisting = details.nonExistingContacts
-                  ?.where((c) =>
-                      (c.name?.toLowerCase().contains(query) ?? false) ||
-                      (c.contactNo?.toLowerCase().contains(query) ?? false))
-                  .toList() ??
-              [];
-        });
-      }
-    });
-  }
 
   List<Map<String, dynamic>> getFormattedContacts(
       List<Map<String, dynamic>> rawContacts) {
@@ -588,21 +566,22 @@ class _ExistingContactTile extends StatelessWidget {
               )
             : null,
       ),
-      title: Text(
+      title: CustomText(
         name.isNotEmpty ? name : phone,
-        style: const TextStyle(
+
           fontWeight: FontWeight.w600,
-        ),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
       subtitle: name.isNotEmpty
           ? CustomText(
-              (contact?.accountType == "INDIVIDUAL")
+              (contact?.accountType == AppConstants.INDIVIDUAL)
                   ? (contact?.designation?.isNotEmpty ?? false)
                       ? contact!.designation!
                       : phone
                   : "",
+        fontSize: 12,
+        color: AppColors.grayText,
             )
           : null,
       trailing: isGroupMode
@@ -636,15 +615,17 @@ class _NonExistingContactTile extends StatelessWidget {
           color: theme.colorScheme.surface,
         ),
       ),
-      title: Text(
+      title: CustomText(
         name.isNotEmpty ? name : phone,
-        style: const TextStyle(
+
           fontWeight: FontWeight.w600,
-        ),
+
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
-      subtitle: Text(phone),
+      subtitle: CustomText(phone,
+        fontSize: 12,
+        color: AppColors.grayText,),
       trailing: TextButton(
         onPressed: () => VisitingCardHelper.buildAndShareVisitingCard(context),
         child: const CustomText(AppStrings.invite, fontWeight: FontWeight.w600),

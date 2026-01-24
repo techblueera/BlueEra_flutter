@@ -1,4 +1,3 @@
-
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
@@ -67,7 +66,7 @@ RxBool hasSchool = false.obs;
         generateSchoolViaAIResponse.value =
             ApiResponse.error(AppStrings.somethingWentWrong);
       }
-    } on Exception {
+    } on Exception catch (e) {
       // TODO
       generateSchoolViaAIResponse.value =
           ApiResponse.error(AppStrings.somethingWentWrong);
@@ -117,7 +116,7 @@ RxBool hasSchool = false.obs;
         createSchoolResponse.value =
             ApiResponse.error(AppStrings.somethingWentWrong);
       }
-    } on Exception {
+    } on Exception catch (e) {
       // TODO
       createSchoolResponse.value =
           ApiResponse.error(AppStrings.somethingWentWrong);

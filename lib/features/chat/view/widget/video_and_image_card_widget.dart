@@ -12,7 +12,6 @@ import '../media_view_page/medias_slider_page.dart';
 import '../orders_chat/order_chat_screen.dart';
 import 'component_widgets.dart';
 import 'custom_video_player.dart';
-import 'media_comment_full_page.dart';
 import 'media_message_full_view.dart';
 class VideoAndImageCardWidget extends StatefulWidget {
   const VideoAndImageCardWidget({super.key, required this.name,required this.conversationId,required this.userId, this.profileImage, required this.isInitialMessage, this.contactNo, required this.message, required this.time, required this.isReceive, required this.theme,});
