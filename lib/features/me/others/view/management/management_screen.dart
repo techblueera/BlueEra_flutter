@@ -3,7 +3,6 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/others/controller/management_controller.dart';
 import 'package:BlueEra/features/me/others/model/management_model.dart';
-import 'package:BlueEra/features/me/others/view/about_us/add_management_form_screen.dart';
 import 'package:BlueEra/features/me/school/view/widget/add_more_icon_button.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -12,6 +11,8 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+import 'add_management_form_screen.dart';
 
 class ManagementScreen extends StatelessWidget {
   const ManagementScreen({super.key});

@@ -29,7 +29,7 @@ class AskInventoryMsgCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final productList = response.products ?? [];
-    log('message - ${response.message}');
+
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),

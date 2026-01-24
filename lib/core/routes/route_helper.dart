@@ -1481,10 +1481,10 @@ class RouteHelper {
         return MaterialPageRoute(
             builder: (_) => CreateAccountTypeScreen(),
             settings: RouteSettings(name: getCreateAccountTypeScreenRoute()));
-            builder: (_) => CreateAccountTypeScreen(
-            ),
-            settings: RouteSettings(name: getCreateAccountTypeScreenRoute())
-        );
+            // builder: (_) => CreateAccountTypeScreen(
+            // ),
+            // settings: RouteSettings(name: getCreateAccountTypeScreenRoute())
+        // );
       case RouteConstant.earnServiceAvailableOptionsScreen:
         return MaterialPageRoute(
             builder: (_) => EarnServiceAvailableOptionsScreen(),
