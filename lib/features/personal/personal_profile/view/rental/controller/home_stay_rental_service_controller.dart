@@ -274,7 +274,7 @@ class HomeStayRentalServiceController extends GetxController{
         Get.until(
               (route) =>
           route.settings.name ==
-              RouteHelper.getEarnServiceScreenRoute(),
+              RouteHelper.getEarnServiceAvailableOptionsScreenRoute(),
         );
       } else {
         addHomeStayRentalServiceResponse.value = ApiResponse.error('error');

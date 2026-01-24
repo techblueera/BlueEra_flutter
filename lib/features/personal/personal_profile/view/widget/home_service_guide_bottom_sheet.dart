@@ -37,7 +37,12 @@ class _HomeServiceGuideBottomSheetState extends State<HomeServiceGuideBottomShee
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.only(
+            left: 20,
+            right: 20,
+            bottom: 20,
+            top: 5
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -118,8 +123,8 @@ class _HomeServiceGuideBottomSheetState extends State<HomeServiceGuideBottomShee
                   return;
                 }
 
-                if(isEarnServiceOpt=='true' && selectedService?.slugId == userWorkTypeGlobal){
-                  commonSnackBar(message: 'You are already ${userWorkTypeGlobal.withArticle}');
+                if(isEarnServiceOpt=='true' && selectedService?.slugId == userProfessionGlobal){
+                  commonSnackBar(message: 'You are already ${userProfessionGlobal.withArticle}');
                   return;
                 }
 

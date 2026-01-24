@@ -73,11 +73,11 @@ class _EarnServiceScreenState extends State<EarnServiceScreen>
 
   @override
   void initState() {
-    log('user designation global -- $userWorkTypeGlobal');
+    log('user designation global -- $userDesignationGlobal');
     isLeading = !widget.fromBottomNavBar;
     _tabController = TabController(length: 3, vsync: this);
     controller.fetchOwnProducts();
-    _checkEarnServiceStatus();
+    // _checkEarnServiceStatus();
     WidgetsBinding.instance.addPostFrameCallback((_)=> syncShopStatus());
     super.initState();
   }
@@ -89,19 +89,19 @@ class _EarnServiceScreenState extends State<EarnServiceScreen>
   }
 
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final route = ModalRoute.of(context);
-    if (route is PageRoute) {
-      RouteHelper.routeObserver.subscribe(this, route);
-    }
-  }
-
-  @override
-  void didPopNext() {
-    _checkEarnServiceStatus();
-  }
+  // @override
+  // void didChangeDependencies() {
+  //   super.didChangeDependencies();
+  //   final route = ModalRoute.of(context);
+  //   if (route is PageRoute) {
+  //     RouteHelper.routeObserver.subscribe(this, route);
+  //   }
+  // }
+  //
+  // @override
+  // void didPopNext() {
+  //   _checkEarnServiceStatus();
+  // }
 
 
   @override
@@ -112,14 +112,14 @@ class _EarnServiceScreenState extends State<EarnServiceScreen>
     super.dispose();
   }
 
-  Future<void> _checkEarnServiceStatus() async {
-     await getEarnServiceOptData();
-     controller.isEarnServiceOpt.value = isEarnServiceOpt;
-     print('isEarnServiceOpt already opt -- ${controller.isEarnServiceOpt.value}');
-     // WidgetsBinding.instance.addPostFrameCallback((_) {
-     //   if(controller.isEarnServiceOpt.value.toLowerCase() == 'false') ()=> _openEarnWithBlueEraSheet();
-     // });
-  }
+  // Future<void> _checkEarnServiceStatus() async {
+  //    await getEarnServiceOptData();
+  //    controller.isEarnServiceOpt.value = isEarnServiceOpt;
+  //    print('isEarnServiceOpt already opt -- ${controller.isEarnServiceOpt.value}');
+  //    // WidgetsBinding.instance.addPostFrameCallback((_) {
+  //    //   if(controller.isEarnServiceOpt.value.toLowerCase() == 'false') ()=> _openEarnWithBlueEraSheet();
+  //    // });
+  // }
 
   void _openEarnWithBlueEraSheet(){
     showModalBottomSheet(
@@ -132,19 +132,20 @@ class _EarnServiceScreenState extends State<EarnServiceScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() {
-      final earnValue = controller.isEarnServiceOpt.value;
-
-      if (earnValue.isEmpty) {
-        return _buildLoadingScaffold();
-      }
-
-      if (earnValue.toLowerCase() == 'true') {
-        return _buildEarnEnabledScaffold(context);
-      }
-
-      return _buildEarnDisabledScaffold(context);
-    });
+    return _buildEarnEnabledScaffold(context);
+    // return Obx(() {
+    //   final earnValue = controller.isEarnServiceOpt.value;
+    //
+    //   if (earnValue.isEmpty) {
+    //     return _buildLoadingScaffold();
+    //   }
+    //
+    //   if (earnValue.toLowerCase() == 'true') {
+    //     return _buildEarnEnabledScaffold(context);
+    //   }
+    //
+    //   return _buildEarnDisabledScaffold(context);
+    // });
   }
 
   Widget _buildLoadingScaffold() {
@@ -262,86 +263,86 @@ class _EarnServiceScreenState extends State<EarnServiceScreen>
     );
   }
 
-  Widget _buildEarnDisabledScaffold(BuildContext context) {
-    return Scaffold(
-      appBar: CommonBackAppBar(
-        isLeading: isLeading,
-        title: userProfessionGlobal,
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(
-            vertical: SizeConfig.size15,
-            horizontal: SizeConfig.size8,
-          ),
-          child: CustomFormCard(
-            padding: EdgeInsets.all(SizeConfig.size10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildEarnHeader(),
-                SizedBox(height: SizeConfig.size10),
-                const HorizontalVideoPlayer(),
-                SizedBox(height: SizeConfig.size20),
-                _buildServiceGrid(context),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  // Widget _buildEarnDisabledScaffold(BuildContext context) {
+  //   return Scaffold(
+  //     appBar: CommonBackAppBar(
+  //       isLeading: isLeading,
+  //       title: userProfessionGlobal,
+  //     ),
+  //     body: SafeArea(
+  //       child: SingleChildScrollView(
+  //         padding: EdgeInsets.symmetric(
+  //           vertical: SizeConfig.size15,
+  //           horizontal: SizeConfig.size8,
+  //         ),
+  //         child: CustomFormCard(
+  //           padding: EdgeInsets.all(SizeConfig.size10),
+  //           child: Column(
+  //             crossAxisAlignment: CrossAxisAlignment.start,
+  //             children: [
+  //               _buildEarnHeader(),
+  //               SizedBox(height: SizeConfig.size10),
+  //               const HorizontalVideoPlayer(),
+  //               SizedBox(height: SizeConfig.size20),
+  //               _buildServiceGrid(context),
+  //             ],
+  //           ),
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 
-  Widget _buildEarnHeader() {
-    return Row(
-      children: [
-        Container(
-          padding: EdgeInsets.all(SizeConfig.size6),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppColors.primaryColor.withValues(alpha: 0.1),
-            border: Border.all(color: AppColors.primaryColor, width: 0.5),
-          ),
-          child: LocalAssets(
-            width: SizeConfig.size22,
-            height: SizeConfig.size22,
-            imagePath: AppIconAssets.earnWithBlueEra,
-            imgColor: AppColors.primaryColor,
-          ),
-        ),
-        SizedBox(width: SizeConfig.size6),
-        Expanded(
-          child: CustomText(
-            AppStrings.earnWithBlueEra,
-            fontSize: SizeConfig.medium,
-            fontWeight: FontWeight.w600,
-            color: AppColors.secondaryTextColor,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildServiceGrid(BuildContext context) {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        childAspectRatio: 0.6,
-        crossAxisSpacing: 30,
-        mainAxisSpacing: 20,
-      ),
-      itemCount: earnWithBlueEraServiceList.length,
-      itemBuilder: (_, i) => CommonServiceCard(
-        service: earnWithBlueEraServiceList[i],
-        onTap: () => controller.handleServiceTap(
-          context,
-          earnWithBlueEraServiceList[i],
-        ),
-      ),
-    );
-  }
+  // Widget _buildEarnHeader() {
+  //   return Row(
+  //     children: [
+  //       Container(
+  //         padding: EdgeInsets.all(SizeConfig.size6),
+  //         decoration: BoxDecoration(
+  //           shape: BoxShape.circle,
+  //           color: AppColors.primaryColor.withValues(alpha: 0.1),
+  //           border: Border.all(color: AppColors.primaryColor, width: 0.5),
+  //         ),
+  //         child: LocalAssets(
+  //           width: SizeConfig.size22,
+  //           height: SizeConfig.size22,
+  //           imagePath: AppIconAssets.earnWithBlueEra,
+  //           imgColor: AppColors.primaryColor,
+  //         ),
+  //       ),
+  //       SizedBox(width: SizeConfig.size6),
+  //       Expanded(
+  //         child: CustomText(
+  //           AppStrings.earnWithBlueEra,
+  //           fontSize: SizeConfig.medium,
+  //           fontWeight: FontWeight.w600,
+  //           color: AppColors.secondaryTextColor,
+  //         ),
+  //       ),
+  //     ],
+  //   );
+  // }
+  //
+  // Widget _buildServiceGrid(BuildContext context) {
+  //   return GridView.builder(
+  //     shrinkWrap: true,
+  //     physics: const NeverScrollableScrollPhysics(),
+  //     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+  //       crossAxisCount: 3,
+  //       childAspectRatio: 0.6,
+  //       crossAxisSpacing: 30,
+  //       mainAxisSpacing: 20,
+  //     ),
+  //     itemCount: earnWithBlueEraServiceList.length,
+  //     itemBuilder: (_, i) => CommonServiceCard(
+  //       service: earnWithBlueEraServiceList[i],
+  //       onTap: () => controller.handleServiceTap(
+  //         context,
+  //         earnWithBlueEraServiceList[i],
+  //       ),
+  //     ),
+  //   );
+  // }
 
   void onMyProductsTabChanged(int index) async {
     controller.selectedProductsServicesTabIndex.value = index;
@@ -553,7 +554,7 @@ class _EarnServiceScreenState extends State<EarnServiceScreen>
                 left: (isLeading == true) ? 0 : SizeConfig.size20,
               ),
               child: CustomText(
-                userWorkTypeGlobal,
+                userDesignationGlobal,
                 fontSize: SizeConfig.large,
                 color: AppColors.primaryColor,
                 fontWeight: FontWeight.w600,

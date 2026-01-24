@@ -13,7 +13,7 @@ import '../../../../../core/constants/snackbar_helper.dart';
 import '../../../../../core/routes/route_helper.dart';
 import '../../../../../core/services/razor_pay_services.dart';
 import '../../../../../widgets/custom_text_cm.dart';
-import '../../../../common/bottomNavigationBar/auth/controller/bottom_bar_controller.dart';
+import '../../../../common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import '../../../auth/controller/chat_view_controller.dart';
 import '../../../auth/controller/order_controllar.dart';
 

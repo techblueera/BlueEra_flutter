@@ -4,15 +4,17 @@ class InventoryAskAiModel {
   String? reply;
   String? messageStatus;
   String? message;
+  String? time;
   List<ProductItem>? products;
 
-  InventoryAskAiModel({this.reply, this.products,this.message,this.messageStatus});
+  InventoryAskAiModel({this.reply, this.products,this.message,this.time, this.messageStatus});
 
   factory InventoryAskAiModel.fromJson(Map<String, dynamic> json) {
     return InventoryAskAiModel(
       reply: json['reply'],
       message: json['message'],
       messageStatus: json['messageStatus'],
+      time: json['time'],
       products: (json['products'] as List?)
           ?.map((e) => ProductItem.fromJson(e))
           .toList(),
@@ -23,6 +25,7 @@ class InventoryAskAiModel {
     'reply': reply,
     "message":message,
     'messageStatus':messageStatus,
+    'time':time,
     'products': products?.map((e) => e.toJson()).toList(),
   };
 }

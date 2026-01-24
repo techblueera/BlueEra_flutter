@@ -9,3 +9,11 @@ extension GrammarExtension on String {
     return '${isVowel ? "an" : "a"} $this';
   }
 }
+
+String formatRole(String rawRole) {
+  return rawRole
+      .toLowerCase()
+      .split('_')
+      .map((s) => s.isNotEmpty ? '${s[0].toUpperCase()}${s.substring(1)}' : '')
+      .join(' ');
+}

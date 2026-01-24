@@ -130,7 +130,8 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                                     ),
                                     Flexible(
                                       child: CustomText(
-                                        (isFromEarnWithBlueEraService) ? SELF_EMPLOYED : "$userProfessionGlobal",
+                                        userProfessionGlobal,
+                                        // (isFromEarnWithBlueEraService) ? SELF_EMPLOYED : "$userProfessionGlobal",
                                         color: Colors.blue.shade700,
                                         overflow: TextOverflow.ellipsis,
                                         maxLines: 3,
@@ -150,7 +151,7 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                                     ),
                                     Flexible(
                                       child: CustomText(
-                                        (isFromEarnWithBlueEraService)? widget.designation : "$userWorkTypeGlobal ",
+                                        (isFromEarnWithBlueEraService)? widget.designation : "$userDesignationGlobal ",
                                         color: Colors.blue.shade700,
                                         overflow: TextOverflow.ellipsis,
                                         maxLines: 3,
@@ -349,7 +350,7 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                         serviceDetailsReq: {
                           ApiKeys.service_name: controller.serviceName.value,
                           ApiKeys.category: controller.serviceName.value,
-                          ApiKeys.sub_category: userWorkTypeGlobal,
+                          ApiKeys.sub_category: userDesignationGlobal,
                           if (controller.shortDescriptionName.value.isNotEmpty)
                             ApiKeys.short_description:
                                 controller.shortDescriptionName.value,

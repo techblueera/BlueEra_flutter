@@ -344,8 +344,9 @@ class ViewPersonalDetailsController extends GetxController {
           contactNo: "${personalProfileDetails.value.user?.contactNo}",
           getUserName: "${personalProfileDetails.value.user?.name}",
           profileImage: "${personalProfileDetails.value.user?.profileImage}",
-          designation: "${personalProfileDetails.value.user?.profession}",
-          workType: "${personalProfileDetails.value.user?.designation}",
+          profileType: "${personalProfileDetails.value.user?.profileType}",
+          profession: "${personalProfileDetails.value.user?.profession}",
+          designation: "${personalProfileDetails.value.user?.designation}",
           userNameAt: "${personalProfileDetails.value.user?.username}",
         );
         await getUserLoginData();
@@ -558,11 +559,15 @@ class ViewPersonalDetailsController extends GetxController {
       Navigator.push(Get.context!,
           MaterialPageRoute(builder: (context) => CreateProfileScreen()));
     } else {
-      if (userWorkTypeGlobal == DELIVERY_RIDER) {
-        Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
-      } else {
-        Get.toNamed(RouteHelper.getEarnServiceScreenRoute());
-      }
+      Get.toNamed(
+          RouteHelper.getEarnServiceAvailableOptionsScreenRoute()
+      );
+
+      // if (userProfessionGlobal == DELIVERY_RIDER) {
+      //   Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
+      // } else {
+      //   Get.toNamed(RouteHelper.getEarnServiceScreenRoute());
+      // }
 
       // Get.toNamed(
       //   RouteHelper.getAddServicesScreenRoute(),

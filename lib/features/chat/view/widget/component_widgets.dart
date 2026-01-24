@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -8,19 +7,18 @@ import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:pinput/pinput.dart';
 import 'package:url_launcher/url_launcher.dart';
-
+import 'package:flutter/services.dart';
+import 'package:pinput/pinput.dart';
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/constants/app_constant.dart';
 import '../../../../core/routes/route_helper.dart';
 import '../../../../widgets/custom_text_cm.dart';
 import '../../../business/visit_business_profile/view/visit_business_profile_new.dart';
-import '../../../common/bottomNavigationBar/auth/controller/bottom_bar_controller.dart';
+import '../../../common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import '../../../personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
@@ -185,6 +183,7 @@ Widget ChatListTile({
   final senderProfileImage = chat?.lastMessage == "Order Message" ? chat
       ?.groupProfileImage : sender?.profileImage;
   final senderDesignation = sender?.designation;
+  final senderBusinessId = sender?.businessId;
 
   final groupName = chat?.groupName;
   final conversationId = chat?.conversationId ?? '';

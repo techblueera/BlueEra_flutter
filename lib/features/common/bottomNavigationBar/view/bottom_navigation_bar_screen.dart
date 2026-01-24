@@ -12,7 +12,8 @@ import 'package:BlueEra/features/business/auth/controller/view_business_details_
 import 'package:BlueEra/features/chat/view/ai_chat/ask_inventory_chat_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
-import 'package:BlueEra/features/common/bottomNavigationBar/auth/controller/ai_chat_guest_controller.dart';
+import 'package:BlueEra/features/common/bottomNavigationBar/controller/ai_chat_guest_controller.dart';
+import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_widget.dart';
 import 'package:BlueEra/features/common/food/view/grocery/my_grocery_listing/grocery_screen.dart';
 import 'package:BlueEra/features/common/home/view/home_screen.dart';
@@ -21,20 +22,17 @@ import 'package:BlueEra/features/common/more/controller/more_cards_screen_contro
 import 'package:BlueEra/features/common/reel/models/channel_model.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/me/food/view/food_main_screen.dart';
-import 'package:BlueEra/features/me/grocery/view/grocery_category_screen.dart';
 import 'package:BlueEra/features/me/hotel/view/hotel_main.dart';
 import 'package:BlueEra/features/me/others/others_main.dart';
 import 'package:BlueEra/features/me/school/view/school_main.dart';
 import 'package:BlueEra/features/me/others/view/timing_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/rider_service_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_available_options_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/inventory_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/service_provider_dialoge.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_callkit_incoming/entities/call_event.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
@@ -47,9 +45,7 @@ import '../../../chat/auth/controller/chat_theme_controller.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../chat/view/chat_screen_new.dart';
 import '../../../me/hospital/view/hospital_main.dart';
-import '../../../me/medical/view/medical_main.dart';
 import '../../delivery_partner/controller/delivery_partner_orders_controller.dart';
-import '../auth/controller/bottom_bar_controller.dart';
 
 class BottomNavigationBarScreen extends StatefulWidget {
   final int? initialIndex;
@@ -120,6 +116,11 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         }
       });
     });
+    // _fetchAllAdminVideos();
+  }
+
+  void _fetchAllAdminVideos(){
+    bottomBarController.fetchAllAdminVideoApi();
   }
 
   Future<void> checkByRiderCall() async {
@@ -407,12 +408,10 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   }
 
   Widget resolveIndividualScreen() {
-    logs("userProfessionGlobal==== ${userProfessionGlobal}");
-    logs("userWorkTypeGlobal==== ${userWorkTypeGlobal}");
-    return (userProfessionGlobal == SELF_EMPLOYED)
-        ? (userWorkTypeGlobal == DELIVERY_RIDER)
-            ? RiderServiceScreen(fromBottomNavBar: true)
-            : EarnServiceScreen(fromBottomNavBar: true)
+    log("userProfileTypeGlobal==== ${userProfileTypeGlobal}");
+    return (userProfileTypeGlobal == SELF_EMPLOYED ||
+        userProfileTypeGlobal == GIG_WORKER)
+        ? EarnServiceAvailableOptionsScreen(fromBottomNavBar: true)
         : PersonalProfileSetupNewScreen();
   }
 

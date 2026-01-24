@@ -21,7 +21,12 @@ class EarnServiceBottomSheet extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.only(
+            left: 20,
+            right: 20,
+            bottom: 20,
+            top: 5
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -56,9 +61,9 @@ class EarnServiceBottomSheet extends StatelessWidget {
                   crossAxisSpacing: 6,
                   mainAxisSpacing: 6,
                 ),
-                itemCount: earnWithBlueEraServiceList.length,
+                itemCount: earnWithBlueEraAddOptionsList.length,
                 itemBuilder: (_, i) => CommonServiceCard(
-                  service: earnWithBlueEraServiceList[i],
+                  service: earnWithBlueEraAddOptionsList[i],
                   onTap: () => controller.handleServiceTap(context, earnWithBlueEraServiceList[i]),
                 ),
               ),

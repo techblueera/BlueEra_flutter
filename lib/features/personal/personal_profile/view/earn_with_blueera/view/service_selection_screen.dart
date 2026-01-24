@@ -1,8 +1,13 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/controller/self_work_service_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/add_service_bottom_sheet.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -18,6 +23,7 @@ class ServiceSelectionScreen extends StatefulWidget {
   final String selectedCategoryKey;
   final List<String> preSelectedOptions;
   final bool isDataUpdate;
+  final EarnServiceTypes? serviceSubTypes;
 
   const ServiceSelectionScreen({
     super.key,
@@ -27,6 +33,7 @@ class ServiceSelectionScreen extends StatefulWidget {
     required this.selectedCategoryKey,
     required this.preSelectedOptions,
     this.isDataUpdate = false,
+    this.serviceSubTypes,
   });
 
   @override
@@ -73,7 +80,6 @@ class _ServiceSelectionScreenState extends State<ServiceSelectionScreen> {
     final Widget contentBody = Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // 1. Wrap the List in Obx to listen for API updates
         Obx(() {
           // Show Loader
           if (_controller.isServiceSelectionLoading.value) {
@@ -84,6 +90,15 @@ class _ServiceSelectionScreenState extends State<ServiceSelectionScreen> {
           }
 
           final allOptions = _controller.allCategoryMap[_selectedCategoryKey] ?? <String>[].obs;
+
+          // fetch all predefined values and also if any new in our selected one then add that too in update case
+          if(widget.isDataUpdate){
+            for (var item in _tempSelectedOptions) {
+              if (!allOptions.contains(item)) {
+                allOptions.add(item);
+              }
+            }
+          }
 
           return ListView.builder(
             // Add +1 for the "Add More" button
@@ -102,7 +117,6 @@ class _ServiceSelectionScreenState extends State<ServiceSelectionScreen> {
                     backgroundColor: Colors.transparent,
                     builder: (_) => AddServiceBottomSheet(
                       onUpload: (List<String> newServices) {
-                        // A. Update the Controller's Main List (Source of Truth)
                         final RxList<String>? mainList = _controller.allCategoryMap[_selectedCategoryKey];
                         if (mainList != null) {
                           mainList.addAll(newServices);
@@ -169,8 +183,28 @@ class _ServiceSelectionScreenState extends State<ServiceSelectionScreen> {
                   _selectedCategoryKey,
                   _tempSelectedOptions
               );
-              _tempSelectedOptions.clear();
-              Get.back();
+              if(!widget.isDataUpdate){
+                Get.back();
+                _tempSelectedOptions.clear();
+              }else{
+                RxList<String> selectedDataList =
+                    _controller.selectedCategoryMap[_selectedCategoryKey] ?? <String>[].obs;
+                if(selectedDataList.isEmpty){
+                  commonSnackBar(message: 'Please add ${_controller.categoryTitleMap[_selectedCategoryKey]}');
+                  return;
+                }
+                Map<String, dynamic> params = {
+                  ApiKeys.type: AppConstants.service,
+                  ApiKeys.providerType: ProviderType.user.title,
+                  // ApiKeys.subType: widget.serviceSubType?.label,
+                  _selectedCategoryKey: selectedDataList
+                };
+
+                // _controller.updateEarnServiceData(
+                //     params: params
+                // );
+
+              }
             },
             bgColor: AppColors.primaryColor,
           ),

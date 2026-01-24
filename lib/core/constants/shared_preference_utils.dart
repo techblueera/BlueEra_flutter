@@ -18,7 +18,7 @@ String accountTypeGlobal = '';
 // String dobDoi = '';
 String userNameGlobal = '';
 String userProfessionGlobal = '';
-String userWorkTypeGlobal = '';
+String userDesignationGlobal = '';
 String userId = '';
 String businessId = '';
 String userMobileGlobal = '';
@@ -48,6 +48,7 @@ String schoolIDGlobal = '';
 String otherServiceIDGlobal = '';
 String hotelIDGlobal = '';
 String deviceOsVersionGlobal = '';
+String userProfileTypeGlobal = '';
 // String schoolIDGlobal = '6954c5337ca7a9670dc99129';
 
 class SharedPreferenceUtils {
@@ -76,8 +77,9 @@ class SharedPreferenceUtils {
   static const alreadyRetried = 'alreadyRetried';
   static const lastVersion = 'last_version';
   static const lastGreetingCallKey = 'last_greeting_call_key';
+  static const userProfileType = 'user_profile_type';
   static const userProfession = 'user_profession';
-  static const workTypeKey = 'workTypeKey';
+  static const userDesignation = 'userDesignation';
   static const businessName = 'business_name';
   static const businessOwnerName = 'business_owner_name';
   static const userNameAtKey = 'userNameAt';
@@ -105,8 +107,9 @@ class SharedPreferenceUtils {
     required String contactNo,
     required String getUserName,
     required String profileImage,
+    required String profileType,
+    required String profession,
     required String designation,
-    required String workType,
     required String userNameAt,
   }) async {
     await SharedPreferenceUtils.setSecureValue(isUserLogin, "true");
@@ -114,8 +117,9 @@ class SharedPreferenceUtils {
     await SharedPreferenceUtils.setSecureValue(userLoginMobile, contactNo);
     await SharedPreferenceUtils.setSecureValue(userName, getUserName);
     await SharedPreferenceUtils.setSecureValue(userProfile, profileImage);
-    await SharedPreferenceUtils.setSecureValue(userProfession, designation);
-    await SharedPreferenceUtils.setSecureValue(workTypeKey, workType);
+    await SharedPreferenceUtils.setSecureValue(userProfileType, profileType);
+    await SharedPreferenceUtils.setSecureValue(userProfession, profession);
+    await SharedPreferenceUtils.setSecureValue(userDesignation, designation);
     await SharedPreferenceUtils.setSecureValue(userBusinessId, businesId);
     await SharedPreferenceUtils.setSecureValue(userNameAtKey, userNameAt);
 
@@ -235,8 +239,9 @@ class SharedPreferenceUtils {
       userNameGlobal = '';
       userProfileGlobal = '';
       channelId = '';
+      userProfileTypeGlobal = '';
       userProfessionGlobal = '';
-      userWorkTypeGlobal = '';
+      userDesignationGlobal = '';
       userNameAtGlobal = '';
       serviceProviderStatusGlobal = '';
       earnServiceCreatedStatusGlobal = '"false"';
@@ -358,12 +363,14 @@ getUserLoginData() async {
   userNameGlobal = await SharedPreferenceUtils.getSecureValue(
           SharedPreferenceUtils.userName) ??
       "";
-
+  userProfileTypeGlobal = await SharedPreferenceUtils.getSecureValue(
+      SharedPreferenceUtils.userProfileType) ??
+      "";
   userProfessionGlobal = await SharedPreferenceUtils.getSecureValue(
           SharedPreferenceUtils.userProfession) ??
       "";
-  userWorkTypeGlobal = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.workTypeKey) ??
+  userDesignationGlobal = await SharedPreferenceUtils.getSecureValue(
+          SharedPreferenceUtils.userDesignation) ??
       "";
   Get.find<AuthController>().imgPath.value = userProfileGlobal;
   has_reel_profile_status = await SharedPreferenceUtils.getSecureValue(

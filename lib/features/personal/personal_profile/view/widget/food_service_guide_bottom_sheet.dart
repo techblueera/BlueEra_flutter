@@ -37,7 +37,12 @@ class _FoodServiceGuideBottomSheetState extends State<FoodServiceGuideBottomShee
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.only(
+            left: 20,
+            right: 20,
+            bottom: 20,
+            top: 5
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,

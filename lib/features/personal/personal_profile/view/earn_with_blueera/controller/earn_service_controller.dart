@@ -6,15 +6,12 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/core/constants/string_utils.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/model/earn_service_model_response.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/repo/earn_service_repo.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/change_profession_warning_dialog.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/repo/inventory_repo.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/widget/consulting_service_guide_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/food_service_guide_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/gig_work_service_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/home_service_guide_bottom_sheet.dart';
@@ -58,21 +55,15 @@ class EarnServiceController extends GetxController{
   void handleServiceTap(BuildContext context, CollapsibleGridModel service) async {
     switch (service.slugId) {
       case SELF_EMPLOYED:
-        // if(earnServiceCreatedStatusGlobal == 'true'){
-        //   commonSnackBar(message: AppStrings.youCanOptOnlyOneService.tr);
-        // }else{
           showModalBottomSheet(
             context: context,
             backgroundColor: Colors.transparent,
             isScrollControlled: true,
             builder: (_) => SelfWorkServiceGuideBottomSheet(),
           );
-        // }
-
         break;
 
       case GIG_WORKER:
-
         showModalBottomSheet(
           context: context,
           backgroundColor: Colors.transparent,
@@ -82,7 +73,7 @@ class EarnServiceController extends GetxController{
 
         break;
 
-      case HOME_MADE_PRODUCTS_OPTION:
+      case HOME_MADE_PRODUCTS:
         showModalBottomSheet(
           context: context,
           backgroundColor: Colors.transparent,
@@ -91,7 +82,7 @@ class EarnServiceController extends GetxController{
         );
         break;
 
-      case HOME_MADE_FOOD_ITEMS_OPTION:
+      case HOME_MADE_FOOD:
         showModalBottomSheet(
           context: context,
           backgroundColor: Colors.transparent,
@@ -100,20 +91,16 @@ class EarnServiceController extends GetxController{
         );
         break;
 
-      case HOME_SERVICES_OPTION:
-        // if(earnServiceCreatedStatusGlobal == 'true'){
-        //   commonSnackBar(message: AppStrings.youCanOptOnlyOneService.tr);
-        // }else {
+      case HOME_SERVICES:
           showModalBottomSheet(
             context: context,
             backgroundColor: Colors.transparent,
             isScrollControlled: true,
             builder: (_) => HomeServiceGuideBottomSheet(),
           );
-        // }
         break;
 
-      case RENTAL_SERVICES_OPTION:
+      case RENTAL_SERVICES:
         showModalBottomSheet(
           context: context,
           backgroundColor: Colors.transparent,
@@ -121,63 +108,48 @@ class EarnServiceController extends GetxController{
           builder: (_) => RentalServiceGuideBottomSheet(),
         );
         break;
-
-      case CONSULTANT:
-
-        if(isEarnServiceOpt.value=='true' && userWorkTypeGlobal == CONSULTANT){
-          commonSnackBar(message: 'You are already ${userWorkTypeGlobal.withArticle}');
-          return;
-        }
-
-        ChangeProfessionWarningDialog.show(
-          context,
-          onConfirm: ()=> Get.toNamed(
-            RouteHelper.getAddSelfServiceRoute(),
-            arguments: {
-              ApiKeys.designation: CONSULTANT,
-              ApiKeys.serviceSubType: EarnServiceTypes.homeService,
-            },
-          ),
+      case PROFESSIONAL:
+        showModalBottomSheet(
+          context: context,
+          backgroundColor: Colors.transparent,
+          isScrollControlled: true,
+          builder: (_) => ConsultingServiceGuideBottomSheet(),
         );
 
-        // if(earnServiceCreatedStatusGlobal == 'true'){
-        //   commonSnackBar(message: AppStrings.youCanOptOnlyOneService.tr);
-        // }else {
-        //   ProfessionChangeDialogHelper().shouldShowUpdateDesignationDialog(
-        //     context: context,
-        //     designation: CONSULTANT,
-        //     serviceSubType: EarnServiceTypes.homeService,
-        //   );
+      case CONTENT_CREATOR:
+        // if(isEarnServiceOpt.value=='true' && userDesignationGlobal == CONSULTANT){
+        //   commonSnackBar(message: 'You are already ${userDesignationGlobal.withArticle}');
+        //   return;
         // }
+        //
+        // ChangeProfessionWarningDialog.show(
+        //   context,
+        //   onConfirm: ()=> Get.toNamed(
+        //     RouteHelper.getAddSelfServiceRoute(),
+        //     arguments: {
+        //       ApiKeys.designation: CONSULTANT,
+        //       ApiKeys.serviceSubType: EarnServiceTypes.homeService,
+        //     },
+        //   ),
+        // );
         break;
 
       case TUTOR:
-
-        if(isEarnServiceOpt.value=='true' && userWorkTypeGlobal == TUTOR){
-          commonSnackBar(message: 'You are already ${userWorkTypeGlobal.withArticle}');
-          return;
-        }
-
-        ChangeProfessionWarningDialog.show(
-          context,
-          onConfirm: ()=> Get.toNamed(
-            RouteHelper.getAddSelfServiceRoute(),
-            arguments: {
-              ApiKeys.designation: TUTOR,
-              ApiKeys.serviceSubType: EarnServiceTypes.homeService,
-            },
-          ),
-        );
-
-        // if(earnServiceCreatedStatusGlobal == 'true'){
-        //   commonSnackBar(message: AppStrings.youCanOptOnlyOneService.tr);
-        // }else {
-        //   ProfessionChangeDialogHelper().shouldShowUpdateDesignationDialog(
-        //     context: context,
-        //     designation: TUTOR,
-        //     serviceSubType: EarnServiceTypes.homeService,
-        //   );
+        // if(isEarnServiceOpt.value=='true' && userProfessionGlobal == TUTOR){
+        //   commonSnackBar(message: 'You are already ${userProfessionGlobal.withArticle}');
+        //   return;
         // }
+        //
+        // ChangeProfessionWarningDialog.show(
+        //   context,
+        //   onConfirm: ()=> Get.toNamed(
+        //     RouteHelper.getAddSelfServiceRoute(),
+        //     arguments: {
+        //       ApiKeys.designation: TUTOR,
+        //       ApiKeys.serviceSubType: EarnServiceTypes.homeService,
+        //     },
+        //   ),
+        // );
         break;
 
       default:

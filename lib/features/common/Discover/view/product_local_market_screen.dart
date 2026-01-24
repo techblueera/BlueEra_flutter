@@ -151,12 +151,15 @@ class _ProductLocalMarketScreenState extends State<ProductLocalMarketScreen> {
                       false) {
                     Get.to(() => CreateProfileScreen());
                   } else {
-                    if (userWorkTypeGlobal == DELIVERY_RIDER) {
-                      Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
-                    } else {
-                      Get.toNamed(
-                          RouteHelper.getEarnServiceScreenRoute());
-                    }
+                    Get.toNamed(
+                        RouteHelper.getEarnServiceAvailableOptionsScreenRoute()
+                    );
+                    // if (userProfessionGlobal == DELIVERY_RIDER) {
+                    //   Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
+                    // } else {
+                    //   Get.toNamed(
+                    //       RouteHelper.getEarnServiceScreenRoute());
+                    // }
                   }
                 }
               },

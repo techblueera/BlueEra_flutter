@@ -53,7 +53,7 @@ class _MessageBubbleState extends State<MessageBubble> {
         }
       },
 
-      child:Container(
+      child: Container(
         width: double.infinity,
         color: Colors.transparent,
         child: Container(

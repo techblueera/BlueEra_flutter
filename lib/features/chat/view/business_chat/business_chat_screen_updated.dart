@@ -16,7 +16,7 @@ import '../../../../core/constants/app_image_assets.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../../../core/routes/route_helper.dart';
 import '../../../../core/services/notification_utils.dart';
-import '../../../common/bottomNavigationBar/auth/controller/bottom_bar_controller.dart';
+import '../../../common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import '../../../common/feed/view/feed_screen.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';

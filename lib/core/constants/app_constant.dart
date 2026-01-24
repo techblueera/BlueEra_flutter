@@ -1478,10 +1478,10 @@ const String MISCELLANEOUS_RETAIL = "MISCELLANEOUS_RETAIL";
 int kmRadius1000 = 1000;
 int kmRadius1500 = 1500;
 
-const HOME_MADE_PRODUCTS_OPTION = "HOME_MADE_PRODUCTS_OPTION";
-const HOME_MADE_FOOD_ITEMS_OPTION = "HOME_MADE_FOOD_ITEMS_OPTION";
-const HOME_SERVICES_OPTION = "HOME_SERVICES_OPTION";
-const RENTAL_SERVICES_OPTION = "RENTAL_SERVICES_OPTION";
+const HOME_MADE_PRODUCTS = "HOME_MADE_PRODUCTS";
+const HOME_MADE_FOOD = "HOME_MADE_FOOD";
+const HOME_SERVICES = "HOME_SERVICES";
+const RENTAL_SERVICES = "RENTAL_SERVICES";
 const TIFFIN = "TIFFIN";
 const BAKERY = "BAKERY";
 const SWEETS = "SWEETS";
@@ -2981,24 +2981,35 @@ final List<CollapsibleGridModel> earnWithBlueEraServiceList = [
       icon: AppImageAssets.deliveryPartner),
   CollapsibleGridModel(
       name: AppStrings.homeMadeProducts,
-      slugId: HOME_MADE_PRODUCTS_OPTION,
-      icon: AppImageAssets.homeMadeProduct),
+      slugId: HOME_MADE_PRODUCTS,
+      icon: AppImageAssets.homeMadeProduct
+  ),
   CollapsibleGridModel(
       name: 'Home Made\nFood Items',
-      slugId: HOME_MADE_FOOD_ITEMS_OPTION,
-      icon: AppImageAssets.homeMadeFood),
+      slugId: HOME_MADE_FOOD,
+      icon: AppImageAssets.homeMadeFood
+  ),
   CollapsibleGridModel(
       name: '${AppStrings.homeServices.tr}\n(Work From Home)',
-      slugId: HOME_SERVICES_OPTION,
-      icon: AppImageAssets.homeService),
+      slugId: HOME_SERVICES,
+      icon: AppImageAssets.homeService
+  ),
   CollapsibleGridModel(
       name: AppStrings.rentalServices,
-      slugId: RENTAL_SERVICES_OPTION,
-      icon: AppImageAssets.rentalService),
+      slugId: RENTAL_SERVICES,
+      icon: AppImageAssets.rentalService
+  ),
+  CollapsibleGridModel(
+      name: AppStrings.counsellingConsulting,
+      slugId: PROFESSIONAL,
+      icon: AppImageAssets.consultation
+  ),
   CollapsibleGridModel(
       name: AppStrings.contentCreator,
       slugId: CONTENT_CREATOR,
-      icon: AppImageAssets.consultation),
+
+      icon: AppImageAssets.contentCreator
+  ),
   CollapsibleGridModel(
       name: AppStrings.tuitionClassesOnlineOffline,
       slugId: TUTOR,
@@ -3074,6 +3085,59 @@ final List<CollapsibleGridModel> selfWorkCategories = [
   //     slugId: OTHER,
   //     icon: AppIconAssets.staggeredIcon
   // ),
+];
+
+final List<CollapsibleGridModel> consultationServiceList = [
+  CollapsibleGridModel(
+    name: 'Legal & Govt.\nConsultant',
+    slugId: LEGAL_GOVT_CONSULTANT,
+    icon: AppImageAssets.legalGovtConsultant
+  ),
+  CollapsibleGridModel(
+    name: 'Finance & Tax\nConsultant',
+    slugId: FINANCE_TAX_CONSULTANT,
+    icon: AppImageAssets.financeTaxConsultant
+  ),
+  CollapsibleGridModel(
+    name: 'Spiritual\nConsultant',
+    slugId: SPIRITUAL_CONSULTANT,
+    icon: AppImageAssets.spiritualConsultant
+  ),
+  CollapsibleGridModel(
+    name: 'Trainee & Career\nConsultant',
+    slugId: TRAINEE_CAREER_CONSULTANT,
+    icon: AppImageAssets.traineeCareerConsultant
+  ),
+  CollapsibleGridModel(
+    name: 'Advertising\nConsultant',
+    slugId: ADVERTISING_CONSULTANT,
+    icon: AppImageAssets.advertisingConsultant
+  ),
+  CollapsibleGridModel(
+    name: 'Event Planner &\nDetective',
+    slugId: EVENT_PLANNER_DETECTIVE,
+    icon: AppImageAssets.eventPlanDetective
+  ),
+  CollapsibleGridModel(
+    name: 'Property Broker &\nArchitect',
+    slugId: PROPERTY_BROKER_ARCHITECT,
+    icon: AppImageAssets.propertyBrokerArchitect
+  ),
+  CollapsibleGridModel(
+    name: 'Business & HR\nConsultant',
+    slugId: BUSINESS_HR_CONSULTANT,
+    icon: AppImageAssets.businessHrConsultant
+  ),
+  CollapsibleGridModel(
+    name: 'Industry & Quality\nConsultant',
+    slugId: INDUSTRY_QUALITY_CONSULTANT,
+    icon: AppImageAssets.industryQualityConsultant
+  ),
+  CollapsibleGridModel(
+    name: 'Tech & Digital\nFreelancer',
+    slugId: TECH_DIGITAL_FREELANCER,
+    icon: AppImageAssets.techDigitalFreelancer
+  ),
 ];
 
 final List<CollapsibleGridModel> homeServicesCategories = [
@@ -3161,6 +3225,24 @@ final List<CollapsibleGridModel> bookingList = [
       name: 'Hotel & Home Stay',
       slugId: HOTEL_HOME_STAY,
       icon: AppImageAssets.hotelAndHomeStay),
+];
+
+final List<CollapsibleGridModel> earnWithBlueEraAddOptionsList = [
+  CollapsibleGridModel(
+      name: AppStrings.homeMadeProducts,
+      slugId: HOME_MADE_PRODUCTS,
+      icon: AppImageAssets.homeMadeProduct
+  ),
+  CollapsibleGridModel(
+      name: 'Home Made\nFood Items',
+      slugId: HOME_MADE_FOOD,
+      icon: AppImageAssets.homeMadeFood
+  ),
+  CollapsibleGridModel(
+      name: AppStrings.rentalServices,
+      slugId: RENTAL_SERVICES,
+      icon: AppImageAssets.rentalService
+  ),
 ];
 
 // final List<CollapsibleGridModel> individualSocialProfileList = [

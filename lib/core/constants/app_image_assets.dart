@@ -106,8 +106,22 @@ class AppImageAssets {
   static String autoDriver = "${imgPath}auto_driver.png";
   static String goodsTransporter = "${imgPath}goods_transporter.png";
 
-  /// Home Service
+  static String contentCreator = "${imgPath}content_creator.png";
+
+  /// Consultation Service
   static String consultation = "${imgPath}consultation.png";
+  static String legalGovtConsultant = "${imgPath}legal_govt_consultant.png";
+  static String financeTaxConsultant = "${imgPath}finance_tax_consultant.png";
+  static String spiritualConsultant = "${imgPath}spiritual_consultant.png";
+  static String traineeCareerConsultant = "${imgPath}trainee_career_consultant.png";
+  static String advertisingConsultant = "${imgPath}advertising_consultant.png";
+  static String eventPlanDetective = "${imgPath}event_plan_detective.png";
+  static String propertyBrokerArchitect = "${imgPath}property_broker_architect.png";
+  static String businessHrConsultant = "${imgPath}business_hr_consultant.png";
+  static String industryQualityConsultant = "${imgPath}industry_quality_consultant.png";
+  static String techDigitalFreelancer = "${imgPath}tech_digital_freelancer.png";
+
+  /// Home Service
   static String tutor = "${imgPath}tutor.png";
   static String beautician = "${imgPath}beautician.png";
   static String tailor = "${imgPath}tailor.png";

@@ -654,4 +654,7 @@ abstract class BaseService {
   final String otherGallery= "other-service/gallery";
   final String otherBusinessProfile= "other-service/business-profile";
   final String generateOtherService= "ai-service/api/ai-other/generate-other-service";
+
+  final String adminVideos = 'video-service/admin-videos';
+
 }

@@ -15,6 +15,7 @@ import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/constants/string_utils.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
@@ -44,7 +45,6 @@ import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/common_drop_down-dialoge.dart';
-import 'package:BlueEra/widgets/common_drop_down.dart';
 import 'package:BlueEra/widgets/common_drop_down_icon_dialoge.dart';
 import 'package:BlueEra/widgets/common_horizontal_divider.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -161,7 +161,7 @@ class _PersonalProfileSetupNewScreenState
 
   Future<void> _loadInitialData() async {
     await viewProfileController.viewPersonalProfile();
-    if (userProfileGlobal == SELF_EMPLOYED &&
+    if (userProfileTypeGlobal == SELF_EMPLOYED &&
         earnServiceCreatedStatusGlobal == 'false') {
       viewProfileController.partiallyForceToCreateService();
     }
@@ -666,6 +666,7 @@ class _PersonalProfileSetupNewScreenState
   void _showCategoryBottomSheet() {
     final controller = getOrPut(() => ViewPersonalDetailsController());
     final authController = getOrPut(() => AuthController());
+    final personalController = getOrPut(()=> PersonalCreateProfileController());
 
     final user = controller.personalProfileDetails.value.user;
     IndividualProfileTypeModel _selectedProfileType =
@@ -691,7 +692,6 @@ class _PersonalProfileSetupNewScreenState
     final _subDivisionCtrl = TextEditingController();
 
     final _formKey = GlobalKey<FormState>();
-    bool upBtnLoading = false;
 
     // Helper: Update the list based on Profile Type
     void updateCategoryOfProfession(String typeId) {
@@ -868,23 +868,19 @@ class _PersonalProfileSetupNewScreenState
         //   }
         // }
 
-        setState(() {
-          upBtnLoading = true;
-        });
 
           String? designation;
           if ((_selectedProfileType.type == SELF_EMPLOYED ||
               _selectedProfileType.type == GIG_WORKER)) {
-            designation =
-                _selectedProfession?.slugId.toLowerCase().capitalizeFirst ?? "";
+            designation = formatRole(_selectedProfession?.slugId ?? '');
+            log('designation -- $designation');
           } else if (_selectedProfileType.type == PROFESSIONAL) {
             designation = _selectedDesignationObj?.name;
-            log('designation -- $designation');
           } else {
             if (_selectedProfession?.slugId == STUDENT) {
-              designation = STUDENT.toLowerCase().capitalizeFirst;
+              designation = formatRole(STUDENT);
             } else if (_selectedProfession?.slugId == FARMER) {
-              designation = FARMER.toLowerCase().capitalizeFirst;
+              designation = formatRole(FARMER);
             } else if (_selectedProfession?.slugId == HOMEMAKER) {
               designation = _expertiseTextCtrl.text.trim();
             } else if (_selectedProfession?.slugId == SENIOR_CITIZEN) {
@@ -893,7 +889,6 @@ class _PersonalProfileSetupNewScreenState
                 designation = _selectedDesignationObj?.name;
             } else if (_selectedProfession?.slugId == CONTENT_CREATOR) {
               designation = _selectedDesignationObj?.name;
-              log('designation -- ${_selectedDesignationObj?.name}');
             }
             // else if (_selectedProfessionTagId == OTHERS) {
             //   designation = _otherProfessionTextController.text.trim();
@@ -952,12 +947,9 @@ class _PersonalProfileSetupNewScreenState
           logs("requestData PERSONAL ==== ${requestData}");
           await personalCreateProfileController.updateUserProfileDetails(
               params: requestData,
-             showProgress: false
+              showProgress: false
           );
 
-          setState(() {
-            upBtnLoading = false;
-          });
 
         // }
     }
@@ -965,11 +957,12 @@ class _PersonalProfileSetupNewScreenState
     initData();
 
     Get.bottomSheet(
+      isScrollControlled: true,
+      backgroundColor: AppColors.white,
       StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
             return SafeArea(
             child: Container(
-              // padding: EdgeInsets.all(SizeConfig.size20),
               padding: EdgeInsets.only(bottom: 30, right: 20, left: 20, top: 5),
               decoration: BoxDecoration(
                 color: AppColors.white,
@@ -1527,14 +1520,14 @@ class _PersonalProfileSetupNewScreenState
 
                     SizedBox(height: SizeConfig.paddingL),
 
-                    // Optional Confirm Button
-                    CustomBtn(
-                      isLoading: upBtnLoading,
+                    Obx(()=> CustomBtn(
+                      isLoading: personalController.updateBtnLoading.value,
                       onTap: () => _onSubmitPressed(),
-                      title: upBtnLoading ? null : AppStrings.done,
+                      title: personalController.updateBtnLoading.value ? null : AppStrings.done,
                       radius: SizeConfig.size8,
                       bgColor: AppColors.primaryColor,
-                    ),
+                    )
+                     )
                   ],
                 ),
               ),
@@ -1542,8 +1535,7 @@ class _PersonalProfileSetupNewScreenState
             );
           }
       ),
-      isScrollControlled: true, // Allows content to define height
-      backgroundColor: AppColors.white,
+
     );
   }
 
@@ -2278,14 +2270,21 @@ class _PersonalProfileSetupNewScreenState
                   MaterialPageRoute(
                       builder: (context) => CreateProfileScreen()));
             } else {
-              log('user work type-- $userWorkTypeGlobal');
-              if (userWorkTypeGlobal == DELIVERY_RIDER
-                  // || userWorkTypeGlobal == 'Delivery Partner'
-                  ) {
-                Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
-              } else {
-                Get.toNamed(RouteHelper.getEarnServiceScreenRoute());
-              }
+
+              Get.toNamed(
+                  RouteHelper.getEarnServiceAvailableOptionsScreenRoute()
+              );
+
+              // log('user work type-- $userProfessionGlobal');
+              // if (userProfessionGlobal == DELIVERY_RIDER
+              //     // || userWorkTypeGlobal == 'Delivery Partner'
+              //     ) {
+              //   Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
+              // } else {
+              //
+              //   Get.toNamed(RouteHelper.getEarnServiceScreenRoute());
+              // }
+
             }
           },
           bgColor: AppColors.primaryColor,
