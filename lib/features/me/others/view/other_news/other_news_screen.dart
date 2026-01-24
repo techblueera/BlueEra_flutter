@@ -1,15 +1,12 @@
-import 'dart:io';
-
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/me/others/controller/about_organisation_controller.dart';
-import 'package:BlueEra/features/me/others/model/about_organisation_model.dart';
-import 'package:BlueEra/features/me/others/view/about_us/about_organization_form_screen.dart';
+import 'package:BlueEra/features/me/others/controller/other_news_controller.dart';
+import 'package:BlueEra/features/me/others/model/other_news_model.dart';
+import 'package:BlueEra/features/me/others/view/other_news/other_news_form_screen.dart';
 import 'package:BlueEra/features/me/school/view/widget/add_more_icon_button.dart';
-import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -19,17 +16,17 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class AboutOrganization extends StatelessWidget {
-  AboutOrganization({super.key});
+class OtherNewsScreen extends StatelessWidget {
+  OtherNewsScreen({super.key});
 
-  final AboutOrganisationController controller =
-      Get.put(AboutOrganisationController());
+  final  controller =
+      Get.put(OtherNewsController());
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "About Organization",
+        title: "News",
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
@@ -47,14 +44,14 @@ class AboutOrganization extends StatelessWidget {
                         return _buildItemCard(context, item);
                       },
                     )
-                  : Center(child: CustomText("No Organization Found")),
+                  : Center(child: CustomText("No News Found")),
             ),
             SafeArea(
               child: Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
                 child: AddMoreIconButton(onTapEvent: () {
-                  Get.to(AboutOrganizationFormScreen());
+                  Get.to(OtherNewsFormScreen());
                 }),
               ),
             ),
@@ -64,7 +61,7 @@ class AboutOrganization extends StatelessWidget {
     );
   }
 
-  Widget _buildItemCard(BuildContext context, AboutOrganisationData item) {
+  Widget _buildItemCard(BuildContext context, OtherNewsData item) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
@@ -121,7 +118,7 @@ class AboutOrganization extends StatelessWidget {
                       imagePath: AppIconAssets.editIcon,
                       imgColor: AppColors.black,
                     ),
-                    onPressed: () => Get.to(AboutOrganizationFormScreen(
+                    onPressed: () => Get.to(OtherNewsFormScreen(
                       item: item,
                     )),
                   ),
@@ -133,10 +130,10 @@ class AboutOrganization extends StatelessWidget {
                     onPressed: () async {
                       await showCommonDialog(
                           context: context,
-                          text: 'Are you sure you want to delete this data?',
+                          text: 'Are you sure you want to delete this News?',
                           confirmCallback: () async {
                             Get.back();
-                            await controller.deleteAboutOrganisation(item.sId!);
+                            await controller.deleteNewsRepo(item.sId!);
                           },
                           cancelCallback: () {
                             Navigator.of(context).pop(); // Close the dialog

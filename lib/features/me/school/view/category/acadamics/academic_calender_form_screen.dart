@@ -320,7 +320,7 @@ class _AcademicCalenderFormScreenState
     // 1. Run your standard validation (e.g., checking if description is empty)
     academicCalenderController.noticesNewsValidateForm(
         noticeDescription:
-            academicCalenderController.notice_news_messageText.value ?? "",
+            academicCalenderController.notice_news_messageText.value,
         uploadPhoto: academicCalenderController.initialNoticeImageUrl);
 
     // 2. If in edit mode, add the 'Has Changed' requirement

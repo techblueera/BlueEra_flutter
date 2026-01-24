@@ -1,24 +1,16 @@
-import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/others/controller/management_controller.dart';
 import 'package:BlueEra/features/me/others/model/management_model.dart';
-import 'package:BlueEra/features/me/others/view/about_us/add_management_form_screen.dart';
+import 'package:BlueEra/features/me/others/view/management/add_management_form_screen.dart';
 import 'package:BlueEra/features/me/school/view/widget/add_more_icon_button.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
-import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
-import 'package:BlueEra/widgets/common_loader.dart';
-import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

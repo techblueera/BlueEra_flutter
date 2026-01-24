@@ -1,8 +1,8 @@
 import 'package:BlueEra/core/api/model/service_option_model.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/me/others/view/about_us/widget/about_organization.dart';
-import 'package:BlueEra/features/me/others/view/about_us/management_screen.dart';
+import 'package:BlueEra/features/me/others/view/about_us/about_organization.dart';
+import 'package:BlueEra/features/me/others/view/management/management_screen.dart';
 import 'package:BlueEra/features/me/others/view/staff/staff_screen.dart';
 import 'package:BlueEra/features/me/school/view/school_update_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -46,10 +46,7 @@ class _AddOthersServicesState extends State<OthersAboutUs> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        showRightTextButton: true,
-        isShowMoreInfoIcon: true,
         title: "About Us",
-        isShadowShow: false,
       ),
       body: Column(
         children: [

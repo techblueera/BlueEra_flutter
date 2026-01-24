@@ -1,7 +1,4 @@
-import 'package:BlueEra/core/api/model/school_contact_us_model.dart';
-import 'package:BlueEra/core/api/model/school_contact_us_new_res_model.dart';
 import 'package:BlueEra/features/me/school/controller/branch_contact_controller.dart';
-import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';

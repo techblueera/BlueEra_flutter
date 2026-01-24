@@ -1,10 +1,8 @@
 import 'dart:io';
 import 'package:BlueEra/core/api/model/notice_news_model.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
 import 'package:BlueEra/features/me/school/controller/notice_news_controller.dart';
-import 'package:BlueEra/features/me/school/controller/school_controller.dart';
 import 'package:BlueEra/features/me/school/view/common_ai_genereted_button.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -277,7 +275,7 @@ class _SchoolNoticeAndNewsState extends State<SchoolNoticeAndNews> {
   void _runValidation() {
     // 1. Run your standard validation (e.g., checking if description is empty)
     noticeController.noticesNewsValidateForm(
-        noticeDescription: noticeController.notice_news_messageText.value ?? "",
+        noticeDescription: noticeController.notice_news_messageText.value,
         uploadPhoto: noticeController.initialNoticeImageUrl);
 
     // 2. If in edit mode, add the 'Has Changed' requirement

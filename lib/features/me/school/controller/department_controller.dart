@@ -78,7 +78,7 @@ class DepartmentController extends GetxController {
       // 1. Upload new local images to S3 if any
       for (File file in selectedImages) {
         String? uploadedUrl = await _uploadToS3Workflow(file);
-        if (uploadedUrl != null) finalImageUrls.add(uploadedUrl);
+        finalImageUrls.add(uploadedUrl);
       }
 
       // 2. Prepare Payload
@@ -127,13 +127,9 @@ class DepartmentController extends GetxController {
   UploadInitResponse uploadInit = UploadInitResponse();
 
   Future<String> _uploadToS3Workflow(File file) async {
-    if (file == null) {
-      commonSnackBar(message: AppStrings.noImageSelected);
-      return "";
-    }
     try {
       isUploading.value = true;
-      final imageFile = File(file.path ?? "");
+      final imageFile = File(file.path);
       final vInfo = getFileInfo(imageFile);
       Map<String, dynamic> queryParams = {
         ApiKeys.fileName: vInfo['fileName'],

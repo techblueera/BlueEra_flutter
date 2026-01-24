@@ -54,7 +54,7 @@ class _SchoolMainState extends State<SchoolMain>
         controller.hasSchool.value = schoolIDGlobal.isNotEmpty;
       });
       await schoolAboutUsController.getSchoolByIdController();
-    } on Exception catch (e) {
+    } on Exception {
       // TODO
     }
   }

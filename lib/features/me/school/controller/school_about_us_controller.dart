@@ -4,9 +4,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/school_about_us_model.dart';
-import 'package:BlueEra/core/api/model/school_contact_us_model.dart';
-import 'package:BlueEra/core/api/model/school_details_res_model.dart'
-    hide Management;
+import 'package:BlueEra/core/api/model/school_details_res_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -97,7 +95,7 @@ class SchoolAboutUsController extends GetxController {
           commonSnackBar(message: AppStrings.somethingWentWrong);
         }
       }
-    } on Exception catch (e) {
+    } on Exception {
       commonSnackBar(message: AppStrings.somethingWentWrong);
 
       // TODO
@@ -142,7 +140,7 @@ class SchoolAboutUsController extends GetxController {
         visionMissionResponse.value =
             ApiResponse.error(AppStrings.somethingWentWrong);
       }
-    } on Exception catch (e) {
+    } on Exception {
       // TODO
       visionMissionResponse.value =
           ApiResponse.error(AppStrings.somethingWentWrong);
@@ -252,7 +250,7 @@ class SchoolAboutUsController extends GetxController {
         visionMissionResponse.value =
             ApiResponse.error(AppStrings.somethingWentWrong);
       }
-    } on Exception catch (e) {
+    } on Exception {
       // TODO
       visionMissionResponse.value =
           ApiResponse.error(AppStrings.somethingWentWrong);
@@ -307,7 +305,7 @@ class SchoolAboutUsController extends GetxController {
         managementTrustResponse.value =
             ApiResponse.error(AppStrings.somethingWentWrong);
       }
-    } on Exception catch (e) {
+    } on Exception {
       // TODO
       managementTrustResponse.value =
           ApiResponse.error(AppStrings.somethingWentWrong);
@@ -374,7 +372,7 @@ class SchoolAboutUsController extends GetxController {
         managementTrustResponse.value =
             ApiResponse.error(AppStrings.somethingWentWrong);
       }
-    } on Exception catch (e) {
+    } on Exception {
       // TODO
       managementTrustResponse.value =
           ApiResponse.error(AppStrings.somethingWentWrong);
@@ -468,7 +466,7 @@ class SchoolAboutUsController extends GetxController {
         visionMissionResponse.value =
             ApiResponse.error(AppStrings.somethingWentWrong);
       }
-    } on Exception catch (e) {
+    } on Exception {
       // TODO
       visionMissionResponse.value =
           ApiResponse.error(AppStrings.somethingWentWrong);

@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/others/model/about_organisation_model.dart';
 import 'package:BlueEra/features/me/others/repo/other_repo.dart';
@@ -86,7 +85,7 @@ class AboutOrganisationController extends GetxController {
     try {
       UploadResult? uploadResult = await S3UploadService.uploadFile(selectedImage.value!);
       
-      if (uploadResult.isSuccess && uploadResult.url != null) {
+      if (uploadResult.isSuccess) {
         final body = {
           "imageUrl": uploadResult.url,
           "title": titleController.text,
@@ -127,7 +126,7 @@ class AboutOrganisationController extends GetxController {
       
       if (selectedImage.value != null) {
         UploadResult? uploadResult = await S3UploadService.uploadFile(selectedImage.value!);
-        if (uploadResult.isSuccess && uploadResult.url != null) {
+        if (uploadResult.isSuccess) {
           imageUrl = uploadResult.url;
         } else {
            commonSnackBar(message: "Image upload failed");

@@ -310,6 +310,6 @@ class _ManagementTrustFormScreenState extends State<ManagementTrustFormScreen> {
         profession: professionEditController.text,
         message: messageEditController.text,
         qualification: schoolAboutUsController.qualifications,
-        profileImg: schoolAboutUsController.managementProfile.value ?? "");
+        profileImg: schoolAboutUsController.managementProfile.value);
   }
 }

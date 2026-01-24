@@ -2,17 +2,14 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
 import 'package:BlueEra/features/me/school/view/category/about_school/managment_trust_form_screen.dart';
 import 'package:BlueEra/features/me/school/view/widget/add_more_icon_button.dart';
-import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/network_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../../../core/api/model/school_about_us_model.dart';
 import '../../../../../../core/constants/app_colors.dart';
-import '../../../../../../core/constants/app_icon_assets.dart';
 import '../../../../../../widgets/common_back_app_bar.dart';
 import '../../../../../../widgets/custom_text_cm.dart';
-import '../../../../hospital/view/widget/general_medicine.dart';
 
 class ManagementAndTrust extends StatefulWidget {
   ManagementAndTrust({super.key});
