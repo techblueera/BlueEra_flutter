@@ -10,6 +10,8 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/controller/earn_service_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/rider_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/horizonatal_video_player.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -86,15 +88,15 @@ class _EarnServiceAvailableOptionsScreenState extends State<EarnServiceAvailable
         return _buildLoadingScaffold();
       }
 
-      // if (earnValue.toLowerCase() == 'true') {
-      //   return EarnServiceScreen(
-      //       fromBottomNavBar: widget.fromBottomNavBar
-      //   );
-      // } else if(earnValue.toLowerCase() == 'true'){
-      //   return RiderServiceScreen(
-      //       fromBottomNavBar: widget.fromBottomNavBar
-      //   );
-      // }
+      if (earnValue.toLowerCase() == 'true') {
+        return EarnServiceScreen(
+            fromBottomNavBar: widget.fromBottomNavBar
+        );
+      } else if(earnValue.toLowerCase() == 'true'){
+        return RiderServiceScreen(
+            fromBottomNavBar: widget.fromBottomNavBar
+        );
+      }
 
       return _buildEarnDisabledScaffold(context);
     });
