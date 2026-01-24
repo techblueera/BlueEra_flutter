@@ -79,7 +79,8 @@ class VisitingCard extends StatelessWidget {
                                         ),
                                       ),
                                       Text(
-                                        (accountTypeGlobal.toUpperCase() == AppConstants.individual) ? userProfessionGlobal : businessNameGlobal,
+                                        (accountTypeGlobal.toUpperCase() == AppConstants.individual) ?
+                                        userProfessionGlobal : businessNameGlobal,
                                         style: TextStyle(
                                           fontSize: baseFont,
                                           color: AppColors.secondaryTextColor,

@@ -15,7 +15,7 @@ void showEnableServiceDialog() async {
 
   if (serviceProviderStatusGlobal.toString().toUpperCase() ==
           AppConstants.CLOSED.toUpperCase() &&
-      (userProfessionGlobal.toUpperCase() == SELF_EMPLOYED)) {
+      (userProfileTypeGlobal.toUpperCase() == SELF_EMPLOYED)) {
     Get.defaultDialog(
       title: "",
       titleStyle: TextStyle(fontSize: 0),
@@ -62,7 +62,7 @@ void showEnableServiceDialog() async {
                           viewProfileController.toggleShopOnlyStatus(
                               isActive: true
                           );
-                          if(userProfileGlobal == SELF_EMPLOYED && earnServiceCreatedStatusGlobal == 'false'){
+                          if(userProfileTypeGlobal == SELF_EMPLOYED && earnServiceCreatedStatusGlobal == 'false'){
                             viewProfileController.partiallyForceToCreateService();
                           }
                         },
@@ -75,7 +75,7 @@ void showEnableServiceDialog() async {
     );
   } else if (serviceProviderStatusGlobal.toString().toUpperCase() ==
           AppConstants.OPEN.toUpperCase() &&
-      (userProfessionGlobal.toUpperCase() == SELF_EMPLOYED)) {
+      (userProfileTypeGlobal.toUpperCase() == SELF_EMPLOYED)) {
     await viewProfileController.callLocationAPI();
   }
 }

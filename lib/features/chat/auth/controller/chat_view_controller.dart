@@ -4,10 +4,12 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/chat/auth/model/messageMediaUrl.dart';
+import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -86,7 +88,7 @@ class ChatViewController extends GetxController {
     "last_message": "Ask anything with Inventory Friend",
     "last_message_type": "text",
     "sender": {
-      "name": "BE Inventory Friend",
+      "name": "Sarthi Ai",
       "contact_no": "BlueEra Inventory Friend",
       "profile_image":
           "https://be-user-bkt.s3.ap-south-1.amazonaws.com/admin/68a31a3edd48c8dfc0656a00/profile/1759817565514-unnamed.webp",
@@ -155,6 +157,56 @@ class ChatViewController extends GetxController {
     'Post',
     'Reviews',
     'Others'
+  ];
+
+  // variable for ai search
+  Rxn<CollapsibleGridModel> askAiFor = Rxn<CollapsibleGridModel>();
+  final List<CollapsibleGridModel> arrAskForOptions = [
+    CollapsibleGridModel(
+      name: 'Products',
+      slugId: PRODUCT,
+      icon: AppImageAssets.healthCare,
+    ),
+    CollapsibleGridModel(
+      name: 'Foods',
+      slugId: FOOD,
+      icon: AppImageAssets.healthCare,
+    ),
+    CollapsibleGridModel(
+      name: 'Services',
+      slugId: SERVICE,
+      icon: AppImageAssets.healthCare,
+    ),
+    CollapsibleGridModel(
+      name: 'Health Care',
+      slugId: HEALTHCARE_MEDICAL_SERVICES,
+      icon: AppImageAssets.healthCare,
+    ),
+    CollapsibleGridModel(
+      name: 'Education',
+      slugId: EDUCATION_TRAINING,
+      icon: AppImageAssets.healthCare,
+    ),
+    CollapsibleGridModel(
+      name: 'Home Services',
+      slugId: HOME_SERVICES,
+      icon: AppImageAssets.healthCare,
+    ),
+    CollapsibleGridModel(
+      name: 'Travel & Stay',
+      slugId: RENTAL_SERVICES,
+      icon: AppImageAssets.healthCare,
+    ),
+    CollapsibleGridModel(
+      name: 'Consulting Talk',
+      slugId: PROFESSIONAL,
+      icon: AppImageAssets.healthCare,
+    ),
+    CollapsibleGridModel(
+      name: 'Let’s Talk',
+      slugId: 'LETS_TALK',
+      icon: AppImageAssets.healthCare,
+    ),
   ];
 
   void parseAiChatHistory(List<dynamic> jsonList) {
@@ -1693,7 +1745,8 @@ class ChatViewController extends GetxController {
     // try {
     getListOfInventoryAiMessages?.add(InventoryAskAiModel(
       message: message,
-      messageStatus: AppConstants.AiQuest_Chat_Type
+      messageStatus: AppConstants.AiQuest_Chat_Type,
+      time: formatTime(DateTime.now().toIso8601String())
     ));
       chatBotReading.value = true;
       sendMessageController.value.clear();
@@ -1715,4 +1768,31 @@ class ChatViewController extends GetxController {
     //   getListOfInventoryAiMessageResponse.value = ApiResponse.error('error');
     // } finally {}
   }
+
+  // Future<void> askLetsTalkApi({required String message}) async {
+  //   // try {
+  //   getListOfInventoryAiMessages?.add(InventoryAskAiModel(
+  //       message: message,
+  //       messageStatus: AppConstants.AiQuest_Chat_Type
+  //   ));
+  //   chatBotReading.value = true;
+  //   sendMessageController.value.clear();
+  //   final response = await StoreRepo().askAiInventoryRepo(
+  //     params: {ApiKeys.query: message},
+  //   );
+  //
+  //   if (response.isSuccess) {
+  //     InventoryAskAiModel detail=InventoryAskAiModel.fromJson(response.response?.data);
+  //     detail.messageStatus=AppConstants.AiReply_Chat_Type;
+  //     getListOfInventoryAiMessages?.add(detail);
+  //     getListOfInventoryAiMessageResponse.value = ApiResponse.complete(getListOfInventoryAiMessages);
+  //
+  //     chatBotReading.value = false;
+  //   } else {
+  //     getListOfInventoryAiMessageResponse.value = ApiResponse.error('error');
+  //   }
+  //   // } catch (e) {
+  //   //   getListOfInventoryAiMessageResponse.value = ApiResponse.error('error');
+  //   // } finally {}
+  // }
 }

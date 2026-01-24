@@ -646,4 +646,7 @@ abstract class BaseService {
   final String createAboutOrganisation = "other-service/about-organisation";
   final String management = "other-service/management";
   final String staff = "other-service/staff";
+
+  final String adminVideos = 'video-service/admin-videos';
+
 }

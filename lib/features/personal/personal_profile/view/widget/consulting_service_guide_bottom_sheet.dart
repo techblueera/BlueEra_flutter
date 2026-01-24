@@ -1,36 +1,44 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/features/common/auth/model/individual_profiile_category.dart';
+import 'package:BlueEra/core/constants/string_utils.dart';
+import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/change_profession_warning_dialog.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/horizonatal_video_player.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/widget/service_item.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class RentalServiceGuideBottomSheet extends StatefulWidget {
-  RentalServiceGuideBottomSheet({Key? key}) : super(key: key);
+class ConsultingServiceGuideBottomSheet extends StatefulWidget {
+  ConsultingServiceGuideBottomSheet({Key? key}) : super(key: key);
 
   @override
-  State<RentalServiceGuideBottomSheet> createState() => _RentalServiceGuideBottomSheetState();
+  State<ConsultingServiceGuideBottomSheet> createState() => _ConsultingServiceGuideBottomSheetState();
 }
 
-class _RentalServiceGuideBottomSheetState extends State<RentalServiceGuideBottomSheet> {
+class _ConsultingServiceGuideBottomSheetState extends State<ConsultingServiceGuideBottomSheet> {
+  final authController = Get.find<AuthController>();
   int? selectedIndex;
   CollapsibleGridModel? selectedService;
+
+  @override
+  void initState() {
+    authController.getAllProfessionController();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       child: Container(
         decoration: const BoxDecoration(
-          color: Colors.white,
+          color: AppColors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
         padding: const EdgeInsets.only(
@@ -48,7 +56,7 @@ class _RentalServiceGuideBottomSheetState extends State<RentalServiceGuideBottom
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 CustomText(
-                  AppStrings.rentalServices,
+                  AppStrings.counsellingConsulting,
                   fontSize: SizeConfig.large,
                   fontWeight: FontWeight.w600,
                   color: AppColors.mainTextColor,
@@ -60,25 +68,24 @@ class _RentalServiceGuideBottomSheetState extends State<RentalServiceGuideBottom
               ],
             ),
 
-            SizedBox(height: SizeConfig.size16),
+            SizedBox(height: SizeConfig.size8),
             HorizontalVideoPlayer(),
             SizedBox(height: SizeConfig.size10),
             CustomText(
-              AppStrings.earnWithRentalServices,
+              'How To Earn With Consulting Service ?, consectetur adipiscing elit. Nunc vulputate libero et velit interdum....',
               fontSize: SizeConfig.medium,
               fontWeight: FontWeight.w400,
               color: AppColors.secondaryTextColor,
             ),
             SizedBox(height: SizeConfig.size20),
             CustomText(
-              AppStrings.selectRentalType,
+              'Select consulting service',
               fontSize: SizeConfig.large,
               fontWeight: FontWeight.w600,
               color: AppColors.mainTextColor,
             ),
             SizedBox(height: SizeConfig.size16),
 
-            // 3-column grid
             Flexible(
               child: GridView.builder(
                 shrinkWrap: true,
@@ -87,10 +94,11 @@ class _RentalServiceGuideBottomSheetState extends State<RentalServiceGuideBottom
                   crossAxisCount: 4,
                   childAspectRatio: 1.0,
                   crossAxisSpacing: 6,
+                  mainAxisSpacing: 6,
                 ),
-                itemCount: rentalServiceCategories.length,
+                itemCount: consultationServiceList.length,
                 itemBuilder: (_, i) => CommonServiceCard(
-                  service: rentalServiceCategories[i],
+                  service: consultationServiceList[i],
                   isSelected: selectedIndex == i,
                   onTap: () {
                     setState(() {
@@ -99,7 +107,7 @@ class _RentalServiceGuideBottomSheetState extends State<RentalServiceGuideBottom
                         selectedService = null;
                       } else {
                         selectedIndex = i;
-                        selectedService = rentalServiceCategories[i];
+                        selectedService = consultationServiceList[i];
                       }
                     });
                   },
@@ -109,15 +117,34 @@ class _RentalServiceGuideBottomSheetState extends State<RentalServiceGuideBottom
 
             CustomBtn(
               height: SizeConfig.size40,
-              title:AppStrings.startListingNow,
-              onTap: () {
+              title: 'Start Listing Now',
+              onTap: () async {
                 if (selectedService == null) {
-                  commonSnackBar(message: AppStrings.selectRentalTypeMessage);
-
+                  Get.snackbar('Select Self Service', 'Please select a work type to continue',
+                      backgroundColor: Colors.redAccent.withValues(alpha: 0.8),
+                      colorText: Colors.white);
                   return;
                 }
 
-                _handleServiceTap();
+                if(isEarnServiceOpt=='true' && selectedService?.slugId == userProfessionGlobal){
+                  commonSnackBar(message: 'You are already ${userProfessionGlobal.withArticle}');
+                  return;
+                }
+
+
+                ChangeProfessionWarningDialog.show(
+                  context,
+                  onConfirm: () {
+                  //   Get.toNamed(
+                  //   RouteHelper.getAddSelfServiceRoute(),
+                  //   arguments: {
+                  //     ApiKeys.designation: selectedService?.slugId ?? OTHER,
+                  //     ApiKeys.serviceSubType: EarnServiceTypes.selfWork,
+                  //   },
+                  // );
+                  },
+                );
+
               },
               bgColor: AppColors.primaryColor,
               textColor: AppColors.white,
@@ -131,23 +158,5 @@ class _RentalServiceGuideBottomSheetState extends State<RentalServiceGuideBottom
     );
   }
 
-  void _handleServiceTap() async {
-    switch (selectedIndex) {
-      case 0:
-        Get.toNamed(RouteHelper.getHomeStayRentalServiceRoute());
-        break;
-
-      case 1:
-        Get.toNamed(RouteHelper.getAddFlatRoomRentalServiceScreenRoute());
-        break;
-
-      case 2:
-        Get.toNamed(RouteHelper.getVehicleRentalServiceRoute());
-        break;
-
-      default:
-        break;
-    }
-  }
-
 }
+

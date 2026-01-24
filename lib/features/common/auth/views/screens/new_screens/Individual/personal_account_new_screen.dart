@@ -12,6 +12,7 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/constants/string_utils.dart';
 import 'package:BlueEra/core/controller/location_controller.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
@@ -1206,16 +1207,15 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
         String? designation;
         if ((_selectedProfileTypeTagId == SELF_EMPLOYED ||
             _selectedProfileTypeTagId == GIG_WORKER)) {
-          designation =
-              _selectedProfessionTagId?.toLowerCase().capitalizeFirst ?? "";
+          designation = formatRole(_selectedProfessionTagId ?? '');
         } else if (_selectedProfileTypeTagId == PROFESSIONAL) {
           designation = _selectedProfessionalObj?.name;
           log('designation -- $designation');
         } else {
           if (_selectedProfessionTagId == STUDENT) {
-            designation = STUDENT.toLowerCase().capitalizeFirst;
+            designation = formatRole(STUDENT);
           } else if (_selectedProfessionTagId == FARMER) {
-            designation = FARMER.toLowerCase().capitalizeFirst;
+            designation = formatRole(FARMER);
           } else if (_selectedProfessionTagId == HOMEMAKER) {
             designation = _ExpertiseTextController.text.trim();
           } else if (_selectedProfessionTagId == SENIOR_CITIZEN) {

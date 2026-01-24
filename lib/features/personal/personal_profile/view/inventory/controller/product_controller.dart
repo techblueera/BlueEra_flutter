@@ -727,7 +727,7 @@ class ProductController extends GetxController{
 
   Future<void> navigateToEarnWithBlueEraSectionAfterAddProduct() async {
     await setEarnServiceOptData(true);
-    Get.until((route) => Get.currentRoute == RouteHelper.getEarnServiceScreenRoute());
+    Get.until((route) => Get.currentRoute == RouteHelper.getEarnServiceAvailableOptionsScreenRoute());
   }
 
   void navigateToChannelSectionAfterAddProduct(){

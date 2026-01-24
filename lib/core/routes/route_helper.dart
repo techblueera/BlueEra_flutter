@@ -14,7 +14,6 @@ import 'package:BlueEra/features/common/auth/views/screens/new_screens/business/
 import 'package:BlueEra/features/common/auth/views/screens/new_screens/business/create_business_account_new_step_three.dart';
 import 'package:BlueEra/features/common/auth/views/screens/new_screens/business/create_business_account_new_step_two.dart';
 import 'package:BlueEra/features/common/auth/views/screens/new_screens/create_account_type_screen.dart';
-import 'package:BlueEra/features/common/auth/views/screens/new_screens/create_new_account_screen.dart';
 import 'package:BlueEra/features/common/auth/views/screens/mobile_number_screen.dart';
 import 'package:BlueEra/features/common/auth/views/screens/otp_page_screen.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_bar_screen.dart';
@@ -79,11 +78,11 @@ import 'package:BlueEra/features/common/service/view/service_upload_screen.dart'
 import 'package:BlueEra/features/common/store/view/newstore_screen.dart';
 import 'package:BlueEra/features/journey/view/journey_planning_screen.dart';
 import 'package:BlueEra/features/journey/view/update_journy_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/my_enquires_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/received_enquiries_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/send_enquiry_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/add_self_work_service_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_available_options_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/rider_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
@@ -476,6 +475,9 @@ class RouteHelper {
 
   static String getCreateAccountTypeScreenRoute() =>
       RouteConstant.createAccountTypeScreen;
+
+  static String getEarnServiceAvailableOptionsScreenRoute() =>
+      RouteConstant.earnServiceAvailableOptionsScreen;
 
   ///REDIRECT ROUTING SETUP.....
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -1505,6 +1507,11 @@ class RouteHelper {
             builder: (_) => CreateAccountTypeScreen(
             ),
             settings: RouteSettings(name: getCreateAccountTypeScreenRoute())
+        );
+      case RouteConstant.earnServiceAvailableOptionsScreen:
+        return MaterialPageRoute(
+            builder: (_) => EarnServiceAvailableOptionsScreen(),
+            settings: RouteSettings(name: getEarnServiceAvailableOptionsScreenRoute())
         );
 
 

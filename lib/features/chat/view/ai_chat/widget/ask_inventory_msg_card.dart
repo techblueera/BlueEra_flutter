@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_theme_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -21,11 +23,15 @@ import '../../../auth/model/inventory_ask_ai_model.dart';
 class AskInventoryMsgCard extends StatelessWidget {
   final InventoryAskAiModel response;
 
-  const AskInventoryMsgCard({Key? key, required this.response}) : super(key: key);
+  AskInventoryMsgCard({Key? key, required this.response}) : super(key: key);
+
+  final chatThemeController = getOrPut(() => ChatThemeController());
+
 
   @override
   Widget build(BuildContext context) {
     final productList = response.products ?? [];
+    log('message - ${response.message}');
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -35,11 +41,25 @@ class AskInventoryMsgCard extends StatelessWidget {
           /// -----------------------------------
           /// 1. REPLY TEXT
           /// -----------------------------------
-          CustomText(
-            response.reply ?? "",
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+            margin: EdgeInsets.only(right: 50),
+            decoration: BoxDecoration(
+              color: chatThemeController.receiveMessageBgColor.value,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(12),
+                topRight: Radius.circular(12),
+                bottomRight: Radius.circular(12),
+                bottomLeft: Radius.circular(0.0)
+              ),
+            ),
+            child: CustomText(
+              response.reply ?? "",
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+              color: Colors.black,
 
+            ),
           ),
 
           const SizedBox(height: 20),

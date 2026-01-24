@@ -456,7 +456,7 @@ class GroceryController extends GetxController {
     String city = viewBusinessDetailsController.businessProfileDetails?.data?.cityStatePincode ?? LocationService.userCurrentAddress.value.city;
     String postalCode = viewBusinessDetailsController.businessProfileDetails?.data?.pincode ?? LocationService.userCurrentAddress.value.postalCode;
 
-    if(city.isEmpty || postalCode.isEmpty){
+    if(postalCode.isEmpty){
       commonSnackBar(message: 'Please enable your location permission for adding grocery');
       return [];
     }

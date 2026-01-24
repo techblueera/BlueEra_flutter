@@ -21,7 +21,12 @@ class ProductServiceGuideBottomSheet extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.only(
+          left: 20,
+          right: 20,
+          bottom: 20,
+          top: 5
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -59,7 +64,7 @@ class ProductServiceGuideBottomSheet extends StatelessWidget {
             onTap: () {
               Get.offNamedUntil(
                 RouteHelper.getAddProductScreenRoute(),
-                ModalRoute.withName(RouteHelper.getEarnServiceScreenRoute()),
+                ModalRoute.withName(RouteHelper.getEarnServiceAvailableOptionsScreenRoute()),
                 arguments: {
                   ApiKeys.id: userId,
                   ApiKeys.providerType: ProviderType.user,

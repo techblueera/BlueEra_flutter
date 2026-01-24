@@ -215,7 +215,7 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
             // Get.toNamed(RouteHelper.getInventoryScreenRoute());
           }
         }else if(widget.providerType == ProviderType.user){
-          Get.until((route) => Get.currentRoute == RouteHelper.getEarnServiceScreenRoute());
+          Get.until((route) => Get.currentRoute == RouteHelper.getEarnServiceAvailableOptionsScreenRoute());
         }else if(widget.providerType == ProviderType.channel){
           Get.until((route) => Get.currentRoute == RouteHelper.getChannelScreenRoute());
         }

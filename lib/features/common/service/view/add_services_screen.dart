@@ -166,7 +166,7 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
                                 ),
                                 Flexible(
                                   child: CustomText(
-                                    "$userWorkTypeGlobal ",
+                                    "$userDesignationGlobal ",
                                     color: Colors.blue.shade700,
                                     overflow: TextOverflow.ellipsis,
                                     maxLines: 3,

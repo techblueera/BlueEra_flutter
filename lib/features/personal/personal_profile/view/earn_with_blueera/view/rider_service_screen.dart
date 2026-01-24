@@ -39,7 +39,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     with SingleTickerProviderStateMixin, RouteAware {
   late TabController _tabController;
 
-  final earnWithBlueEraController = getOrPut(() => EarnServiceController());
+  final controller = getOrPut(() => EarnServiceController());
   final deliveryPartnerController = getOrPut(() => DeliveryPartnerController());
   final viewPersonalDetailsController =
       getOrPut(() => ViewPersonalDetailsController());
@@ -49,7 +49,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
   @override
   void initState() {
     _checkRiderStatus();
-    _checkRiderServiceStatus();
+    // _checkRiderServiceStatus();
     _tabController = TabController(length: 3, vsync: this);
     super.initState();
   }
@@ -66,7 +66,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
   @override
   void didPopNext() {
     _checkRiderStatus();
-    _checkRiderServiceStatus();
+    // _checkRiderServiceStatus();
   }
 
   @override
@@ -84,37 +84,36 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     deliveryPartnerController.ridersOnboardingStatusRepoApi();
   }
 
-  Future<void> _checkRiderServiceStatus() async {
-    await getRiderServiceOptData();
-    deliveryPartnerController.isRiderServiceOpt.value = isRiderServiceOpt;
-    print(
-        'isRiderServiceUser -- ${deliveryPartnerController.isRiderServiceOpt.value}');
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (deliveryPartnerController.isRiderServiceOpt.value.toLowerCase() ==
-          'false') {
-        _openEarnWithBlueEraSheet();
-      }
-    });
-  }
-
-  void _openEarnWithBlueEraSheet() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (_) => EarnServiceBottomSheet(),
-    );
-  }
+  // Future<void> _checkRiderServiceStatus() async {
+  //   await getRiderServiceOptData();
+  //   deliveryPartnerController.isRiderServiceOpt.value = isRiderServiceOpt;
+  //   print('isRiderServiceUser -- ${deliveryPartnerController.isRiderServiceOpt.value}');
+  //   // WidgetsBinding.instance.addPostFrameCallback((_) {
+  //   //   if (deliveryPartnerController.isRiderServiceOpt.value.toLowerCase() ==
+  //   //       'false') {
+  //   //     _openEarnWithBlueEraSheet();
+  //   //   }
+  //   // });
+  // }
+  //
+  // void _openEarnWithBlueEraSheet() {
+  //   showModalBottomSheet(
+  //     context: context,
+  //     backgroundColor: Colors.transparent,
+  //     builder: (_) => EarnServiceBottomSheet(),
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
     return Obx(() {
       if (deliveryPartnerController
-              .ridersOnboardingStatusResponse.value.status ==
+          .ridersOnboardingStatusResponse.value.status ==
           Status.COMPLETE) {
         final stepStatus = deliveryPartnerController.stepStatus;
         // Check if all completed
         allCompleted = deliveryPartnerController
-                .riderOnboardingStatusData.value?.verificationStatus ==
+            .riderOnboardingStatusData.value?.verificationStatus ==
             "approved";
         allStepsCompleted = stepStatus.values.every((status) => status == true);
         final riderOpt = deliveryPartnerController.isRiderServiceOpt.value;
@@ -122,11 +121,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
           return _buildLoading();
         }
 
-        if (riderOpt.toLowerCase() == 'true') {
-          return _buildRiderEnabled(context);
-        }
-
-        return _buildRiderDisabled(context);
+        return _buildRiderEnabled(context);
       }
       return SizedBox.shrink();
     });
@@ -200,24 +195,24 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     );
   }
 
-  Widget _buildFAB() {
-    return Padding(
-      padding: EdgeInsets.only(
-        bottom: widget.fromBottomNavBar
-            ? kBottomNavigationBarHeight + SizeConfig.size20
-            : 0,
-      ),
-      child: FloatingActionButton(
-        onPressed: _openEarnWithBlueEraSheet,
-        backgroundColor: AppColors.primaryColor,
-        foregroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Icon(Icons.add, size: SizeConfig.size36),
-      ),
-    );
-  }
+  // Widget _buildFAB() {
+  //   return Padding(
+  //     padding: EdgeInsets.only(
+  //       bottom: widget.fromBottomNavBar
+  //           ? kBottomNavigationBarHeight + SizeConfig.size20
+  //           : 0,
+  //     ),
+  //     child: FloatingActionButton(
+  //       onPressed: _openEarnWithBlueEraSheet,
+  //       backgroundColor: AppColors.primaryColor,
+  //       foregroundColor: Colors.white,
+  //       shape: RoundedRectangleBorder(
+  //         borderRadius: BorderRadius.circular(10),
+  //       ),
+  //       child: Icon(Icons.add, size: SizeConfig.size36),
+  //     ),
+  //   );
+  // }
 
   Widget _buildFloatingHeader(BuildContext context) {
     return SliverAppBar(
@@ -259,85 +254,85 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     );
   }
 
-  Widget _buildRiderDisabled(BuildContext context) {
-    return Scaffold(
-      appBar: CommonBackAppBar(
-        isLeading: !widget.fromBottomNavBar,
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(
-            vertical: SizeConfig.size15,
-            horizontal: SizeConfig.size8,
-          ),
-          child: CustomFormCard(
-            padding: EdgeInsets.all(SizeConfig.size10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildEarnHeader(),
-                SizedBox(height: SizeConfig.size10),
-                const HorizontalVideoPlayer(),
-                SizedBox(height: SizeConfig.size20),
-                _buildServiceGrid(context),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  // Widget _buildRiderDisabled(BuildContext context) {
+  //   return Scaffold(
+  //     appBar: CommonBackAppBar(
+  //       isLeading: !widget.fromBottomNavBar,
+  //     ),
+  //     body: SafeArea(
+  //       child: SingleChildScrollView(
+  //         padding: EdgeInsets.symmetric(
+  //           vertical: SizeConfig.size15,
+  //           horizontal: SizeConfig.size8,
+  //         ),
+  //         child: CustomFormCard(
+  //           padding: EdgeInsets.all(SizeConfig.size10),
+  //           child: Column(
+  //             crossAxisAlignment: CrossAxisAlignment.start,
+  //             children: [
+  //               _buildEarnHeader(),
+  //               SizedBox(height: SizeConfig.size10),
+  //               const HorizontalVideoPlayer(),
+  //               SizedBox(height: SizeConfig.size20),
+  //               _buildServiceGrid(context),
+  //             ],
+  //           ),
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 
-  Widget _buildEarnHeader() {
-    return Row(
-      children: [
-        Container(
-          padding: EdgeInsets.all(SizeConfig.size6),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppColors.primaryColor.withValues(alpha: 0.1),
-            border: Border.all(color: AppColors.primaryColor, width: 0.5),
-          ),
-          child: LocalAssets(
-            width: SizeConfig.size22,
-            height: SizeConfig.size22,
-            imagePath: AppIconAssets.earnWithBlueEra,
-            imgColor: AppColors.primaryColor,
-          ),
-        ),
-        SizedBox(width: SizeConfig.size6),
-        Expanded(
-          child: CustomText(
-            AppStrings.earnWithBlueEra,
-            fontSize: SizeConfig.medium,
-            fontWeight: FontWeight.w600,
-            color: AppColors.secondaryTextColor,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildServiceGrid(BuildContext context) {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 4,
-        childAspectRatio: 0.6,
-        crossAxisSpacing: 30,
-        mainAxisSpacing: 20,
-      ),
-      itemCount: earnWithBlueEraServiceList.length,
-      itemBuilder: (_, i) => CommonServiceCard(
-        service: earnWithBlueEraServiceList[i],
-        onTap: () => earnWithBlueEraController.handleServiceTap(
-          context,
-          earnWithBlueEraServiceList[i],
-        ),
-      ),
-    );
-  }
+  // Widget _buildEarnHeader() {
+  //   return Row(
+  //     children: [
+  //       Container(
+  //         padding: EdgeInsets.all(SizeConfig.size6),
+  //         decoration: BoxDecoration(
+  //           shape: BoxShape.circle,
+  //           color: AppColors.primaryColor.withValues(alpha: 0.1),
+  //           border: Border.all(color: AppColors.primaryColor, width: 0.5),
+  //         ),
+  //         child: LocalAssets(
+  //           width: SizeConfig.size22,
+  //           height: SizeConfig.size22,
+  //           imagePath: AppIconAssets.earnWithBlueEra,
+  //           imgColor: AppColors.primaryColor,
+  //         ),
+  //       ),
+  //       SizedBox(width: SizeConfig.size6),
+  //       Expanded(
+  //         child: CustomText(
+  //           AppStrings.earnWithBlueEra,
+  //           fontSize: SizeConfig.medium,
+  //           fontWeight: FontWeight.w600,
+  //           color: AppColors.secondaryTextColor,
+  //         ),
+  //       ),
+  //     ],
+  //   );
+  // }
+  //
+  // Widget _buildServiceGrid(BuildContext context) {
+  //   return GridView.builder(
+  //     shrinkWrap: true,
+  //     physics: const NeverScrollableScrollPhysics(),
+  //     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+  //       crossAxisCount: 4,
+  //       childAspectRatio: 0.6,
+  //       crossAxisSpacing: 30,
+  //       mainAxisSpacing: 20,
+  //     ),
+  //     itemCount: earnWithBlueEraServiceList.length,
+  //     itemBuilder: (_, i) => CommonServiceCard(
+  //       service: earnWithBlueEraServiceList[i],
+  //       onTap: () => earnWithBlueEraController.handleServiceTap(
+  //         context,
+  //         earnWithBlueEraServiceList[i],
+  //       ),
+  //     ),
+  //   );
+  // }
 
   Widget _buildHeader(BuildContext context) {
     return Row(

@@ -360,9 +360,8 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
                         children: [
                           Expanded(child: _buildTitle('Service Offered')),
                           _editIcon(onTap: () {
-
                             updateServiceSelectionData(
-                               controller: selfWorkServiceController,
+                                controller: selfWorkServiceController,
                                 key: SelfWorkServiceController.keyServicesOffered,
                                 designation: service.category,
                                 preSelectedOptions: service.serviceOffered ?? []
@@ -1160,16 +1159,14 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
       }
       ){
 
-    controller.selectedCategoryMap[key]?.assignAll(preSelectedOptions);
-    final List<String> _preSelectedOptions = controller.selectedCategoryMap[key] ?? [];
+    // controller.selectedCategoryMap[key]?.assignAll(preSelectedOptions);
+    // final List<String> _preSelectedOptions = controller.selectedCategoryMap[key] ?? [];
     final _displayTitle = controller.categoryTitleMap[key] ?? key;
 
     _showCommonUpdateSheet(
       context: context,
       title: _displayTitle,
       onUpdate: () {
-        // Your API logic here
-        // controller.updatePrice(min: minFeeController.text, max: maxFeeController.text);
         Navigator.pop(context); // Close sheet
       },
       content: ServiceSelectionScreen(
@@ -1177,7 +1174,7 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
           designation: designation ?? ELECTRICIAN,
           selectedCategoryKey: key,
           pageTitle: _displayTitle,
-          preSelectedOptions: _preSelectedOptions,
+          preSelectedOptions: preSelectedOptions,
           isDataUpdate: true
       ),
     );

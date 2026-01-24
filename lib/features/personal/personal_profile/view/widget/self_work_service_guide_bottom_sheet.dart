@@ -7,7 +7,6 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/constants/string_utils.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
-import 'package:BlueEra/features/common/auth/model/individual_profiile_category.dart';
 import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/change_profession_warning_dialog.dart';
@@ -32,7 +31,7 @@ class _SelfWorkServiceGuideBottomSheetState extends State<SelfWorkServiceGuideBo
 
   @override
   void initState() {
-    authController.getAllProfessionController();
+    // authController.getAllProfessionController();
     super.initState();
   }
 
@@ -44,7 +43,12 @@ class _SelfWorkServiceGuideBottomSheetState extends State<SelfWorkServiceGuideBo
           color: AppColors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.only(
+            left: 20,
+            right: 20,
+            bottom: 20,
+            top: 5
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -179,8 +183,8 @@ class _SelfWorkServiceGuideBottomSheetState extends State<SelfWorkServiceGuideBo
                   return;
                 }
 
-                if(isEarnServiceOpt=='true' && selectedService?.slugId == userWorkTypeGlobal){
-                  commonSnackBar(message: 'You are already ${userWorkTypeGlobal.withArticle}');
+                if(isEarnServiceOpt=='true' && selectedService?.slugId == userProfessionGlobal){
+                  commonSnackBar(message: 'You are already ${userProfessionGlobal.withArticle}');
                   return;
                 }
 

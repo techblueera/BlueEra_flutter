@@ -46,7 +46,12 @@ class _GigWorkServiceGuideBottomSheetState extends State<GigWorkServiceGuideBott
           color: AppColors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.only(
+            left: 20,
+            right: 20,
+            bottom: 20,
+            top: 5
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -127,8 +132,8 @@ class _GigWorkServiceGuideBottomSheetState extends State<GigWorkServiceGuideBott
                   return;
                 }
 
-                if(isEarnServiceOpt=='true' && selectedService?.slugId == userWorkTypeGlobal){
-                  commonSnackBar(message: 'You are already ${userWorkTypeGlobal.withArticle}');
+                if(isEarnServiceOpt=='true' && selectedService?.slugId == userProfessionGlobal){
+                  commonSnackBar(message: 'You are already ${userProfessionGlobal.withArticle}');
                   return;
                 }
 

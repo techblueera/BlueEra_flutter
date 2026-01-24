@@ -455,4 +455,17 @@ print("url=== ${url}");
     );
     return response;
   }
+
+  ///Fetch All Admin Videos...
+  Future<ResponseModel> fetchAllAdminVideoRepo({required Map<String, dynamic> queryParams}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      adminVideos,
+      showProgress: false,
+      params: queryParams,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
 }
