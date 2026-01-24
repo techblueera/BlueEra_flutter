@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
@@ -17,14 +18,12 @@ import 'package:BlueEra/features/common/auth/model/business_category_response_mo
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/auth/model/guest_res_model.dart';
 import 'package:BlueEra/features/common/auth/model/individual_field_response_model.dart';
-import 'package:BlueEra/features/common/auth/model/individual_profiile_category.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
 import 'package:BlueEra/features/common/auth/model/single_business_category_response.dart';
 import 'package:BlueEra/features/common/auth/model/username_res_model.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
 import 'package:BlueEra/features/common/feed/models/block_user_response.dart';
-import 'package:BlueEra/features/common/auth/model/business_profile_category.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';

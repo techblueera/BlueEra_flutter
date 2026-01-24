@@ -1,4 +1,4 @@
-import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
+
 
 class IndividualProfileCategory {
   final String slugId;

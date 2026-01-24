@@ -1,5 +1,4 @@
 import 'package:BlueEra/features/common/ott/model/channel_model_new.dart';
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class OttHomeController extends GetxController {

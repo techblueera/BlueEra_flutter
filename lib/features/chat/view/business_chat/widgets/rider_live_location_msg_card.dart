@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:mappls_gl/mappls_gl.dart';
+
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/app_icon_assets.dart';
 import '../../../../../core/constants/size_config.dart';

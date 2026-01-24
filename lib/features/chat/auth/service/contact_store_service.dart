@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:hive_flutter/hive_flutter.dart';
 
 typedef FetchContactsCallback = Future<List<Map<String, String>>> Function();

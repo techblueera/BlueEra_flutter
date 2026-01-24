@@ -4,10 +4,10 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/school/controller/student_corder_controller.dart';
 import 'package:BlueEra/features/me/school/view/category/student_corder/common_student_corner_screen.dart';
-import 'package:BlueEra/features/me/school/view/school_update_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../../../laboratory/view/widgets/me_menu_card_design.dart';
 
 class SchoolStudentCorner extends StatefulWidget {

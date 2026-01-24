@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -9,12 +8,12 @@ import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:flutter/services.dart';
 import 'package:pinput/pinput.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/constants/app_constant.dart';
@@ -186,7 +185,6 @@ Widget ChatListTile({
   final senderProfileImage = chat?.lastMessage == "Order Message" ? chat
       ?.groupProfileImage : sender?.profileImage;
   final senderDesignation = sender?.designation;
-  final senderBusinessId = sender?.businessId;
 
   final groupName = chat?.groupName;
   final conversationId = chat?.conversationId ?? '';

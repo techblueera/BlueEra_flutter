@@ -2,10 +2,10 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/chat/view/orders_chat/widget/select_address_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../../../core/constants/regular_expression.dart';
 
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/app_icon_assets.dart';
+import '../../../../../core/constants/regular_expression.dart';
 import '../../../../../core/constants/size_config.dart';
 import '../../../../../widgets/commom_textfield.dart';
 import '../../../../../widgets/custom_text_cm.dart';

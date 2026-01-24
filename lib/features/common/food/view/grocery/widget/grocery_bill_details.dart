@@ -1,15 +1,15 @@
-import 'package:BlueEra/features/common/jobs/create_job_post/create_job.dart';
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/food/controller/user_grocery_controller.dart';
+import 'package:BlueEra/features/common/jobs/create_job_post/create_job.dart';
 import 'package:BlueEra/widgets/common_horizontal_divider.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class GroceryBillDetails extends StatelessWidget {
   final UserGroceryController controller;

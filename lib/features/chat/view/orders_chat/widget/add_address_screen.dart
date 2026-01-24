@@ -3,6 +3,7 @@ import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../../../../../core/constants/regular_expression.dart';
 import '../../../../../widgets/commom_textfield.dart';
 import '../../../auth/controller/order_controllar.dart';

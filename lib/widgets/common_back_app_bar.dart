@@ -9,12 +9,9 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/typedef_utils.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
-import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/jobs/controller/applied_job_controller.dart';
 import 'package:BlueEra/features/journey/repo/travel_repo.dart';
-import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/create_profile_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_settings_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
@@ -25,10 +22,10 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/post_via_dialog.dart';
-import 'package:BlueEra/widgets/update_live_photo_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
+
 import '../../../../../core/constants/shared_preference_utils.dart';
 import '../features/business/visiting_card/view/business_own_profile_screen.dart';
 

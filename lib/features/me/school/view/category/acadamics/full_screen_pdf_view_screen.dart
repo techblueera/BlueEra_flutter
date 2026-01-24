@@ -1,7 +1,5 @@
-import 'dart:io';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
 class FullScreenPdfViewer extends StatelessWidget {

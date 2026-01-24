@@ -7,6 +7,7 @@ import 'package:BlueEra/features/business/visiting_card/view/business_own_profil
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
 import 'package:BlueEra/features/common/auth/views/screens/gst_verification_screen.dart';
+import 'package:BlueEra/features/common/auth/views/screens/mobile_number_screen.dart';
 import 'package:BlueEra/features/common/auth/views/screens/new_screens/Individual/add_bio_via_ai_screen.dart';
 import 'package:BlueEra/features/common/auth/views/screens/new_screens/Individual/personal_account_new_screen.dart';
 import 'package:BlueEra/features/common/auth/views/screens/new_screens/business/add_business_live_photo.dart';
@@ -14,8 +15,6 @@ import 'package:BlueEra/features/common/auth/views/screens/new_screens/business/
 import 'package:BlueEra/features/common/auth/views/screens/new_screens/business/create_business_account_new_step_three.dart';
 import 'package:BlueEra/features/common/auth/views/screens/new_screens/business/create_business_account_new_step_two.dart';
 import 'package:BlueEra/features/common/auth/views/screens/new_screens/create_account_type_screen.dart';
-import 'package:BlueEra/features/common/auth/views/screens/new_screens/create_new_account_screen.dart';
-import 'package:BlueEra/features/common/auth/views/screens/mobile_number_screen.dart';
 import 'package:BlueEra/features/common/auth/views/screens/otp_page_screen.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_bar_screen.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/address_location_riding_screen.dart';
@@ -79,7 +78,6 @@ import 'package:BlueEra/features/common/service/view/service_upload_screen.dart'
 import 'package:BlueEra/features/common/store/view/newstore_screen.dart';
 import 'package:BlueEra/features/journey/view/journey_planning_screen.dart';
 import 'package:BlueEra/features/journey/view/update_journy_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/my_enquires_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/received_enquiries_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/send_enquiry_screen.dart';
@@ -87,16 +85,16 @@ import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueer
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/rider_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/generate_ai_product_content.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/add_product_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/add_product_via_ai_step1.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/add_product_via_ai_step2.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/create_varient_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/inventory_business_cards_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/inventory_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/generate_ai_product_content.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/product_preview_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/store_product_preview_screen_product.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/inventory_business_cards_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/view/add_document_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/payment/view/add_bank_account_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/payment/view/payment_setting_screen.dart';
@@ -115,6 +113,7 @@ import 'package:BlueEra/features/personal/resume/sections/resume_templates_scree
 import 'package:BlueEra/permissionCentralize/permission_gate.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+
 import '../../features/chat/view/contacts/contact_list_page.dart';
 import '../../features/common/food/model/my_grocery_products_reponse.dart';
 import '../../features/common/food/view/grocery/my_grocery_listing/my_grocery_variant_screen.dart';

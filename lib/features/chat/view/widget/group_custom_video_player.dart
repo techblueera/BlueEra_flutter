@@ -10,9 +10,9 @@ import '../../auth/controller/chat_view_controller.dart';
 
 class GroupChatCustomVideoPlayer extends StatefulWidget {
   final String videoUrl;
-  bool? isFromFile;
-  bool? isFromComment;
-  File? filePath;
+  final bool? isFromFile;
+  final bool? isFromComment;
+  final File? filePath;
 
   GroupChatCustomVideoPlayer({
     super.key,
@@ -43,7 +43,7 @@ class _GroupChatCustomVideoPlayerState extends State<GroupChatCustomVideoPlayer>
           });
         });
 
-    }else if (widget.isFromFile = true && widget.filePath != null) {
+    }else if (widget.isFromFile == true && widget.filePath != null) {
       _controller = VideoPlayerController.file(widget.filePath!)
         ..initialize().then((_) {
           setState(() {

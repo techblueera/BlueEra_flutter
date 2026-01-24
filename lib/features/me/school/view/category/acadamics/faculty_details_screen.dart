@@ -1,7 +1,7 @@
 import 'dart:io';
+
 import 'package:BlueEra/core/api/model/get_faculty_res_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';

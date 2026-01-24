@@ -3,11 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
-
-import '../../../../../widgets/custom_text_cm.dart';
 import '../../../../business/auth/controller/view_business_details_controller.dart';
 import '../../../../common/food/view/widget/food_product_card.dart';
-import '../../../../common/product_listing/widgets/product_card_business.dart';
 
 class BusinessChatFoods extends StatefulWidget {
   final String businessId;

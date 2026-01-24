@@ -1,21 +1,22 @@
-import 'dart:developer';
+
+import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
-import 'package:device_info_plus/device_info_plus.dart';
-import 'package:get/get.dart';
-import 'package:flutter/material.dart';
-import 'package:get_thumbnail_video/video_thumbnail.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:path_provider/path_provider.dart';
-import 'dart:io';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/post/widget/video_trimmer_screen.dart';
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:get_thumbnail_video/index.dart';
+import 'package:get_thumbnail_video/video_thumbnail.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+
 import '../model/Generate_Upload_Ulr_Model.dart';
 import '../model/contactListModel.dart';
 import '../model/symbol_details_model.dart';

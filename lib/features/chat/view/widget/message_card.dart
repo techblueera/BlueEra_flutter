@@ -1,29 +1,31 @@
 import 'dart:convert';
+
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
+import 'package:BlueEra/features/chat/view/widget/video_and_image_card_widget.dart';
 import 'package:BlueEra/features/common/food/view/food_details_view_screen.dart';
 import 'package:BlueEra/features/common/food/view/widget/km_away_text_widget.dart';
+import 'package:BlueEra/features/common/map/model/food_service_model_response.dart';
 import 'package:BlueEra/features/common/service/model/get_service_model.dart';
 import 'package:BlueEra/features/common/service/view/service_details_view_screen.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
-import 'package:BlueEra/features/chat/view/widget/video_and_image_card_widget.dart';
-import 'package:BlueEra/features/common/map/model/food_service_model_response.dart';
 import 'package:flutter_contacts/contact.dart';
 import 'package:flutter_contacts/properties/name.dart';
 import 'package:flutter_contacts/properties/phone.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:mappls_gl/mappls_gl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/constants/app_icon_assets.dart';
 import '../../../../widgets/common_box_shadow.dart';

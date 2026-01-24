@@ -1,4 +1,5 @@
 import 'dart:developer';
+
 import 'package:BlueEra/core/api/model/place_details.dart';
 import 'package:BlueEra/core/api/model/place_prediction.dart';
 import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';

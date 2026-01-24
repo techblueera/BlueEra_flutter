@@ -1,17 +1,13 @@
 import 'package:BlueEra/features/chat/view/add_symbol/widgets/add_message_symbol.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/widgets/bottom_caption_field.dart';
-
 import 'package:BlueEra/features/chat/view/add_symbol/widgets/symbol_upload_widget.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/widgets/top_left_options.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../../../widgets/commom_textfield.dart';
 import '../../../../widgets/common_back_app_bar.dart';
-import '../../../../widgets/common_box_shadow.dart';
 import '../../../../widgets/custom_btn.dart';
 import '../../auth/controller/add_chat_symbol_controller.dart';
 

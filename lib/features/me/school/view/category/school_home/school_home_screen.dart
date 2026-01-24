@@ -1,6 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
-
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
 import 'package:BlueEra/features/me/school/view/category/acadamics/school_academics_page.dart';
 import 'package:BlueEra/features/me/school/view/category/campus_life/campus_life_listing_screen.dart';
@@ -15,7 +14,6 @@ import 'package:BlueEra/features/me/school/view/category/school_home/school_mana
 import 'package:BlueEra/features/me/school/view/category/school_student_corner.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

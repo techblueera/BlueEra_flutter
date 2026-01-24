@@ -1,24 +1,15 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
-import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:get/get_navigation/src/extension_navigation.dart';
 import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../../core/api/apiService/api_response.dart';
-import '../../../../../core/constants/app_constant.dart';
 import '../../../../../core/constants/app_strings.dart';
 import '../../../../../core/constants/getx_utils.dart';
 import '../../../../../core/constants/size_config.dart';
 import '../../controller/hospital_model_controller.dart';
-import '../../model/docters_details_model.dart';
 import '../../model/get_beds_details_model.dart';
 import '../widget/add_doctors_dialoge.dart';
 

@@ -1,25 +1,12 @@
 import 'package:intl/intl.dart';
 import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:get/get_state_manager/src/simple/get_controllers.dart';
-import 'dart:developer';
-import 'dart:io';
-import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:video_player/video_player.dart';
-
 import '../../../../core/api/apiService/api_response.dart';
-import '../../auth/controller/load_chat_medias_controller.dart';
 import '../../auth/model/messageMediaUrl.dart';
-import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/services/local_strorage_helper.dart';
 import '../model/GetListOfMessageData.dart';
-import '../model/messageMediaUrl.dart';
 
 class LoadChatMediasController extends GetxController {
   Rx<ApiResponse> allMediaResponse = ApiResponse.initial('Initial').obs;

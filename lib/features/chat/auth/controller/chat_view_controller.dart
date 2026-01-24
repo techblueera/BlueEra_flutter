@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/chat/auth/model/messageMediaUrl.dart';
@@ -113,7 +114,7 @@ class ChatViewController extends GetxController {
   Rx<ContactListModel>? contactsListModel = ContactListModel().obs;
   Rx<GetMediaMsgCommentsModel>? getMediaMsgCommentsModel =
       GetMediaMsgCommentsModel().obs;
-  Rx<ProfessionalContactsResponse> professionalContactsResponse = ProfessionalContactsResponse().obs;
+  RxList<ProfessionalContact> findProfessionalContactList = <ProfessionalContact>[].obs;
   Rx<TextEditingController> sendMessageController = TextEditingController().obs;
   RxBool isTextFieldEmpty = false.obs;
   RxBool socketConnected = false.obs;
@@ -128,8 +129,8 @@ class ChatViewController extends GetxController {
   RxString userOpenConversationId = ''.obs;
   RxString userOpenUserId = ''.obs;
   RxString readMessageStatus = ''.obs;
-  RxString selectedSubServiceToFind = ''.obs;
-  RxBool onFindContactLoading = false.obs;
+  RxInt selectedIndex =0.obs;
+
   Rx<Messages> sendLoadingFile = Messages().obs;
   RxList selectedUserIds = <String>[].obs;
   RxList<ChatList?> selectedChatList = <ChatList?>[].obs;
@@ -298,7 +299,7 @@ class ChatViewController extends GetxController {
             GetMediaMsgCommentsModel.fromJson(data);
       });
       chatSocket.listenEvent(ChatEmitEvents.isOnlineFromChatList, (data) {
-       log("lkjfvlkdfsmvlkdfv $data");
+
       });
       chatSocket.listenEvent(ChatEmitEvents.messageReceived, (data) async {
         final parsedData = GetListOfMessageData.fromJson(data);
@@ -847,6 +848,7 @@ class ChatViewController extends GetxController {
   }
 
   List<Map<String, dynamic>>? contactListParamsData;
+  String? findServiceByContactParamsType;
 
   void loadContactsFromLocalStorage(Map<String, dynamic> value) {
     contactsListModel?.value = ContactListModel.fromJson(value);
@@ -882,12 +884,19 @@ class ChatViewController extends GetxController {
     //   viewContactsListResponse.value = ApiResponse.error('error');
     // }
   }
-  Future<void> setContact( String type,List<Map<String, dynamic>> params)async{
+
+  Future<void> setContact(String type,List<Map<String, dynamic>> params)async{
     contactListParamsData=params;
-    await findServiceByContacts(type,params);
+    await findServiceByContacts(type??'',params);
   }
-  Future<void> findServiceByContacts( String type,List<Map<String, dynamic>>? contactList) async {
-    onFindContactLoading.value=true;
+  Future<void> reloadContact()async{
+
+    await findServiceByContacts(findServiceByContactParamsType??'',null);
+  }
+  Future<void> findServiceByContacts(String type,List<Map<String, dynamic>>? contactList) async {
+    getServiceByContactResponse.value=ApiResponse.initial("Initial");
+
+    findServiceByContactParamsType=type;
     final params={
       ApiKeys.profile_type: type,
       ApiKeys.contact_list:contactList??contactListParamsData
@@ -895,13 +904,17 @@ class ChatViewController extends GetxController {
       ResponseModel responseModel =
           await ChatViewRepo().findServiceByContactApi(params);
       if (responseModel.isSuccess) {
-          professionalContactsResponse.value=ProfessionalContactsResponse.fromJson(responseModel.response?.data);
-          getServiceByContactResponse.value=ApiResponse.complete(professionalContactsResponse.value);
-          onFindContactLoading.value=false;
+        final List<dynamic> listOf = responseModel.data ?? [];
+
+        findProfessionalContactList.value = listOf
+            .map((e) => ProfessionalContact.fromJson(e as Map<String, dynamic>))
+            .toList();
+
+        getServiceByContactResponse.value=ApiResponse.complete(findProfessionalContactList);
       } else {
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
-        onFindContactLoading.value=false;
+        getServiceByContactResponse.value=ApiResponse.error(responseModel.message ?? AppStrings.somethingWentWrong);
 
       }
   }

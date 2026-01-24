@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:readmore/readmore.dart';
+
 import '../controller/business_details_controller.dart';
 
 class BusinessDetailsScreen extends StatelessWidget {
