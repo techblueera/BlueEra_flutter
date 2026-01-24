@@ -4,6 +4,7 @@ import 'package:BlueEra/core/language_localization_service/language_service_app.
 import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
+import 'package:BlueEra/features/me/others/controller/business_profile_full_controller.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
 import 'package:BlueEra/features/me/school/controller/school_controller.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -46,6 +47,7 @@ String businessTypeGlobal = '';
 String isRiderServiceOpt = '';
 String isEarnServiceOpt = '';
 String schoolIDGlobal = '';
+String otherServiceIDGlobal = '';
 String hotelIDGlobal = '';
 String deviceOsVersionGlobal = '';
 // String schoolIDGlobal = '6954c5337ca7a9670dc99129';
@@ -97,6 +99,7 @@ class SharedPreferenceUtils {
   static const isEarnServiceUser = 'isEarnServiceUser';
   static const schoolIDKey = 'schoolIDKey';
   static const hotelIDKey = 'hotelIDKey';
+  static const otherServiceIDKey = 'otherServiceIDKey';
 
   static Future<void> userLoggedInIndividualGuest({
     required String loginUserId_,
@@ -218,6 +221,7 @@ class SharedPreferenceUtils {
       // await _secureStorage.isCupertinoProtectedDataAvailable();
       Get.delete<SchoolAboutUsController>();
       Get.delete<SchoolController>();
+      Get.delete<BusinessProfileFullController>();
 
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove("last_dialog_shown");
@@ -245,6 +249,7 @@ class SharedPreferenceUtils {
       businessSubCategoryGlobal = '';
       schoolIDGlobal = '';
       hotelIDGlobal = '';
+      otherServiceIDGlobal = '';
       Get.find<AuthController>().imgPath.value = "";
       await SharedPreferenceUtils.setBaseUrlSecureValue(workManagerBaseUrl);
       AppNotificationHandler.getFcmToken();
@@ -475,6 +480,17 @@ setSchoolID(String schoolIDValue) {
 getSchoolID() async {
   schoolIDGlobal = await SharedPreferenceUtils.getSecureValue(
       SharedPreferenceUtils.schoolIDKey);
+}
+
+///SET OTHER SERVICE ID....
+setOtherServiceID(String serviceIDValue) {
+  SharedPreferenceUtils.setSecureValue(
+      SharedPreferenceUtils.otherServiceIDKey, serviceIDValue.toString());
+}
+
+getOtherServiceID() async {
+  otherServiceIDGlobal = await SharedPreferenceUtils.getSecureValue(
+      SharedPreferenceUtils.otherServiceIDKey);
 }
 
 

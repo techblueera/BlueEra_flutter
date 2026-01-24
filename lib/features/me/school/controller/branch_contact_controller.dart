@@ -1,7 +1,5 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
-import 'package:BlueEra/core/api/model/school_contact_us_model.dart';
-import 'package:BlueEra/core/api/model/school_contact_us_new_res_model.dart';
 import 'package:BlueEra/core/api/model/school_contact_us_res_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -9,7 +7,6 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/school/repo/school_repo.dart';
 import 'package:get/get.dart';
-import 'package:flutter/material.dart';
 
 class BranchContactController extends GetxController {
   Rx<ApiResponse> updateSchoolContactInfoResponse =

@@ -1,17 +1,13 @@
 import 'dart:io';
-import 'package:BlueEra/core/api/model/academic_calender_res_model.dart';
 import 'package:BlueEra/core/api/model/student_corner_res_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
-import 'package:BlueEra/features/me/school/controller/academic_calender_controller.dart';
-import 'package:BlueEra/features/me/school/controller/pdf_picker_controller.dart';
 import 'package:BlueEra/features/me/school/controller/student_corder_controller.dart';
 import 'package:BlueEra/features/me/school/controller/student_pdf_picker_controller.dart';
 import 'package:BlueEra/features/me/school/view/category/student_corder/student_corner_pdf_preview_widget.dart';
 import 'package:BlueEra/features/me/school/view/common_ai_genereted_button.dart';
-import 'package:BlueEra/features/me/school/view/pdf_picker_widget.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -387,7 +383,7 @@ class _CommonStudentCornerFormScreenState
     // 1. Run your standard validation (e.g., checking if description is empty)
     studentController.noticesNewsValidateForm(
         noticeDescription:
-            studentController.notice_news_messageText.value ?? "",
+            studentController.notice_news_messageText.value,
         uploadPhoto: studentController.initialNoticeImageUrl);
 
     // 2. If in edit mode, add the 'Has Changed' requirement

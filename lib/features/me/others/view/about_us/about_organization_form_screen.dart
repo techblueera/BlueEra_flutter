@@ -129,9 +129,8 @@ class _AboutOrganizationFormScreenState
                   controller: controller.descriptionController,
                   rxValue: controller.description,
                   // Your RX variable from the controller
-                  aiType: AppStrings.designation,
+                  aiType:"Organization",
                   aiData: {
-                    "for": "Add Organization",
                     "title": controller.title.value,
                   },
                 );

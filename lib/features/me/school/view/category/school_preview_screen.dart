@@ -128,15 +128,6 @@ class SchoolPreviewScreen extends StatelessWidget {
             ),
           ),
         );
-        return Card(
-          margin: EdgeInsets.only(bottom: 8),
-          child: ListTile(
-            title: CustomText(course.name ?? "", fontWeight: FontWeight.bold),
-            subtitle: CustomText("Eligibility: ${course.eligibility}"),
-            trailing: CustomText(course.fees ?? "",
-                color: Colors.green, fontWeight: FontWeight.bold),
-          ),
-        );
       },
     );
   }

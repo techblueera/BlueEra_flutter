@@ -25,7 +25,7 @@ import 'package:BlueEra/features/me/grocery/view/grocery_category_screen.dart';
 import 'package:BlueEra/features/me/hotel/view/hotel_main.dart';
 import 'package:BlueEra/features/me/others/others_main.dart';
 import 'package:BlueEra/features/me/school/view/school_main.dart';
-import 'package:BlueEra/features/me/other_business_services/view/timing_screen.dart';
+import 'package:BlueEra/features/me/others/view/timing_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/rider_service_screen.dart';

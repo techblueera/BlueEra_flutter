@@ -1,9 +1,12 @@
 import 'package:BlueEra/core/api/model/service_option_model.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/me/other_business_services/view/timing_screen.dart';
+import 'package:BlueEra/features/me/others/view/other_service_gallery/other_service_photos_screen.dart';
+import 'package:BlueEra/features/me/others/view/timing_screen.dart';
 import 'package:BlueEra/features/me/others/view/about_us/about_us.dart';
 import 'package:BlueEra/features/me/others/view/announcements/announcements_screen.dart';
+import 'package:BlueEra/features/me/others/view/other_career_jobs/other_job_listing_screen.dart';
+import 'package:BlueEra/features/me/others/view/other_privacy_condition/other_privacy_condition_screen.dart';
 import 'package:BlueEra/features/me/school/view/school_update_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -17,8 +20,6 @@ class AddOthersServices extends StatefulWidget {
 }
 
 class _AddOthersServicesState extends State<AddOthersServices> {
-
-
   final List<ServiceMenuItem> serviceMenus = [
     ServiceMenuItem(
       title: "About US",
@@ -43,17 +44,17 @@ class _AddOthersServicesState extends State<AddOthersServices> {
     ServiceMenuItem(
       title: "Gallery",
       icon: AppIconAssets.other_gallery,
-      page: () => ComingSoon(),
+      page: () => OtherServicePhotosPhotoScreen(),
     ),
     ServiceMenuItem(
       title: "Privacy Policy, Terms & Condition",
       icon: AppIconAssets.other_privacy,
-      page: () => ComingSoon(),
+      page: () => OtherPrivacyConditionScreen(),
     ),
     ServiceMenuItem(
       title: "Careers",
       icon: AppIconAssets.other_careers,
-      page: () => ComingSoon(),
+      page: () => OtherJobListingScreen(),
     ),
     ServiceMenuItem(
       title: "Timing",
@@ -75,7 +76,8 @@ class _AddOthersServicesState extends State<AddOthersServices> {
           SizedBox(height: 12),
           ...serviceMenus.map((item) {
             return Padding(
-              padding: const EdgeInsets.only(bottom: 8.0), // Spacing between cards
+              padding: const EdgeInsets.only(bottom: 8.0),
+              // Spacing between cards
               child: InkWell(
                 onTap: () => Get.to(item.page),
                 child: MeMenuCardDesign(

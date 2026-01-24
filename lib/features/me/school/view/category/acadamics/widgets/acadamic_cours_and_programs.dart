@@ -6,7 +6,6 @@ import 'package:BlueEra/features/me/school/view/category/acadamics/add_more_cour
 import 'package:BlueEra/features/me/school/view/widget/add_more_icon_button.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
-import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../../../../widgets/custom_text_cm.dart';

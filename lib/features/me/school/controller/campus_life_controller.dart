@@ -78,9 +78,9 @@ class CampusLifeController extends GetxController {
       // Upload each file to S3
       for (int i = 0; i < imageFiles.length; i++) {
         UploadResult? result = await S3UploadService.uploadFile(imageFiles[i]);
-        if (result?.isSuccess ?? false) {
+        if (result.isSuccess) {
           uploadedImages.add({
-            "url": result!.url!,
+            "url": result.url,
             "caption": imageCaptions[i].text.isEmpty
                 ? "Campus Image"
                 : imageCaptions[i].text,

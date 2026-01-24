@@ -1,8 +1,9 @@
 import 'package:BlueEra/core/api/model/service_option_model.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/me/others/view/about_us/widget/about_organization.dart';
-import 'package:BlueEra/features/me/school/view/school_update_screen.dart';
+import 'package:BlueEra/features/me/others/view/other_blog/other_blogs_screen.dart';
+import 'package:BlueEra/features/me/others/view/other_downloads/other_downloads_screen.dart';
+import 'package:BlueEra/features/me/others/view/other_news/other_news_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -21,17 +22,17 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
       title: "Blog",
       icon: AppIconAssets.other_blog,
       // Replace with your actual icon asset
-      page: () => AboutOrganization(),
+      page: () => OtherBlogsScreen(),
     ),
     ServiceMenuItem(
       title: "News",
       icon: AppIconAssets.other_news,
-      page: () => ComingSoon(), // Update to your actual page
+      page: () => OtherNewsScreen(), // Update to your actual page
     ),
     ServiceMenuItem(
       title: "Downloads",
       icon: AppIconAssets.other_download,
-      page: () => ComingSoon(),
+      page: () => OtherDownloadsScreen(),
     ),
 
   ];
@@ -40,10 +41,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        showRightTextButton: true,
-        isShowMoreInfoIcon: true,
-        title: "About Us",
-        isShadowShow: false,
+        title: "Announcements",
       ),
       body: Column(
         children: [

@@ -2,10 +2,7 @@ import 'dart:io';
 import 'package:BlueEra/features/common/reel/models/upload_init_response.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/me/school/repo/school_repo.dart';
-import 'package:get/get.dart';
 
-import 'dart:io';
-import 'package:get/get.dart';
 
 // Using a typedef makes the code cleaner and prevents type mismatch errors
 typedef UploadResult = ({bool isSuccess, String url, String message});

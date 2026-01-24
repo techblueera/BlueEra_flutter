@@ -12,6 +12,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/me/hotel/controller/hotel_category_controller.dart';
 import 'package:BlueEra/features/me/hotel/view/hotel_amenities_screen.dart';
+import 'package:BlueEra/features/me/hotel/view/hotel_career_jobs/hotel_job_listing_screen.dart';
 import 'package:BlueEra/features/me/hotel/view/hotel_contact_us/hotel_contact_us.dart';
 import 'package:BlueEra/features/me/hotel/view/hotel_property_photos_screen.dart';
 import 'package:BlueEra/features/me/hotel/view/hotel_property_screen.dart';
@@ -324,7 +325,7 @@ class _AddHotelServiceScreenState extends State<AddHotelServiceScreen> {
       "ROOM_AMENITIES": () => RoomAmenitiesScreen(),
       "HOTEL_AMENITIES": () => HotelAmenitiesScreen(),
       "HOTEL_POLICIES": () => HotelPoliciesScreen(),
-      "CAREER": () => const SchoolJobListingScreen(),
+      "CAREER": () => const HotelJobListingScreen(),
       "PROPERTY_PHOTOS": () => PropertyPhotoScreen(),
       // "RESTAURANT_MENU": () => const ComingSoon(),
       "CONTACT_US": () => const HotelContactUs(),
