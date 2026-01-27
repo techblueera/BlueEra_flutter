@@ -24,7 +24,7 @@ class AddContactUsDetailsDialog {
       AlertDialog(
         titlePadding: const EdgeInsets.only(left: 16, right: 16, top: 20),
         contentPadding:
-        const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
         ),
@@ -39,7 +39,6 @@ class AddContactUsDetailsDialog {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-
                 /// Name
                 CommonTextField(
                   title: "Hospital Name",
@@ -47,12 +46,12 @@ class AddContactUsDetailsDialog {
                   textEditController: controller.nameController,
                 ),
                 SizedBox(height: SizeConfig.size12),
+
                 /// Specialization
                 CommonTextField(
                   title: "Website",
                   hintText: "E.g. http//:themissionhospital.in",
-                  textEditController:
-                  controller.websiteController,
+                  textEditController: controller.websiteController,
                 ),
                 SizedBox(height: SizeConfig.size12),
 
@@ -60,8 +59,7 @@ class AddContactUsDetailsDialog {
                 CommonTextField(
                   title: "Address",
                   hintText: "E.g. Mg st,second cross,UP",
-                  textEditController:
-                  controller.addressController,
+                  textEditController: controller.addressController,
                 ),
                 SizedBox(height: SizeConfig.size12),
 
@@ -71,8 +69,7 @@ class AddContactUsDetailsDialog {
                   hintText: "Admission Phone Number",
                   keyBoardType: TextInputType.number,
                   validationType: ValidationTypeEnum.pNumber,
-                  textEditController:
-                  controller.admissionNoController,
+                  textEditController: controller.admissionNoController,
                   maxLength: 10,
                 ),
                 SizedBox(height: SizeConfig.size12),
@@ -84,15 +81,13 @@ class AddContactUsDetailsDialog {
                   hintText: "Principal Phone Number",
                   keyBoardType: TextInputType.number,
                   validationType: ValidationTypeEnum.pNumber,
-                  textEditController:
-                  controller.principalNoController,
+                  textEditController: controller.principalNoController,
                 ),
                 SizedBox(height: SizeConfig.size12),
                 CommonTextField(
                   title: "Email",
                   hintText: "E.g. themissionhospital@gmail.com",
-                  textEditController:
-                  controller.emailController,
+                  textEditController: controller.emailController,
                 ),
                 SizedBox(height: SizeConfig.size24),
 
@@ -113,8 +108,7 @@ class AddContactUsDetailsDialog {
                       child: CustomBtn(
                         title: "Add Details",
                         isValidate: true,
-                        isLoading:
-                        controller.addDoctorLoading.value,
+                        isLoading: controller.addDoctorLoading.value,
                         onTap: () {
                           controller.addContactUsDetails();
                         },
@@ -129,17 +123,16 @@ class AddContactUsDetailsDialog {
       ),
     );
   }
-  static void showHospitalNameEdit({
-    required BuildContext context,
-    required String preName
-  }) {
+
+  static void showHospitalNameEdit(
+      {required BuildContext context, required String preName}) {
     final controller = getOrPut(() => HospitalModelController());
-    controller.nameController.text=preName;
+    controller.nameController.text = preName;
     Get.dialog(
       AlertDialog(
         titlePadding: const EdgeInsets.only(left: 16, right: 16, top: 20),
         contentPadding:
-        const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
         ),
@@ -154,7 +147,6 @@ class AddContactUsDetailsDialog {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-
                 /// Name
                 CommonTextField(
                   title: "Hospital Name",
@@ -181,8 +173,7 @@ class AddContactUsDetailsDialog {
                       child: CustomBtn(
                         title: "Add Details",
                         isValidate: true,
-                        isLoading:
-                        controller.addDoctorLoading.value,
+                        isLoading: controller.addDoctorLoading.value,
                         onTap: () {
                           controller.editHospitalNameDetails();
                         },
@@ -197,17 +188,16 @@ class AddContactUsDetailsDialog {
       ),
     );
   }
-  static void showHospitalAdmissionEdit({
-    required BuildContext context,
-    required String preName
-  }) {
+
+  static void showHospitalAdmissionEdit(
+      {required BuildContext context, required String preName}) {
     final controller = getOrPut(() => HospitalModelController());
-    controller.admissionNoController.text=preName;
+    controller.admissionNoController.text = preName;
     Get.dialog(
       AlertDialog(
         titlePadding: const EdgeInsets.only(left: 16, right: 16, top: 20),
         contentPadding:
-        const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
         ),
@@ -222,14 +212,12 @@ class AddContactUsDetailsDialog {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-
                 CommonTextField(
                   title: "Admission Phone",
                   hintText: "Admission Phone Number",
                   keyBoardType: TextInputType.number,
                   validationType: ValidationTypeEnum.pNumber,
-                  textEditController:
-                  controller.admissionNoController,
+                  textEditController: controller.admissionNoController,
                   maxLength: 10,
                 ),
                 SizedBox(height: SizeConfig.size24),
@@ -251,8 +239,7 @@ class AddContactUsDetailsDialog {
                       child: CustomBtn(
                         title: "Add Details",
                         isValidate: true,
-                        isLoading:
-                        controller.addDoctorLoading.value,
+                        isLoading: controller.addDoctorLoading.value,
                         onTap: () {
                           controller.editHospitalAdmissionCellDetails();
                         },
@@ -267,17 +254,16 @@ class AddContactUsDetailsDialog {
       ),
     );
   }
-  static void showHospitalPrincipalEdit({
-    required BuildContext context,
-    required String preName
-  }) {
+
+  static void showHospitalPrincipalEdit(
+      {required BuildContext context, required String preName}) {
     final controller = getOrPut(() => HospitalModelController());
-    controller.principalNoController.text=preName;
+    controller.principalNoController.text = preName;
     Get.dialog(
       AlertDialog(
         titlePadding: const EdgeInsets.only(left: 16, right: 16, top: 20),
         contentPadding:
-        const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
         ),
@@ -292,15 +278,13 @@ class AddContactUsDetailsDialog {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-
                 CommonTextField(
                   maxLength: 10,
                   title: "Principal Phone",
                   hintText: "Principal Phone Number",
                   keyBoardType: TextInputType.number,
                   validationType: ValidationTypeEnum.pNumber,
-                  textEditController:
-                  controller.principalNoController,
+                  textEditController: controller.principalNoController,
                 ),
                 SizedBox(height: SizeConfig.size24),
 
@@ -321,8 +305,7 @@ class AddContactUsDetailsDialog {
                       child: CustomBtn(
                         title: "Add Details",
                         isValidate: true,
-                        isLoading:
-                        controller.addDoctorLoading.value,
+                        isLoading: controller.addDoctorLoading.value,
                         onTap: () {
                           controller.editHospitalPrincipalCellDetails();
                         },
@@ -337,17 +320,16 @@ class AddContactUsDetailsDialog {
       ),
     );
   }
-  static void showHospitalEmailEdit({
-    required BuildContext context,
-    required String preName
-  }) {
+
+  static void showHospitalEmailEdit(
+      {required BuildContext context, required String preName}) {
     final controller = getOrPut(() => HospitalModelController());
-    controller.emailController.text=preName;
+    controller.emailController.text = preName;
     Get.dialog(
       AlertDialog(
         titlePadding: const EdgeInsets.only(left: 16, right: 16, top: 20),
         contentPadding:
-        const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
         ),
@@ -362,12 +344,10 @@ class AddContactUsDetailsDialog {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-
                 CommonTextField(
                   title: "Email",
                   hintText: "E.g. themissionhospital@gmail.com",
-                  textEditController:
-                  controller.emailController,
+                  textEditController: controller.emailController,
                 ),
                 SizedBox(height: SizeConfig.size24),
 
@@ -388,8 +368,7 @@ class AddContactUsDetailsDialog {
                       child: CustomBtn(
                         title: "Add Details",
                         isValidate: true,
-                        isLoading:
-                        controller.addDoctorLoading.value,
+                        isLoading: controller.addDoctorLoading.value,
                         onTap: () {
                           controller.editHospitalEmailDetails();
                         },
@@ -404,22 +383,20 @@ class AddContactUsDetailsDialog {
       ),
     );
   }
-  static void addAboutUsDetailsPage({
-    required BuildContext context,
-     String? preVision,
-     String? preHistory
-  }) {
+
+  static void addAboutUsDetailsPage(
+      {required BuildContext context, String? preVision, String? preHistory}) {
     final controller = getOrPut(() => HospitalModelController());
-    if(preVision!=null&&preHistory!=null){
-      controller.vissionAndMission.text=preVision;
-      controller.hospitalHistory.text=preHistory;
+    if (preVision != null && preHistory != null) {
+      controller.vissionAndMission.text = preVision;
+      controller.hospitalHistory.text = preHistory;
     }
 
     Get.dialog(
       AlertDialog(
         titlePadding: const EdgeInsets.only(left: 16, right: 16, top: 20),
         contentPadding:
-        const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
         ),
@@ -434,55 +411,50 @@ class AddContactUsDetailsDialog {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-
                 /// Name
-                 Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          CustomText("Vision And Mission",
-                                              fontWeight: FontWeight.bold),
-                                          // The Reusable AI Widget
-                                          AIGeneratorButton(
-                                            type: "Vision And Mission",
-                                            data: {
-                                              "for":"hospital",
-                                              "data":"Vision And Mission",
-                                              "goal":"Hospital goals",
-
-                                            },
-                                            onSelected: (generatedText) {
-                                              controller.visionMissionText.value = generatedText;
-                                              controller.vissionAndMission.text = generatedText;
-
-                                            },
-                                          ),
-                                        ],
-                                      ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    CustomText("Vision And Mission",
+                        fontWeight: FontWeight.bold),
+                    // The Reusable AI Widget
+                    AIGeneratorButton(
+                      type: "Vision And Mission",
+                      data: {
+                        "for": "hospital",
+                        "data": "Vision And Mission",
+                        "goal": "Hospital goals",
+                      },
+                      onSelected: (generatedText) {
+                        controller.visionMissionText.value = generatedText;
+                        controller.vissionAndMission.text = generatedText;
+                      },
+                    ),
+                  ],
+                ),
                 CommonTextField(
                   //title: "Vision And Mission",
                   hintText: "E.g. Enter Future Vision And Mission",
                   textEditController: controller.vissionAndMission,
                   maxLine: 4,
                 ),
-                SizedBox(height: 10,),
+                SizedBox(
+                  height: 10,
+                ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    CustomText("History",
-                        fontWeight: FontWeight.bold),
+                    CustomText("History", fontWeight: FontWeight.bold),
                     // The Reusable AI Widget
                     AIGeneratorButton(
                       type: "History",
                       data: {
-                        "for":"hospital",
-                        "data":"History",
-
-
+                        "for": "hospital",
+                        "data": "History",
                       },
                       onSelected: (generatedText) {
                         controller.historyMissionText.value = generatedText;
                         controller.hospitalHistory.text = generatedText;
-
                       },
                     ),
                   ],
@@ -511,10 +483,11 @@ class AddContactUsDetailsDialog {
                     SizedBox(width: SizeConfig.size12),
                     Expanded(
                       child: CustomBtn(
-                        title: preVision!=null&&preHistory!=null?"Edit Details":"Add Details",
+                        title: preVision != null && preHistory != null
+                            ? "Edit Details"
+                            : "Add Details",
                         isValidate: true,
-                        isLoading:
-                        controller.addDoctorLoading.value,
+                        isLoading: controller.addDoctorLoading.value,
                         onTap: () {
                           controller.addAboutUs();
                         },

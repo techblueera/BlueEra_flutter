@@ -656,5 +656,6 @@ abstract class BaseService {
   final String generateOtherService= "ai-service/api/ai-other/generate-other-service";
 
   final String adminVideos = 'video-service/admin-videos';
+  final String otherContactUsService = 'other-service/contact';
 
 }

@@ -890,8 +890,10 @@ List<PopupMenuEntry<String>> popupMenuChatCardItems() {
 }
 
 // List<String> isShowOther = ["product", "service", "both"];
-List<String> isShowProduct = ["product", "service", "both"];
-List<String> isShowService = ["product", "service", "both", "food"];
+// List<String> isShowProduct = ["product", "service", "both"];
+List<String> isShowProduct = ["product", ];
+List<String> isShowService = ["service", ];
+// List<String> isShowService = ["product", "service", "both", "food"];
 List<String> isShowFood = ["food"];
 
 String? businessType() {

@@ -103,7 +103,7 @@ class OwnProductCard extends StatelessWidget {
           children: [
             // Product Image
             SizedBox(
-              height: SizeConfig.size150,
+              height: SizeConfig.size150-10,
               child: Stack(
                 children: [
                   ClipRRect(
@@ -119,14 +119,14 @@ class OwnProductCard extends StatelessWidget {
                       },
                     ),
                   ),
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: _buildIconBox(
-                      onTap: deleteProductApi,
-                      Icon(Icons.more_vert, color: Colors.white, size: 16),
-                    ),
-                  ),
+                  // Positioned(
+                  //   top: 8,
+                  //   right: 8,
+                  //   child: _buildIconBox(
+                  //     onTap: deleteProductApi,
+                  //     Icon(Icons.more_vert, color: Colors.white, size: 16),
+                  //   ),
+                  // ),
                 ],
               ),
             ),

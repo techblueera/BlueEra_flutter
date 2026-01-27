@@ -167,3 +167,6 @@ class Location {
   }
 
 }
+
+// https://be.blueera.ai/api/other-service/contact/business-profile/232
+// https://be.blueera.ai/api/other-service/contact/business-profile/697338c62e9f6821c39fbf3e

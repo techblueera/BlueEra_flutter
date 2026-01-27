@@ -29,6 +29,7 @@ class InventoryController extends GetxController {
   final TextEditingController searchController = TextEditingController();
   
   RxBool isLoading = false.obs;
+  RxBool isProductLoading = false.obs;
   RxString selectedFilter = AppStrings.draft.obs;
   RxList<ProductModel> products = <ProductModel>[].obs;
   RxList<ProductModel> filteredProducts = <ProductModel>[].obs;
@@ -190,7 +191,10 @@ class InventoryController extends GetxController {
 
   Future<void> fetchProducts({bool? isDraftProduct}) async {
     try {
+      ownDraftAndPublicProductResponse.value = ApiResponse.initial('Initial');
+
       isLoading.value = true;
+      isProductLoading.value = true;
 
       Map<String, dynamic> queryParams = {
         // ApiKeys.businessId: businessId,
@@ -229,6 +233,7 @@ class InventoryController extends GetxController {
       ownDraftAndPublicProductResponse.value = ApiResponse.error('error');
     } finally {
       isLoading.value = false;
+      isProductLoading.value = false;
     }
   }
 
