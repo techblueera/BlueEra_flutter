@@ -9,7 +9,7 @@ import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetChatListModel.dart';
-import '../ai_chat/ai_chat_screen.dart';
+import '../ai_chat/view/ai_chat_screen.dart';
 import '../widget/component_widgets.dart';
 
 class PersonalChatsList extends StatefulWidget {

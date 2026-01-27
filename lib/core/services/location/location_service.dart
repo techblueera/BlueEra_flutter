@@ -27,7 +27,7 @@ class LocationService extends GetxService {
 
     if (placeMarks.isNotEmpty) {
       final place = placeMarks.first;
-      log('place -- $place');
+      // log('place -- $place');
 
       userCurrentAddress.value = UserAddress(
         street: place.thoroughfare ?? '',
@@ -105,7 +105,7 @@ class LocationService extends GetxService {
 
       if (placeMarks.isNotEmpty) {
         final place = placeMarks.first;
-        log('place--> $place');
+        // log('place--> $place');
 
         userCurrentAddress.value = UserAddress(
           street: place.thoroughfare ?? '',

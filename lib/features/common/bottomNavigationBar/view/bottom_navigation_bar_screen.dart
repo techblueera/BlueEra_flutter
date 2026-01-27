@@ -9,7 +9,7 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/chat/view/ai_chat/ask_inventory_chat_screen.dart';
+import 'package:BlueEra/features/chat/view/ai_chat/view/ask_chat_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/controller/ai_chat_guest_controller.dart';
@@ -430,7 +430,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
 
               final chat = ChatViewController.inventoryAiChatListSearchModule;
 
-              Get.to(() => AskInventoryChatScreen(
+              Get.to(() => AskChatScreen(
                     profileImage: chat?.sender?.profileImage,
                     name: chat?.sender?.name,
                     contactNo: chat?.sender?.contactNo,

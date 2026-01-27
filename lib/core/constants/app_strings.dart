@@ -1633,7 +1633,15 @@ class AppStrings {
   static const String product    = 'Product';
   static const String PersonalChatAi    = 'PersonalAi';
   static const String BusinessChatAi    = 'BusinessAi';
+  static const String SearchChatAi    = 'SearchChatAi';
   static const String InventoryChatAi    = 'InventoryChatAi';
+  static const String FoodChatAi    = 'FoodChatAi';
+  static const String ServiceChatAi    = 'ServiceChatAi';
+  static const String HealthCareChatAi    = 'HealthCareChatAi';
+  static const String EducationChatAi    = 'EducationChatAi';
+  static const String HomeServiceChatAi    = 'HomeServiceChatAi';
+  static const String TravelAndStayChatAi    = 'TravelAndStayChatAi';
+  static const String ConsultingTalkChatAi    = 'ConsultingTalkChatAi';
   static const String Admin    = 'Admin';
   static const String notFoundAnyFoodItem    = 'notFoundAnyFoodItem';
   static const String typeAtLeastThreeCharForSearchProducts    = 'typeAtLeastThreeCharForSearchProducts';

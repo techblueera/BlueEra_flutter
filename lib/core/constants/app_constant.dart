@@ -108,7 +108,15 @@ class AppConstants {
   static const String other = 'Other';
   static const String AiReply_Chat_Type = 'AiReply';
   static const String AiQuest_Chat_Type = 'AiQuest';
-  static const String askInentory_Chat_Type = 'askInentory';
+  static const String search_Chat_Type = 'search';
+  static const String askInventory_Chat_Type = 'INVENTORY';
+  static const String askFood_Chat_Type = 'FOOD';
+  static const String askService_Chat_Type = 'askService';
+  static const String askHealthCare_Chat_Type = 'askHealthCare';
+  static const String askEducation_Chat_Type = 'EDUCATION';
+  static const String askHomeService_Chat_Type = 'askHomeService';
+  static const String askTravelStay_Chat_Type = 'TRAVEL';
+  static const String askConsultingTalk_Chat_Type = 'askConsultingTalk';
 
   // static const String business = 'business';
   // static const String company = 'company';

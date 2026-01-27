@@ -197,7 +197,7 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                                     ),
                                     Flexible(
                                       child: CustomText(
-                                        "${viewBusinessDetailsController.selectedCategoryOfBusiness.value?.name}",
+                                        businessCategoryGlobal,
                                         color: Colors.blue.shade700,
                                         overflow: TextOverflow.ellipsis,
                                         maxLines: 3,
@@ -211,13 +211,13 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     CustomText(
-                                      AppStrings.subcategory,
+                                      '${AppStrings.subcategory.tr}',
                                       fontWeight: FontWeight.bold,
                                       color: Colors.blue.shade800,
                                     ),
                                     Flexible(
                                       child: CustomText(
-                                        "${viewBusinessDetailsController.selectedSubCategoryOfBusinessNew.value?.name} ",
+                                        businessSubCategoryGlobal,
                                         color: Colors.blue.shade700,
                                         overflow: TextOverflow.ellipsis,
                                         maxLines: 3,
@@ -380,21 +380,15 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                           serviceDetailsReq: {
                             ApiKeys.service_name: controller.serviceName.value,
                             if (isBusiness())
-                              ApiKeys.category: viewBusinessDetailsController
-                                  .selectedCategoryOfBusiness.value?.name,
+                              ApiKeys.category: businessCategoryGlobal,
                             if (isBusiness())
-                              ApiKeys.sub_category:
-                                  viewBusinessDetailsController
-                                      .selectedSubCategoryOfBusinessNew
-                                      .value
-                                      ?.name,
+                              ApiKeys.sub_category: businessSubCategoryGlobal,
                             if (controller
                                 .shortDescriptionName.value.isNotEmpty)
                               ApiKeys.short_description:
                                   controller.shortDescriptionName.value,
                           },
-                          category: viewBusinessDetailsController
-                              .selectedCategoryOfBusiness.value?.name ?? '',
+                          category: businessCategoryGlobal,
                       );
                     }
                   }
@@ -411,10 +405,9 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
     if (isBusiness()) {
       return (controller.selectedImage.value != null &&
           controller.serviceName.value.isNotEmpty &&
-          viewBusinessDetailsController.selectedCategoryOfBusiness.value !=
+          businessCategoryGlobal !=
               null &&
-          viewBusinessDetailsController
-                  .selectedSubCategoryOfBusinessNew.value !=
+          businessSubCategoryGlobal !=
               null);
     } else {
       return (controller.selectedImage.value != null &&

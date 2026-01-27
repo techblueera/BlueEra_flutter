@@ -97,10 +97,11 @@ class ViewBusinessDetailsController extends GetxController {
   RxString shopCloseTime = "".obs;
   RxInt? selectDay = 0.obs, selectMonth = 0.obs, selectYear = 0.obs;
   RxBool isImageUpdated = false.obs;
-  Rx<CategoryData?> selectedCategoryOfBusiness = Rx<CategoryData?>(null);
 
-  Rx<SubCategories?> selectedSubCategoryOfBusinessNew =
-      Rx<SubCategories?>(null);
+  // Rx<CategoryData?> selectedCategoryOfBusiness = Rx<CategoryData?>(null);
+  //
+  // Rx<SubCategories?> selectedSubCategoryOfBusinessNew =
+  //     Rx<SubCategories?>(null);
 
   RxBool isListingDescriptionEdit = true.obs;
   RxString businessDescription = "".obs;
@@ -236,10 +237,10 @@ class ViewBusinessDetailsController extends GetxController {
       tempDescription.value = businessDescription.value;
       controllerVisit.isFollow.value =
           businessProfileDetails?.data?.is_following ?? false;
-      if (selectedBusinessType?.value.name.toLowerCase() == "both") {
-        selectedCategoryOfBusiness.value = null;
-        selectedSubCategoryOfBusinessNew.value = null;
-      }
+      // if (selectedBusinessType?.value.name.toLowerCase() == "both") {
+      //   selectedCategoryOfBusiness.value = null;
+      //   selectedSubCategoryOfBusinessNew.value = null;
+      // }
       Get.find<AuthController>().imgPath.value =
           businessProfileDetails?.data?.logo ?? "";
       log('business type -- ${businessProfileDetails?.data?.typeOfBusiness}');

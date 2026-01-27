@@ -1,6 +1,8 @@
 
+import 'dart:developer';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 import '../../../../core/constants/shared_preference_utils.dart';
@@ -14,6 +16,8 @@ class AiSocketService {
 
   // SOCKET URL (Your Backend)
   final String aiSocketUrl = "http://prod-be-alb-blueera-1403294632.ap-south-1.elb.amazonaws.com:1029";
+  final String aiSearchSocketUrl = "https://search.blueera.ai";
+
   Future<void> disposeSocket()async{
     socket?.disconnect();
     socket?.dispose();
@@ -33,7 +37,40 @@ class AiSocketService {
     );
 
     // Connect
-    await socket!.connect();
+    socket!.connect();
+
+    // GLOBAL LISTENERS
+    socket!.onConnect((_) {
+
+    });
+
+    socket!.onDisconnect((_) {
+    });
+
+    socket!.onConnectError((data) {
+    });
+
+    socket!.onError((data) {
+      print("error successfully!");
+    });
+  }
+
+  // CONNECT SOCKET
+  Future<void> connectSearchSocket() async {
+
+    if (socket != null && socket!.connected) return;
+
+    socket = IO.io(
+      aiSearchSocketUrl,
+      IO.OptionBuilder()
+          .setTransports(['websocket'])
+          .disableAutoConnect()
+          .setAuth({'token': authTokenGlobal}) // IMPORTANT FIX
+          .build(),
+    );
+
+    // Connect
+    socket!.connect();
 
     // GLOBAL LISTENERS
     socket!.onConnect((_) {
@@ -50,8 +87,8 @@ class AiSocketService {
   }
 
   // JOIN ROOM
-  void joinConversation(String conversationId) {
-    socket?.emit('join_conversation', {"conversationId": conversationId});
+  void joinConversation(String type) {
+    socket?.emit('join_conversation', {"serviceType": type});
   }
 
   // GET HISTORY
@@ -62,6 +99,9 @@ class AiSocketService {
   // LISTEN HISTORY RESPONSE
   void onHistory(void Function(dynamic messages) callback) {
     socket?.on('history_data', (data) {
+      if (kDebugMode) {
+        log('📥 ON [history_data]: $data');
+      }
       callback(data);
     });
   }
@@ -91,9 +131,12 @@ class AiSocketService {
 
   // LISTEN REPLY MESSAGE
   void onMessage(void Function(dynamic data) callback) {
-    socket?.on('receive_message', (data) {
-      callback(data);
-    });
+      socket?.on('receive_message', (data) {
+        if (kDebugMode) {
+          log('📥 ON [receive_message]: $data');
+        }
+        callback(data);
+      });
   }
 
   // LISTEN ERRORS

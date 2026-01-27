@@ -10,7 +10,7 @@ import '../../../../core/constants/size_config.dart';
 import '../../../../widgets/custom_text_cm.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetChatListModel.dart';
-import '../ai_chat/ai_chat_screen.dart';
+import '../ai_chat/view/ai_chat_screen.dart';
 import '../widget/component_widgets.dart';
 class BusinessChatsList extends StatefulWidget {
   const BusinessChatsList({super.key, this.isForwardUI, this.isNewGroupUI});
@@ -52,7 +52,7 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
               itemBuilder: (context, index) {
                 final chat =(index == 0)? ChatViewController.businessAiChatModule:data?.chatList?[index - 1];
                 return ChatListTile(onTab: (index == 0)?(){
-                  Get.to(()=>AiChatScreen(
+                  Get.to(()=> AiChatScreen(
                     profileImage: chat?.sender?.profileImage,
                     name: chat?.sender?.name,
                     contactNo: chat?.sender?.contactNo,

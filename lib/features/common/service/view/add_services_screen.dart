@@ -206,7 +206,7 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
                                 ),
                                 Flexible(
                                   child: CustomText(
-                                    "${viewBusinessDetailsController.selectedCategoryOfBusiness.value?.name}",
+                                    businessCategoryGlobal,
                                     color: Colors.blue.shade700,
                                     overflow: TextOverflow.ellipsis,
                                     maxLines: 3,
@@ -226,7 +226,7 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
                                 ),
                                 Flexible(
                                   child: CustomText(
-                                    "${viewBusinessDetailsController.selectedSubCategoryOfBusinessNew.value?.name} ",
+                                    businessSubCategoryGlobal,
                                     color: Colors.blue.shade700,
                                     overflow: TextOverflow.ellipsis,
                                     maxLines: 3,

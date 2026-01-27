@@ -2,22 +2,23 @@ import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../../../core/api/apiService/api_response.dart';
-import '../../../../core/constants/app_icon_assets.dart';
-import '../../../../core/constants/app_image_assets.dart';
-import '../../../../core/constants/common_methods.dart';
-import '../../../../core/constants/size_config.dart';
-import '../../auth/controller/chat_theme_controller.dart';
-import '../../auth/controller/chat_view_controller.dart';
-import '../../auth/model/GetListOfMessageData.dart';
-import '../widget/component_widgets.dart';
-import '../widget/message_card.dart';
-import '../widget/picked_media_preview.dart';
+import '../../../../../core/api/apiService/api_response.dart';
+import '../../../../../core/constants/app_icon_assets.dart';
+import '../../../../../core/constants/app_image_assets.dart';
+import '../../../../../core/constants/common_methods.dart';
+import '../../../../../core/constants/size_config.dart';
+import '../../../auth/controller/chat_theme_controller.dart';
+import '../../../auth/controller/chat_view_controller.dart';
+import '../../../auth/model/GetListOfMessageData.dart';
+import '../../widget/component_widgets.dart';
+import '../../widget/message_card.dart';
+import '../../widget/picked_media_preview.dart';
 
 class AiChatScreen extends StatefulWidget {
   AiChatScreen(
@@ -60,18 +61,18 @@ class _AiChatScreenState extends State<AiChatScreen> {
     chatViewController.connectAiSocket(widget.type);
     super.initState();
   }
+
   @override
   void dispose() {
-    // TODO: implement dispose
     chatViewController.disposeAiSocket();
     super.dispose();
   }
+
+
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        return true;
-      },
+    return PopScope(
+      canPop: true,
       child: Obx(() {
         return Scaffold(
           backgroundColor: AppColors.fillColor,
@@ -131,7 +132,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
                               onTap: () {
                                 chatViewController.sendMessageToAiSocket(
                                     type: widget.type,
-                                    message:"Namaste"
+                                    message: "Namaste"
                                 );
                               },
                               child: Container(
@@ -209,15 +210,15 @@ class _AiChatScreenState extends State<AiChatScreen> {
                             },
                           ),
                         ),
-                        (chatViewController.chatBotReading.value==true)? const SizedBox(
-                          height: 6,
-                        ):SizedBox(),
-                        (chatViewController.chatBotReading.value==true)? staggeredDotsWaveLoading(padding: EdgeInsets.symmetric(vertical: SizeConfig.size4),
+
+                        (chatViewController.chatBotReading.value==true)
+                            ? staggeredDotsWaveLoading(
+                            padding: EdgeInsets.symmetric(vertical: SizeConfig.size10),
                             color: AppColors.grayText
-                        ):SizedBox(),
-                        const SizedBox(
-                          height: 6,
+                        ) : SizedBox(
+                          height: SizeConfig.size6,
                         ),
+
                         Container(
             // padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             margin: EdgeInsets.only(bottom: 6),
@@ -270,9 +271,11 @@ class _AiChatScreenState extends State<AiChatScreen> {
                                               padding: const EdgeInsets.symmetric(vertical: 8,horizontal: 8),
                                               child: Padding(
                                                 padding: const EdgeInsets.only(bottom: 3.0),
-                                                child: SvgPicture.asset(height: 22, width: 22, AppIconAssets
-                                                    .chat_box_smile, color: AppColors
-                                                    .chat_input_icon_color,),
+                                                child: LocalAssets(
+                                                     height: 22,
+                                                  width: 22,
+                                                  imagePath: AppIconAssets.chat_box_smile,
+                                                  imgColor: AppColors.chat_input_icon_color,),
                                               ),
                                             ),
                                           ),
@@ -401,8 +404,8 @@ class _AiChatScreenState extends State<AiChatScreen> {
                                             borderRadius: BorderRadius.circular(12),
                                           ),
                                           padding: EdgeInsets.all(14),
-                                          child:SvgPicture.asset(
-                                            AppIconAssets.send_message_chat,
+                                          child: LocalAssets(
+                                            imagePath: AppIconAssets.send_message_chat,
                                             height: 21,
                                             width: 21,
                                           ),
@@ -412,8 +415,8 @@ class _AiChatScreenState extends State<AiChatScreen> {
                                   );
                                 })
                               ],
-                                                        ),
-                                                      ),
+                              ),
+                            ),
                             ),
                         const SizedBox(height: 14),
                       ],
@@ -426,9 +429,9 @@ class _AiChatScreenState extends State<AiChatScreen> {
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-                      Image.asset(
-                        AppImageAssets.chating_bg,
-                        fit: BoxFit.cover,
+                      LocalAssets(
+                        imagePath: AppImageAssets.chating_bg,
+                        boxFix: BoxFit.cover,
                         width: SizeConfig.screenWidth,
                         height: SizeConfig.screenHeight,
                       ),

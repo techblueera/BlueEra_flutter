@@ -6,19 +6,16 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/chat/auth/model/messageMediaUrl.dart';
 import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_constant.dart';
 import '../../../../core/services/local_strorage_helper.dart';
 import '../../../../core/services/notification_utils.dart';
-import '../../../common/store/repo/store_repo.dart';
 import '../../view/business_chat/business_chat_screen_updated.dart';
 import '../../view/personal_chat/personal_chat_screen.dart';
 import '../model/Generate_Upload_Ulr_Model.dart';
@@ -85,6 +82,17 @@ class ChatViewController extends GetxController {
       "account_type": AppStrings.BusinessChatAi,
     }
   };
+  static final Map<String, dynamic> aiChatSearch = {
+    "last_message": "Ask anything with blueEra friend",
+    "last_message_type": "text",
+    "sender": {
+      "name": "BlueEra Friend",
+      "contact_no": "BlueEra Friend",
+      "profile_image":
+      "https://be-user-bkt.s3.ap-south-1.amazonaws.com/admin/68a31a3edd48c8dfc0656a00/profile/1759817565514-unnamed.webp",
+      "account_type": AppStrings.SearchChatAi,
+    }
+  };
   static final Map<String, dynamic> inventoryAiSearch = {
     "last_message": "Ask anything with Inventory Friend",
     "last_message_type": "text",
@@ -96,12 +104,106 @@ class ChatViewController extends GetxController {
       "account_type": AppStrings.InventoryChatAi,
     }
   };
+  static final Map<String, dynamic> foodAiSearch = {
+    "last_message": "Ask anything with Inventory Friend",
+    "last_message_type": "text",
+    "sender": {
+      "name": "Sarthi Ai",
+      "contact_no": "BlueEra Food Friend",
+      "profile_image":
+      "https://be-user-bkt.s3.ap-south-1.amazonaws.com/admin/68a31a3edd48c8dfc0656a00/profile/1759817565514-unnamed.webp",
+      "account_type": AppStrings.FoodChatAi,
+    }
+  };
+  static final Map<String, dynamic> serviceAiSearch = {
+    "last_message": "Ask anything with Inventory Friend",
+    "last_message_type": "text",
+    "sender": {
+      "name": "Sarthi Ai",
+      "contact_no": "BlueEra Service Friend",
+      "profile_image":
+      "https://be-user-bkt.s3.ap-south-1.amazonaws.com/admin/68a31a3edd48c8dfc0656a00/profile/1759817565514-unnamed.webp",
+      "account_type": AppStrings.ServiceChatAi,
+    }
+  };
+  static final Map<String, dynamic> healthCareAiSearch = {
+    "last_message": "Ask anything with Inventory Friend",
+    "last_message_type": "text",
+    "sender": {
+      "name": "Sarthi Ai",
+      "contact_no": "BlueEra Health Care Friend",
+      "profile_image":
+      "https://be-user-bkt.s3.ap-south-1.amazonaws.com/admin/68a31a3edd48c8dfc0656a00/profile/1759817565514-unnamed.webp",
+      "account_type": AppStrings.HealthCareChatAi,
+    }
+  };
+  static final Map<String, dynamic> educationAiSearch = {
+    "last_message": "Ask anything with Inventory Friend",
+    "last_message_type": "text",
+    "sender": {
+      "name": "Sarthi Ai",
+      "contact_no": "BlueEra Education Friend",
+      "profile_image":
+      "https://be-user-bkt.s3.ap-south-1.amazonaws.com/admin/68a31a3edd48c8dfc0656a00/profile/1759817565514-unnamed.webp",
+      "account_type": AppStrings.EducationChatAi,
+    }
+  };
+  static final Map<String, dynamic> homeServiceAiSearch = {
+    "last_message": "Ask anything with Inventory Friend",
+    "last_message_type": "text",
+    "sender": {
+      "name": "Sarthi Ai",
+      "contact_no": "BlueEra Home Service Friend",
+      "profile_image":
+      "https://be-user-bkt.s3.ap-south-1.amazonaws.com/admin/68a31a3edd48c8dfc0656a00/profile/1759817565514-unnamed.webp",
+      "account_type": AppStrings.HomeServiceChatAi,
+    }
+  };
+  static final Map<String, dynamic> travelAndStayAiSearch = {
+    "last_message": "Ask anything with Inventory Friend",
+    "last_message_type": "text",
+    "sender": {
+      "name": "Sarthi Ai",
+      "contact_no": "BlueEra Travel and Stay Friend",
+      "profile_image":
+      "https://be-user-bkt.s3.ap-south-1.amazonaws.com/admin/68a31a3edd48c8dfc0656a00/profile/1759817565514-unnamed.webp",
+      "account_type": AppStrings.TravelAndStayChatAi,
+    }
+  };
+  static final Map<String, dynamic> consultingTalkAiSearch = {
+    "last_message": "Ask anything with Inventory Friend",
+    "last_message_type": "text",
+    "sender": {
+      "name": "Sarthi Ai",
+      "contact_no": "BlueEra Consulting Talk Friend",
+      "profile_image":
+      "https://be-user-bkt.s3.ap-south-1.amazonaws.com/admin/68a31a3edd48c8dfc0656a00/profile/1759817565514-unnamed.webp",
+      "account_type": AppStrings.ConsultingTalkChatAi,
+    }
+  };
   static final ChatList? personalAiChatModule =
       ChatList.fromJson(aiChatListModel);
   static final ChatList? businessAiChatModule =
       ChatList.fromJson(businessAiChatListModel);
+  static final ChatList? aiChatListSearchModule =
+      ChatList.fromJson(aiChatSearch);
   static final ChatList? inventoryAiChatListSearchModule =
       ChatList.fromJson(inventoryAiSearch);
+  static final ChatList? foodAiChatListSearchModule =
+      ChatList.fromJson(foodAiSearch);
+  static final ChatList? serviceAiChatListSearchModule =
+      ChatList.fromJson(serviceAiSearch);
+  static final ChatList? healthCareAiChatListSearchModule =
+      ChatList.fromJson(healthCareAiSearch);
+  static final ChatList? educationAiChatListSearchModule =
+     ChatList.fromJson(educationAiSearch);
+  static final ChatList? homeServiceAiChatListSearchModule =
+      ChatList.fromJson(homeServiceAiSearch);
+  static final ChatList? travelAndStayAiChatListSearchModule =
+     ChatList.fromJson(travelAndStayAiSearch);
+  static final ChatList? consultingTalkAiChatListSearchModule =
+     ChatList.fromJson(consultingTalkAiSearch);
+
   Rx<GetChatListModel>? getPersonalChatListModel = GetChatListModel().obs;
   Rx<GetChatListModel>? getOrderChatListModel = GetChatListModel().obs;
   Rx<GetChatListModel>? getBusinessChatListModel = GetChatListModel().obs;
@@ -111,7 +213,7 @@ class ChatViewController extends GetxController {
 
   List<Messages>? get getListOfMessageData =>
       getListOfMessageResponse.value.data;
-  List<InventoryAskAiModel>? getListOfInventoryAiMessages =[];
+  RxList<InventoryAskAiModel> getListOfInventoryAiMessages = <InventoryAskAiModel>[].obs;
 
   Rx<ContactListModel>? contactsListModel = ContactListModel().obs;
   Rx<GetMediaMsgCommentsModel>? getMediaMsgCommentsModel =
@@ -210,6 +312,17 @@ class ChatViewController extends GetxController {
     ),
   ];
 
+  String productInitialMessage = 'Looking for the right product? Find TVs, refrigerators, washing machines & smartphones. Browse kitchen appliances, home essentials, electronics & gifts. All from trusted sellers near you. Just tell me what you’re looking for, and I’ll take care of the rest.';
+
+  Future<void> disposeAiSocket() async {
+    aiSocket.disposeSocket();
+  }
+
+  String formattedDate() {
+    final now = DateTime.now().toUtc();
+    return "${now.toIso8601String().substring(0, 23)}Z";
+  }
+
   void parseAiChatHistory(List<dynamic> jsonList) {
     for (var item in jsonList) {
       final details = AiChatHistoryMessageModel.fromJson(item);
@@ -234,12 +347,52 @@ class ChatViewController extends GetxController {
         ApiResponse.complete(getListOfAiMessageData);
   }
 
+  String _getStorageKeyForType(String? type) {
+    switch (type) {
+      case AppStrings.PersonalChatAi:
+        return AppConstants.business_Chat_Type;
+
+      case AppStrings.BusinessChatAi:
+        return AppConstants.business_Chat_Type;
+
+      case AppStrings.SearchChatAi:
+        return AppConstants.search_Chat_Type;
+
+      case AppStrings.InventoryChatAi:
+        return AppConstants.askInventory_Chat_Type;
+
+      case AppStrings.FoodChatAi:
+        return AppConstants.askFood_Chat_Type;
+
+      case AppStrings.ServiceChatAi:
+        return AppConstants.askService_Chat_Type;
+
+      case AppStrings.HealthCareChatAi:
+        return AppConstants.askHealthCare_Chat_Type;
+
+      case AppStrings.EducationChatAi:
+        return AppConstants.askEducation_Chat_Type;
+
+      case AppStrings.HomeServiceChatAi:
+        return AppConstants.askHomeService_Chat_Type;
+
+      case AppStrings.TravelAndStayChatAi:
+        return AppConstants.askTravelStay_Chat_Type;
+
+      case AppStrings.ConsultingTalkChatAi:
+        return AppConstants.askConsultingTalk_Chat_Type;
+
+      default:
+        return AppConstants.personal_Chat_Type;
+    }
+  }
+
   Future<void> connectAiSocket(String? type) async {
     getListOfAiMessageData?.clear();
     aiSocket.disposeSocket();
     await aiSocket.connect();
-    aiSocket.onMessage((data) {
 
+    aiSocket.onMessage((data) {
       chatBotReading.value = false;
       AiReplyMessageModel details = AiReplyMessageModel.fromJson(data);
       saveAiConversationId(details.conversationId, type);
@@ -259,11 +412,7 @@ class ChatViewController extends GetxController {
       parseAiChatHistory(data);
     });
     String? converId = await AiChatLocalStorage.getConversationId(
-      type == AppStrings.BusinessChatAi
-          ? AppConstants.business_Chat_Type
-          : type == AppStrings.InventoryChatAi
-              ? AppConstants.askInentory_Chat_Type
-              : AppConstants.personal_Chat_Type,
+        _getStorageKeyForType(type)
     );
     aiSocket.getHistory(converId ?? '');
     getListOfAiMessageResponse.value =
@@ -273,16 +422,7 @@ class ChatViewController extends GetxController {
   Future<void> saveAiConversationId(String id, String? type) async {
     await AiChatLocalStorage.saveConversationIdIfEmpty(
         id: id,
-        type: type == AppStrings.BusinessChatAi
-            ? AppConstants.business_Chat_Type
-            : type == AppStrings.InventoryChatAi
-                ? AppConstants.askInentory_Chat_Type
-                : AppConstants.personal_Chat_Type);
-  }
-
-  String formattedDate() {
-    final now = DateTime.now().toUtc();
-    return "${now.toIso8601String().substring(0, 23)}Z";
+        type: _getStorageKeyForType(type));
   }
 
   Future<void> sendMessageToAiSocket({
@@ -294,11 +434,8 @@ class ChatViewController extends GetxController {
   }) async {
     chatBotReading.value = true;
     String? converId = await AiChatLocalStorage.getConversationId(
-        type == AppStrings.BusinessChatAi
-            ? AppConstants.business_Chat_Type
-            : type == AppStrings.InventoryChatAi
-                ? AppConstants.askInentory_Chat_Type
-                : AppConstants.personal_Chat_Type);
+        _getStorageKeyForType(type)
+    );
     aiSocket.sendMessage(
         message: message,
         conversationId: converId,
@@ -319,8 +456,87 @@ class ChatViewController extends GetxController {
     sendMessageController.value.clear();
   }
 
-  Future<void> disposeAiSocket() async {
+  Future<void> connectInventoryAiSocket(String type) async {
+    getListOfInventoryAiMessages.clear();
     aiSocket.disposeSocket();
+    await aiSocket.connectSearchSocket();
+
+    String? converId = await AiChatLocalStorage.getConversationId(
+        _getStorageKeyForType(type)
+    );
+    log('conversation id -- $converId');
+
+    aiSocket.onHistory((data) {
+      getListOfInventoryAiMessages.add(InventoryAskAiModel(
+            reply: productInitialMessage,
+            role: "model",
+            timestamp: formattedDate()
+        ));
+      log('length 1 --> ${getListOfInventoryAiMessages.length}');
+      parseInventoryAiChatHistory(data);
+    });
+
+    aiSocket.getHistory(converId ?? '');
+
+    aiSocket.onMessage((data) {
+      chatBotReading.value = false;
+      InventoryAskAiModel details = InventoryAskAiModel.fromJson(data);
+      saveAiConversationId(details.conversationId ?? '', type);
+      getListOfInventoryAiMessages.add(details);
+      getListOfAiMessageResponse.value =
+          ApiResponse.complete(getListOfInventoryAiMessages);
+    });
+
+  }
+
+  void parseInventoryAiChatHistory(List<dynamic> jsonList) {
+
+    List<InventoryAskAiModel> newMessages = jsonList.map((item) {
+      final details = InventoryAskHistoryAiModel.fromJson(item);
+      return InventoryAskAiModel(
+        conversationId: details.conversationId,
+        timestamp: details.timestamp,
+        role: details.role,
+        reply: details.content,
+        suggestions: details.suggestions,
+        products: details.products,
+      );
+    }).toList();
+
+    getListOfInventoryAiMessages.assignAll(newMessages);
+    log('length 2--> ${getListOfInventoryAiMessages.length}');
+    getListOfAiMessageResponse.value =
+        ApiResponse.complete(getListOfAiMessageData);
+  }
+
+  Future<void> sendInventoryMessageToAiSocket({
+    required String type,
+    required String message,
+    Uint8List? imageBytes,
+    String? mimeType,
+  }) async {
+    chatBotReading.value = true;
+    String? converId = await AiChatLocalStorage.getConversationId(
+        _getStorageKeyForType(type)
+    );
+    log('conversation id -- $converId');
+    if(converId==null){
+      aiSocket.joinConversation(type);
+    }
+    aiSocket.sendMessage(
+        message: message,
+        conversationId: converId,
+        imageBytes: imageBytes,
+        mimeType: mimeType);
+    getListOfInventoryAiMessages.add(InventoryAskAiModel(
+        reply: message,
+        role: "user",
+        timestamp: formattedDate()
+    ));
+
+    getListOfAiMessageResponse.value =
+        ApiResponse.complete(getListOfInventoryAiMessages);
+    sendMessageController.value.clear();
   }
 
   //  final parsedData = GetChatListModel.fromJson(data);
@@ -1754,33 +1970,33 @@ class ChatViewController extends GetxController {
     } catch (e) {}
   }
 
-  Future<void> askAiInventory({required String message}) async {
-    // try {
-    getListOfInventoryAiMessages?.add(InventoryAskAiModel(
-      message: message,
-      messageStatus: AppConstants.AiQuest_Chat_Type,
-      time: formatTime(DateTime.now().toIso8601String())
-    ));
-      chatBotReading.value = true;
-      sendMessageController.value.clear();
-      final response = await StoreRepo().askAiInventoryRepo(
-        params: {ApiKeys.query: message},
-      );
-
-      if (response.isSuccess) {
-        InventoryAskAiModel detail=InventoryAskAiModel.fromJson(response.response?.data);
-        detail.messageStatus=AppConstants.AiReply_Chat_Type;
-        getListOfInventoryAiMessages?.add(detail);
-        getListOfInventoryAiMessageResponse.value = ApiResponse.complete(getListOfInventoryAiMessages);
-
-        chatBotReading.value = false;
-      } else {
-        getListOfInventoryAiMessageResponse.value = ApiResponse.error('error');
-      }
-    // } catch (e) {
-    //   getListOfInventoryAiMessageResponse.value = ApiResponse.error('error');
-    // } finally {}
-  }
+  // Future<void> askAiInventory({required String message}) async {
+  //   // try {
+  //   getListOfInventoryAiMessages.value?.add(InventoryAskAiModel(
+  //     message: message,
+  //     messageStatus: AppConstants.AiQuest_Chat_Type,
+  //     timestamp: formatTime(DateTime.now().toIso8601String())
+  //   ));
+  //     chatBotReading.value = true;
+  //     sendMessageController.value.clear();
+  //     final response = await StoreRepo().askAiInventoryRepo(
+  //       params: {ApiKeys.query: message},
+  //     );
+  //
+  //     if (response.isSuccess) {
+  //       InventoryAskAiModel detail=InventoryAskAiModel.fromJson(response.response?.data);
+  //       detail.messageStatus=AppConstants.AiReply_Chat_Type;
+  //       getListOfInventoryAiMessages.value?.add(detail);
+  //       getListOfInventoryAiMessageResponse.value = ApiResponse.complete(getListOfInventoryAiMessages);
+  //
+  //       chatBotReading.value = false;
+  //     } else {
+  //       getListOfInventoryAiMessageResponse.value = ApiResponse.error('error');
+  //     }
+  //   // } catch (e) {
+  //   //   getListOfInventoryAiMessageResponse.value = ApiResponse.error('error');
+  //   // } finally {}
+  // }
 
   // Future<void> askLetsTalkApi({required String message}) async {
   //   // try {

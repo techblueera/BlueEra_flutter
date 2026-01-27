@@ -12,7 +12,7 @@ import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
-import 'package:BlueEra/features/chat/view/ai_chat/ask_inventory_chat_screen.dart';
+import 'package:BlueEra/features/chat/view/ai_chat/view/ask_chat_screen.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/product_local_market_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/services_near_screen.dart';
@@ -1791,7 +1791,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     return InkWell(
       onTap: () {
         final chat = ChatViewController.inventoryAiChatListSearchModule;
-        Get.to(() => AskInventoryChatScreen(
+        Get.to(() => AskChatScreen(
               // profileImage: AppImageAssets.sampleGirlImage,
               profileImage: chat?.sender?.profileImage,
               name: chat?.sender?.name,

@@ -36,7 +36,7 @@
 // import 'package:get/get.dart';
 // import 'package:mappls_gl/mappls_gl.dart';
 // import '../../../../chat/auth/controller/chat_view_controller.dart';
-// import '../../../../chat/view/ai_chat/ask_inventory_chat_screen.dart';
+// import '../../../../chat/view/ai_chat/ask_chat_screen.dart';
 //
 // class NewStoreScreen2 extends StatefulWidget {
 //   final bool isHeaderVisible;

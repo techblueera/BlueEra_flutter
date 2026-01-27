@@ -3,10 +3,9 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_theme_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import '../../../../../core/api/apiService/api_keys.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/app_enum.dart';
@@ -494,7 +493,10 @@ class AskInventoryMsgCard extends StatelessWidget {
                                         contactNo: business?.mobile_no,
                                       );
                                     },
-                                    icon: SvgPicture.asset(AppIconAssets.chat,color: AppColors.primaryColor,),
+                                    icon: LocalAssets(
+                                      imagePath: AppIconAssets.chat,
+                                      imgColor: AppColors.primaryColor
+                                    ),
                                     label:   CustomText(
                                       'Chat Now',
                                       color: Colors.blue,

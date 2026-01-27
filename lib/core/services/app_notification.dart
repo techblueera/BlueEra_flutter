@@ -24,7 +24,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-import '../../features/chat/view/ai_chat/ai_chat_screen.dart';
+import '../../features/chat/view/ai_chat/view/ai_chat_screen.dart';
 import '../../features/chat/view/orders_chat/widget/order_call_alert_page.dart';
 import '../routes/route_helper.dart';
 import 'notifications/ride_notification_data_model.dart';
