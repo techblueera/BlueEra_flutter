@@ -150,6 +150,14 @@ class AppImageAssets {
   static String courierParcel = "${imgPath}courier_parcel.png";
   static String transportVehicle = "${imgPath}transport_vehicle.png";
   static String hotelAndHomeStay = "${imgPath}hotel_and_home_stay.png";
+
+  // Ai Search
+  static String products = "${imgPath}products.png";
+  static String foods = "${imgPath}foods.png";
+  static String services = "${imgPath}services.png";
+  static String education = "${imgPath}education.png";
+  static String travelAndStay = "${imgPath}travel_and_stay.png";
+  static String consultingTalk = "${imgPath}consulting_talk.png";
 }
 
 class OnboardingIndividualAssets{

@@ -268,17 +268,17 @@ class ChatViewController extends GetxController {
     CollapsibleGridModel(
       name: 'Products',
       slugId: PRODUCT,
-      icon: AppImageAssets.healthCare,
+      icon: AppImageAssets.products,
     ),
     CollapsibleGridModel(
       name: 'Foods',
       slugId: FOOD,
-      icon: AppImageAssets.healthCare,
+      icon: AppImageAssets.foods,
     ),
     CollapsibleGridModel(
       name: 'Services',
       slugId: SERVICE,
-      icon: AppImageAssets.healthCare,
+      icon: AppImageAssets.services,
     ),
     CollapsibleGridModel(
       name: 'Health Care',
@@ -288,27 +288,27 @@ class ChatViewController extends GetxController {
     CollapsibleGridModel(
       name: 'Education',
       slugId: EDUCATION_TRAINING,
-      icon: AppImageAssets.healthCare,
+      icon: AppImageAssets.education,
     ),
     CollapsibleGridModel(
       name: 'Home Services',
       slugId: HOME_SERVICES,
-      icon: AppImageAssets.healthCare,
+      icon: AppImageAssets.homeService,
     ),
     CollapsibleGridModel(
       name: 'Travel & Stay',
       slugId: RENTAL_SERVICES,
-      icon: AppImageAssets.healthCare,
+      icon: AppImageAssets.travelAndStay,
     ),
     CollapsibleGridModel(
       name: 'Consulting Talk',
       slugId: PROFESSIONAL,
-      icon: AppImageAssets.healthCare,
+      icon: AppImageAssets.consultingTalk,
     ),
     CollapsibleGridModel(
       name: 'Let’s Talk',
       slugId: 'LETS_TALK',
-      icon: AppImageAssets.healthCare,
+      icon: AppImageAssets.sampleGirlImage,
     ),
   ];
 
@@ -486,7 +486,6 @@ class ChatViewController extends GetxController {
       getListOfAiMessageResponse.value =
           ApiResponse.complete(getListOfInventoryAiMessages);
     });
-
   }
 
   void parseInventoryAiChatHistory(List<dynamic> jsonList) {
@@ -509,7 +508,7 @@ class ChatViewController extends GetxController {
         ApiResponse.complete(getListOfAiMessageData);
   }
 
-  Future<void> sendInventoryMessageToAiSocket({
+  Future<void> sendMessageToAiSearchSocket({
     required String type,
     required String message,
     Uint8List? imageBytes,

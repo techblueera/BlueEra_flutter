@@ -1,10 +1,7 @@
 
 import 'dart:developer';
-import 'dart:typed_data';
-
 import 'package:flutter/foundation.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
-
 import '../../../../core/constants/shared_preference_utils.dart';
 
 class AiSocketService {

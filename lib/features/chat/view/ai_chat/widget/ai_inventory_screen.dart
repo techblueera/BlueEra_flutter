@@ -166,7 +166,9 @@ class _AiInventoryScreenState extends State<AiInventoryScreen> {
                               children: messages.map((message) {
                                 switch (message.role) {
                                   case "model":
-                                    return AskInventoryMsgCard(response: message);
+                                    return AskInventoryMsgCard(
+                                        response: message
+                                    );
 
                                   case "user":
                                     return MessageBubble(
@@ -365,7 +367,7 @@ class _AiInventoryScreenState extends State<AiInventoryScreen> {
                             onTap: () async {
                               if(chatViewController.sendMessageController.value.text.isNotEmpty){
                                 chatViewController
-                                    .sendInventoryMessageToAiSocket(
+                                    .sendMessageToAiSearchSocket(
                                     type: AppConstants.askInventory_Chat_Type,
                                     message: chatViewController
                                         .sendMessageController.value

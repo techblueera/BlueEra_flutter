@@ -1,31 +1,19 @@
-import 'dart:developer';
-import 'dart:io';
 import 'dart:ui';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/chat/view/ai_chat/view/ai_chat_screen.dart';
 import 'package:BlueEra/features/chat/view/ai_chat/widget/ai_inventory_screen.dart';
-import 'package:BlueEra/features/chat/view/ai_chat/widget/ask_inventory_msg_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:dio/dio.dart' as dio;
 import '../../../../../core/constants/app_constant.dart';
-import '../../../../../core/constants/app_icon_assets.dart';
 import '../../../../../core/constants/app_image_assets.dart';
-import '../../../../../core/constants/common_methods.dart';
 import '../../../../../core/constants/size_config.dart';
 import '../../../auth/controller/chat_theme_controller.dart';
 import '../../../auth/controller/chat_view_controller.dart';
-import '../../../auth/model/GetListOfMessageData.dart';
-import '../../../auth/model/inventory_ask_ai_model.dart';
 import '../../widget/component_widgets.dart';
-import '../../widget/message_bubble.dart';
-import '../../widget/picked_media_preview.dart';
 
 class AskChatScreen extends StatefulWidget {
   AskChatScreen(

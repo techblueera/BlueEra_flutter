@@ -288,7 +288,7 @@ class _InventoryScreenState extends State<InventoryScreen>
 
     final RelativeRect position = RelativeRect.fromLTRB(
       fabPosition.dx, // align with FAB left
-      fabPosition.dy - menuHeight - 24, // just above FAB
+      fabPosition.dy - menuHeight + 10, // just above FAB
       overlay.size.width - fabPosition.dx - fabSize.width,
       overlay.size.height - fabPosition.dy,
     );
