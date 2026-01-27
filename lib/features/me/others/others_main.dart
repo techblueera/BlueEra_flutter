@@ -1,10 +1,7 @@
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
-import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/me/other_business_services/view/business_details_screen.dart';
 import 'package:BlueEra/features/me/others/controller/business_profile_full_controller.dart';
 import 'package:BlueEra/features/me/others/repo/other_repo.dart';
 import 'package:BlueEra/features/me/others/view/business_profile_full_screen.dart';
@@ -13,7 +10,6 @@ import 'package:BlueEra/features/me/others/widget/add_others_services.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../../widgets/local_assets.dart';
 
 class OthersMain extends StatefulWidget {
   const OthersMain({

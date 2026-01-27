@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -28,7 +29,10 @@ import '../../../../../../common/food/view/food_and_grocery_screen.dart';
 
 class InventoryScreen extends StatefulWidget {
   final bool fromBottomNavBar;
-  const InventoryScreen({super.key, this.fromBottomNavBar = false});
+  final String? isShowScreen;
+
+  const InventoryScreen(
+      {super.key, this.fromBottomNavBar = false, this.isShowScreen});
 
   @override
   State<InventoryScreen> createState() => _InventoryScreenState();
@@ -50,20 +54,30 @@ class _InventoryScreenState extends State<InventoryScreen>
 
   @override
   void initState() {
+    logs("widget.isShowScreen=== ${widget.isShowScreen}");
+    if (widget.isShowScreen?.isNotEmpty ?? false) {
+      _businessType = widget.isShowScreen ?? "";
+    }
     _initializeData();
     super.initState();
   }
 
   void _initializeData() {
-    final business = businessTypeGlobal.toLowerCase();
+    final business =  _businessType.toLowerCase();
+    // final business = businessTypeGlobal.toLowerCase();
     log('business -- $business');
+    log('business 1111 -- ${(isShowProduct.contains(business))}');
+    log('business 222 -- ${(isShowService.contains(business))}');
 
     _businessType = business;
     _tabs = [];
 
-    if (isShowProduct.contains(business)) _tabs.add(Tab(text: AppStrings.myProducts.tr));
-    if (isShowService.contains(business)) _tabs.add(Tab(text: AppStrings.myServices.tr));
-    if (isShowFood.contains(business)) _tabs.add(Tab(text: AppStrings.foodAndGrocery.tr));
+    if (isShowProduct.contains(business))
+      _tabs.add(Tab(text: AppStrings.myProducts.tr));
+    if (isShowService.contains(business))
+      _tabs.add(Tab(text: AppStrings.myServices.tr));
+    if (isShowFood.contains(business))
+      _tabs.add(Tab(text: AppStrings.foodAndGrocery.tr));
     _tabs.add(Tab(text: AppStrings.businessCards.tr));
 
     _tabController = TabController(length: _tabs.length, vsync: this);
@@ -103,7 +117,6 @@ class _InventoryScreenState extends State<InventoryScreen>
     }
   }
 
-
   @override
   void didPopNext() {
     // Called when coming back to this screen
@@ -119,7 +132,6 @@ class _InventoryScreenState extends State<InventoryScreen>
     _searchFocusNode.dispose();
     super.dispose();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -166,8 +178,7 @@ class _InventoryScreenState extends State<InventoryScreen>
           padding: EdgeInsets.only(
               bottom: widget.fromBottomNavBar
                   ? kBottomNavigationBarHeight + SizeConfig.size20
-                  : 0.0
-          ),
+                  : 0.0),
           child: FloatingActionButton(
             onPressed: () => showPopUpMenu(context, inventoryController),
             backgroundColor: AppColors.primaryColor,
@@ -180,7 +191,9 @@ class _InventoryScreenState extends State<InventoryScreen>
               duration: const Duration(milliseconds: 500),
               curve: Curves.easeInOut,
               child: Obx(() => Icon(
-                    inventoryController.isMenuOpen.value ? Icons.close : Icons.add,
+                    inventoryController.isMenuOpen.value
+                        ? Icons.close
+                        : Icons.add,
                     key: ValueKey(inventoryController.isMenuOpen.value),
                     // important for AnimatedSwitcher
                     size: SizeConfig.size36,
@@ -196,9 +209,12 @@ class _InventoryScreenState extends State<InventoryScreen>
               SliverAppBar(
                 backgroundColor: Colors.white,
                 elevation: 0,
-                floating: true,   // appear on scroll up
-                snap: true,       // instantly snap down
-                pinned: false,    // don't keep the header fixed
+                floating: true,
+                // appear on scroll up
+                snap: true,
+                // instantly snap down
+                pinned: false,
+                // don't keep the header fixed
                 automaticallyImplyLeading: false,
                 flexibleSpace: Padding(
                   padding: EdgeInsets.symmetric(vertical: SizeConfig.size15),
@@ -206,15 +222,14 @@ class _InventoryScreenState extends State<InventoryScreen>
                 ),
                 expandedHeight: SizeConfig.size70,
               ),
-
               SliverPersistentHeader(
-                pinned: true,   // TabBar should always stay visible
+                pinned: true, // TabBar should always stay visible
                 delegate: TabBarDelegate(
                   TabBar(
                     controller: _tabController,
                     labelColor: AppColors.primaryColor,
                     unselectedLabelColor: Colors.grey[600],
-                    indicatorColor: Colors.blue,
+                    indicatorColor: AppColors.primaryColor,
                     indicatorWeight: 2,
                     labelStyle: TextStyle(fontWeight: FontWeight.w600),
                     tabs: [
@@ -234,18 +249,17 @@ class _InventoryScreenState extends State<InventoryScreen>
           body: TabBarView(
             controller: _tabController,
             children: [
-              if ((isShowProduct.contains(_businessType)))
-                ProductScreen(),
+              if ((isShowProduct.contains(_businessType))) ProductScreen(),
               if ((isShowService.contains(_businessType)))
                 ViewServiceList(
                   providerType: ProviderType.business,
                 ),
               if ((isShowFood.contains(_businessType)))
                 GroceryCategoryMenuScreen(),
-                // FoodCategoryPage(),
-                // FoodAndGroceryScreen(
-                //   providerType: ProductServiceProviderType.business,
-                // ),
+              // FoodCategoryPage(),
+              // FoodAndGroceryScreen(
+              //   providerType: ProductServiceProviderType.business,
+              // ),
               InventoryBusinessCardsScreen(
                 showBackAppBar: false,
               )
@@ -270,7 +284,7 @@ class _InventoryScreenState extends State<InventoryScreen>
     // Menu height (approximate based on items * itemHeight)
     const double itemHeight = 36.0;
     const int itemCount = 3;
-    const double menuHeight = itemHeight * (itemCount-1);
+    const double menuHeight = itemHeight * (itemCount - 1);
 
     final RelativeRect position = RelativeRect.fromLTRB(
       fabPosition.dx, // align with FAB left
@@ -293,13 +307,10 @@ class _InventoryScreenState extends State<InventoryScreen>
     if (result != null) {
       log('result--> $result');
       if (result == InventoryMenuItem.addProduct) {
-        await Get.toNamed(
-            RouteHelper.getAddProductScreenRoute(),
-            arguments: {
-              ApiKeys.id: businessId,
-              ApiKeys.providerType: ProviderType.business
-            }
-        );
+        await Get.toNamed(RouteHelper.getAddProductScreenRoute(), arguments: {
+          ApiKeys.id: businessId,
+          ApiKeys.providerType: ProviderType.business
+        });
         controller.callApi(forceRefresh: true);
 
         // bool isApiCall = await Get.toNamed(
@@ -315,14 +326,10 @@ class _InventoryScreenState extends State<InventoryScreen>
         // if (isApiCall) {
         //   controller.callApi(forceRefresh: true);
         // }
-
       } else if (result == InventoryMenuItem.addService) {
-        Get.toNamed(
-            RouteHelper.getAddServicesScreenRoute(),
-            arguments: {
-              ApiKeys.providerType: ProviderType.business,
-            }
-        );
+        Get.toNamed(RouteHelper.getAddServicesScreenRoute(), arguments: {
+          ApiKeys.providerType: ProviderType.business,
+        });
       } else if (result == InventoryMenuItem.addFood) {
         Get.toNamed(
           RouteHelper.getFoodUploadScreenRoute(),
@@ -341,23 +348,22 @@ class _InventoryScreenState extends State<InventoryScreen>
           IconButton(
               padding: EdgeInsets.zero,
               onPressed: () {
-                    Navigator.of(context).pop();
-                  },
+                Navigator.of(context).pop();
+              },
               icon: LocalAssets(
                 imagePath: AppIconAssets.back_arrow,
                 height: SizeConfig.paddingL,
                 width: SizeConfig.paddingL,
-                imgColor:  Colors.black,
+                imgColor: Colors.black,
               )),
         Expanded(
           child: Padding(
             padding: EdgeInsets.only(
-                left:
-                (!widget.fromBottomNavBar) ? 0.0 : SizeConfig.size15),
+                left: (!widget.fromBottomNavBar) ? 0.0 : SizeConfig.size15),
             child: CommonSearchBar(
-                controller: searchController,
-                onClearCallback: ()=> searchController.clear(),
-           ),
+              controller: searchController,
+              onClearCallback: () => searchController.clear(),
+            ),
           ),
         ),
         PopupMenuButton<String>(
@@ -365,8 +371,8 @@ class _InventoryScreenState extends State<InventoryScreen>
           offset: const Offset(-6, 36),
           color: AppColors.white,
           elevation: 8,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           icon: Icon(Icons.more_vert),
           itemBuilder: (context) => inventoryPopupMenuItems(),
         ),

@@ -4,6 +4,10 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/me/others/controller/other_branch_contact_controller.dart';
+import 'package:BlueEra/features/me/others/view/other_contact_us/other_branch_details_form_screen.dart';
+import 'package:BlueEra/features/me/others/view/other_contact_us/other_branch_only_screen.dart';
+import 'package:BlueEra/features/me/others/view/other_contact_us/other_department_only_screen.dart';
 import 'package:BlueEra/features/me/school/controller/branch_contact_controller.dart';
 import 'package:BlueEra/features/me/school/view/category/school_contact_us/branch_details_form_screen.dart';
 import 'package:BlueEra/features/me/school/view/category/school_contact_us/branch_only_screen.dart';
@@ -19,15 +23,15 @@ import 'package:get/get.dart';
 import '../../../../../../../../core/constants/app_colors.dart';
 import '../../../../../../../../widgets/custom_text_cm.dart';
 
-class SchoolContactUs extends StatefulWidget {
-  const SchoolContactUs({super.key});
+class OtherContactUs extends StatefulWidget {
+  const OtherContactUs({super.key});
 
   @override
-  State<SchoolContactUs> createState() => _SchoolContactUsState();
+  State<OtherContactUs> createState() => _OtherContactUsState();
 }
 
-class _SchoolContactUsState extends State<SchoolContactUs> {
-  final controller = Get.put(BranchContactController());
+class _OtherContactUsState extends State<OtherContactUs> {
+  final controller = Get.put(OtherBranchContactController());
 
   @override
   void initState() {
@@ -81,7 +85,7 @@ class _SchoolContactUsState extends State<SchoolContactUs> {
                                 )),
                                 InkWell(
                                   onTap: () {
-                                    Get.to(BranchOnlyScreen(schoolContactUsData: data,));
+                                    Get.to(OtherBranchOnlyScreen(schoolContactUsData: data,));
                                   },
                                   child: LocalAssets(
                                     imagePath: AppIconAssets.editIcon,
@@ -162,7 +166,7 @@ class _SchoolContactUsState extends State<SchoolContactUs> {
                                           ),
                                           InkWell(
                                             onTap: () {
-                                              Get.to(DepartmentOnlyScreen(
+                                              Get.to(OtherDepartmentOnlyScreen(
                                                 contactInfo: contactData,
                                                 isContactInfoEdit: true,
                                                 branchId: data.id,
@@ -262,7 +266,7 @@ class _SchoolContactUsState extends State<SchoolContactUs> {
                                   color: AppColors.primaryColor,
                                 ),
                                 onPressed: () {
-                                  Get.to(DepartmentOnlyScreen(
+                                  Get.to(OtherDepartmentOnlyScreen(
                                     branchId: data.id,
                                   ));
                                 },
@@ -289,7 +293,7 @@ class _SchoolContactUsState extends State<SchoolContactUs> {
             /// Add More Course Button
             AddMoreIconButton(
               onTapEvent: () {
-                Get.to(BranchDetailsFormScreen());
+                Get.to(OtherBranchDetailsFormScreen());
               },
               buttonName: "Add Another Branch",
             ),
