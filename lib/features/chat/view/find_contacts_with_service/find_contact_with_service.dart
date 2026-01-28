@@ -10,9 +10,9 @@ import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../../../core/api/apiService/api_keys.dart';
-import '../../../../core/api/apiService/api_response.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/service/contact_store_service.dart';
+import 'others/find_by_other_service_main.dart';
 
 class FindContactWithService extends StatefulWidget {
   const FindContactWithService({super.key});
@@ -148,6 +148,12 @@ class _FindContactWithServiceState extends State<FindContactWithService>
                 }else if(index==1){
                   chatViewController.findServiceByContacts(
                       fashionContactCategories.first.slugId, null);
+                }else if(index==2){
+                  chatViewController.findServiceByContacts(
+                      serviceContactCategories.first.slugId, null);
+                }else if(index==3){
+                  chatViewController.findServiceByContacts(
+                      othersContactCategories.first.slugId, null);
                 }
                 chatViewController.selectedIndex.value=0;
               },
@@ -176,7 +182,7 @@ class _FindContactWithServiceState extends State<FindContactWithService>
                 ProfessionalsMain(),
                 ShoppingMain(),
                 ServiceMain(),
-                Container(),
+                FindByOtherService(),
               ],
             ),
           ),

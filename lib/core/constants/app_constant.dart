@@ -2465,10 +2465,39 @@ final List<OnboardingCategoryModel> fashionContactCategories = [
   OnboardingCategoryModel(
       name: 'All Product',
       slugId: ALL_PRODUCT_PROFILE,
-      icon: AppIconAssets.find_contact_all_view,
+      icon: AppIconAssets.find_all_product,
       accountType: AppConstants.business,
       businessType: BusinessType.Product),
   ...businessProductsCategories
+];
+final List<OnboardingCategoryModel> serviceContactCategories = [
+  OnboardingCategoryModel(
+      name: 'All Service',
+      slugId: ALL_PRODUCT_PROFILE,
+      icon: AppIconAssets.find_all_service,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Product),
+  ...businessOnboardingServicesCategories
+];
+final List<OnboardingCategoryModel> othersContactCategories = [
+  OnboardingCategoryModel(
+      name: 'Others',
+      slugId: "others",
+      icon: AppIconAssets.find_contact_all_view,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Product),
+  OnboardingCategoryModel(
+      name: 'Social Profile',
+      slugId: "SOCIAL_PROFILE",
+      icon: AppIconAssets.find_contact_all_view,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Product),
+  OnboardingCategoryModel(
+      name: 'Social',
+      slugId: "social",
+      icon: AppIconAssets.find_contact_all_view,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Product),
 ];
 final List<OnboardingCategoryModel> businessProductsCategories = [
   OnboardingCategoryModel(

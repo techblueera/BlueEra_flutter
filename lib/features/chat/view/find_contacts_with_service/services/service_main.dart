@@ -1,12 +1,12 @@
-import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
-
 import '../../../../../core/constants/app_constant.dart';
 import '../../../auth/controller/chat_view_controller.dart';
-import '../../widget/component_widgets.dart';
+import '../widget/common_subtab_widget.dart';
+import '../widget/contact_by_service_tile_widget.dart';
+
 class ServiceMain extends StatefulWidget {
   const ServiceMain({super.key});
 
@@ -16,16 +16,17 @@ class ServiceMain extends StatefulWidget {
 
 class _ServiceMainState extends State<ServiceMain> {
   final chatViewController = Get.find<ChatViewController>();
-
-  List<String> content=[
-    "Education & Training",
-    "Beauty & Personal Care",
-    "Tour, Travel & Tourism",
-    "Service Centre & Essential Utility",
-  ];
-  int selectedSubTab=0;
+@override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((val){
+      chatViewController.selectedIndex.value=0;
+    });
+}
   @override
   Widget build(BuildContext context) {
+    //serviceContactCategories
     final theme = Theme.of(context);
 
     return Column(crossAxisAlignment: CrossAxisAlignment.start,
@@ -35,60 +36,33 @@ class _ServiceMainState extends State<ServiceMain> {
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                // for(int i=0;i<content.length;i++)
-                //   CommonSubTabWidget(
-                //     index: i,
-                //     selectedIndex: selectedSubTab,
-                //     title: content[i],
-                //     onTap: () {
-                //       setState(() {
-                //         selectedSubTab = i;
-                //       });
-                //     },
-                //   )
+            child: Obx(() {
+              return Row(
+                children: [
 
-
-              ],
-            ),
+                  for(int i = 0; i < serviceContactCategories.length; i++ )
+                    CommonSubTabWidget(
+                      selectedIndex: chatViewController.selectedIndex
+                          .value,
+                      index: i,
+                      title: serviceContactCategories[i].name,
+                      icon: serviceContactCategories[i].icon,
+                      onTap: () async {
+                        chatViewController.selectedIndex.value = i;
+                        await chatViewController.findServiceByContacts(
+                            serviceContactCategories[i].slugId, null);
+                      },
+                    ),
+                ],
+              );
+            }),
           ),
         ),
         SizedBox(height: SizeConfig.size10,),
-        Expanded(
-          child: Container(
-
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.only(topLeft: Radius.circular(20),topRight: Radius.circular(20))
-                ,
-                color: AppColors.white
-            ),
-            padding: EdgeInsets.symmetric(vertical: 6),
-            child: ListView.builder(
-              itemCount: 1, // ADD 1 EXTRA ITEM
-              shrinkWrap: true,
-              itemBuilder: (context, index) {
-                final chat =
-                    ChatViewController.personalAiChatModule
-                ;
-                return ChatListTile(
-                  onTab:
-                  null,
-                  onSelect: () {
-
-                  },
-                  type: chat?.sender?.accountType ?? AppConstants.individual,
-                  index: index - 1, // correct index for chat list
-                  chatViewController: chatViewController,
-                  chat: chat,
-                  theme: theme,
-                  context: context,
-                  isForwardUI: null,
-                );
-              },
-            ),
-          ),
-        ),
+        FindContactByServiceListWidget(
+          chatViewController: chatViewController,
+          theme: theme,
+        )
       ],
     );
   }

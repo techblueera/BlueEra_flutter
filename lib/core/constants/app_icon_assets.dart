@@ -606,8 +606,10 @@ class AppIconAssets {
   static const String socialProfile = "${iconPath}social_profile.svg";
   static const String carTaxiGigWorker = "${iconPath}car_taxi_gig_worker.svg";
   static const String find_contact_all_view = '${iconPath}find_contact_all_view.svg';
-  static const String skilled_work = '${iconPath}skilled_work.svg';
+  static const String find_all_product = '${iconPath}find_all_product.svg';
+  static const String skilled_work = '${AppConstants.baseImageAssetsPath}skilled_work.png';
   static const String find_consultant = '${iconPath}find_consultant.svg';
+  static const String find_all_service = '${iconPath}find_all_service.svg';
   static const String find_travel = '${iconPath}find_travel.svg';
   static const String  chat_find= "${iconPath}chat_find.svg";
   static const String hospitalVisionIcon = "${AppConstants.baseImageAssetsPath}vision_hospital_icon.png";
