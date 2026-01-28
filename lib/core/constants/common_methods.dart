@@ -3,9 +3,11 @@ import 'dart:io';
 
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
 import 'package:flutter/material.dart' hide Key;
 import 'package:flutter/rendering.dart' hide Key;
+import 'package:geolocator/geolocator.dart' as geo;
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
@@ -15,6 +17,7 @@ import 'package:url_launcher/url_launcher.dart';
 // import 'package:video_compress/video_compress.dart';
 import 'package:video_player/video_player.dart';
 
+import '../../features/common/service/model/get_service_model.dart';
 import 'app_colors.dart';
 
 ///SHOW APP LOGS
@@ -603,4 +606,61 @@ Map<String, int> calculateExperience(String startDateString) {
   } catch (e) {
     return {"years": 0, "months": 0};
   }
+}
+
+Map<String, String> getServicesMinMaxTimings(List<Timings>? timingsList) {
+  if (timingsList == null || timingsList.isEmpty) return {"start": "--", "end": "--"};
+
+  Timings? earliest = timingsList.first;
+  Timings? latest = timingsList.first;
+
+  for (final t in timingsList) {
+    final startTime = parse12HourTime(t.start ?? "00:00 AM");
+    final earliestStart = parse12HourTime(earliest?.start ?? "00:00 AM");
+    if (startTime.isBefore(earliestStart)) earliest = t;
+
+    final endTime = parse12HourTime(t.end ?? "00:00 AM");
+    final latestEnd = parse12HourTime(latest?.end ?? "00:00 AM");
+    if (endTime.isAfter(latestEnd)) latest = t;
+  }
+
+  return {
+    "start": earliest?.start ?? "--",
+    "end": latest?.end ?? "--",
+  };
+}
+
+DateTime parse12HourTime(String timeStr) {
+  final format = RegExp(r'(\d+):(\d+)\s*(AM|PM)');
+  final match = format.firstMatch(timeStr.trim());
+
+  if (match != null) {
+    int hour = int.parse(match.group(1)!);
+    int minute = int.parse(match.group(2)!);
+    final period = match.group(3);
+
+    if (period == "PM" && hour != 12) hour += 12;
+    if (period == "AM" && hour == 12) hour = 0;
+
+    return DateTime(0, 1, 1, hour, minute);
+  }
+
+  return DateTime(0); // fallback
+}
+
+double? calculateDistance(double targetLat, double targetLng){
+  double userLat = LocationService.lat;
+  double userLng = LocationService.lat;
+  if(userLat == 0.0 || userLng == 0.0) return null;
+  double distanceMeters = geo.Geolocator.distanceBetween(
+    userLat,
+    userLng,
+    targetLat,
+    targetLng,
+  );
+
+  // Road factor ≈ 1.27 (very close to Google distance)
+  const double roadFactor = 1.27;
+
+  return (distanceMeters * roadFactor) / 1000;
 }

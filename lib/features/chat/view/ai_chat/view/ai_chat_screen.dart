@@ -58,7 +58,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
     chatViewController.sendMessageController.value.clear();
     chatViewController.isTextFieldEmpty.value = false;
     chatThemeController.resetSelection();
-    chatViewController.connectAiSocket(widget.type);
+    chatViewController.connectAiSocket(widget.type ?? '');
     super.initState();
   }
 
@@ -131,7 +131,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
                             child: InkWell(
                               onTap: () {
                                 chatViewController.sendMessageToAiSocket(
-                                    type: widget.type,
+                                    type: widget.type ?? '',
                                     message: "Namaste"
                                 );
                               },
@@ -389,7 +389,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
                                         if(chatViewController.sendMessageController.value.text.isNotEmpty){
                                             chatViewController
                                                 .sendMessageToAiSocket(
-                                                type: widget.type,
+                                                type: widget.type ?? '',
                                                 message: chatViewController
                                                     .sendMessageController.value
                                                     .text
