@@ -41,6 +41,7 @@ class GetServiceModel {
     this.business,
     this.serviceProvider,
     this.variants,
+    this.providerDetails,
   });
 
   GetServiceModel.fromJson(dynamic json) {
@@ -99,6 +100,10 @@ class GetServiceModel {
     serviceProvider = json['serviceProvider'] != null
         ? new ServiceProvider.fromJson(json['serviceProvider'])
         : null;
+    providerDetails = json['providerDetails'] != null
+        ? ProviderDetails.fromJson(json['providerDetails'])
+        : null;
+
   }
 
   PriceRange? priceRange;
@@ -132,6 +137,7 @@ class GetServiceModel {
   List<dynamic>? variants;
   BusinessService? business;
   ServiceProvider? serviceProvider;
+  ProviderDetails? providerDetails;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -186,9 +192,14 @@ class GetServiceModel {
     if (this.serviceProvider != null) {
       map['serviceProvider'] = this.serviceProvider!.toJson();
     }
+    if (providerDetails != null) {
+      map['providerDetails'] = providerDetails!.toJson();
+    }
     return map;
   }
 }
+
+
 
 ExtraDetails extraDetailsFromJson(String str) =>
     ExtraDetails.fromJson(json.decode(str));
@@ -343,6 +354,7 @@ class BusinessService {
   CategoryOfBusiness? categoryOfBusiness;
   List<OwnerDetails>? ownerDetails;
 
+
   BusinessService({
     this.id,
     this.userId,
@@ -355,6 +367,7 @@ class BusinessService {
     this.address,
     this.categoryOfBusiness,
     this.ownerDetails,
+
   });
 
   BusinessService.fromJson(Map<String, dynamic> json) {
@@ -379,6 +392,7 @@ class BusinessService {
         ownerDetails!.add(new OwnerDetails.fromJson(v));
       });
     }
+
 
   }
 
@@ -406,6 +420,7 @@ class BusinessService {
       data['owner_details'] =
           this.ownerDetails!.map((v) => v.toJson()).toList();
     }
+
     return data;
   }
 }
@@ -430,6 +445,44 @@ class ServiceProvider {
 
     data['id'] = this.id;
     data['type'] = this.type;
+    return data;
+  }
+}
+
+class ProviderDetails {
+  String? id;
+  String? name;
+  String? profileImage;
+  String? location;
+  String? profession;
+  bool? verified;
+
+  ProviderDetails(
+      {this.id,
+        this.name,
+        this.profileImage,
+        this.location,
+        this.profession,
+        this.verified
+      });
+
+  ProviderDetails.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    name = json['name'];
+    profileImage = json['profile_image'];
+    location = json['location'];
+    profession = json['profession'];
+    verified = json['verified'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['id'] = this.id;
+    data['name'] = this.name;
+    data['profile_image'] = this.profileImage;
+    data['location'] = this.location;
+    data['profession'] = this.profession;
+    data['verified'] = this.verified;
     return data;
   }
 }

@@ -1,59 +1,55 @@
+import 'package:BlueEra/features/chat/auth/model/base_ai_chat_model.dart';
+
 import '../../../personal/personal_profile/view/inventory/model/get_product_model.dart';
 
-class InventoryAskAiModel {
-  String? reply;
-  String? role;
-  String? conversationId;
-  String? timestamp;
+class InventoryAskAiModel extends BaseAiChatModel {
   List<String>? suggestions;
-  List<ProductItem>? products;
+  Data? data;
 
-  InventoryAskAiModel({this.reply, this.role,this.timestamp, this.conversationId, this.suggestions, this.products,});
+  InventoryAskAiModel({
+    super.conversationId,
+    super.role,
+    super.timestamp,
+    super.message,
+    this.suggestions,
+    this.data,
+  });
 
   factory InventoryAskAiModel.fromJson(Map<String, dynamic> json) {
     return InventoryAskAiModel(
-      reply: json['reply'],
+      message: json['reply'] ?? json['content'],
       role: json['role'],
       conversationId: json['conversationId'],
       timestamp: json['timestamp'],
       suggestions: json['suggestions'] != null
           ? List<String>.from(json['suggestions'])
           : null,
-      products: (json['products'] as List?)
-          ?.map((e) => ProductItem.fromJson(e))
-          .toList(),
+      data: json['data'] != null ? Data.fromJson(json['data']) : null,
     );
   }
 
   Map<String, dynamic> toJson() => {
-    'reply': reply,
-    "role": role,
+    'content': message,
+    'role': role,
     'conversationId': conversationId,
     'timestamp': timestamp,
     'suggestions': suggestions,
-    'products': products?.map((e) => e.toJson()).toList(),
+    'data': data?.toJson(),
   };
 }
 
-class InventoryAskHistoryAiModel {
-  String? content;
-  String? role;
-  String? conversationId;
-  String? timestamp;
-  List<String>? suggestions;
+class Data{
+  bool? found;
   List<ProductItem>? products;
 
-  InventoryAskHistoryAiModel({this.content, this.role,this.timestamp, this.conversationId, this.suggestions, this.products,});
+  Data({
+    this.found,
+    this.products,
+  });
 
-  factory InventoryAskHistoryAiModel.fromJson(Map<String, dynamic> json) {
-    return InventoryAskHistoryAiModel(
-      content: json['content'],
-      role: json['role'],
-      conversationId: json['conversationId'],
-      timestamp: json['timestamp'],
-      suggestions: json['suggestions'] != null
-          ? List<String>.from(json['suggestions'])
-          : null,
+  factory Data.fromJson(Map<String, dynamic> json) {
+    return Data(
+      found: json['found'],
       products: (json['products'] as List?)
           ?.map((e) => ProductItem.fromJson(e))
           .toList(),
@@ -61,13 +57,11 @@ class InventoryAskHistoryAiModel {
   }
 
   Map<String, dynamic> toJson() => {
-    'content': content,
-    "role": role,
-    'conversationId': conversationId,
-    'timestamp': timestamp,
-    'suggestions': suggestions,
+    'found': found,
     'products': products?.map((e) => e.toJson()).toList(),
   };
+
+
 }
 
 // -----------------------------------------------------------------------------

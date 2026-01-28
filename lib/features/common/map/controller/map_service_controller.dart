@@ -162,7 +162,7 @@ class MapServiceController extends GetxController {
               // item.distance = distanceKm.toInt();
               double? tempDistance;
               if (itemLat != 0 && itemLng != 0) {
-                tempDistance = await getDistanceInKm( itemLat, itemLng);
+                tempDistance = await getDistanceInKm(itemLat, itemLng);
               } else {
                 tempDistance = 0.0; // or null
               }

@@ -1,3 +1,4 @@
+
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_theme_controller.dart';
@@ -16,10 +17,10 @@ import '../../../../../widgets/common_box_shadow.dart';
 import '../../../auth/controller/chat_view_controller.dart';
 import '../../../auth/model/inventory_ask_ai_model.dart';
 
-class AskInventoryMsgCard extends StatelessWidget {
+class AskFoodMsgCard extends StatelessWidget {
   final InventoryAskAiModel response;
 
-  AskInventoryMsgCard({Key? key, required this.response}) : super(key: key);
+  AskFoodMsgCard({Key? key, required this.response}) : super(key: key);
 
   final chatThemeController = getOrPut(() => ChatThemeController());
 
@@ -43,10 +44,10 @@ class AskInventoryMsgCard extends StatelessWidget {
             decoration: BoxDecoration(
               color: chatThemeController.receiveMessageBgColor.value,
               borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(12),
-                topRight: Radius.circular(12),
-                bottomRight: Radius.circular(12),
-                bottomLeft: Radius.circular(0.0)
+                  topLeft: Radius.circular(12),
+                  topRight: Radius.circular(12),
+                  bottomRight: Radius.circular(12),
+                  bottomLeft: Radius.circular(0.0)
               ),
             ),
             child: CustomText(
@@ -119,10 +120,10 @@ class AskInventoryMsgCard extends StatelessWidget {
                               business?.business_name ?? "",
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                            
-                                fontWeight: FontWeight.w600,
-                                fontSize: 12,
-                            
+
+                              fontWeight: FontWeight.w600,
+                              fontSize: 12,
+
                             ),
                           ),
                         ],
@@ -191,12 +192,12 @@ class AskInventoryMsgCard extends StatelessWidget {
                                         Row(
                                           children: [
                                             if(product?.mrpPerUnit!=null)
-                                            CustomText(
-                                              '₹${product?.mrpPerUnit}',
-                                              fontWeight: FontWeight.w700,
-                                              fontSize: SizeConfig.medium,
-                                              color: AppColors.mainTextColor,
-                                            ),
+                                              CustomText(
+                                                '₹${product?.mrpPerUnit}',
+                                                fontWeight: FontWeight.w700,
+                                                fontSize: SizeConfig.medium,
+                                                color: AppColors.mainTextColor,
+                                              ),
                                             // const SizedBox(width: 8),
                                             // CustomText(
                                             //   ' ₹${product.mrp}',
@@ -425,7 +426,7 @@ class AskInventoryMsgCard extends StatelessWidget {
                                       await chatViewController.checkChatConnection(detas);
                                       List<Map<String, String>>? urlList =
                                       product?.media.map((e) => {"url": e}).toList();
-                                     Map<String, dynamic> data = {
+                                      Map<String, dynamic> data = {
                                         ApiKeys.product_id:"${product?.id}",
 
                                         ApiKeys.price: "${product?.mrpPerUnit}",
@@ -493,8 +494,8 @@ class AskInventoryMsgCard extends StatelessWidget {
                                       );
                                     },
                                     icon: LocalAssets(
-                                      imagePath: AppIconAssets.chat,
-                                      imgColor: AppColors.primaryColor
+                                        imagePath: AppIconAssets.chat,
+                                        imgColor: AppColors.primaryColor
                                     ),
                                     label:   CustomText(
                                       'Chat Now',

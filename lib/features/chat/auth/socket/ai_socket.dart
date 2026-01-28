@@ -1,4 +1,3 @@
-
 import 'dart:developer';
 import 'package:flutter/foundation.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
@@ -48,7 +47,6 @@ class AiSocketService {
     });
 
     socket!.onError((data) {
-      print("error successfully!");
     });
   }
 
@@ -117,6 +115,10 @@ class AiSocketService {
     Uint8List? imageBytes,
     String? mimeType,
   }) {
+    if (kDebugMode) {
+      print('📤 EMIT [send_message] --> ID: $conversationId | Message: "$message"');
+    }
+
     socket?.emit('send_message', {
       "message": message,
       if(conversationId!=null)

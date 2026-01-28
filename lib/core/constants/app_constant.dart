@@ -100,23 +100,25 @@ class AppConstants {
   static const String SMS = 'SMS';
   static const String WhatsApp = 'WhatsApp';
 
-  static const String personal_Chat_Type = 'personal';
-  static const String business_Chat_Type = 'business';
+
   static const String group_Chat_Type = 'group';
   static const String order_Chat_Type = 'order';
   static const String emergency = 'Emergency';
   static const String other = 'Other';
   static const String AiReply_Chat_Type = 'AiReply';
   static const String AiQuest_Chat_Type = 'AiQuest';
+
+  static const String personal_Chat_Type = 'personal';
+  static const String business_Chat_Type = 'business';
   static const String search_Chat_Type = 'search';
   static const String askInventory_Chat_Type = 'INVENTORY';
   static const String askFood_Chat_Type = 'FOOD';
-  static const String askService_Chat_Type = 'askService';
-  static const String askHealthCare_Chat_Type = 'askHealthCare';
+  static const String askService_Chat_Type = 'SERVICES';
+  static const String askHealthCare_Chat_Type = 'HEALTHCARE';
   static const String askEducation_Chat_Type = 'EDUCATION';
-  static const String askHomeService_Chat_Type = 'askHomeService';
+  static const String askHomeService_Chat_Type = 'HOME_SERVICES';
   static const String askTravelStay_Chat_Type = 'TRAVEL';
-  static const String askConsultingTalk_Chat_Type = 'askConsultingTalk';
+  static const String askConsultingTalk_Chat_Type = 'CONSULTING';
 
   // static const String business = 'business';
   // static const String company = 'company';

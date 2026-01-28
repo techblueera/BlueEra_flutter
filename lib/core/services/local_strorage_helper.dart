@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
@@ -449,6 +450,15 @@ class AiChatLocalStorage {
 
   static const String keyPersonalConversationId = "personalConversationId";
   static const String keyBusinessConversationId = "businessConversationId";
+  static const String keyAiSearchConversationId = "keyAiSearchConversationId";
+  static const String keyInventoryConversationId = "keyInventoryConversationId";
+  static const String keyFoodConversationId = "keyFoodConversationId";
+  static const String keyServicesConversationId = "keyServicesConversationId";
+  static const String keyHealthCareConversationId = "keyHealthCareConversationId";
+  static const String keyEducationConversationId = "keyEducationConversationId";
+  static const String keyHomeServiceConversationId = "keyHomeServiceConversationId";
+  static const String keyTravelStayConversationId = "keyTravelStayConversationId";
+  static const String keyConsultingTalkConversationId = "keyConsultingTalkConversationId";
 
   static Future<Box<String>> _openBox() async {
     if (Hive.isBoxOpen(_boxName)) {
@@ -490,12 +500,30 @@ class AiChatLocalStorage {
   /// Internal: Map type to storage key
   static String _getKey(String type) {
     switch (type) {
-      case "personal":
+      case AppConstants.personal_Chat_Type:
         return keyPersonalConversationId;
-      case "business":
+      case AppConstants.business_Chat_Type:
         return keyBusinessConversationId;
+      case AppConstants.search_Chat_Type:
+        return keyAiSearchConversationId;
+      case AppConstants.askInventory_Chat_Type:
+        return keyInventoryConversationId;
+      case AppConstants.askFood_Chat_Type:
+        return keyFoodConversationId;
+      case AppConstants.askService_Chat_Type:
+        return keyServicesConversationId;
+      case AppConstants.askHealthCare_Chat_Type:
+        return keyHealthCareConversationId;
+      case AppConstants.askEducation_Chat_Type:
+        return keyEducationConversationId;
+      case AppConstants.askHomeService_Chat_Type:
+        return keyHomeServiceConversationId;
+      case AppConstants.askTravelStay_Chat_Type:
+        return keyTravelStayConversationId;
+      case AppConstants.askConsultingTalk_Chat_Type:
+        return keyConsultingTalkConversationId;
       default:
-        throw Exception("Invalid type. Use 'personal' or 'business'");
+        throw Exception("Invalid type.");
     }
   }
 }

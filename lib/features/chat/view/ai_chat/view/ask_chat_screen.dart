@@ -2,7 +2,7 @@ import 'dart:ui';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/chat/view/ai_chat/view/ai_chat_screen.dart';
-import 'package:BlueEra/features/chat/view/ai_chat/widget/ai_inventory_screen.dart';
+import 'package:BlueEra/features/chat/view/ai_chat/view/ai_common_search_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -164,7 +164,8 @@ class _AskChatScreenState extends State<AskChatScreen> {
                                 switch(chatViewController.askAiFor.value?.slugId){
                                   case PRODUCT:
                                     final chat = ChatViewController.inventoryAiChatListSearchModule;
-                                    Get.to(() => AiInventoryScreen(
+                                    Get.to(() => AiCommonSearchScreen(
+                                      chatType: AppConstants.askInventory_Chat_Type,
                                       profileImage: chat?.sender?.profileImage,
                                       name: chat?.sender?.name,
                                       contactNo: chat?.sender?.contactNo,
@@ -176,30 +177,103 @@ class _AskChatScreenState extends State<AskChatScreen> {
                                     ));
                                     break;
                                   case FOOD:
-                                    final chat = ChatViewController.inventoryAiChatListSearchModule;
+                                    final chat = ChatViewController.foodAiChatListSearchModule;
+                                    Get.to(() => AiCommonSearchScreen(
+                                      chatType: AppConstants.askFood_Chat_Type,
+                                      profileImage: chat?.sender?.profileImage,
+                                      name: chat?.sender?.name,
+                                      contactNo: chat?.sender?.contactNo,
+                                      conversationId: '',
+                                      userId: '',
+                                      businessId: '',
+                                      type: chat?.sender?.accountType,
+                                      isInitialMessage: false,
+                                    ));
                                     break;
                                   case SERVICE:
-                                    final chat = ChatViewController.inventoryAiChatListSearchModule;
+                                    final chat = ChatViewController.serviceAiChatListSearchModule;
+                                    Get.to(() => AiCommonSearchScreen(
+                                      chatType: AppConstants.askService_Chat_Type,
+                                      profileImage: chat?.sender?.profileImage,
+                                      name: chat?.sender?.name,
+                                      contactNo: chat?.sender?.contactNo,
+                                      conversationId: '',
+                                      userId: '',
+                                      businessId: '',
+                                      type: chat?.sender?.accountType,
+                                      isInitialMessage: false,
+                                    ));
                                     break;
                                   case HEALTHCARE_MEDICAL_SERVICES:
-                                    final chat = ChatViewController.inventoryAiChatListSearchModule;
-
+                                    final chat = ChatViewController.healthCareAiChatListSearchModule;
+                                    Get.to(() => AiCommonSearchScreen(
+                                      chatType: AppConstants.askHealthCare_Chat_Type,
+                                      profileImage: chat?.sender?.profileImage,
+                                      name: chat?.sender?.name,
+                                      contactNo: chat?.sender?.contactNo,
+                                      conversationId: '',
+                                      userId: '',
+                                      businessId: '',
+                                      type: chat?.sender?.accountType,
+                                      isInitialMessage: false,
+                                    ));
                                     break;
                                   case EDUCATION_TRAINING:
-                                    final chat = ChatViewController.inventoryAiChatListSearchModule;
-
+                                    final chat = ChatViewController.educationAiChatListSearchModule;
+                                    Get.to(() => AiCommonSearchScreen(
+                                      chatType: AppConstants.askEducation_Chat_Type,
+                                      profileImage: chat?.sender?.profileImage,
+                                      name: chat?.sender?.name,
+                                      contactNo: chat?.sender?.contactNo,
+                                      conversationId: '',
+                                      userId: '',
+                                      businessId: '',
+                                      type: chat?.sender?.accountType,
+                                      isInitialMessage: false,
+                                    ));
                                     break;
                                   case HOME_SERVICES:
-                                    final chat = ChatViewController.inventoryAiChatListSearchModule;
-
+                                    final chat = ChatViewController.homeServiceAiChatListSearchModule;
+                                    Get.to(() => AiCommonSearchScreen(
+                                      chatType: AppConstants.askHomeService_Chat_Type,
+                                      profileImage: chat?.sender?.profileImage,
+                                      name: chat?.sender?.name,
+                                      contactNo: chat?.sender?.contactNo,
+                                      conversationId: '',
+                                      userId: '',
+                                      businessId: '',
+                                      type: chat?.sender?.accountType,
+                                      isInitialMessage: false,
+                                    ));
                                     break;
                                   case RENTAL_SERVICES:
-                                    final chat = ChatViewController.inventoryAiChatListSearchModule;
-
+                                    final chat = ChatViewController.travelAndStayAiChatListSearchModule;
+                                    Get.to(() => AiCommonSearchScreen(
+                                      chatType: AppConstants.askTravelStay_Chat_Type,
+                                      profileImage: chat?.sender?.profileImage,
+                                      name: chat?.sender?.name,
+                                      contactNo: chat?.sender?.contactNo,
+                                      conversationId: '',
+                                      userId: '',
+                                      businessId: '',
+                                      type: chat?.sender?.accountType,
+                                      isInitialMessage: false,
+                                    ));
                                     break;
                                   case PROFESSIONAL:
-                                    final chat = ChatViewController.inventoryAiChatListSearchModule;
+                                    final chat = ChatViewController.consultingTalkAiChatListSearchModule;
 
+                                    Get.to(() => AiCommonSearchScreen(
+                                      chatType: AppConstants.askConsultingTalk_Chat_Type,
+                                      profileImage: chat?.sender?.profileImage,
+                                      name: chat?.sender?.name,
+                                      contactNo: chat?.sender?.contactNo,
+                                      conversationId: '',
+                                      userId: '',
+                                      businessId: '',
+                                      type: chat?.sender?.accountType,
+                                      isInitialMessage: false,
+                                    ));
                                     break;
                                   case 'LETS_TALK':
                                     final chat= ChatViewController.businessAiChatModule;

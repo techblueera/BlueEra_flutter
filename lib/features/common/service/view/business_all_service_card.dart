@@ -108,7 +108,6 @@ class _BusinessAllServiceCardState extends State<BusinessAllServiceCard> {
               };
             }
 
-
             final timingMap = getMinMaxTimings(serviceData.timings);
 
             return RepaintBoundary(

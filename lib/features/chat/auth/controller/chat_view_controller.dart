@@ -8,10 +8,18 @@ import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/chat/auth/model/base_ai_chat_model.dart';
+import 'package:BlueEra/features/chat/auth/model/business_service_ask_ai_model.dart';
+import 'package:BlueEra/features/chat/auth/model/education_ask_ai_model.dart';
+import 'package:BlueEra/features/chat/auth/model/food_ask_ai_model.dart';
+import 'package:BlueEra/features/chat/auth/model/health_care_ask_ai_model.dart';
 import 'package:BlueEra/features/chat/auth/model/messageMediaUrl.dart';
+import 'package:BlueEra/features/chat/auth/model/service_ask_ai_model.dart';
+import 'package:BlueEra/features/chat/auth/model/travel_and_stay_ask_ai_model.dart';
 import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_constant.dart';
 import '../../../../core/services/local_strorage_helper.dart';
@@ -68,7 +76,7 @@ class ChatViewController extends GetxController {
       "contact_no": "BlueEra Friend",
       "profile_image":
           "https://be-user-bkt.s3.ap-south-1.amazonaws.com/admin/68a31a3edd48c8dfc0656a00/profile/1759817565514-unnamed.webp",
-      "account_type": AppStrings.PersonalChatAi,
+      "account_type": AppConstants.personal_Chat_Type,
     }
   };
   static final Map<String, dynamic> businessAiChatListModel = {
@@ -79,7 +87,7 @@ class ChatViewController extends GetxController {
       "contact_no": "BlueEra Friend",
       "profile_image":
           "https://be-user-bkt.s3.ap-south-1.amazonaws.com/admin/68a31a3edd48c8dfc0656a00/profile/1759817565514-unnamed.webp",
-      "account_type": AppStrings.BusinessChatAi,
+      "account_type": AppConstants.business_Chat_Type,
     }
   };
   static final Map<String, dynamic> aiChatSearch = {
@@ -90,7 +98,7 @@ class ChatViewController extends GetxController {
       "contact_no": "BlueEra Friend",
       "profile_image":
       "https://be-user-bkt.s3.ap-south-1.amazonaws.com/admin/68a31a3edd48c8dfc0656a00/profile/1759817565514-unnamed.webp",
-      "account_type": AppStrings.SearchChatAi,
+      "account_type": AppConstants.search_Chat_Type,
     }
   };
   static final Map<String, dynamic> inventoryAiSearch = {
@@ -101,7 +109,7 @@ class ChatViewController extends GetxController {
       "contact_no": "BlueEra Inventory Friend",
       "profile_image":
           "https://be-user-bkt.s3.ap-south-1.amazonaws.com/admin/68a31a3edd48c8dfc0656a00/profile/1759817565514-unnamed.webp",
-      "account_type": AppStrings.InventoryChatAi,
+      "account_type": AppConstants.askInventory_Chat_Type,
     }
   };
   static final Map<String, dynamic> foodAiSearch = {
@@ -112,7 +120,7 @@ class ChatViewController extends GetxController {
       "contact_no": "BlueEra Food Friend",
       "profile_image":
       "https://be-user-bkt.s3.ap-south-1.amazonaws.com/admin/68a31a3edd48c8dfc0656a00/profile/1759817565514-unnamed.webp",
-      "account_type": AppStrings.FoodChatAi,
+      "account_type": AppConstants.askFood_Chat_Type,
     }
   };
   static final Map<String, dynamic> serviceAiSearch = {
@@ -123,7 +131,7 @@ class ChatViewController extends GetxController {
       "contact_no": "BlueEra Service Friend",
       "profile_image":
       "https://be-user-bkt.s3.ap-south-1.amazonaws.com/admin/68a31a3edd48c8dfc0656a00/profile/1759817565514-unnamed.webp",
-      "account_type": AppStrings.ServiceChatAi,
+      "account_type": AppConstants.askService_Chat_Type,
     }
   };
   static final Map<String, dynamic> healthCareAiSearch = {
@@ -134,7 +142,7 @@ class ChatViewController extends GetxController {
       "contact_no": "BlueEra Health Care Friend",
       "profile_image":
       "https://be-user-bkt.s3.ap-south-1.amazonaws.com/admin/68a31a3edd48c8dfc0656a00/profile/1759817565514-unnamed.webp",
-      "account_type": AppStrings.HealthCareChatAi,
+      "account_type": AppConstants.askHealthCare_Chat_Type,
     }
   };
   static final Map<String, dynamic> educationAiSearch = {
@@ -145,7 +153,7 @@ class ChatViewController extends GetxController {
       "contact_no": "BlueEra Education Friend",
       "profile_image":
       "https://be-user-bkt.s3.ap-south-1.amazonaws.com/admin/68a31a3edd48c8dfc0656a00/profile/1759817565514-unnamed.webp",
-      "account_type": AppStrings.EducationChatAi,
+      "account_type": AppConstants.askEducation_Chat_Type,
     }
   };
   static final Map<String, dynamic> homeServiceAiSearch = {
@@ -156,7 +164,7 @@ class ChatViewController extends GetxController {
       "contact_no": "BlueEra Home Service Friend",
       "profile_image":
       "https://be-user-bkt.s3.ap-south-1.amazonaws.com/admin/68a31a3edd48c8dfc0656a00/profile/1759817565514-unnamed.webp",
-      "account_type": AppStrings.HomeServiceChatAi,
+      "account_type": AppConstants.askHomeService_Chat_Type,
     }
   };
   static final Map<String, dynamic> travelAndStayAiSearch = {
@@ -167,7 +175,7 @@ class ChatViewController extends GetxController {
       "contact_no": "BlueEra Travel and Stay Friend",
       "profile_image":
       "https://be-user-bkt.s3.ap-south-1.amazonaws.com/admin/68a31a3edd48c8dfc0656a00/profile/1759817565514-unnamed.webp",
-      "account_type": AppStrings.TravelAndStayChatAi,
+      "account_type": AppConstants.askTravelStay_Chat_Type,
     }
   };
   static final Map<String, dynamic> consultingTalkAiSearch = {
@@ -178,7 +186,7 @@ class ChatViewController extends GetxController {
       "contact_no": "BlueEra Consulting Talk Friend",
       "profile_image":
       "https://be-user-bkt.s3.ap-south-1.amazonaws.com/admin/68a31a3edd48c8dfc0656a00/profile/1759817565514-unnamed.webp",
-      "account_type": AppStrings.ConsultingTalkChatAi,
+      "account_type": AppConstants.askConsultingTalk_Chat_Type,
     }
   };
   static final ChatList? personalAiChatModule =
@@ -347,47 +355,38 @@ class ChatViewController extends GetxController {
         ApiResponse.complete(getListOfAiMessageData);
   }
 
-  String _getStorageKeyForType(String? type) {
-    switch (type) {
-      case AppStrings.PersonalChatAi:
-        return AppConstants.business_Chat_Type;
+  Future<void> sendMessageToAiSocket({
+    String? conversationId,
+    required String type,
+    String? message,
+    Uint8List? imageBytes,
+    String? mimeType,
+  }) async {
+    chatBotReading.value = true;
+    String? converId = await AiChatLocalStorage.getConversationId(
+        type
+    );
+    aiSocket.sendMessage(
+        message: message,
+        conversationId: converId,
+        imageBytes: imageBytes,
+        mimeType: mimeType);
+    getListOfAiMessageData?.add(Messages(
+        sendStatus: AppStrings.PersonalChatAi,
+        messageRead: 1,
+        message: message,
+        status: "read",
+        conversationId: conversationId,
+        myMessage: true,
+        createdAt: formattedDate(),
+        messageType: "text")); // Add message to UI
 
-      case AppStrings.BusinessChatAi:
-        return AppConstants.business_Chat_Type;
-
-      case AppStrings.SearchChatAi:
-        return AppConstants.search_Chat_Type;
-
-      case AppStrings.InventoryChatAi:
-        return AppConstants.askInventory_Chat_Type;
-
-      case AppStrings.FoodChatAi:
-        return AppConstants.askFood_Chat_Type;
-
-      case AppStrings.ServiceChatAi:
-        return AppConstants.askService_Chat_Type;
-
-      case AppStrings.HealthCareChatAi:
-        return AppConstants.askHealthCare_Chat_Type;
-
-      case AppStrings.EducationChatAi:
-        return AppConstants.askEducation_Chat_Type;
-
-      case AppStrings.HomeServiceChatAi:
-        return AppConstants.askHomeService_Chat_Type;
-
-      case AppStrings.TravelAndStayChatAi:
-        return AppConstants.askTravelStay_Chat_Type;
-
-      case AppStrings.ConsultingTalkChatAi:
-        return AppConstants.askConsultingTalk_Chat_Type;
-
-      default:
-        return AppConstants.personal_Chat_Type;
-    }
+    getListOfAiMessageResponse.value =
+        ApiResponse.complete(getListOfAiMessageData);
+    sendMessageController.value.clear();
   }
 
-  Future<void> connectAiSocket(String? type) async {
+  Future<void> connectAiSocket(String type) async {
     getListOfAiMessageData?.clear();
     aiSocket.disposeSocket();
     await aiSocket.connect();
@@ -412,101 +411,107 @@ class ChatViewController extends GetxController {
       parseAiChatHistory(data);
     });
     String? converId = await AiChatLocalStorage.getConversationId(
-        _getStorageKeyForType(type)
+        type
     );
     aiSocket.getHistory(converId ?? '');
     getListOfAiMessageResponse.value =
         ApiResponse.complete(getListOfAiMessageData);
   }
 
-  Future<void> saveAiConversationId(String id, String? type) async {
+  Future<void> saveAiConversationId(String id, String type) async {
     await AiChatLocalStorage.saveConversationIdIfEmpty(
         id: id,
-        type: _getStorageKeyForType(type));
+        type: type);
   }
 
-  Future<void> sendMessageToAiSocket({
-    String? conversationId,
-    required String? type,
-    String? message,
-    Uint8List? imageBytes,
-    String? mimeType,
-  }) async {
+  String _getInitialMessageText(String type) {
+    switch (type) {
+      case AppConstants.askInventory_Chat_Type:
+        return "Hello! I can help you check our inventory. What product are you looking for?";
+
+      case AppConstants.askFood_Chat_Type:
+        return "Hungry? I can help you find food details and calories. What did you eat?";
+
+      case AppConstants.askService_Chat_Type:
+        return "Hello! Looking for a specific service? Let me know what you need help with.";
+
+      case AppConstants.askHealthCare_Chat_Type:
+        return "Hello. I am your health assistant. How can I help you today?";
+
+      case AppConstants.askEducation_Chat_Type:
+        return "Welcome! Ask me anything about courses, degrees, or educational institutes.";
+
+      case AppConstants.askHomeService_Chat_Type:
+        return "Need help around the house? Ask me about cleaning, repairs, or other home services.";
+
+      case AppConstants.askTravelStay_Chat_Type:
+        return "Planning a trip? Ask me about hotels, flights, and travel options.";
+
+      case AppConstants.askConsultingTalk_Chat_Type:
+        return "Hi there. I'm here to provide expert consulting and advice. What topic would you like to discuss?";
+
+      default:
+        return "Hi there! How can I assist you today?";
+    }
+  }
+
+  RxList<BaseAiChatModel> currentChatMessages = <BaseAiChatModel>[].obs;
+
+  Future<void> connectSearchAiSocket(String type) async {
     chatBotReading.value = true;
-    String? converId = await AiChatLocalStorage.getConversationId(
-        _getStorageKeyForType(type)
-    );
-    aiSocket.sendMessage(
-        message: message,
-        conversationId: converId,
-        imageBytes: imageBytes,
-        mimeType: mimeType);
-    getListOfAiMessageData?.add(Messages(
-        sendStatus: AppStrings.PersonalChatAi,
-        messageRead: 1,
-        message: message,
-        status: "read",
-        conversationId: conversationId,
-        myMessage: true,
-        createdAt: formattedDate(),
-        messageType: "text")); // Add message to UI
-
-    getListOfAiMessageResponse.value =
-        ApiResponse.complete(getListOfAiMessageData);
-    sendMessageController.value.clear();
-  }
-
-  Future<void> connectInventoryAiSocket(String type) async {
-    getListOfInventoryAiMessages.clear();
+    currentChatMessages.clear();
     aiSocket.disposeSocket();
     await aiSocket.connectSearchSocket();
 
-    String? converId = await AiChatLocalStorage.getConversationId(
-        _getStorageKeyForType(type)
-    );
-    log('conversation id -- $converId');
+    String? converId = await AiChatLocalStorage.getConversationId(type);
+    log('conversation id of $type is -- $converId');
 
+    // --- HISTORY LISTENER ---
     aiSocket.onHistory((data) {
-      getListOfInventoryAiMessages.add(InventoryAskAiModel(
-            reply: productInitialMessage,
-            role: "model",
-            timestamp: formattedDate()
-        ));
-      log('length 1 --> ${getListOfInventoryAiMessages.length}');
-      parseInventoryAiChatHistory(data);
+      if (data is List) {
+        List<BaseAiChatModel> history = data.map((jsonItem) {
+          return _parseDataByType(type, jsonItem as Map<String, dynamic>);
+        }).toList();
+
+        currentChatMessages.assignAll(history);
+      }
+      // else if (data == null || (data is List && data.isEmpty)) {
+      //   // 🟢 CASE 1: NO HISTORY -> Show Predefined Message
+      //   BaseAiChatModel welcomeMsg = _createInitialModel(type);
+      //   currentChatMessages.add(welcomeMsg);
+      //
+      //   log('➕ Added Initial Message for $type');
+      // }
+
+      chatBotReading.value = false;
     });
 
-    aiSocket.getHistory(converId ?? '');
-
+    // Listen for Live Messages
     aiSocket.onMessage((data) {
       chatBotReading.value = false;
-      InventoryAskAiModel details = InventoryAskAiModel.fromJson(data);
-      saveAiConversationId(details.conversationId ?? '', type);
-      getListOfInventoryAiMessages.add(details);
-      getListOfAiMessageResponse.value =
-          ApiResponse.complete(getListOfInventoryAiMessages);
+
+      BaseAiChatModel msg = _parseDataByType(type, data);
+      saveAiConversationId(msg.conversationId ?? '', type);
+
+      currentChatMessages.add(msg);
+      getListOfAiMessageResponse.value = ApiResponse.complete(currentChatMessages);
     });
+
+    // --- FETCH HISTORY ---
+    // aiSocket.getHistory(converId ?? '');
+
+    if (converId != null) {
+      aiSocket.getHistory(converId);
+    } else {
+      // NO HISTORY -> Show Predefined Message
+      BaseAiChatModel welcomeMsg = _createInitialModel(type);
+      currentChatMessages.add(welcomeMsg);
+
+      log('➕ Added Initial Message for $type');
+      chatBotReading.value = false;
+    }
   }
 
-  void parseInventoryAiChatHistory(List<dynamic> jsonList) {
-
-    List<InventoryAskAiModel> newMessages = jsonList.map((item) {
-      final details = InventoryAskHistoryAiModel.fromJson(item);
-      return InventoryAskAiModel(
-        conversationId: details.conversationId,
-        timestamp: details.timestamp,
-        role: details.role,
-        reply: details.content,
-        suggestions: details.suggestions,
-        products: details.products,
-      );
-    }).toList();
-
-    getListOfInventoryAiMessages.assignAll(newMessages);
-    log('length 2--> ${getListOfInventoryAiMessages.length}');
-    getListOfAiMessageResponse.value =
-        ApiResponse.complete(getListOfAiMessageData);
-  }
 
   Future<void> sendMessageToAiSearchSocket({
     required String type,
@@ -514,41 +519,132 @@ class ChatViewController extends GetxController {
     Uint8List? imageBytes,
     String? mimeType,
   }) async {
+
+    BaseAiChatModel userMsg = _createLocalUserMessage(type, message);
+    currentChatMessages.add(userMsg);
+
+    sendMessageController.value.clear();
     chatBotReading.value = true;
-    String? converId = await AiChatLocalStorage.getConversationId(
-        _getStorageKeyForType(type)
-    );
-    log('conversation id -- $converId');
-    if(converId==null){
+
+    String? converId = await AiChatLocalStorage.getConversationId(type);
+    log('conversation id of $type is -- $converId');
+
+
+    if (converId == null &&
+        type != AppConstants.personal_Chat_Type &&
+        type != AppConstants.business_Chat_Type) {
       aiSocket.joinConversation(type);
     }
+
     aiSocket.sendMessage(
         message: message,
         conversationId: converId,
         imageBytes: imageBytes,
-        mimeType: mimeType);
-    getListOfInventoryAiMessages.add(InventoryAskAiModel(
-        reply: message,
-        role: "user",
-        timestamp: formattedDate()
-    ));
-
-    getListOfAiMessageResponse.value =
-        ApiResponse.complete(getListOfInventoryAiMessages);
-    sendMessageController.value.clear();
+        mimeType: mimeType
+    );
   }
 
-  //  final parsedData = GetChatListModel.fromJson(data);
-  //       List<ChatList?>? chatList=  await localStorageHelper.saveChatList(
-  //           parsedData.chatList ?? [], parsedData.type ?? '');
-  //       final postDetails = GetChatListModel(
-  //         chatList: chatList,
-  //         archived: parsedData.archived,
-  //         success: true,
-  //         type: parsedData.type
-  //       );
-  //       loadChatListWithType(chatListModel: postDetails);
-  //       getPersonalFilteredChatListModel?.value = postDetails;
+  BaseAiChatModel _parseDataByType(String type, Map<String, dynamic> json) {
+    switch (type) {
+      case AppConstants.askInventory_Chat_Type:
+        return InventoryAskAiModel.fromJson(json);
+
+      case AppStrings.FoodChatAi:
+        return FoodAskAiModel.fromJson(json);
+
+      case AppConstants.askService_Chat_Type:
+         return BusinessServicesAskAiModel.fromJson(json);
+
+      case AppConstants.askHealthCare_Chat_Type:
+    return HealthCareAskAiModel.fromJson(json);
+
+      case AppConstants.askEducation_Chat_Type:
+    return EducationAskAiModel.fromJson(json);
+
+      case AppConstants.askHomeService_Chat_Type:
+    return ServiceAskAiModel.fromJson(json);
+
+      case AppConstants.askTravelStay_Chat_Type:
+      return TravelAndStayAskAiModel.fromJson(json);
+
+      case AppConstants.askConsultingTalk_Chat_Type:
+    return ServiceAskAiModel.fromJson(json);
+
+      default:
+        return InventoryAskAiModel.fromJson(json);
+    }
+  }
+
+  BaseAiChatModel _createLocalUserMessage(String type, String text) {
+    String time = formattedDate();
+
+    switch (type) {
+      case AppConstants.askInventory_Chat_Type:
+        return InventoryAskAiModel(message: text, role: "user", timestamp: time);
+      case AppConstants.askFood_Chat_Type:
+        return FoodAskAiModel(message: text, role: "user", timestamp: time);
+      case AppConstants.askService_Chat_Type:
+        return BusinessServicesAskAiModel(message: text, role: "user", timestamp: time);
+      case AppConstants.askHealthCare_Chat_Type:
+        return HealthCareAskAiModel(message: text, role: "user", timestamp: time);
+      case AppConstants.askEducation_Chat_Type:
+        return EducationAskAiModel(message: text, role: "user", timestamp: time);
+      case AppConstants.askHomeService_Chat_Type:
+        return ServiceAskAiModel(message: text, role: "user", timestamp: time);
+      case AppConstants.askTravelStay_Chat_Type:
+        return TravelAndStayAskAiModel(message: text, role: "user", timestamp: time);
+      case AppConstants.askConsultingTalk_Chat_Type:
+        return ServiceAskAiModel(message: text, role: "user", timestamp: time);
+      default:
+        return InventoryAskAiModel(message: text, role: "user", timestamp: time);
+    }
+  }
+
+  BaseAiChatModel _createInitialModel(String type) {
+    String text = _getInitialMessageText(type); // Gets the welcome text we defined earlier
+
+    final DateTime date = DateTime.parse(DateTime.now().toIso8601String()).toLocal(); // Convert to local time
+    String time = DateFormat('h:mm a').format(date);
+
+    switch (type) {
+      case AppConstants.askInventory_Chat_Type:
+        return InventoryAskAiModel(
+            message: text, role: "model", timestamp: time);
+
+      case AppConstants.askFood_Chat_Type:
+        return FoodAskAiModel(
+            message: text, role: "model", timestamp: time);
+
+      case AppConstants.askService_Chat_Type:
+        return BusinessServicesAskAiModel(
+            message: text, role: "model", timestamp: time);
+
+      case AppConstants.askHealthCare_Chat_Type:
+        return HealthCareAskAiModel(
+            message: text, role: "model", timestamp: time);
+
+      case AppConstants.askEducation_Chat_Type:
+        return EducationAskAiModel(
+            message: text, role: "model", timestamp: time);
+
+      case AppConstants.askHomeService_Chat_Type:
+        return ServiceAskAiModel(
+            message: text, role: "model", timestamp: time);
+
+      case AppConstants.askTravelStay_Chat_Type:
+        return TravelAndStayAskAiModel(
+            message: text, role: "model", timestamp: time);
+
+      case AppConstants.askConsultingTalk_Chat_Type:
+        return ServiceAskAiModel(
+            message: text, role: "model", timestamp: time);
+
+      default:
+        return InventoryAskAiModel(
+            message: text, role: "model", timestamp: time);
+    }
+  }
+
   Future<void> connectSocket() async {
     if (socketConnected.value == false) {
       await chatSocket.connectToSocket();
@@ -1154,7 +1250,7 @@ class ChatViewController extends GetxController {
 
   Future<void> setContact(String type,List<Map<String, dynamic>> params)async{
     contactListParamsData=params;
-    await findServiceByContacts(type??'',params);
+    await findServiceByContacts(type, params);
   }
   Future<void> reloadContact()async{
 
