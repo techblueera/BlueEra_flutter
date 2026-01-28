@@ -171,7 +171,7 @@ class RoomDetailController extends GetxController {
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }
-    } on Exception catch (e) {
+    } on Exception {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
     // await getConnect.post('url', requestParams);
@@ -196,7 +196,7 @@ class RoomDetailController extends GetxController {
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }
-    } on Exception catch (e) {
+    } on Exception {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
     // await getConnect.post('url', requestParams);
@@ -297,7 +297,7 @@ class RoomDetailController extends GetxController {
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }
-    } on Exception catch (e) {
+    } on Exception {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
       // 5. Always hide loader at the end

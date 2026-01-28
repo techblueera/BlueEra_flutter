@@ -65,8 +65,6 @@ class _RoomSelectionScreenState extends State<RoomSelectionScreen> {
                     final item = roomDetailsList[index];
                     final String keyId = item['key_id'];
                     final String key = item['key'];
-                    final bool isEnabled =
-                        controller.roomStatus[keyId] ?? false;
 
                     return CommonCardWidget(
                         borderColorColor: AppColors.whiteE5,
@@ -137,100 +135,6 @@ class _RoomSelectionScreenState extends State<RoomSelectionScreen> {
   }
 
   // Helper to place placeholder icons matching your design
-  Widget _getIcon(String keyId) {
-    return const Icon(Icons.hotel_outlined, color: Colors.grey);
-  }
 }
 
-/*
-class RoomSelectionScreen extends StatefulWidget {
-  final HotelServiceCategoriesData hotelCategoryData;
 
-  const RoomSelectionScreen({super.key, required this.hotelCategoryData});
-
-  @override
-  State<RoomSelectionScreen> createState() => _RoomSelectionScreenState();
-}
-
-class _RoomSelectionScreenState extends State<RoomSelectionScreen> {
-  final hotelDetailController = Get.find<HotelCategoryController>();
-
-  @override
-  void initState() {
-    // TODO: implement initState
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      hotelDetailController.hotelServiceSubCategoryList.clear();
-      hotelDetailController.hotelServiceSubCategoryList
-          .addAll(widget.hotelCategoryData.children ?? []);
-    });
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CommonBackAppBar(
-        title: "${widget.hotelCategoryData.name}",
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: Obx(() => ListView.builder(
-                  itemCount:
-                      hotelDetailController.hotelServiceSubCategoryList.length,
-                  itemBuilder: (context, index) {
-                    final room = hotelDetailController
-                        .hotelServiceSubCategoryList[index];
-                    return CommonCardWidget(
-                        borderColorColor: AppColors.whiteE5,
-                        cardMargin: 7,
-                        padding: 10,
-                        child: Row(
-                          children: [
-                            LocalAssets(
-                                imagePath:
-                                    "assets/category/hotel_service/${room.key}.svg"),
-                            SizedBox(
-                              width: SizeConfig.size10,
-                            ),
-                            Expanded(
-                              child: CustomText(
-                                room.name,
-                                color: AppColors.secondaryTextColor,
-                                fontSize: 18,
-                              ),
-                            ),
-                            Transform.scale(
-                              scale: 0.75, // Makes the switch smaller
-                              child: Switch(
-                                value: room.isEnabled ?? false,
-                                activeColor: AppColors.primaryColor,
-                                onChanged: (val) => hotelDetailController
-                                    .toggleRoom(index, val),
-                              ),
-                            ),
-                          ],
-                        ));
-                  },
-                )),
-          ),
-          // Submit Button Section
-          Padding(
-            padding:
-                EdgeInsets.only(bottom: 20.0, right: 20, left: 20, top: 20),
-            child: PositiveCustomBtn(
-                padding: EdgeInsets.zero,
-                onTap: () {
-                  hotelDetailController.updateHotelBulkStatus();
-                },
-                title: AppStrings.submit),
-          ),
-          SizedBox(
-            height: 30,
-          )
-        ],
-      ),
-    );
-  }
-}
-*/

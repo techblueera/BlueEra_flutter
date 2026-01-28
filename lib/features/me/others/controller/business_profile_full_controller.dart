@@ -91,7 +91,7 @@ class BusinessProfileFullController extends GetxController {
           commonSnackBar(message: AppStrings.somethingWentWrong);
         }
       }
-    } on Exception catch (e) {
+    } on Exception {
       commonSnackBar(message: AppStrings.somethingWentWrong);
 
       // TODO

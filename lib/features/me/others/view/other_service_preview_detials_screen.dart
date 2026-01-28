@@ -5,7 +5,6 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 // Import your model and custom text widget paths here
 // import 'path_to_your_model/ai_other_service_res_model.dart';

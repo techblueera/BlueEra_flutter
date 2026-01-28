@@ -51,7 +51,7 @@ class _HotelMainState extends State<HotelMain>
         // controller.hasSchool.value = schoolIDGlobal.isNotEmpty;
       });
       // await schoolAboutUsController.getSchoolByIdController();
-    } on Exception catch (e) {
+    } on Exception {
       // TODO
     }
   }

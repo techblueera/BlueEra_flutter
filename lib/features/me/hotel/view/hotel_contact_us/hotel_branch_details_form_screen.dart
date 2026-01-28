@@ -1,14 +1,9 @@
-import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
-import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/hotel/controller/hotel_branch_contact_controller.dart';
-import 'package:BlueEra/features/me/school/controller/branch_contact_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/common_location_search_field.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -141,18 +136,4 @@ class _HotelBranchDetailsFormScreenState extends State<HotelBranchDetailsFormScr
     );
   }
 
-  Widget _buildHeader(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 15),
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: CustomText(
-          text,
-          fontSize: SizeConfig.large,
-          fontWeight: FontWeight.w600,
-          color: AppColors.mainTextColor,
-        ),
-      ),
-    );
-  }
 }

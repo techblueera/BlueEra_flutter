@@ -12,7 +12,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../../widgets/new_common_date_selection_dropdown.dart';
-import '../../../../core/constants/snackbar_helper.dart';
 import '../controller/publications_controller.dart';
 
 class AddPublishingScreen extends StatefulWidget {
@@ -135,12 +134,13 @@ class _AddPublishingScreenState extends State<AddPublishingScreen> {
                         hintText: AppStrings.urlHint,
                         isValidate: true,
                         validator: (value){
-                          bool testIsUrl = GetUtils.isURL(controller.linkController.text??'');
+                          bool testIsUrl = GetUtils.isURL(controller.linkController.text);
                           if(value!.isEmpty){
                             return "Required";
                           }else if(!testIsUrl){
                             return "Enter Valid Url";
                           }
+                          return null;
 
                         },
                         onChange: (value) => _validateForm(),

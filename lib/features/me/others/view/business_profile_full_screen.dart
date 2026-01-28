@@ -4,7 +4,6 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/me/others/controller/business_profile_full_controller.dart';
 import 'package:BlueEra/features/me/others/model/business_profile_full_model.dart';
@@ -22,7 +21,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
-import 'package:readmore/readmore.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/constants/app_enum.dart';
@@ -222,138 +220,9 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
     );
   }
 
-  Widget _buildHeaderImage(Profile? profile) {
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        if (profile?.coverUrl != null)
-          CachedNetworkImage(
-            imageUrl: profile!.coverUrl!,
-            fit: BoxFit.cover,
-            errorWidget: (context, url, error) => Container(color: Colors.grey),
-          )
-        else
-          Container(color: Colors.blueGrey),
-        Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Colors.transparent, Colors.black.withOpacity(0.7)],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 
-  Widget _buildProfileInfo(Profile? profile) {
-    if (profile == null) return const SizedBox();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 2),
-                image: profile.logoUrl != null
-                    ? DecorationImage(
-                        image: NetworkImage(profile.logoUrl!),
-                        fit: BoxFit.cover)
-                    : null,
-              ),
-              child: profile.logoUrl == null
-                  ? const Icon(Icons.person, color: Colors.grey)
-                  : null,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    profile.profileName ?? "Business Name",
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      const Icon(Icons.star, color: Colors.amber, size: 16),
-                      const Text(" 4.5 (88 reviews)",
-                          style: TextStyle(fontSize: 12, color: Colors.grey)),
-                      const SizedBox(width: 8),
-                      const Icon(Icons.location_on,
-                          size: 14, color: Colors.grey),
-                      Expanded(
-                        child: Text(
-                          " ${profile.location?.address ?? 'Location'}",
-                          style:
-                              const TextStyle(fontSize: 12, color: Colors.grey),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        if (profile.description != null)
-          ReadMoreText(
-            profile.description!,
-            trimLines: 3,
-            colorClickableText: Colors.blue,
-            trimMode: TrimMode.Line,
-            trimCollapsedText: '...Read More',
-            trimExpandedText: ' Show Less',
-            style: const TextStyle(fontSize: 14, color: Colors.black87),
-          ),
-      ],
-    );
-  }
 
-  Widget _buildQuickActions() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          _buildActionButton("Home", Colors.blue, true),
-          _buildActionButton("Product", Colors.white, false),
-          _buildActionButton("Services", Colors.white, false),
-          _buildActionButton("Career / Job", Colors.white, false),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildActionButton(String label, Color color, bool isSelected) {
-    return Container(
-      margin: const EdgeInsets.only(right: 8),
-      child: Chip(
-        label: Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? Colors.white : Colors.black,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          ),
-        ),
-        backgroundColor: color,
-        side: isSelected
-            ? BorderSide.none
-            : const BorderSide(color: Colors.grey, width: 0.5),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      ),
-    );
-  }
 
   Widget _buildSectionTitle(String title, {VoidCallback? onSeeAll}) {
     return Row(
@@ -578,66 +447,6 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
     );
   }
 
-  Widget _buildProductsList(List<Blogs> products) {
-    return SizedBox(
-      height: 200,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: products.length,
-        itemBuilder: (context, index) {
-          final product = products[index];
-          return Container(
-            width: 160,
-            margin: const EdgeInsets.only(right: 12),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey[200]!),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ClipRRect(
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(12)),
-                  child: CachedNetworkImage(
-                    imageUrl: product.imageUrl ?? "",
-                    height: 120,
-                    width: 160,
-                    fit: BoxFit.cover,
-                    errorWidget: (context, url, error) => Container(
-                        height: 120, width: 160, color: Colors.grey[300]),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        product.title ?? "",
-                        style: const TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 14),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        product.blog ?? "",
-                        style:
-                            const TextStyle(color: Colors.grey, fontSize: 12),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
 
   Widget _buildGallery(List<Gallery> galleryList, BuildContext context) {
     // Flatten all images
@@ -652,8 +461,6 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
 
     // Randomize and pick 6
     allImages.shuffle(Random());
-    List<String> displayImages =
-        allImages.length > 6 ? allImages.sublist(0, 6) : allImages;
 
     return StaggeredGrid.count(
       // shrinkWrap: true,
@@ -726,104 +533,8 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
     );
   }
 
-  Widget _buildLatestPost(News post) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ListTile(
-            leading: CircleAvatar(
-              backgroundColor: Colors.grey[200],
-              child: const Icon(Icons.business, color: Colors.grey),
-            ),
-            title: const Text("Business Name",
-                style: TextStyle(fontWeight: FontWeight.bold)),
-            subtitle: Text(post.createdAt?.substring(0, 10) ?? "Just now"),
-            trailing: const Icon(Icons.more_vert),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Text(post.news ?? ""),
-          ),
-          const SizedBox(height: 8),
-          if (post.imageUrl != null)
-            CachedNetworkImage(
-              imageUrl: post.imageUrl!,
-              width: double.infinity,
-              height: 200,
-              fit: BoxFit.cover,
-              errorWidget: (context, url, error) => const SizedBox(),
-            ),
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildInteractionIcon(Icons.thumb_up_alt_outlined, "Like"),
-                _buildInteractionIcon(Icons.comment_outlined, "Comment"),
-                _buildInteractionIcon(Icons.share_outlined, "Share"),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildInteractionIcon(IconData icon, String label) {
-    return Row(
-      children: [
-        Icon(icon, size: 20, color: Colors.grey),
-        const SizedBox(width: 4),
-        Text(label, style: const TextStyle(color: Colors.grey)),
-      ],
-    );
-  }
 
-  Widget _buildTestimonials(List<Management> testimonials) {
-    return SizedBox(
-      height: 180,
-      child: PageView.builder(
-        itemCount: testimonials.length,
-        itemBuilder: (context, index) {
-          final item = testimonials[index];
-          return Container(
-            margin: const EdgeInsets.symmetric(horizontal: 8),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.blue[50],
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              children: [
-                const Icon(Icons.format_quote, color: Colors.blue, size: 30),
-                Text(
-                  item.message ?? "",
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontStyle: FontStyle.italic),
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  item.name ?? "",
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  item.position ?? "",
-                  style: const TextStyle(fontSize: 12, color: Colors.grey),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
 
   Widget _buildContactUs(
       List<ContactUs>? contacts, Timings? timings, Profile? profile) {

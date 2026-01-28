@@ -3,8 +3,10 @@ import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/me/food/repo/food_repo.dart';
 import 'package:BlueEra/features/me/grocery/model/category_food_product_res_model.dart';
 import 'package:BlueEra/features/me/food/model/food_gen_ai_res_model.dart';
@@ -94,8 +96,9 @@ class FoodServiceController extends GetxController {
         priceController.text.trim().isNotEmpty;
   }
 
-  Future<void> addOrUpdateVariant(
-      {required String foodId,}) async {
+  Future<void> addOrUpdateVariant({
+    required String foodId,
+  }) async {
     final variant = {
       "variantName": nameController.text.trim(),
       "mrp": int.tryParse(mrpController.text.trim()) ?? 0,
@@ -246,6 +249,51 @@ class FoodServiceController extends GetxController {
     } catch (e, s) {
       print('stack trace-- $s');
       commonSnackBar(message: e.toString());
+    }
+  }
+
+  addKitchenInventoryController({required CategoryFoodProductData data}) async {
+    try {
+      List<dynamic> tempReqList = [];
+      data.variants?.forEach((vData) {
+        var reqData = {
+          "productVariant": vData.id,
+          "product": data.id,
+          "location": {
+            "type": "Point",
+            "coordinates": [LocationService.lat, LocationService.lng],
+            "address":
+                LocationService.userCurrentAddress.value.formattedAddress,
+            "pincode": LocationService.userCurrentAddress.value.postalCode
+          },
+          "price": {
+            "mrp": vData.mrp,
+            "sellingPrice": vData.baseSellingPrice,
+            "currency": "INR",
+            "packingCharges": 20
+          },
+          "isAvailable": vData.isActive,
+          "preparationTime": 30
+        };
+
+        tempReqList.add(reqData);
+      });
+      // call repo
+      final responseModel =
+          await FoodRepo().addKitchenInventoryRepo(params: tempReqList);
+
+      if (responseModel.isSuccess) {
+        commonSnackBar(message: responseModel.message ?? AppStrings.success);
+
+        Get.until((route) =>
+            route.settings.name ==
+            RouteHelper.getBottomNavigationBarScreenRoute());
+      } else {
+        commonSnackBar(
+            message: responseModel.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      logs(e.toString());
     }
   }
 }

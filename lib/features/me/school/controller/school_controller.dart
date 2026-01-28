@@ -66,7 +66,7 @@ RxBool hasSchool = false.obs;
         generateSchoolViaAIResponse.value =
             ApiResponse.error(AppStrings.somethingWentWrong);
       }
-    } on Exception catch (e) {
+    } on Exception {
       // TODO
       generateSchoolViaAIResponse.value =
           ApiResponse.error(AppStrings.somethingWentWrong);
@@ -116,7 +116,7 @@ RxBool hasSchool = false.obs;
         createSchoolResponse.value =
             ApiResponse.error(AppStrings.somethingWentWrong);
       }
-    } on Exception catch (e) {
+    } on Exception {
       // TODO
       createSchoolResponse.value =
           ApiResponse.error(AppStrings.somethingWentWrong);

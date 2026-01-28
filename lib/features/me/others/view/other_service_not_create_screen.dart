@@ -3,8 +3,6 @@ import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/others/controller/business_profile_full_controller.dart';
 import 'package:BlueEra/features/me/others/view/ai_other_profile_dialog.dart';
-import 'package:BlueEra/features/me/school/controller/school_controller.dart';
-import 'package:BlueEra/features/me/school/view/widget/ai_profile_dialog.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';

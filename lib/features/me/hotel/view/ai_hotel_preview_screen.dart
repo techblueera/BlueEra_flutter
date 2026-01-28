@@ -1,4 +1,3 @@
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/hotel/controller/hotel_service_controller.dart';
@@ -92,8 +91,6 @@ class _HotelPreviewScreenState extends State<HotelPreviewScreen> {
   }
 
   Widget _buildEmergencySection() {
-    final emergency =
-        controller.aiHotelResModel?.value.data?.screens?.contactUs?.emergency;
 
     return Column(
       children: [

@@ -1,9 +1,5 @@
 import 'package:BlueEra/core/api/model/get_hotel_contact_us_res_model.dart';
-import 'package:BlueEra/core/api/model/school_contact_us_model.dart';
-import 'package:BlueEra/core/api/model/school_contact_us_new_res_model.dart';
 import 'package:BlueEra/features/me/hotel/controller/hotel_branch_contact_controller.dart';
-import 'package:BlueEra/features/me/school/controller/branch_contact_controller.dart';
-import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
@@ -12,7 +8,6 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../../../../core/api/model/school_contact_us_res_model.dart';
 
 class HotelDepartmentOnlyScreen extends StatefulWidget {
   final HotelContactUsData? contactInfo;

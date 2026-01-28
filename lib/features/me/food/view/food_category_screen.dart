@@ -12,8 +12,7 @@ class FoodCategoryMenuScreen extends StatefulWidget {
   const FoodCategoryMenuScreen({super.key});
 
   @override
-  State<FoodCategoryMenuScreen> createState() =>
-      _FoodCategoryMenuScreenState();
+  State<FoodCategoryMenuScreen> createState() => _FoodCategoryMenuScreenState();
 }
 
 class _FoodCategoryMenuScreenState extends State<FoodCategoryMenuScreen> {
@@ -26,7 +25,6 @@ class _FoodCategoryMenuScreenState extends State<FoodCategoryMenuScreen> {
     foodServiceController.getFoodCategoryController();
     super.initState();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -64,7 +62,8 @@ class _FoodCategoryMenuScreenState extends State<FoodCategoryMenuScreen> {
                           contentPadding: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 4),
                           leading: LocalAssets(
-                            imagePath: "assets/category/grocery/menu/${item.key ?? " "}.svg",
+                            imagePath:
+                                "assets/category/grocery/menu/${item.key ?? " "}.svg",
                             width: 30,
                             height: 30,
                           ),
@@ -75,9 +74,12 @@ class _FoodCategoryMenuScreenState extends State<FoodCategoryMenuScreen> {
                             fontWeight: FontWeight.w400,
                           ),
                           onTap: () {
-                            foodServiceController.selectedFoodTypeID.value= item.id??"";
+                            foodServiceController.selectedFoodTypeID.value =
+                                item.id ?? "";
                             // Action for item tap
-                            Get.to(ProductSelectionScreen(foodCategoryData: item,));
+                            Get.to(ProductSelectionScreen(
+                              foodCategoryData: item,
+                            ));
                           },
                         ),
                       ),

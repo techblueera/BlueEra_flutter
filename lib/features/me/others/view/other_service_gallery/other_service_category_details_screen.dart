@@ -1,7 +1,5 @@
-import 'package:BlueEra/core/api/model/hotel_property_photo_res_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/features/me/hotel/controller/property_photo_controller.dart';
 import 'package:BlueEra/features/me/others/controller/other_service_photo_controller.dart';
 import 'package:BlueEra/features/me/others/model/other_service_gallery_res_model.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';

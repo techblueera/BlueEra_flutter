@@ -2,6 +2,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/food/view/food_category_screen.dart';
+import 'package:BlueEra/features/me/food/view/food_home_screen.dart';
 import 'package:BlueEra/features/me/school/view/school_update_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -91,7 +92,7 @@ class _FoodMainScreenState extends State<FoodMainScreen>
                     child: TabBarView(
                       controller: _tabController,
                       children: [
-                        ComingSoon(),
+                        RestaurantHomeScreen(),
                         FoodCategoryMenuScreen(),
                         ComingSoon(),
                       ],

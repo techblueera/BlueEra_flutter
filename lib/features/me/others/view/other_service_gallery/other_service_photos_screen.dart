@@ -1,6 +1,3 @@
-import 'package:BlueEra/features/me/hotel/controller/property_photo_controller.dart';
-import 'package:BlueEra/features/me/hotel/view/category_details_screen.dart';
-import 'package:BlueEra/features/me/hotel/view/upload_property_photos_screen.dart';
 import 'package:BlueEra/features/me/others/controller/other_service_photo_controller.dart';
 import 'package:BlueEra/features/me/others/view/other_service_gallery/other_service_category_details_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_service_gallery/upload_other_service_photos_screen.dart';

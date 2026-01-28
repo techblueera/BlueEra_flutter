@@ -1,6 +1,5 @@
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/hotel/repo/hotel_service_repo.dart';
 import 'package:get/get.dart';
@@ -58,11 +57,10 @@ class RoomAmenityController extends GetxController {
 
     try {
       roomAmenityStatus.refresh();
-      print("POSTing Request Body: ${roomAmenityStatus.value}");
     } catch (e) {
       // Revert if API fails
       roomAmenityStatus[key] = !value;
-      Get.snackbar("Error", "Update failed");
+      commonSnackBar(message: "Error Update failed");
     }
   }
 
@@ -71,7 +69,7 @@ class RoomAmenityController extends GetxController {
     try {
       Map<String, dynamic> requestBody = {
         "roomId": "",
-        ...roomAmenityStatus.value,
+        ...roomAmenityStatus,
       };
       ResponseModel response = await HotelServiceRepo()
           .addHotelRoomAmenitiesRepo(reqBody: requestBody);
@@ -82,7 +80,7 @@ class RoomAmenityController extends GetxController {
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }
-    } on Exception catch (e) {
+    } on Exception {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
   }

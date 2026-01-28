@@ -51,7 +51,7 @@ class _OthersMainState extends State<OthersMain>
       setState(() {
         controller.hasProfile.value = otherServiceIDGlobal.isNotEmpty;
       });
-    } on Exception catch (e) {
+    } on Exception {
       // TODO
     }
   }

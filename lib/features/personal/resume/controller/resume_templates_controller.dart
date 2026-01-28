@@ -1,5 +1,4 @@
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/constants/snackbar_helper.dart';

@@ -1,4 +1,3 @@
-import 'package:BlueEra/core/api/model/ai_hotel_res_model.dart';
 import 'package:BlueEra/core/api/model/hotel_details_home_res_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -33,7 +32,6 @@ class HotelHomeDetailScreen extends StatelessWidget {
         }
 
         final profile = controller.hotelData.value?.profile;
-        final rooms = controller.hotelData.value?.rooms ?? [];
 
         return CustomScrollView(
           slivers: [
@@ -452,25 +450,4 @@ class HotelHomeDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildContactInfo(Profile? profile) {
-    final contact = profile?.contacts?.first;
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            ListTile(
-                leading: Icon(Icons.email),
-                title: CustomText(contact?.email ?? "")),
-            ListTile(
-                leading: Icon(Icons.phone),
-                title: CustomText(contact?.phone ?? "")),
-            ListTile(
-                leading: Icon(Icons.location_on),
-                title: CustomText(contact?.address ?? "")),
-          ],
-        ),
-      ),
-    );
-  }
 }

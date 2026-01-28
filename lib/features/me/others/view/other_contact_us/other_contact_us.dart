@@ -8,10 +8,6 @@ import 'package:BlueEra/features/me/others/controller/other_branch_contact_contr
 import 'package:BlueEra/features/me/others/view/other_contact_us/other_branch_details_form_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_contact_us/other_branch_only_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_contact_us/other_department_only_screen.dart';
-import 'package:BlueEra/features/me/school/controller/branch_contact_controller.dart';
-import 'package:BlueEra/features/me/school/view/category/school_contact_us/branch_details_form_screen.dart';
-import 'package:BlueEra/features/me/school/view/category/school_contact_us/branch_only_screen.dart';
-import 'package:BlueEra/features/me/school/view/category/school_contact_us/department_only_screen.dart';
 import 'package:BlueEra/features/me/school/view/widget/add_more_icon_button.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';

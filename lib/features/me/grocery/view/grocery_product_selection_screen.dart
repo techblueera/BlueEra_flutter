@@ -114,7 +114,9 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                         CircleAvatar(
                           radius: 25,
                           backgroundColor: Colors.blue.shade50,
-                          child: LocalAssets(imagePath: "assets/category/foods/${cat?.key}.svg"),
+                          child: LocalAssets(
+                              imagePath:
+                                  "assets/category/foods/${cat?.key}.svg"),
                           // backgroundImage:,
                         ),
                         const SizedBox(height: 8),
@@ -318,7 +320,10 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                           children: [
                             LocalAssets(
                               imagePath: AppIconAssets.food_category,
-                              imgColor:product.dietaryType?.toLowerCase()=="veg"? Color(0xff008000) : AppColors.red00,
+                              imgColor:
+                                  product.dietaryType?.toLowerCase() == "veg"
+                                      ? Color(0xff008000)
+                                      : AppColors.red00,
                             ),
                             const SizedBox(width: 5),
                             _tagWidget((""), Colors.grey),
@@ -331,7 +336,6 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
               ),
 
               const Divider(),
-
 
               ...product.variants?.map((vc) {
                     final item = vc;
@@ -398,7 +402,8 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                                 onTap: () {
                                   Get.back();
                                   controller.clearAllField();
-                                  showEditVariantPriceSheet(item,product.id??"");
+                                  showEditVariantPriceSheet(
+                                      item, product.id ?? "");
                                 },
                                 child: LocalAssets(
                                   imagePath: AppIconAssets.editIcon,
@@ -406,7 +411,6 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                                 ),
                               ),
                               const SizedBox(height: 10),
-
                             ],
                           ),
                         ],
@@ -422,7 +426,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                     final vc = Get.find<FoodServiceController>();
                     vc.clearAllField();
 
-                    showVariantBottomSheet(foodID:product.id??"");
+                    showVariantBottomSheet(foodID: product.id ?? "");
                   },
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -439,7 +443,13 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                     ],
                   )),
               const SizedBox(height: 20),
-              PositiveCustomBtn(onTap: () {}, title: "Post Product"),
+              PositiveCustomBtn(
+                  onTap: () async {
+                    // lat--> 26.8466933, lng--> 80.946165
+                    final vc = Get.find<FoodServiceController>();
+                  await  vc.addKitchenInventoryController(data: product);
+                  },
+                  title: "Post Product"),
               const SizedBox(height: 40),
             ],
           ),
