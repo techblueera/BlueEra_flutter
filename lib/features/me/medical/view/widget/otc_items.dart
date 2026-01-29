@@ -1,7 +1,3 @@
-import 'dart:developer';
-
-import 'package:BlueEra/widgets/common_drop_down.dart';
-import 'package:BlueEra/widgets/common_drop_down_icon_dialoge.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
@@ -11,9 +7,6 @@ import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/getx_utils.dart';
 import '../../../../../core/constants/size_config.dart';
 import '../../../../../core/routes/route_helper.dart';
-
-import '../../../../../widgets/commom_textfield.dart';
-import '../../../../../widgets/custom_btn.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 import '../../../hospital/controller/hospital_model_controller.dart';
 import '../../../hospital/view/category/contact_us_details_page.dart';
@@ -24,7 +17,6 @@ import '../../../hospital/view/category/other_facility.dart';
 import '../../../hospital/view/widget/add_department_dialog.dart';
 import '../../../laboratory/view/widgets/me_menu_card_design.dart';
 import '../../../widget/no_product_profile.dart';
-import '../../model/medical_lab_details.dart';
 
 class CategoryListView extends StatefulWidget {
   CategoryListView({super.key});
@@ -98,7 +90,7 @@ class _CategoryListViewState extends State<CategoryListView> {
                           RouteHelper.getHospitalOptCategory(),
                           arguments: {
                             ApiKeys.title: department.name,
-                            ApiKeys.categoryId: department.id,
+                            ApiKeys.category_id: department.id,
                             ApiKeys.type: department.type,
                           },
                         );

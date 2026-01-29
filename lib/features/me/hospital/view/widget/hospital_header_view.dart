@@ -4,13 +4,11 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/me/hotel/controller/hotel_home_detail_controller.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 
 import '../../../../../core/constants/getx_utils.dart';
 import '../../../../common/auth/views/dialogs/select_profile_picture_dialog.dart';
@@ -29,8 +27,6 @@ class HospitalHeaderView extends StatefulWidget {
 }
 
 class _HospitalHeaderViewState extends State<HospitalHeaderView> {
-  File? _logoImage;
-  final ImagePicker _picker = ImagePicker();
   final controller = getOrPut(() => HospitalModelController());
 
   Future<void> _pickImage(bool isBanner) async {
@@ -38,9 +34,8 @@ class _HospitalHeaderViewState extends State<HospitalHeaderView> {
     await  SelectProfilePictureDialog.showLogoDialog(context, isBanner?"Hospital Banner":"Hospital Logo");
     if(image!=null){
       setState(() {
-        print("lsddclksdmslkcmsdc ${isBanner}");
         if (isBanner) {
-          controller.pickDoctorImage(File(image??''));
+          controller.pickDoctorImage(File(image));
           controller.addCoverImage();
         } else {
           controller.pickedHospitalLogo.value = File(image);
@@ -65,8 +60,7 @@ class _HospitalHeaderViewState extends State<HospitalHeaderView> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    print("lsdjkclksdc ${controller.pickedDoctorImage.value==null} ___ ${widget.details?.coverImage != null &&
-        widget.details!.coverImage!.isNotEmpty} p[lplnkj ${widget.details?.coverImage}");
+
     return CommonCardWidget(
       padding: 0,
       cardMargin: 10,

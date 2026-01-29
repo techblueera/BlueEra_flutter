@@ -279,17 +279,4 @@ class _ContactUsDetailsPageState extends State<ContactUsDetailsPage> {
   }
 
   /// 🔥 Converts `emergencyPhone` → `Emergency Phone`
-  String _formatKey(String key) {
-    return key
-        .replaceAll('_', ' ')
-        .replaceAllMapped(
-      RegExp(r'[A-Z]'),
-          (match) => ' ${match.group(0)}',
-    )
-        .split(' ')
-        .map((e) =>
-    e.isEmpty ? '' : e[0].toUpperCase() + e.substring(1))
-        .join(' ')
-        .trim();
-  }
 }

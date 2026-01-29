@@ -2,20 +2,9 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/me/hospital/view/widget/add_hospital_prev_widget.dart';
-import 'package:BlueEra/features/me/hospital/view/widget/add_hospital_service.dart';
 import 'package:BlueEra/features/me/hospital/view/widget/create_hotel_profile_via_ai.dart';
-import 'package:BlueEra/features/common/franchise/view/franchise_home.dart';
-import 'package:BlueEra/features/me/hospital/view/widget/general_medicine.dart';
-import 'package:BlueEra/features/me/laboratory/view/widgets/add_lab_services.dart';
-import 'package:BlueEra/features/me/medical/view/category/otc_items_page.dart';
-import 'package:BlueEra/features/me/medical/view/widget/add_medical_service.dart';
-import 'package:BlueEra/features/me/widget/no_product_profile.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-
-import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/getx_utils.dart';
 import '../../../../widgets/common_search_bar.dart';
 import '../../medical/view/widget/otc_items.dart';
@@ -137,7 +126,6 @@ class _HospitalMainState extends State<HospitalMain>
               Expanded(child: TabBarView(
                 controller: controller.tabController,
                 children: [
-                  // HospitalPreviewScreen(),
                   HospitalHomePage(),
                   CategoryListView(),
                   const Center(child: CustomText(AppStrings.comingSoon)),

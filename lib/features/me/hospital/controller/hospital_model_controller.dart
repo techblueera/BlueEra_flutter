@@ -1,5 +1,4 @@
 
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -639,7 +638,7 @@ Future<void> getHospitalHomeDetails() async {
       ApiKeys.description: bedsDescriptionController.text,
       ApiKeys.fees: int.tryParse(feesController.text) ?? 0,
     };
-    ResponseModel response = await medicalRepo.editNewBeds(params,bedId??'');
+    ResponseModel response = await medicalRepo.editNewBeds(params,bedId);
     if (response.isSuccess) {
       addDoctorLoading.value = false;
       getAllBeds(departmentId??'');
@@ -806,29 +805,6 @@ Future<void> getHospitalHomeDetails() async {
     }
   }
 
-  List<MedicalLabDataListModel> updateCategoryStatusById({
-    required List<MedicalLabDataListModel> list,
-    required String id,
-    required bool isActive,
-  }) {
-    return list.map((item) {
-      if (item.id == id) {
-        return item.copyWith(isActive: isActive);
-      }
-
-      if (item.children != null && item.children!.isNotEmpty) {
-        return item.copyWith(
-          children: updateCategoryStatusById(
-            list: item.children!,
-            id: id,
-            isActive: isActive,
-          ),
-        );
-      }
-
-      return item;
-    }).toList();
-  }
 
   Future<void> updateEnableStatus(
     String categoryTopicId,
@@ -837,7 +813,6 @@ Future<void> getHospitalHomeDetails() async {
     ResponseModel response =
         await medicalRepo.enableHotelServiceStatusApi(categoryTopicId, params);
     if (response.isSuccess) {
-      final bool updatedStatus = params['isActive'];
 
       commonSnackBar(message: response.response?.statusMessage ?? '');
     } else {
@@ -884,6 +859,7 @@ Future<void> getHospitalHomeDetails() async {
       saveAiDetailsLoading.value = false;
     }
   }
+
 
   Future<String?> getPreSignUrl({File? selectedFile}) async {
     File? selectedFiles = selectedFile??pickedDoctorImage.value;

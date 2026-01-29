@@ -1,15 +1,12 @@
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:BlueEra/features/me/hospital/model/get_beds_details_model.dart';
 import 'package:BlueEra/features/me/hospital/model/hospital_ward_model.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/src/extension_navigation.dart';
 import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
-import 'package:image_picker/image_picker.dart';
 
 import '../../../../../core/constants/getx_utils.dart';
 import '../../../../../core/constants/size_config.dart';
@@ -35,7 +32,7 @@ class HospitalStaffDialog {
       controller.specializationController.text=preDoctorDetails.specialization??'';
       controller.qualificationController.text=preDoctorDetails.qualification??'';
       controller.availabilityController.text=preDoctorDetails.availability??'';
-      controller.feesController.text=preDoctorDetails.fees.toString()??'';
+      controller.feesController.text=preDoctorDetails.fees.toString();
     }else{
       controller.clearStaffForm();
     }
@@ -66,7 +63,7 @@ class HospitalStaffDialog {
                           final String? image =
                          await  SelectProfilePictureDialog.showLogoDialog(context, "Doctor Image");
                           if(image!=null){
-                            controller.pickDoctorImage(File(image??''));
+                            controller.pickDoctorImage(File(image));
                           }
                         },
                         child: Container(
@@ -193,9 +190,9 @@ class HospitalStaffDialog {
 
     if(preDoctorDetails!=null){
       controller.nameController.text=preDoctorDetails.name??'';
-      controller.totalBedsController.text=preDoctorDetails.totalBeds.toString()??'';
-      controller.availableBedsController.text=preDoctorDetails.availableBeds.toString()??'';
-      controller.feesController.text=preDoctorDetails.fees.toString()??'';
+      controller.totalBedsController.text=preDoctorDetails.totalBeds.toString();
+      controller.availableBedsController.text=preDoctorDetails.availableBeds.toString();
+      controller.feesController.text=preDoctorDetails.fees.toString();
     }else{
       controller.clearStaffForm();
     }
@@ -318,7 +315,7 @@ class HospitalStaffDialog {
       controller.nameController.text=preDoctorDetails.name??'';
       controller.totalBedsController.text=preDoctorDetails.bedNumber??'';
       controller.bedsDescriptionController.text=preDoctorDetails.description??'';
-      controller.feesController.text=preDoctorDetails.fees.toString()??'';
+      controller.feesController.text=preDoctorDetails.fees.toString();
     }else{
       controller.clearStaffForm();
     }
@@ -349,7 +346,7 @@ class HospitalStaffDialog {
                           final String? image =
                          await  SelectProfilePictureDialog.showLogoDialog(context, "Doctor Image");
                           if(image!=null){
-                            controller.pickDoctorImage(File(image??''));
+                            controller.pickDoctorImage(File(image));
                           }
                         },
                         child: Container(

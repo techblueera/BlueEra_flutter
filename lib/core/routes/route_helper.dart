@@ -1428,7 +1428,7 @@ class RouteHelper {
         case RouteConstant.medicalOtcItemsScreen:
           final args = settings.arguments as Map<String, dynamic>;
           String title  =args[ApiKeys.title] as String;
-          String categoryId= args[ApiKeys.categoryId] as String;
+          String categoryId= args[ApiKeys.category_id] as String;
           return MaterialPageRoute(
               builder: (_) => OTCItemsPage(
                   categoryId: categoryId,
@@ -1453,7 +1453,7 @@ class RouteHelper {
         );
       case RouteConstant.hospitalOptCategory:
         final args = settings.arguments as Map<String, dynamic>;
-        String categoryId= args[ApiKeys.categoryId] as String;
+        String categoryId= args[ApiKeys.category_id] as String;
         String title= args[ApiKeys.title] as String;
         String type= args[ApiKeys.type] as String;
         return MaterialPageRoute(
@@ -1468,7 +1468,7 @@ class RouteHelper {
       case RouteConstant.hospitalDoctorViewCategory:
         final args = settings.arguments as Map<String, dynamic>;
         // List<MedicalLabDataListModel>? children=args[ApiKeys.medicalOtcChildren] as List<MedicalLabDataListModel>?;
-        String categoryId= args[ApiKeys.categoryId] as String;
+        String categoryId= args[ApiKeys.category_id] as String;
         String title= args[ApiKeys.title] as String;
         return MaterialPageRoute(
             builder: (_) => DoctorListView(
@@ -1480,7 +1480,7 @@ class RouteHelper {
       case RouteConstant.hospitalWardViewCategory:
         final args = settings.arguments as Map<String, dynamic>;
         // List<MedicalLabDataListModel>? children=args[ApiKeys.medicalOtcChildren] as List<MedicalLabDataListModel>?;
-        String categoryId= args[ApiKeys.categoryId] as String;
+        String categoryId= args[ApiKeys.category_id] as String;
         String title= args[ApiKeys.title] as String;
         return MaterialPageRoute(
             builder: (_) => IpdInPatientWardViewPage(

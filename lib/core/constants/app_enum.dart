@@ -48,7 +48,7 @@ enum IndividualType {
 
 }
 
-enum BusinessType { Food, Product, Service, Grocery, Manufacturing, Healthcare, Motel, Siksha, Both }
+enum BusinessType { Food, Product, Service, Grocery, Manufacturing, Healthcare, Motel, Siksha, Both,}
 // enum BusinessType { Food, Product, Service, Grocery, Health, HotelStay, Both }
 
 /// Modes of Communication

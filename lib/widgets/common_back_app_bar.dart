@@ -31,6 +31,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import '../../../../../core/constants/shared_preference_utils.dart';
 import '../features/business/visiting_card/view/business_own_profile_screen.dart';
+import '../features/me/medical/view/widget/add_product_common_dialog.dart';
 
 class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
   const CommonBackAppBar({
@@ -114,6 +115,8 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.orderAcceptTextColor,
     this.isRejectButton,
     this.rejectButton,
+    this.isAddProductButton,
+    this.categoryId
   });
 
   // final AppBar? appBar;
@@ -197,6 +200,8 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool? isCurrentAddress;
   final bool? isRejectButton;
   final Widget Function()? rejectButton;
+  final String? categoryId;
+  final bool? isAddProductButton;
 
   @override
   Widget build(BuildContext context) {
@@ -747,7 +752,22 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ],
               ),
             ),
-          )
+          ),
+        if (isAddProductButton ?? false)
+        Padding(
+          padding: const EdgeInsets.only(right: 10.0),
+          child: CustomBtn(
+            width: 80,
+            isValidate: true,
+            onTap: () {
+              AddProductCommonDialog.showAddProduct(
+                context: context,
+                categoryId:categoryId??"",
+              );
+            },
+            title: "Add Product",
+          ),
+        ),
       ],
       bottom: bottomWidget,
     );

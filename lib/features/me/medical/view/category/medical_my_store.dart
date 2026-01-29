@@ -3,7 +3,6 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
@@ -12,13 +11,13 @@ import '../../../../../core/constants/app_colors.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 import '../../../laboratory/view/widgets/me_menu_card_design.dart';
 import '../../controller/medical_model_controller.dart';
-class AddMedicalService extends StatefulWidget {
-  const AddMedicalService({super.key});
+class MedicalMyStore extends StatefulWidget {
+  const MedicalMyStore({super.key});
 
   @override
-  State<AddMedicalService> createState() => _AddMedicalServiceState();
+  State<MedicalMyStore> createState() => _MedicalMyStoreState();
 }
-class _AddMedicalServiceState extends State<AddMedicalService> {
+class _MedicalMyStoreState extends State<MedicalMyStore> {
   final controller = getOrPut<MedicalModelController>(
         () => MedicalModelController(),
   );
@@ -26,24 +25,18 @@ class _AddMedicalServiceState extends State<AddMedicalService> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CommonBackAppBar(
-        showRightTextButton: true,
-        isShowMoreInfoIcon: true,
-        title: "Add Service",
-        isShadowShow: false,
-      ),
-      body: Column(
+    return SingleChildScrollView(
+      child: Column(
         children: [
-          SizedBox(height: 12),
+          SizedBox(height: SizeConfig.size12),
           ...controller.medicalCategoryDataList.map((title) {
             return InkWell(
               onTap: () {
                 Get.toNamed(RouteHelper.getMedicalOtcItemsScreen(),
-                arguments: {
-                  ApiKeys.title:title.name,
-                  ApiKeys.category_id:title.id
-                });
+                    arguments: {
+                      ApiKeys.title:title.name,
+                      ApiKeys.category_id:title.id
+                    });
               },
               child: MeMenuCardDesign(
                 title: title.name??'',
@@ -73,6 +66,7 @@ class _AddMedicalServiceState extends State<AddMedicalService> {
               ],
             ),
           ),
+          SizedBox(height: SizeConfig.size150),
         ],
       ),
     );

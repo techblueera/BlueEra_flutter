@@ -35,6 +35,8 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 import 'package:mappls_gl/mappls_gl.dart';
 
+import 'book_your_transport/book_transport_main.dart';
+
 class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
   _SliverAppBarDelegate({required this.child, required this.height});
 
@@ -1022,64 +1024,69 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
 
             /// Transport
             SliverToBoxAdapter(
-              child: CustomFormCard(
-                color: AppColors.rating.withValues(alpha: 0.1),
-                padding: EdgeInsets.all(SizeConfig.size10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _title('Book Your Transport'),
-                        ),
-                        SizedBox(
-                          width: SizeConfig.size8,
-                        ),
-                        _viewAll(),
-                      ],
-                    ),
-                    SizedBox(height: SizeConfig.paddingXSL),
-                    Stack(
-                      children: [
-                        _bannerWidget(
-                            bannerImage: AppImageAssets.transportService,
-                            bannerHeight: SizeConfig.size180),
-                        Positioned(
-                          left: 0,
-                          top: 0,
-                          bottom: 0,
-                          child: Container(
-                            width: SizeConfig.size180,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10.0),
-                              gradient: LinearGradient(
-                                begin: Alignment.centerLeft,
-                                end: Alignment.centerRight,
-                                colors: [
-                                  AppColors.black.withValues(alpha: 0.7),
-                                  // Dark on the left (text side)
-                                  AppColors.black.withValues(alpha: 0.0),
-                                  // Transparent on the right
-                                ],
+              child: InkWell(
+                onTap: (){
+                  Get.to(BookTransportMain());
+                },
+                child: CustomFormCard(
+                  color: AppColors.rating.withValues(alpha: 0.1),
+                  padding: EdgeInsets.all(SizeConfig.size10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _title('Book Your Transport'),
+                          ),
+                          SizedBox(
+                            width: SizeConfig.size8,
+                          ),
+                          _viewAll(),
+                        ],
+                      ),
+                      SizedBox(height: SizeConfig.paddingXSL),
+                      Stack(
+                        children: [
+                          _bannerWidget(
+                              bannerImage: AppImageAssets.transportService,
+                              bannerHeight: SizeConfig.size180),
+                          Positioned(
+                            left: 0,
+                            top: 0,
+                            bottom: 0,
+                            child: Container(
+                              width: SizeConfig.size180,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10.0),
+                                gradient: LinearGradient(
+                                  begin: Alignment.centerLeft,
+                                  end: Alignment.centerRight,
+                                  colors: [
+                                    AppColors.black.withValues(alpha: 0.7),
+                                    // Dark on the left (text side)
+                                    AppColors.black.withValues(alpha: 0.0),
+                                    // Transparent on the right
+                                  ],
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        _buildVerticalBulletPoints(
-                          [
-                            'Car',
-                            'Auto',
-                            'Bike',
-                            'Loader',
-                          ],
-                          iconSize: SizeConfig.size10,
-                          fontSize: SizeConfig.title,
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ],
-                    ),
-                  ],
+                          _buildVerticalBulletPoints(
+                            [
+                              'Car',
+                              'Auto',
+                              'Bike',
+                              'Loader',
+                            ],
+                            iconSize: SizeConfig.size10,
+                            fontSize: SizeConfig.title,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

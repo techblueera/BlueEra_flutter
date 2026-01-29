@@ -6,9 +6,9 @@ import 'package:BlueEra/core/api/apiService/base_service.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 
 class MedicalRepo extends BaseService {
-  Future<ResponseModel> fetchMedicalCategoryData(String endPoint) async {
+  Future<ResponseModel> fetchMedicalCategoryData() async {
     final response = await ApiBaseHelper().getHTTP(
-        getMedicalCategoryApi(endPoint),
+        getMedicalCategoryApi,
         showProgress: false,
    onError: (error) {}, onSuccess: (data) {});
     return response;
@@ -16,6 +16,13 @@ class MedicalRepo extends BaseService {
   Future<ResponseModel> fetchMedicalAdminProduct(String endPoint) async {
     final response = await ApiBaseHelper().getHTTP(
         getMedicalAdminProduct(endPoint),
+        showProgress: false,
+   onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }Future<ResponseModel> MedicalAddProduct(Map Params) async {
+    final response = await ApiBaseHelper().postHTTP(
+        postMedicalAddProduct,
+        params: Params,
         showProgress: false,
    onError: (error) {}, onSuccess: (data) {});
     return response;
@@ -289,4 +296,28 @@ class MedicalRepo extends BaseService {
     return response;
   }
 
+
+  Future<ResponseModel> getProductVarientbyId(String id) async {
+    final response = await ApiBaseHelper().getHTTP(
+        getProductVarient(id),
+        showProgress: false,
+        onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+  Future<ResponseModel> addProductVarientbyId(Map Params) async {
+    final response = await ApiBaseHelper().postHTTP(
+        addProductVarient,
+        params: Params,
+        showProgress: false,
+        onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+  Future<ResponseModel> editProductVarients(String id,Map<String,dynamic> params) async {
+    final response = await ApiBaseHelper().putHTTP(
+        putProductVarient(id),
+        showProgress: false,
+        params: params,
+        onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
 }

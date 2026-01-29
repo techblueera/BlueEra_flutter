@@ -21,7 +21,9 @@ class NoProfileDetailsFound extends StatelessWidget {
           SizedBox(
             height: SizeConfig.size10,
           ),
-          CustomText(content)
+          CustomText(content,
+          fontSize: 16,
+          fontWeight: FontWeight.w600,)
         ],
       ),
     );

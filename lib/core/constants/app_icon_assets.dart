@@ -610,6 +610,17 @@ class AppIconAssets {
   static const String hospitalVisionIcon = "${AppConstants.baseImageAssetsPath}vision_hospital_icon.png";
   static const String hospitalHistoryIcon = "${AppConstants.baseImageAssetsPath}hospital_history_icon.png";
   static const String admission_cell = "${AppConstants.baseImageAssetsPath}admission_cell.png";
+  static const String  transport_from_location= "${iconPath}transport_from_location.svg";
+  static const String  tranport_location_pointer= "${iconPath}tranport_location_pointer.svg";
+  static const String  transport_location_exchange= "${iconPath}transport_location_exchange.svg";
+  static const String  transport_bike= "${iconPath}transport_bike.svg";
+  static const String  transport_taxi= "${iconPath}transport_taxi.svg";
+  static const String  transport_auto= "${iconPath}transport_auto.svg";
+  static const String  transport_big_auto= "${iconPath}transport_big_auto.svg";
+  static const String  transport_7_seater= "${iconPath}transport_7_seater.svg";
+  static const String  transport_load_auto= "${iconPath}transport_load_auto.svg";
+  static const String  transport_truck= "${iconPath}transport_truck.svg";
+  static const String  transport_container= "${iconPath}transport_container.svg";
 
 
 }

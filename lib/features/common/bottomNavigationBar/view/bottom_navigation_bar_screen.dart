@@ -398,6 +398,9 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         BusinessType.Motel.name.toUpperCase()) {
       return const HotelMain();
     } else if (businessTypeGlobal.toUpperCase() ==
+        BusinessType.Healthcare.name.toUpperCase()) {
+      return  MedicalMain();
+    }else if (businessTypeGlobal.toUpperCase() ==
         BusinessType.Service.name.toUpperCase()) {
       return const OthersMain();
     } else {

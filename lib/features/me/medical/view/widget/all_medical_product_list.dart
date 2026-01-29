@@ -1,4 +1,3 @@
-import 'package:BlueEra/features/me/medical/view/category/otc_items_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 import '../../../../../core/constants/app_colors.dart';
@@ -7,6 +6,7 @@ import '../../../../../core/constants/custom_carousel_slider.dart';
 import '../../../../../core/constants/getx_utils.dart';
 import '../../../../../core/constants/size_config.dart';
 import '../../../../../widgets/custom_text_cm.dart';
+import '../../../../../widgets/expandable_text.dart';
 import '../../controller/medical_model_controller.dart';
 import '../../model/medical_admin_product_details.dart';
 
@@ -29,7 +29,7 @@ class AllMedicalProductList extends StatelessWidget {
         final itemWidth =
             (constraints.maxWidth - totalHorizontalSpacing) / crossAxisCount;
 
-        final approximateItemHeight = SizeConfig.size240;
+        final approximateItemHeight = 274;
 
         final childAspectRatio = itemWidth / approximateItemHeight;
 
@@ -73,7 +73,7 @@ class AllMedicalProductList extends StatelessWidget {
                               isLoading: false,
                               width: double.infinity,
                               height: SizeConfig.size170,
-                              imagePaths: productData.images ?? [],
+                              imagePaths:[ productData.image ??''],
                               borderRadius: BorderRadius.zero,
                             ),
                           ),
@@ -96,27 +96,37 @@ class AllMedicalProductList extends StatelessWidget {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
-                              SizedBox(height: SizeConfig.size5),
-
+                              SizedBox(height: SizeConfig.size6),
+                              ExpandableText(
+                                text:"${productData.description}",
+                                trimLines: 2,
+                                isReadMoreNewLine: true,
+                                expandMode: ExpandMode.dialog,
+                                style: TextStyle(
+                                  color: AppColors.secondaryTextColor,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w400,
+                                  fontFamily: AppConstants.OpenSans,
+                                ),
+                              ),
+                              SizedBox(height: SizeConfig.size6),
                               // Price Row
                               // if (variants.isNotEmpty)
                               Row(
                                 children: [
                                   CustomText(
-                                    '₹${productData.variants?[0].pricing?[0].mrp}',
+                                    'Price : ₹${productData.mrp}',
                                     fontWeight: FontWeight.w700,
                                     fontSize: SizeConfig.medium,
                                     color: AppColors.primaryColor,
-                                    fontFamily: AppConstants.OpenSans,
                                   ),
                                   SizedBox(width: SizeConfig.size6),
                                   CustomText(
-                                    ' ₹${productData.variants?[0].pricing?[0].sellingPrice}',
+                                    ' ₹${productData.displayPrice}',
                                     fontSize: SizeConfig.small,
                                     color: AppColors.secondaryTextColor,
                                     fontWeight: FontWeight.w400,
                                     decoration: TextDecoration.lineThrough,
-                                    fontFamily: AppConstants.OpenSans,
                                   ),
                                 ],
                               ),

@@ -71,6 +71,7 @@ class AppColors {
   static const optionShowGray = Color(0xFF6E6D6D);
   static const subHeadGray = Color(0xFF4E506A);
   static const greyE5 = Color(0xFFE5E5E5);
+  static const greyE4 = Color(0xFFEFEFEF);
   static const yellow00 = Color(0xFFFFC300);
   static const blackD4 = Color(0xD4303030);
   static const grayText = Color.fromRGBO(69, 81, 84, 1);

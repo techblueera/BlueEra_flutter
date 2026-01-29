@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get_core/src/get_main.dart';
@@ -10,7 +9,6 @@ import '../../../../../core/constants/size_config.dart';
 import '../../../../../widgets/commom_textfield.dart';
 import '../../../../../widgets/custom_btn.dart';
 import '../../../../../widgets/custom_text_cm.dart';
-import '../../../../common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import '../../../school/view/common_ai_genereted_button.dart';
 import '../../controller/hospital_model_controller.dart';
 
