@@ -150,10 +150,10 @@ class _FindContactWithServiceState extends State<FindContactWithService>
                       fashionContactCategories.first.slugId, null);
                 }else if(index==2){
                   chatViewController.findServiceByContacts(
-                      serviceContactCategories.first.slugId, null);
+                      othersContactCategories.first.slugId, null);
                 }else if(index==3){
                   chatViewController.findServiceByContacts(
-                      othersContactCategories.first.slugId, null);
+                      serviceContactCategories.first.slugId, null);
                 }
                 chatViewController.selectedIndex.value=0;
               },
@@ -170,8 +170,9 @@ class _FindContactWithServiceState extends State<FindContactWithService>
               tabs: const [
                 Tab(text: "Professionals",),
                 Tab(text: "Shopping"),
+                Tab(text: "Essential"),
                 Tab(text: "Services"),
-                Tab(text: "Others"),
+
               ],
             ),
           ),
@@ -181,8 +182,8 @@ class _FindContactWithServiceState extends State<FindContactWithService>
               children: [
                 ProfessionalsMain(),
                 ShoppingMain(),
-                ServiceMain(),
                 FindByOtherService(),
+                ServiceMain(),
               ],
             ),
           ),

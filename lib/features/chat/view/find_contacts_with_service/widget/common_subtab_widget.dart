@@ -67,7 +67,7 @@ class CommonSubTabWidget extends StatelessWidget {
                 child: Column(crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    CustomText(title,textAlign: TextAlign.center,fontSize: 12,fontWeight: FontWeight.w600,),
+                    CustomText(title,textAlign: TextAlign.center,fontSize: 10,fontWeight: FontWeight.w600,),
                     const SizedBox(height: 8),
                   ],
                 ),
