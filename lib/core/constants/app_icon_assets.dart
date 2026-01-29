@@ -615,6 +615,14 @@ class AppIconAssets {
   static const String hospitalVisionIcon = "${AppConstants.baseImageAssetsPath}vision_hospital_icon.png";
   static const String hospitalHistoryIcon = "${AppConstants.baseImageAssetsPath}hospital_history_icon.png";
   static const String admission_cell = "${AppConstants.baseImageAssetsPath}admission_cell.png";
+  static const String aboutProfessional = "${iconPath}aboutProfessional.svg";
+  static const String availability = "${iconPath}availability.svg";
+  static const String  basicProfile= "${iconPath}basicProfile.svg";
+  static const String  caseStudies= "${iconPath}caseStudies.svg";
+  static const String engagementModel = "${iconPath}engagementModel.svg";
+  static const String galleryCertifications = "${iconPath}galleryCertifications.svg";
+  static const String  leadsSection= "${iconPath}leadsSection.svg";
+  static const String servicesOffered = "${iconPath}servicesOffered.svg";
   static const String  transport_from_location= "${iconPath}transport_from_location.svg";
   static const String  tranport_location_pointer= "${iconPath}tranport_location_pointer.svg";
   static const String  transport_location_exchange= "${iconPath}transport_location_exchange.svg";
@@ -629,5 +637,3 @@ class AppIconAssets {
 
 
 }
-// assets/svg/other_management.svg
-// assets/svg/other_management.svg

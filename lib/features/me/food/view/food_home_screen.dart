@@ -1,13 +1,27 @@
+import 'dart:math';
+
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
+import 'package:BlueEra/features/common/food/model/food_category_res_model.dart';
 import 'package:BlueEra/features/me/food/controller/home_food_controller.dart';
 import 'package:BlueEra/features/me/food/model/food_home_res_model.dart';
+import 'package:BlueEra/features/me/food/view/food_contact_us_screen.dart';
+import 'package:BlueEra/features/me/food/view/food_service_gallery/food_service_photos_screen.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_home_profile_header.dart';
+import 'package:BlueEra/features/me/grocery/view/grocery_product_selection_screen.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/image_view_screen.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
-
 
 class RestaurantHomeScreen extends StatelessWidget {
   final controller = Get.put(RestaurantController());
@@ -26,9 +40,8 @@ class RestaurantHomeScreen extends StatelessWidget {
         final data = controller.restaurantData.value;
         if (data == null)
           return const Center(child: CustomText("No Data Found"));
-
         return RefreshIndicator(
-          onRefresh: () async{
+          onRefresh: () async {
             controller.fetchHomeData();
           },
           child: SingleChildScrollView(
@@ -90,6 +103,80 @@ class RestaurantHomeScreen extends StatelessWidget {
                       ],
                     ),
                   ),
+
+                (data.gallery?.isNotEmpty ?? false)
+                    ?
+
+                    /// Gallery
+
+                    CommonCardWidget(
+                        // cardMargin: 0,
+                        // padding: 10,
+                        padding: 15,
+
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const CustomText("Gallery",
+                                    fontSize: 20, fontWeight: FontWeight.bold),
+                                InkWell(
+                                    onTap: () {
+                                      Get.to(FoodServicePhotosPhotoScreen());
+                                    },
+                                    child: LocalAssets(
+                                      imagePath: AppIconAssets.editIcon,
+                                      imgColor: AppColors.mainTextColor,
+                                    )),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            _buildGallery(data.gallery ?? [], context),
+                          ],
+                        ),
+                      )
+                    : Padding(
+                        padding: const EdgeInsets.only(
+                            top: 20.0, right: 20, left: 20),
+                        child: PositiveCustomBtn(
+                            onTap: () {
+                              Get.to(FoodServicePhotosPhotoScreen());
+                            },
+                            title: "Add Gallery Photo"),
+                      ),
+                (data.contact == null)
+                    ? Padding(
+                        padding: const EdgeInsets.only(
+                            top: 20.0, right: 20, left: 20),
+                        child: PositiveCustomBtn(
+                            onTap: () {
+                              Get.to(FoodContactUsScreen());
+                            },
+                            title: "Add Contact US"),
+                      )
+                    : _buildContactCard(data.contact),
+                // Map Placeholder
+                if (data.contact != null)
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: BusinessLocationWidget(
+                          locationText: data.contact?.location?.name ?? "",
+                          latitude: double.parse(data
+                                  .contact?.location?.coordinates?[0]
+                                  .toString() ??
+                              "0.0"),
+                          longitude: double.parse(data
+                                  .contact?.location?.coordinates?[1]
+                                  .toString() ??
+                              "0.0"),
+                          businessName: data.contact?.name ?? "",
+                          padding: 10,
+                          isTitleShow: true),
+                    ),
+                  ),
                 SizedBox(
                   height: 100,
                 ),
@@ -98,6 +185,184 @@ class RestaurantHomeScreen extends StatelessWidget {
           ),
         );
       }),
+    );
+  }
+
+  Widget _buildGallery(List<FoodGallery> galleryList, BuildContext context) {
+    // Flatten all images
+    List<String> allImages = [];
+    for (var g in galleryList) {
+      if (g.imageUrls != null) {
+        allImages.addAll(g.imageUrls!);
+      }
+    }
+
+    if (allImages.isEmpty) return const SizedBox();
+
+    // Randomize and pick 6
+    allImages.shuffle(Random());
+
+    return StaggeredGrid.count(
+      // shrinkWrap: true,
+      // physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 4,
+      mainAxisSpacing: 8,
+      crossAxisSpacing: 8,
+      children:
+          List.generate(allImages.length > 10 ? 10 : allImages.length, (index) {
+        // Logic to replicate the pattern in your image:
+        // Large Vertical (index 0), Two small (index 1,2), Large Horizontal (index 3)...
+        int crossAxisCellCount = 2;
+        num mainAxisCellCount = 2;
+
+        if (index % 6 == 0 || index % 6 == 5) {
+          // Large Vertical Tiles
+          crossAxisCellCount = 2;
+          mainAxisCellCount = 3;
+        } else if (index % 6 == 3) {
+          // Large Full-Width Horizontal Tile
+          crossAxisCellCount = 4;
+          mainAxisCellCount = 2;
+        } else {
+          // Standard Small Squares
+          crossAxisCellCount = 2;
+          mainAxisCellCount = 1.5;
+        }
+
+        return StaggeredGridTile.count(
+          crossAxisCellCount: crossAxisCellCount,
+          mainAxisCellCount: mainAxisCellCount,
+          child: InkWell(
+            onTap: () {
+              navigatePushTo(
+                context,
+                ImageViewScreen(
+                  subTitle: AppStrings.imageViewer,
+                  appBarTitle: AppStrings.imageViewer,
+                  imageUrls: allImages,
+                  initialIndex: index,
+                ),
+              );
+            },
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.network(
+                allImages[index],
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                    color: Colors.grey[200],
+                    child: const Icon(Icons.broken_image)),
+              ),
+            ),
+          ),
+        );
+      }),
+    );
+  }
+
+  Widget _buildContactCard(FoodContact? profile) {
+    return CommonCardWidget(
+      padding: 15,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const CustomText("Contact Us",
+                  fontSize: 20, fontWeight: FontWeight.bold),
+              InkWell(
+                  onTap: () {
+                    Get.to(FoodContactUsScreen(
+                      profile: profile,
+                    ));
+                  },
+                  child: LocalAssets(
+                    imagePath: AppIconAssets.editIcon,
+                    imgColor: AppColors.mainTextColor,
+                  )),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey[200]!),
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Logo and Hotel Name
+                if (viewBusinessDetailsController
+                        .businessProfileDetails?.data?.logo?.isNotEmpty ??
+                    false)
+                  Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      // color: Colors.white,
+                      shape: BoxShape.circle,
+                      // border: Border.all(color: Colors.white, width: 4),
+                      boxShadow: [
+                        BoxShadow(color: Colors.black12, blurRadius: 10)
+                      ],
+                      image: DecorationImage(
+                          image: NetworkImage(viewBusinessDetailsController
+                                  .businessProfileDetails?.data?.logo ??
+                              ''),
+                          fit: BoxFit.cover),
+                    ),
+                  ),
+                const SizedBox(height: 10),
+                CustomText(profile?.name,
+                    fontSize: 20, fontWeight: FontWeight.bold),
+
+                const SizedBox(height: 5),
+                CustomText(
+                  viewBusinessDetailsController
+                      .businessProfileDetails?.data?.businessDescription,
+                  color: AppColors.secondaryTextColor,
+                  fontSize: 14,
+                ),
+                const Divider(height: 30),
+
+                // Contact List
+                _contactItem(AppIconAssets.website_click,
+                    profile?.pageLink ?? "", AppColors.primaryColor),
+                _contactItem(AppIconAssets.principal, profile?.department ?? "",
+                    AppColors.secondaryTextColor),
+                _contactItem(AppIconAssets.email, profile?.email ?? "",
+                    AppColors.secondaryTextColor),
+                _contactItem(AppIconAssets.phone_outline, profile?.phone ?? "",
+                    AppColors.secondaryTextColor),
+                _contactItem(
+                    AppIconAssets.location_new,
+                    profile?.location?.name ?? "",
+                    AppColors.secondaryTextColor),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _contactItem(String icon, String label, Color iconColor) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: Row(
+        children: [
+          LocalAssets(
+            imagePath: icon,
+            imgColor: iconColor,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+              child: CustomText(label,
+                  fontSize: 15, color: AppColors.mainTextColor)),
+        ],
+      ),
     );
   }
 
@@ -161,14 +426,32 @@ class RestaurantHomeScreen extends StatelessWidget {
       itemCount: menus.length,
       itemBuilder: (context, index) {
         final category = menus[index];
-        return Container(
-          height: 160,
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            image: DecorationImage(
-              image: AssetImage('assets/category/foods/${category.key}.png'),
-              fit: BoxFit.cover,
+
+        return InkWell(
+          onTap: () {
+            // Get.to(ProductSelectionScreen(
+            //   foodCategoryData: FoodCategoryData(
+            //       name: category.name,
+            //       id: category.id,
+            //       createdAt: category.createdAt,
+            //       children: [],
+            //       isActive: category.isActive,
+            //       key: category.key,
+            //       level: category.level,
+            //       parentId: category.parentId,
+            //       updatedAt: category.updatedAt,
+            //       v: category.v),
+            // ));
+          },
+          child: Container(
+            height: 160,
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              image: DecorationImage(
+                image: AssetImage('assets/category/foods/${category.key}.png'),
+                fit: BoxFit.cover,
+              ),
             ),
           ),
         );
