@@ -7,11 +7,16 @@ import 'package:BlueEra/features/chat/auth/model/business_service_ask_ai_model.d
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
+import '../../../../../core/api/apiService/api_keys.dart';
 import '../../../../../core/constants/app_colors.dart';
+import '../../../../../core/constants/app_constant.dart';
 import '../../../../../core/constants/app_icon_assets.dart';
 import '../../../../../core/constants/custom_carousel_slider.dart';
 import '../../../../../core/constants/size_config.dart';
 import '../../../../../widgets/common_box_shadow.dart';
+import '../../../auth/controller/chat_view_controller.dart';
 
 class AskServiceMsgCard extends StatelessWidget {
   final BusinessServicesAskAiModel response;
@@ -67,7 +72,7 @@ class AskServiceMsgCard extends StatelessWidget {
               crossAxisCount: 2,
               mainAxisSpacing: 12,
               crossAxisSpacing: 12,
-              mainAxisExtent: 300,
+              mainAxisExtent: 310,
             ),
             itemBuilder: (_, i) {
               final item = arrServices[i];
@@ -208,80 +213,71 @@ class AskServiceMsgCard extends StatelessWidget {
                                 Expanded(
                                   child: TextButton.icon(
                                     onPressed: () async{
-                                      // final chatViewController = Get.find<ChatViewController>();
-                                      // Map<String, dynamic> detas = {
-                                      //   ApiKeys.user_id: business?.user_id
-                                      // };
-                                      // chatViewController.newVisitContactApiResponse?.value;
-                                      // await chatViewController.checkChatConnection(detas);
-                                      // List<Map<String, String>>? urlList =
-                                      // product?.media.map((e) => {"url": e}).toList();
-                                      // Map<String, dynamic> data = {
-                                      //   ApiKeys.product_id:"${product?.id}",
-                                      //
-                                      //   ApiKeys.price: "${product?.mrpPerUnit}",
-                                      //   ApiKeys.discount: "",
-                                      //   if ((chatViewController.newVisitContactApiResponse
-                                      //       ?.value?.data?.conversationId ==
-                                      //       '' ||
-                                      //       chatViewController.newVisitContactApiResponse
-                                      //           ?.value?.data?.conversationId ==
-                                      //           null))
-                                      //     ApiKeys.other_user_id: (chatViewController
-                                      //         .newVisitContactApiResponse
-                                      //         ?.value
-                                      //         ?.data
-                                      //         ?.otherUserId ??
-                                      //         '')
-                                      //   else
-                                      //     ApiKeys.conversation_id: (chatViewController
-                                      //         .newVisitContactApiResponse
-                                      //         ?.value
-                                      //         ?.data
-                                      //         ?.conversationId ??
-                                      //         ''),
-                                      //   ApiKeys.message:
-                                      //   "${product?.name}",
-                                      //   ApiKeys.message_type: "product",
-                                      //   ApiKeys.title: product?.name,
-                                      //   ApiKeys.mrp :'',
-                                      //   ApiKeys.url: urlList,
-                                      // };
-                                      // chatViewController.
-                                      // openAnyOneChatFunction(
-                                      //   shareProductParams: data,
-                                      //   isWithProductSend: true,
-                                      //   profileImage: business?.business_logo,
-                                      //   otherUserId: (chatViewController.newVisitContactApiResponse
-                                      //       ?.value?.data?.conversationId ??
-                                      //       '') ==
-                                      //       ""
-                                      //       ? chatViewController.newVisitContactApiResponse?.value
-                                      //       ?.data?.otherUserId ??
-                                      //       ''
-                                      //       : null,
-                                      //   // businessId: widget
-                                      //   //     .productStore?.sellerClassification?.owner?.id,
-                                      //   type: AppConstants.business_Chat_Type,
-                                      //   isInitialMessage: (chatViewController
-                                      //       .newVisitContactApiResponse
-                                      //       ?.value
-                                      //       ?.data
-                                      //       ?.conversationId ??
-                                      //       '') ==
-                                      //       ""
-                                      //       ? true
-                                      //       : false,
-                                      //   userId: business?.user_id,
-                                      //   conversationId: (chatViewController
-                                      //       .newVisitContactApiResponse
-                                      //       ?.value
-                                      //       ?.data
-                                      //       ?.conversationId ??
-                                      //       ''),
-                                      //   contactName: business?.business_name,
-                                      //   contactNo: business?.mobile_no,
-                                      // );
+                                      // Discounts? maxDiscount;
+                                      // if ((service.discounts?.length ?? 0) > 0)
+                                      //   maxDiscount = service.discounts
+                                      //       ?.reduce((a, b) => (a.amountOff ?? 0) > (b.amountOff ?? 0) ? a : b);
+
+                                      final chatViewController = Get.find<ChatViewController>();
+                                      Map<String, dynamic> detas = {
+                                        ApiKeys.user_id: profile?.userId
+                                      };
+
+                                      Map<String,dynamic>? userDetailsMap=  await chatViewController.checkChatConnection(detas);
+                                      if(userDetailsMap!=null){
+                                        List<Map<String, String>>? urlList;
+                                        if( item.gallery?.isNotEmpty??false){
+                                          urlList= item.gallery?.first.imageUrls?.map((e) => {ApiKeys.url: e}).toList()??[];
+                                        }
+
+                                        final conversationId = userDetailsMap[ApiKeys.conversation_id];
+
+                                        final hasConversation = conversationId != null &&
+                                            conversationId.toString().isNotEmpty &&
+                                            conversationId.toString().toLowerCase() != 'null';
+                                        Map<String,dynamic> data={
+                                          ApiKeys.service_id : " ",
+                                          // ApiKeys.price: "${service.priceRange?.min} - ${service.priceRange?.max} per ${service.perUnit ?? ''}",
+                                          ApiKeys.price: "",
+                                          // ApiKeys.discount: "${(maxDiscount?.amountOff != null)
+                                          //     ? "${maxDiscount?.amountOff.toString()}% Off"
+                                          //     : "0% Off"}",
+                                          ApiKeys.discount: "",
+                                          if(!hasConversation)
+                                            ApiKeys.other_user_id: (userDetailsMap[ApiKeys.other_user_id] ??
+                                                '')
+                                          else
+                                            ApiKeys.conversation_id:(userDetailsMap[ApiKeys.conversation_id] ??
+                                                ''),
+
+                                          ApiKeys.message: "${profile?.profileName}",
+                                          ApiKeys.message_type: AppConstants.service,
+                                          ApiKeys.title: profile?.profileName,
+                                          ApiKeys.sub_category : "${profile?.description}",
+                                          ApiKeys.variant : "",
+                                          // ApiKeys.variant : "${service.business?.businessName ?? "N/A"}",
+
+                                          ApiKeys.url: urlList??[],
+                                        };
+                                        chatViewController.openAnyOneChatFunction(
+                                          shareProductParams:data,
+                                          isWithProductSend: true,
+                                          profileImage: profile?.logoUrl,
+                                          otherUserId: (!hasConversation)
+                                              ? userDetailsMap[ApiKeys.other_user_id]??
+                                              ''
+                                              : null,
+                                          type: AppConstants.chatMsgBusinessType,
+                                          isInitialMessage: (!hasConversation)? true
+                                              : false,
+                                          userId:profile?.userId,
+                                          conversationId: conversationId??
+                                              '',
+                                          contactName: profile?.profileName,
+                                          contactNo: "",
+                                        );
+                                      }
+
                                     },
                                     icon: LocalAssets(
                                         imagePath: AppIconAssets.chat,

@@ -203,7 +203,7 @@ class AppConstants {
   static const String prepaid = "prepaid";
   static const String postpaid = "postpaid";
   static const String manufacturingIndustry = "manufacturingIndustry";
-
+  static const String personal = 'personal';
   /// Services Category
   static const consulting = "Consulting Services";
   static const automotive = "Automotive Services";

@@ -6,11 +6,16 @@ import 'package:BlueEra/features/chat/auth/model/education_ask_ai_model.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
+import '../../../../../core/api/apiService/api_keys.dart';
 import '../../../../../core/constants/app_colors.dart';
+import '../../../../../core/constants/app_constant.dart';
 import '../../../../../core/constants/app_icon_assets.dart';
 import '../../../../../core/constants/custom_carousel_slider.dart';
 import '../../../../../core/constants/size_config.dart';
 import '../../../../../widgets/common_box_shadow.dart';
+import '../../../auth/controller/chat_view_controller.dart';
 
 class AskEducationMsgCard extends StatelessWidget {
   final EducationAskAiModel response;
@@ -230,80 +235,61 @@ class AskEducationMsgCard extends StatelessWidget {
                                 Expanded(
                                   child: TextButton.icon(
                                     onPressed: () async {
-                                      // final chatViewController = Get.find<ChatViewController>();
-                                      // Map<String, dynamic> detas = {
-                                      //   ApiKeys.user_id: business?.user_id
-                                      // };
-                                      // chatViewController.newVisitContactApiResponse?.value;
-                                      // await chatViewController.checkChatConnection(detas);
-                                      // List<Map<String, String>>? urlList =
-                                      // product?.media.map((e) => {"url": e}).toList();
-                                      // Map<String, dynamic> data = {
-                                      //   ApiKeys.product_id:"${product?.id}",
-                                      //
-                                      //   ApiKeys.price: "${product?.mrpPerUnit}",
-                                      //   ApiKeys.discount: "",
-                                      //   if ((chatViewController.newVisitContactApiResponse
-                                      //       ?.value?.data?.conversationId ==
-                                      //       '' ||
-                                      //       chatViewController.newVisitContactApiResponse
-                                      //           ?.value?.data?.conversationId ==
-                                      //           null))
-                                      //     ApiKeys.other_user_id: (chatViewController
-                                      //         .newVisitContactApiResponse
-                                      //         ?.value
-                                      //         ?.data
-                                      //         ?.otherUserId ??
-                                      //         '')
-                                      //   else
-                                      //     ApiKeys.conversation_id: (chatViewController
-                                      //         .newVisitContactApiResponse
-                                      //         ?.value
-                                      //         ?.data
-                                      //         ?.conversationId ??
-                                      //         ''),
-                                      //   ApiKeys.message:
-                                      //   "${product?.name}",
-                                      //   ApiKeys.message_type: "product",
-                                      //   ApiKeys.title: product?.name,
-                                      //   ApiKeys.mrp :'',
-                                      //   ApiKeys.url: urlList,
-                                      // };
-                                      // chatViewController.
-                                      // openAnyOneChatFunction(
-                                      //   shareProductParams: data,
-                                      //   isWithProductSend: true,
-                                      //   profileImage: business?.business_logo,
-                                      //   otherUserId: (chatViewController.newVisitContactApiResponse
-                                      //       ?.value?.data?.conversationId ??
-                                      //       '') ==
-                                      //       ""
-                                      //       ? chatViewController.newVisitContactApiResponse?.value
-                                      //       ?.data?.otherUserId ??
-                                      //       ''
-                                      //       : null,
-                                      //   // businessId: widget
-                                      //   //     .productStore?.sellerClassification?.owner?.id,
-                                      //   type: AppConstants.business_Chat_Type,
-                                      //   isInitialMessage: (chatViewController
-                                      //       .newVisitContactApiResponse
-                                      //       ?.value
-                                      //       ?.data
-                                      //       ?.conversationId ??
-                                      //       '') ==
-                                      //       ""
-                                      //       ? true
-                                      //       : false,
-                                      //   userId: business?.user_id,
-                                      //   conversationId: (chatViewController
-                                      //       .newVisitContactApiResponse
-                                      //       ?.value
-                                      //       ?.data
-                                      //       ?.conversationId ??
-                                      //       ''),
-                                      //   contactName: business?.business_name,
-                                      //   contactNo: business?.mobile_no,
-                                      // );
+                                      final chatViewController = Get.find<ChatViewController>();
+                                      Map<String, dynamic> detas = {
+                                        ApiKeys.user_id: institutions.ownerId
+                                      };
+
+                                      Map<String,dynamic>? userDetailsMap=  await chatViewController.checkChatConnection(detas);
+                                      if(userDetailsMap!=null){
+                                        List<Map<String, String>>? urlList;
+                                        if(institutions.gallery?.isNotEmpty??false){
+                                          urlList= institutions.gallery?.map((e) => {ApiKeys.url: e.uploadPhoto??''}).toList()??[];
+                                        }
+
+                                        final conversationId = userDetailsMap[ApiKeys.conversation_id];
+
+                                        final hasConversation = conversationId != null &&
+                                            conversationId.toString().isNotEmpty &&
+                                            conversationId.toString().toLowerCase() != 'null';
+                                        Map<String,dynamic> data={
+                                          ApiKeys.service_id : "${institutions.sId}",
+                                          ApiKeys.price: "",
+                                          ApiKeys.discount: "",
+                                          if(!hasConversation)
+                                            ApiKeys.other_user_id: (userDetailsMap[ApiKeys.other_user_id] ??
+                                                '')
+                                          else
+                                            ApiKeys.conversation_id:(userDetailsMap[ApiKeys.conversation_id] ??
+                                                ''),
+
+                                          ApiKeys.message: "${institutions.name}",
+                                          ApiKeys.message_type: AppConstants.service,
+                                          ApiKeys.title: "${institutions.name}" ,
+                                          ApiKeys.sub_category : "${institutions.description}",
+                                          ApiKeys.variant : "",
+
+                                          ApiKeys.url: urlList??[],
+                                        };
+                                        chatViewController.openAnyOneChatFunction(
+                                          shareProductParams:data,
+                                          isWithProductSend: true,
+                                          profileImage: "${institutions.logo}",
+                                          otherUserId: (!hasConversation)
+                                              ? userDetailsMap[ApiKeys.other_user_id]??
+                                              ''
+                                              : null,
+                                          type: AppConstants.chatMsgBusinessType,
+                                          isInitialMessage: (!hasConversation)? true
+                                              : false,
+                                          userId:"${institutions.ownerId}",
+                                          conversationId: conversationId??
+                                              '',
+                                          contactName: "${institutions.name}" ,
+                                          contactNo: "",
+                                        );
+                                      }
+
                                     },
                                     icon: LocalAssets(
                                         imagePath: AppIconAssets.chat,

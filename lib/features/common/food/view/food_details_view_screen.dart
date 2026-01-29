@@ -163,82 +163,64 @@ class FoodDetailsViewScreen extends StatelessWidget {
                           Map<String, dynamic> detas = {
                             ApiKeys.user_id: business?.userId
                           };
-                          chatViewController.newVisitContactApiResponse?.value;
-                          await chatViewController.checkChatConnection(detas);
-                          List<Map<String, String>> urlList =
-                              photos.map((e) => { ApiKeys.url: e}).toList();
 
-                          Map<String, dynamic> data = {
-                           ApiKeys.food_id: "${item.id}",
-                            ApiKeys.price: "${productPriceFormat}",
-                            ApiKeys.discount : "",
-                            if ((chatViewController.newVisitContactApiResponse
-                                        ?.value?.data?.conversationId ==
-                                    '' ||
-                                chatViewController.newVisitContactApiResponse
-                                        ?.value?.data?.conversationId ==
-                                    null))
-                              ApiKeys.other_user_id: (chatViewController
-                                      .newVisitContactApiResponse
-                                      ?.value
-                                      ?.data
-                                      ?.otherUserId ??
-                                  '')
-                            else
-                              ApiKeys.conversation_id: (chatViewController
-                                      .newVisitContactApiResponse
-                                      ?.value
-                                      ?.data
-                                      ?.conversationId ??
+                          Map<String,dynamic>? userDetailsMap=  await chatViewController.checkChatConnection(detas);
+                          if(userDetailsMap!=null){
+                            List<Map<String, String>> urlList =
+                            photos.map((e) => { ApiKeys.url: e}).toList();
+                            final conversationId = userDetailsMap[ApiKeys.conversation_id];
+
+                            final hasConversation = conversationId != null &&
+                                conversationId.toString().isNotEmpty &&
+                                conversationId.toString().toLowerCase() != 'null';
+
+                            Map<String, dynamic> data = {
+                              ApiKeys.food_id: item.id.toString(),
+                              ApiKeys.price: productPriceFormat.toString(),
+                              ApiKeys.discount: "",
+                              if (hasConversation)
+                                ApiKeys.conversation_id: conversationId
+                              else
+                                ApiKeys.other_user_id:
+                                userDetailsMap[ApiKeys.other_user_id] ?? '',
+                              ApiKeys.message: item.title,
+                              ApiKeys.message_type: AppConstants.food,
+                              ApiKeys.title: item.title,
+                              ApiKeys.veg_type: item.vegType,
+                              ApiKeys.sub_category: item.subCategory,
+                              ApiKeys.calories:
+                              item.nutritionalSummaryPer100g?.caloriesKcal,
+                              ApiKeys.url: urlList,
+                            };
+
+                            chatViewController.isChatFromBusinessProfile(true);
+                            chatViewController.canPopBusiness.value=true;
+
+                            chatViewController.openAnyOneChatFunction(
+                              shareProductParams: data,
+                              isWithProductSend: true,
+                              profileImage: business?.logo,
+                              otherUserId: (userDetailsMap[ApiKeys.conversation_id] ??
+                                  '') ==
+                                  ""
+                                  ? userDetailsMap[ApiKeys.other_user_id] ??
+                                  ''
+                                  : null,
+                              // businessId: business?.id,
+                              type: AppConstants.chatMsgBusinessType,
+                              isInitialMessage: (userDetailsMap[ApiKeys.conversation_id] ??
+                                  '') ==
+                                  ""
+                                  ? true
+                                  : false,
+                              userId: business?.userId,
+                              conversationId: (userDetailsMap[ApiKeys.conversation_id] ??
                                   ''),
-                            ApiKeys.message :
-                                "${item.title}",
-                            ApiKeys.message_type : AppConstants.food,
-                            ApiKeys.title: item.title,
-                            ApiKeys.veg_type :item.vegType,
-                            ApiKeys.sub_category : item.subCategory,
-                            ApiKeys.calories: item.nutritionalSummaryPer100g?.caloriesKcal,
-                            ApiKeys.url: urlList,
-                          };
-                          chatViewController.isChatFromBusinessProfile(true);
-                          chatViewController.canPopBusiness.value=true;
+                              contactName: business?.businessName,
+                              contactNo: "",
+                            );
+                          }
 
-                          chatViewController.openAnyOneChatFunction(
-                            shareProductParams: data,
-                            isWithProductSend: true,
-                            profileImage: business?.logo,
-                            otherUserId: (chatViewController
-                                            .newVisitContactApiResponse
-                                            ?.value
-                                            ?.data
-                                            ?.conversationId ??
-                                        '') ==
-                                    ""
-                                ? chatViewController.newVisitContactApiResponse
-                                        ?.value?.data?.otherUserId ??
-                                    ''
-                                : null,
-                            // businessId: business?.id,
-                            type: AppConstants.chatMsgBusinessType,
-                            isInitialMessage: (chatViewController
-                                            .newVisitContactApiResponse
-                                            ?.value
-                                            ?.data
-                                            ?.conversationId ??
-                                        '') ==
-                                    ""
-                                ? true
-                                : false,
-                            userId: business?.userId,
-                            conversationId: (chatViewController
-                                    .newVisitContactApiResponse
-                                    ?.value
-                                    ?.data
-                                    ?.conversationId ??
-                                ''),
-                            contactName: business?.businessName,
-                            contactNo: "",
-                          );
                         },
                         child: Container(
                           // width: Get.width,

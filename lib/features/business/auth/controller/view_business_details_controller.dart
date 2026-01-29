@@ -532,19 +532,15 @@ class ViewBusinessDetailsController extends GetxController {
         Map<String, dynamic> detas = {
           ApiKeys.user_id: visitedBusinessProfileDetails?.data?.userId
         };
-        bool checkCompleted =
+        Map<String,dynamic>? checkCompleted =
             await chatViewController.checkChatConnection(detas);
         imagePath?.value = visitedBusinessProfileDetails?.data?.logo ?? "";
         businessDescription.value =
             visitedBusinessProfileDetails?.data?.businessDescription ?? "";
 
-        conversationId.value = chatViewController
-                .newVisitContactApiResponse?.value?.data?.conversationId ??
-            '';
-        otherUserId?.value = chatViewController
-                .newVisitContactApiResponse?.value?.data?.otherUserId ??
-            '';
-        if (checkCompleted) {
+        conversationId.value = checkCompleted?[ApiKeys.conversation_id]??'';
+        otherUserId?.value = checkCompleted?[ApiKeys.other_user_id]??'';
+        if (checkCompleted!=null) {
           viewBusinessResponseNew = ApiResponse.complete(responseModel);
         }
         visitingcontroller.isFollow.value =

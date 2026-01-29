@@ -141,74 +141,55 @@ class ServiceDetailsScreen extends StatelessWidget {
                           Map<String, dynamic> detas = {
                             ApiKeys.user_id: service.userId
                           };
-                          chatViewController.newVisitContactApiResponse?.value;
-                          await chatViewController.checkChatConnection(detas);
-                          List<Map<String, String>> urlList = service.photos?.map((e) => {"url": e}).toList()??[];
-                          Map<String,dynamic> data={
-                           ApiKeys.service_id : "${service.id}",
-                            ApiKeys.price: "${service.priceRange?.min} - ${service.priceRange?.max} per ${service.perUnit ?? ''}",
-                            ApiKeys.discount: "${(maxDiscount?.amountOff != null)
-                                ? "${maxDiscount?.amountOff.toString()}% Off"
-                                : "0% Off"}",
-                            if((chatViewController.newVisitContactApiResponse?.value?.data?.conversationId==''||chatViewController.newVisitContactApiResponse?.value?.data?.conversationId==null))
-                              ApiKeys.other_user_id: (chatViewController
-                                  .newVisitContactApiResponse
-                                  ?.value
-                                  ?.data
-                                  ?.otherUserId ??
-                                  '')
-                            else
-                              ApiKeys.conversation_id:(chatViewController
-                                  .newVisitContactApiResponse
-                                  ?.value
-                                  ?.data
-                                  ?.conversationId ??
-                                  ''),
 
-                            ApiKeys.message: "${service.title}",
-                            ApiKeys.message_type: AppConstants.service,
-                            ApiKeys.title: service.title,
-                            ApiKeys.sub_category : "${service.business?.categoryOfBusiness?.name ?? "N/A"}",
-                            ApiKeys.variant : "${service.business?.businessName ?? "N/A"}",
+                          Map<String,dynamic>? userDetailsMap=  await chatViewController.checkChatConnection(detas);
+                          if(userDetailsMap!=null){
+                            List<Map<String, String>> urlList = service.photos?.map((e) => {ApiKeys.url: e}).toList()??[];
+                            final conversationId = userDetailsMap[ApiKeys.conversation_id];
 
-                            ApiKeys.url: urlList,
-                          };
-                          chatViewController.openAnyOneChatFunction(
-                            shareProductParams:data,
-                            isWithProductSend: true,
-                            profileImage: service.business?.logo,
-                            otherUserId: (chatViewController
-                                .newVisitContactApiResponse
-                                ?.value
-                                ?.data
-                                ?.conversationId ??
-                                '') ==
-                                ""
-                                ? chatViewController.newVisitContactApiResponse
-                                ?.value?.data?.otherUserId ??
-                                ''
-                                : null,
-                            // businessId: service.business?.id ,
-                            type: AppConstants.chatMsgBusinessType,
-                            isInitialMessage: (chatViewController
-                                .newVisitContactApiResponse
-                                ?.value
-                                ?.data
-                                ?.conversationId ??
-                                '') ==
-                                ""
-                                ? true
-                                : false,
-                            userId: service.userId,
-                            conversationId: (chatViewController
-                                .newVisitContactApiResponse
-                                ?.value
-                                ?.data
-                                ?.conversationId ??
-                                ''),
-                            contactName: service.business?.businessName,
-                            contactNo: "",
-                          );
+                            final hasConversation = conversationId != null &&
+                                conversationId.toString().isNotEmpty &&
+                                conversationId.toString().toLowerCase() != 'null';
+                            Map<String,dynamic> data={
+                              ApiKeys.service_id : "${service.id}",
+                              ApiKeys.price: "${service.priceRange?.min} - ${service.priceRange?.max} per ${service.perUnit ?? ''}",
+                              ApiKeys.discount: "${(maxDiscount?.amountOff != null)
+                                  ? "${maxDiscount?.amountOff.toString()}% Off"
+                                  : "0% Off"}",
+                              if(!hasConversation)
+                                ApiKeys.other_user_id: (userDetailsMap[ApiKeys.other_user_id] ??
+                                    '')
+                              else
+                                ApiKeys.conversation_id:(userDetailsMap[ApiKeys.conversation_id] ??
+                                    ''),
+
+                              ApiKeys.message: "${service.title}",
+                              ApiKeys.message_type: AppConstants.service,
+                              ApiKeys.title: service.title,
+                              ApiKeys.sub_category : "${service.business?.categoryOfBusiness?.name ?? "N/A"}",
+                              ApiKeys.variant : "${service.business?.businessName ?? "N/A"}",
+
+                              ApiKeys.url: urlList,
+                            };
+                            chatViewController.openAnyOneChatFunction(
+                              shareProductParams:data,
+                              isWithProductSend: true,
+                              profileImage: service.business?.logo,
+                              otherUserId: (!hasConversation)
+                                  ? userDetailsMap[ApiKeys.other_user_id]??
+                                  ''
+                                  : null,
+                              type: AppConstants.chatMsgBusinessType,
+                              isInitialMessage: (!hasConversation)? true
+                                  : false,
+                              userId: service.userId,
+                              conversationId: conversationId??
+                                  '',
+                              contactName: service.business?.businessName,
+                              contactNo: "",
+                            );
+                          }
+
                         },
                         child: Container(
                           // width: Get.width,

@@ -21,7 +21,6 @@ import 'package:BlueEra/features/chat/auth/model/travel_and_stay_ask_ai_model.da
 import 'package:BlueEra/features/chat/view/ai_chat/widget/ask_consulting_talk_msg_card.dart';
 import 'package:BlueEra/features/chat/view/ai_chat/widget/ask_education_msg_card.dart';
 import 'package:BlueEra/features/chat/view/ai_chat/widget/ask_home_service_msg_card.dart';
-import 'package:BlueEra/features/chat/view/ai_chat/widget/ask_inventory_msg_card.dart';
 import 'package:BlueEra/features/chat/view/ai_chat/widget/ask_service_msg_card.dart';
 import 'package:BlueEra/features/chat/view/ai_chat/widget/ask_travel_stay_msg_card.dart';
 import 'package:BlueEra/features/chat/view/widget/component_widgets.dart';
@@ -32,6 +31,8 @@ import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+
+import '../widget/ask_inventory_product_msg_card.dart';
 
 class AiCommonSearchScreen extends StatefulWidget {
   final String chatType;
@@ -184,7 +185,8 @@ class _AiCommonSearchScreenState extends State<AiCommonSearchScreen> {
       return MessageBubble(
         messages: Messages(),
         message: message.message ?? "",
-        time: message.timestamp ?? '',
+        time:
+        formatChatTime(message.timestamp ?? ''),
         isReceiveMsg: false,
       );
     }
@@ -192,7 +194,7 @@ class _AiCommonSearchScreenState extends State<AiCommonSearchScreen> {
 
     // A. INVENTORY LOGIC
     if (message is InventoryAskAiModel && widget.chatType == AppConstants.askInventory_Chat_Type) {
-      return AskInventoryMsgCard(response: message);
+      return AskInventoryProductMsgCard(response: message);
     }
 
     // B. FOOD LOGIC

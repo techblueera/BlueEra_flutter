@@ -304,32 +304,31 @@ class _HomeServicesBottomSheetState extends State<HomeServicesBottomSheet> {
                                     final chatViewController = Get.isRegistered<ChatViewController>()
                                         ? Get.find<ChatViewController>()
                                         : Get.put(ChatViewController());
-                                    await chatViewController
+                                    Map<String,dynamic>? userDetailsMap= await chatViewController
                                         .checkChatConnection(
                                             {ApiKeys.user_id: serviceData.id});
+                                    if(userDetailsMap != null){
+                                      final conversationId = userDetailsMap[ApiKeys.conversation_id];
 
-                                    final chatData = chatViewController
-                                        .newVisitContactApiResponse
-                                        ?.value
-                                        ?.data;
-                                    final hasExisting =
-                                        (chatData?.conversationId?.isNotEmpty ??
-                                            false);
+                                      final hasExisting = conversationId != null &&
+                                          conversationId.toString().isNotEmpty &&
+                                          conversationId.toString().toLowerCase() != 'null';
+                                      chatViewController.openAnyOneChatFunction(
+                                        profileImage:
+                                        serviceData.profileImage ?? '',
+                                        otherUserId: hasExisting
+                                            ? null
+                                            :  userDetailsMap[ApiKeys.other_user_id] ?? '',
+                                        type: AppConstants.personal,
+                                        isInitialMessage: !hasExisting,
+                                        userId: serviceData.id ?? '',
+                                        conversationId:
+                                        userDetailsMap[ApiKeys.conversation_id] ?? '',
+                                        contactName: serviceData.name ?? '',
+                                        contactNo: serviceData.contactNo??"",
+                                      );
+                                    }
 
-                                    chatViewController.openAnyOneChatFunction(
-                                      profileImage:
-                                          serviceData.profileImage ?? '',
-                                      otherUserId: hasExisting
-                                          ? null
-                                          : chatData?.otherUserId ?? '',
-                                      type: "personal",
-                                      isInitialMessage: !hasExisting,
-                                      userId: serviceData.id ?? '',
-                                      conversationId:
-                                          chatData?.conversationId ?? '',
-                                      contactName: serviceData.name ?? '',
-                                      contactNo: "",
-                                    );
                                   },
                                   icon: LocalAssets(
                                     imagePath: AppIconAssets.quillChatIcon,

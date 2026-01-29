@@ -61,15 +61,19 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
 
   @override
   void initState() {
-    chatViewController.isChatFromBusinessProfile(true);
-    chatViewController.sendMessageController.value.clear();
-    chatViewController.isTextFieldEmpty.value = false;
-    chatViewController.listenUserNewMessages(
-        userId: widget.userId ?? "",
-        conversationId: widget.conversationId ?? '');
-    chatThemeController.resetSelection();
 
-    checkPendingMessages();
+    WidgetsBinding.instance.addPostFrameCallback((value){
+      chatViewController.isChatFromBusinessProfile(true);
+      chatViewController.sendMessageController.value.clear();
+      chatViewController.isTextFieldEmpty.value = false;
+      chatViewController.listenUserNewMessages(
+          userId: widget.userId ?? "",
+          conversationId: widget.conversationId ?? '');
+      chatThemeController.resetSelection();
+
+      checkPendingMessages();
+    });
+
     super.initState();
   }
 

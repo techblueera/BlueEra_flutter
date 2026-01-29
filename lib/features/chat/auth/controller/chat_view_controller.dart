@@ -235,8 +235,8 @@ class ChatViewController extends GetxController {
   RxBool socketConnectedCalled = false.obs;
   final ScrollController scrollController = ScrollController();
   Rx<Messages?>? replyMessage = Messages().obs;
-  Rx<NewConvoContactVisitDetails?>? newVisitContactApiResponse =
-      NewConvoContactVisitDetails().obs;
+  // Rx<NewConvoContactVisitDetails?>? newVisitContactApiResponse =
+  //     NewConvoContactVisitDetails().obs;
   RxString userOnlineStatus = ''.obs;
   RxString userOpenConversationId = ''.obs;
   RxString userOpenUserId = ''.obs;
@@ -970,14 +970,19 @@ class ChatViewController extends GetxController {
       openedConversation.add(conversationId);
     }
   }
-
   Future<void> scrollDown() async {
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (scrollController.hasClients) {
-        scrollController.jumpTo(scrollController.position.minScrollExtent);
-      }
-    });
+    await Future.delayed(const Duration(milliseconds: 100));
+
+    if (!scrollController.hasClients) return;
+    if (scrollController.positions.length != 1) return;
+
+    scrollController.animateTo(
+      scrollController.position.minScrollExtent,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
   }
+
 
   Future<List<Messages>> loadOfflineMessages(String conversationId) async {
     final localMessages =
@@ -1604,23 +1609,22 @@ class ChatViewController extends GetxController {
     }
   }
 
-  Future<bool> checkChatConnection(Map<String, dynamic> params) async {
+  Future<Map<String,dynamic>?> checkChatConnection(Map<String, dynamic> params) async {
     ResponseModel responseModel =
         await ChatViewRepo().checkChatConnectionApi(params);
 
     if (responseModel.isSuccess) {
       final data = responseModel.response?.data;
-      // if (details.data?.conversationStatus== "business") {
-      newVisitContactApiResponse?.value =
+      NewConvoContactVisitDetails value =
           NewConvoContactVisitDetails.fromJson(data);
-      // } else {
-      //   newConvResponse?.value = NewConvMessageData.fromJson(data);
-      // }
-      return true;
+      return {
+        ApiKeys.conversation_id:value.data?.conversationId,
+        ApiKeys.other_user_id:value.data?.otherUserId,
+      };
     } else {
       commonSnackBar(
           message: responseModel.message ?? AppStrings.somethingWentWrong);
-      return false;
+      return null;
     }
   }
 

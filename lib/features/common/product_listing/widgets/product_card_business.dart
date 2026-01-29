@@ -214,76 +214,52 @@ class _ProductCardState extends State<ProductCardBusiness> {
                   Map<String, dynamic> detas = {
                     ApiKeys.user_id: widget.businessData?.userId
                   };
-                  chatViewController.newVisitContactApiResponse?.value;
-                  await chatViewController.checkChatConnection(detas);
-                  List<Map<String, String>> urlList =
-                      product.details?.media.map((e) => {"url": e}).toList()??[];
-                  Map<String, dynamic> data = {
-                    ApiKeys.product_id:"${product.details?.id}",
 
-                    ApiKeys.price: "${product.sellerClassification?.variants[0].sellingPrice}",
-                    ApiKeys.discount: "${discountProduct}",
-                    if ((chatViewController.newVisitContactApiResponse
-                        ?.value?.data?.conversationId ==
-                        '' ||
-                        chatViewController.newVisitContactApiResponse
-                            ?.value?.data?.conversationId ==
-                            null))
-                      ApiKeys.other_user_id: (chatViewController
-                          .newVisitContactApiResponse
-                          ?.value
-                          ?.data
-                          ?.otherUserId ??
-                          '')
-                    else
-                      ApiKeys.conversation_id: (chatViewController
-                          .newVisitContactApiResponse
-                          ?.value
-                          ?.data
-                          ?.conversationId ??
-                          ''),
-                    ApiKeys.message:
-                    "${product.details?.name}",
-                    ApiKeys.message_type: AppConstants.product,
-                    ApiKeys.title: product.details?.name,
-                    ApiKeys.mrp :product.sellerClassification?.variants[0].mrp,
-                    ApiKeys.url: urlList,
-                  };
-                  chatViewController.openAnyOneChatFunction(
-                    shareProductParams: data,
-                    isWithProductSend: true,
-                    profileImage: widget.businessData?.logo,
-                    otherUserId: (chatViewController.newVisitContactApiResponse
-                        ?.value?.data?.conversationId ??
-                        '') ==
-                        ""
-                        ? chatViewController.newVisitContactApiResponse?.value
-                        ?.data?.otherUserId ??
-                        ''
-                        : null,
-                    // businessId: widget.businessData?.id,
-                    type: "business",
-                    isInitialMessage: (chatViewController
-                        .newVisitContactApiResponse
-                        ?.value
-                        ?.data
-                        ?.conversationId ??
-                        '') ==
-                        ""
-                        ? true
-                        : false,
-                    userId: widget.businessData?.userId,
-                    conversationId: (chatViewController
-                        .newVisitContactApiResponse
-                        ?.value
-                        ?.data
-                        ?.conversationId ??
-                        ''),
-                    contactName: widget.businessData?.businessName,
-                    contactNo: widget
-                        .businessData?.businessNumber?.officeMobNo?.number
-                        .toString(),
-                  );
+                  Map<String,dynamic>? userDetailsMap= await chatViewController.checkChatConnection(detas);
+                  if(userDetailsMap!=null){
+                    List<Map<String, String>> urlList =
+                        product.details?.media.map((e) => {ApiKeys.url: e}).toList()??[];
+                    final conversationId = userDetailsMap[ApiKeys.conversation_id];
+
+                    final hasConversation = conversationId != null &&
+                        conversationId.toString().isNotEmpty &&
+                        conversationId.toString().toLowerCase() != 'null';
+                    Map<String, dynamic> data = {
+                      ApiKeys.product_id:"${product.details?.id}",
+
+                      ApiKeys.price: "${product.sellerClassification?.variants[0].sellingPrice}",
+                      ApiKeys.discount: "${discountProduct}",
+                      if (!hasConversation)
+                        ApiKeys.other_user_id: (userDetailsMap[ApiKeys.other_user_id]??'')
+                      else
+                        ApiKeys.conversation_id: (userDetailsMap[ApiKeys.conversation_id] ?? ''),
+                      ApiKeys.message:
+                      "${product.details?.name}",
+                      ApiKeys.message_type: AppConstants.product,
+                      ApiKeys.title: product.details?.name,
+                      ApiKeys.mrp :product.sellerClassification?.variants[0].mrp,
+                      ApiKeys.url: urlList,
+                    };
+                    chatViewController.openAnyOneChatFunction(
+                      shareProductParams: data,
+                      isWithProductSend: true,
+                      profileImage: widget.businessData?.logo,
+                      otherUserId:  (!hasConversation)
+                          ? userDetailsMap[ApiKeys.other_user_id]??
+                          ''
+                          : null,
+                      type: AppConstants.chatMsgBusinessType,
+                      isInitialMessage:  (!hasConversation)? true
+                          : false,
+                      userId: widget.businessData?.userId,
+                      conversationId: (conversationId ?? ''),
+                      contactName: widget.businessData?.businessName,
+                      contactNo: widget
+                          .businessData?.businessNumber?.officeMobNo?.number
+                          .toString(),
+                    );
+
+                  }
 
                 },
                 child: Container(

@@ -1,5 +1,4 @@
 
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_theme_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -14,7 +13,6 @@ import '../../../../../core/constants/custom_carousel_slider.dart';
 import '../../../../../core/constants/size_config.dart';
 import '../../../../../core/routes/route_helper.dart';
 import '../../../../../widgets/common_box_shadow.dart';
-import '../../../auth/controller/chat_view_controller.dart';
 import '../../../auth/model/inventory_ask_ai_model.dart';
 
 class AskHealthCareServiceMsgCard extends StatelessWidget {
@@ -418,80 +416,80 @@ class AskHealthCareServiceMsgCard extends StatelessWidget {
                                 Expanded(
                                   child: TextButton.icon(
                                     onPressed: () async{
-                                      final chatViewController = Get.find<ChatViewController>();
-                                      Map<String, dynamic> detas = {
-                                        ApiKeys.user_id: business?.user_id
-                                      };
-                                      chatViewController.newVisitContactApiResponse?.value;
-                                      await chatViewController.checkChatConnection(detas);
-                                      List<Map<String, String>>? urlList =
-                                      product?.media.map((e) => {"url": e}).toList();
-                                      Map<String, dynamic> data = {
-                                        ApiKeys.product_id:"${product?.id}",
-
-                                        ApiKeys.price: "${product?.mrpPerUnit}",
-                                        ApiKeys.discount: "",
-                                        if ((chatViewController.newVisitContactApiResponse
-                                            ?.value?.data?.conversationId ==
-                                            '' ||
-                                            chatViewController.newVisitContactApiResponse
-                                                ?.value?.data?.conversationId ==
-                                                null))
-                                          ApiKeys.other_user_id: (chatViewController
-                                              .newVisitContactApiResponse
-                                              ?.value
-                                              ?.data
-                                              ?.otherUserId ??
-                                              '')
-                                        else
-                                          ApiKeys.conversation_id: (chatViewController
-                                              .newVisitContactApiResponse
-                                              ?.value
-                                              ?.data
-                                              ?.conversationId ??
-                                              ''),
-                                        ApiKeys.message:
-                                        "${product?.name}",
-                                        ApiKeys.message_type: "product",
-                                        ApiKeys.title: product?.name,
-                                        ApiKeys.mrp :'',
-                                        ApiKeys.url: urlList,
-                                      };
-                                      chatViewController.
-                                      openAnyOneChatFunction(
-                                        shareProductParams: data,
-                                        isWithProductSend: true,
-                                        profileImage: business?.business_logo,
-                                        otherUserId: (chatViewController.newVisitContactApiResponse
-                                            ?.value?.data?.conversationId ??
-                                            '') ==
-                                            ""
-                                            ? chatViewController.newVisitContactApiResponse?.value
-                                            ?.data?.otherUserId ??
-                                            ''
-                                            : null,
-                                        // businessId: widget
-                                        //     .productStore?.sellerClassification?.owner?.id,
-                                        type: AppConstants.business_Chat_Type,
-                                        isInitialMessage: (chatViewController
-                                            .newVisitContactApiResponse
-                                            ?.value
-                                            ?.data
-                                            ?.conversationId ??
-                                            '') ==
-                                            ""
-                                            ? true
-                                            : false,
-                                        userId: business?.user_id,
-                                        conversationId: (chatViewController
-                                            .newVisitContactApiResponse
-                                            ?.value
-                                            ?.data
-                                            ?.conversationId ??
-                                            ''),
-                                        contactName: business?.business_name,
-                                        contactNo: business?.mobile_no,
-                                      );
+                                      // final chatViewController = Get.find<ChatViewController>();
+                                      // Map<String, dynamic> detas = {
+                                      //   ApiKeys.user_id: business?.user_id
+                                      // };
+                                      // chatViewController.newVisitContactApiResponse?.value;
+                                      // await chatViewController.checkChatConnection(detas);
+                                      // List<Map<String, String>>? urlList =
+                                      // product?.media.map((e) => {"url": e}).toList();
+                                      // Map<String, dynamic> data = {
+                                      //   ApiKeys.product_id:"${product?.id}",
+                                      //
+                                      //   ApiKeys.price: "${product?.mrpPerUnit}",
+                                      //   ApiKeys.discount: "",
+                                      //   if ((chatViewController.newVisitContactApiResponse
+                                      //       ?.value?.data?.conversationId ==
+                                      //       '' ||
+                                      //       chatViewController.newVisitContactApiResponse
+                                      //           ?.value?.data?.conversationId ==
+                                      //           null))
+                                      //     ApiKeys.other_user_id: (chatViewController
+                                      //         .newVisitContactApiResponse
+                                      //         ?.value
+                                      //         ?.data
+                                      //         ?.otherUserId ??
+                                      //         '')
+                                      //   else
+                                      //     ApiKeys.conversation_id: (chatViewController
+                                      //         .newVisitContactApiResponse
+                                      //         ?.value
+                                      //         ?.data
+                                      //         ?.conversationId ??
+                                      //         ''),
+                                      //   ApiKeys.message:
+                                      //   "${product?.name}",
+                                      //   ApiKeys.message_type: "product",
+                                      //   ApiKeys.title: product?.name,
+                                      //   ApiKeys.mrp :'',
+                                      //   ApiKeys.url: urlList,
+                                      // };
+                                      // chatViewController.
+                                      // openAnyOneChatFunction(
+                                      //   shareProductParams: data,
+                                      //   isWithProductSend: true,
+                                      //   profileImage: business?.business_logo,
+                                      //   otherUserId: (chatViewController.newVisitContactApiResponse
+                                      //       ?.value?.data?.conversationId ??
+                                      //       '') ==
+                                      //       ""
+                                      //       ? chatViewController.newVisitContactApiResponse?.value
+                                      //       ?.data?.otherUserId ??
+                                      //       ''
+                                      //       : null,
+                                      //   // businessId: widget
+                                      //   //     .productStore?.sellerClassification?.owner?.id,
+                                      //   type: AppConstants.business_Chat_Type,
+                                      //   isInitialMessage: (chatViewController
+                                      //       .newVisitContactApiResponse
+                                      //       ?.value
+                                      //       ?.data
+                                      //       ?.conversationId ??
+                                      //       '') ==
+                                      //       ""
+                                      //       ? true
+                                      //       : false,
+                                      //   userId: business?.user_id,
+                                      //   conversationId: (chatViewController
+                                      //       .newVisitContactApiResponse
+                                      //       ?.value
+                                      //       ?.data
+                                      //       ?.conversationId ??
+                                      //       ''),
+                                      //   contactName: business?.business_name,
+                                      //   contactNo: business?.mobile_no,
+                                      // );
                                     },
                                     icon: LocalAssets(
                                         imagePath: AppIconAssets.chat,
