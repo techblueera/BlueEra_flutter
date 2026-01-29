@@ -67,7 +67,7 @@ class _IpdWardsListPageState extends State<IpdWardsListPage> {
                             Get.toNamed(
                                   RouteHelper.getHospitalWardViewCategory(),
                                   arguments: {
-                                    ApiKeys.categoryId:ward.id,
+                                    ApiKeys.category_id:ward.id,
                                     ApiKeys.title:ward.name
                                   }
                               );
