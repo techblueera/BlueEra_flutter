@@ -659,5 +659,7 @@ abstract class BaseService {
   final String otherContactUsService = 'other-service/contact';
   final String otherKitchenInventory = 'food-service/api/kitchen-inventory';
   final String homeFood = 'food-service/api/home/';
+  final String homeFoodContactUs = 'food-service/api/contact';
+  final String homeFoodGallery = 'food-service/api/gallery';
 
 }

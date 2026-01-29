@@ -518,18 +518,6 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
         );
       }),
 
-      // itemCount: displayImages.length,
-      // itemBuilder: (context, index) {
-      //   return ClipRRect(
-      //     borderRadius: BorderRadius.circular(8),
-      //     child: CachedNetworkImage(
-      //       imageUrl: displayImages[index],
-      //       fit: BoxFit.cover,
-      //       errorWidget: (context, url, error) =>
-      //           Container(color: Colors.grey[300]),
-      //     ),
-      //   );
-      // },
     );
   }
 
