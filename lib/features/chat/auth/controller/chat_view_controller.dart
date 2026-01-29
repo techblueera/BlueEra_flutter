@@ -413,6 +413,8 @@ class ChatViewController extends GetxController {
     String? converId = await AiChatLocalStorage.getConversationId(
         type
     );
+    log('conversation id of $type is -- $converId');
+
     aiSocket.getHistory(converId ?? '');
     getListOfAiMessageResponse.value =
         ApiResponse.complete(getListOfAiMessageData);

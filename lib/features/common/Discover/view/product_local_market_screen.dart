@@ -18,6 +18,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/update_live_photo_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
 class ProductLocalMarketScreen extends StatefulWidget {
@@ -144,8 +145,7 @@ class _ProductLocalMarketScreenState extends State<ProductLocalMarketScreen> {
                     Get.toNamed(RouteHelper.getInventoryScreenRoute());
                   }
                 } else {
-                  final controller =
-                  getOrPut(() => ViewPersonalDetailsController());
+                  final controller = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
 
                   if (controller.personalProfileDetails.value.isProfileCreated ==
                       false) {
@@ -406,16 +406,13 @@ class _ProductLocalMarketScreenState extends State<ProductLocalMarketScreen> {
 
   // --- Widget: Grid Page (Reusable) ---
   Widget _buildGridPage({required bool isStore}) {
-    return GridView.builder(
+    return MasonryGridView.count(
       physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 3,
+      crossAxisSpacing: 6,
+      mainAxisSpacing: 6,
       padding: EdgeInsets.zero,
       itemCount: _businessProductsCategories.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        crossAxisSpacing: 6,
-        mainAxisSpacing: 6,
-        childAspectRatio: 1.2,
-      ),
       itemBuilder: (context, index) {
         var productData = _businessProductsCategories[index];
         return _buildCategoryItem(
@@ -504,7 +501,7 @@ class _ProductLocalMarketScreenState extends State<ProductLocalMarketScreen> {
           children: [
             LocalAssets(
               imagePath: productCategory.icon,
-              scaleSize: 2.0,
+              height: SizeConfig.size60,
             ),
             SizedBox(height: SizeConfig.paddingXSL),
             CustomText(

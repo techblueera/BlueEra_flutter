@@ -1,21 +1,18 @@
 import 'dart:developer';
 import 'dart:io';
-
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
-import 'package:BlueEra/core/api/model/individual_profile_type_model.dart';
 import 'package:BlueEra/core/api/model/personal_profile_details_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
-import 'package:BlueEra/features/common/auth/model/individual_field_response_model.dart';
-import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/repo/feed_repo.dart';
@@ -24,20 +21,15 @@ import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/email_verification_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/introduction_video_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/create_profile_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/repo/earn_service_repo.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
-
 import '../../../chat/auth/service/location_update_service.dart';
-import '../../../common/auth/model/get_categories_model.dart';
 import '../../personal_profile/view/widget/ai_suggestion_field.dart';
 import '../../personal_profile/view/widget/introduction_video_widget.dart';
 import '../../personal_profile/view/widget/update_personal_profession_dialog.dart';
@@ -122,6 +114,11 @@ class ViewPersonalDetailsController extends GetxController {
     // TODO: implement onInit
     super.onInit();
   }
+
+  // ViewPersonalDetailsController() {
+  //   print("🕵️‍♂️ Someone created a new instance!");
+  //   print(StackTrace.current); // This prints the file & line number
+  // }
 
   RxBool shopStatusOpenClose = false.obs;
   final LiveLocationService locationService = LiveLocationService();
@@ -251,12 +248,13 @@ class ViewPersonalDetailsController extends GetxController {
 
   RxBool isRiderServiceUser = false.obs;
   RxBool isEarnServiceUser = false.obs;
+  RxString userProfileType = userProfileTypeGlobal.obs;
 
   Future<void> viewPersonalProfile() async {
     final personalController = Get.put(PersonalCreateProfileController());
 
     try {
-      viewPersonalResponse.value = ApiResponse.initial("Initial");
+      // viewPersonalResponse.value = ApiResponse.initial("Initial");
 
       // await getUserLoginBusinessId();
       ResponseModel responseModel =
@@ -350,6 +348,9 @@ class ViewPersonalDetailsController extends GetxController {
           userNameAt: "${personalProfileDetails.value.user?.username}",
         );
         await getUserLoginData();
+        userProfileType.value = userProfileTypeGlobal;
+        log("userProfileTypeGlobal after api: ${userProfileType.value}");
+        // print("Hash 1: ${userProfileType.hashCode}");
 
         /// Check Earn services
         isRiderServiceUser.value =
@@ -545,10 +546,7 @@ class ViewPersonalDetailsController extends GetxController {
   // }
 
   void partiallyForceToCreateService() {
-    final viewProfileController =
-        Get.isRegistered<ViewPersonalDetailsController>()
-            ? Get.find<ViewPersonalDetailsController>()
-            : Get.put(ViewPersonalDetailsController());
+    final viewProfileController = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
 
     selfWorkCategories.any(
       (service) => service.slugId == userProfessionGlobal,

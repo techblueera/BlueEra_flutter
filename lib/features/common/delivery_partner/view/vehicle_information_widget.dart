@@ -1,14 +1,14 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
-import 'package:BlueEra/widgets/common_drop_down.dart';
+import 'package:BlueEra/widgets/common_drop_down-dialoge.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/webview_common.dart';
@@ -16,10 +16,23 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class VehicleInformationWidget extends StatelessWidget {
-  VehicleInformationWidget({super.key});
+class VehicleInformationWidget extends StatefulWidget {
+  VehicleInformationWidget({super.key, required this.screeName});
 
+  final String screeName;
+
+  @override
+  State<VehicleInformationWidget> createState() => _VehicleInformationWidgetState();
+}
+
+class _VehicleInformationWidgetState extends State<VehicleInformationWidget> {
   final controller = Get.find<DeliveryPartnerController>();
+
+  @override
+  initState(){
+    super.initState();
+    controller.fetchVehicleDataEnum();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,50 +42,82 @@ class VehicleInformationWidget extends StatelessWidget {
           padding: EdgeInsets.zero,
           child: Form(
             key: controller.formKeyStep6,
-            child: Obx(() => AbsorbPointer(
+            child: Obx(() => controller.isVehicleDataEnumLoading.value ?
+            Center(child: CircularProgressIndicator())
+                :  AbsorbPointer(
                   absorbing: controller.isRiderVehicleInformationLoading.value,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      /// Registration Type
-                      CustomText(
-                        AppStrings.registrationType,
-                        color: AppColors.mainTextColor,
-                      ),
-                      SizedBox(height: SizeConfig.size8),
-                      CommonDropdown<VehicleRegistrationType>(
-                        items: VehicleRegistrationType.values,
-                        selectedValue:
-                            controller.selectedVehicleRegistrationType.value,
-                        hintText: AppStrings.egPersonalCommercial,
-                        displayValue: (value) => value.displayName,
-                        onChanged: (value) {
-                          controller.selectedVehicleRegistrationType.value =
-                              value;
-                        },
-                        validator: (value) {
-                          return null;
-                        },
-                      ),
-                      SizedBox(height: SizeConfig.paddingM),
-
                       /// Vehicle Type
                       CustomText(
                         AppStrings.vehicleType,
+                        fontSize: SizeConfig.small,
+                        fontWeight: FontWeight.w400,
                         color: AppColors.mainTextColor,
                       ),
                       SizedBox(height: SizeConfig.size8),
-                      CommonDropdown<VehicleType>(
-                        items: VehicleType.values,
+                      CommonDropdownDialog<String>(
+                        items: controller.getFilteredVehicles(
+                            userProfessionGlobal,
+                            controller.vehicleEnumResponse?.vehicleType ?? []
+                        ),
                         selectedValue: controller.selectedVehicleType.value,
+                        title: AppStrings.vehicleType,
                         hintText: AppStrings.egTwoThreeWheeler,
-                        displayValue: (value) => value.displayName,
+                        displayValue: (value) => value,
                         onChanged: (value) {
                           controller.selectedVehicleType.value = value;
                         },
-                        validator: (value) {
-                          return null;
+                        // validator: (value) {
+                        //   return null;
+                        // },
+                      ),
+                      SizedBox(height: SizeConfig.paddingM),
+
+                      /// Registration Type
+                      CustomText(
+                        AppStrings.registrationType,
+                        fontSize: SizeConfig.small,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.mainTextColor,
+                      ),
+                      SizedBox(height: SizeConfig.size8),
+                      CommonDropdownDialog<String>(
+                        items: controller.vehicleEnumResponse?.registrationType ?? [],
+                        selectedValue: controller.selectedVehicleRegistrationType.value,
+                        title: AppStrings.registrationType,
+                        hintText: AppStrings.egPersonalCommercial,
+                        displayValue: (value) => value,
+                        onChanged: (value) {
+                          controller.selectedVehicleRegistrationType.value = value;
                         },
+                        // validator: (value) {
+                        //   return null;
+                        // },
+                      ),
+                      SizedBox(height: SizeConfig.paddingM),
+
+                      /// Vehicle Use Type
+                      CustomText(
+                        AppStrings.vehicleUseType,
+                        fontSize: SizeConfig.small,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.mainTextColor,
+                      ),
+                      SizedBox(height: SizeConfig.size8),
+                      CommonDropdownDialog<String>(
+                        items: controller.vehicleEnumResponse?.vehicleUsesType ?? [],
+                        selectedValue: controller.selectedVehicleUseType.value,
+                        title: AppStrings.vehicleUseType,
+                        hintText: AppStrings.egPassengerDeliveryGoods,
+                        displayValue: (value) => value,
+                        onChanged: (value) {
+                          controller.selectedVehicleUseType.value = value;
+                        },
+                        // validator: (value) {
+                        //   return null;
+                        // },
                       ),
                       SizedBox(height: SizeConfig.paddingM),
 
@@ -88,20 +133,23 @@ class VehicleInformationWidget extends StatelessWidget {
                       /// Fuel Type
                       CustomText(
                         AppStrings.fuelType,
+                        fontSize: SizeConfig.small,
+                        fontWeight: FontWeight.w400,
                         color: AppColors.mainTextColor,
                       ),
                       SizedBox(height: SizeConfig.size8),
-                      CommonDropdown<FuelType>(
-                        items: FuelType.values,
+                      CommonDropdownDialog<String>(
+                        items: controller.vehicleEnumResponse?.fuelType ?? [],
                         selectedValue: controller.selectedFuelType.value,
+                        title: AppStrings.fuelType,
                         hintText: AppStrings.egPetrolDiesel,
-                        displayValue: (value) => value.displayName,
+                        displayValue: (value) => value,
                         onChanged: (value) {
                           controller.selectedFuelType.value = value;
                         },
-                        validator: (value) {
-                          return null;
-                        },
+                        // validator: (value) {
+                        //   return null;
+                        // },
                       ),
                       SizedBox(height: SizeConfig.paddingM),
 
@@ -214,7 +262,9 @@ class VehicleInformationWidget extends StatelessWidget {
                             ? null
                             : "Upload",
                         onTap: () =>
-                            controller.ridersOnboardingVehicleInformationApi(),
+                            controller.ridersOnboardingVehicleInformationApi(
+                              widget.screeName
+                            ),
                         radius: 10.0,
                         bgColor: AppColors.primaryColor,
                         isLoading:

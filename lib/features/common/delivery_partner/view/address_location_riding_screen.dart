@@ -42,7 +42,7 @@ class _AddressLocationRidingScreenState
         buildCustomWidget: () => Padding(
           padding: const EdgeInsets.only(right: 16),
           child: Center(
-            child: CustomText("${AppStrings.stepLabel.tr}2/2",
+            child: CustomText("${AppStrings.stepLabel.tr}2/3",
                 fontWeight: FontWeight.w600),
           ),
         ),
@@ -211,7 +211,7 @@ class _AddressLocationRidingScreenState
                       CustomBtn(
                         title: controller.isRidersAddressLoading.value
                             ? null
-                            : AppStrings.create,
+                            : AppStrings.nextButton,
                         onTap: () => controller.ridersOnboardingAddressApi(),
                         radius: 10.0,
                         bgColor: AppColors.primaryColor,

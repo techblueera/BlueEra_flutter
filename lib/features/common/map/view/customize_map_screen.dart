@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
@@ -321,7 +322,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
   //       if (_currentMarker != null && !isCurrentLocationMarkerShown) _currentMarker!,
   //       ..._placeMarkers,
   //     };
-  final viewProfileController = Get.put(ViewPersonalDetailsController());
+  final viewProfileController = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
 
   @override
   Widget build(BuildContext context) {

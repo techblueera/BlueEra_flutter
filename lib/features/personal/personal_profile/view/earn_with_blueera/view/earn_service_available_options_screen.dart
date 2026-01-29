@@ -84,15 +84,17 @@ class _EarnServiceAvailableOptionsScreenState extends State<EarnServiceAvailable
       final earnValue = controller.isEarnServiceOpt.value;
       final riderValue = deliveryPartnerController.isRiderServiceOpt.value;
 
-      if (earnValue.isEmpty && riderValue.isEmpty) {
+      if (userProfileTypeGlobal == SELF_EMPLOYED && earnValue.isEmpty) {
+        return _buildLoadingScaffold();
+      }else if(userProfileTypeGlobal == GIG_WORKER && riderValue.isEmpty){
         return _buildLoadingScaffold();
       }
 
-      if (earnValue.toLowerCase() == 'true') {
+      if (userProfileTypeGlobal == SELF_EMPLOYED && earnValue.toLowerCase() == 'true') {
         return EarnServiceScreen(
             fromBottomNavBar: widget.fromBottomNavBar
         );
-      } else if(earnValue.toLowerCase() == 'true'){
+      } else if(userProfileTypeGlobal == GIG_WORKER && riderValue.toLowerCase() == 'true'){
         return RiderServiceScreen(
             fromBottomNavBar: widget.fromBottomNavBar
         );

@@ -32,7 +32,7 @@ class VisitProfileController extends GetxController {
   }
 
   final personalController = Get.put(PersonalCreateProfileController());
-  final personalProfileDetails = Get.put(ViewPersonalDetailsController());
+  final personalProfileDetails = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
   RxBool isProfileLoading=false.obs;
   Future<void> fetchUserById({required String userId}) async {
     try {

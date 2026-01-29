@@ -2,28 +2,26 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_theme_controller.dart';
-import 'package:BlueEra/features/chat/auth/model/food_ask_ai_model.dart';
+import 'package:BlueEra/features/chat/auth/model/health_care_ask_ai_model.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/app_icon_assets.dart';
-import '../../../../../core/constants/custom_carousel_slider.dart';
 import '../../../../../core/constants/size_config.dart';
 import '../../../../../widgets/common_box_shadow.dart';
 
-class AskFoodMsgCard extends StatelessWidget {
-  final FoodAskAiModel response;
+class AskHealthCareMsgCard extends StatelessWidget {
+  final HealthCareAskAiModel response;
 
-  AskFoodMsgCard({Key? key, required this.response}) : super(key: key);
+  AskHealthCareMsgCard({Key? key, required this.response}) : super(key: key);
 
   final chatThemeController = getOrPut(() => ChatThemeController());
 
 
   @override
   Widget build(BuildContext context) {
-    final arrFoodData = response.data?.foodData ?? [];
+    final arrHealthCareData = response.data?.healthCareData ?? [];
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -62,7 +60,7 @@ class AskFoodMsgCard extends StatelessWidget {
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            itemCount: arrFoodData.length > 6 ? 6 : arrFoodData.length,
+            itemCount: arrHealthCareData.length > 6 ? 6 : arrHealthCareData.length,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
               mainAxisSpacing: 12,
@@ -70,14 +68,12 @@ class AskFoodMsgCard extends StatelessWidget {
               mainAxisExtent: 272,
             ),
             itemBuilder: (_, i) {
-              final foodData = arrFoodData[i];
-              final product = foodData.product;
-              final location = foodData.location;
-              final price = foodData.price;
+              final healthCareData = arrHealthCareData[i];
+              final hospitalInfo = healthCareData.hospitalInfo;
 
-              final distance = calculateDistance(
-                  location?.coordinates?[1] ?? 0.0,
-                  location?.coordinates?[0] ?? 0.0);
+              // final distance = calculateDistance(
+              //     hospitalInfo?.location?.coordinates?[1] ?? 0.0,
+              //     hospitalInfo?.location?.coordinates?[0] ?? 0.0);
 
               return InkWell(
                 onTap: (){
@@ -105,34 +101,35 @@ class AskFoodMsgCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // /// BUSINESS LOGO + NAME
-                      // Row(crossAxisAlignment: CrossAxisAlignment.start,
-                      //   children: [
-                      //     CircleAvatar(
-                      //       radius: 12,
-                      //       backgroundImage: business?.business_logo==null?null: NetworkImage(
-                      //         business?.business_logo ?? "",
-                      //       ),
-                      //     ),
-                      //     const SizedBox(width: 6),
-                      //     Expanded(
-                      //       child: CustomText(
-                      //         business?.business_name ?? "",
-                      //         maxLines: 1,
-                      //         overflow: TextOverflow.ellipsis,
-                      //
-                      //         fontWeight: FontWeight.w600,
-                      //         fontSize: 12,
-                      //
-                      //       ),
-                      //     ),
-                      //   ],
-                      // ),
-                      //
-                      // const SizedBox(height: 8),
+                      /// BUSINESS LOGO + NAME
+                      ///
+                      Row(crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CircleAvatar(
+                            radius: 12,
+                            backgroundImage: healthCareData.photo==null?null: NetworkImage(
+                              healthCareData.photo ?? "",
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: CustomText(
+                              healthCareData.name ?? "",
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
 
+                              fontWeight: FontWeight.w600,
+                              fontSize: 12,
+
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 8),
                       Container(
-
+                        // width: width,
+                        // padding: EdgeInsets.symmetric(horizontal: 4),
                         decoration: BoxDecoration(
                           color: AppColors.whiteFE,
                           boxShadow:  [AppShadows.cardShadow],
@@ -143,18 +140,18 @@ class AskFoodMsgCard extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             // Product Image
-                            AspectRatio(
-                              aspectRatio: 1.8, // square-ish image (adjust if needed)
-                              child: CustomImageSlideshow(
-                                isLoading: false,
-                                width: double.infinity,
-                                height: 110,
-                                imagePaths: product?.images??[],
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
+                            // AspectRatio(
+                            //   aspectRatio: 1.8, // square-ish image (adjust if needed)
+                            //   child:  CustomImageSlideshow(
+                            //     isLoading: false,
+                            //     width: double.infinity,
+                            //     height: 110,
+                            //     imagePaths: healthCareData?.media??[],
+                            //     borderRadius: BorderRadius.circular(10),
+                            //   ),
+                            // ),
 
-                            // Product Details
+                            //  Details
                             Container(
                               color: const Color.fromRGBO(242, 254, 254, 1),
                               child: Padding(
@@ -162,9 +159,9 @@ class AskFoodMsgCard extends StatelessWidget {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    // Product Name
+                                    // Hospital Name
                                     CustomText(
-                                      product?.name,
+                                      hospitalInfo?.hospitalName,
                                       fontSize: SizeConfig.size12,
                                       fontWeight: FontWeight.w600,
                                       overflow: TextOverflow.ellipsis,
@@ -172,76 +169,28 @@ class AskFoodMsgCard extends StatelessWidget {
                                     ),
                                     const SizedBox(height: 4),
 
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 6, vertical: 2),
-                                      decoration: BoxDecoration(
-                                        color: getFoodTypeColor(product?.dietaryType),
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: CustomText(
-                                          product?.dietaryType ?? AppStrings.na,
-                                          color: Colors.white,
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w600),
-                                    ),
-
-                                    if(price!=null)
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Row(
-                                            children: [
-                                              CustomText(
-                                                '₹${price.sellingPrice ?? '-'}' ,
-                                                fontWeight: FontWeight.w700,
-                                                fontSize: SizeConfig.medium,
-                                                color: AppColors.mainTextColor,
-                                              ),
-                                              CustomText(
-                                                ' ₹${price.mrp ?? '-'}',
-                                                fontSize: SizeConfig.small11,
-                                                color: AppColors.grayText,
-                                                fontWeight: FontWeight.w400,
-                                                decoration: TextDecoration.lineThrough,
-                                              ),
-                                              if(price.sellingPrice!=0 && price.mrp!=0)
-                                                CustomText(
-                                                  '${calculateDiscount(
-                                                      price.sellingPrice.toString(),
-                                                      price.mrp.toString()
-                                                  ).toStringAsFixed(2)}% ${AppStrings.offCaps.tr}',
-                                                  fontSize: SizeConfig.small11,
-                                                  color: Colors.green[600],
-                                                  fontWeight: FontWeight.w400,
-                                                ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-
-
                                     _buildItem(
                                         Icons.location_on_outlined,
-                                        location?.address ?? AppStrings.na,
+                                        hospitalInfo?.address ?? AppStrings.na,
                                         maxLines: 2
                                     ),
 
                                     // Distance
-                                    _buildItem(
-                                      Icons.near_me_outlined,
-                                      distance!=null
-                                          ? "${distance.toStringAsFixed(2)} KM"
-                                          : AppStrings.na,
-                                    ),
-
+                                    // _buildItem(
+                                    //   Icons.near_me_outlined,
+                                    //   distance!=null
+                                    //       ? "${distance.toStringAsFixed(2)} KM"
+                                    //       : AppStrings.na,
+                                    // ),
 
                                   ],
                                 ),
                               ),
                             ),
                             const Divider(height: 1,color: Colors.grey,),
-                            Row(mainAxisAlignment: MainAxisAlignment.center,
+
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Expanded(
                                   child: TextButton.icon(
@@ -348,7 +297,7 @@ class AskFoodMsgCard extends StatelessWidget {
           ),
 
           /// SEE MORE BUTTON
-          if (arrFoodData.length > 6)
+          if (arrHealthCareData.length > 6)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 12),
               child: Center(
@@ -365,21 +314,6 @@ class AskFoodMsgCard extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  Color getFoodTypeColor(String? type) {
-    switch (type?.toLowerCase()) {
-      case 'veg':
-        return Color(0xFF296E01);
-      case 'non-veg':
-        return Color(0xFFA62C2B);
-      case 'vigan': // assuming this means Vegan
-        return Color(0xFFA8A9AD);
-      case 'dairy_items/sweet':
-        return Color(0xFF6B4A3A);
-      default:
-        return Color(0xFFA8A9AD);
-    }
   }
 
   Widget _buildItem(IconData icon, String text, {bool isLink = false, int maxLines = 1}) {

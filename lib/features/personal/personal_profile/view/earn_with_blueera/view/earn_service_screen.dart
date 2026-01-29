@@ -65,7 +65,7 @@ class _EarnServiceScreenState extends State<EarnServiceScreen>
 
   final controller = getOrPut(() => EarnServiceController());
   final inventoryController = getOrPut(() => InventoryController());
-  final viewPersonalDetailsController = getOrPut(() => ViewPersonalDetailsController());
+  final viewPersonalDetailsController = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
   late bool isLeading;
 
   @override

@@ -300,7 +300,6 @@ class AskServiceMsgCard extends StatelessWidget {
                         ),
                       ),
 
-                      /// PRODUCT DETAILS
 
                     ],
                   ),

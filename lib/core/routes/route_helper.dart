@@ -1199,7 +1199,9 @@ class RouteHelper {
             settings: RouteSettings(name: getVehicleImagesRidingScreenRoute()));
       case RouteConstant.vehicleInformationRidingScreen:
         return MaterialPageRoute(
-            builder: (_) => VehicleInformationRidingScreen(),
+            builder: (_) => VehicleInformationRidingScreen(
+              screeName: '',
+            ),
             settings:
                 RouteSettings(name: getVehicleInformationRidingScreenRoute()));
       case RouteConstant.homeStayRentalService:

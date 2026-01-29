@@ -130,7 +130,7 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
                   }
                 } else {
                   final controller =
-                  getOrPut(() => ViewPersonalDetailsController());
+                  getOrPut(() => ViewPersonalDetailsController(), permanent: true);
 
                   if (controller.personalProfileDetails.value.isProfileCreated ==
                       false) {

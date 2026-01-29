@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
@@ -13,8 +14,7 @@ class BottomBarController extends GetxController {
   RxInt currentIndex = 0.obs;
   void onChangeIndex(int index) => currentIndex.value = index;
 
-
-List<CategoryData> businessCategoriesList = [];
+  List<CategoryData> businessCategoriesList = [];
 // Future<void> getAllCategories() async {
 //
 //   businessCategoriesList = await HiveServices().getAllCategories() ?? await _fetchFromApi();
