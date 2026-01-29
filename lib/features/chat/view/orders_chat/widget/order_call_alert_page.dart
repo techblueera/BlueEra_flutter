@@ -4,7 +4,6 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 
 import '../../../../../core/api/apiService/api_keys.dart';
 import '../../../../../core/constants/app_colors.dart';

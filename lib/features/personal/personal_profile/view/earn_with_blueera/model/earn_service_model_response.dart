@@ -159,7 +159,7 @@ class ProviderDetails {
   String? specialization;
   String? department;
   String? subDivision;
-  Null? art;
+  Null art;
   String? schoolOrCollegeName;
   String? sector;
   String? qrUrl;

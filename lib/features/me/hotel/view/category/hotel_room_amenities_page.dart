@@ -2,7 +2,6 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import '../../../laboratory/view/widgets/me_menu_card_design.dart';
 
 class HotelRoomAmenitiesPage extends StatefulWidget {

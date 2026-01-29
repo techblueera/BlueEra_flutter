@@ -7,7 +7,6 @@ import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../auth/controller/chat_view_controller.dart';

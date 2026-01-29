@@ -14,7 +14,6 @@ import 'package:get/get.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../common/food/model/food_category_res_model.dart';
 
-import '../controller/product_controller.dart';
 
 class ProductSelectionScreen extends StatefulWidget {
   final FoodCategoryData foodCategoryData;

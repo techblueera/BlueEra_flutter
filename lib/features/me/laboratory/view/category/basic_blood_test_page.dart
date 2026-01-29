@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/size_config.dart';
 
 import '../../model/lab_content_list_view_model.dart';
 import '../widgets/lab_category_selection_widget.dart';

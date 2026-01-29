@@ -28,7 +28,6 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/setup_scroll_visibility_notification.dart';
 import 'package:BlueEra/widgets/update_live_photo_dialog.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:visibility_detector/visibility_detector.dart';

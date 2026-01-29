@@ -162,7 +162,7 @@ class EarnServiceOrderCard extends StatelessWidget {
 
   Widget _buildUserName() {
     return CustomText(
-      order.user?.name,
+      order.user.name,
       fontSize: SizeConfig.large,
       fontWeight: FontWeight.w600,
       color: AppColors.mainTextColor,

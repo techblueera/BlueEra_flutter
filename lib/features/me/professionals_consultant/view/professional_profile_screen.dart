@@ -1,4 +1,3 @@
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/professionals_consultant/controller/basic_profile_controller.dart';
 import 'package:BlueEra/widgets/ai_description_field_screen.dart';

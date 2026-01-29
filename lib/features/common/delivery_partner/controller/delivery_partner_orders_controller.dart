@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:developer';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:geolocator/geolocator.dart';

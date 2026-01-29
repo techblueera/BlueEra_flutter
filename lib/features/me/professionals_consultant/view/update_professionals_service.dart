@@ -2,23 +2,14 @@ import 'package:BlueEra/core/api/model/service_option_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/me/others/view/other_contact_us/other_contact_us.dart';
-import 'package:BlueEra/features/me/others/view/other_service_gallery/other_service_photos_screen.dart';
-import 'package:BlueEra/features/me/others/view/timing_screen.dart';
-import 'package:BlueEra/features/me/others/view/about_us/about_us.dart';
-import 'package:BlueEra/features/me/others/view/announcements/announcements_screen.dart';
-import 'package:BlueEra/features/me/others/view/other_career_jobs/other_job_listing_screen.dart';
-import 'package:BlueEra/features/me/others/view/other_privacy_condition/other_privacy_condition_screen.dart';
 import 'package:BlueEra/features/me/professionals_consultant/controller/basic_profile_controller.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/basic_profile_screen.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/pricing_engagement_screen.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/professional_profile_screen.dart';
 import 'package:BlueEra/features/me/school/view/school_update_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/inventory_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../../core/constants/app_enum.dart';
 import '../../laboratory/view/widgets/me_menu_card_design.dart';
 
 class UpdateProfessionalsServicesScreen extends StatefulWidget {

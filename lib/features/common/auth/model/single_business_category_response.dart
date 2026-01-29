@@ -1,4 +1,3 @@
-import 'dart:convert';
 
 import 'get_categories_model.dart';
 

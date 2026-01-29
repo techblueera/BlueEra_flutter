@@ -1,15 +1,8 @@
-import 'package:BlueEra/core/constants/app_enum.dart';
-import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/chat/auth/model/rider_orders_details_model.dart';
 import 'package:BlueEra/features/common/food/controller/my_grocery_order_controller.dart';
 import 'package:BlueEra/features/common/food/model/grocery_order_model.dart';
-import 'package:BlueEra/features/common/food/view/grocery/my_grocery_orders/my_grocery_bill_details.dart';
 import 'package:BlueEra/features/common/food/view/grocery/my_grocery_orders/grocery_order_card.dart';
-import 'package:BlueEra/features/common/food/view/grocery/my_grocery_orders/my_grocery_order_details_sheet.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_order_card.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';

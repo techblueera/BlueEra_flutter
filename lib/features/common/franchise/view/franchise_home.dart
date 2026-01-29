@@ -16,10 +16,8 @@ import 'package:mappls_gl/mappls_gl.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constant.dart';
-import '../../../../core/constants/custom_carousel_slider.dart';
 import '../../../../core/constants/getx_utils.dart';
 import '../../../../core/constants/size_config.dart';
-import '../../../../widgets/common_card_widget.dart';
 import '../../../../widgets/expandable_text.dart';
 import '../../../me/hospital/controller/hospital_model_controller.dart';
 

@@ -4,7 +4,6 @@ import 'package:BlueEra/features/me/professionals_consultant/view/update_profess
 import 'package:BlueEra/features/me/school/view/school_update_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 class ProfessionalsMainScreen extends StatefulWidget {
   const ProfessionalsMainScreen({

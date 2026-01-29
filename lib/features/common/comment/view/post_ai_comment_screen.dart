@@ -8,10 +8,8 @@ import 'package:BlueEra/features/common/comment/widget/comment_type_chip_selecto
 import 'package:BlueEra/features/common/comment/widget/emotion_chip_selector_widget.dart';
 import 'package:BlueEra/features/common/comment/widget/language_chip_selector_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/common_drop_down-dialoge.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

@@ -83,6 +83,8 @@ dependencies:
   video_compress: ^3.1.4
   syncfusion_flutter_pdfviewer: ^32.1.21
 
+  connectivity_plus: any
+  http: any
 dependency_overrides:
   intl: ^0.19.0
 

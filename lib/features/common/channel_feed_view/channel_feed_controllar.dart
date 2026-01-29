@@ -8,7 +8,6 @@ import 'package:BlueEra/features/common/ott/model/all_channel_res_model.dart';
 import 'package:BlueEra/features/common/ott/model/ott_channel_video_res_model.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/repo/user_repo.dart';
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class ChannelFeedController extends GetxController {

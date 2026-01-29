@@ -19,7 +19,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:path/path.dart';
 import 'package:pinput/pinput.dart';
 import '../../../chat/auth/model/rider_orders_details_model.dart';
 import '../../../chat/view/orders_chat/widget/lat_lng_to_location_text.dart';
