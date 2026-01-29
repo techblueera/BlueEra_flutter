@@ -1,8 +1,6 @@
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
-import '../../../../../core/constants/app_colors.dart';
-import '../../../../../widgets/custom_text_cm.dart';
 import '../../../laboratory/view/widgets/me_menu_card_design.dart';
 class EmergencyAndCriticalCare extends StatefulWidget {
   const EmergencyAndCriticalCare({super.key});
@@ -36,7 +34,6 @@ class _EmergencyAndCriticalCareState extends State<EmergencyAndCriticalCare> {
           ...servicePages.keys.map((title) {
             return InkWell(
               onTap: () {
-                final pageBuilder = servicePages[title];
                 // if (pageBuilder != null) {
                 //   Get.to(() => pageBuilder());
                 // }

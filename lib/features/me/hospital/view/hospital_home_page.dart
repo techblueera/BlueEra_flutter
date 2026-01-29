@@ -20,7 +20,6 @@ import '../../../../core/constants/custom_carousel_slider.dart';
 import '../../../../core/constants/getx_utils.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../../../core/routes/route_helper.dart';
-import '../../../../widgets/common_box_shadow.dart';
 import '../../../../widgets/common_card_widget.dart';
 import '../../../../widgets/expandable_text.dart';
 import '../controller/hospital_model_controller.dart';
@@ -618,7 +617,7 @@ class _HospitalHomePageState extends State<HospitalHomePage> {
               Get.toNamed(
                   RouteHelper.getHospitalWardViewCategory(),
                   arguments: {
-                    ApiKeys.categoryId:ipd.id,
+                    ApiKeys.category_id:ipd.id,
                     ApiKeys.title:ipd.name
                   }
               );
@@ -764,25 +763,25 @@ class _HospitalHomePageState extends State<HospitalHomePage> {
   }
 
 
-
-  Widget _testimonialCard() {
-    return Card(
-      margin: const EdgeInsets.all(12),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          children: const [
-            Text(
-              "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-              style: TextStyle(fontStyle: FontStyle.italic),
-            ),
-            SizedBox(height: 8),
-            Text("- Dr. Ramesh Gupta"),
-          ],
-        ),
-      ),
-    );
-  }
+//dont remove this code by Prabha
+  // Widget _testimonialCard() {
+  //   return Card(
+  //     margin: const EdgeInsets.all(12),
+  //     child: Padding(
+  //       padding: const EdgeInsets.all(12),
+  //       child: Column(
+  //         children: const [
+  //           Text(
+  //             "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+  //             style: TextStyle(fontStyle: FontStyle.italic),
+  //           ),
+  //           SizedBox(height: 8),
+  //           Text("- Dr. Ramesh Gupta"),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 
 
 }

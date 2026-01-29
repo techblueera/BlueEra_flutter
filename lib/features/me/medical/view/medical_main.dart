@@ -1,18 +1,15 @@
 
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/medical/view/widget/add_medical_service.dart';
-import 'package:BlueEra/features/me/medical/view/widget/otc_items.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '../../../../core/constants/app_constant.dart';
 import '../../../../widgets/common_search_bar.dart';
 import '../../widget/no_product_profile.dart';
 import '../controller/medical_model_controller.dart';
+import 'category/medical_my_store.dart';
 
 class MedicalMain extends StatefulWidget {
 
@@ -34,7 +31,7 @@ class _MedicalMainState extends State<MedicalMain>
   @override
   void initState() {
     controller.fetchMedicalCategoryData(MedicalStoreType.pharmacy);
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
 
     super.initState();
   }
@@ -103,7 +100,8 @@ class _MedicalMainState extends State<MedicalMain>
                 indicatorSize: TabBarIndicatorSize.tab,
                 labelStyle: const TextStyle(fontWeight: FontWeight.w600),
                 tabs: [
-                  Tab(text: "OTC Items"),
+                  Tab(text: "Orders"),
+                  Tab(text: "MY Store"),
                   Tab(text: "Statics"),
                 ],
               ),
@@ -111,6 +109,7 @@ class _MedicalMainState extends State<MedicalMain>
                 controller: _tabController,
                 children: [
                   NoProfileDetailsFound(content: "No OTC Items Found",),
+                  MedicalMyStore(),
                   NoProfileDetailsFound(content: "No Statics Items Found",),
                 ],
               ))

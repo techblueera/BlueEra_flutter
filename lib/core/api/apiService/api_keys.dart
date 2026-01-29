@@ -330,7 +330,7 @@ class ApiKeys {
   static const reportedTo = "reported_to";
   static const visibilityDuration = "visibility_duration";
   static const filePath = "filePath";
-  static const categoryId = "category_id";
+  static const category_id = "category_id";
   static const brand = "brand";
   static const addProductFeatures = "addProductFeatures";
   static const linkOrReferealWebsite = "linkOrReferealWebsite";
@@ -644,6 +644,17 @@ class ApiKeys {
   static const availableBeds  = 'availableBeds';
   static const profile_type  = 'profile_type';
   static const contact_list  = 'contact_list';
+
+  //medical
+  static const basePrice  = 'basePrice';
+  static const discountPercent  = 'discountPercent';
+  static const altText  = 'altText';
+  static const inventories  = 'inventories';
+  static const cityName  = 'cityName';
+  static const batches  = 'batches';
+  static const quantity  = 'quantity';
+  static const categoryId  = 'categoryId';
+
 
 
 }

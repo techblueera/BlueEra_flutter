@@ -134,7 +134,7 @@ class NewStoreController extends GetxController{
         ApiKeys.limit: 20,
         ApiKeys.lat: LocationService.lat != 0.0 ? "${LocationService.lat}" : "0.0",
         ApiKeys.lng: LocationService.lng != 0.0 ? "${LocationService.lng}" : "0.0",
-        ApiKeys.categoryId: businessCategoryId,
+        ApiKeys.category_id: businessCategoryId,
         ApiKeys.type: typeOfBusiness,
         ApiKeys.radius: kmRadius1500
       };

@@ -418,7 +418,7 @@ class InventoryController extends GetxController {
         ApiKeys.lat: businessLat,
         ApiKeys.lng: businessLng,
         ApiKeys.radius: kmRadius1500,
-        ApiKeys.categoryId: categoryId,
+        ApiKeys.category_id: categoryId,
         ApiKeys.page: suggestedProductPage,
         ApiKeys.limit: 20,
       };

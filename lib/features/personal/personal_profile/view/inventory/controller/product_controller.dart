@@ -533,7 +533,7 @@ class ProductController extends GetxController{
       Map<String, dynamic> params = {
         if(productNameController.text.trim().isNotEmpty) ApiKeys.name: productNameController.text.trim(),
         if(productDescriptionController.text.trim().isNotEmpty) ApiKeys.description: productDescriptionController.text.trim(),
-        ApiKeys.categoryId: selectedCategoryId,
+        ApiKeys.category_id: selectedCategoryId,
         if(brandController.text.trim().isNotEmpty) ApiKeys.brand: brandController.text.trim(),
         if(productWarrantyController.text.trim().isNotEmpty) ApiKeys.productWarranty: productWarrantyController.text.trim(),
         if(mrpController.text.trim().isNotEmpty) ApiKeys.mrpPerUnit: mrpController.text.trim(),

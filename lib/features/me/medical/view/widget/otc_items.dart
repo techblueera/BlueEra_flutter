@@ -90,7 +90,7 @@ class _CategoryListViewState extends State<CategoryListView> {
                           RouteHelper.getHospitalOptCategory(),
                           arguments: {
                             ApiKeys.title: department.name,
-                            ApiKeys.categoryId: department.id,
+                            ApiKeys.category_id: department.id,
                             ApiKeys.type: department.type,
                           },
                         );

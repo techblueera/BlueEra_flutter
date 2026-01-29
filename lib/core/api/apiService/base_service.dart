@@ -541,10 +541,16 @@ abstract class BaseService {
   String getAllSymbolOneUser(String orderId) => "chat-service/symbols/user/$orderId";
   String deleteSymbolApi(String symbolId) => "chat-service/symbols/$symbolId";
   final String groceryCategoryWithVariant = 'grocery-service/api/categories/with-inventory';
-  String getMedicalCategoryApi(String orderId) => "health-service/api/modules/tree/$orderId";
-  String getMedicalAdminProduct(String orderId) => "health-service/api/offerings/category/$orderId";
-  final String updateLiveLocation = 'map-service/api/provider/location';
+  final String getMedicalCategoryApi = "health-service/api/ms/categories";
+  String getMedicalAdminProduct(String orderId) => "health-service/api/ms/products";
+  String postMedicalAddProduct = "health-service/api/ms/products";
 
+  String getProductVarient(String productId) => "ms/product-variants/product/$productId";
+  String addProductVarient = "health-service/api/ms/product-variants";
+  String putProductVarient(String varientId) => "health-service/api/ms/product-variants/$varientId";
+
+
+  final String updateLiveLocation = 'map-service/api/provider/location';
   final String documents = 'document-service/documents';
   final String documentsStatus = 'document-service/documents/status';
   final String initDocumentServiceUpload = "document-service/s3/presigned-url";

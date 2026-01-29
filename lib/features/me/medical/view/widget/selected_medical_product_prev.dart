@@ -1,18 +1,16 @@
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/app_image_assets.dart';
-import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/me/medical/view/category/otc_items_page.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
-
-import '../../../../../core/constants/app_constant.dart';
 import '../../../../../core/constants/getx_utils.dart';
 import '../../../../../widgets/custom_btn.dart';
+import '../../../../../widgets/local_assets.dart';
 import '../../controller/medical_model_controller.dart';
 import '../../model/medical_admin_product_details.dart';
+import 'add_product_common_dialog.dart';
 
 class SelectedMedicalProductPrev extends StatelessWidget {
   const SelectedMedicalProductPrev({super.key});
@@ -21,159 +19,283 @@ class SelectedMedicalProductPrev extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = getOrPut(() => MedicalModelController());
 
-    return Scaffold(
-      backgroundColor: AppColors.appBackgroundColor,
-      appBar: const CommonBackAppBar(
-        // title: "Sub Category Cooking Essentials",
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(12),
-              itemCount: controller.medicalProductDetails.length,
-              itemBuilder: (context, index) {
-                return  ProductCard(productData:controller.medicalProductDetails[index],);
-              },
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            CustomText(
+              "All Variant",
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
             ),
-          ),
-          /// Publish Button
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: CustomBtn(
-              onTap: () {
+            InkWell(
+                onTap: () {
+                  Get.back();
+                },
+                child: const Icon(Icons.close, size: 20)),
+          ],
+        ),
 
+        Expanded(
+          child: Obx(() {
+            return ListView.builder(
+              padding: const EdgeInsets.only(top: 12),
+              itemCount: controller.selectedProducts.length,
+              itemBuilder: (context, index) {
+                return ProductCard(
+                  productData: controller.selectedProducts[index],);
               },
-              title: "Publish 10 Product, 25 Varient",
-            ),
+            );
+          }),
+        ),
+
+
+        Padding(
+          padding: const EdgeInsets.all(12),
+          child: CustomBtn(
+            bgColor: AppColors.primaryColor,
+            onTap: () {
+
+            },
+            title: "Post Product",
           ),
+        ),
+      ],
+    );
+  }
+}
+
+class ProductCard extends StatelessWidget {
+  const ProductCard({super.key, required this.productData});
+
+  final MedicalProductDetailsModel productData;
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = getOrPut<MedicalModelController>(() =>
+        MedicalModelController());
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+
+          /// HEADER
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Stack(
+                children: [
+                  Container(
+                    height: 70,
+                    width: 70,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      color: Colors.grey.shade300,
+                    ),
+                    child: Image.network(
+                      productData.image ?? '',
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Icon(
+                          Icons.broken_image,
+                          size: 40,
+                          color: Colors.grey,
+                        );
+                      },
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return const Center(
+                          child: SizedBox(
+                            height: 24,
+                            width: 24,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    child: Obx(() {
+                      final isSelected = controller.isSelected(productData);
+                      return GestureDetector(
+                        onTap: () => controller.toggleProduct(productData),
+                        child: CircleAvatar(
+                          backgroundColor: AppColors.blackMite,
+                          radius: 16,
+                          child: Container(
+                            margin: EdgeInsets.all(6),
+                            height: 22,
+                            width: 22,
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryColor,
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(color: AppColors.white),
+                            ),
+                            child: isSelected
+                                ? const Icon(
+                                Icons.check, size: 16, color: AppColors.white)
+                                : null,
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
+                ],
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CustomText(
+                      "${productData.name}",
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.mainTextColor,
+                    ),
+                    SizedBox(height: 4),
+                    CustomText(
+                      "${productData.description}",
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+
+                      color: AppColors.secondaryTextColor,
+                      maxLines: 2,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 10),
+
+          /// VARIANT GRID (2 columns)
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: productData.variants?.length ?? 0,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
+              childAspectRatio: 3.4,
+            ),
+            itemBuilder: (_, i) =>
+                VariantBox(variant: productData.variants![i],),
+          ),
+
+          const SizedBox(height: 10),
+
+          /// ADD MORE VARIANT
+          Align(
+            alignment: Alignment.centerRight,
+            child: GestureDetector(
+              onTap: () {
+                AddProductCommonDialog.addVariant(
+                  productId: productData.id ?? '',
+                  context: context,
+
+                );
+              },
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: const [
+                  Icon(Icons.add, color: AppColors.primaryColor, size: 22),
+                  SizedBox(width: 6),
+                  CustomText(
+                    "Add More Variant",
+                    color: AppColors.primaryColor,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  )
+                ],
+              ),
+            ),
+          )
         ],
       ),
     );
   }
 }
-class ProductCard extends StatelessWidget {
-  const ProductCard({super.key,required this.productData});
-  final MedicalProductDetailsModel productData;
+
+class VariantBox extends StatelessWidget {
+  const VariantBox({super.key, required this.variant});
+
+  final VariantModel variant;
+
   @override
   Widget build(BuildContext context) {
-    final controller = getOrPut<MedicalModelController>(
-          () => MedicalModelController(),
-    );
     return Container(
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(10),
-      child: Column(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Row(
         children: [
-          Stack(
-            children: [
-              Container(
-                // margin: const EdgeInsets.only(bottom: 14),
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryColor.withOpacity(0.06),
-                  borderRadius: BorderRadius.circular(14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomText(
+                  "Weight - ${variant.weight} gm",
+                  fontSize: 10,
+                  fontWeight: FontWeight.w400,
+                  color: AppColors.secondaryTextColor,
                 ),
-                child: Column(
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                            Container(
-                              height: 90,
-                              width: 90,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(12),
-                                color: Colors.grey.shade300,
-                              ),
-                              child: Image.asset(
-                                AppImageAssets.dummy_resume,
-                                fit: BoxFit.contain,
-                              ),
-                            ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                               CustomText(
-                                "Pharma Franchise For OTC Product",
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.mainTextColor
-                              ),
-                              const VariantRow(),
-                              const VariantRow(),
-                              const VariantRow(),
-                            ],
-                          ),
+                        CustomText(
+                          "Selling- ₹${variant.inventories?.first.batches?.first
+                              .sellingPrice}",
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primaryColor,
+                        ),
+                        SizedBox(width: 6),
+                        CustomText(
+                          "₹${variant.inventories?.first.batches?.first
+                              .sellingPrice}",
+                          fontSize: 10,
+                          fontWeight: FontWeight.w400,
+                          color: AppColors.secondaryTextColor,
+                          decoration: TextDecoration.lineThrough,
                         ),
                       ],
                     ),
+
+                    GestureDetector(
+                      onTap: () {
+                        AddProductCommonDialog.addVariant(
+                          productId: variant.id ?? '',
+                          context: context,
+                          preVariantData: variant
+
+                        );
+                      },
+                      child: LocalAssets(imagePath: AppIconAssets.pen_line
+
+                        , height: 16, width: 16,),
+                    ),
+
                   ],
                 ),
-              ),
-              Positioned(
-                top: 2,
-                left: 2,
-                child: GestureDetector(
-                  onTap: () {
-                    controller.toggleProduct(productData);
-                  },
-                  child: Obx(() {
-                    final isSelected = controller.isSelected(productData);
-
-                    return Container(
-                      height: 30,
-                      width: 30,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(30),
-                        color: AppColors.black.withOpacity(0.4),
-                      ),
-                      alignment: Alignment.center,
-                      child: Container(
-                        height: 16,
-                        width: 16,
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(4),
-                            border: Border.all(color: Colors.white),
-                            color: isSelected
-                                ? AppColors.primaryColor
-                                : null),
-                        child: isSelected
-                            ? Center(
-                          child: const Icon(
-                            Icons.check,
-                            color: Colors.white,
-                            size: 12,
-                          ),
-                        )
-                            : null,
-                      ),
-                    );
-                  }),
-                ),
-              )
-            ],
-          ),
-          SizedBox(height: SizeConfig.size10,),
-          Align(
-            alignment: Alignment.centerRight,
-            child: Row(mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Icon(Icons.add, size: 22
-                ,color: AppColors.primaryColor,
-                ),
-                SizedBox(width: 6,),
-                const CustomText(
-                    "Add More Varient",
-                    color: AppColors.primaryColor,
-                    fontWeight: FontWeight.w600,fontSize: 12
-                )
               ],
             ),
           ),
@@ -182,48 +304,4 @@ class ProductCard extends StatelessWidget {
     );
   }
 }
-class VariantRow extends StatelessWidget {
-  const VariantRow({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 6.0),
-      child: Row(
-        children: [
-          Container(
-            height: 12,
-            width: 12,
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: AppColors.blackLite
-              )
-            ),
-          ),
-          SizedBox(width: 4,),
-          const CustomText(
-            "100GM",
-          fontSize: 10,
-                fontWeight: FontWeight.w400,
-                color: AppColors.mainTextColor
-          ),
-          const SizedBox(width: 10),
-          const CustomText(
-            "₹1999",
-              fontSize: 10,
-              fontWeight: FontWeight.w400,
-          ),
-          const SizedBox(width: 10),
-          const CustomText(
-            "Selling-₹1500",
-                fontSize: 10,
-                fontWeight: FontWeight.w400,
-                color: AppColors.mainTextColor
-          ),
-          const Spacer(),
-          Icon(Icons.edit, size: 16),
-        ],
-      ),
-    );
-  }
-}

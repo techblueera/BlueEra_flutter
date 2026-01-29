@@ -1,4 +1,3 @@
-import 'dart:developer';
 
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -12,7 +11,6 @@ import '../../../../../core/api/apiService/api_response.dart';
 import '../../../../../core/constants/getx_utils.dart';
 import '../../../widget/no_product_profile.dart';
 import '../../controller/hospital_model_controller.dart';
-import '../../model/hospital_model_class.dart';
 
 class HospitalPreviewScreen extends StatelessWidget {
   HospitalPreviewScreen({super.key});
