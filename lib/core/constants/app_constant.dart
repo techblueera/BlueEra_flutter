@@ -1437,6 +1437,7 @@ const String consultant = "consultant";
 const String travel = "travel";
 
 const String ALL_PRODUCT_PROFILE = "ALL_PRODUCT_PROFILE";
+const String ALL_SERVICE_PROFILE = "ALL_SERVICE_PROFILE";
 
 // Services
 const String CONSULTING_HR_SERVICE = "CONSULTING_HR_SERVICE";
@@ -1879,7 +1880,7 @@ final List<OnboardingCategoryModel> businessOnboardingProfilesCategory = [
 final List<OnboardingCategoryModel> serviceContactCategories = [
   OnboardingCategoryModel(
       name: 'All Service',
-      slugId: ALL_PRODUCT_PROFILE,
+      slugId: ALL_SERVICE_PROFILE,
       icon: AppIconAssets.find_all_service,
       accountType: AppConstants.business,
       businessType: BusinessType.Product),
