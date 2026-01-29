@@ -53,7 +53,7 @@ class OtherDownloadsController extends GetxController {
     try {
       final response = await _repo.getDownloadsRepo();
       if (response != null && response.isSuccess) {
-        final model = OtherDownloadsModel.fromJson(response.response?.data);
+        final model = OtherDownloadsModel.fromJson(response.response?.healthCareData);
         if (model.success == true && model.data != null) {
           aboutList.assignAll(model.data!);
         }

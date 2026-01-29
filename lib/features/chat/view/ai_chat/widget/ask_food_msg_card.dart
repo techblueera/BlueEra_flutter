@@ -1,24 +1,20 @@
-
-import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_theme_controller.dart';
+import 'package:BlueEra/features/chat/auth/model/food_ask_ai_model.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../../../core/api/apiService/api_keys.dart';
 import '../../../../../core/constants/app_colors.dart';
-import '../../../../../core/constants/app_enum.dart';
 import '../../../../../core/constants/app_icon_assets.dart';
 import '../../../../../core/constants/custom_carousel_slider.dart';
 import '../../../../../core/constants/size_config.dart';
-import '../../../../../core/routes/route_helper.dart';
 import '../../../../../widgets/common_box_shadow.dart';
-import '../../../auth/controller/chat_view_controller.dart';
-import '../../../auth/model/inventory_ask_ai_model.dart';
 
 class AskFoodMsgCard extends StatelessWidget {
-  final InventoryAskAiModel response;
+  final FoodAskAiModel response;
 
   AskFoodMsgCard({Key? key, required this.response}) : super(key: key);
 
@@ -27,8 +23,7 @@ class AskFoodMsgCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final productList = response.data?.products ?? [];
-
+    final arrFoodData = response.data?.foodData ?? [];
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -67,7 +62,7 @@ class AskFoodMsgCard extends StatelessWidget {
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            itemCount: productList.length > 6 ? 6 : productList.length,
+            itemCount: arrFoodData.length > 6 ? 6 : arrFoodData.length,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
               mainAxisSpacing: 12,
@@ -75,20 +70,26 @@ class AskFoodMsgCard extends StatelessWidget {
               mainAxisExtent: 272,
             ),
             itemBuilder: (_, i) {
-              final item = productList[i];
-              final business = item.product;
-              final product = item.product?.details;
+              final foodData = arrFoodData[i];
+              final product = foodData.product;
+              final location = foodData.location;
+              final price = foodData.price;
+
+              final distance = calculateDistance(
+                  location?.coordinates?[1] ?? 0.0,
+                  location?.coordinates?[0] ?? 0.0);
+
               return InkWell(
                 onTap: (){
-                  Get.toNamed(
-                    RouteHelper.getStoreProductPreviewScreenProductRoute(),
-                    arguments: {
-                      ApiKeys.argProductData: business,
-                      // "isShowBusinessInfo": widget.isShowBusinessInfo,
-                      ApiKeys.id: business?.businessId??'',
-                      ApiKeys.providerType:ProviderType.business
-                    },
-                  );
+                  // Get.toNamed(
+                  //   RouteHelper.getStoreProductPreviewScreenProductRoute(),
+                  //   arguments: {
+                  //     ApiKeys.argProductData: business,
+                  //     // "isShowBusinessInfo": widget.isShowBusinessInfo,
+                  //     ApiKeys.id: business?.businessId??'',
+                  //     ApiKeys.providerType:ProviderType.business
+                  //   },
+                  // );
                 },
                 child: Container(
                   decoration: BoxDecoration(
@@ -104,35 +105,34 @@ class AskFoodMsgCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      /// BUSINESS LOGO + NAME
-                      ///
-                      Row(crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          CircleAvatar(
-                            radius: 12,
-                            backgroundImage: business?.business_logo==null?null: NetworkImage(
-                              business?.business_logo ?? "",
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: CustomText(
-                              business?.business_name ?? "",
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                      // /// BUSINESS LOGO + NAME
+                      // Row(crossAxisAlignment: CrossAxisAlignment.start,
+                      //   children: [
+                      //     CircleAvatar(
+                      //       radius: 12,
+                      //       backgroundImage: business?.business_logo==null?null: NetworkImage(
+                      //         business?.business_logo ?? "",
+                      //       ),
+                      //     ),
+                      //     const SizedBox(width: 6),
+                      //     Expanded(
+                      //       child: CustomText(
+                      //         business?.business_name ?? "",
+                      //         maxLines: 1,
+                      //         overflow: TextOverflow.ellipsis,
+                      //
+                      //         fontWeight: FontWeight.w600,
+                      //         fontSize: 12,
+                      //
+                      //       ),
+                      //     ),
+                      //   ],
+                      // ),
+                      //
+                      // const SizedBox(height: 8),
 
-                              fontWeight: FontWeight.w600,
-                              fontSize: 12,
-
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 8),
                       Container(
-                        // width: width,
-                        // padding: EdgeInsets.symmetric(horizontal: 4),
+
                         decoration: BoxDecoration(
                           color: AppColors.whiteFE,
                           boxShadow:  [AppShadows.cardShadow],
@@ -145,26 +145,12 @@ class AskFoodMsgCard extends StatelessWidget {
                             // Product Image
                             AspectRatio(
                               aspectRatio: 1.8, // square-ish image (adjust if needed)
-                              child: Stack(
-                                children: [
-                                  CustomImageSlideshow(
-                                    isLoading: false,
-                                    width: double.infinity,
-                                    height: 110,
-                                    imagePaths: product?.media??[],
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  Positioned(
-                                    top: 8,
-                                    right: 8,
-                                    child: _buildIconBox(InkWell(
-                                        onTap: (){
-
-                                        },
-                                        child: Icon(Icons.remove_red_eye_outlined,
-                                            color: Colors.white, size: 16))),
-                                  ),
-                                ],
+                              child: CustomImageSlideshow(
+                                isLoading: false,
+                                width: double.infinity,
+                                height: 110,
+                                imagePaths: product?.images??[],
+                                borderRadius: BorderRadius.circular(10),
                               ),
                             ),
 
@@ -186,233 +172,75 @@ class AskFoodMsgCard extends StatelessWidget {
                                     ),
                                     const SizedBox(height: 4),
 
-                                    // Price Row
-                                    Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            if(product?.mrpPerUnit!=null)
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: getFoodTypeColor(product?.dietaryType),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: CustomText(
+                                          product?.dietaryType ?? AppStrings.na,
+                                          color: Colors.white,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600),
+                                    ),
+
+                                    if(price!=null)
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Row(
+                                            children: [
                                               CustomText(
-                                                '₹${product?.mrpPerUnit}',
+                                                '₹${price.sellingPrice ?? '-'}' ,
                                                 fontWeight: FontWeight.w700,
                                                 fontSize: SizeConfig.medium,
                                                 color: AppColors.mainTextColor,
                                               ),
-                                            // const SizedBox(width: 8),
-                                            // CustomText(
-                                            //   ' ₹${product.mrp}',
-                                            //   fontSize: SizeConfig.small11,
-                                            //   color: AppColors.grayText,
-                                            //   fontWeight: FontWeight.w400,
-                                            //   decoration: TextDecoration.lineThrough,
-                                            // ),
-                                            // CustomText(
-                                            //   ' ${product.discount}% off',
-                                            //   fontSize: SizeConfig.small11,
-                                            //   color: Colors.green[600],
-                                            //   fontWeight: FontWeight.w400,
-                                            // ),
-                                          ],
-                                        ),
-                                        // Padding(
-                                        //   padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                                        //   child: CustomText(
-                                        //     "${time}",
-                                        //     fontSize: SizeConfig.size10,
-                                        //     fontWeight: FontWeight.w400,
-                                        //     overflow: TextOverflow.ellipsis,
-                                        //     color: AppColors.grayText,
-                                        //     maxLines: 1,
-                                        //   ),
-                                        // )
-                                      ],
+                                              CustomText(
+                                                ' ₹${price.mrp ?? '-'}',
+                                                fontSize: SizeConfig.small11,
+                                                color: AppColors.grayText,
+                                                fontWeight: FontWeight.w400,
+                                                decoration: TextDecoration.lineThrough,
+                                              ),
+                                              if(price.sellingPrice!=0 && price.mrp!=0)
+                                                CustomText(
+                                                  '${calculateDiscount(
+                                                      price.sellingPrice.toString(),
+                                                      price.mrp.toString()
+                                                  ).toStringAsFixed(2)}% ${AppStrings.offCaps.tr}',
+                                                  fontSize: SizeConfig.small11,
+                                                  color: Colors.green[600],
+                                                  fontWeight: FontWeight.w400,
+                                                ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+
+
+                                    _buildItem(
+                                        Icons.location_on_outlined,
+                                        location?.address ?? AppStrings.na,
+                                        maxLines: 2
                                     ),
-                                    CustomText(
-                                      '${product?.brand}',
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: SizeConfig.size12,
-                                      color: AppColors.primaryColor,
+
+                                    // Distance
+                                    _buildItem(
+                                      Icons.near_me_outlined,
+                                      distance!=null
+                                          ? "${distance.toStringAsFixed(2)} KM"
+                                          : AppStrings.na,
                                     ),
+
 
                                   ],
                                 ),
                               ),
                             ),
                             const Divider(height: 1,color: Colors.grey,),
-                            // (!(widget.message.myMessage??false))?
-                            // Row(mainAxisAlignment: MainAxisAlignment.center,
-                            //   children: [
-                            //     Expanded(
-                            //       child: TextButton.icon(
-                            //         onPressed: () {
-                            //           Map<String,dynamic> data = {
-                            //             ApiKeys.conversation_id: widget.conversationId,
-                            //             ApiKeys.message: "Unavailable",
-                            //             ApiKeys.message_type: "text",
-                            //           };
-                            //           chatViewController.sendMessage(data);
-                            //         },
-                            //         icon: const Icon(Icons.close, color: Colors.red,),
-                            //         label:  CustomText(
-                            //           'Unavailable',
-                            //           color: Colors.red,
-                            //           fontWeight: FontWeight.w900,
-                            //         ),
-                            //       ),
-                            //     ),
-                            //     const VerticalDivider(width: 2,color: Colors.grey,),
-                            //     Expanded(
-                            //       child: TextButton.icon(
-                            //         onPressed: () {
-                            //           Map<String,dynamic> data = {
-                            //             ApiKeys.conversation_id: widget.conversationId,
-                            //             ApiKeys.message: "Available",
-                            //             ApiKeys.message_type: "text",
-                            //           };
-                            //
-                            //           chatViewController.sendMessage(data);
-                            //           // Navigator.push(context, MaterialPageRoute(builder: (context)=>PayoutScreen()));
-                            //         },
-                            //         icon: Icon(Icons.check,size: 22,),
-                            //         label:   CustomText(
-                            //           'Available',
-                            //           color: Colors.blue,
-                            //           fontWeight: FontWeight.w900,
-                            //         ),
-                            //       ),
-                            //     ),
-                            //   ],
-                            // ):(widget.isFromOrderTab??false)?
-                            // (widget.message.metadata?.is_cancelled??false)? Row(mainAxisAlignment: MainAxisAlignment.center,
-                            //   children: [
-                            //     Expanded(
-                            //       child: TextButton.icon(
-                            //         onPressed: () {},
-                            //         icon: const Icon(Icons.close, color: Colors.red,),
-                            //         label:  CustomText(
-                            //           'Canceled',
-                            //           color: Colors.red,
-                            //           fontWeight: FontWeight.w900,
-                            //         ),
-                            //       ),
-                            //     ),
-                            //
-                            //
-                            //   ],
-                            // ):
-                            // Row(mainAxisAlignment: MainAxisAlignment.center,
-                            //   children: [
-                            //     Expanded(
-                            //       child: TextButton.icon(
-                            //         onPressed: () {
-                            //           showDialog(
-                            //             context: context,
-                            //             builder: (context) {
-                            //               return Dialog(
-                            //                 shape: RoundedRectangleBorder(
-                            //                   borderRadius: BorderRadius.circular(16),
-                            //                 ),
-                            //                 child: Padding(
-                            //                   padding: const EdgeInsets.all(20.0),
-                            //                   child: Column(
-                            //                     mainAxisSize: MainAxisSize.min,
-                            //                     children: [
-                            //                       const Icon(Icons.warning_amber_rounded,
-                            //                           color: Colors.red, size: 60),
-                            //                       const SizedBox(height: 15),
-                            //                       CustomText(
-                            //                         'Are you sure you want to cancel the order?',
-                            //                         fontWeight: FontWeight.w700,
-                            //                         fontSize: 16,
-                            //                         textAlign: TextAlign.center,
-                            //                       ),
-                            //                       const SizedBox(height: 25),
-                            //                       Row(
-                            //                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            //                         children: [
-                            //                           Expanded(
-                            //                             child:  CustomBtn(
-                            //                                 bgColor: AppColors.primaryColor,
-                            //                                 onTap: ()async{
-                            //                                   final controller = Get.put(OrderNowController());
-                            //                                   await controller.cancelOrderApi(widget.message.metadata?.order?.orderId??'',widget.message.conversationId??"");
-                            //                                   Get.back();
-                            //                                 }, title: "Yes"),
-                            //                           ),
-                            //                           const SizedBox(width: 10),
-                            //                           Expanded(
-                            //                             child: CustomBtn(onTap: (){
-                            //                               Get.back();
-                            //                             }, title: "No"),
-                            //                           ),
-                            //                         ],
-                            //                       )
-                            //                     ],
-                            //                   ),
-                            //                 ),
-                            //               );
-                            //             },
-                            //           );
-                            //         },
-                            //         icon: const Icon(Icons.close, color: Colors.red),
-                            //         label: CustomText(
-                            //           'Cancel',
-                            //           color: Colors.red,
-                            //           fontWeight: FontWeight.w900,
-                            //         ),
-                            //       ),
-                            //     ),
-                            //     const VerticalDivider(width: 1,color: Colors.grey,),
-                            //
-                            //     Expanded(
-                            //       child: TextButton.icon(
-                            //         onPressed: () async{
-                            //           final url = Uri.parse(widget.message.metadata?.order?.trackingUrl ?? '');
-                            //           if (await canLaunchUrl(url)) {
-                            //             await launchUrl(url, mode: LaunchMode.inAppWebView);
-                            //           }
-                            //         },
-                            //         icon: SvgPicture.asset(AppIconAssets.carbon_delivery),
-                            //         label:   CustomText(
-                            //           'Track Order',
-                            //           color: Colors.blue,
-                            //           fontWeight: FontWeight.w900,
-                            //         ),
-                            //       ),
-                            //     ),
-                            //   ],
-                            // ) :(widget.message.metadata?.orderStatus??false)?
-                            // Row(mainAxisAlignment: MainAxisAlignment.center,
-                            //   children: [
-                            //     // Expanded(
-                            //     //   child: TextButton.icon(
-                            //     //     onPressed: () {},
-                            //     //     icon: const Icon(Icons.close, color: Colors.red,),
-                            //     //     label:  CustomText(
-                            //     //       'Cancel',
-                            //     //       color: Colors.red,
-                            //     //       fontWeight: FontWeight.w900,
-                            //     //     ),
-                            //     //   ),
-                            //     // ),
-                            //     // const VerticalDivider(width: 1,color: Colors.grey,),
-                            //
-                            //     Expanded(
-                            //       child: TextButton.icon(
-                            //         onPressed: () {
-                            //
-                            //           // Navigator.push(context, MaterialPageRoute(builder: (context)=>PayoutScreen()));
-                            //         },
-                            //         icon: Icon(Icons.check,color: Colors.green,),
-                            //         label:   CustomText(
-                            //           'Order Placed',
-                            //           color: Colors.green,
-                            //           fontWeight: FontWeight.w900,
-                            //         ),
-                            //       ),
-                            //     ),
-                            //   ],
-                            // ):
                             Row(mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Expanded(
@@ -520,7 +348,7 @@ class AskFoodMsgCard extends StatelessWidget {
           ),
 
           /// SEE MORE BUTTON
-          if (productList.length > 6)
+          if (arrFoodData.length > 6)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 12),
               child: Center(
@@ -538,16 +366,44 @@ class AskFoodMsgCard extends StatelessWidget {
       ),
     );
   }
-  Widget _buildIconBox(Widget child) {
-    return Container(
-      height: 25,
-      width: 25,
-      decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.5),
-          shape: BoxShape.circle,
-          boxShadow: [AppShadows.textFieldShadow]),
-      alignment: Alignment.center,
-      child: child,
+
+  Color getFoodTypeColor(String? type) {
+    switch (type?.toLowerCase()) {
+      case 'veg':
+        return Color(0xFF296E01);
+      case 'non-veg':
+        return Color(0xFFA62C2B);
+      case 'vigan': // assuming this means Vegan
+        return Color(0xFFA8A9AD);
+      case 'dairy_items/sweet':
+        return Color(0xFF6B4A3A);
+      default:
+        return Color(0xFFA8A9AD);
+    }
+  }
+
+  Widget _buildItem(IconData icon, String text, {bool isLink = false, int maxLines = 1}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        children: [
+          Icon(icon, size: 14, color: isLink ? Colors.blue : Colors.grey.shade600),
+          const SizedBox(width: 12),
+          Expanded(
+            child: InkWell(
+              onTap: isLink ? ()=> launchURL(text) : null,
+              child: CustomText(
+                text,
+                maxLines: maxLines,
+                overflow: TextOverflow.ellipsis,
+                fontSize: SizeConfig.small,
+                color: isLink ? AppColors.primaryColor : Colors.black87,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
+
 }

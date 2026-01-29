@@ -1,34 +1,27 @@
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
-import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_theme_controller.dart';
-import 'package:BlueEra/features/chat/auth/model/business_service_ask_ai_model.dart';
+import 'package:BlueEra/features/chat/auth/model/health_care_ask_ai_model.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
-import '../../../../../core/api/apiService/api_keys.dart';
 import '../../../../../core/constants/app_colors.dart';
-import '../../../../../core/constants/app_constant.dart';
 import '../../../../../core/constants/app_icon_assets.dart';
-import '../../../../../core/constants/custom_carousel_slider.dart';
 import '../../../../../core/constants/size_config.dart';
 import '../../../../../widgets/common_box_shadow.dart';
-import '../../../auth/controller/chat_view_controller.dart';
 
-class AskServiceMsgCard extends StatelessWidget {
-  final BusinessServicesAskAiModel response;
+class AskHealthCareMsgCard extends StatelessWidget {
+  final HealthCareAskAiModel response;
 
-  AskServiceMsgCard({Key? key, required this.response}) : super(key: key);
+  AskHealthCareMsgCard({Key? key, required this.response}) : super(key: key);
 
   final chatThemeController = getOrPut(() => ChatThemeController());
 
 
   @override
   Widget build(BuildContext context) {
-    final arrServices = response.data?.data ?? [];
+    final arrHealthCareData = response.data?.healthCareData ?? [];
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -67,20 +60,20 @@ class AskServiceMsgCard extends StatelessWidget {
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            itemCount: arrServices.length > 6 ? 6 : arrServices.length,
+            itemCount: arrHealthCareData.length > 6 ? 6 : arrHealthCareData.length,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
               mainAxisSpacing: 12,
               crossAxisSpacing: 12,
-              mainAxisExtent: 310,
+              mainAxisExtent: 272,
             ),
             itemBuilder: (_, i) {
-              final item = arrServices[i];
-              final profile = item.profile;
+              final healthCareData = arrHealthCareData[i];
+              final hospitalInfo = healthCareData.hospitalInfo;
 
-              final distance = calculateDistance(
-                  profile?.location?.coordinates?[1] ?? 0.0,
-                  profile?.location?.coordinates?[0] ?? 0.0);
+              // final distance = calculateDistance(
+              //     hospitalInfo?.location?.coordinates?[1] ?? 0.0,
+              //     hospitalInfo?.location?.coordinates?[0] ?? 0.0);
 
               return InkWell(
                 onTap: (){
@@ -114,14 +107,14 @@ class AskServiceMsgCard extends StatelessWidget {
                         children: [
                           CircleAvatar(
                             radius: 12,
-                            backgroundImage: profile?.logoUrl==null?null: NetworkImage(
-                              profile?.logoUrl ?? "",
+                            backgroundImage: healthCareData.photo==null?null: NetworkImage(
+                              healthCareData.photo ?? "",
                             ),
                           ),
                           const SizedBox(width: 6),
                           Expanded(
                             child: CustomText(
-                              profile?.profileName ?? "",
+                              healthCareData.name ?? "",
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
 
@@ -147,20 +140,16 @@ class AskServiceMsgCard extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             // Product Image
-                            AspectRatio(
-                              aspectRatio: 1.8, // square-ish image (adjust if needed)
-                              child: CustomImageSlideshow(
-                                isLoading: false,
-                                width: double.infinity,
-                                height: 110,
-                                imagePaths: (item.gallery ?? [])
-                                    .map((g) => g.imageUrls ?? [])
-                                    .expand((urlList) => urlList)
-                                    .whereType<String>()
-                                    .toList(),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
+                            // AspectRatio(
+                            //   aspectRatio: 1.8, // square-ish image (adjust if needed)
+                            //   child:  CustomImageSlideshow(
+                            //     isLoading: false,
+                            //     width: double.infinity,
+                            //     height: 110,
+                            //     imagePaths: healthCareData?.media??[],
+                            //     borderRadius: BorderRadius.circular(10),
+                            //   ),
+                            // ),
 
                             //  Details
                             Container(
@@ -170,9 +159,9 @@ class AskServiceMsgCard extends StatelessWidget {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    // Name
+                                    // Hospital Name
                                     CustomText(
-                                      profile?.profileName,
+                                      hospitalInfo?.hospitalName,
                                       fontSize: SizeConfig.size12,
                                       fontWeight: FontWeight.w600,
                                       overflow: TextOverflow.ellipsis,
@@ -182,102 +171,104 @@ class AskServiceMsgCard extends StatelessWidget {
 
                                     _buildItem(
                                         Icons.location_on_outlined,
-                                        profile?.location?.address ?? "N/A",
+                                        hospitalInfo?.address ?? AppStrings.na,
                                         maxLines: 2
                                     ),
 
                                     // Distance
-                                    _buildItem(
-                                      Icons.near_me_outlined,
-                                      distance!=null
-                                          ? "${distance.toStringAsFixed(2)} KM"
-                                          : AppStrings.na,
-                                    ),
-
-                                    _buildItem(
-                                      Icons.language_outlined,
-                                      item.contactUs?[0].websiteUrl ?? "N/A",
-                                      isLink: true,
-                                    ),
-
+                                    // _buildItem(
+                                    //   Icons.near_me_outlined,
+                                    //   distance!=null
+                                    //       ? "${distance.toStringAsFixed(2)} KM"
+                                    //       : AppStrings.na,
+                                    // ),
 
                                   ],
                                 ),
                               ),
                             ),
-
                             const Divider(height: 1,color: Colors.grey,),
 
-                            Row(mainAxisAlignment: MainAxisAlignment.center,
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Expanded(
                                   child: TextButton.icon(
                                     onPressed: () async{
-                                      // Discounts? maxDiscount;
-                                      // if ((service.discounts?.length ?? 0) > 0)
-                                      //   maxDiscount = service.discounts
-                                      //       ?.reduce((a, b) => (a.amountOff ?? 0) > (b.amountOff ?? 0) ? a : b);
-
-                                      final chatViewController = Get.find<ChatViewController>();
-                                      Map<String, dynamic> detas = {
-                                        ApiKeys.user_id: profile?.userId
-                                      };
-
-                                      Map<String,dynamic>? userDetailsMap=  await chatViewController.checkChatConnection(detas);
-                                      if(userDetailsMap!=null){
-                                        List<Map<String, String>>? urlList;
-                                        if( item.gallery?.isNotEmpty??false){
-                                          urlList= item.gallery?.first.imageUrls?.map((e) => {ApiKeys.url: e}).toList()??[];
-                                        }
-
-                                        final conversationId = userDetailsMap[ApiKeys.conversation_id];
-
-                                        final hasConversation = conversationId != null &&
-                                            conversationId.toString().isNotEmpty &&
-                                            conversationId.toString().toLowerCase() != 'null';
-                                        Map<String,dynamic> data={
-                                          ApiKeys.service_id : " ",
-                                          // ApiKeys.price: "${service.priceRange?.min} - ${service.priceRange?.max} per ${service.perUnit ?? ''}",
-                                          ApiKeys.price: "",
-                                          // ApiKeys.discount: "${(maxDiscount?.amountOff != null)
-                                          //     ? "${maxDiscount?.amountOff.toString()}% Off"
-                                          //     : "0% Off"}",
-                                          ApiKeys.discount: "",
-                                          if(!hasConversation)
-                                            ApiKeys.other_user_id: (userDetailsMap[ApiKeys.other_user_id] ??
-                                                '')
-                                          else
-                                            ApiKeys.conversation_id:(userDetailsMap[ApiKeys.conversation_id] ??
-                                                ''),
-
-                                          ApiKeys.message: "${profile?.profileName}",
-                                          ApiKeys.message_type: AppConstants.service,
-                                          ApiKeys.title: profile?.profileName,
-                                          ApiKeys.sub_category : "${profile?.description}",
-                                          ApiKeys.variant : "",
-                                          // ApiKeys.variant : "${service.business?.businessName ?? "N/A"}",
-
-                                          ApiKeys.url: urlList??[],
-                                        };
-                                        chatViewController.openAnyOneChatFunction(
-                                          shareProductParams:data,
-                                          isWithProductSend: true,
-                                          profileImage: profile?.logoUrl,
-                                          otherUserId: (!hasConversation)
-                                              ? userDetailsMap[ApiKeys.other_user_id]??
-                                              ''
-                                              : null,
-                                          type: AppConstants.chatMsgBusinessType,
-                                          isInitialMessage: (!hasConversation)? true
-                                              : false,
-                                          userId:profile?.userId,
-                                          conversationId: conversationId??
-                                              '',
-                                          contactName: profile?.profileName,
-                                          contactNo: "",
-                                        );
-                                      }
-
+                                      // final chatViewController = Get.find<ChatViewController>();
+                                      // Map<String, dynamic> detas = {
+                                      //   ApiKeys.user_id: business?.user_id
+                                      // };
+                                      // chatViewController.newVisitContactApiResponse?.value;
+                                      // await chatViewController.checkChatConnection(detas);
+                                      // List<Map<String, String>>? urlList =
+                                      // product?.media.map((e) => {"url": e}).toList();
+                                      // Map<String, dynamic> data = {
+                                      //   ApiKeys.product_id:"${product?.id}",
+                                      //
+                                      //   ApiKeys.price: "${product?.mrpPerUnit}",
+                                      //   ApiKeys.discount: "",
+                                      //   if ((chatViewController.newVisitContactApiResponse
+                                      //       ?.value?.data?.conversationId ==
+                                      //       '' ||
+                                      //       chatViewController.newVisitContactApiResponse
+                                      //           ?.value?.data?.conversationId ==
+                                      //           null))
+                                      //     ApiKeys.other_user_id: (chatViewController
+                                      //         .newVisitContactApiResponse
+                                      //         ?.value
+                                      //         ?.data
+                                      //         ?.otherUserId ??
+                                      //         '')
+                                      //   else
+                                      //     ApiKeys.conversation_id: (chatViewController
+                                      //         .newVisitContactApiResponse
+                                      //         ?.value
+                                      //         ?.data
+                                      //         ?.conversationId ??
+                                      //         ''),
+                                      //   ApiKeys.message:
+                                      //   "${product?.name}",
+                                      //   ApiKeys.message_type: "product",
+                                      //   ApiKeys.title: product?.name,
+                                      //   ApiKeys.mrp :'',
+                                      //   ApiKeys.url: urlList,
+                                      // };
+                                      // chatViewController.
+                                      // openAnyOneChatFunction(
+                                      //   shareProductParams: data,
+                                      //   isWithProductSend: true,
+                                      //   profileImage: business?.business_logo,
+                                      //   otherUserId: (chatViewController.newVisitContactApiResponse
+                                      //       ?.value?.data?.conversationId ??
+                                      //       '') ==
+                                      //       ""
+                                      //       ? chatViewController.newVisitContactApiResponse?.value
+                                      //       ?.data?.otherUserId ??
+                                      //       ''
+                                      //       : null,
+                                      //   // businessId: widget
+                                      //   //     .productStore?.sellerClassification?.owner?.id,
+                                      //   type: AppConstants.business_Chat_Type,
+                                      //   isInitialMessage: (chatViewController
+                                      //       .newVisitContactApiResponse
+                                      //       ?.value
+                                      //       ?.data
+                                      //       ?.conversationId ??
+                                      //       '') ==
+                                      //       ""
+                                      //       ? true
+                                      //       : false,
+                                      //   userId: business?.user_id,
+                                      //   conversationId: (chatViewController
+                                      //       .newVisitContactApiResponse
+                                      //       ?.value
+                                      //       ?.data
+                                      //       ?.conversationId ??
+                                      //       ''),
+                                      //   contactName: business?.business_name,
+                                      //   contactNo: business?.mobile_no,
+                                      // );
                                     },
                                     icon: LocalAssets(
                                         imagePath: AppIconAssets.chat,
@@ -296,6 +287,7 @@ class AskServiceMsgCard extends StatelessWidget {
                         ),
                       ),
 
+                      /// PRODUCT DETAILS
 
                     ],
                   ),
@@ -305,7 +297,7 @@ class AskServiceMsgCard extends StatelessWidget {
           ),
 
           /// SEE MORE BUTTON
-          if (arrServices.length > 6)
+          if (arrHealthCareData.length > 6)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 12),
               child: Center(

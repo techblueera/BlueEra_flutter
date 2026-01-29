@@ -102,4 +102,15 @@ class DeliveryPartnerRepo extends BaseService {
     );
     return response;
   }
+
+  /// Fetch Vehicle Enum
+  Future<ResponseModel> fetchVehicleDataEnumRepo() async {
+    var response = await ApiBaseHelper().getHTTP(
+      ridersOnboardingVehicleEnums,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 }

@@ -1183,6 +1183,8 @@ class AppStrings {
   static const String egPersonalCommercial = 'egPersonalCommercial';
   static const String vehicleType = 'vehicleType';
   static const String egTwoThreeWheeler = 'egTwoThreeWheeler';
+  static const String vehicleUseType = 'vehicleUseType';
+  static const String egPassengerDeliveryGoods = 'egPassengerDeliveryGoods';
   static const String vehicleName = 'vehicleName';
   static const String egSP125 = 'egSP125';
   static const String fuelType = 'fuelType';

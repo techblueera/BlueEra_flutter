@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
@@ -64,17 +65,12 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   int chatNotificationCount = 0;
   final ValueNotifier<bool> bottomBarVisibleNotifier = ValueNotifier(true);
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  final chatViewController = Get.isRegistered<ChatViewController>()
-      ? Get.find<ChatViewController>()
-      : Get.put(ChatViewController());
   final bottomBarController = Get.put(BottomBarController());
+  final chatViewController = getOrPut(() => ChatViewController());
   final moreCardsScreenController = Get.put(MoreCardsScreenController());
-  final viewPersonalDetailsController =
-      Get.put(ViewPersonalDetailsController());
+  final viewPersonalDetailsController = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
   final inventoryController = Get.put(InventoryController());
-  final orderController = Get.isRegistered<DeliverPartnerOrdersController>()
-      ? Get.find<DeliverPartnerOrdersController>()
-      : Get.put(DeliverPartnerOrdersController());
+  final orderController = getOrPut(() => DeliverPartnerOrdersController());
   final dialogService = Get.put(DialogService());
 
   void handleRejectOrder(String orderId) {
@@ -374,7 +370,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
 
     // Fallback (required)
     return PersonalProfileSetupNewScreen();
-    return HospitalMain();
   }
 
   Widget resolveBusinessScreen() {
@@ -409,12 +404,18 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   }
 
   Widget resolveIndividualScreen() {
-    log("userProfileTypeGlobal==== ${userProfileTypeGlobal}");
-    return (userProfileTypeGlobal == SELF_EMPLOYED ||
-        userProfileTypeGlobal == GIG_WORKER)
-        ? EarnServiceAvailableOptionsScreen(fromBottomNavBar: true)
-        : PersonalProfileSetupNewScreen();
+    return Obx(() {
+      String currentType = viewPersonalDetailsController.userProfileType.value;
+      log("userProfileTypeGlobal inside Obx: $currentType");
+      // print("Hash 2: ${viewPersonalDetailsController.userProfileType.hashCode}");
+
+      return (viewPersonalDetailsController.userProfileType.value == SELF_EMPLOYED
+          || viewPersonalDetailsController.userProfileType.value == GIG_WORKER)
+          ? EarnServiceAvailableOptionsScreen(fromBottomNavBar: true)
+          : PersonalProfileSetupNewScreen();
+    });
   }
+
 
   void _checkAndShowDialog() async {
     if (await dialogService.shouldShowDialog()) {

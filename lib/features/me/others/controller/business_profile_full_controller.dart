@@ -59,7 +59,7 @@ class BusinessProfileFullController extends GetxController {
           await _repo.getBusinessProfileFullRepo(otherServiceIDGlobal);
       if (response != null && response.isSuccess) {
         final model =
-            BusinessProfileFullModel.fromJson(response.response?.data);
+            BusinessProfileFullModel.fromJson(response.response?.healthCareData);
         if (model.success == true && model.data != null) {
           businessProfile.value = model.data;
         }

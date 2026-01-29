@@ -53,7 +53,7 @@ class OtherNewsController extends GetxController {
     try {
       final response = await _repo.getNewsRepo();
       if (response != null && response.isSuccess) {
-        final model = OtherNewsModel.fromJson(response.response?.data);
+        final model = OtherNewsModel.fromJson(response.response?.healthCareData);
         if (model.success == true && model.data != null) {
           aboutList.assignAll(model.data!);
         }

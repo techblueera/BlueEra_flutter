@@ -5,6 +5,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/image_upload_response_model.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -13,6 +14,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/common/delivery_partner/model/rider_onboarding_status.dart';
+import 'package:BlueEra/features/common/delivery_partner/model/vehicle_enums_response.dart';
 import 'package:BlueEra/features/common/delivery_partner/repo/delivery_partner_repo.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:croppy/croppy.dart';
@@ -47,6 +49,8 @@ class DeliveryPartnerController extends GetxController {
   Rx<ApiResponse> ridersOnboardingVehicleInformationResponse =
       ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> ridersOnboardingStatusResponse =
+      ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> vehicleDataResponse =
       ApiResponse.initial('Initial').obs;
 
   final stepStatus = <RiderProfileStep, bool>{}.obs;
@@ -111,10 +115,10 @@ class DeliveryPartnerController extends GetxController {
   final vehicleModelController = TextEditingController();
 
   final RxBool isTermsAccepted = false.obs;
-  Rx<VehicleRegistrationType?> selectedVehicleRegistrationType =
-      Rx<VehicleRegistrationType?>(null);
-  Rx<VehicleType?> selectedVehicleType = Rx<VehicleType?>(null);
-  Rx<FuelType?> selectedFuelType = Rx<FuelType?>(null);
+  Rx<String?> selectedVehicleType = Rx<String?>(null);
+  Rx<String?> selectedVehicleRegistrationType = Rx<String?>(null);
+  Rx<String?> selectedVehicleUseType = Rx<String?>(null);
+  Rx<String?> selectedFuelType = Rx<String?>(null);
 
   Future<ImageUploadResponseModel?> uploadInit(
       {required String fileType}) async {
@@ -375,14 +379,7 @@ class DeliveryPartnerController extends GetxController {
         if (response.isSuccess) {
           ridersOnboardingAddressResponse.value =
               ApiResponse.complete(response);
-          await setRiderServiceOptData(true);
-          await getRiderServiceOptData();
-
-          await ridersOnboardingStatusRepoApi();
-
-          Get.until((route) =>
-          route.settings.name ==
-              RouteHelper.getBottomNavigationBarScreenRoute());
+          Get.toNamed(RouteHelper.getVehicleInformationRidingScreenRoute());
         } else {
           ridersOnboardingAddressResponse.value = ApiResponse.error('error');
           commonSnackBar(
@@ -393,6 +390,81 @@ class DeliveryPartnerController extends GetxController {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       } finally {
         isRidersAddressLoading.value = false;
+      }
+    }
+  }
+
+  /// ridersOnboardingPersonalInformationApi (Step 6)
+  Future<void> ridersOnboardingVehicleInformationApi(String screenName) async {
+    if (formKeyStep6.currentState!.validate()) {
+      if (selectedVehicleRegistrationType.value == null) {
+        commonSnackBar(message: AppStrings.pleaseSelectVehicleRegType.tr);
+        return;
+      }
+
+      if (selectedVehicleType.value == null) {
+        commonSnackBar(message: AppStrings.pleaseSelectVehicleType.tr);
+        return;
+      }
+
+      if (selectedFuelType.value == null) {
+        commonSnackBar(message: AppStrings.pleaseSelectFuelType.tr);
+        return;
+      }
+
+      if (!isTermsAccepted.value) {
+        commonSnackBar(message: AppStrings.pleaseAcceptTermsAndConditions.tr);
+        return;
+      }
+
+      try {
+        isRiderVehicleInformationLoading.value = true;
+
+        Map<String, dynamic> params = {
+          ApiKeys.registrationType: selectedVehicleRegistrationType.value,
+          ApiKeys.registrationNo: vehicleRegistrationNumberController.text,
+          ApiKeys.vehicleType: selectedVehicleType.value,
+          ApiKeys.vehicleUsesType: selectedVehicleUseType.value,
+          ApiKeys.vehicleName: vehicleNameController.text,
+          ApiKeys.vehicleModelYear: vehicleModelController.text,
+          ApiKeys.fuelType: selectedFuelType.value,
+        };
+
+        ResponseModel response =
+        await DeliveryPartnerRepo().ridersOnboardingVehicleInformationRepo(
+          params: params,
+        );
+
+        if (response.isSuccess) {
+          ridersOnboardingVehicleInformationResponse.value =
+              ApiResponse.complete(response);
+
+          if(screenName == 'from_tab_view'){
+            await setRiderServiceOptData(true);
+            await getRiderServiceOptData();
+
+            await ridersOnboardingStatusRepoApi();
+
+            Get.until((route) =>
+            route.settings.name ==
+                RouteHelper.getBottomNavigationBarScreenRoute());
+          } else {
+            Get.back();
+          }
+
+        } else {
+          ridersOnboardingVehicleInformationResponse.value =
+              ApiResponse.error('error');
+          commonSnackBar(
+              message: response.message ?? AppStrings.somethingWentWrong);
+        }
+        checkStatusManageRoute();
+      } catch (e) {
+        ridersOnboardingVehicleInformationResponse.value =
+            ApiResponse.error('error');
+        commonSnackBar(message: AppStrings.somethingWentWrong);
+      } finally {
+        isRiderVehicleInformationLoading.value = false;
       }
     }
   }
@@ -920,70 +992,7 @@ class DeliveryPartnerController extends GetxController {
 
   RxBool isRiderVehicleInformationLoading = false.obs;
 
-  /// ridersOnboardingPersonalInformationApi (Step 6)
-  Future<void> ridersOnboardingVehicleInformationApi() async {
-    if (formKeyStep6.currentState!.validate()) {
-      if (selectedVehicleRegistrationType.value == null) {
-        commonSnackBar(message: AppStrings.pleaseSelectVehicleRegType.tr);
-        return;
-      }
 
-      if (selectedVehicleType.value == null) {
-        commonSnackBar(message: AppStrings.pleaseSelectVehicleType.tr);
-        return;
-      }
-
-      if (selectedFuelType.value == null) {
-        commonSnackBar(message: AppStrings.pleaseSelectFuelType.tr);
-        return;
-      }
-
-      if (!isTermsAccepted.value) {
-        commonSnackBar(message: AppStrings.pleaseAcceptTermsAndConditions.tr);
-        return;
-      }
-
-      try {
-        isRiderVehicleInformationLoading.value = true;
-
-        Map<String, dynamic> params = {
-          ApiKeys.registrationType: selectedVehicleRegistrationType.value?.name,
-          ApiKeys.registrationNo: vehicleRegistrationNumberController.text,
-          ApiKeys.vehicleType: selectedVehicleType.value?.name,
-          ApiKeys.vehicleName: vehicleNameController.text,
-          ApiKeys.vehicleModelYear: vehicleModelController.text,
-          ApiKeys.fuelType: selectedFuelType.value?.name,
-        };
-
-        ResponseModel response =
-            await DeliveryPartnerRepo().ridersOnboardingVehicleInformationRepo(
-          params: params,
-        );
-
-        if (response.isSuccess) {
-          ridersOnboardingVehicleInformationResponse.value =
-              ApiResponse.complete(response);
-          Get.back();
-          // Get.until(
-          //   (route) =>
-          //       route.settings.name ==
-          //       RouteHelper.getEarnWithBlueEraNewScreenRoute(),
-          // );
-        } else {
-          ridersOnboardingVehicleInformationResponse.value =
-              ApiResponse.error('error');
-          commonSnackBar(
-              message: response.message ?? AppStrings.somethingWentWrong);
-        }
-        checkStatusManageRoute();      } catch (e) {
-        ridersOnboardingVehicleInformationResponse.value =
-            ApiResponse.error('error');
-        commonSnackBar(message: AppStrings.somethingWentWrong);
-      } finally {
-        isRiderVehicleInformationLoading.value = false;
-      }
-    }
-  }
 
   Future<void> addLivePhoto() async {
     final selectedPath = await SelectProfilePictureDialog.pickFromCamera(
@@ -998,6 +1007,74 @@ class DeliveryPartnerController extends GetxController {
   Future<void> removeLivePhoto(int index) async {
     livePhoto.removeAt(index);
     update([livePhotoImageId]);
+  }
+
+  RxBool isVehicleDataEnumLoading = false.obs;
+  VehicleEnumResponse? vehicleEnumResponse;
+
+  // "twoWheelerRider",
+  // "autoTempo",
+  // "eRickshaw",
+  // "carMini",
+  // "carSedan",
+  // "suvCar",
+  // "miniBus",
+  // "pickupGoods",
+  // "miniTruckGoods",
+  // "largeTruckGoods"
+
+  Future<void> fetchVehicleDataEnum() async {
+    try {
+      isVehicleDataEnumLoading.value = true;
+
+      final response = await DeliveryPartnerRepo().fetchVehicleDataEnumRepo();
+
+      if (response.isSuccess) {
+        vehicleDataResponse.value = ApiResponse.complete(response);
+        vehicleEnumResponse = VehicleEnumResponse.fromJson(response.response?.data);
+        // vehicleType = vehicleEnumResponse.vehicleType ?? [];
+        // vehicleUsesType = vehicleEnumResponse.vehicleType ?? [];
+        // registrationType = vehicleEnumResponse.vehicleType ?? [];
+        // fuelType = vehicleEnumResponse.vehicleType ?? [];
+      } else {
+        vehicleDataResponse.value = ApiResponse.error('error');
+      }
+    } catch (e) {
+      vehicleDataResponse.value = ApiResponse.error('error');
+    } finally {
+      isVehicleDataEnumLoading.value = false;
+    }
+  }
+
+  List<String> getFilteredVehicles(String userRole, List<String> allVehicles) {
+    List<String> allowedTypes = [];
+
+    switch (userRole) {
+      case DELIVERY_RIDER:
+        allowedTypes = ["twoWheelerRider"];
+        break;
+
+      case AUTO_TAXI:
+        allowedTypes = ["autoTempo", "eRickshaw"];
+        break;
+
+      case CAR_TAXI:
+        allowedTypes = ["carMini", "carSedan", "suvCar", "miniBus"];
+        break;
+
+      case GOODS_TAXI:
+        allowedTypes = ["pickupGoods", "miniTruckGoods", "largeTruckGoods"];
+        break;
+
+      default:
+      // Return everything if no role matches, or empty list
+        return allVehicles;
+    }
+
+    // Filter the original API list to ensure we only show valid options that exist in backend
+    return allVehicles
+        .where((vehicle) => allowedTypes.contains(vehicle))
+        .toList();
   }
 
 

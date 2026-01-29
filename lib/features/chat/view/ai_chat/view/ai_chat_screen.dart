@@ -53,6 +53,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
   final FocusNode _focusNode = FocusNode();
   bool _isEmojiVisible = false;
   final _scrollController = ScrollController();
+
   @override
   void initState() {
     chatViewController.sendMessageController.value.clear();

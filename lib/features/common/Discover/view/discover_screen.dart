@@ -82,6 +82,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   late final double userLat;
   late final double userLng;
   bool isMapLoading = true; // Define this in your State class
+
   @override
   void initState() {
     userLat = LocationService.lat;
@@ -243,7 +244,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                           }
                         } else {
                           final controller =
-                              getOrPut(() => ViewPersonalDetailsController());
+                              getOrPut(() => ViewPersonalDetailsController(), permanent: true);
 
                           if (controller.personalProfileDetails.value
                                   .isProfileCreated ==

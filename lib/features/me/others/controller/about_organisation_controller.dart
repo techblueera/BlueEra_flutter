@@ -53,7 +53,7 @@ class AboutOrganisationController extends GetxController {
     try {
       final response = await _repo.getAboutOrganisationRepo();
       if (response != null && response.isSuccess) {
-        final model = AboutOrganisationModel.fromJson(response.response?.data);
+        final model = AboutOrganisationModel.fromJson(response.response?.healthCareData);
         if (model.success == true && model.data != null) {
           aboutList.assignAll(model.data!);
         }

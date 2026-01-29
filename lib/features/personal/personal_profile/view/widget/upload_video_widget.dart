@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/introduction_video_controller.dart';
@@ -12,7 +13,7 @@ class UploadVideoWidget extends StatelessWidget {
   UploadVideoWidget({super.key});
 
 
-  final viewProfileController = Get.put(ViewPersonalDetailsController());
+  final viewPersonalDetailsController = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
   final introVideoController = Get.find<IntroductionVideoController>();
 
   @override

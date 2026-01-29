@@ -39,7 +39,7 @@ class OtherPrivacyConditionController extends GetxController {
     try {
       final response = await _repo.getOtherTNCRepo();
       if (response != null && response.isSuccess) {
-        final model = OtherTNCModel.fromJson(response.response?.data);
+        final model = OtherTNCModel.fromJson(response.response?.healthCareData);
         if (model.success == true && model.data != null) {
           aboutList.assignAll(model.data!);
         }

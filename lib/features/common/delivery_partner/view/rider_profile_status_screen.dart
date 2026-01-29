@@ -139,7 +139,9 @@ class _RiderFormWidgetState extends State<RiderFormWidget> {
                           CommonBottomSheet(
                             title: AppStrings.vehicleInformation,
                             height: MediaQuery.of(context).size.height * 0.80,
-                            child: VehicleInformationWidget(),
+                            child: VehicleInformationWidget(
+                              screeName: 'from_bottom_view',
+                            ),
                           ),
                           isScrollControlled: true,
                           backgroundColor: Colors.transparent,
