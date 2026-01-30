@@ -1703,6 +1703,11 @@ class ChatEmitEvents {
   static const messageStatusUpdate = "messageStatusUpdate";
   static const update_data = "update_data";
 }
+class LiveTrackEmitEvents {
+  static const updateLocation = "updateLocation";
+  static const subscribeToProviders = "subscribeToProviders";
+  static const locationUpdate = "locationUpdate";
+}
 
 final List<String> timeOptions = [
   '12:00 AM',
