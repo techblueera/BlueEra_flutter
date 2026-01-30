@@ -15,10 +15,12 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/common/service/model/add_service_response_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/model/earn_service_model_response.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/model/predefined_category_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/repo/earn_service_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/self_profession_desc_selection_dialog.dart';
+import 'package:dio/dio.dart' as dio;
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import '../../../../../../core/api/apiService/api_keys.dart';
@@ -30,6 +32,10 @@ class SelfWorkServiceController extends GetxController{
       ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> uploadFileToS3Response =
   ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> serviceResponse =
+      ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> updateServiceResponse =
+      ApiResponse.initial('Initial').obs;
 
   String? designation;
 
@@ -126,6 +132,11 @@ class SelfWorkServiceController extends GetxController{
 
   // --- About Section ---
   final TextEditingController aboutController = TextEditingController();
+
+  /// Self Profession Data
+  Rx<EarnServiceModelResponse> professionData = EarnServiceModelResponse().obs;
+  RxBool isProfessionDataLoading = false.obs;
+  String? serviceId;
 
   RxBool isPredefinedCategoryServiceTypeLoading = false.obs;
   Future<void> fetchPredefinedCategoryServiceType({
@@ -258,7 +269,7 @@ class SelfWorkServiceController extends GetxController{
         ApiKeys.providerType: ProviderType.user.title,
         ApiKeys.subType: serviceSubType.label,
         ApiKeys.category: designation ?? ELECTRICIAN,
-        ApiKeys.serviceType: selectedServiceTypes[0],
+        ApiKeys.serviceType: selectedServiceTypes,
         // ApiKeys.serviceType: selectedServiceTypes,
         ApiKeys.description: aboutController.text.trim(),
         ApiKeys.experience: {
@@ -274,7 +285,6 @@ class SelfWorkServiceController extends GetxController{
       if (selectedExpertise.isNotEmpty) params[ApiKeys.expertise] = selectedExpertise;
       if (selectedWorkCategories.isNotEmpty) params[ApiKeys.workCategories] = selectedWorkCategories;
       if (selectedWhyChooseMe.isNotEmpty) params[ApiKeys.whyChooseMe] = selectedWhyChooseMe;
-
 
       // Prepare images
       List<UploadS3ImageModel> images = [];
@@ -351,157 +361,79 @@ class SelfWorkServiceController extends GetxController{
     }
   }
 
-   //   Future<void> updateEarnServiceData({
-//     required Map<String, dynamic> params
-//   }) async {
-//
-//     // 1. Validate Form Fields (TextInputs)
-//     if (!formKey.currentState!.validate()) return;
-//
-//   // 2. Validate Dropdowns & Single Selections
-//     if (selectedExperienceYear.value == null) {
-//       commonSnackBar(message: 'Please select experience (Years)');
-//       return;
-//     }
-//
-//     if (selectedExperienceMonth.value == null) {
-//       commonSnackBar(message: 'Please select experience (Months)');
-//       return;
-//     }
-//
-//     if (selectedServiceTypes.isEmpty) {
-//       commonSnackBar(message: 'Please select a service type');
-//       return;
-//     }
-//
-// // 3. Validate Multi-Selection Lists
-// // Note: Using .isEmpty is safer for RxList than checking == null
-//     if (selectedServices.isEmpty) {
-//       commonSnackBar(message: 'Please select at least one Service Offered');
-//       return;
-//     }
-//
-//     if (selectedInstallations.isEmpty) {
-//       commonSnackBar(message: 'Please add Types of Installations');
-//       return;
-//     }
-//
-//     if (selectedExpertise.isEmpty) {
-//       commonSnackBar(message: 'Please add your Expertise');
-//       return;
-//     }
-//
-//     if (selectedWorkCategories.isEmpty) {
-//       commonSnackBar(message: 'Please select Work Categories');
-//       return;
-//     }
-//
-//     if (selectedWhyChooseMe.isEmpty) {
-//       commonSnackBar(message: 'Please add "Why Choose Me" points');
-//       return;
-//     }
-//
-//     try {
-//
-//       isCreateServiceLoading.value = true;
-//
-//       Map<String, dynamic> params = {
-//         ApiKeys.type: AppConstants.service,
-//         ApiKeys.providerType: ProviderType.user.title,
-//         ApiKeys.subType: serviceSubType.label,
-//         ApiKeys.category: designation ?? ELECTRICIAN,
-//         ApiKeys.serviceType: selectedServiceTypes[0],
-//         // ApiKeys.serviceType: selectedServiceTypes,
-//         ApiKeys.description: aboutController.text.trim(),
-//         ApiKeys.experience: {
-//           ApiKeys.years: selectedExperienceYear.value,
-//           ApiKeys.months:selectedExperienceMonth.value,
-//         },
-//         // ApiKeys.priceType: 'range',
-//         // ApiKeys.min: int.tryParse(minPriceCtrl.text.trim()),
-//         // ApiKeys.max: int.tryParse(maxPriceCtrl.text.trim()),
-//       };
-//       if (selectedServices.isNotEmpty) params[ApiKeys.serviceOffered] = selectedServices;
-//       if (selectedInstallations.isNotEmpty) params[ApiKeys.typesOfWork] = selectedInstallations;
-//       if (selectedExpertise.isNotEmpty) params[ApiKeys.expertise] = selectedExpertise;
-//       if (selectedWorkCategories.isNotEmpty) params[ApiKeys.workCategories] = selectedWorkCategories;
-//       if (selectedWhyChooseMe.isNotEmpty) params[ApiKeys.whyChooseMe] = selectedWhyChooseMe;
-//
-//
-//       // Prepare images
-//       List<UploadS3ImageModel> images = [];
-//       for (var imagePath in selectedImages) {
-//         final imageInfo = getFileInfo(File(imagePath));
-//         if (imageInfo.isNotEmpty) {
-//           images.add(
-//             UploadS3ImageModel(
-//                 path: imagePath,
-//                 mimeType: imageInfo['mimeType']!
-//             ),
-//           );
-//         }
-//       }
-//
-//       if (images.isNotEmpty) {
-//         params[ApiKeys.imageContentTypes] =
-//             images.map((img) => img.mimeType).toList();
-//       }
-//
-//       final ResponseModel responseModel = await EarnServiceRepo().addServiceRepo(params: params);
-//
-//
-//       if (responseModel.isSuccess) {
-//         createServiceResponse.value = ApiResponse.complete(responseModel);
-//
-//         // Set preSignedUrls from response
-//         final addServiceResponseModel = AddServiceResponseModel.fromJson(responseModel.response!.data);
-//         List<String> preSignedUrlImages =
-//             addServiceResponseModel.uploadUrls?.images ?? [];
-//
-//         if (images.length == preSignedUrlImages.length) {
-//           for (var i = 0; i < images.length; i++) {
-//             images[i].preSignedUrl = preSignedUrlImages[i];
-//           }
-//
-//           // Upload all images with combined progress
-//           await uploadAllImages(images);
-//         }
-//
-//         commonSnackBar(message: AppStrings.serviceAddedSuccess.tr);
-//
-//         isCreateServiceLoading.value = false;
-//
-//         Get.offNamedUntil(
-//           RouteHelper.getAvailabilityScreenRoute(),
-//           arguments: {
-//             ApiKeys.argId: userId
-//           }, // 1. The new page to push
-//           ModalRoute.withName(RouteHelper.getEarnServiceScreenRoute()), // 2. Stop removing when you hit this page
-//         );
-//
-//         final controller = getOrPut(() => PersonalCreateProfileController());
-//
-//         controller.updateUserProfileDetails(params: {
-//           ApiKeys.profession: SELF_EMPLOYED,
-//           ApiKeys.designation: designation,
-//         },
-//             isFromProfileOnly: true,
-//             showProgress: false
-//         );
-//
-//       } else {
-//         isCreateServiceLoading.value = false;
-//         createServiceResponse.value = ApiResponse.error('error');
-//         commonSnackBar(message: responseModel.message);
-//       }
-//     } catch (e, s) {
-//       log('stack trace -- $s');
-//       isCreateServiceLoading.value = false;
-//       createServiceResponse.value = ApiResponse.error('error');
-//     } finally {
-//       // isCreateServiceLoading.value = false;
-//     }
-//   }
+
+  /// Update Earn Service Data
+    RxBool isUpdateServiceLoading = false.obs;
+     Future<void> updateEarnServiceData({
+         required Map<String, dynamic> params
+  }) async {
+
+    try {
+
+      isUpdateServiceLoading.value = true;
+
+      // Map<String, dynamic> params = {
+      //   ApiKeys.type: AppConstants.service,
+      //   ApiKeys.providerType: ProviderType.user.title,
+      //   ApiKeys.subType: serviceSubType.label,
+      //   ApiKeys.category: designation ?? ELECTRICIAN,
+      //   ApiKeys.serviceType: selectedServiceTypes[0],
+      //   // ApiKeys.serviceType: selectedServiceTypes,
+      //   ApiKeys.description: aboutController.text.trim(),
+      //   ApiKeys.experience: {
+      //     ApiKeys.years: selectedExperienceYear.value,
+      //     ApiKeys.months:selectedExperienceMonth.value,
+      //   },
+      //   // ApiKeys.priceType: 'range',
+      //   // ApiKeys.min: int.tryParse(minPriceCtrl.text.trim()),
+      //   // ApiKeys.max: int.tryParse(maxPriceCtrl.text.trim()),
+      // };
+      // if (selectedServices.isNotEmpty) params[ApiKeys.serviceOffered] = selectedServices;
+      // if (selectedInstallations.isNotEmpty) params[ApiKeys.typesOfWork] = selectedInstallations;
+      // if (selectedExpertise.isNotEmpty) params[ApiKeys.expertise] = selectedExpertise;
+      // if (selectedWorkCategories.isNotEmpty) params[ApiKeys.workCategories] = selectedWorkCategories;
+      // if (selectedWhyChooseMe.isNotEmpty) params[ApiKeys.whyChooseMe] = selectedWhyChooseMe;
+      //
+      //
+      // // Prepare images
+      // List<UploadS3ImageModel> images = [];
+      // for (var imagePath in selectedImages) {
+      //   final imageInfo = getFileInfo(File(imagePath));
+      //   if (imageInfo.isNotEmpty) {
+      //     images.add(
+      //       UploadS3ImageModel(
+      //           path: imagePath,
+      //           mimeType: imageInfo['mimeType']!
+      //       ),
+      //     );
+      //   }
+      // }
+      //
+      // if (images.isNotEmpty) {
+      //   params[ApiKeys.imageContentTypes] =
+      //       images.map((img) => img.mimeType).toList();
+      // }
+
+      if(serviceId == null) return;
+      final ResponseModel responseModel = await EarnServiceRepo().updateServiceRepo(serviceId: serviceId!, params: params);
+
+
+      if (responseModel.isSuccess) {
+        updateServiceResponse.value = ApiResponse.complete(responseModel);
+        commonSnackBar(message: 'update');
+        Get.back();
+        fetchSelfProfessionData(isLoading: false);
+      } else {
+        updateServiceResponse.value = ApiResponse.error('error');
+        commonSnackBar(message: responseModel.message);
+      }
+    } catch (e, s) {
+      log('stack trace -- $s');
+      updateServiceResponse.value = ApiResponse.error('error');
+    } finally {
+      isUpdateServiceLoading.value = false;
+    }
+  }
 
   Future<void> uploadAllImages(List<UploadS3ImageModel> images) async {
     if (images.isEmpty) return;
@@ -598,6 +530,70 @@ class SelfWorkServiceController extends GetxController{
       commonSnackBar(message: e.toString());
     } finally {
       isGenerateDescLoading.value = false;
+    }
+  }
+
+  Future<void> fetchSelfProfessionData({bool isLoading = true}) async {
+    try {
+      isProfessionDataLoading.value = isLoading;
+
+      final response = await EarnServiceRepo().fetchProfessionDataRepo(
+          {
+            ApiKeys.all: false,
+          }
+      );
+      if (response.isSuccess) {
+        serviceResponse.value = ApiResponse.complete(response);
+        final earnServiceModelResponse = EarnServiceModelResponse.fromJson(response.response?.data);
+        professionData.value = earnServiceModelResponse;
+      } else {
+        serviceResponse.value = ApiResponse.error('error');
+      }
+    } catch (e, s) {
+      serviceResponse.value = ApiResponse.error('error');
+      print("stack trace: $s");
+    } finally {
+      isProfessionDataLoading.value = false;
+    }
+  }
+
+  ///UPDATE BUSINESS IMAGES....
+  saveGalleryImages(String serviceId, String imagePath) async {
+    dio.MultipartFile? imageByPart;
+
+    String fileName = imagePath.split('/').last;
+    imageByPart =
+    await dio.MultipartFile.fromFile(imagePath, filename: fileName);
+
+    Map<String, dynamic> params = {ApiKeys.category_image: imageByPart};
+    uploadGalleryImage(serviceId, params);
+  }
+
+  Future<void> uploadGalleryImage(String serviceId, Map<String, dynamic> params) async {
+    try {
+      ResponseModel responseModel = await EarnServiceRepo().uploadProfessionImages(serviceId: serviceId, params: params);
+      if (responseModel.isSuccess) {
+        fetchSelfProfessionData();
+      } else {
+        commonSnackBar(
+            message: responseModel.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+    }
+  }
+
+  Future<void> deleteProfessionImage(String serviceId, String imagePath) async {
+    try {
+      Map<String, dynamic> params = {ApiKeys.image_url: imagePath};
+      ResponseModel responseModel =
+      await EarnServiceRepo().deleteProfessionImage(serviceId: serviceId, params: params);
+      if (responseModel.isSuccess) {
+        fetchSelfProfessionData();
+      } else {
+        commonSnackBar(
+            message: responseModel.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
     }
   }
 

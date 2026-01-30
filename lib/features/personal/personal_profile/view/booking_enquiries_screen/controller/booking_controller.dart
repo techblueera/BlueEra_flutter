@@ -40,7 +40,7 @@ enum BookingType {
 
 class BookingController extends GetxController {
   ApiResponse getAvailabilityResponse = ApiResponse.initial('Initial');
-  ApiResponse addUpdateAvailabilityResponse = ApiResponse.initial('Initial');
+  Rx<ApiResponse> addUpdateAvailabilityResponse = ApiResponse.initial('Initial').obs;
   var isLoading = false.obs;
   final formKey = GlobalKey<FormState>();
   TextEditingController locationController = TextEditingController();
@@ -196,32 +196,8 @@ class BookingController extends GetxController {
 
       isAddBookingAvailability.value = true;
 
-      final visitingHoursSelectorController = Get.find<VisitingHoursSelectorController>();
-
       // Format visiting hours data for API in the required JSON format
-      List<Map<String, dynamic>> visitingHoursData = [];
-
-      visitingHoursSelectorController.visitingHours.forEach((day, isOpen) {
-        if (isOpen) {
-          // Only include days that are toggled on (open)
-          final startTime = visitingHoursSelectorController
-              .formatTime(visitingHoursSelectorController.startTimes[day]!);
-          final endTime = visitingHoursSelectorController
-              .formatTime(visitingHoursSelectorController.endTimes[day]!);
-
-          // Format as a Map with day, open status, startTime and endTime
-          visitingHoursData.add({
-            "day": day,
-            "isOpen": true,
-            "timeSlots": [{
-              "startTime": startTime,
-              "endTime": endTime
-            }],
-
-          });
-        }
-      });
-
+      List<Map<String, dynamic>> visitingHoursData = payloadForVisitingHours();
       logs("Visiting Hours: $visitingHoursData");
 
       Map<String, dynamic> params = {
@@ -248,21 +224,85 @@ class BookingController extends GetxController {
         );
 
         if (response.isSuccess) {
-          addUpdateAvailabilityResponse = ApiResponse.complete(response);
+          addUpdateAvailabilityResponse.value = ApiResponse.complete(response);
           Get.back(result: true);
           getBookingAvailability(id: id);
           commonSnackBar(message: "Availability added");
         } else {
-          addUpdateAvailabilityResponse = ApiResponse.error('error');
+          addUpdateAvailabilityResponse.value = ApiResponse.error('error');
           commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
         }
       } catch (e) {
-        addUpdateAvailabilityResponse = ApiResponse.error('error');
+        addUpdateAvailabilityResponse.value = ApiResponse.error('error');
         commonSnackBar(message: AppStrings.somethingWentWrong);
       } finally{
         isAddBookingAvailability.value = false;
       }
     }
+  }
+
+  List<Map<String, dynamic>> payloadForVisitingHours() {
+    final visitingHoursSelectorController = Get.find<VisitingHoursSelectorController>();
+
+    // Format visiting hours data for API in the required JSON format
+    List<Map<String, dynamic>> visitingHoursData = [];
+
+    visitingHoursSelectorController.visitingHours.forEach((day, isOpen) {
+      if (isOpen) {
+        // Only include days that are toggled on (open)
+        // Safety check: Ensure times exist before formatting
+        if (visitingHoursSelectorController.startTimes[day] != null &&
+            visitingHoursSelectorController.endTimes[day] != null) {
+
+          final startTime = visitingHoursSelectorController
+              .formatTime(visitingHoursSelectorController.startTimes[day]!);
+          final endTime = visitingHoursSelectorController
+              .formatTime(visitingHoursSelectorController.endTimes[day]!);
+
+          // Format as a Map with day, open status, and timeSlots
+          visitingHoursData.add({
+            "day": day,
+            "isOpen": true,
+            "timeSlots": [
+              {
+                "startTime": startTime,
+                "endTime": endTime
+              }
+            ],
+          });
+        }
+      }
+    });
+
+    logs("Visiting Hours: $visitingHoursData");
+
+    return visitingHoursData; // 🟢 Now returning the list
+  }
+
+  Future<void> updateBookingAvailability({required String id, required Map<String, dynamic> params}) async {
+
+      try {
+
+        addUpdateAvailabilityResponse.value = ApiResponse.initial();
+
+        ResponseModel? response = await BookingRepo().addUpdateBookingAvailability(
+            id: id,
+            params: params
+        );
+
+        if (response.isSuccess) {
+          addUpdateAvailabilityResponse.value = ApiResponse.complete(response);
+          Get.back(result: true);
+          getBookingAvailability(id: id);
+          commonSnackBar(message: "Availability updated");
+        } else {
+          addUpdateAvailabilityResponse.value = ApiResponse.error('error');
+          commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+        }
+      } catch (e) {
+        addUpdateAvailabilityResponse.value = ApiResponse.error('error');
+        commonSnackBar(message: AppStrings.somethingWentWrong);
+      }
   }
 
 
@@ -465,7 +505,7 @@ class BookingController extends GetxController {
   Future<void> bookingUpdate({required String bookingId,  required Map<String, dynamic> params}) async {
     try {
       final response = await BookingRepo().bookingStatusUpdate(
-       id: bookingId,
+        id: bookingId,
         params: params,
       );
       if (response.isSuccess) {

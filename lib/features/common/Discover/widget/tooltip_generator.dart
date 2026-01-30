@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:http/http.dart' as http;
 
 class TooltipGenerator {
 
@@ -106,5 +107,138 @@ class TooltipGenerator {
 
     final ui.Picture picture = recorder.endRecording();
     return picture.toImage(width.toInt(), height.toInt());
+  }
+}
+
+
+class TooltipGeneratorOnlyLocationIcon {
+
+  /// Generates ONLY SVG icon as PNG bytes
+  static Future<Uint8List> createIconOnly({
+    required String svgAssetPath,
+    double iconTargetWidth = 80,
+  }) async {
+    final ui.Image iconImage =
+    await _rasterizeSvg(svgAssetPath, iconTargetWidth);
+
+    final ByteData? byteData =
+    await iconImage.toByteData(format: ui.ImageByteFormat.png);
+
+    return byteData!.buffer.asUint8List();
+  }
+
+  /// Convert SVG asset → ui.Image
+  static Future<ui.Image> _rasterizeSvg(
+      String assetPath,
+      double width,
+      ) async {
+    final String svgString = await rootBundle.loadString(assetPath);
+
+    final PictureInfo pictureInfo =
+    await vg.loadPicture(SvgStringLoader(svgString), null);
+
+    final double aspectRatio =
+        pictureInfo.size.width / pictureInfo.size.height;
+    final double height = width / aspectRatio;
+
+    final ui.PictureRecorder recorder = ui.PictureRecorder();
+    final Canvas canvas = Canvas(recorder);
+
+    canvas.scale(width / pictureInfo.size.width);
+    canvas.drawPicture(pictureInfo.picture);
+
+    final ui.Picture picture = recorder.endRecording();
+    return picture.toImage(width.toInt(), height.toInt());
+  }
+}
+class ProfileLocationMarkerGenerator {
+  static Future<Uint8List> createMarker({
+    required String imageUrl,
+    double imageSize = 80,
+    double borderWidth = 5,
+    double dotRadius = 6,
+    Color borderColor = const Color(0xFF1E88E5), // Blue
+    Color dotColor = const Color(0xFF1E88E5),
+  }) async {
+    final double totalWidth = imageSize + borderWidth * 2;
+    final double canvasHeight =
+        totalWidth + dotRadius * 2 + 8; // space for dot
+
+    // 1️⃣ Download image
+    final http.Response response = await http.get(Uri.parse(imageUrl));
+    final Uint8List bytes = response.bodyBytes;
+
+    // 2️⃣ Decode image
+    final ui.Codec codec = await ui.instantiateImageCodec(
+      bytes,
+      targetWidth: imageSize.toInt(),
+      targetHeight: imageSize.toInt(),
+    );
+    final ui.FrameInfo frame = await codec.getNextFrame();
+    final ui.Image image = frame.image;
+
+    // 3️⃣ Canvas setup
+    final ui.PictureRecorder recorder = ui.PictureRecorder();
+    final Canvas canvas = Canvas(recorder);
+
+    final Paint paint = Paint()..isAntiAlias = true;
+    final Offset imageCenter =
+    Offset(totalWidth / 2, totalWidth / 2);
+
+    // 🔵 Border
+    paint.color = borderColor;
+    canvas.drawCircle(
+      imageCenter,
+      imageSize / 2 + borderWidth,
+      paint,
+    );
+
+    // 👤 Clip image circle
+    final Path clipPath = Path()
+      ..addOval(Rect.fromCircle(
+        center: imageCenter,
+        radius: imageSize / 2,
+      ));
+    canvas.save();
+    canvas.clipPath(clipPath);
+
+    canvas.drawImageRect(
+      image,
+      Rect.fromLTWH(
+        0,
+        0,
+        image.width.toDouble(),
+        image.height.toDouble(),
+      ),
+      Rect.fromCenter(
+        center: imageCenter,
+        width: imageSize,
+        height: imageSize,
+      ),
+      paint,
+    );
+    canvas.restore();
+
+    // 🔵 Location dot (bottom center)
+    final Offset dotCenter = Offset(
+      totalWidth / 2,
+      totalWidth + dotRadius + 4,
+    );
+
+    paint.color = dotColor;
+    canvas.drawCircle(dotCenter, dotRadius, paint);
+
+    // 4️⃣ Convert to PNG
+    final ui.Image finalImage = await recorder
+        .endRecording()
+        .toImage(
+      totalWidth.toInt(),
+      canvasHeight.toInt(),
+    );
+
+    final ByteData? data =
+    await finalImage.toByteData(format: ui.ImageByteFormat.png);
+
+    return data!.buffer.asUint8List();
   }
 }

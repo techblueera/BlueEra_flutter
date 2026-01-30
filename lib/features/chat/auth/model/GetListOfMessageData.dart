@@ -84,7 +84,8 @@ class Messages {
       this.sendPendingMsgParams,
       this.latitude,
       this.longitude, 
-      this.sharedContactName, 
+      this.live_location_validity,
+      this.sharedContactName,
       this.sharedContactProfileImage, 
       this.sharedContactNumber, 
       this.forwardId, 
@@ -133,6 +134,7 @@ class Messages {
     audioTime = json['audio_time'];
     latitude = json['latitude'];
     longitude = json['longitude'];
+    live_location_validity = json['live_location_validity'];
     sharedContactName = json['shared_contact_name'];
     sharedContactProfileImage = json['shared_contact_profile_image'];
     sharedContactNumber = json['shared_contact_number'];
@@ -188,6 +190,7 @@ class Messages {
   Map<String,dynamic>? sendPendingMsgParams;
   String? latitude;
   String? longitude;
+  String? live_location_validity;
   String? sharedContactName;
   String? sharedContactProfileImage;
   String? sharedContactNumber;
@@ -233,6 +236,7 @@ class Messages {
     map['audio_time'] = audioTime;
     map['latitude'] = latitude;
     map['longitude'] = longitude;
+    map['live_location_validity'] = live_location_validity;
     map['shared_contact_name'] = sharedContactName;
     map['shared_contact_profile_image'] = sharedContactProfileImage;
     map['shared_contact_number'] = sharedContactNumber;

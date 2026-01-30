@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -94,7 +95,9 @@ class _AiChatScreenState extends State<AiChatScreen> {
               type: widget.type,
               name: widget.name,
               profileImage: widget.profileImage,
-              contactNo: widget.contactNo, conversationId: widget.conversationId),
+              contactNo: widget.contactNo,
+              conversationId: widget.conversationId,
+          ),
           body: Obx(() {
 
             if (chatViewController.getListOfAiMessageResponse.value.status ==

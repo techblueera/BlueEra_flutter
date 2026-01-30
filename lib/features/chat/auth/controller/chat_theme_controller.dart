@@ -1,9 +1,16 @@
 
+import 'dart:developer';
+
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:mappls_gl/mappls_gl.dart';
 
+import '../../../../core/api/apiService/api_keys.dart';
+import '../../../../core/constants/app_constant.dart';
 import '../model/GetListOfMessageData.dart';
+import '../model/shared_person_live_location_model.dart';
+import '../socket/live_location_track_socket.dart';
 
 class ChatThemeController extends GetxController {
   Rx<Color> myMessageBgColor = AppColors.chat_bubble_my_bg.obs;
@@ -13,10 +20,12 @@ class ChatThemeController extends GetxController {
 
   RxBool isMessageSelectionActive = false.obs;
   RxBool isDeleteForEveryOneAvailable = true.obs;
+  RxString viewLiverLocationReceivedUserId = ''.obs;
   RxList<String> selectedId = <String>[].obs;
   Rx<Messages?>? selectedFirstMessage = Messages().obs;
   RxList<Messages> selectedMessages = <Messages>[].obs;
-
+  Rx<SharedPersonsLiveLocationModel> senderLiveLocation=SharedPersonsLiveLocationModel().obs;
+  final liveTrackSocket = LiveTrackingSocketService();
   final Map<String, Color> senderColorMap = {}; // senderId → color map
 
   final List<Color> availableColors = [
@@ -111,4 +120,19 @@ class ChatThemeController extends GetxController {
     selectedId.clear();
     selectedMessages.clear();
   }
+
+  Future<void> connectSocket(String userId) async {
+      await liveTrackSocket.connectToSocket(null);
+      liveTrackSocket.emitEvent(LiveTrackEmitEvents.subscribeToProviders, {
+        ApiKeys.userIds: ["${userId}"],
+      });
+      liveTrackSocket.listenEvent(LiveTrackEmitEvents.locationUpdate, (data) async {
+        SharedPersonsLiveLocationModel value = SharedPersonsLiveLocationModel.fromMap(data);
+        // if(value.userId==viewLiverLocationReceivedUserId){
+          senderLiveLocation.value=value;
+
+        // }
+      });
+
+    }
 }

@@ -25,8 +25,6 @@ import 'package:get/get.dart';
 class EarnServiceController extends GetxController{
   Rx<ApiResponse> ownProductsResponse =
       ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> serviceResponse =
-      ApiResponse.initial('Initial').obs;
 
   RxInt selectedProductsServicesTabIndex = 0.obs;
   final List<String> productsServicesTab = [
@@ -42,10 +40,6 @@ class EarnServiceController extends GetxController{
   RxBool isOwnProductDataFirstLoading = false.obs;
   int ownProductDataPage = 1;
   bool ownProductDataHasMore = true;
-
-  /// Self Profession Data
-  Rx<EarnServiceModelResponse> professionData = EarnServiceModelResponse().obs;
-  RxBool isProfessionDataLoading = false.obs;
 
   /// Earn Service Opt flag
   RxString isEarnServiceOpt = ''.obs;
@@ -210,69 +204,7 @@ class EarnServiceController extends GetxController{
     }
   }
 
-  Future<void> fetchSelfProfessionData() async {
-    try {
-      isProfessionDataLoading.value = true;
 
-      final response = await EarnServiceRepo().fetchProfessionDataRepo(
-        {
-          ApiKeys.all: false,
-        }
-      );
-      if (response.isSuccess) {
-        serviceResponse.value = ApiResponse.complete(response);
-        final earnServiceModelResponse = EarnServiceModelResponse.fromJson(response.response?.data);
-        professionData.value = earnServiceModelResponse;
-      } else {
-        serviceResponse.value = ApiResponse.error('error');
-      }
-    } catch (e, s) {
-      serviceResponse.value = ApiResponse.error('error');
-      print("stack trace: $s");
-    } finally {
-      isProfessionDataLoading.value = false;
-    }
-  }
-
-  ///UPDATE BUSINESS IMAGES....
-  saveGalleryImages(String serviceId, String imagePath) async {
-    dio.MultipartFile? imageByPart;
-
-    String fileName = imagePath.split('/').last;
-    imageByPart =
-    await dio.MultipartFile.fromFile(imagePath, filename: fileName);
-
-    Map<String, dynamic> params = {ApiKeys.category_image: imageByPart};
-    uploadGalleryImage(serviceId, params);
-  }
-
-  Future<void> uploadGalleryImage(String serviceId, Map<String, dynamic> params) async {
-    try {
-      ResponseModel responseModel = await EarnServiceRepo().uploadProfessionImages(serviceId: serviceId, params: params);
-      if (responseModel.isSuccess) {
-        fetchSelfProfessionData();
-      } else {
-        commonSnackBar(
-            message: responseModel.message ?? AppStrings.somethingWentWrong);
-      }
-    } catch (e) {
-    }
-  }
-
-  Future<void> deleteProfessionImage(String serviceId, String imagePath) async {
-    try {
-      Map<String, dynamic> params = {ApiKeys.image_url: imagePath};
-      ResponseModel responseModel =
-      await EarnServiceRepo().deleteProfessionImage(serviceId: serviceId, params: params);
-      if (responseModel.isSuccess) {
-        fetchSelfProfessionData();
-      } else {
-        commonSnackBar(
-            message: responseModel.message ?? AppStrings.somethingWentWrong);
-      }
-    } catch (e) {
-    }
-  }
 
 
 }

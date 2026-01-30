@@ -720,6 +720,21 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
                     Navigator.push(
                         context, MaterialPageRoute(builder: (context) =>
                         SendLocationPage(
+                            onLiveLocationSubmit: (double lat, double long, String? duration)async{
+                              Map<String, dynamic> data = {
+                                if(isInitialFlow)
+                                  ApiKeys.other_user_id: widget.userId
+                                else
+                                  ApiKeys.conversation_id: widget.conversationId,
+                                ApiKeys.message_type: "live_location",
+                                  ApiKeys.message: "Live Location",
+                                ApiKeys.live_location_validity:duration,
+                                ApiKeys.latitude: lat,
+                                ApiKeys.longitude: long,
+                              };
+                             await sendMessageToUser(data: data, isInitial: isInitialFlow);
+                              Get.back();
+                        },
                             onSubmit: (double lat, double long, String? address,
                                 String? name) async {
                               await pickCurrentLocation(

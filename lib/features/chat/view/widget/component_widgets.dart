@@ -913,6 +913,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
   required String? socketType,
   required String? name,
   required String? contactNo,
+  VoidCallback? onBackCallback,
   String? profileImage,
   bool? isGroupAppBar,
   bool? isGroupPrivate,
@@ -925,7 +926,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
     backgroundColor: Colors.white,
     leadingWidth: 38,
     leading: InkWell(
-      onTap: () {
+      onTap: onBackCallback ?? () {
         if (chatViewController.canPopBusiness.value) {
           chatViewController.emitEvent(
               ChatEmitEvents.ChatList, {ApiKeys.type: "$socketType"}, true);

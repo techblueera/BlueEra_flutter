@@ -695,6 +695,9 @@ class _GroupChatInputBarState extends State<GroupChatInputBar>   with WidgetsBin
                     Navigator.push(
                         context, MaterialPageRoute(builder: (context) =>
                         SendLocationPage(
+                            onLiveLocationSubmit: (double lat, double long, String? address){
+
+                            },
                             onSubmit: (double lat, double long, String? address,
                                 String? name) async {
                               await pickCurrentLocation(

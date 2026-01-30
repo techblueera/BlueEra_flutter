@@ -40,6 +40,7 @@ import '../orders_chat/widget/order_common_widgets.dart';
 import 'audio_type_message_ui.dart';
 import 'component_widgets.dart';
 import 'document_message_card.dart';
+import 'live_location_message_card.dart';
 import 'message_bubble.dart';
 
 class MessageCard extends StatefulWidget {
@@ -128,6 +129,27 @@ class _MessageCardState extends State<MessageCard>
           time,
           isReceive,
         );
+        break;
+      case "live_location":
+        messageWidget =
+            LiveLocationMessageCard(
+              messages:widget.message,
+              message:"${widget.message.live_location_validity}",
+              lat:  double.parse(widget.message.latitude ?? "0"),
+              long:  double.parse(widget.message.longitude ?? "0"),
+              time: time,
+              isReceiveMsg: isReceive,
+              chatThemeController: chatThemeController,
+              onLongPress: () {
+                chatThemeController.activateSelection(widget.message);
+              },
+              onTap: () {
+                FocusScope.of(context).unfocus();
+                if (chatThemeController.isMessageSelectionActive.value) {
+                  chatThemeController.selectMoreMessage(widget.message);
+                }
+              },
+            );
         break;
       case "contact":
         messageWidget = _buildContactMessage(
@@ -987,13 +1009,6 @@ class _MessageCardState extends State<MessageCard>
     MapplsMapController? mapController;
     LatLng _currentPosition = LatLng(lat, long);
     Theme.of(context);
-    // Marker _currentMarker = Marker(
-    //   markerId: const MarkerId('me'),
-    //   position: _currentPosition,
-    //   icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-    //   infoWindow: const InfoWindow(title: 'You are here'),
-    // );
-
     return GestureDetector(
       onLongPress: () {
         chatThemeController.activateSelection(messages);

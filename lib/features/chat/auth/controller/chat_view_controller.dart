@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
@@ -18,6 +19,8 @@ import 'package:BlueEra/features/chat/auth/model/service_ask_ai_model.dart';
 import 'package:BlueEra/features/chat/auth/model/travel_and_stay_ask_ai_model.dart';
 import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/api/apiService/api_response.dart';
@@ -43,6 +46,8 @@ import '../model/visit_chat_view_model.dart';
 import '../repo/chat_view_repo.dart';
 import '../socket/ai_socket.dart';
 import '../socket/chat_socket.dart';
+import 'package:mappls_gl/mappls_gl.dart';
+import '../socket/live_location_track_socket.dart';
 
 class ChatViewController extends GetxController {
   Rx<ApiResponse> chatMessageResponse = ApiResponse.initial('Initial').obs;
@@ -667,6 +672,7 @@ class ChatViewController extends GetxController {
 
       });
       chatSocket.listenEvent(ChatEmitEvents.messageReceived, (data) async {
+
         final parsedData = GetListOfMessageData.fromJson(data);
 
         if (parsedData.messages != null) {
@@ -701,6 +707,7 @@ class ChatViewController extends GetxController {
         }
       });
       chatSocket.listenEvent(ChatEmitEvents.newMessageReceived, (data) {
+
         Messages? message;
 
         if (data['message'] != null) {
@@ -1390,19 +1397,66 @@ class ChatViewController extends GetxController {
     }
   }
 
+  Future<void> startLiveLocationTracking(Duration duration) async {
+    final permission = await Permission.locationWhenInUse.request();
+    if (!permission.isGranted) return;
+    Position pos = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
+    await LiveTrackingSocketService().connectToSocket(LatLng(pos.latitude, pos.longitude));
+
+     Geolocator.getPositionStream(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 2, // 🔥 10 meters move = update
+      ),
+    ).listen((Position pos) {
+      LiveTrackingSocketService().emitEvent(
+        LiveTrackEmitEvents.updateLocation,
+        {
+          ApiKeys.coordinates: [pos.longitude, pos.latitude],
+          ApiKeys.availabilityStatus: "OPEN",
+        },
+      );
+    });
+    Timer(duration, (){
+      LiveTrackingSocketService().disconnectSocket();
+    });
+  }
+
+  //
+  void stopLiveLocationTracking() {
+    LiveTrackingSocketService().disconnectSocket();
+  }
+  Duration labelToDuration(String label) {
+    switch (label) {
+      case "15min":
+        return const Duration(minutes: 15);
+      case "1h":
+        return const Duration(hours: 1);
+      case "8h":
+        return const Duration(hours: 8);
+      default:
+      // fallback: "30min", "45min" madhiri iruntha
+        if (label.endsWith("min")) {
+          final mins = int.tryParse(label.replaceAll("min", ""));
+          return Duration(minutes: mins ?? 0);
+        }
+        if (label.endsWith("h")) {
+          final hrs = int.tryParse(label.replaceAll("h", ""));
+          return Duration(hours: hrs ?? 0);
+        }
+        return Duration.zero;
+    }
+  }
+
   Future<bool?> sendMessage(Map<String, dynamic> params,
       [List<File>? sendFiles, String? fileName]) async {
     try {
+      if(params[ApiKeys.message_type]=="live_location"){
+       await startLiveLocationTracking(labelToDuration(params[ApiKeys.live_location_validity]));
+      }
       clearMessageControllerCommon();
-      // if(params[ApiKeys.message_type]=="text"&&params['reply_id']==null){
-      //   Messages? message = Messages.fromJson(params);
-      //   getListOfMessageData?.add(message);
-      //   message.createdAt=getCurrentIsoTime();
-      //   message.id= "${getCurrentIsoTime()}_${params[ApiKeys.conversation_id]}";
-      //   message.myMessage=true;
-      //   getListOfMessageResponse.value =
-      //       ApiResponse.complete(getListOfMessageData);
-      // }
+
       if (replyMessage?.value?.id != null) {
         replyMessage?.value = Messages();
       }
@@ -1433,6 +1487,7 @@ class ChatViewController extends GetxController {
         final data = responseModel.response?.data;
         Messages? message = Messages.fromJson(data['data']);
         if (message.subType != "comment") {
+
           getListOfMessageData?.add(message);
           getListOfMessageResponse.value =
               ApiResponse.complete(getListOfMessageData);

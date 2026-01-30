@@ -655,7 +655,8 @@ class ApiKeys {
   static const batches  = 'batches';
   static const quantity  = 'quantity';
   static const categoryId  = 'categoryId';
-
-
-
+  static const live_location_validity  = 'live_location_validity';
+  static const token  = 'token';
+  static const coordinates  = 'coordinates';
+  static const availabilityStatus  = 'availabilityStatus';
 }

@@ -112,4 +112,16 @@ class EarnServiceRepo extends BaseService {
     return response;
   }
 
+  /// Earn Services
+  Future<ResponseModel> updateServiceRepo({required String serviceId, required Map<String, dynamic> params}) async {
+    final response = await ApiBaseHelper().putHTTP(
+      earnServicesById(serviceId),
+      params: params,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
 }
