@@ -669,4 +669,12 @@ abstract class BaseService {
   final String homeFoodContactUs = 'food-service/api/contact';
   final String homeFoodGallery = 'food-service/api/gallery';
 
+  final String aiProfessionals = 'ai-service/api/ai-professional/generate-ai';
+  final String professionalsFull = 'earn-service/professional/full';
+  final String professionalsUpdate= 'earn-service/professional/update';
+  final String professionalsCertificate = 'earn-service/professional/certificate';
+  final String professionalsContactUs = 'earn-service/professional/contact';
+  final String professionalsContactUsById = 'earn-service/professional/';
+  final String professionalsTiming = 'earn-service/professional';
+
 }

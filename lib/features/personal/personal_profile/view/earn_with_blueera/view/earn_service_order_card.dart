@@ -148,7 +148,7 @@ class EarnServiceOrderCard extends StatelessWidget {
         context,
         ImageViewScreen(
           appBarTitle: '',
-          imageUrls: [order.user.profileImage ?? ''],
+          imageUrls: [order.user.profileImage],
           initialIndex: 0,
         ),
       ),
@@ -267,7 +267,7 @@ class EarnServiceOrderCard extends StatelessWidget {
 
   Widget _buildTimeText() {
     return CustomText(
-      _formatTime(order.createdAt ?? ''),
+      _formatTime(order.createdAt),
       fontSize: SizeConfig.extraSmall,
       fontWeight: FontWeight.w400,
       color: AppColors.grey9A,
@@ -290,46 +290,8 @@ class EarnServiceOrderCard extends StatelessWidget {
   //   );
   // }
 
-  Widget _newOrderHeader() {
-    return Row(
-      children: [
-        _avatar(),
-        const SizedBox(width: 8),
-        Expanded(child: _name()),
-        _time(),
-      ],
-    );
-  }
 
-  Widget _onGoingHeader() {
-    return Row(
-      children: [
-        Expanded(
-          child: Text(
-            'Order No: ${order.orderNo}\nPickup OTP: ${order.pickupOTP}',
-            style: const TextStyle(fontWeight: FontWeight.w600),
-          ),
-        ),
-        _time(),
-      ],
-    );
-  }
 
-  Widget _statusHeader(String status, Color color) {
-    return Row(
-      children: [
-        _avatar(),
-        const SizedBox(width: 8),
-        Chip(
-          label: Text(status),
-          backgroundColor: color.withOpacity(0.1),
-          labelStyle: TextStyle(color: color),
-        ),
-        const Spacer(),
-        _time(),
-      ],
-    );
-  }
 
   // ================= LOCATION =================
 
@@ -415,24 +377,10 @@ class EarnServiceOrderCard extends StatelessWidget {
     );
   }
 
-  Widget _ongoingActions() {
-    return Row(
-      children: [
-        _otpBoxes(),
-        const Spacer(),
-        _TimeSection(),
-      ],
-    );
-  }
 
   // ================= SMALL UI =================
 
-  Widget _avatar() => const CircleAvatar(radius: 20);
 
-  Widget _name() => Text(
-    order.user.name,
-    style: const TextStyle(fontWeight: FontWeight.w600),
-  );
 
   Widget _time() => Text(
     DateFormat('hh:mm a').format(DateTime.parse(order.createdAt)),
@@ -454,7 +402,7 @@ class EarnServiceOrderCard extends StatelessWidget {
     decoration: BoxDecoration(
       color: color?.withValues(alpha: 0.1),
       borderRadius: BorderRadius.circular(10),
-      border: color!=null ? Border.all(color: color!) : null,
+      border: color!=null ? Border.all(color: color) : null,
     ),
     child: CustomText(
         text,
@@ -479,6 +427,4 @@ class EarnServiceOrderCard extends StatelessWidget {
     ),
   );
 
-  bool _shouldShowActions() =>
-      selectedOrdersStatus == EarnServiceOrdersStatus.newAndOnGoingOrder;
 }

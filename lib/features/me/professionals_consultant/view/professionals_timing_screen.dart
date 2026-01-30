@@ -1,22 +1,21 @@
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/features/me/professionals_consultant/controller/professionals_timing_controller.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import '../controller/timing_controller.dart';
 
-class TimingScreen extends StatelessWidget {
-   TimingScreen({Key? key}) : super(key: key);
-  final controller = Get.put(TimingController());
+class ProfessionalsTimingScreen extends StatelessWidget {
+  ProfessionalsTimingScreen({Key? key}) : super(key: key);
+  final controller = Get.put(ProfessionalsTimingController());
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Timing",
+        title: "Availability",
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -90,14 +89,14 @@ class TimingScreen extends StatelessWidget {
                               // Status Text or Time Pickers
                               dayTiming.isOpen.value
                                   ? CustomText(
-                                "Open",
-                                color: AppColors.secondaryTextColor,
-                                fontSize: SizeConfig.size12,
-                              )
+                                      "Open",
+                                      color: AppColors.secondaryTextColor,
+                                      fontSize: SizeConfig.size12,
+                                    )
                                   : const CustomText(
-                                "Closed",
-                                color: AppColors.mainTextColor,
-                              ),
+                                      "Closed",
+                                      color: AppColors.mainTextColor,
+                                    ),
 
                               if (dayTiming.isOpen.value) ...[
                                 SizedBox(
@@ -106,13 +105,13 @@ class TimingScreen extends StatelessWidget {
                                 _buildDropdown(
                                     controller.timeSlots,
                                     dayTiming.openTime.value,
-                                        (val) => controller.updateTime(
+                                    (val) => controller.updateTime(
                                         index, val!, true)),
                                 const SizedBox(width: 8),
                                 _buildDropdown(
                                     controller.timeSlots,
                                     dayTiming.closeTime.value,
-                                        (val) => controller.updateTime(
+                                    (val) => controller.updateTime(
                                         index, val!, false)),
                               ]
                             ],

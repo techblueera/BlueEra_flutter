@@ -2,10 +2,13 @@ import 'package:BlueEra/core/api/model/service_option_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/me/professionals_consultant/controller/basic_profile_controller.dart';
+import 'package:BlueEra/features/me/professionals_consultant/controller/ai_professionals_controller.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/basic_profile_screen.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/pricing_engagement_screen.dart';
+import 'package:BlueEra/features/me/professionals_consultant/view/professional_contact_us_screen.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/professional_profile_screen.dart';
+import 'package:BlueEra/features/me/professionals_consultant/view/professionals_certificates_screen.dart';
+import 'package:BlueEra/features/me/professionals_consultant/view/professionals_timing_screen.dart';
 import 'package:BlueEra/features/me/school/view/school_update_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -22,7 +25,7 @@ class UpdateProfessionalsServicesScreen extends StatefulWidget {
 
 class _UpdateProfessionalsServicesScreenState
     extends State<UpdateProfessionalsServicesScreen> {
-  final controller = Get.put(ProfileController());
+  final controller = Get.find<AiProfessionalsController>();
 
   final List<ServiceMenuItem> serviceMenus = [
     ServiceMenuItem(
@@ -38,32 +41,32 @@ class _UpdateProfessionalsServicesScreenState
     ServiceMenuItem(
       title: "Services Offered",
       icon: AppIconAssets.servicesOffered,
-      page: () =>  ComingSoon(), // Update to your actual page
+      page: () => ComingSoon(), // Update to your actual page
     ),
     ServiceMenuItem(
       title: "Gallery & Certifications",
       icon: AppIconAssets.galleryCertifications,
-      page: () =>  ComingSoon(),
+      page: () => ProfessionalsCertificatesScreen(),
     ),
     ServiceMenuItem(
       title: "Portfolio / Case Studies",
       icon: AppIconAssets.caseStudies,
-      page: () =>  ComingSoon(),
+      page: () => ComingSoon(),
     ),
     ServiceMenuItem(
       title: "Pricing / Engagement Model",
       icon: AppIconAssets.engagementModel,
-      page: () =>  PricingEngagementScreen(),
+      page: () => PricingEngagementScreen(),
     ),
     ServiceMenuItem(
       title: "Availability",
       icon: AppIconAssets.availability,
-      page: () => ComingSoon(),
+      page: () => ProfessionalsTimingScreen(),
     ),
     ServiceMenuItem(
       title: "Contact & Leads Section",
       icon: AppIconAssets.contact_us,
-      page: () =>  ComingSoon(),
+      page: () => ProfessionalContactUsScreen(),
     ),
   ];
 

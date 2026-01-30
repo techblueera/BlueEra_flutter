@@ -126,7 +126,6 @@ class _EarnServiceNewOrdersState extends State<EarnServiceNewOrders> {
           );
         },
       );
-    ;
   }
 
 }

@@ -490,7 +490,7 @@ class _SetAvailabilityScreenState extends State<SetAvailabilityScreen> {
                                 height: SizeConfig.size45,
                                 radius: SizeConfig.size10,
                                 bgColor: AppColors.primaryColor,
-                                onTap: () => controller.addBookingAvailability(id: widget.id ?? ''),
+                                onTap: () => controller.addBookingAvailability(id: widget.id),
                                 title: controller.isAddBookingAvailability.value ? null : AppStrings.save,
                                 textColor: AppColors.white,
                                 isLoading: controller.isAddBookingAvailability.value

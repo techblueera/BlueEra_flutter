@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/features/me/professionals_consultant/controller/basic_profile_controller.dart';
+import 'package:BlueEra/features/me/professionals_consultant/controller/ai_professionals_controller.dart';
+import 'package:BlueEra/features/me/professionals_consultant/model/professional_profile_res_model.dart';
 import 'package:BlueEra/widgets/ai_description_field_screen.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -18,12 +19,22 @@ class ProfessionalProfileScreen extends StatefulWidget {
 }
 
 class _ProfessionalProfileScreenState extends State<ProfessionalProfileScreen> {
-  final controller = Get.find<ProfileController>();
+  final controller = Get.find<AiProfessionalsController>();
 
   @override
   void initState() {
     // TODO: implement initState
     controller.clearAboutProfessional();
+
+    About? about = controller.getProfessionalServiceRes?.value.data?.about;
+
+    controller.expYearController.text =
+        about?.totalExperience?.years.toString() ?? "";
+    controller.expMonthController.text =
+        about?.totalExperience?.months.toString() ?? "";
+    controller.descriptionController.text = about?.description ?? "";
+    controller.description.value = about?.description ?? "";
+
     super.initState();
   }
 
@@ -58,7 +69,6 @@ class _ProfessionalProfileScreenState extends State<ProfessionalProfileScreen> {
               const SizedBox(height: 20),
               Obx(() {
                 // Accessing .value here tells Obx to listen for changes
-                final currentDescription = controller.description.value;
 
                 return AiDescriptionField(
                   label: "Major Projects (Description)",
@@ -80,7 +90,7 @@ class _ProfessionalProfileScreenState extends State<ProfessionalProfileScreen> {
                     title: "Save",
                     isValidate: controller.isProfessionalValid.value,
                     onTap: controller.isProfessionalValid.value
-                        ? () {
+                        ? () async {
                             if (int.parse(controller.expYearController.text) >
                                 100) {
                               commonSnackBar(
@@ -94,6 +104,8 @@ class _ProfessionalProfileScreenState extends State<ProfessionalProfileScreen> {
                                   message:
                                       "Please enter valid experience in month");
                               return;
+                            } else {
+                              await controller.saveAboutProfessional();
                             }
                           }
                         : null,
