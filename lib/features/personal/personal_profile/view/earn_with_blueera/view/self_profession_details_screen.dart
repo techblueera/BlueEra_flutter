@@ -1,4 +1,7 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -6,19 +9,22 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/features/common/map/controller/visiting_hour_selector_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/controller/booking_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/widget/availability_schedule_card.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/controller/earn_service_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/controller/self_work_service_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/service_selection_screen.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
+import 'package:BlueEra/widgets/common_drop_down.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
@@ -39,8 +45,7 @@ class ProfessionDetailsScreen extends StatefulWidget {
 }
 
 class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
-  final controller = getOrPut(() => EarnServiceController());
-  final selfWorkServiceController = getOrPut(() => SelfWorkServiceController());
+  final controller = getOrPut(() => SelfWorkServiceController());
   final bookingController = getOrPut(() => BookingController());
 
   @override
@@ -62,12 +67,13 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
       appBar: CommonBackAppBar(),
       body: Obx(() {
         // 1. Loading State
-        if (controller.isProfessionDataLoading.value) {
+        if (this.controller.isProfessionDataLoading.value) {
           return Center(child: CircularProgressIndicator(color: AppColors.primaryColor));
         }
 
         // 3. Success State (Your UI)
-        final service = controller.professionData.value;
+        final service = this.controller.professionData.value;
+        this.controller.serviceId = service.sId;
 
         return SingleChildScrollView(
           padding: EdgeInsets.symmetric(
@@ -188,6 +194,7 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
 
                 final min = details?.minFee?.toString() ?? '0';
                 final max = details?.maxFee?.toString() ?? '0';
+                final feeType = details?.feeType ?? '';
 
                 return Column(
                   mainAxisAlignment: MainAxisAlignment.start,
@@ -198,11 +205,12 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
                       children: [
                         Expanded(child: _buildTitle('${AppStrings.price.tr}: ')),
 
-                        // 2. Pass the CURRENT values to the update function
                         _editIcon(
-                          onTap: () => updatePrice(
+                          onTap: () => updateBookingPrice(
+                            controller: bookingController,
                             minFee: min,
                             maxFee: max,
+                            feeType: feeType
                           ),
                         )
                       ],
@@ -225,6 +233,71 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
 
                 SizedBox(height: SizeConfig.paddingM),
 
+                // --- Service Type ---
+                CustomFormCard(
+                  padding: _innerPadding(),
+                  margin: EdgeInsets.only(bottom: SizeConfig.paddingM),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(child: _buildTitle('Service Type')),
+                          _editIcon(onTap: (){
+                            updateServiceType(
+                                controller: this.controller,
+                                serviceType: service.serviceType ?? [],
+                                designation: service.category ?? ELECTRICIAN
+                            );
+                           }
+                          )
+                        ],
+                      ),
+                      // SizedBox(height: SizeConfig.size8),
+                      _buildCommonDivider(),
+                      SizedBox(height: SizeConfig.size8),
+                      (service.serviceType?.isNotEmpty ?? false)
+                          ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: service.serviceType!.map((service) {
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 4.0), // Spacing between items
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Bullet Point
+                                CustomText(
+                                  "• ",
+                                  fontSize: SizeConfig.medium,
+                                  color: AppColors.mainTextColor,
+                                  fontWeight: FontWeight.bold,
+                                ),
+
+                                // The Text
+                                Expanded(
+                                  child: CustomText(
+                                    service,
+                                    fontSize: SizeConfig.small,
+                                    color: AppColors.secondaryTextColor,
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                      )
+                          :  CustomText(
+                        AppStrings.na,
+                        fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.secondaryTextColor,
+                      )
+                    ],
+                  ),
+                ),
+
                 // --- Service Description ---
                 CustomFormCard(
                   padding: _innerPadding(),
@@ -238,7 +311,7 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
                           Expanded(child: _buildTitle('Service Description')),
                           _editIcon(onTap: (){
                             updateServiceDescription(
-                              controller: selfWorkServiceController,
+                              controller: this.controller,
                               desc: service.description ?? AppStrings.na,
                               designation: service.category ?? ELECTRICIAN,
                               experienceStartingDate: service.experienceStartDate
@@ -277,7 +350,6 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
                             ))
                           ],
                         ),
-                        // SizedBox(height: SizeConfig.size8),
                         _buildCommonDivider(),
                         SizedBox(height: SizeConfig.size8),
                         bookingController.availabilityDetails.value!=null
@@ -322,7 +394,7 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
                               // Now 'years' and 'months' are accessible here!
                               _editIcon(
                                 onTap: () => updateWorkExperience(
-                                  controller: selfWorkServiceController,
+                                  controller: this.controller,
                                   years: years,
                                   months: months,
                                 ),
@@ -361,7 +433,7 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
                           Expanded(child: _buildTitle('Service Offered')),
                           _editIcon(onTap: () {
                             updateServiceSelectionData(
-                                controller: selfWorkServiceController,
+                                controller: this.controller,
                                 key: SelfWorkServiceController.keyServicesOffered,
                                 designation: service.category,
                                 preSelectedOptions: service.serviceOffered ?? []
@@ -423,7 +495,7 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
                               Expanded(child: _buildTitle('Expertise')),
                               _editIcon(onTap: () {
                                 updateServiceSelectionData(
-                                    controller: selfWorkServiceController,
+                                    controller: this.controller,
                                     key: SelfWorkServiceController.keyExpertise,
                                     designation: service.category,
                                     preSelectedOptions: service.expertise ?? []
@@ -484,7 +556,7 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
                               Expanded(child: _buildTitle('Types of Installations')),
                               _editIcon(onTap: () {
                                 updateServiceSelectionData(
-                                    controller: selfWorkServiceController,
+                                    controller: this.controller,
                                     key: SelfWorkServiceController.keyTypeOfWork,
                                     designation: service.category,
                                     preSelectedOptions: service.typesOfWork ?? []
@@ -545,7 +617,7 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
                               Expanded(child: _buildTitle('Work Categories')),
                               _editIcon(onTap: () {
                                 updateServiceSelectionData(
-                                    controller: selfWorkServiceController,
+                                    controller: this.controller,
                                     key: SelfWorkServiceController.keyWorkCategories,
                                     designation: service.category,
                                     preSelectedOptions: service.workCategories ?? []
@@ -606,7 +678,7 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
                               Expanded(child: _buildTitle('Why Choose Me')),
                               _editIcon(onTap: () {
                                 updateServiceSelectionData(
-                                    controller: selfWorkServiceController,
+                                    controller: this.controller,
                                     key: SelfWorkServiceController.keyWhyChooseMe,
                                     designation: service.category,
                                     preSelectedOptions: service.whyChooseMe ?? []
@@ -669,7 +741,7 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
                       final spacing = SizeConfig.size8;
                       final containerWidth = (constraints.maxWidth - (spacing * 3)) / 4;
 
-                      return GetBuilder<EarnServiceController>(
+                      return GetBuilder<SelfWorkServiceController>(
                         id: 'professionPhotos',
                         builder: (controller) {
                           final apiPhotos = service.photos ?? [];
@@ -785,7 +857,7 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
       BuildContext context,
       String? imagePath,
       int index,
-      EarnServiceController controller,
+      SelfWorkServiceController controller,
       double size,
       List<String> allPhotos,
       ) {
@@ -941,57 +1013,173 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
     );
   }
 
-  void updatePrice({required String minFee, required String maxFee}) {
-    // Initialize controllers
-    final minFeeController = TextEditingController(text: minFee);
-    final maxFeeController = TextEditingController(text: maxFee);
+  // void updatePrice({
+  //   required String minFee
+  //   required String maxFee}) {
+  //   final minFeeController = TextEditingController(text: minFee);
+  //   final maxFeeController = TextEditingController(text: maxFee);
+  //   final feeTypeController = TextEditingController(text: maxFee);
+  //
+  //   _showCommonUpdateSheet(
+  //     context: context,
+  //     title: AppStrings.price,
+  //     onUpdate: () {
+  //       Navigator.pop(context);
+  //     },
+  //     content: Column(
+  //       children: [
+  //         Row(
+  //           children: [
+  //             Expanded(
+  //               child: CommonTextField(
+  //                 textEditController: minFeeController,
+  //                 fontSize: SizeConfig.small,
+  //                 fontWeight: FontWeight.w400,
+  //                 titleColor: AppColors.mainTextColor,
+  //                 hintText: "Min - ₹500",
+  //                 keyBoardType: TextInputType.number,
+  //               ),
+  //             ),
+  //             SizedBox(width: SizeConfig.paddingXSL),
+  //             Expanded(
+  //               child: CommonTextField(
+  //                 textEditController: maxFeeController,
+  //                 fontSize: SizeConfig.small,
+  //                 fontWeight: FontWeight.w400,
+  //                 titleColor: AppColors.mainTextColor,
+  //                 hintText: "Max - ₹600",
+  //                 keyBoardType: TextInputType.number,
+  //               ),
+  //             ),
+  //           ],
+  //         ),
+  //        SizedBox(height: SizeConfig.paddingL),
+  //
+  //         /// Fee Type
+  //         CommonTextField(
+  //           textEditController: feeTypeController,
+  //           title: 'Fee Type',
+  //           fontSize: SizeConfig.small,
+  //           fontWeight: FontWeight.w400,
+  //           titleColor: AppColors.mainTextColor,
+  //           hintText: "E.g. Per Visit",
+  //           keyBoardType: TextInputType.text,
+  //         ),
+  //
+  //         SizedBox(height: SizeConfig.paddingL),
+  //
+  //         // Common Update Button
+  //         CustomBtn(
+  //           radius: SizeConfig.size10,
+  //           bgColor: AppColors.primaryColor,
+  //           title: AppStrings.update,
+  //           onTap: (){},
+  //         ),
+  //
+  //       ],
+  //     ),
+  //   );
+  // }
+
+  void updateServiceType({
+    required SelfWorkServiceController controller,
+    required List<String> serviceType,
+    required String designation,
+  }) {
+    controller.fetchPredefinedCategoryServiceType(
+        designation: designation,
+        selectedServiceKey: SelfWorkServiceController.keyServiceTypes);
+
+    controller.selectedServiceTypes.assignAll(serviceType);
 
     _showCommonUpdateSheet(
       context: context,
-      title: AppStrings.price,
+      title: 'Service Type',
       onUpdate: () {
-        // Your API logic here
-        // controller.updatePrice(min: minFeeController.text, max: maxFeeController.text);
-        Navigator.pop(context); // Close sheet
+        Navigator.pop(context);
       },
       content: Column(
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: CommonTextField(
-                  textEditController: minFeeController,
-                  fontSize: SizeConfig.small,
-                  fontWeight: FontWeight.w400,
-                  titleColor: AppColors.mainTextColor,
-                  hintText: "Min - ₹500",
-                  keyBoardType: TextInputType.number,
+          Obx(() {
+            if (controller.isPredefinedCategoryServiceTypeLoading.value) {
+              return const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(20.0),
+                  child: CircularProgressIndicator(),
                 ),
+              );
+            }
+
+            if (controller.serviceTypes.isEmpty) {
+              return Center(
+                  child: CustomText("No service types available",
+                      color: AppColors.secondaryTextColor));
+            }
+
+            return Container(
+              padding: EdgeInsets.symmetric(
+                  horizontal: SizeConfig.size4, vertical: SizeConfig.size8),
+              decoration: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(10.0),
+                  border: Border.all(color: AppColors.greyE5),
+                  boxShadow: [AppShadows.textFieldShadow]),
+              child: Column(
+                children: controller.serviceTypes.map((item) {
+                  // Check if this specific item is selected
+                  final isSelected =
+                  controller.selectedServiceTypes.contains(item);
+
+                  return Theme(
+                    data: ThemeData(unselectedWidgetColor: Colors.grey.shade300),
+                    child: CheckboxListTile(
+                      contentPadding: EdgeInsets.zero,
+                      visualDensity:
+                      const VisualDensity(horizontal: -4, vertical: -3),
+                      dense: true,
+                      activeColor: AppColors.primaryColor,
+                      controlAffinity: ListTileControlAffinity.leading,
+                      title: CustomText(
+                        item,
+                        fontSize: SizeConfig.medium,
+                        color: AppColors.secondaryTextColor,
+                      ),
+                      value: isSelected,
+                      onChanged: (val) {
+                        if (val == true) {
+                          controller.selectedServiceTypes.add(item);
+                        } else {
+                          controller.selectedServiceTypes.remove(item);
+                        }
+                      },
+                    ),
+                  );
+                }).toList(),
               ),
-              SizedBox(width: SizeConfig.paddingXSL),
-              Expanded(
-                child: CommonTextField(
-                  textEditController: maxFeeController,
-                  fontSize: SizeConfig.small,
-                  fontWeight: FontWeight.w400,
-                  titleColor: AppColors.mainTextColor,
-                  hintText: "Max - ₹600",
-                  keyBoardType: TextInputType.number,
-                ),
-              ),
-            ],
-          ),
+            );
+          }),
 
           SizedBox(height: SizeConfig.paddingL),
 
-          // Common Update Button
-          CustomBtn(
+          Obx(() => CustomBtn(
             radius: SizeConfig.size10,
             bgColor: AppColors.primaryColor,
-            title: AppStrings.update,
-            onTap: (){},
-          ),
+            // Fixed logic: Title should show 'Update' unless handled internally by isLoading
+            title: controller.isUpdateServiceLoading.value ? null : AppStrings.update,
+            isLoading: controller.isUpdateServiceLoading.value,
+            onTap: () {
+              if (controller.selectedServiceTypes.isEmpty) {
+                commonSnackBar(message: 'Please select a service type');
+                return;
+              }
 
+              Map<String, dynamic> params = {
+                ApiKeys.serviceType: controller.selectedServiceTypes,
+              };
+
+              controller.updateEarnServiceData(params: params);
+            },
+          )),
         ],
       ),
     );
@@ -1011,8 +1199,6 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
       context: context,
       title: 'Service Description',
       onUpdate: () {
-        // Your API logic here
-        // controller.updatePrice(min: minFeeController.text, max: maxFeeController.text);
         Navigator.pop(context); // Close sheet
       },
       content: Column(
@@ -1074,8 +1260,17 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
           CustomBtn(
             radius: SizeConfig.size10,
             bgColor: AppColors.primaryColor,
-            title: AppStrings.update,
-            onTap: (){},
+            title: controller.isUpdateServiceLoading.value ? AppStrings.update : null,
+            isLoading: controller.isUpdateServiceLoading.value,
+            onTap: (){
+              Map<String, dynamic> params = {
+                ApiKeys.description: controller.aboutController.text.trim()
+              };
+
+              controller.updateEarnServiceData(
+                  params: params
+              );
+            },
           ),
 
         ],
@@ -1089,11 +1284,13 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
     int? months,
   }) {
 
+    controller.selectedExperienceYear.value = years.toString();
+    controller.selectedExperienceMonth.value = months.toString();
 
     // 2. Show Sheet
     _showCommonUpdateSheet(
       context: context,
-      title: 'Work Experience',
+      title: 'Your Experience',
       onUpdate: () {
         // Your API Logic
         // controller.updateSchedule(...);
@@ -1101,15 +1298,90 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
       },
       content: Column(
         children: [
-          // VisitingHoursSelector(),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CustomText(
+                        AppStrings.years,
+                        fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.mainTextColor
+                    ),
+                    SizedBox(height: SizeConfig.size8),
+                    CommonDropdown<String>(
+                      items: controller.experienceYears,
+                      selectedValue: controller.selectedExperienceYear.value,
+                      hintText: "E.g 1 Year..",
+                      onChanged: (val) {
+
+                        controller.selectedExperienceYear.value = val;
+                        log('val -- $val');
+                        log('experience -- ${controller.selectedExperienceYear.value}');
+                      },
+                      displayValue: (val) => val,
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(width: SizeConfig.paddingM),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CustomText(
+                        'Months',
+                        fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.mainTextColor
+                    ),
+                    SizedBox(height: SizeConfig.size8),
+                    CommonDropdown<String>(
+                      items: controller.experienceMonths,
+                      selectedValue: controller.selectedExperienceMonth.value,
+                      hintText: "E.g 3 Months..",
+                      onChanged: (val)=> controller.selectedExperienceMonth.value = val,
+                      displayValue: (val) => val,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
           SizedBox(height: SizeConfig.paddingL),
 
           // Common Update Button
           CustomBtn(
             radius: SizeConfig.size10,
             bgColor: AppColors.primaryColor,
-            title: AppStrings.update,
-            onTap: (){},
+            title: controller.isUpdateServiceLoading.value ? AppStrings.update : null,
+            isLoading: controller.isUpdateServiceLoading.value,
+            onTap: (){
+
+              if (controller.selectedExperienceYear.value == null) {
+                commonSnackBar(message: 'Please select experience (Years)');
+                return;
+              }
+
+              if (controller.selectedExperienceMonth.value == null) {
+                commonSnackBar(message: 'Please select experience (Months)');
+                return;
+              }
+
+              Map<String, dynamic> params = {
+                ApiKeys.experience: {
+                  ApiKeys.years: controller.selectedExperienceYear.value,
+                  ApiKeys.months: controller.selectedExperienceMonth.value,
+                },
+              };
+
+              controller.updateEarnServiceData(
+                  params: params
+              );
+
+            },
           ),
 
         ],
@@ -1117,7 +1389,113 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
     );
   }
 
-  void updateVisitingHours({required BookingController controller,
+  void updateBookingPrice({
+    required BookingController controller,
+    required String minFee,
+    required String maxFee,
+    required String feeType
+  }){
+    // 2. Show Sheet
+    _showCommonUpdateSheet(
+      context: context,
+      title: 'Your Fee',
+      onUpdate: () {
+        Navigator.pop(context);
+      },
+      content: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CustomText(
+                        AppStrings.min,
+                        fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.mainTextColor
+                    ),
+                    SizedBox(height: SizeConfig.size8),
+                    CommonTextField(
+                      textEditController: controller.minFeeController,
+                      fontSize: SizeConfig.small,
+                      fontWeight: FontWeight.w400,
+                      titleColor: AppColors.mainTextColor,
+                      hintText: "Min - ₹500",
+                      keyBoardType: TextInputType.number,
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(width: SizeConfig.paddingXSL),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CustomText(
+                        AppStrings.max,
+                        fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.mainTextColor
+                    ),
+                    SizedBox(height: SizeConfig.size8),
+                    CommonTextField(
+                      textEditController: controller.maxFeeController,
+                      fontSize: SizeConfig.small,
+                      fontWeight: FontWeight.w400,
+                      titleColor: AppColors.mainTextColor,
+                      hintText: "Max - ₹600",
+                      keyBoardType: TextInputType.number,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          SizedBox(height: SizeConfig.paddingM),
+
+          /// Fee Type
+          CommonTextField(
+            textEditController: controller.feeTypeController,
+            title: 'Fee Type',
+            fontSize: SizeConfig.small,
+            fontWeight: FontWeight.w400,
+            titleColor: AppColors.mainTextColor,
+            hintText: "E.g. Per Visit",
+            keyBoardType: TextInputType.text,
+          ),
+          SizedBox(height: SizeConfig.paddingL),
+
+          // Common Update Button
+          CustomBtn(
+            title: controller.addUpdateAvailabilityResponse.value.status == Status.INITIAL
+                  ? null
+                  : AppStrings.update,
+            isLoading: controller.addUpdateAvailabilityResponse.value.status == Status.INITIAL,
+            radius: SizeConfig.size10,
+            bgColor: AppColors.primaryColor,
+            onTap: (){
+              Map<String, dynamic> params = {
+                ApiKeys.minFee: controller.minFeeController.text.trim(),
+                ApiKeys.maxFee: controller.maxFeeController.text.trim(),
+                ApiKeys.feeType: controller.feeTypeController.text.trim(),
+              };
+              controller.updateBookingAvailability(
+                id: userId,
+                params: params
+              );
+            },
+          ),
+
+        ],
+      ),
+    );
+  }
+
+  void updateVisitingHours({
+        required BookingController controller,
          AvailabilityData? availabilityData}) {
 
       // 1. Sync Data Logic
@@ -1128,8 +1506,6 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
         context: context,
         title: 'Visiting Hours',
         onUpdate: () {
-          // Your API Logic
-          // controller.updateSchedule(...);
           Navigator.pop(context);
         },
         content: Column(
@@ -1141,8 +1517,24 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
             CustomBtn(
               radius: SizeConfig.size10,
               bgColor: AppColors.primaryColor,
-              title: AppStrings.update,
-              onTap: (){},
+              title: controller.addUpdateAvailabilityResponse.value.status == Status.INITIAL
+                  ? null
+                  : AppStrings.update,
+              isLoading: controller.addUpdateAvailabilityResponse.value.status == Status.INITIAL,
+              onTap: (){
+
+                List<Map<String, dynamic>> visitingHoursData = bookingController.payloadForVisitingHours();
+                logs("Visiting Hours: $visitingHoursData");
+
+                Map<String, dynamic> params = {
+                  ApiKeys.schedule: visitingHoursData,
+                };
+                controller.updateBookingAvailability(
+                    id: userId,
+                    params: params
+                );
+
+              },
             ),
 
           ],
@@ -1159,8 +1551,6 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
       }
       ){
 
-    // controller.selectedCategoryMap[key]?.assignAll(preSelectedOptions);
-    // final List<String> _preSelectedOptions = controller.selectedCategoryMap[key] ?? [];
     final _displayTitle = controller.categoryTitleMap[key] ?? key;
 
     _showCommonUpdateSheet(

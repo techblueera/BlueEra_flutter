@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -14,15 +15,21 @@ import 'package:BlueEra/features/business/auth/controller/view_business_details_
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/ai_chat/view/ask_chat_screen.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
+import 'package:BlueEra/features/common/Discover/view/home_made_food_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/home_service_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/product_local_market_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/services_near_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/tooltip_generator.dart';
 import 'package:BlueEra/features/common/auth/model/individual_profiile_category.dart';
+import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
 import 'package:BlueEra/features/common/franchise/view/franchise_home.dart';
 import 'package:BlueEra/features/common/jobs/view/jobs_screen.dart';
+import 'package:BlueEra/features/common/store/view/new_store/all_product_store_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/create_profile_screen.dart';
+import 'package:BlueEra/widgets/common_box_shadow.dart';
+import 'package:BlueEra/widgets/common_horizontal_divider.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -33,7 +40,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 import 'package:mappls_gl/mappls_gl.dart';
-
 import 'book_your_transport/book_transport_main.dart';
 
 class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
@@ -82,6 +88,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   late final double userLat;
   late final double userLng;
   bool isMapLoading = true; // Define this in your State class
+
 
   @override
   void initState() {
@@ -276,7 +283,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
 
                 /// Mapple map
 
-              /*  ClipRRect(
+                /*  ClipRRect(
                   borderRadius: BorderRadius.circular(10),
                   child: SizedBox(
                     width: double.infinity,
@@ -316,6 +323,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                     ),
                   ),
                 ),*/
+
                 /*  ClipRRect(
                     borderRadius: BorderRadius.circular(10),
                     child: SizedBox(
@@ -601,122 +609,9 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                         ],
                       ),
                       SizedBox(height: SizeConfig.paddingXSL),
-                      MasonryGridView.count(
-                        crossAxisCount: 3,
-                        crossAxisSpacing: 6,
-                        mainAxisSpacing: 6,
-                        padding: EdgeInsets.zero,
-                        itemCount: businessProductsCategories.take(9).length,
-                        physics: NeverScrollableScrollPhysics(),
-                        itemBuilder: (context, index) {
-                          var categoryItem =
-                          businessProductsCategories[index];
-                          return InkWell(
-                            onTap: () {
-                              Get.to(() => ProductLocalMarketScreen(
-                                businessProductsCategories:
-                                businessProductsCategories,
-                              ));
-                            },
-                            borderRadius: BorderRadius.circular(12),
-                            child: Container(
-                              padding: EdgeInsets.all(SizeConfig.size10),
-                              decoration: BoxDecoration(
-                                color: AppColors.white,
-                                borderRadius: BorderRadius.circular(10.0),
-                                border: Border.all(
-                                  color: AppColors.greyE5,
-                                  width: 1,
-                                ),
-                              ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  LocalAssets(
-                                    imagePath: categoryItem.icon,
-                                    height: SizeConfig.size80,
-                                  ),
-                                  SizedBox(height: SizeConfig.paddingXSL),
-                                  CustomText(
-                                    categoryItem.name,
-                                    fontSize: SizeConfig.extraSmall,
-                                    color: AppColors.secondaryTextColor,
-                                    fontWeight: FontWeight.w400,
-                                    textAlign: TextAlign.center,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                        shrinkWrap: true,
-                      ),
 
-                      // GridView.builder(
-                      //   physics: const NeverScrollableScrollPhysics(),
-                      //   padding: EdgeInsets.zero,
-                      //   shrinkWrap: true,
-                      //   itemCount: businessProductsCategories.take(9).length,
-                      //   gridDelegate:
-                      //       const SliverGridDelegateWithFixedCrossAxisCount(
-                      //     crossAxisCount: 3,
-                      //     crossAxisSpacing: 6,
-                      //     mainAxisSpacing: 6,
-                      //     childAspectRatio: 1.2,
-                      //   ),
-                      //   itemBuilder: (context, index) {
-                      //     var categoryItem =
-                      //         businessProductsCategories[index];
-                      //     return InkWell(
-                      //       onTap: () {
-                      //         Get.to(() => ProductLocalMarketScreen(
-                      //               businessProductsCategories:
-                      //                   businessProductsCategories,
-                      //             ));
-                      //       },
-                      //       borderRadius: BorderRadius.circular(12),
-                      //       child: Container(
-                      //         padding: EdgeInsets.all(SizeConfig.size5),
-                      //         decoration: BoxDecoration(
-                      //           color: AppColors.white,
-                      //           borderRadius: BorderRadius.circular(10.0),
-                      //           border: Border.all(
-                      //             color: AppColors.greyE5,
-                      //             width: 1,
-                      //           ),
-                      //         ),
-                      //         child: Column(
-                      //           mainAxisAlignment: MainAxisAlignment.center,
-                      //           children: [
-                      //             Expanded(
-                      //               flex:2 ,
-                      //               child: LocalAssets(
-                      //                 imagePath: categoryItem.icon,
-                      //                 // width: 35,
-                      //                 // height: 35,
-                      //                 // scaleSize: 2.0,
-                      //               ),
-                      //             ),
-                      //             SizedBox(height: SizeConfig.paddingXSL),
-                      //             Expanded(
-                      //               child: CustomText(
-                      //                 categoryItem.name,
-                      //                 fontSize: SizeConfig.extraSmall,
-                      //                 color: AppColors.secondaryTextColor,
-                      //                 fontWeight: FontWeight.w400,
-                      //                 textAlign: TextAlign.center,
-                      //                 maxLines: 2,
-                      //                 overflow: TextOverflow.ellipsis,
-                      //               ),
-                      //             ),
-                      //           ],
-                      //         ),
-                      //       ),
-                      //     );
-                      //   },
-                      // ),
+                      _buildProductMasonryGrid(),
+
                     ],
                   )),
             ),
@@ -769,34 +664,8 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                     ),
                   ],
                 ),
-              ),/*CustomFormCard(
-                padding: EdgeInsets.all(SizeConfig.size10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _title('Book Your Health care Service'),
-                    SizedBox(height: SizeConfig.paddingXSL),
-                    Stack(
-                      children: [
-                        _bannerWidget(
-                            bannerImage: AppImageAssets.medicalHealthService,
-                            bannerHeight: SizeConfig.size180),
-                        Positioned(
-                            left: 0,
-                            right: 0,
-                            bottom: 10,
-                            child: _buildHorizontalTabs([
-                              'Hospitals',
-                              'Doctors',
-                              'Labs',
-                              'Pharmacy',
-                              'Surgical '
-                            ]))
-                      ],
-                    ),
-                  ],
-                ),
-              )*/
+              ),
+
             ),
 
             _buildGap(),
@@ -820,57 +689,12 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                       ],
                     ),
                     SizedBox(height: SizeConfig.paddingXSL),
-                    MasonryGridView.count(
-                      crossAxisCount: 3,
-                      crossAxisSpacing: 6,
-                      mainAxisSpacing: 6,
-                      itemCount: individualOnboardingSkillWorkList
-                          .take(6)
-                          .length,
-                      physics: NeverScrollableScrollPhysics(),
-                      padding: EdgeInsets.zero,
-                      itemBuilder: (context, index) {
-                        var item =
-                            individualOnboardingSkillWorkList[index];
-                        return _commonCard(icon: item.icon, text: item.name);
-                      },
-                      shrinkWrap: true,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            _buildGap(),
-
-            /// Home made food, product, service
-            SliverToBoxAdapter(
-              child: CustomFormCard(
-                color: AppColors.pinkDE,
-                padding: EdgeInsets.all(SizeConfig.size10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _title('Home Made Product, Food & Services'),
-                    SizedBox(height: SizeConfig.paddingXSL),
-                    Stack(
-                      children: [
-                        _bannerWidget(
-                            bannerImage: AppImageAssets.homeMadeBanner,
-                            bannerHeight: SizeConfig.size180),
-                        Positioned(
-                            left: 0,
-                            right: 0,
-                            bottom: 10,
-                            child: _buildHorizontalTabs([
-                              'Tiffin',
-                              'Pickle',
-                              'Sweets',
-                              'Garment',
-                              'Beauty'
-                            ]))
-                      ],
-                    ),
+                    _buildMasonryGrid(
+                        items: individualOnboardingSkillWorkList.take(6).toList(),
+                        icon: (item)=> item.icon,
+                        name: (item)=> item.name,
+                        onTap: (_){}
+                    )
                   ],
                 ),
               ),
@@ -943,41 +767,47 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                       ],
                     ),
                     SizedBox(height: SizeConfig.paddingXSL),
-                    Stack(
-                      children: [
-                        _bannerWidget(
-                            bannerImage: AppImageAssets.hotel_service,
-                            bannerHeight: SizeConfig.size180),
-                        Positioned(
-                          left: 0,
-                          top: 0,
-                          bottom: 0,
-                          child: Container(
-                            width: SizeConfig.size180,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10.0),
-                              gradient: LinearGradient(
-                                begin: Alignment.centerLeft,
-                                end: Alignment.centerRight,
-                                colors: [
-                                  AppColors.black.withValues(alpha: 0.7),
-                                  // Dark on the left (text side)
-                                  AppColors.black.withValues(alpha: 0.0),
-                                  // Transparent on the right
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        _buildVerticalBulletPoints([
-                          'Hotel',
-                          'Home Stay',
-                          'Resort',
-                          'Economic Stay',
-                          'Rental (Flat/Room)'
-                        ], textColor: AppColors.white),
-                      ],
+                    _buildMasonryGridWithIcons(
+                        items: stayItemsCategories,
+                        icon: (item)=> item.icon,
+                        name: (item)=> item.name,
+                        crossAxisCount: 2,
+                        onTap: (_){}
                     ),
+                  ],
+                ),
+              ),
+            ),
+
+            _buildGap(),
+
+            /// Home made food, product, service
+            SliverToBoxAdapter(
+              child: CustomFormCard(
+                color: AppColors.pinkDE,
+                padding: EdgeInsets.all(SizeConfig.size10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _title('Home Made Product, Food & Services'),
+                    SizedBox(height: SizeConfig.paddingXSL),
+                    _buildMasonryGrid(
+                        items: homeMadeItemsCategories,
+                        icon: (item)=> item.icon,
+                        name: (item)=> item.name,
+                        onTap: (item) {
+                          if(item.slugId == SERVICE) {
+                            Get.to(()=> HomeServiceScreen());
+                          }else if(item.slugId == FOOD){
+                            Get.to(()=> HomeMadeFoodScreen());
+                          }else if(item.slugId == PRODUCT){
+                            Get.to(() => AllProductScreen(
+                              isShowInGrid: true,
+                              providerType: ProviderType.user,
+                            ));
+                          }
+                        }
+                    )
                   ],
                 ),
               ),
@@ -1004,21 +834,12 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                       ],
                     ),
                     SizedBox(height: SizeConfig.paddingXSL),
-                    MasonryGridView.count(
-                      crossAxisCount: 3,
-                      crossAxisSpacing: 6,
-                      mainAxisSpacing: 6,
-                      itemCount:
-                          individualOnboardingConsultationList.take(6).length,
-                      physics: NeverScrollableScrollPhysics(),
-                      padding: EdgeInsets.zero,
-                      itemBuilder: (context, index) {
-                        var item =
-                            individualOnboardingConsultationList[index];
-                        return _commonCard(icon: item.icon, text: item.name);
-                      },
-                      shrinkWrap: true,
-                    ),
+                    _buildMasonryGrid(
+                        items: individualOnboardingConsultationList.take(6).toList(),
+                        icon: (item)=> item.icon,
+                        name: (item)=> item.name,
+                        onTap: (_){}
+                    )
                   ],
                 ),
               ),
@@ -1038,56 +859,120 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _title('Book Your Transport'),
-                          ),
-                          SizedBox(
-                            width: SizeConfig.size8,
-                          ),
-                          _viewAll(),
-                        ],
-                      ),
+
+                      _title('Book Your Transport'),
+
+                      // Row(
+                      //   children: [
+                      //     Expanded(
+                      //       child: _title('Book Your Transport'),
+                      //     ),
+                      //     SizedBox(
+                      //       width: SizeConfig.size8,
+                      //     ),
+                      //     _viewAll(),
+                      //   ],
+                      // ),
                       SizedBox(height: SizeConfig.paddingXSL),
-                      Stack(
-                        children: [
-                          _bannerWidget(
-                              bannerImage: AppImageAssets.transportService,
-                              bannerHeight: SizeConfig.size180),
-                          Positioned(
-                            left: 0,
-                            top: 0,
-                            bottom: 0,
-                            child: Container(
-                              width: SizeConfig.size180,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10.0),
-                                gradient: LinearGradient(
-                                  begin: Alignment.centerLeft,
-                                  end: Alignment.centerRight,
-                                  colors: [
-                                    AppColors.black.withValues(alpha: 0.7),
-                                    // Dark on the left (text side)
-                                    AppColors.black.withValues(alpha: 0.0),
-                                    // Transparent on the right
+                      CustomFormCard(
+                        padding: EdgeInsets.all(SizeConfig.size10),
+                        // IntrinsicHeight ensures the vertical line stretches to match the fields
+                        child: IntrinsicHeight(
+                          child: Row(
+                            children: [
+                              // 1. LEFT SECTION: Icons and Dotted Line
+                              Column(
+                                children: [
+                                  const Icon(
+                                      Icons.home_outlined,
+                                      color: AppColors.secondaryTextColor,
+                                      size: 16),
+
+                                  // The Dotted Line
+                                  Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(vertical: 3),
+                                      child: CustomPaint(
+                                        size: const Size(1, double.infinity),
+                                        painter: DottedLinePainter(),
+                                      ),
+                                    ),
+                                  ),
+
+                                  const Icon(
+                                      Icons.location_on_outlined,
+                                      color: AppColors.redLite,
+                                      size: 16),
+                                ],
+                              ),
+
+                              const SizedBox(width: 16),
+
+                              // 2. MIDDLE SECTION
+                              Expanded(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // From
+                                    CustomText(
+                                        "From",
+                                        fontSize: SizeConfig.medium,
+                                        color: AppColors.greyBf,
+                                        fontWeight: FontWeight.w400),
+
+                                    SizedBox(height: SizeConfig.paddingS),
+
+                                    // Divider
+                                    CommonHorizontalDivider(
+                                        height: 1,
+                                        color: AppColors.greyBf
+                                    ),
+
+                                    SizedBox(height: SizeConfig.paddingS),
+
+                                    // To
+                                    CustomText(
+                                        "To",
+                                        fontSize: SizeConfig.medium,
+                                        color: AppColors.greyBf,
+                                        fontWeight: FontWeight.w400)
                                   ],
                                 ),
                               ),
-                            ),
-                          ),
-                          _buildVerticalBulletPoints(
-                            [
-                              'Car',
-                              'Auto',
-                              'Bike',
-                              'Loader',
+
+                              const SizedBox(width: 16),
+
+                              // 3. RIGHT SECTION: Swap Button
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(10.0),
+                                  border: Border.all(color: AppColors.greyE5),
+                                  boxShadow: [
+                                   AppShadows.textFieldShadow
+                                  ],
+                                ),
+                                child: IconButton(
+                                  icon: const Icon(
+                                      Icons.swap_vert,
+                                      color: AppColors.secondaryTextColor),
+                                  onPressed: () {
+                                    // Add swap logic here
+                                  },
+                                ),
+                              ),
                             ],
-                            iconSize: SizeConfig.size10,
-                            fontSize: SizeConfig.title,
-                            fontWeight: FontWeight.w400,
                           ),
-                        ],
+                        ),
+                      ),
+                      SizedBox(height: SizeConfig.paddingXSL),
+                      _buildMasonryGridWithIcons(
+                          items: transportItemsCategories,
+                          icon: (item)=> item.icon,
+                          name: (item)=> item.name,
+                          crossAxisCount: 2,
+                          onTap: (_){}
                       ),
                     ],
                   ),
@@ -1122,55 +1007,17 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                       ],
                     ),
                     SizedBox(height: SizeConfig.paddingXSL),
-                    MasonryGridView.count(
-                      crossAxisCount: 3,
-                      crossAxisSpacing: 6,
-                      mainAxisSpacing: 6,
-                      itemCount:
-                          businessOnboardingServicesCategories.take(6).length,
-                      physics: NeverScrollableScrollPhysics(),
-                      padding: EdgeInsets.zero,
-                      itemBuilder: (context, index) {
-                        var item =
-                            businessOnboardingServicesCategories[index];
-                        return _commonCard(icon: item.icon, text: item.name);
-                      },
-                      shrinkWrap: true,
-                    ),
+                    _buildMasonryGrid(
+                        items: businessOnboardingServicesCategories.take(6).toList(),
+                        icon: (item)=> item.icon,
+                        name: (item)=> item.name,
+                        onTap: (_){}
+                    )
                   ],
                 ),
               ),
             ),
 
-            // SliverToBoxAdapter(
-            //   child: CustomFormCard(
-            //     padding: EdgeInsets.all(SizeConfig.size10),
-            //     child: Column(
-            //       children: [
-            //         _bannerWidget(
-            //             bannerImage: AppImageAssets.findServiceNearMe,
-            //             bannerHeight: SizeConfig.size180
-            //         ),
-            //
-            //
-            //         SizedBox(height: SizeConfig.paddingXSL),
-            //
-            //         // Bottom Section
-            //         genericSquareRow<BusinessProfileCategory>(
-            //           items: businessServicesCategories,
-            //           itemsPerRow: 5,
-            //           labelBuilder: (c) => c.name,
-            //           iconBuilder: (c) => c.icon,
-            //           onTap: (c) {
-            //             Get.to(()=> ServicesNearMeScreen(
-            //               businessServicesCategories: businessServicesCategories,
-            //             ));
-            //           },
-            //         )
-            //       ],
-            //     ),
-            //   ),
-            // ),
 
             _buildGap(),
 
@@ -1183,23 +1030,12 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                   children: [
                     _title('Automotive Services'),
                     SizedBox(height: SizeConfig.paddingXSL),
-                    Stack(
-                      children: [
-                        _bannerWidget(
-                            bannerImage: AppImageAssets.automotiveService,
-                            bannerHeight: SizeConfig.size180),
-                        Positioned(
-                            left: 0,
-                            right: 0,
-                            bottom: 10,
-                            child: _buildHorizontalTabs([
-                              'Accessories',
-                              'Denting',
-                              'Engine',
-                              'Oil',
-                              'Wheels '
-                            ]))
-                      ],
+                    _buildMasonryGridWithIcons(
+                        items: automotiveServiceItemsCategories,
+                        icon: (item)=> item.icon,
+                        name: (item)=> item.name,
+                        crossAxisCount: 3,
+                        onTap: (_){}
                     ),
                   ],
                 ),
@@ -1233,53 +1069,16 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                       ],
                     ),
                     SizedBox(height: SizeConfig.paddingXSL),
-                    MasonryGridView.count(
-                      crossAxisCount: 3,
-                      crossAxisSpacing: 6,
-                      mainAxisSpacing: 6,
-                      itemCount:
-                          businessOnboardingFoodsCategories.take(6).length,
-                      physics: NeverScrollableScrollPhysics(),
-                      padding: EdgeInsets.zero,
-                      itemBuilder: (context, index) {
-                        var item = businessOnboardingFoodsCategories[index];
-                        return _commonCard(icon: item.icon, text: item.name);
-                      },
-                      shrinkWrap: true,
-                    ),
+                    _buildMasonryGrid(
+                      items: businessOnboardingFoodsCategories.take(6).toList(),
+                      icon: (item)=> item.icon,
+                      name: (item)=> item.name,
+                      onTap: (_){}
+                    )
                   ],
                 ),
               ),
             ),
-
-            // SliverToBoxAdapter(
-            //   child: CustomFormCard(
-            //     padding: EdgeInsets.all(SizeConfig.size10),
-            //     child: Column(
-            //       children: [
-            //
-            //         _bannerWidget(
-            //             bannerImage: AppImageAssets.foodDeliveryService,
-            //             bannerHeight: SizeConfig.size180
-            //         ),
-            //
-            //         SizedBox(height: SizeConfig.paddingXSL),
-            //
-            //         // Bottom Section
-            //         genericSquareRow<BusinessProfileCategory>(
-            //           items: businessFoodsCategories,
-            //           itemsPerRow: 5,
-            //           labelBuilder: (c) => c.name,
-            //           iconBuilder: (c) => c.icon,
-            //           onTap: (c) {
-            //
-            //
-            //           },
-            //         )
-            //       ],
-            //     ),
-            //   ),
-            // ),
 
             _buildGap(),
 
@@ -1422,6 +1221,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   // }
 
   // ---------------- REUSABLE BANNER WIDGET ---------------- //
+
   Widget _bannerWidget({required String bannerImage, required double bannerHeight}) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
@@ -1436,18 +1236,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     );
   }
 
-  Widget _buildRiderImageWidget() {
-    return Container(
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(color: AppColors.greyE5, width: 1.5),
-      ),
-      child: CircleAvatar(
-        radius: 15,
-        backgroundImage: NetworkImage("https://picsum.photos/200"),
-      ),
-    );
-  }
+
 
   Widget genericSquareRow<T>({
     required List<T> items,
@@ -1536,6 +1325,19 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildRiderImageWidget() {
+    return Container(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: AppColors.greyE5, width: 1.5),
+      ),
+      child: CircleAvatar(
+        radius: 15,
+        backgroundImage: NetworkImage("https://picsum.photos/200"),
       ),
     );
   }
@@ -1680,9 +1482,37 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     );
   }
 
+  Widget _buildMasonryGrid<T>({
+    required List<T> items,
+    required String Function(T) icon,
+    required String Function(T) name,
+    required Function(T) onTap,
+  }) {
+    return MasonryGridView.count(
+      crossAxisCount: 3,
+      crossAxisSpacing: 6,
+      mainAxisSpacing: 6,
+      primary: false,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      padding: EdgeInsets.zero,
+      itemCount: items.length,
+      itemBuilder: (context, index) {
+        var item = items[index];
+        return InkWell(
+          onTap: () => onTap(item),
+          child: _commonCard(
+              icon: icon(item),
+              text: name(item)
+          ),
+        );
+      },
+    );
+  }
+
   Widget _commonCard({required String icon, required String text}) {
     return Container(
-      height: SizeConfig.size130,
+      height: SizeConfig.size140,
       decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.circular(10),
@@ -1740,60 +1570,118 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     );
   }
 
-  // Widget _commonCard({required String icon, required String text}) {
-  //   return Container(
-  //     decoration: BoxDecoration(
-  //         color: AppColors.white,
-  //         borderRadius: BorderRadius.circular(10),
-  //         border: Border.all(color: AppColors.greyE5)),
-  //     child: Stack(
-  //       children: [
-  //         ClipRRect(
-  //           borderRadius: BorderRadius.circular(10.0),
-  //           child: SizedBox(
-  //             // height:SizeConfig.size140,
-  //             // width:SizeConfig.size160,
-  //             child: LocalAssets(
-  //               imagePath: icon,
-  //               boxFix: BoxFit.cover,
-  //               // height: SizeConfig.size140,
-  //               // width: SizeConfig.size160,
-  //             ),
-  //           ),
-  //         ),
-  //         Positioned(
-  //           left: 0.0,
-  //           right: 0.0,
-  //           bottom: 0.0,
-  //           child: Container(
-  //             height: SizeConfig.size60,
-  //             padding: EdgeInsets.symmetric(
-  //                 horizontal: SizeConfig.size8, vertical: SizeConfig.size8),
-  //             decoration: BoxDecoration(
-  //                 borderRadius:
-  //                     BorderRadius.vertical(bottom: Radius.circular(10.0)),
-  //                 gradient: LinearGradient(colors: [
-  //                   AppColors.black.withValues(alpha: 0.0),
-  //                   AppColors.black.withValues(alpha: 0.9),
-  //                 ], begin: Alignment.topCenter, end: Alignment.bottomCenter)),
-  //           ),
-  //         ),
-  //         Positioned(
-  //           left: 5.0,
-  //           right: 5.0,
-  //           bottom: 10.0,
-  //           child: CustomText(
-  //             text,
-  //             fontSize: SizeConfig.small,
-  //             fontWeight: FontWeight.w600,
-  //             color: AppColors.white,
-  //             textAlign: TextAlign.center,
-  //           ),
-  //         )
-  //       ],
-  //     ),
-  //   );
-  // }
+  Widget _buildProductMasonryGrid(){
+    return MasonryGridView.count(
+      crossAxisCount: 3,
+      crossAxisSpacing: 6,
+      mainAxisSpacing: 6,
+      padding: EdgeInsets.zero,
+      primary: false,
+      shrinkWrap: true,
+      itemCount: businessProductsCategories.take(9).length,
+      physics: NeverScrollableScrollPhysics(),
+      itemBuilder: (context, index) {
+        var categoryItem =
+        businessProductsCategories[index];
+        return InkWell(
+          onTap: () {
+            Get.to(() => ProductLocalMarketScreen(
+              businessProductsCategories: businessProductsCategories,
+              businessProductStoreCategories: businessProductStoreCategories,
+            ));
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: EdgeInsets.all(SizeConfig.size10),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(10.0),
+              border: Border.all(
+                color: AppColors.greyE5,
+                width: 1,
+              ),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                LocalAssets(
+                  imagePath: categoryItem.icon,
+                  height: SizeConfig.size80,
+                ),
+                SizedBox(height: SizeConfig.paddingXSL),
+                CustomText(
+                  categoryItem.name,
+                  fontSize: SizeConfig.small,
+                  color: AppColors.secondaryTextColor,
+                  fontWeight: FontWeight.w600,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+
+    );
+  }
+
+  Widget _buildMasonryGridWithIcons<T>({
+    required List<T> items,
+    required String Function(T) icon,
+    required String Function(T) name,
+    required Function(T) onTap,
+    required int crossAxisCount
+   }){
+    return MasonryGridView.count(
+      crossAxisCount: crossAxisCount,
+      crossAxisSpacing: 6,
+      mainAxisSpacing: 6,
+      padding: EdgeInsets.zero,
+      primary: false,
+      shrinkWrap: true,
+      itemCount: items.length,
+      physics: NeverScrollableScrollPhysics(),
+      itemBuilder: (context, index) {
+        var item = items[index];
+        return InkWell(
+          onTap: () => onTap(item),
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: EdgeInsets.all(SizeConfig.size10),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(10.0),
+              border: Border.all(
+                color: AppColors.greyE5,
+                width: 1,
+              ),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                LocalAssets(
+                  imagePath: icon(item),
+                  height: SizeConfig.size60,
+                ),
+                SizedBox(height: SizeConfig.paddingXSL),
+                CustomText(
+                  name(item),
+                  fontSize: SizeConfig.small,
+                  color: AppColors.secondaryTextColor,
+                  fontWeight: FontWeight.w600,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   Widget searchProductsViaAiWidget() {
     return InkWell(
@@ -1960,4 +1848,30 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
       ),
     );
   }
+}
+
+class DottedLinePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    var paint = Paint()
+      ..color = AppColors.secondaryTextColor
+      ..strokeWidth = 1.5
+      ..strokeCap = StrokeCap.round;
+
+    double dashHeight = 2;
+    double dashSpace = 3;
+    double startY = 0;
+
+    while (startY < size.height) {
+      canvas.drawLine(
+        Offset(0, startY),
+        Offset(0, startY + dashHeight),
+        paint,
+      );
+      startY += dashHeight + dashSpace;
+    }
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }

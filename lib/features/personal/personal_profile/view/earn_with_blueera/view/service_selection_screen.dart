@@ -176,35 +176,69 @@ class _ServiceSelectionScreenState extends State<ServiceSelectionScreen> {
             top: SizeConfig.size10,
             right: SizeConfig.size10,
           ),
-          child: CustomBtn(
+          child: (!widget.isDataUpdate)
+              ? CustomBtn(
             title: AppStrings.save,
             onTap: () {
               _controller.updateSelection(
                   _selectedCategoryKey,
                   _tempSelectedOptions
               );
-              if(!widget.isDataUpdate){
-                Get.back();
-                _tempSelectedOptions.clear();
-              }else{
-                RxList<String> selectedDataList =
-                    _controller.selectedCategoryMap[_selectedCategoryKey] ?? <String>[].obs;
-                if(selectedDataList.isEmpty){
-                  commonSnackBar(message: 'Please add ${_controller.categoryTitleMap[_selectedCategoryKey]}');
-                  return;
-                }
-                Map<String, dynamic> params = {
-                  ApiKeys.type: AppConstants.service,
-                  ApiKeys.providerType: ProviderType.user.title,
-                  // ApiKeys.subType: widget.serviceSubType?.label,
-                  _selectedCategoryKey: selectedDataList
-                };
+              Get.back();
+              _tempSelectedOptions.clear();
+            },
+            bgColor: AppColors.primaryColor,
+          )
+              : CustomBtn(
+            title: _controller.isUpdateServiceLoading.value ? AppStrings.update : null,
+            isLoading: _controller.isUpdateServiceLoading.value,
+            onTap: () {
+              _controller.updateSelection(
+                  _selectedCategoryKey,
+                  _tempSelectedOptions
+              );
+              final categoryConfig = {
+                SelfWorkServiceController.keyServicesOffered: (
+                msg: 'Please select at least one Service Offered',
+                apiKey: ApiKeys.serviceOffered
+                ),
+                SelfWorkServiceController.keyTypeOfWork: (
+                msg: 'Please add Types of Installations',
+                apiKey: ApiKeys.typesOfWork
+                ),
+                SelfWorkServiceController.keyExpertise: (
+                msg: 'Please add your Expertise',
+                apiKey: ApiKeys.expertise
+                ),
+                SelfWorkServiceController.keyWorkCategories: (
+                msg: 'Please select Work Categories',
+                apiKey: ApiKeys.workCategories
+                ),
+                SelfWorkServiceController.keyWhyChooseMe: (
+                msg: 'Please add "Why Choose Me" points',
+                apiKey: ApiKeys.whyChooseMe
+                ),
+              };
 
-                // _controller.updateEarnServiceData(
-                //     params: params
-                // );
+              final config = categoryConfig[_selectedCategoryKey];
 
+              if (config == null) return;
+
+              RxList<String> selectedDataList =
+                  _controller.selectedCategoryMap[_selectedCategoryKey] ?? <String>[].obs;
+
+              if (selectedDataList.isEmpty) {
+                commonSnackBar(message: config.msg);
+                return;
               }
+
+              Map<String, dynamic> params = {
+                config.apiKey: selectedDataList
+              };
+
+              _controller.updateEarnServiceData(
+                  params: params
+              );
             },
             bgColor: AppColors.primaryColor,
           ),

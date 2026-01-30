@@ -106,7 +106,16 @@ class _AiCommonSearchScreenState extends State<AiCommonSearchScreen> {
           type: widget.type,
           name: widget.name,
           profileImage: widget.profileImage,
-          contactNo: widget.contactNo, conversationId: widget.conversationId),
+          contactNo: widget.contactNo,
+          conversationId: widget.conversationId,
+          onBackCallback:(){
+            if (MediaQuery.of(context).viewInsets.bottom > 0) {
+              unFocus();
+              return;
+            }
+            Get.back();
+          }
+      ),
       body: Obx(()=> _UnifiedAiChatWidget()),
     );
 

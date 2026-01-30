@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -176,27 +175,48 @@ class _AddSelfServiceScreenState extends State<AddSelfServiceScreen> {
                         Row(
                           children: [
                             Expanded(
-                              child: CommonDropdown<String>(
-                                items: controller.experienceYears,
-                                selectedValue: controller.selectedExperienceYear.value,
-                                hintText: "E.g 1 Year..",
-                                onChanged: (val) {
-
-                                  controller.selectedExperienceYear.value = val;
-                                  log('val -- $val');
-                                  log('experience -- ${controller.selectedExperienceYear.value}');
-                                },
-                                displayValue: (val) => val,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  CustomText(
+                                      AppStrings.years,
+                                      fontSize: SizeConfig.medium,
+                                      fontWeight: FontWeight.w400,
+                                      color: AppColors.mainTextColor
+                                  ),
+                                  SizedBox(height: SizeConfig.size8),
+                                  CommonDropdown<String>(
+                                    items: controller.experienceYears,
+                                    selectedValue: controller.selectedExperienceYear.value,
+                                    hintText: "E.g 1 Year..",
+                                    onChanged: (val) {
+                                      controller.selectedExperienceYear.value = val;
+                                    },
+                                    displayValue: (val) => val,
+                                  ),
+                                ],
                               ),
                             ),
                             SizedBox(width: SizeConfig.paddingM),
                             Expanded(
-                              child: CommonDropdown<String>(
-                                items: controller.experienceMonths,
-                                selectedValue: controller.selectedExperienceMonth.value,
-                                hintText: "E.g 3 Months..",
-                                onChanged: (val)=> controller.selectedExperienceMonth.value = val,
-                                displayValue: (val) => val,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  CustomText(
+                                      'Months',
+                                      fontSize: SizeConfig.medium,
+                                      fontWeight: FontWeight.w400,
+                                      color: AppColors.mainTextColor
+                                  ),
+                                  SizedBox(height: SizeConfig.size8),
+                                  CommonDropdown<String>(
+                                    items: controller.experienceMonths,
+                                    selectedValue: controller.selectedExperienceMonth.value,
+                                    hintText: "E.g 3 Months..",
+                                    onChanged: (val)=> controller.selectedExperienceMonth.value = val,
+                                    displayValue: (val) => val,
+                                  ),
+                                ],
                               ),
                             ),
                           ],
