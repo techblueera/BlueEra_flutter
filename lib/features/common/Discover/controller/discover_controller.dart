@@ -9,7 +9,6 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/common/auth/model/individual_profiile_category.dart';
 import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
 import 'package:BlueEra/features/common/Discover/repo/discover_repo.dart';
 import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';

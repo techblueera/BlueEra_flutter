@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
@@ -54,8 +55,8 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
       ? Get.find<HomeScreenController>()
       : Get.put(HomeScreenController());
 
-  final viewPersonalDetailsController =
-      Get.put(ViewPersonalDetailsController());
+  final viewPersonalDetailsController = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
+
 
   @override
   void initState() {

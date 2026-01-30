@@ -15,7 +15,6 @@ import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/common_methods.dart';
 import '../../../../core/constants/snackbar_helper.dart';
 import '../../../../core/services/location/location_service.dart';
-import '../../medical/model/medical_lab_details.dart';
 import '../../medical/repo/medical_repo.dart';
 import '../model/about_us_model.dart';
 import '../model/get_beds_details_model.dart';

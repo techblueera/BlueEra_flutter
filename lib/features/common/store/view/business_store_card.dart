@@ -14,7 +14,6 @@ import 'package:BlueEra/features/business/widgets/rating_widget.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
-import 'package:BlueEra/features/common/store/view/store_screen_controller.dart';
 import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';

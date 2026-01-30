@@ -7,18 +7,15 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/address_location_riding_screen.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/delivery_partner_orders/delivery_partner_orders.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/personal_information_riding_screen.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/rider_profile_status_screen.dart';
+import 'package:BlueEra/features/common/delivery_partner/view/vehicle_information_riding_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/account_setting_screen/account_settings_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/controller/earn_service_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/widget/earn_service_bottom_sheet.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/widget/horizonatal_video_player.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -42,7 +39,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
   final controller = getOrPut(() => EarnServiceController());
   final deliveryPartnerController = getOrPut(() => DeliveryPartnerController());
   final viewPersonalDetailsController =
-      getOrPut(() => ViewPersonalDetailsController());
+      getOrPut(() => ViewPersonalDetailsController(), permanent: true);
   bool allCompleted = false;
   bool allStepsCompleted = false;
 
@@ -83,26 +80,6 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     /// check riding status
     deliveryPartnerController.ridersOnboardingStatusRepoApi();
   }
-
-  // Future<void> _checkRiderServiceStatus() async {
-  //   await getRiderServiceOptData();
-  //   deliveryPartnerController.isRiderServiceOpt.value = isRiderServiceOpt;
-  //   print('isRiderServiceUser -- ${deliveryPartnerController.isRiderServiceOpt.value}');
-  //   // WidgetsBinding.instance.addPostFrameCallback((_) {
-  //   //   if (deliveryPartnerController.isRiderServiceOpt.value.toLowerCase() ==
-  //   //       'false') {
-  //   //     _openEarnWithBlueEraSheet();
-  //   //   }
-  //   // });
-  // }
-  //
-  // void _openEarnWithBlueEraSheet() {
-  //   showModalBottomSheet(
-  //     context: context,
-  //     backgroundColor: Colors.transparent,
-  //     builder: (_) => EarnServiceBottomSheet(),
-  //   );
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -179,12 +156,15 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
                       ? AddressLocationRidingScreen(
                           screeName: 'from_tab_view',
                         )
-                      : deliveryPartnerController.riderOnboardingStatusData
-                                  .value?.verificationStatus ==
-                              "approved"
-                          ? DeliveryPartnerOrders()
-                          : RiderProfileStatusScreen(
+                      : (firstIncompleteEntry?.key == RiderProfileStep.vehicleInfo)
+                          ? VehicleInformationRidingScreen(
                               screeName: 'from_tab_view',
+                            )
+                          : deliveryPartnerController.riderOnboardingStatusData
+                                  .value?.verificationStatus == "approved"
+                              ? DeliveryPartnerOrders()
+                              : RiderProfileStatusScreen(
+                                  screeName: 'from_tab_view',
                             ),
               const Center(child: CustomText(AppStrings.comingSoon)),
               const Center(child: CustomText(AppStrings.comingSoon)),

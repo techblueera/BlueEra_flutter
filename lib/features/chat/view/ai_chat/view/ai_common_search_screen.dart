@@ -20,6 +20,8 @@ import 'package:BlueEra/features/chat/auth/model/service_ask_ai_model.dart';
 import 'package:BlueEra/features/chat/auth/model/travel_and_stay_ask_ai_model.dart';
 import 'package:BlueEra/features/chat/view/ai_chat/widget/ask_consulting_talk_msg_card.dart';
 import 'package:BlueEra/features/chat/view/ai_chat/widget/ask_education_msg_card.dart';
+import 'package:BlueEra/features/chat/view/ai_chat/widget/ask_food_msg_card.dart';
+import 'package:BlueEra/features/chat/view/ai_chat/widget/ask_health_care_msg_card.dart';
 import 'package:BlueEra/features/chat/view/ai_chat/widget/ask_home_service_msg_card.dart';
 import 'package:BlueEra/features/chat/view/ai_chat/widget/ask_service_msg_card.dart';
 import 'package:BlueEra/features/chat/view/ai_chat/widget/ask_travel_stay_msg_card.dart';
@@ -104,7 +106,16 @@ class _AiCommonSearchScreenState extends State<AiCommonSearchScreen> {
           type: widget.type,
           name: widget.name,
           profileImage: widget.profileImage,
-          contactNo: widget.contactNo, conversationId: widget.conversationId),
+          contactNo: widget.contactNo,
+          conversationId: widget.conversationId,
+          onBackCallback:(){
+            if (MediaQuery.of(context).viewInsets.bottom > 0) {
+              unFocus();
+              return;
+            }
+            Get.back();
+          }
+      ),
       body: Obx(()=> _UnifiedAiChatWidget()),
     );
 
@@ -199,7 +210,7 @@ class _AiCommonSearchScreenState extends State<AiCommonSearchScreen> {
 
     // B. FOOD LOGIC
     if (message is FoodAskAiModel && widget.chatType == AppConstants.askFood_Chat_Type) {
-      // return AskFoodMsgCard(response: message);
+       return AskFoodMsgCard(response: message);
     }
 
     // C. Service LOGIC
@@ -209,7 +220,7 @@ class _AiCommonSearchScreenState extends State<AiCommonSearchScreen> {
 
     // D. HEALTH CARE LOGIC
     if(message is HealthCareAskAiModel && widget.chatType == AppConstants.askHealthCare_Chat_Type){
-      // return AskHealthCareServiceMsgCard(response: message);
+      return AskHealthCareMsgCard(response: message);
     }
 
     // E. EDUCATION LOGIC

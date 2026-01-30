@@ -87,7 +87,7 @@ class InstitutionFetchData {
   List<NewsAndEvents>? newsAndEvents;
   StudentCorner? studentCorner;
   String? website;
-dynamic? locationReq;
+dynamic locationReq;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};

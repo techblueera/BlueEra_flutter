@@ -5,7 +5,6 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:video_player/video_player.dart';
 
 import '../../../../core/api/apiService/api_response.dart';

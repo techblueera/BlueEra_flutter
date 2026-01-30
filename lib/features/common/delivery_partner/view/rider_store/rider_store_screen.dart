@@ -1,7 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -14,6 +13,7 @@ import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
 class RiderStoreScreen extends StatefulWidget {
@@ -138,9 +138,7 @@ class _RiderStoreScreenState extends State<RiderStoreScreen> {
 
             slivers: [
 
-              SliverToBoxAdapter(
-                child: SizedBox(height: SizeConfig.paddingM),
-              ),
+              _buildGap(gap: SizeConfig.paddingM),
 
               SliverToBoxAdapter(
                 child: InkWell(
@@ -198,47 +196,29 @@ class _RiderStoreScreenState extends State<RiderStoreScreen> {
                         ],
                       ),
 
-                      
                       SizedBox(height: SizeConfig.paddingXSL),
 
-                      
-                      GridView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: grocerySuperCategories.length,
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3,
-                          crossAxisSpacing: 6,
-                          mainAxisSpacing: 6,
-                          childAspectRatio: 1.3,
-                        ),
-                        itemBuilder: (context, index) {
-                          var groceryData = grocerySuperCategories[index];
-                          return _buildCategoryItem(
-                            label: groceryData.name,
-                            iconPath: groceryData.icon,
-                            onTap: () {
-                              final categoryMap = getCategoriesByTag(groceryData.slugId);
-                              Get.toNamed(
-                                RouteHelper.getGroceryCategoryScreenRoute(),
-                                arguments: {
-                                  ApiKeys.argMyGrocery: false,
-                                  ApiKeys.argPageHeading: groceryData.name,
-                                  ApiKeys.argArrGroceryCat: categoryMap,
-                                },
-                              );
+                      _buildCategoryGrid(
+                        items: grocerySuperCategories,
+                        onTap: (item) {
+                          final categoryMap = getCategoriesByTag(item.slugId);
+                          Get.toNamed(
+                            RouteHelper.getGroceryCategoryScreenRoute(),
+                            arguments: {
+                              ApiKeys.argMyGrocery: false,
+                              ApiKeys.argPageHeading: item.name,
+                              ApiKeys.argArrGroceryCat: categoryMap,
                             },
                           );
                         },
                       ),
+
                     ],
                   ),
                 ),
               ),
 
-              SliverToBoxAdapter(
-                child: SizedBox(height: SizeConfig.paddingXSL),
-              ),
+              _buildGap(),
 
               SliverToBoxAdapter(
                 child: CustomFormCard(
@@ -265,36 +245,19 @@ class _RiderStoreScreenState extends State<RiderStoreScreen> {
 
                       SizedBox(height: SizeConfig.paddingXSL),
 
+                      _buildCategoryGrid(
+                        items: foodCategories,
+                        onTap: (item) {
 
-                      GridView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: foodCategories.length,
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3,
-                          crossAxisSpacing: 6,
-                          mainAxisSpacing: 6,
-                          childAspectRatio: 1.3,
-                        ),
-                        itemBuilder: (context, index) {
-                          var foodCategoryData = foodCategories[index];
-                          return _buildCategoryItem(
-                            label: foodCategoryData.name,
-                            iconPath: foodCategoryData.icon,
-                            onTap: () {
-
-                            },
-                          );
                         },
                       ),
+
                     ],
                   ),
                 ),
               ),
 
-              SliverToBoxAdapter(
-                child: SizedBox(height: SizeConfig.paddingXSL),
-              ),
+              _buildGap(),
 
               SliverToBoxAdapter(
                 child: CustomFormCard(
@@ -311,42 +274,56 @@ class _RiderStoreScreenState extends State<RiderStoreScreen> {
 
                       SizedBox(height: SizeConfig.paddingXSL),
 
-                      GridView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: restaurantNearMe.length,
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3,
-                          crossAxisSpacing: 6,
-                          mainAxisSpacing: 6,
-                          childAspectRatio: 1.3,
-                        ),
-                        itemBuilder: (context, index) {
-                          var restaurantNearMeData = restaurantNearMe[index];
-                          return _buildCategoryItem(
-                            label: restaurantNearMeData.name,
-                            iconPath: restaurantNearMeData.icon,
-                            onTap: () {
+                      _buildCategoryGrid(
+                        items: restaurantNearMe,
+                        onTap: (item) {
 
-                            },
-                          );
                         },
                       ),
+
                     ],
                   ),
                 ),
               ),
 
-              SliverToBoxAdapter(
-                child: SizedBox(height: SizeConfig.paddingM),
-              ),
-
+              _buildGap(gap: SizeConfig.paddingM)
             ],
           ),
         ),
       ),
     );
   }
+
+  Widget _buildGap({double? gap}){
+    return  SliverToBoxAdapter(
+      child: SizedBox(height: gap ?? SizeConfig.paddingXSL),
+    );
+  }
+
+  Widget _buildCategoryGrid({
+    required List<CollapsibleGridModel> items,
+    required Function(CollapsibleGridModel) onTap,
+  }) {
+    return MasonryGridView.count(
+      shrinkWrap: true,
+      primary: false,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: items.length,
+      crossAxisCount: 3,
+      crossAxisSpacing: 6,
+      mainAxisSpacing: 6,
+      padding: EdgeInsets.zero,
+      itemBuilder: (context, index) {
+        var item = items[index];
+        return _buildCategoryItem(
+          label: item.name,
+          iconPath: item.icon,
+          onTap: () => onTap(item),
+        );
+      },
+    );
+  }
+
 
   Widget _buildCategoryItem({
     required String label,
@@ -371,8 +348,7 @@ class _RiderStoreScreenState extends State<RiderStoreScreen> {
             // Icon Section
             LocalAssets(
               imagePath: iconPath,
-              height: SizeConfig.size30,
-              width: SizeConfig.size30,
+              height: SizeConfig.size60,
             ),
 
             SizedBox(height: SizeConfig.paddingXSL),

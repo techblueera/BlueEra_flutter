@@ -4,7 +4,6 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
@@ -130,7 +129,7 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
                   }
                 } else {
                   final controller =
-                  getOrPut(() => ViewPersonalDetailsController());
+                  getOrPut(() => ViewPersonalDetailsController(), permanent: true);
 
                   if (controller.personalProfileDetails.value.isProfileCreated ==
                       false) {

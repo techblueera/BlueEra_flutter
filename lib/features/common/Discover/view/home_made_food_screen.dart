@@ -11,7 +11,6 @@ import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart'
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
 import 'package:BlueEra/features/common/Discover/widget/service_category_item.dart';
-import 'package:BlueEra/features/common/auth/model/individual_profiile_category.dart';
 import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
 import 'package:BlueEra/features/common/map/widget/profile_summary_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';

@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:BlueEra/features/me/hospital/model/get_beds_details_model.dart';
 import 'package:BlueEra/features/me/hospital/model/hospital_ward_model.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/src/extension_navigation.dart';

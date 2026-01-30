@@ -20,7 +20,8 @@ class BusinessServicesAskAiModel extends BaseAiChatModel {
     conversationId = json['conversationId'];
     suggestions = json['suggestions'] != null
         ? List<String>.from(json['suggestions'])
-        : null;    data = json['data'] != null ? new Data.fromJson(json['data']) : null;
+        : null;
+    data = json['data'] != null ? new Data.fromJson(json['data']) : null;
     timestamp = json['timestamp'];
   }
 

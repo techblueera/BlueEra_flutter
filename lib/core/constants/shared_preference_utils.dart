@@ -1,7 +1,9 @@
 import 'package:BlueEra/core/language_localization_service/language_service_app.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/environment_config.dart';
+import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
+import 'package:BlueEra/features/me/food/controller/home_food_controller.dart';
 import 'package:BlueEra/features/me/others/controller/business_profile_full_controller.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
 import 'package:BlueEra/features/me/school/controller/school_controller.dart';
@@ -224,6 +226,8 @@ class SharedPreferenceUtils {
       Get.delete<SchoolAboutUsController>();
       Get.delete<SchoolController>();
       Get.delete<BusinessProfileFullController>();
+      Get.delete<ViewBusinessDetailsController>();
+      Get.delete<RestaurantController>();
 
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove("last_dialog_shown");

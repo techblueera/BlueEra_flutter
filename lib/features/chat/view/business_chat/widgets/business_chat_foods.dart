@@ -2,7 +2,6 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import '../../../../business/auth/controller/view_business_details_controller.dart';
 import '../../../../common/food/view/widget/food_product_card.dart';
 

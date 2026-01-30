@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/food/model/food_home_res_model.dart';
 import 'package:BlueEra/features/me/food/repo/food_repo.dart';
@@ -20,22 +21,15 @@ class RestaurantController extends GetxController {
   void fetchHomeData() async {
     try {
       isLoading(true);
-      // Replace with your actual API provider call
-      // String jsonString = ... from your API
-      // var response = foodHomeResModelFromJson(jsonString);
-
-      // Simulating data assignment from your model
-      // if (response.success == true) {
-      //   restaurantData.value = response.data;
-      //   _flattenItems();
-      // }
 
       // call repo
       ResponseModel responseModel = await FoodRepo()
-          .getHomeFoodByIdRepo(businessProfile: "696f13baead58417505a8851");
+          .getHomeFoodByIdRepo(businessProfile: userId);
+          // .getHomeFoodByIdRepo(businessProfile: "696f13baead58417505a8851");
 
       if (responseModel.isSuccess) {
-          restaurantData.value = FoodHomeResModel.fromJson(responseModel.response?.data).data;
+        restaurantData.value =
+            FoodHomeResModel.fromJson(responseModel.response?.data).data;
 
         _flattenItems();
       } else {
@@ -56,6 +50,82 @@ class RestaurantController extends GetxController {
         }
       }
       allFoodItems.value = items;
+    }
+  }
+
+  // Validation state
+  var isFormValid = false.obs;
+
+  // Values to store from location picker
+  double? selectedLat;
+  double? selectedLng;
+
+  void validateForm({
+    required String branchName,
+    required String website,
+    required String address,
+    required String department,
+    required String email,
+    required String phone,
+  }) {
+    // Basic validation logic
+    bool isValid = branchName.isNotEmpty &&
+        website.isURL &&
+        address.isNotEmpty &&
+        department.isNotEmpty &&
+        email.isEmail &&
+        phone.length >= 10;
+
+    isFormValid.value = isValid;
+  }
+
+  Future<void> submitBranchDetails({
+    required String branchName,
+    required String website,
+    required String address,
+    required String department,
+    required String email,
+    required String phone,
+  }) async {
+    if (selectedLat == null || selectedLng == null) {
+      commonSnackBar(
+          message: "Please select a valid location from the search.");
+      return;
+    }
+
+    try {
+      isLoading.value = true;
+
+      // Prepare Request Body
+      Map<String, dynamic> body = {
+        "name": branchName,
+        "pageLink": website,
+        "department": department,
+        "email": email,
+        "phone": phone,
+        "location": {
+          "name": address,
+          "type": "Point",
+          "coordinates": [selectedLat, selectedLng]
+        },
+      };
+
+      ResponseModel response =
+          await FoodRepo().addFoodContactRepo(reqBody: body);
+      if (response.isSuccess) {
+        commonSnackBar(
+            message: response.response?.data['message'] ??
+                "Branch details added successfully");
+        Get.back();
+        fetchHomeData();
+      } else {
+        commonSnackBar(message: AppStrings.somethingWentWrong);
+      }
+      print("Request Body: $body");
+    } catch (e) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    } finally {
+      isLoading.value = false;
     }
   }
 }

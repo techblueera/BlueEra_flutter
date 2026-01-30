@@ -74,7 +74,7 @@ class InventoryController extends GetxController {
   final variantSellingPrice = <String, String>{}.obs;
 
   final viewProfileController = getOrPut(() => ViewBusinessDetailsController());
-  final viewIndividualProfileController = getOrPut(() => ViewPersonalDetailsController());
+  final viewIndividualProfileController = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
 
   bool isVariantSelected(String id) => variantSelection[id] ?? false;
   String? getUpdatedPrice(String id) => variantSellingPrice[id];

@@ -6,7 +6,6 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -42,7 +41,7 @@ class _AddressLocationRidingScreenState
         buildCustomWidget: () => Padding(
           padding: const EdgeInsets.only(right: 16),
           child: Center(
-            child: CustomText("${AppStrings.stepLabel.tr}2/2",
+            child: CustomText("${AppStrings.stepLabel.tr}2/3",
                 fontWeight: FontWeight.w600),
           ),
         ),
@@ -211,7 +210,7 @@ class _AddressLocationRidingScreenState
                       CustomBtn(
                         title: controller.isRidersAddressLoading.value
                             ? null
-                            : AppStrings.create,
+                            : AppStrings.nextButton,
                         onTap: () => controller.ridersOnboardingAddressApi(),
                         radius: 10.0,
                         bgColor: AppColors.primaryColor,

@@ -185,7 +185,7 @@ class AuthController extends GetxController {
 
               await getUserAuthToken();
               final personalController =
-              Get.put(ViewPersonalDetailsController());
+              Get.put(ViewPersonalDetailsController(), permanent: true);
               await personalController.viewPersonalProfile();
             }
 
@@ -257,7 +257,7 @@ class AuthController extends GetxController {
           await getUserAuthToken();
 
           commonSnackBar(message: response.message ?? AppStrings.success);
-          final personalController = Get.put(ViewPersonalDetailsController());
+          final personalController = Get.put(ViewPersonalDetailsController(), permanent: true);
           await personalController.viewPersonalProfile();
 
           final dobJsonString = reqData?[ApiKeys.date_of_birth_Obj];

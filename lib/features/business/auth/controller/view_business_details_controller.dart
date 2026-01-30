@@ -27,7 +27,6 @@ import '../model/GetParticularReviewListModel.dart';
 import '../model/getAllProductDetailsModel.dart';
 import '../model/getBusinessVerifyViewModel.dart';
 import '../model/viewBusinessProfileModel.dart';
-import '../model/visitBusinessDetailedRatingModel.dart';
 import '../repo/business_profile_repo.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 

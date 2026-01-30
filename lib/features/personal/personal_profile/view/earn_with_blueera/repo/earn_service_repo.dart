@@ -1,7 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
 import 'package:BlueEra/core/api/apiService/base_service.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 
 class EarnServiceRepo extends BaseService {
 
@@ -106,6 +105,18 @@ class EarnServiceRepo extends BaseService {
     final response = await ApiBaseHelper().postHTTP(
       "$aiGenerateSelfProfession",
       params: bodyParam,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  /// Earn Services
+  Future<ResponseModel> updateServiceRepo({required String serviceId, required Map<String, dynamic> params}) async {
+    final response = await ApiBaseHelper().putHTTP(
+      earnServicesById(serviceId),
+      params: params,
       showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},

@@ -29,10 +29,6 @@ class AppImageAssets {
   static String rightQuotation = "${imgPath}right_quotation.png";
   static const String storeNewBackground = "assets/store/store_baground_bg.png";
   static const String earnWithBlueeraVideoThumbnail = "${imgPath}earn_with_blueera_video_thumbnail.png";
-  static const String sampleStoreImage1 = "${imgPath}sample_store_image1.png";
-  static const String sampleStoreImage2 = "${imgPath}sample_store_image2.png";
-  static const String sampleStoreImage3 = "${imgPath}sample_store_image3.png";
-  static const String sampleStoreImage4 = "${imgPath}sample_store_image4.png";
   static const String riderStoreBanner = "${imgPath}rider_store_banner.png";
   static const String localMarketProducts = "${imgPath}local_market_products.png";
   static const String bookProfessional = "${imgPath}book_professional.png";
@@ -40,10 +36,14 @@ class AppImageAssets {
   static const String medicalHealthService = "${imgPath}medical_health_service.png";
   static const String foodDeliveryService = "${imgPath}food_delivery_service.png";
   static const String bookNowBanner = "${imgPath}book_now_banner.png";
-  static const String homeMadeBanner = "${imgPath}home_made_banner.png";
+
   static const String automotiveService = "${imgPath}automotive_service.png";
   static const String transportService = "${imgPath}transport_service.png";
   static const String jobBanner = "${imgPath}job_banner.png";
+  static const String homeMadeFoodBanner = "${imgPath}home_made_food_banner.png";
+  static const String homeMadeProductsBanner = "${imgPath}home_made_products_banner.png";
+  static const String homeServicesBanner = "${imgPath}home_service_banner.png";
+
 
   static String frontDeskImage = "${imgPath}front_desk_image.png";
   static String officeImage = "${imgPath}office_image.png";
@@ -105,7 +105,6 @@ class AppImageAssets {
   static String deliveryPartner = "${imgPath}delivery_partner.png";
   static String autoDriver = "${imgPath}auto_driver.png";
   static String goodsTransporter = "${imgPath}goods_transporter.png";
-
   static String contentCreator = "${imgPath}content_creator.png";
 
   /// Consultation Service
@@ -134,11 +133,13 @@ class AppImageAssets {
   static String sweets = "${imgPath}sweets.png";
 
   /// Rental Service
-  static String hotel = "${imgPath}hotel.png";
+  static String hotelStay = "${imgPath}hotel_stay.png";
   static String homeStay = "${imgPath}home_stay.png";
+  static String houseOnRent = "${imgPath}house_on_rent.png";
+  static String otherRental = "${imgPath}other_rental.png";
   static String cab = "${imgPath}cab.png";
 
-  /// Earn Service
+  // Earn Service
   static String homeMadeFood = "${imgPath}home_made_food.png";
   static String homeMadeProduct = "${imgPath}home_made_product.png";
   static String homeService = "${imgPath}home_service.png";
@@ -158,6 +159,19 @@ class AppImageAssets {
   static String education = "${imgPath}education.png";
   static String travelAndStay = "${imgPath}travel_and_stay.png";
   static String consultingTalk = "${imgPath}consulting_talk.png";
+
+  // Transport
+  static String twoWheelerBike = "${imgPath}two_wheeler_bike.png";
+  static String car = "${imgPath}car.png";
+  static String passengerCar = "${imgPath}passenger_car.png";
+  static String goodsMiniBus = "${imgPath}goods_mini_bus.png";
+
+  // Automotive
+  static String vehicleShowroom = "${imgPath}vehicle_showroom.png";
+  static String preOwnedShowroom = "${imgPath}pre_owned_showroom.png";
+  static String vehicleService = "${imgPath}vehicle_service.png";
+  static String autoPartsShop = "${imgPath}auto_parts_shop.png";
+  static String vehicleAccessories = "${imgPath}vehicle_accessories.png";
 }
 
 class OnboardingIndividualAssets{

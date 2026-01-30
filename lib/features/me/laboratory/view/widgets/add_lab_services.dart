@@ -2,11 +2,9 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../widgets/custom_text_cm.dart';
-import '../../../../common/food/view/food/food_categroy.dart';
 import '../category/OphthalmologyENTPage.dart';
 import '../category/basic_blood_test_page.dart';
 import '../category/lab_pathology_page.dart';

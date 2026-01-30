@@ -1,4 +1,3 @@
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -8,12 +7,9 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/constants/string_utils.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
-import 'package:BlueEra/features/common/auth/model/individual_profiile_category.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/rider_profile_status_screen.dart';
 import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/change_profession_warning_dialog.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/horizonatal_video_player.dart';

@@ -1,10 +1,10 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -53,6 +53,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
   final FocusNode _focusNode = FocusNode();
   bool _isEmojiVisible = false;
   final _scrollController = ScrollController();
+
   @override
   void initState() {
     chatViewController.sendMessageController.value.clear();
@@ -94,7 +95,9 @@ class _AiChatScreenState extends State<AiChatScreen> {
               type: widget.type,
               name: widget.name,
               profileImage: widget.profileImage,
-              contactNo: widget.contactNo, conversationId: widget.conversationId),
+              contactNo: widget.contactNo,
+              conversationId: widget.conversationId,
+          ),
           body: Obx(() {
 
             if (chatViewController.getListOfAiMessageResponse.value.status ==

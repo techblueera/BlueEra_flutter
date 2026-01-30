@@ -14,7 +14,6 @@ import 'package:BlueEra/features/personal/auth/controller/view_personal_details_
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:get/get.dart';
 
-import '../../../common/store/view/store_screen_controller.dart';
 import '../repo/user_repo.dart';
 
 class VisitProfileController extends GetxController {
@@ -32,7 +31,7 @@ class VisitProfileController extends GetxController {
   }
 
   final personalController = Get.put(PersonalCreateProfileController());
-  final personalProfileDetails = Get.put(ViewPersonalDetailsController());
+  final personalProfileDetails = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
   RxBool isProfileLoading=false.obs;
   Future<void> fetchUserById({required String userId}) async {
     try {

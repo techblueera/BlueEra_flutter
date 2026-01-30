@@ -495,6 +495,7 @@ abstract class BaseService {
   final String ridersOnboardingPersonalIdentification = "rider-service/riders/onboarding/personal-identification";      // Onboarding rider (step 3)
   final String ridersOnboardingDrivingVerification = "rider-service/riders/onboarding/driving-verification";            // Onboarding rider (step 4)
   final String ridersOnboardingVehicleImages = "rider-service/riders/onboarding/vehicle-images";                        // Onboarding rider (step 5)
+  final String ridersOnboardingVehicleEnums = "rider-service/riders/onboarding/vehicle-enums";                        // Onboarding rider (step 5)
   final String ridersOnboardingVehicleInformation = "rider-service/riders/onboarding/vehicle-information";              // Onboarding rider (step 6)
   final String ridersOnboardingStatus = "rider-service/riders/onboarding/status"; // Fetch onboarding rider status
   final String initRiderServiceUpload = "rider-service/s3/presigned-url";
@@ -665,5 +666,7 @@ abstract class BaseService {
   final String otherContactUsService = 'other-service/contact';
   final String otherKitchenInventory = 'food-service/api/kitchen-inventory';
   final String homeFood = 'food-service/api/home/';
+  final String homeFoodContactUs = 'food-service/api/contact';
+  final String homeFoodGallery = 'food-service/api/gallery';
 
 }

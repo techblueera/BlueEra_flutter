@@ -22,7 +22,6 @@ import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_pictur
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_drop_down-dialoge.dart';
-import 'package:BlueEra/widgets/common_drop_down.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';

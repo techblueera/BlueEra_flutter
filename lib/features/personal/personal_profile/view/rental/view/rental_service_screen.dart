@@ -1,16 +1,13 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/controller/rental_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/model/rental_service_response.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/view/rental_card.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';

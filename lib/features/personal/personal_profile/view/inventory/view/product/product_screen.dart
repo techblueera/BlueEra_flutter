@@ -10,7 +10,6 @@ import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../model/get_product_model.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
  
 class ProductScreen extends StatefulWidget {
   const ProductScreen({super.key});

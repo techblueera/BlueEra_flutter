@@ -79,4 +79,48 @@ class FoodRepo extends BaseService {
     );
     return response;
   }
+  // POST: Create a new contact
+  Future<ResponseModel> addFoodContactRepo({
+    required Map<String, dynamic> reqBody,
+  }) async {
+    final response = await ApiBaseHelper().putHTTP(
+      homeFoodContactUs,
+      params: reqBody,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+  // POST: Upload/Add a new photo
+  Future<ResponseModel> addFoodServicePhotosRepo({
+    required Map<String, dynamic> reqBody,
+  }) async {
+    final response = await ApiBaseHelper().postHTTP(
+      homeFoodGallery,
+      params: reqBody,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+  // GET: Fetch property photos
+  Future<ResponseModel> getFoodServicePhotosRepo() async {
+    final response = await ApiBaseHelper().getHTTP(
+      homeFoodGallery,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  // DELETE: Remove a specific photo
+  Future<ResponseModel> deleteFoodServicePhotosRepo({required String imgID,required Map<String,dynamic> reqBody}) async {
+    final response = await ApiBaseHelper().deleteHTTP(
+      "$homeFoodGallery/$imgID/images",
+      params: reqBody,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 }

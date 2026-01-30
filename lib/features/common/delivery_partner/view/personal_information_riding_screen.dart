@@ -87,7 +87,7 @@ class _PersonalInformationRidingScreenState
                 buildCustomWidget: () => Padding(
                   padding: const EdgeInsets.only(right: 16),
                   child: Center(
-                    child: CustomText("${AppStrings.stepLabel.tr}1/2",
+                    child: CustomText("${AppStrings.stepLabel.tr}1/3",
                         fontWeight: FontWeight.w600),
                   ),
                 ),

@@ -11,21 +11,17 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/food/controller/food_upload_controller.dart';
-import 'package:BlueEra/features/common/food/view/food/food_categroy.dart';
 import 'package:BlueEra/features/common/service/controller/service_controller.dart';
 import 'package:BlueEra/features/me/grocery/view/grocery_category_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/inventory_business_cards_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/product_screen.dart';
 import 'package:BlueEra/features/common/service/view/view_service_list.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_search_bar.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/tab_bar_delegate.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controller/inventory_controller.dart';
-import '../../../../../../common/food/view/food_and_grocery_screen.dart';
 
 class InventoryScreen extends StatefulWidget {
   final bool fromBottomNavBar;

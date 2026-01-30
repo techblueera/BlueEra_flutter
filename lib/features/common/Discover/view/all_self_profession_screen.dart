@@ -7,7 +7,6 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/Discover/widget/service_category_item.dart';
-import 'package:BlueEra/features/common/auth/model/individual_profiile_category.dart';
 import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';

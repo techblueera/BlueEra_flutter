@@ -1,14 +1,10 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
-import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/food/controller/grocery_controller.dart';
-import 'package:BlueEra/features/common/food/model/my_grocery_products_reponse.dart';
 import 'package:BlueEra/features/common/food/model/my_grocery_super_category_model.dart';
-import 'package:BlueEra/features/common/food/view/grocery/my_grocery_listing/grocery_product_card.dart';
 import 'package:BlueEra/features/common/food/view/grocery/widget/grocery_category_item.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';

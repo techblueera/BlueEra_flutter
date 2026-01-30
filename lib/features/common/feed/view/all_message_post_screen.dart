@@ -1,4 +1,3 @@
-import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -21,10 +20,8 @@ import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:get/get.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:share_plus/share_plus.dart';
 
 class FeedControllerNew extends GetxController {
   var posts = <Post>[].obs; // Replace dynamic with your Post model

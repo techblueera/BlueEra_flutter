@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
@@ -27,7 +28,6 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/setup_scroll_visibility_notification.dart';
 import 'package:BlueEra/widgets/update_live_photo_dialog.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:visibility_detector/visibility_detector.dart';
@@ -55,10 +55,7 @@ class _StoreFeedScreenState extends State<StoreFeedScreen>
   final StoreScreenController controller = Get.put(StoreScreenController());
   final viewBusinessDetailsController =
       Get.put(ViewBusinessDetailsController());
-  final ViewPersonalDetailsController viewPersonalDetailsController =
-      Get.isRegistered<ViewPersonalDetailsController>()
-          ? Get.find<ViewPersonalDetailsController>()
-          : Get.put(ViewPersonalDetailsController());
+  final viewPersonalDetailsController = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
   double headerHeight = 0.0;
   late TabController _tabController;
 

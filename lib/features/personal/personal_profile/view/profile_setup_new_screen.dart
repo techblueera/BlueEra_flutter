@@ -112,7 +112,7 @@ class PersonalProfileSetupNewScreen extends StatefulWidget {
 
 class _PersonalProfileSetupNewScreenState
     extends State<PersonalProfileSetupNewScreen> with TickerProviderStateMixin {
-  final viewProfileController = getOrPut(() => ViewPersonalDetailsController());
+  final viewProfileController = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
   final personalCreateProfileController =
       getOrPut(() => PersonalCreateProfileController());
   final bookingTabController = getOrPut(() => BookingController());
@@ -161,10 +161,10 @@ class _PersonalProfileSetupNewScreenState
 
   Future<void> _loadInitialData() async {
     await viewProfileController.viewPersonalProfile();
-    if (userProfileTypeGlobal == SELF_EMPLOYED &&
-        earnServiceCreatedStatusGlobal == 'false') {
-      viewProfileController.partiallyForceToCreateService();
-    }
+    // if (userProfileTypeGlobal == SELF_EMPLOYED &&
+    //     earnServiceCreatedStatusGlobal == 'false') {
+    //   viewProfileController.partiallyForceToCreateService();
+    // }
     await viewProfileController.UserFollowersAndPostsCount(userId);
     // viewProfileController.isChannelCreated.value = channelId.isNotEmpty;
     checkAndGetAvailabilityBookingData();
@@ -237,10 +237,8 @@ class _PersonalProfileSetupNewScreenState
         arguments: {ApiKeys.initialIndex: 0},
       );
       deleteIfRegistered<IntroductionVideoController>();
-      deleteIfRegistered<ViewPersonalDetailsController>();
     } else {
       deleteIfRegistered<IntroductionVideoController>();
-      deleteIfRegistered<ViewPersonalDetailsController>();
       Get.back();
     }
   }
@@ -664,7 +662,7 @@ class _PersonalProfileSetupNewScreenState
   }
 
   void _showCategoryBottomSheet() {
-    final controller = getOrPut(() => ViewPersonalDetailsController());
+    final controller = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
     final authController = getOrPut(() => AuthController());
     final personalController = getOrPut(()=> PersonalCreateProfileController());
 
@@ -769,56 +767,56 @@ class _PersonalProfileSetupNewScreenState
       } else if(_selectedProfession?.slugId == HOMEMAKER) {
         // Text field
         _expertiseTextCtrl.text = designation;
-        logs.writeln("✍️ Action: Set Homemaker Text -> '$designation'");
+        logs.writeln(" Action: Set Homemaker Text -> '$designation'");
       }else if(_selectedProfession?.slugId == SENIOR_CITIZEN) {
         // Text field
         _seniorTextCtrl.text = designation;
-        logs.writeln("✍️ Action: Set Senior Text -> '$designation'");
+        logs.writeln(" Action: Set Senior Text -> '$designation'");
       }else{
         // Text field
           _designationController.text = designation;
-          logs.writeln("✍️ Action: Set Default Text -> '$designation'");
+          logs.writeln(" Action: Set Default Text -> '$designation'");
       }
 
       if (_selectedProfileType.type == SELF_EMPLOYED || _selectedProfileType.type == GIG_WORKER) {
         _specializationCtrl.text = user?.specilization ?? '';
-        logs.writeln("📝 Field: Specialization -> '${_specializationCtrl.text}'");
+        logs.writeln(" Field: Specialization -> '${_specializationCtrl.text}'");
       }
 
       if (_selectedProfession?.slugId == PRIVATE_JOB) {
         _sectorTextCtrl.text = user?.sector ?? '';
-        logs.writeln("📝 Field: Private Sector -> '${_sectorTextCtrl.text}'");
+        logs.writeln(" Field: Private Sector -> '${_sectorTextCtrl.text}'");
       }
 
       if (_selectedProfession?.slugId == GOVERNMENT_JOB) {
         _governmentNameCtrl.text = user?.department ?? '';
-        logs.writeln("📝 Field: Govt Dept -> '${_governmentNameCtrl.text}'");
+        logs.writeln(" Field: Govt Dept -> '${_governmentNameCtrl.text}'");
       }
 
       if (_selectedProfession?.slugId == POLITICIAN) {
         _politicalPartyCtrl.text = user?.department ?? '';
-        logs.writeln("📝 Field: Political Party -> '${_politicalPartyCtrl.text}'");
+        logs.writeln("Field: Political Party -> '${_politicalPartyCtrl.text}'");
       }
 
       if (_selectedProfession?.slugId == GOVTPSU) {
         _departmentNameCtrl.text = user?.department ?? '';
         _subDivisionCtrl.text = user?.subDivision ?? '';
-        logs.writeln("📝 Field: PSU -> Dept: '${_departmentNameCtrl.text}', SubDiv: '${_subDivisionCtrl.text}'");
+        logs.writeln(" Field: PSU -> Dept: '${_departmentNameCtrl.text}', SubDiv: '${_subDivisionCtrl.text}'");
       }
 
       if (_selectedProfession?.slugId == REG_UNION || _selectedProfession?.slugId == NGO) {
         _ngoNameTextCtrl.text = user?.department ?? '';
-        logs.writeln("📝 Field: NGO/Union -> '${_ngoNameTextCtrl.text}'");
+        logs.writeln("Field: NGO/Union -> '${_ngoNameTextCtrl.text}'");
       }
 
       if (_selectedProfession?.slugId == INDUSTRIALIST || _selectedProfession?.slugId == DIRECTOR) {
         _companyNameCtrl.text = user?.department ?? '';
-        logs.writeln("📝 Field: Company -> '${_companyNameCtrl.text}'");
+        logs.writeln(" Field: Company -> '${_companyNameCtrl.text}'");
       }
 
       if (_selectedProfession?.slugId == STUDENT) {
         _courseTextCtrl.text = user?.schoolOrCollegeName ?? '';
-        logs.writeln("📝 Field: School/College -> '${_courseTextCtrl.text}'");
+        logs.writeln(" Field: School/College -> '${_courseTextCtrl.text}'");
       }
 
       logs.writeln("-----------------------------------");

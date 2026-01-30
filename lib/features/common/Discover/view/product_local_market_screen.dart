@@ -3,13 +3,13 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/common/auth/model/business_profile_category.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/features/chat/view/ai_chat/view/ai_common_search_screen.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/common/store/view/new_store/business_store_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
@@ -18,14 +18,17 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/update_live_photo_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
 class ProductLocalMarketScreen extends StatefulWidget {
   final List<OnboardingCategoryModel> businessProductsCategories;
+  final List<OnboardingCategoryModel> businessProductStoreCategories;
 
   const ProductLocalMarketScreen({
     super.key,
     required this.businessProductsCategories,
+    required this.businessProductStoreCategories,
   });
 
   @override
@@ -37,11 +40,13 @@ class _ProductLocalMarketScreenState extends State<ProductLocalMarketScreen> {
   late PageController _pageController;
   int selectedTabIndex = 0;
   late List<OnboardingCategoryModel> _businessProductsCategories;
+  late List<OnboardingCategoryModel> _businessProductStoreCategories;
 
   @override
   void initState() {
     super.initState();
-    _businessProductsCategories = widget.businessProductsCategories;
+    _businessProductsCategories = List.from(widget.businessProductsCategories);
+    _businessProductStoreCategories = List.from(widget.businessProductStoreCategories);
     _pageController = PageController(initialPage: 0);
   }
 
@@ -144,8 +149,7 @@ class _ProductLocalMarketScreenState extends State<ProductLocalMarketScreen> {
                     Get.toNamed(RouteHelper.getInventoryScreenRoute());
                   }
                 } else {
-                  final controller =
-                  getOrPut(() => ViewPersonalDetailsController());
+                  final controller = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
 
                   if (controller.personalProfileDetails.value.isProfileCreated ==
                       false) {
@@ -181,150 +185,167 @@ class _ProductLocalMarketScreenState extends State<ProductLocalMarketScreen> {
             child: Column(
               children: [
                 // --- Header Card ---
-                Container(
-                  padding: EdgeInsets.only(
-                    left: SizeConfig.size14,
-                    right: SizeConfig.size14,
-                    top: SizeConfig.size14,
-                  ),
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10.0),
-                      border: Border.all(
-                          color: AppColors.blueShade.withValues(alpha: 0.1)),
-                      gradient: LinearGradient(colors: [
-                        AppColors.blueShade.withValues(alpha: 0.02),
-                        AppColors.blueShade.withValues(alpha: 0.3)
-                      ], begin: Alignment.topCenter, end: Alignment.bottomCenter)),
-                  child: Row(
-                    children: [
-                      LocalAssets(
-                          imagePath: AppImageAssets.sampleGirlImage,
-                          width: SizeConfig.size90,
-                          boxFix: BoxFit.cover),
-                      SizedBox(width: SizeConfig.size12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: CustomText('Hi!',
-                                  fontSize: SizeConfig.medium,
-                                  color: AppColors.mainTextColor,
-                                  fontWeight: FontWeight.w400),
-                            ),
-                            SizedBox(
-                              height: SizeConfig.size5,
-                            ),
-                            FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: RichText(
-                                text: TextSpan(
-                                  style: TextStyle(
-                                      fontSize: SizeConfig.medium,
-                                      color: AppColors.mainTextColor,
-                                      fontWeight: FontWeight.w400),
-                                  children: [
-                                    const TextSpan(text: 'May I '),
-                                    TextSpan(
-                                      text: 'Help You',
-                                      style: TextStyle(
-                                        color: AppColors.primaryColor,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: SizeConfig.medium,
-                                      ),
-                                    ),
-                                    const TextSpan(text: ' to Find Out'),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            SizedBox(
-                              height: SizeConfig.size5,
-                            ),
-                            FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: RichText(
-                                text: TextSpan(
-                                  style: TextStyle(
-                                      fontSize: SizeConfig.medium,
-                                      color: AppColors.mainTextColor,
-                                      fontWeight: FontWeight.w400),
-                                  children: [
-                                    const TextSpan(text: 'Your Product From '),
-                                    TextSpan(
-                                      text: 'Local Market.',
-                                      style: TextStyle(
-                                        color: AppColors.primaryColor,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: SizeConfig.medium,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            SizedBox(height: SizeConfig.size12),
-                            Container(
-                              height: SizeConfig.size32,
-                              decoration: BoxDecoration(
-                                color: AppColors.white,
-                                borderRadius: BorderRadius.circular(10.0),
-                              ),
-                              alignment: Alignment.center,
-                              child: TextFormField(
-                                autofocus: false,
-                                controller: TextEditingController(),
-                                style: TextStyle(
+                InkWell(
+                  onTap: (){
+                    final chat = ChatViewController.inventoryAiChatListSearchModule;
+                    Get.to(() => AiCommonSearchScreen(
+                      chatType: AppConstants.askInventory_Chat_Type,
+                      profileImage: chat?.sender?.profileImage,
+                      name: chat?.sender?.name,
+                      contactNo: chat?.sender?.contactNo,
+                      conversationId: '',
+                      userId: '',
+                      businessId: '',
+                      type: chat?.sender?.accountType,
+                      isInitialMessage: false,
+                    ));
+                  },
+                  child: Container(
+                    padding: EdgeInsets.only(
+                      left: SizeConfig.size14,
+                      right: SizeConfig.size14,
+                      top: SizeConfig.size14,
+                    ),
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10.0),
+                        border: Border.all(
+                            color: AppColors.blueShade.withValues(alpha: 0.1)),
+                        gradient: LinearGradient(colors: [
+                          AppColors.blueShade.withValues(alpha: 0.02),
+                          AppColors.blueShade.withValues(alpha: 0.3)
+                        ], begin: Alignment.topCenter, end: Alignment.bottomCenter)),
+                    child: Row(
+                      children: [
+                        LocalAssets(
+                            imagePath: AppImageAssets.sampleGirlImage,
+                            width: SizeConfig.size90,
+                            boxFix: BoxFit.cover),
+                        SizedBox(width: SizeConfig.size12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: CustomText('Hi!',
+                                    fontSize: SizeConfig.medium,
                                     color: AppColors.mainTextColor,
-                                    fontSize: SizeConfig.medium),
-                                textAlignVertical: TextAlignVertical.center,
-                                decoration: InputDecoration(
-                                  hintText: 'Search Product....',
-                                  hintStyle: TextStyle(
-                                      fontSize: SizeConfig.medium,
-                                      color: AppColors.secondaryTextColor),
-                                  isDense: true,
-                                  filled: false,
-                                  contentPadding: EdgeInsets.zero,
-                                  border: InputBorder.none,
-                                  enabledBorder: InputBorder.none,
-                                  focusedBorder: InputBorder.none,
-                                  prefixIcon: Padding(
-                                    padding: EdgeInsets.only(
-                                      top: SizeConfig.size5,
-                                      bottom: SizeConfig.size5,
-                                    ),
-                                    child: Icon(Icons.search,
-                                        color: AppColors.secondaryTextColor,
-                                        size: SizeConfig.paddingXL),
-                                  ),
-                                  suffixIcon: Padding(
-                                    padding: EdgeInsets.only(
-                                        left: SizeConfig.size8,
-                                        right: SizeConfig.size16,
-                                        top: SizeConfig.size5,
-                                        bottom: SizeConfig.size5),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(Icons.mic_none_outlined,
-                                            color: AppColors.secondaryTextColor,
-                                            size: SizeConfig.paddingXL),
-                                        SizedBox(width: SizeConfig.size10),
-                                        Icon(Icons.camera_alt_outlined,
-                                            color: AppColors.secondaryTextColor,
-                                            size: SizeConfig.paddingXL),
-                                      ],
-                                    ),
+                                    fontWeight: FontWeight.w400),
+                              ),
+                              SizedBox(
+                                height: SizeConfig.size5,
+                              ),
+                              FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: RichText(
+                                  text: TextSpan(
+                                    style: TextStyle(
+                                        fontSize: SizeConfig.medium,
+                                        color: AppColors.mainTextColor,
+                                        fontWeight: FontWeight.w400),
+                                    children: [
+                                      const TextSpan(text: 'May I '),
+                                      TextSpan(
+                                        text: 'Help You',
+                                        style: TextStyle(
+                                          color: AppColors.primaryColor,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: SizeConfig.medium,
+                                        ),
+                                      ),
+                                      const TextSpan(text: ' to Find Out'),
+                                    ],
                                   ),
                                 ),
                               ),
-                            )
-                          ],
-                        ),
-                      )
-                    ],
+                              SizedBox(
+                                height: SizeConfig.size5,
+                              ),
+                              FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: RichText(
+                                  text: TextSpan(
+                                    style: TextStyle(
+                                        fontSize: SizeConfig.medium,
+                                        color: AppColors.mainTextColor,
+                                        fontWeight: FontWeight.w400),
+                                    children: [
+                                      const TextSpan(text: 'Your Product From '),
+                                      TextSpan(
+                                        text: 'Local Market.',
+                                        style: TextStyle(
+                                          color: AppColors.primaryColor,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: SizeConfig.medium,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: SizeConfig.size12),
+                              Container(
+                                height: SizeConfig.size32,
+                                decoration: BoxDecoration(
+                                  color: AppColors.white,
+                                  borderRadius: BorderRadius.circular(10.0),
+                                ),
+                                alignment: Alignment.center,
+                                child: TextFormField(
+                                  autofocus: false,
+                                  enabled: false,
+                                  controller: TextEditingController(),
+                                  style: TextStyle(
+                                      color: AppColors.mainTextColor,
+                                      fontSize: SizeConfig.medium),
+                                  textAlignVertical: TextAlignVertical.center,
+                                  decoration: InputDecoration(
+                                    hintText: 'Search Product....',
+                                    hintStyle: TextStyle(
+                                        fontSize: SizeConfig.medium,
+                                        color: AppColors.secondaryTextColor),
+                                    isDense: true,
+                                    filled: false,
+                                    contentPadding: EdgeInsets.zero,
+                                    border: InputBorder.none,
+                                    enabledBorder: InputBorder.none,
+                                    focusedBorder: InputBorder.none,
+                                    prefixIcon: Padding(
+                                      padding: EdgeInsets.only(
+                                        top: SizeConfig.size5,
+                                        bottom: SizeConfig.size5,
+                                      ),
+                                      child: Icon(Icons.search,
+                                          color: AppColors.secondaryTextColor,
+                                          size: SizeConfig.paddingXL),
+                                    ),
+                                    suffixIcon: Padding(
+                                      padding: EdgeInsets.only(
+                                          left: SizeConfig.size8,
+                                          right: SizeConfig.size16,
+                                          top: SizeConfig.size5,
+                                          bottom: SizeConfig.size5),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(Icons.mic_none_outlined,
+                                              color: AppColors.secondaryTextColor,
+                                              size: SizeConfig.paddingXL),
+                                          SizedBox(width: SizeConfig.size10),
+                                          Icon(Icons.camera_alt_outlined,
+                                              color: AppColors.secondaryTextColor,
+                                              size: SizeConfig.paddingXL),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
+                        )
+                      ],
+                    ),
                   ),
                 ),
 
@@ -332,12 +353,13 @@ class _ProductLocalMarketScreenState extends State<ProductLocalMarketScreen> {
 
                 // --- CATEGORY TABS & GRID SECTION ---
                 CustomFormCard(
-                    padding: EdgeInsets.all(SizeConfig.size10),
+                    padding: EdgeInsets.symmetric(vertical: SizeConfig.size10),
                     child: Column(
                       children: [
                         // --- 1. Top Tab Selector ---
                         Container(
                           margin: EdgeInsets.only(bottom: SizeConfig.size10),
+                          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
                           child: Row(
                             children: [
                               _buildTabButton("Product", 0),
@@ -406,33 +428,38 @@ class _ProductLocalMarketScreenState extends State<ProductLocalMarketScreen> {
 
   // --- Widget: Grid Page (Reusable) ---
   Widget _buildGridPage({required bool isStore}) {
-    return GridView.builder(
+    return MasonryGridView.count(
       physics: const NeverScrollableScrollPhysics(),
-      padding: EdgeInsets.zero,
-      itemCount: _businessProductsCategories.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        crossAxisSpacing: 6,
-        mainAxisSpacing: 6,
-        childAspectRatio: 1.2,
-      ),
+      crossAxisCount: 3,
+      crossAxisSpacing: 6,
+      mainAxisSpacing: 6,
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+      itemCount: !isStore ? _businessProductsCategories.length : _businessProductStoreCategories.length,
       itemBuilder: (context, index) {
-        var productData = _businessProductsCategories[index];
-        return _buildCategoryItem(
-          productCategory: productData,
-          onTap: (c) {
-            if (!isStore) {
+        if(!isStore){
+          var productData = _businessProductsCategories[index];
+          return _buildCategoryItem(
+            productCategory: productData,
+            onTap: (c) {
               // Handle Product Logic
-            } else {
+            },
+          );
+        }else{
+          var productStores = _businessProductStoreCategories[index];
+          return _buildCategoryItem(
+            productCategory: productStores,
+            onTap: (c) {
               // Handle Store Logic
               Get.to(() => BusinessStoreScreen(
                 typeOfBusiness: AppConstants.product,
                 selectedStoreCategoryId: c.slugId,
                 selectedStoreCategoryName: c.name,
               ));
-            }
-          },
-        );
+            },
+          );
+        }
+
+
       },
     );
   }
@@ -504,7 +531,7 @@ class _ProductLocalMarketScreenState extends State<ProductLocalMarketScreen> {
           children: [
             LocalAssets(
               imagePath: productCategory.icon,
-              scaleSize: 2.0,
+              height: SizeConfig.size60,
             ),
             SizedBox(height: SizeConfig.paddingXSL),
             CustomText(

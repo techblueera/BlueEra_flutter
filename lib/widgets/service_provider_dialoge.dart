@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
@@ -11,7 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 void showEnableServiceDialog() async {
-  final viewProfileController = Get.put(ViewPersonalDetailsController());
+  final viewPersonalDetailsController = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
 
   if (serviceProviderStatusGlobal.toString().toUpperCase() ==
           AppConstants.CLOSED.toUpperCase() &&
@@ -59,11 +60,11 @@ void showEnableServiceDialog() async {
                 Expanded(
                     child: PositiveCustomBtn(
                         onTap: () async {
-                          viewProfileController.toggleShopOnlyStatus(
+                          viewPersonalDetailsController.toggleShopOnlyStatus(
                               isActive: true
                           );
                           if(userProfileTypeGlobal == SELF_EMPLOYED && earnServiceCreatedStatusGlobal == 'false'){
-                            viewProfileController.partiallyForceToCreateService();
+                            viewPersonalDetailsController.partiallyForceToCreateService();
                           }
                         },
                         title: "Active")),
@@ -76,6 +77,6 @@ void showEnableServiceDialog() async {
   } else if (serviceProviderStatusGlobal.toString().toUpperCase() ==
           AppConstants.OPEN.toUpperCase() &&
       (userProfileTypeGlobal.toUpperCase() == SELF_EMPLOYED)) {
-    await viewProfileController.callLocationAPI();
+    await viewPersonalDetailsController.callLocationAPI();
   }
 }
