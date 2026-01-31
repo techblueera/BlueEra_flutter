@@ -9,9 +9,19 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class UploadProfessionalsServicePhotosScreen extends StatelessWidget {
-  final controller = Get.find<ProfessionalsServicePhotoPhotoController>();
+class UploadProfessionalsServicePhotosScreen extends StatefulWidget {
+  @override
+  State<UploadProfessionalsServicePhotosScreen> createState() => _UploadProfessionalsServicePhotosScreenState();
+}
 
+class _UploadProfessionalsServicePhotosScreenState extends State<UploadProfessionalsServicePhotosScreen> {
+  final controller = Get.find<ProfessionalsServicePhotoPhotoController>();
+@override
+  void initState() {
+    // TODO: implement initState
+  controller.selectedImages.clear();
+  super.initState();
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(

@@ -143,4 +143,38 @@ class ProfessionalsRepo extends BaseService {
     );
     return response;
   }
+
+
+  Future<dynamic> addProfessionalsPortfolioRepo(
+      {required Map<String, dynamic> bodyREQ}) async {
+    return await ApiBaseHelper().postHTTP(
+      professionalsPortfolio,
+      params: bodyREQ,
+      showProgress: true,
+      onSuccess: (res) {},
+      onError: (error) {},
+    );
+  }
+
+  Future<dynamic> updateProfessionalsPortfolioRepo(
+      {required String id, required Map<String, dynamic> bodyREQ}) async {
+    return await ApiBaseHelper().putHTTP(
+      "$professionalsPortfolio/$id",
+      params: bodyREQ,
+      showProgress: true,
+      onSuccess: (res) {},
+      onError: (error) {},
+    );
+  }
+
+  Future<dynamic> deleteProfessionalsPortfolioRepo({
+    required String id,
+  }) async {
+    return await ApiBaseHelper().deleteHTTP(
+      "$professionalsPortfolio/$id",
+      showProgress: true,
+      onSuccess: (res) {},
+      onError: (error) {},
+    );
+  }
 }

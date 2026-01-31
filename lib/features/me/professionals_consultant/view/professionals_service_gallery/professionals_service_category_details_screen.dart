@@ -9,19 +9,18 @@ import 'package:get/get.dart';
 
 class ProfessionalsServiceCategoryDetailsScreen extends StatelessWidget {
   final ProfessonalsGalleryData? categoryData;
-  final  controller = Get.put(ProfessionalsServicePhotoPhotoController());
 
-  ProfessionalsServiceCategoryDetailsScreen({ this.categoryData});
+  ProfessionalsServiceCategoryDetailsScreen({this.categoryData});
+  final controller = Get.find<ProfessionalsServicePhotoPhotoController>();
+
 
   @override
   Widget build(BuildContext context) {
     return Material(
-
       child: Obx(() {
-
-
         return GridView.builder(
-          shrinkWrap: true,              // <--- ADD THIS: Tells Grid to take minimum height
+          shrinkWrap: true,
+          // <--- ADD THIS: Tells Grid to take minimum height
           physics: NeverScrollableScrollPhysics(),
           padding: EdgeInsets.all(16),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -29,23 +28,21 @@ class ProfessionalsServiceCategoryDetailsScreen extends StatelessWidget {
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
           ),
-          itemCount:  controller.propertyPhotosList.length,
+          itemCount: controller.propertyPhotosList.length,
           itemBuilder: (context, index) {
             return Stack(
               children: [
                 InkWell(
-                  onTap: (){
-
+                  onTap: () {
                     navigatePushTo(
                       context,
                       ImageViewScreen(
                         subTitle: "",
                         appBarTitle: AppStrings.imageViewer,
-                        imageUrls:  controller.propertyPhotosList,
+                        imageUrls: controller.propertyPhotosList,
                         initialIndex: index,
                       ),
                     );
-
                   },
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(12),
@@ -68,10 +65,9 @@ class ProfessionalsServiceCategoryDetailsScreen extends StatelessWidget {
                           text: 'Are you sure you want to delete this image?',
                           confirmCallback: () async {
                             await controller.deleteOtherServiceController(
-                                // imgId: categoryData.id ?? "",
-                              imgId:   controller.propertyPhotosIdsList[index],
-                             );
-
+                              // imgId: categoryData.id ?? "",
+                              imgId: controller.propertyPhotosIdsList[index],
+                            );
                           },
                           cancelCallback: () {
                             Navigator.of(context).pop(); // Close the dialog
@@ -93,5 +89,4 @@ class ProfessionalsServiceCategoryDetailsScreen extends StatelessWidget {
       }),
     );
   }
-
 }

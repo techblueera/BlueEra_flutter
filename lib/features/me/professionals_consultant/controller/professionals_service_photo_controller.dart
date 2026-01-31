@@ -105,10 +105,11 @@ class ProfessionalsServicePhotoPhotoController extends GetxController {
   }
 
   // Logic to build the JSON request body
-  List<String> urlList = [];
 
   Future buildRequestBody() async {
     try {
+      List<String> urlList = [];
+
       Get.back();
       for (var filePath in selectedImages) {
         String mimeType = getMimeType(filePath);

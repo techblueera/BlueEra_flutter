@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/professionals_consultant/controller/ai_professionals_controller.dart';
 import 'package:BlueEra/features/me/professionals_consultant/controller/professionals_certificates_controller.dart';
+import 'package:BlueEra/features/me/professionals_consultant/controller/professionals_service_photo_controller.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/professionals_service_gallery/professionals_service_category_details_screen.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/professionals_service_gallery/professionals_service_photos_screen.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/professionals_service_gallery/upload_professionals_service_photos_screen.dart';
@@ -26,47 +27,73 @@ class ProfessionalsCertificatesScreen extends StatelessWidget {
 
   final aiController = Get.find<AiProfessionalsController>();
   final certController = Get.put(ProfessionalsCertificatesController());
+  final controller = Get.put(ProfessionalsServicePhotoPhotoController());
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(title: "Gallery & Certifications"),
-      body: CommonCardWidget(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.all(SizeConfig.size8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(SizeConfig.size8),
+        child: Column(
+          children: [
+            CommonCardWidget(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CustomText("Certificate & Awards",
-                      fontWeight: FontWeight.w600),
-                  InkWell(
-                    onTap: () {
-                      certController.openForCreate();
-                      _openAddEditSheet(context, false);
-                    },
-                    child: const CustomText(
-                      "+ Add More",
-                      color: AppColors.primaryColor,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      CustomText("Certificate & Awards",
+                          fontWeight: FontWeight.w600),
+                      InkWell(
+                        onTap: () {
+                          certController.openForCreate();
+                          _openAddEditSheet(context, false);
+                        },
+                        child: const CustomText(
+                          "+ Add More",
+                          color: AppColors.primaryColor,
+                        ),
+                      ),
+                    ],
                   ),
+                  SizedBox(height: SizeConfig.size15),
+                  Obx(() {
+                    return _buildCertificatesGrid();
+                  }),
                 ],
               ),
-              SizedBox(height: SizeConfig.size15),
-              Obx(() {
-                return _buildCertificatesGrid();
-              }),
-              SizedBox(height: SizeConfig.size20),
-              ProfessionalsServiceCategoryDetailsScreen(),
-              PositiveCustomBtn(
-                  onTap: () {
-                    Get.to(UploadProfessionalsServicePhotosScreen());
-                  },
-                  title: "Upload Other Service Photo"),
-            ],
-          ),
+            ),
+            Obx(() {
+              return CommonCardWidget(
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        CustomText(
+                            "Upload Images (${controller.propertyPhotosList.length}/20)",
+                            fontWeight: FontWeight.w600),
+                        if (controller.propertyPhotosList.length < 20)
+                          InkWell(
+                            onTap: () {
+                              Get.to(UploadProfessionalsServicePhotosScreen());
+                            },
+                            child: const CustomText(
+                              "+ Add More",
+                              color: AppColors.primaryColor,
+                            ),
+                          ),
+                      ],
+                    ),
+                    SizedBox(height: SizeConfig.size15),
+                    ProfessionalsServiceCategoryDetailsScreen(),
+                  ],
+                ),
+              );
+            })
+          ],
         ),
       ),
     );
@@ -230,7 +257,7 @@ class ProfessionalsCertificatesScreen extends StatelessWidget {
                       // _issueDatePicker(context),
                       ///DOB selection
                       CustomText(
-                        'Date Of Birth',
+                        'Issued Date',
                         fontSize: SizeConfig.medium,
                         color: AppColors.mainTextColor,
                       ),
@@ -241,7 +268,7 @@ class ProfessionalsCertificatesScreen extends StatelessWidget {
                         selectedDay: certController.selectedDay,
                         selectedMonth: certController.selectedMonth,
                         selectedYear: certController.selectedYear,
-                        isAgeValidation15: true,
+                        isAgeValidation15: false,
                         onDayChanged: (value) {
                           setState(() {
                             certController.selectedDay = value;
@@ -357,7 +384,6 @@ class ProfessionalsCertificatesScreen extends StatelessWidget {
           ),
         ));
   }
-
 
   Widget _filePicker() {
     return Obx(() {

@@ -676,5 +676,6 @@ abstract class BaseService {
   final String professionalsContactUs = 'earn-service/professional/contact';
   final String professionalsContactUsById = 'earn-service/professional/';
   final String professionalsTiming = 'earn-service/professional';
+  final String professionalsPortfolio = 'earn-service/professional/portfolio';
 
 }

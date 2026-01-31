@@ -77,7 +77,6 @@ class OwnProductCard extends StatelessWidget {
       variants[0].mrp.toString(),
     ).toInt();
 
-    int productPhotoIndex = 0;
 
     ProductDetails? details = product.product.details;
 
@@ -115,7 +114,6 @@ class OwnProductCard extends StatelessWidget {
                       imagePaths: details?.media ?? [],
                       borderRadius: BorderRadius.zero,
                       onPhotoIndex: (index) {
-                        productPhotoIndex = index;
                       },
                     ),
                   ),

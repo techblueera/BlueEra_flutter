@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/professionals_consultant/controller/ai_professionals_controller.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/basic_profile_screen.dart';
+import 'package:BlueEra/features/me/professionals_consultant/view/portfolio_screen.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/pricing_engagement_screen.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/professional_contact_us_screen.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/professional_profile_screen.dart';
@@ -51,7 +52,7 @@ class _UpdateProfessionalsServicesScreenState
     ServiceMenuItem(
       title: "Portfolio / Case Studies",
       icon: AppIconAssets.caseStudies,
-      page: () => ComingSoon(),
+      page: () => PortfolioScreen(),
     ),
     ServiceMenuItem(
       title: "Pricing / Engagement Model",

@@ -11,6 +11,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+// ignore: must_be_immutable
 class FoodDetailScreen extends StatefulWidget {
   Map<String, dynamic> foodData;
 
