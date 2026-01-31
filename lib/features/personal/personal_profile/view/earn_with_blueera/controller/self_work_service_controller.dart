@@ -280,7 +280,7 @@ class SelfWorkServiceController extends GetxController{
        // ApiKeys.min: int.tryParse(minPriceCtrl.text.trim()),
        // ApiKeys.max: int.tryParse(maxPriceCtrl.text.trim()),
       };
-      if (selectedServices.isNotEmpty) params[ApiKeys.serviceOffered] = selectedServices;
+      if (selectedServices.isNotEmpty) params[ApiKeys.servicesOffered] = selectedServices;
       if (selectedInstallations.isNotEmpty) params[ApiKeys.typesOfWork] = selectedInstallations;
       if (selectedExpertise.isNotEmpty) params[ApiKeys.expertise] = selectedExpertise;
       if (selectedWorkCategories.isNotEmpty) params[ApiKeys.workCategories] = selectedWorkCategories;
@@ -559,20 +559,42 @@ class SelfWorkServiceController extends GetxController{
 
   ///UPDATE BUSINESS IMAGES....
   saveGalleryImages(String serviceId, String imagePath) async {
-    dio.MultipartFile? imageByPart;
-
-    String fileName = imagePath.split('/').last;
-    imageByPart =
-    await dio.MultipartFile.fromFile(imagePath, filename: fileName);
-
-    Map<String, dynamic> params = {ApiKeys.category_image: imageByPart};
-    uploadGalleryImage(serviceId, params);
-  }
-
-  Future<void> uploadGalleryImage(String serviceId, Map<String, dynamic> params) async {
     try {
-      ResponseModel responseModel = await EarnServiceRepo().uploadProfessionImages(serviceId: serviceId, params: params);
+
+      // Prepare image
+      List<UploadS3ImageModel> images = [];
+      // for (var imagePath in selectedImages) {
+        final imageInfo = getFileInfo(File(imagePath));
+        if (imageInfo.isNotEmpty) {
+          images.add(
+            UploadS3ImageModel(
+                path: imagePath,
+                mimeType: imageInfo['mimeType']!
+            ),
+          );
+        // }
+      }
+
+      Map<String, dynamic> params = {
+        ApiKeys.contentTypeKey: images.map((img) => img.mimeType).toList()
+      };
+
+
+      ResponseModel responseModel = await EarnServiceRepo().uploadProfessionImage(serviceId: serviceId, params: params);
       if (responseModel.isSuccess) {
+        // Set preSignedUrls from response
+        List<String> preSignedUrlImages =
+            responseModel.response!.data['uploadUrls']['images'] ?? [];
+
+        if (images.length == preSignedUrlImages.length) {
+          for (var i = 0; i < images.length; i++) {
+            images[i].preSignedUrl = preSignedUrlImages[i];
+          }
+
+          // Upload all images with combined progress
+          await uploadAllImages(images);
+        }
+
         fetchSelfProfessionData();
       } else {
         commonSnackBar(

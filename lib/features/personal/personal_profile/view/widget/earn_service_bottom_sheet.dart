@@ -7,6 +7,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueer
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
 class EarnServiceBottomSheet extends StatelessWidget {
   EarnServiceBottomSheet({Key? key}) : super(key: key);
@@ -52,19 +53,21 @@ class EarnServiceBottomSheet extends StatelessWidget {
 
             // 3-column grid
             Flexible(
-              child: GridView.builder(
+              child: MasonryGridView.count(
+                crossAxisCount: 3,
+                crossAxisSpacing: 6,
+                mainAxisSpacing: 6,
+                padding: EdgeInsets.zero,
+                primary: false,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  childAspectRatio: 1.2,
-                  crossAxisSpacing: 6,
-                  mainAxisSpacing: 6,
-                ),
                 itemCount: earnWithBlueEraAddOptionsList.length,
                 itemBuilder: (_, i) => CommonServiceCard(
                   service: earnWithBlueEraAddOptionsList[i],
-                  onTap: () => controller.handleServiceTap(context, earnWithBlueEraServiceList[i]),
+                  getName: (item) => item.name,
+                  getIcon: (item) => item.icon,
+                  spacing: 8.0,
+                  onTap: (item) => controller.handleServiceTap(context, item),
                 ),
               ),
             ),

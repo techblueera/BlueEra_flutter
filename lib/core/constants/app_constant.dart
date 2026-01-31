@@ -2448,86 +2448,85 @@ final List<OnboardingCategoryModel> businessOnboardingManufacturingCategories =
 
 final List<BusinessProfileCategory> businessServicesCategories = [
   BusinessProfileCategory(
-      name: AppStrings.consulting,
+      name: 'Offer Professional\nConsulting or Counselling',
+      // name: AppStrings.consulting,
       slugId: AppConstants.consulting,
       icon: AppImageAssets.consultingService,
       type: AppConstants.service),
   BusinessProfileCategory(
-      name: AppStrings.automotive,
+      name: 'Automotive\nServices',
+      // name: AppStrings.automotive,
       slugId: AppConstants.automotive,
-      // categoryId: '68ce990beac48e6b0d49724f',
       icon: AppImageAssets.automativeService,
       type: AppConstants.service),
   BusinessProfileCategory(
-      name: AppStrings.itCommunication,
+      name: 'IT &\nCommunication',
+      // name: AppStrings.itCommunication,
       slugId: AppConstants.itCommunication,
-      // categoryId: '68ce9914eac48e6b0d497366',
       icon: AppImageAssets.itCommunication,
       type: AppConstants.service),
   BusinessProfileCategory(
-      name: AppStrings.homeUtility,
+      name: 'Home Service &\nUtility',
+      // name: AppStrings.homeUtility,
       slugId: AppConstants.homeUtility,
-      // categoryId: '68ce9912eac48e6b0d497328',
       icon: AppImageAssets.homeServiceUtility,
       type: AppConstants.service),
   BusinessProfileCategory(
-      name: AppStrings.mediaCreative,
+      name: 'Media, Publicity\n& Creative',
+      // name: AppStrings.mediaCreative,
       slugId: AppConstants.mediaCreative,
-      // categoryId: '68ce9915eac48e6b0d497382',
       icon: AppImageAssets.mediaPublicityIcon,
       type: AppConstants.service),
   BusinessProfileCategory(
-      name: AppStrings.educationTraining,
+      name: 'Education &\nTraining Services',
+      // name: AppStrings.educationTraining,
       slugId: AppConstants.educationTraining,
-      // categoryId: '68ce990eeac48e6b0d4972ad',
       icon: AppImageAssets.educationTraining,
       type: AppConstants.service),
   BusinessProfileCategory(
-      name: AppStrings.tourTravel,
+      name: 'Tour, Travel\n& Tourism',
+      // name: AppStrings.tourTravel,
       slugId: AppConstants.tourTravel,
-      // categoryId: '68ce9916eac48e6b0d4973aa',
       icon: AppImageAssets.tourTravel,
       type: AppConstants.service),
   BusinessProfileCategory(
-      name: AppStrings.beautyCare,
-      slugId: AppConstants.beautyCare,
-      // categoryId: '68ce990beac48e6b0d497260',
+      name: 'Beauty &\nPersonal care',
+       slugId: AppConstants.beautyCare,
       icon: AppImageAssets.beautyPersonalCare,
       type: AppConstants.service),
   BusinessProfileCategory(
-      name: AppStrings.serviceCenter,
+      name: 'Service Center &\nEssential Utility',
       slugId: AppConstants.serviceCenter,
-      // categoryId: '68ce9915eac48e6b0d497397',
       icon: AppImageAssets.serviceCenter,
       type: AppConstants.service),
   BusinessProfileCategory(
-      name: AppStrings.logistics,
+      name: 'Logistics &\nTransportation',
       slugId: AppConstants.logistics,
       // categoryId: '68ce9914eac48e6b0d497375',
       icon: AppImageAssets.logisticTransportation,
       type: AppConstants.service),
   BusinessProfileCategory(
-      name: AppStrings.celebrationEvent,
+      name: 'Celebration &\nEvent Services',
+      // name: AppStrings.celebrationEvent,
       slugId: AppConstants.celebrationEvent,
-      // categoryId: '68ce990ceac48e6b0d49727f',
       icon: AppImageAssets.celebrationEvent,
       type: AppConstants.service),
   BusinessProfileCategory(
-      name: AppStrings.financial,
+      name: 'Financial\nServices',
+      // name: AppStrings.financial,
       slugId: AppConstants.financial,
-      // categoryId: '68ce990feac48e6b0d4972dc',
       icon: AppImageAssets.financial,
       type: AppConstants.service),
   BusinessProfileCategory(
-      name: AppStrings.healthcareMedicalServices,
+      name: 'Healthcare &\nMedical Services',
+      // name: AppStrings.healthcareMedicalServices,
       slugId: AppConstants.healthcareMedicalServices,
-      // categoryId: '68ce9910eac48e6b0d4972ed',
       icon: AppImageAssets.healthCare,
       type: AppConstants.service),
   BusinessProfileCategory(
-      name: AppStrings.hostelsStayService,
+      name: 'Hostels &\nStay Services',
+      // name: AppStrings.hostelsStayService,
       slugId: AppConstants.hostelsStayService,
-      // categoryId: '68ce9912eac48e6b0d497341',
       icon: AppImageAssets.hostel,
       type: AppConstants.service),
 ];
@@ -3181,6 +3180,7 @@ final List<OnboardingCategoryModel> individualOnboardingSkillWorkList = [
     name: 'Electrician',
     slugId: ELECTRICIAN,
     icon: OnboardingIndividualAssets.electrician,
+    flagIcon: AppImageAssets.electrician,
     individualType: IndividualType.SELF_EMPLOYED,
     accountType: AppConstants.individual,
   ),
@@ -3188,6 +3188,7 @@ final List<OnboardingCategoryModel> individualOnboardingSkillWorkList = [
     name: 'Plumber',
     slugId: PLUMBER,
     icon: OnboardingIndividualAssets.plumber,
+    flagIcon: AppImageAssets.plumber,
     individualType: IndividualType.SELF_EMPLOYED,
     accountType: AppConstants.individual,
   ),
@@ -3195,6 +3196,7 @@ final List<OnboardingCategoryModel> individualOnboardingSkillWorkList = [
     name: 'Technician',
     slugId: TECHNICIAN,
     icon: OnboardingIndividualAssets.technician,
+    flagIcon: AppImageAssets.technician,
     individualType: IndividualType.SELF_EMPLOYED,
     accountType: AppConstants.individual,
   ),
@@ -3202,6 +3204,7 @@ final List<OnboardingCategoryModel> individualOnboardingSkillWorkList = [
     name: 'Mechanic',
     slugId: MECHANIC,
     icon: OnboardingIndividualAssets.mechanic,
+    flagIcon: AppImageAssets.mechanic,
     individualType: IndividualType.SELF_EMPLOYED,
     accountType: AppConstants.individual,
   ),
@@ -3209,6 +3212,7 @@ final List<OnboardingCategoryModel> individualOnboardingSkillWorkList = [
     name: 'Painter',
     slugId: PAINTER,
     icon: OnboardingIndividualAssets.painter,
+    flagIcon: AppImageAssets.painter,
     individualType: IndividualType.SELF_EMPLOYED,
     accountType: AppConstants.individual,
   ),
@@ -3216,6 +3220,7 @@ final List<OnboardingCategoryModel> individualOnboardingSkillWorkList = [
     name: 'Carpenter',
     slugId: CARPENTER,
     icon: OnboardingIndividualAssets.carpenter,
+    flagIcon: AppImageAssets.carpenter,
     individualType: IndividualType.SELF_EMPLOYED,
     accountType: AppConstants.individual,
   ),
@@ -3223,6 +3228,7 @@ final List<OnboardingCategoryModel> individualOnboardingSkillWorkList = [
     name: 'Home Renovator',
     slugId: HOME_RENOVATOR,
     icon: OnboardingIndividualAssets.homeRenovator,
+    flagIcon: AppImageAssets.homeRenovator,
     individualType: IndividualType.SELF_EMPLOYED,
     accountType: AppConstants.individual,
   ),
@@ -3230,6 +3236,7 @@ final List<OnboardingCategoryModel> individualOnboardingSkillWorkList = [
     name: 'Labour',
     slugId: LABOUR,
     icon: OnboardingIndividualAssets.labour,
+    flagIcon: AppImageAssets.homeRenovator,
     individualType: IndividualType.SELF_EMPLOYED,
     accountType: AppConstants.individual,
   ),
@@ -3237,6 +3244,7 @@ final List<OnboardingCategoryModel> individualOnboardingSkillWorkList = [
     name: 'Gardener',
     slugId: GARDENER,
     icon: OnboardingIndividualAssets.gardener,
+    flagIcon: AppImageAssets.gardener,
     individualType: IndividualType.SELF_EMPLOYED,
     accountType: AppConstants.individual,
   ),
@@ -3244,6 +3252,7 @@ final List<OnboardingCategoryModel> individualOnboardingSkillWorkList = [
     name: 'Security Person',
     slugId: SECURITY_PERSON,
     icon: OnboardingIndividualAssets.securityPerson,
+    flagIcon: AppImageAssets.securityPerson,
     individualType: IndividualType.SELF_EMPLOYED,
     accountType: AppConstants.individual,
   ),
@@ -3251,6 +3260,7 @@ final List<OnboardingCategoryModel> individualOnboardingSkillWorkList = [
     name: 'Maid (Female)',
     slugId: MAID_FEMALE,
     icon: OnboardingIndividualAssets.homeMaker,
+    flagIcon: AppImageAssets.maid,
     individualType: IndividualType.SELF_EMPLOYED,
     accountType: AppConstants.individual,
   ),
@@ -3258,6 +3268,7 @@ final List<OnboardingCategoryModel> individualOnboardingSkillWorkList = [
     name: 'Cleaner',
     slugId: CLEANER,
     icon: OnboardingIndividualAssets.cleaner,
+    flagIcon: AppImageAssets.cleaner,
     individualType: IndividualType.SELF_EMPLOYED,
     accountType: AppConstants.individual,
   ),
@@ -3415,62 +3426,6 @@ final List<CollapsibleGridModel> gigWorkServiceList = [
       name: 'Auto Driver', slugId: AUTO_TAXI, icon: AppImageAssets.autoDriver),
 ];
 
-final List<CollapsibleGridModel> selfWorkCategories = [
-  CollapsibleGridModel(
-    name: AppStrings.electrician,
-    slugId: ELECTRICIAN,
-    icon: AppImageAssets.electrician,
-  ),
-  CollapsibleGridModel(
-    name: AppStrings.plumber,
-    slugId: PLUMBER,
-    icon: AppImageAssets.plumber,
-  ),
-  CollapsibleGridModel(
-      name: AppStrings.technician,
-      slugId: TECHNICIAN,
-      icon: AppImageAssets.technician),
-  CollapsibleGridModel(
-      name: AppStrings.mechanic,
-      slugId: MECHANIC,
-      icon: AppImageAssets.mechanic),
-  CollapsibleGridModel(
-      name: AppStrings.painter, slugId: PAINTER, icon: AppImageAssets.painter),
-  CollapsibleGridModel(
-      name: AppStrings.carpenter,
-      slugId: CARPENTER,
-      icon: AppImageAssets.carpenter),
-  CollapsibleGridModel(
-      name: AppStrings.homeRenovator,
-      slugId: HOME_RENOVATOR,
-      icon: AppImageAssets.homeRenovator),
-  CollapsibleGridModel(
-      name: 'Labour', slugId: LABOUR, icon: AppImageAssets.homeRenovator),
-  CollapsibleGridModel(
-      name: AppStrings.gardener,
-      slugId: GARDENER,
-      icon: AppImageAssets.gardener),
-  CollapsibleGridModel(
-      name: AppStrings.securityPerson,
-      slugId: SECURITY_PERSON,
-      icon: AppImageAssets.securityPerson),
-  CollapsibleGridModel(
-    name: AppStrings.maid,
-    slugId: MAID_FEMALE,
-    icon: AppImageAssets.maid,
-  ),
-  CollapsibleGridModel(
-    name: AppStrings.cleaner,
-    slugId: CLEANER,
-    icon: AppImageAssets.cleaner,
-  ),
-  // CollapsibleGridModel(
-  //     name: AppStrings.other,
-  //     slugId: OTHER,
-  //     icon: AppIconAssets.staggeredIcon
-  // ),
-];
-
 final List<CollapsibleGridModel> consultationServiceList = [
   CollapsibleGridModel(
     name: 'Legal & Govt.\nConsultant',
@@ -3524,7 +3479,7 @@ final List<CollapsibleGridModel> consultationServiceList = [
   ),
 ];
 
-final List<CollapsibleGridModel> homeServicesCategories = [
+final List<OnboardingCategoryModel> homeServicesCategories = [
   // CollapsibleGridModel(
   //     name: AppStrings.counsellingConsulting,
   //     slugId: CONSULTANT,
@@ -3535,32 +3490,48 @@ final List<CollapsibleGridModel> homeServicesCategories = [
   //     slugId: TUTOR,
   //     icon: AppImageAssets.tutor
   // ),
-  CollapsibleGridModel(
+  OnboardingCategoryModel(
       name: AppStrings.beautyServices,
       slugId: BEAUTICIAN,
-      icon: AppImageAssets.beautician),
-  CollapsibleGridModel(
-      name: AppStrings.tailoring, slugId: TAILOR, icon: AppImageAssets.tailor),
-  CollapsibleGridModel(
-      name: 'Matchmaking Consultant',
-      slugId: DIGITAL_MARKETING,
-      icon: AppImageAssets.digitalMarketing),
-  CollapsibleGridModel(
-      name: 'Event Planner',
-      slugId: INTERIOR_DESIGNER,
-      icon: AppImageAssets.interiorDesigner),
-  CollapsibleGridModel(
-      name: 'Interior Designer',
-      slugId: INTERIOR_DESIGNER,
-      icon: AppImageAssets.interiorDesigner),
-  CollapsibleGridModel(
-      name: 'Designer Planner',
-      slugId: INTERIOR_DESIGNER,
-      icon: AppImageAssets.interiorDesigner),
-  CollapsibleGridModel(
-      name: 'Astrologer',
-      slugId: INTERIOR_DESIGNER,
-      icon: AppImageAssets.interiorDesigner),
+      icon: AppImageAssets.beautician,
+      accountType: AppConstants.individual
+  ),
+  OnboardingCategoryModel(
+      name: AppStrings.tailoring,
+      slugId: TAILOR,
+      icon: AppImageAssets.tailor,
+      accountType: AppConstants.individual
+  ),
+  // OnboardingCategoryModel(
+  //     name: 'Matchmaking Consultant',
+  //     slugId: DIGITAL_MARKETING,
+  //     icon: AppImageAssets.digitalMarketing,
+  //     accountType: AppConstants.individual
+  // ),
+  // OnboardingCategoryModel(
+  //     name: 'Event Planner',
+  //     slugId: INTERIOR_DESIGNER,
+  //     icon: AppImageAssets.interiorDesigner,
+  //     accountType: AppConstants.individual
+  // ),
+  // OnboardingCategoryModel(
+  //     name: 'Interior Designer',
+  //     slugId: INTERIOR_DESIGNER,
+  //     icon: AppImageAssets.interiorDesigner,
+  //     accountType: AppConstants.individual
+  // ),
+  // OnboardingCategoryModel(
+  //     name: 'Designer Planner',
+  //     slugId: INTERIOR_DESIGNER,
+  //     icon: AppImageAssets.interiorDesigner,
+  //     accountType: AppConstants.individual
+  // ),
+  // OnboardingCategoryModel(
+  //     name: 'Astrologer',
+  //     slugId: INTERIOR_DESIGNER,
+  //     icon: AppImageAssets.interiorDesigner,
+  //     accountType: AppConstants.individual
+  // ),
   // CollapsibleGridModel(
   //     name: AppStrings.other,
   //     slugId: OTHER,
@@ -3568,19 +3539,31 @@ final List<CollapsibleGridModel> homeServicesCategories = [
   // ),
 ];
 
-final List<CollapsibleGridModel> homeMadeFoodCategories = [
-  CollapsibleGridModel(
+final List<OnboardingCategoryModel> homeMadeFoodCategories = [
+  OnboardingCategoryModel(
       name: AppStrings.tiffin,
-      slugId: TIFFIN, icon: AppImageAssets.tiffin),
-  CollapsibleGridModel(
+      slugId: TIFFIN,
+      icon: AppImageAssets.tiffin,
+      accountType: AppConstants.individual
+  ),
+  OnboardingCategoryModel(
       name: AppStrings.bakery,
-      slugId: BAKERY, icon: AppImageAssets.bakery),
-  CollapsibleGridModel(
+      slugId: BAKERY,
+      icon: AppImageAssets.bakery,
+      accountType: AppConstants.individual
+  ),
+  OnboardingCategoryModel(
       name: AppStrings.sweets,
-      slugId: SWEETS, icon: AppImageAssets.sweets),
-  CollapsibleGridModel(
+      slugId: SWEETS,
+      icon: AppImageAssets.sweets,
+      accountType: AppConstants.individual
+  ),
+  OnboardingCategoryModel(
       name: AppStrings.other,
-      slugId: OTHER, icon: AppIconAssets.staggeredIcon),
+      slugId: OTHER,
+      icon: AppIconAssets.staggeredIcon,
+      accountType: AppConstants.individual
+  ),
 ];
 
 final List<CollapsibleGridModel> rentalServiceCategories = [
@@ -3675,7 +3658,8 @@ final List<CollapsibleGridModel> bookingList = [
 
 final List<CollapsibleGridModel> earnWithBlueEraAddOptionsList = [
   CollapsibleGridModel(
-      name: AppStrings.homeMadeProducts,
+      name: 'Home Made\nProducts',
+      // name: AppStrings.homeMadeProducts,
       slugId: HOME_MADE_PRODUCTS,
       icon: AppImageAssets.homeMadeProduct
   ),
@@ -3685,7 +3669,8 @@ final List<CollapsibleGridModel> earnWithBlueEraAddOptionsList = [
       icon: AppImageAssets.homeMadeFood
   ),
   CollapsibleGridModel(
-      name: AppStrings.rentalServices,
+      name: 'Rental\nServices',
+      // name: AppStrings.rentalServices,
       slugId: RENTAL_SERVICES,
       icon: AppImageAssets.rentalService
   ),

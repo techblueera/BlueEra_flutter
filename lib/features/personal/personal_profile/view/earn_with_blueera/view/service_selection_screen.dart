@@ -200,7 +200,7 @@ class _ServiceSelectionScreenState extends State<ServiceSelectionScreen> {
               final categoryConfig = {
                 SelfWorkServiceController.keyServicesOffered: (
                 msg: 'Please select at least one Service Offered',
-                apiKey: ApiKeys.serviceOffered
+                apiKey: ApiKeys.servicesOffered
                 ),
                 SelfWorkServiceController.keyTypeOfWork: (
                 msg: 'Please add Types of Installations',
@@ -235,6 +235,10 @@ class _ServiceSelectionScreenState extends State<ServiceSelectionScreen> {
               Map<String, dynamic> params = {
                 config.apiKey: selectedDataList
               };
+
+              // Map<String, dynamic> params = {
+              //   _selectedCategoryKey: selectedDataList
+              // };
 
               _controller.updateEarnServiceData(
                   params: params

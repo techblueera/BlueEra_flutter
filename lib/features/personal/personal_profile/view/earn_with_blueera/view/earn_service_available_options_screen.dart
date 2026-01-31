@@ -18,6 +18,7 @@ import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
 class EarnServiceAvailableOptionsScreen extends StatefulWidget {
@@ -176,21 +177,23 @@ class _EarnServiceAvailableOptionsScreenState extends State<EarnServiceAvailable
   }
 
   Widget _buildServiceGrid(BuildContext context) {
-    return GridView.builder(
+    return MasonryGridView.count(
+      crossAxisCount: 3,
+      crossAxisSpacing: 6,
+      mainAxisSpacing: 6,
+      padding: EdgeInsets.zero,
+      primary: false,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        childAspectRatio: 1.2,
-        crossAxisSpacing: 6,
-        mainAxisSpacing: 6,
-      ),
       itemCount: earnWithBlueEraServiceList.length,
       itemBuilder: (_, i) => CommonServiceCard(
         service: earnWithBlueEraServiceList[i],
-        onTap: () => controller.handleServiceTap(
+        getName: (item) => item.name,
+        getIcon: (item) => item.icon,
+        spacing: 8.0,
+        onTap: (item) => controller.handleServiceTap(
           context,
-          earnWithBlueEraServiceList[i],
+          item,
         ),
       ),
     );

@@ -6,37 +6,42 @@ import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 
-class CommonServiceCard extends StatelessWidget {
-  final CollapsibleGridModel service;
-  final VoidCallback? onTap;
-  final double spacing;
+class CommonServiceCard<T> extends StatelessWidget {
+  final T service;
+  final String Function(T) getName;
+  final String Function(T) getIcon;
+  final Function(T) onTap;
   final bool isSelected;
+  final double? iconHeight;
+  final double? spacing;
+  final double? borderWidth;
 
   const CommonServiceCard({
     Key? key,
     required this.service,
-    this.onTap,
-    this.spacing = 8.0,
+    required this.getName,
+    required this.getIcon,
+    required this.onTap,
     this.isSelected = false,
+    this.iconHeight,
+    this.spacing,
+    this.borderWidth,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       borderRadius: BorderRadius.circular(10),
-      onTap: onTap,
-      // splashColor: Colors.red,
-      // highlightColor: Colors.white,
+      onTap: () => onTap(service),
       child: Container(
-        padding: EdgeInsets.all(SizeConfig.size4),
+        padding: EdgeInsets.all(SizeConfig.size10),
         decoration: BoxDecoration(
           color: AppColors.white,
-          // color: service.bgColor,
           borderRadius: BorderRadius.circular(10),
           boxShadow: [AppShadows.textFieldShadow],
           border: Border.all(
               color: isSelected ? AppColors.primaryColor : AppColors.greyE5,
-              width: 1.5
+              width: borderWidth ?? 1.0
           ),
         ),
         alignment: Alignment.center,
@@ -44,28 +49,21 @@ class CommonServiceCard extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            SizedBox(
-              height: SizeConfig.size45,
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: LocalAssets(
-                    imagePath: service.icon,
-                    boxFix: BoxFit.cover,
-                    height: SizeConfig.size45,
-                    // width: SizeConfig.size40,
-                ),
-              ),
+            LocalAssets(
+              imagePath: getIcon(service),
+              height: iconHeight ?? SizeConfig.size50,
             ),
-            SizedBox(height: spacing),
+            SizedBox(height: spacing ?? SizeConfig.paddingXSL),
             CustomText(
-              service.name,
+              getName(service),
+              fontSize: SizeConfig.small,
+              color: AppColors.secondaryTextColor,
+              fontWeight: FontWeight.w600,
               textAlign: TextAlign.center,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              fontSize: SizeConfig.small,
-              fontWeight: FontWeight.w400,
-              color: AppColors.secondaryTextColor,
             ),
+
           ],
         ),
       ),

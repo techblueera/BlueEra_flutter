@@ -484,6 +484,7 @@ abstract class BaseService {
   String businessViews(String businessId) => "user-service//business/$businessId/view";
   String earnServices = "earn-service/services";
   String earnServicesById(String serviceId) => 'earn-service/services/$serviceId';
+  String earnServicesImages(String serviceId) => 'earn-service//services/$serviceId/images';
   String channelFollowingMe = "channel-service/follower/following/me";
   String channel_service_follower = "channel-service/follower/";
   String getNearByRiderApi = "rider-service/riders/nearby";
