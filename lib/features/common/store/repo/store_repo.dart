@@ -47,7 +47,8 @@ class StoreRepo extends BaseService {
     required int page,
     String? lat,
     String? long,
-    ProviderType? ProviderType
+    ProviderType? ProviderType,
+    String? productCategory
   }) async {
     const int limit = 20;
 
@@ -63,7 +64,7 @@ class StoreRepo extends BaseService {
       queryParams[ApiKeys.longitude] = long;
     }
     if(ProviderType!=null) queryParams[ApiKeys.ownerType] = ProviderType.title;
-
+    if(productCategory!=null) queryParams[ApiKeys.key] = productCategory;
 
     final response = await ApiBaseHelper().getHTTP(
       homePageProduct,

@@ -65,7 +65,6 @@ class EarnServiceRepo extends BaseService {
   Future<ResponseModel> uploadProfessionImage(
       {required String serviceId, required Map<String, dynamic> params}) async {
     final response = await ApiBaseHelper().postHTTP(
-        isMultipart: true,
         params: params,
         earnServicesImages(serviceId),
         showProgress: false,

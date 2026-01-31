@@ -546,39 +546,50 @@ class ChatViewController extends GetxController {
     aiSocket.sendMessage(
         message: message,
         conversationId: converId,
+        serviceType: type,
         imageBytes: imageBytes,
         mimeType: mimeType
     );
   }
 
   BaseAiChatModel _parseDataByType(String type, Map<String, dynamic> json) {
-    switch (type) {
-      case AppConstants.askInventory_Chat_Type:
-        return InventoryAskAiModel.fromJson(json);
+    try {
+      switch (type) {
+        case AppConstants.askInventory_Chat_Type:
+          return InventoryAskAiModel.fromJson(json);
 
-      case AppStrings.FoodChatAi:
-        return FoodAskAiModel.fromJson(json);
+        case AppConstants.askFood_Chat_Type:
+          return FoodAskAiModel.fromJson(json);
 
-      case AppConstants.askService_Chat_Type:
-         return BusinessServicesAskAiModel.fromJson(json);
+        case AppConstants.askService_Chat_Type:
+          return BusinessServicesAskAiModel.fromJson(json);
 
-      case AppConstants.askHealthCare_Chat_Type:
-    return HealthCareAskAiModel.fromJson(json);
+        case AppConstants.askHealthCare_Chat_Type:
+          return HealthCareAskAiModel.fromJson(json);
 
-      case AppConstants.askEducation_Chat_Type:
-    return EducationAskAiModel.fromJson(json);
+        case AppConstants.askEducation_Chat_Type:
+          return EducationAskAiModel.fromJson(json);
 
-      case AppConstants.askHomeService_Chat_Type:
-    return ServiceAskAiModel.fromJson(json);
+        case AppConstants.askHomeService_Chat_Type:
+          return ServiceAskAiModel.fromJson(json);
 
-      case AppConstants.askTravelStay_Chat_Type:
-      return TravelAndStayAskAiModel.fromJson(json);
+        case AppConstants.askTravelStay_Chat_Type:
+          return TravelAndStayAskAiModel.fromJson(json);
 
-      case AppConstants.askConsultingTalk_Chat_Type:
-    return ServiceAskAiModel.fromJson(json);
+        case AppConstants.askConsultingTalk_Chat_Type:
+          return ServiceAskAiModel.fromJson(json);
 
-      default:
-        return InventoryAskAiModel.fromJson(json);
+        default:
+          return InventoryAskAiModel.fromJson(json);
+      }
+    } catch (e, stackTrace) {
+      // 🔴 Log the Error and Stack Trace
+      print("❌ Error in _parseDataByType for type: $type");
+      print("Error: $e");
+      print("Stack Trace: $stackTrace");
+
+      // Recommended: Rethrow the error so the UI knows something failed
+      rethrow;
     }
   }
 

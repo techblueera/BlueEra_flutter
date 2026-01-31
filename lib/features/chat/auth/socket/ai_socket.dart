@@ -112,17 +112,18 @@ class AiSocketService {
   void sendMessage({
     String? conversationId,
     String? message,
+    String? serviceType,
     Uint8List? imageBytes,
     String? mimeType,
   }) {
     if (kDebugMode) {
-      print('📤 EMIT [send_message] --> ID: $conversationId | Message: "$message"');
+      print('📤 EMIT [send_message] --> ID: $conversationId | Message: "$message" | Service Type: "$serviceType"');
     }
 
     socket?.emit('send_message', {
       "message": message,
-      if(conversationId!=null)
-      "conversationId": conversationId,
+      if(conversationId!=null)"conversationId": conversationId,
+      if(serviceType!=null) "serviceType": serviceType,
       "fileData": imageBytes,
       "mimeType": mimeType
     });

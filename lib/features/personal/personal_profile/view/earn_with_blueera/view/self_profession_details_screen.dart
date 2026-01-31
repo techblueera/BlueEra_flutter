@@ -743,8 +743,7 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
                       return GetBuilder<SelfWorkServiceController>(
                         id: 'professionPhotos',
                         builder: (controller) {
-                          final apiPhotos = service.photos ?? [];
-
+                          final apiPhotos = service.photos ?? [];;
                           final totalCount = apiPhotos.length;
                           final emptySlots = (8 - totalCount).clamp(0, 8);
 
@@ -754,6 +753,7 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
                           for (int i = 0; i < apiPhotos.length; i++) {
                             allPhotos.add(_buildImageContainer(
                               context,
+                              ValueKey(apiPhotos[i]),
                               apiPhotos[i],
                               i,
                               controller,
@@ -766,6 +766,7 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
                           for (int i = 0; i < emptySlots; i++) {
                             allPhotos.add(_buildImageContainer(
                               context,
+                              ValueKey("empty_${i}"),
                               "",
                               apiPhotos.length + i,
                               controller,
@@ -854,6 +855,7 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
 
   Widget _buildImageContainer(
       BuildContext context,
+      Key key,
       String? imagePath,
       int index,
       SelfWorkServiceController controller,
@@ -863,6 +865,7 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
     final isEmpty = imagePath == null || imagePath.isEmpty;
 
     return Stack(
+      key: key,
       children: [
         GestureDetector(
           onTap: () async {

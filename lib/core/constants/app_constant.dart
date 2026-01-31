@@ -1431,6 +1431,27 @@ const String AGRICULTURE_FARMING = "AGRICULTURE_FARMING";
 const String HOME_KITCHEN_UTENSILS = "HOME_KITCHEN_UTENSILS";
 const String HOME_APPLIANCES_STORE = "HOME_APPLIANCES_STORE";
 
+//
+const String APPLIANCES = "APPLIANCES";
+const String AUTOMOTIVE = "AUTOMOTIVE";
+const String BABY_PRODUCTS = "BABY_PRODUCTS";
+const String BEAUTY_AND_PERSONAL_CARE = "BEAUTY_&_PERSONAL_CARE";
+const String CELL_PHONES_ACCESSORIES = "CELL_PHONES_&_ACCESSORIES";
+const String ELECTRONICS = "ELECTRONICS";
+const String FURNITURE_DECOR = "FURNITURE_&_DECOR";
+const String HOME_KITCHEN = "HOME_&_KITCHEN";
+const String INDUSTRIAL_SCIENTIFIC = "INDUSTRIAL_&_SCIENTIFIC";
+const String MUSICAL_INSTRUMENTS = "MUSICAL_INSTRUMENTS";
+const String BOOKS_STATIONERY = "BOOKS_&_STATIONERY";
+const String PET_SUPPLIES = "PET_SUPPLIES";
+const String SPORTS_OUTDOORS = "SPORTS_&_OUTDOORS";
+const String TOOLS_AND_HOME_IMPROVEMENT = "TOOLS_&_HOME_IMPROVEMENT";
+const String TOYS_GAMES = "TOYS_&_GAMES";
+const String ARTS_CRAFTS_SEWING = "ARTS_CRAFTS_SEWING";
+const String CLOTHING_SHOES_JEWELRY = "CLOTHING_SHOES_JEWELRY";
+const String FARMING_LAWN_GARDEN = "FARMING_LAWN_GARDEN";
+
+
 const String ALL_INDIVIDUAL = "ALL_INDIVIDUAL";
 const String skilledWork = "skilledWork";
 const String consultant = "consultant";
@@ -2835,41 +2856,125 @@ final List<OnboardingCategoryModel> businessProductStoreCategories = [
 
 final List<OnboardingCategoryModel> businessProductsCategories = [
   OnboardingCategoryModel(
+      name: 'Home\nAppliances',
+      slugId: APPLIANCES,
+      icon: AppImageAssets.homeAppliances,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Product),
+  OnboardingCategoryModel(
+      name: 'Auto Spare\nParts',
+      slugId: AUTOMOTIVE,
+      icon: AppImageAssets.automotiveStore,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Product),
+  OnboardingCategoryModel(
+      name: 'Kids\nProducts',
+      slugId: BABY_PRODUCTS,
+      icon: AppImageAssets.babyToysProductStore,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Product),
+  OnboardingCategoryModel(
+      name: 'Beauty &\nCare',
+      slugId: BEAUTY_AND_PERSONAL_CARE,
+      icon: AppImageAssets.beautyAndCosmetics,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Product),
+  OnboardingCategoryModel(
       name: 'Mobiles &\nAccessories',
-      slugId: FASHION_LIFESTYLE,
+      slugId: CELL_PHONES_ACCESSORIES,
       icon: AppImageAssets.electronicsApplianceStore,
       accountType: AppConstants.business,
       businessType: BusinessType.Product),
   OnboardingCategoryModel(
       name: 'Electronics &\nGadgets',
-      slugId: ELECTRONICS_APPLIANCES_STORE,
+      slugId: ELECTRONICS,
       icon: AppImageAssets.electronicsApplianceStore,
       accountType: AppConstants.business,
       businessType: BusinessType.Product),
   OnboardingCategoryModel(
-      name: 'Fashion &\nJewelry',
-      slugId: AUTOMOTIVE_STORE_SHOWROOM,
+      name: 'Furniture &\nDecor',
+      slugId: FURNITURE_DECOR,
       icon: AppImageAssets.fashionLifestyle,
       accountType: AppConstants.business,
       businessType: BusinessType.Product),
   OnboardingCategoryModel(
-      name: 'Home\nEssentials',
-      slugId: CONSTRUCTION_HOME_ESSENTIALS,
+      name: 'Home\nKitchen',
+      slugId: HOME_KITCHEN,
       icon: AppImageAssets.homeKitchenAndUtensils,
       accountType: AppConstants.business,
       businessType: BusinessType.Product),
   OnboardingCategoryModel(
-      name: 'Beauty &\nCare',
-      slugId: FURNITURE_HOME_DECOR,
-      icon: AppImageAssets.beautyAndCosmetics,
+      name: 'Industrial\nSupplies',
+      slugId: INDUSTRIAL_SCIENTIFIC,
+      icon: AppImageAssets.industrialWholesale,
       accountType: AppConstants.business,
       businessType: BusinessType.Product),
   OnboardingCategoryModel(
-      name: 'Home\nAppliances',
-      slugId: HOME_APPLIANCES_STORE,
-      icon: AppImageAssets.homeAppliances,
+      name: 'Musical\nInstruments',
+      slugId: MUSICAL_INSTRUMENTS,
+      icon: AppImageAssets.industrialWholesale,
       accountType: AppConstants.business,
       businessType: BusinessType.Product),
+  OnboardingCategoryModel(
+      name: 'Books &\nStationery',
+      slugId: BOOKS_STATIONERY,
+      icon: AppImageAssets.booksStationaryGifts,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Product),
+  OnboardingCategoryModel(
+      name: 'Pet\nCare',
+      slugId: PET_SUPPLIES,
+      icon: AppImageAssets.petSuppliesStore,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Product),
+  OnboardingCategoryModel(
+      name: 'Sports &\nFitness',
+      slugId: SPORTS_OUTDOORS,
+      icon: AppImageAssets.sportsFitnessStore,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Product),
+  OnboardingCategoryModel(
+      name: 'Tools &\nHardware',
+      slugId: TOOLS_AND_HOME_IMPROVEMENT,
+      icon: AppImageAssets.constructionHardware,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Product),
+  OnboardingCategoryModel(
+      name: 'Toys &\nGames',
+      slugId: TOYS_GAMES,
+      icon: AppImageAssets.babyToysProductStore,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Product),
+  OnboardingCategoryModel(
+      name: 'Arts, Crafts &\nSewing',
+      slugId: ARTS_CRAFTS_SEWING,
+      icon: AppImageAssets.industrialWholesale,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Product),
+  OnboardingCategoryModel(
+      name: 'Clothing, Shows &\njewelery',
+      slugId: CLOTHING_SHOES_JEWELRY,
+      icon: AppImageAssets.industrialWholesale,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Product),
+  OnboardingCategoryModel(
+      name: 'Farming, Lawn &\nGarden',
+      slugId: FARMING_LAWN_GARDEN,
+      icon: AppImageAssets.industrialWholesale,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Product),
+  // OnboardingCategoryModel(
+  //     name: 'Fashion &\nJewelry',
+  //     slugId: AUTOMOTIVE_STORE_SHOWROOM,
+  //     icon: AppImageAssets.fashionLifestyle,
+  //     accountType: AppConstants.business,
+  //     businessType: BusinessType.Product),
+  // OnboardingCategoryModel(
+  //     name: 'Home\nEssentials',
+  //     slugId: CONSTRUCTION_HOME_ESSENTIALS,
+  //     icon: AppImageAssets.homeKitchenAndUtensils,
+  //     accountType: AppConstants.business,
+  //     businessType: BusinessType.Product),
   // OnboardingCategoryModel(
   //     name: 'Home\nAppliances',
   //     slugId: JEWELRY_LUXURY_STORE,
@@ -2882,78 +2987,13 @@ final List<OnboardingCategoryModel> businessProductsCategories = [
   //     icon: AppImageAssets.beautyAndCosmetics,
   //     accountType: AppConstants.business,
   //     businessType: BusinessType.Product),
-  OnboardingCategoryModel(
-      name: 'Health &\nMedical',
-      slugId: BOOKS_STATIONERY_GIFTS_STORE,
-      icon: AppImageAssets.pharmacyMedicalStore,
-      accountType: AppConstants.business,
-      businessType: BusinessType.Product),
-  OnboardingCategoryModel(
-      name: 'Kids\nProducts',
-      slugId: TOYS_BABY_PRODUCTS_STORE,
-      icon: AppImageAssets.babyToysProductStore,
-      accountType: AppConstants.business,
-      businessType: BusinessType.Product),
-  OnboardingCategoryModel(
-      name: 'Books &\nStationery',
-      slugId: HOME_APPLIANCES_STORE,
-      icon: AppImageAssets.booksStationaryGifts,
-      accountType: AppConstants.business,
-      businessType: BusinessType.Product),
-  OnboardingCategoryModel(
-      name: 'Sports &\nFitness',
-      slugId: SPORTS_FITNESS_STORE,
-      icon: AppImageAssets.sportsFitnessStore,
-      accountType: AppConstants.business,
-      businessType: BusinessType.Product),
-  OnboardingCategoryModel(
-      name: 'Toys &\nGames',
-      slugId: PET_SUPPLIES_STORE,
-      icon: AppImageAssets.babyToysProductStore,
-      accountType: AppConstants.business,
-      businessType: BusinessType.Product),
-  OnboardingCategoryModel(
-      name: 'Auto Spare\nParts',
-      slugId: RELIGIOUS_SPECIALTY,
-      icon: AppImageAssets.automotiveStore,
-      accountType: AppConstants.business,
-      businessType: BusinessType.Product),
-  OnboardingCategoryModel(
-      name: 'Tools &\nHardware',
-      slugId: PACKAGING_DISPOSABLE,
-      icon: AppImageAssets.constructionHardware,
-      accountType: AppConstants.business,
-      businessType: BusinessType.Product),
-  OnboardingCategoryModel(
-      name: 'Industrial\nSupplies',
-      slugId: AGRICULTURE_FARMING,
-      icon: AppImageAssets.industrialWholesale,
-      accountType: AppConstants.business,
-      businessType: BusinessType.Product),
-  OnboardingCategoryModel(
-      name: 'Garden &\nAgriculture',
-      slugId: INDUSTRIAL_WHOLESALE,
-      icon: AppImageAssets.industrialWholesale,
-      accountType: AppConstants.business,
-      businessType: BusinessType.Product),
-  OnboardingCategoryModel(
-      name: 'Pet\nCare',
-      slugId: INDUSTRIAL_WHOLESALE,
-      icon: AppImageAssets.petSuppliesStore,
-      accountType: AppConstants.business,
-      businessType: BusinessType.Product),
-  OnboardingCategoryModel(
-      name: 'Arts &\nCrafts',
-      slugId: INDUSTRIAL_WHOLESALE,
-      icon: AppImageAssets.industrialWholesale,
-      accountType: AppConstants.business,
-      businessType: BusinessType.Product),
-  OnboardingCategoryModel(
-      name: 'Musical\nInstruments',
-      slugId: INDUSTRIAL_WHOLESALE,
-      icon: AppImageAssets.industrialWholesale,
-      accountType: AppConstants.business,
-      businessType: BusinessType.Product),
+  // OnboardingCategoryModel(
+  //     name: 'Health &\nMedical',
+  //     slugId: BOOKS_STATIONERY_GIFTS_STORE,
+  //     icon: AppImageAssets.pharmacyMedicalStore,
+  //     accountType: AppConstants.business,
+  //     businessType: BusinessType.Product),
+
 ];
 
 final List<BusinessProfileCategory> businessFoodsCategories = [

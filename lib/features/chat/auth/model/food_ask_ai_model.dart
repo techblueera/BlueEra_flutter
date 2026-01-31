@@ -9,6 +9,7 @@ class FoodAskAiModel extends BaseAiChatModel {
     super.role,
     super.timestamp,
     super.message,
+    this.suggestions,
     this.data,
   });
 
@@ -79,7 +80,7 @@ class FoodData {
   Price? price;
   bool? isAvailable;
   int? preparationTime;
-  int? rating;
+  num? rating;
   int? iV;
   String? createdAt;
   String? updatedAt;
@@ -197,7 +198,7 @@ class Product {
 
 class Location {
   String? type;
-  List<double>? coordinates;
+  List<num>? coordinates;
   String? address;
   String? pincode;
 
@@ -205,7 +206,7 @@ class Location {
 
   Location.fromJson(Map<String, dynamic> json) {
     type = json['type'];
-    coordinates = json['coordinates'].cast<double>();
+    coordinates = json['coordinates'].cast<num>();
     address = json['address'];
     pincode = json['pincode'];
   }

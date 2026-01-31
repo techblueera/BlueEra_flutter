@@ -13,11 +13,13 @@ import 'package:get/get.dart';
 class AllProductScreen extends StatefulWidget {
   final bool isShowInGrid;
   final ProviderType providerType;
+  final String? productCategory;
 
   const AllProductScreen({
     super.key,
     required this.isShowInGrid,
     required this.providerType,
+    this.productCategory,
   });
 
   @override
@@ -30,12 +32,15 @@ class _AllProductScreenState extends State<AllProductScreen> {
       : Get.put(NewStoreController());
   final ScrollController storesScrollController = ScrollController();
   late ProviderType _providerType;
+  String? _productCategory;
 
   @override
   void initState() {
     _providerType = widget.providerType;
+    _productCategory = widget.productCategory;
     controller.getAllProductNearBy(
-        providerType: _providerType
+        providerType: _providerType,
+        productCategory: _productCategory
     );
     super.initState();
 
@@ -44,6 +49,7 @@ class _AllProductScreenState extends State<AllProductScreen> {
           storesScrollController.position.maxScrollExtent - 200) {
         controller.getAllProductNearBy(
             providerType: _providerType,
+            productCategory: _productCategory,
             isLoadMore: true
         );
       }

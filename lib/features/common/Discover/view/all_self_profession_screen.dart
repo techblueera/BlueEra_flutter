@@ -383,6 +383,30 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
                   SizedBox(height: SizeConfig.size6),
                 ],
 
+
+              // Row(
+              //   crossAxisAlignment: CrossAxisAlignment.start,
+              //   children: [
+              //     // Bullet Point
+              //     CustomText(
+              //       "• ",
+              //       fontSize: SizeConfig.medium,
+              //       color: AppColors.mainTextColor,
+              //       fontWeight: FontWeight.bold,
+              //     ),
+              //
+              //     // The Text
+              //     Expanded(
+              //       child: CustomText(
+              //         service,
+              //         fontSize: SizeConfig.small,
+              //         color: AppColors.secondaryTextColor,
+              //         fontWeight: FontWeight.w400,
+              //       ),
+              //     ),
+              //   ],
+              // ),
+
               FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Row(
