@@ -9,6 +9,8 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/features/chat/view/ai_chat/view/ai_common_search_screen.dart';
 import 'package:BlueEra/features/common/auth/model/business_profile_category.dart';
 import 'package:BlueEra/features/common/store/view/new_store/business_store_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
@@ -17,6 +19,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/update_live_photo_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
 class ServicesNearMeScreen extends StatefulWidget {
@@ -52,7 +55,6 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
 
   @override
   Widget build(BuildContext context) {
-
     const int itemsPerPage = 12;
     int totalPages = (_businessServicesCategories.length / itemsPerPage).ceil();
 
@@ -165,150 +167,167 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
             child: Column(
               children: [
                 // --- Header Card ---
-                Container(
-                  padding: EdgeInsets.only(
-                    left: SizeConfig.size14,
-                    right: SizeConfig.size14,
-                    top: SizeConfig.size14,
-                  ),
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10.0),
-                      border: Border.all(
-                          color: AppColors.blueShade.withValues(alpha: 0.1)),
-                      gradient: LinearGradient(colors: [
-                        AppColors.blueShade.withValues(alpha: 0.02),
-                        AppColors.blueShade.withValues(alpha: 0.3)
-                      ], begin: Alignment.topCenter, end: Alignment.bottomCenter)),
-                  child: Row(
-                    children: [
-                      LocalAssets(
-                          imagePath: AppImageAssets.sampleGirlImage,
-                          width: SizeConfig.size90,
-                          boxFix: BoxFit.cover),
-                      SizedBox(width: SizeConfig.size12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: CustomText('Hi!',
-                                  fontSize: SizeConfig.medium,
-                                  color: AppColors.mainTextColor,
-                                  fontWeight: FontWeight.w400),
-                            ),
-                            SizedBox(
-                              height: SizeConfig.size5,
-                            ),
-                            FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: RichText(
-                                text: TextSpan(
-                                  style: TextStyle(
-                                      fontSize: SizeConfig.medium,
-                                      color: AppColors.mainTextColor,
-                                      fontWeight: FontWeight.w400),
-                                  children: [
-                                    const TextSpan(text: 'May I '),
-                                    TextSpan(
-                                      text: 'Help You',
-                                      style: TextStyle(
-                                        color: AppColors.primaryColor,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: SizeConfig.medium,
-                                      ),
-                                    ),
-                                    const TextSpan(text: ' to Find Out'),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            SizedBox(
-                              height: SizeConfig.size5,
-                            ),
-                            FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: RichText(
-                                text: TextSpan(
-                                  style: TextStyle(
-                                      fontSize: SizeConfig.medium,
-                                      color: AppColors.mainTextColor,
-                                      fontWeight: FontWeight.w400),
-                                  children: [
-                                    const TextSpan(text: 'Your Product From '),
-                                    TextSpan(
-                                      text: 'Local Market.',
-                                      style: TextStyle(
-                                        color: AppColors.primaryColor,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: SizeConfig.medium,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            SizedBox(height: SizeConfig.size12),
-                            Container(
-                              height: SizeConfig.size32,
-                              decoration: BoxDecoration(
-                                color: AppColors.white,
-                                borderRadius: BorderRadius.circular(10.0),
-                              ),
-                              alignment: Alignment.center,
-                              child: TextFormField(
-                                autofocus: false,
-                                controller: TextEditingController(),
-                                style: TextStyle(
+                InkWell(
+                  onTap: (){
+                    final chat = ChatViewController.serviceAiChatListSearchModule;
+                    Get.to(() => AiCommonSearchScreen(
+                      chatType: AppConstants.askService_Chat_Type,
+                      profileImage: chat?.sender?.profileImage,
+                      name: chat?.sender?.name,
+                      contactNo: chat?.sender?.contactNo,
+                      conversationId: '',
+                      userId: '',
+                      businessId: '',
+                      type: chat?.sender?.accountType,
+                      isInitialMessage: false,
+                    ));
+                  },
+                  child: Container(
+                    padding: EdgeInsets.only(
+                      left: SizeConfig.size14,
+                      right: SizeConfig.size14,
+                      top: SizeConfig.size14,
+                    ),
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10.0),
+                        border: Border.all(
+                            color: AppColors.blueShade.withValues(alpha: 0.1)),
+                        gradient: LinearGradient(colors: [
+                          AppColors.blueShade.withValues(alpha: 0.02),
+                          AppColors.blueShade.withValues(alpha: 0.3)
+                        ], begin: Alignment.topCenter, end: Alignment.bottomCenter)),
+                    child: Row(
+                      children: [
+                        LocalAssets(
+                            imagePath: AppImageAssets.sampleGirlImage,
+                            width: SizeConfig.size90,
+                            boxFix: BoxFit.cover),
+                        SizedBox(width: SizeConfig.size12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: CustomText('Hi!',
+                                    fontSize: SizeConfig.medium,
                                     color: AppColors.mainTextColor,
-                                    fontSize: SizeConfig.medium),
-                                textAlignVertical: TextAlignVertical.center,
-                                decoration: InputDecoration(
-                                  hintText: 'Search Service....',
-                                  hintStyle: TextStyle(
-                                      fontSize: SizeConfig.medium,
-                                      color: AppColors.secondaryTextColor),
-                                  isDense: true,
-                                  filled: false,
-                                  contentPadding: EdgeInsets.zero,
-                                  border: InputBorder.none,
-                                  enabledBorder: InputBorder.none,
-                                  focusedBorder: InputBorder.none,
-                                  prefixIcon: Padding(
-                                    padding: EdgeInsets.only(
-                                      top: SizeConfig.size5,
-                                      bottom: SizeConfig.size5,
-                                    ),
-                                    child: Icon(Icons.search,
-                                        color: AppColors.secondaryTextColor,
-                                        size: SizeConfig.paddingXL),
-                                  ),
-                                  suffixIcon: Padding(
-                                    padding: EdgeInsets.only(
-                                        left: SizeConfig.size8,
-                                        right: SizeConfig.size16,
-                                        top: SizeConfig.size5,
-                                        bottom: SizeConfig.size5),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(Icons.mic_none_outlined,
-                                            color: AppColors.secondaryTextColor,
-                                            size: SizeConfig.paddingXL),
-                                        SizedBox(width: SizeConfig.size10),
-                                        Icon(Icons.camera_alt_outlined,
-                                            color: AppColors.secondaryTextColor,
-                                            size: SizeConfig.paddingXL),
-                                      ],
-                                    ),
+                                    fontWeight: FontWeight.w400),
+                              ),
+                              SizedBox(
+                                height: SizeConfig.size5,
+                              ),
+                              FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: RichText(
+                                  text: TextSpan(
+                                    style: TextStyle(
+                                        fontSize: SizeConfig.medium,
+                                        color: AppColors.mainTextColor,
+                                        fontWeight: FontWeight.w400),
+                                    children: [
+                                      const TextSpan(text: 'May I '),
+                                      TextSpan(
+                                        text: 'Help You',
+                                        style: TextStyle(
+                                          color: AppColors.primaryColor,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: SizeConfig.medium,
+                                        ),
+                                      ),
+                                      const TextSpan(text: ' to Find Out'),
+                                    ],
                                   ),
                                 ),
                               ),
-                            )
-                          ],
-                        ),
-                      )
-                    ],
+                              SizedBox(
+                                height: SizeConfig.size5,
+                              ),
+                              FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: RichText(
+                                  text: TextSpan(
+                                    style: TextStyle(
+                                        fontSize: SizeConfig.medium,
+                                        color: AppColors.mainTextColor,
+                                        fontWeight: FontWeight.w400),
+                                    children: [
+                                      const TextSpan(text: 'Your Near By '),
+                                      TextSpan(
+                                        text: 'Services.',
+                                        style: TextStyle(
+                                          color: AppColors.primaryColor,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: SizeConfig.medium,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: SizeConfig.size12),
+                              Container(
+                                height: SizeConfig.size32,
+                                decoration: BoxDecoration(
+                                  color: AppColors.white,
+                                  borderRadius: BorderRadius.circular(10.0),
+                                ),
+                                alignment: Alignment.center,
+                                child: TextFormField(
+                                  autofocus: false,
+                                  enabled: false,
+                                  controller: TextEditingController(),
+                                  style: TextStyle(
+                                      color: AppColors.mainTextColor,
+                                      fontSize: SizeConfig.medium),
+                                  textAlignVertical: TextAlignVertical.center,
+                                  decoration: InputDecoration(
+                                    hintText: 'Search Service....',
+                                    hintStyle: TextStyle(
+                                        fontSize: SizeConfig.medium,
+                                        color: AppColors.secondaryTextColor),
+                                    isDense: true,
+                                    filled: false,
+                                    contentPadding: EdgeInsets.zero,
+                                    border: InputBorder.none,
+                                    enabledBorder: InputBorder.none,
+                                    focusedBorder: InputBorder.none,
+                                    prefixIcon: Padding(
+                                      padding: EdgeInsets.only(
+                                        top: SizeConfig.size5,
+                                        bottom: SizeConfig.size5,
+                                      ),
+                                      child: Icon(Icons.search,
+                                          color: AppColors.secondaryTextColor,
+                                          size: SizeConfig.paddingXL),
+                                    ),
+                                    suffixIcon: Padding(
+                                      padding: EdgeInsets.only(
+                                          left: SizeConfig.size8,
+                                          right: SizeConfig.size16,
+                                          top: SizeConfig.size5,
+                                          bottom: SizeConfig.size5),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(Icons.mic_none_outlined,
+                                              color: AppColors.secondaryTextColor,
+                                              size: SizeConfig.paddingXL),
+                                          SizedBox(width: SizeConfig.size10),
+                                          Icon(Icons.camera_alt_outlined,
+                                              color: AppColors.secondaryTextColor,
+                                              size: SizeConfig.paddingXL),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
+                        )
+                      ],
+                    ),
                   ),
                 ),
 
@@ -335,6 +354,8 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
                                   final int endIndex = (startIndex + itemsPerPage < _businessServicesCategories.length)
                                       ? startIndex + itemsPerPage
                                       : _businessServicesCategories.length;
+
+                                  print("Page: $pageIndex | Range: $startIndex - $endIndex | Total Items: ${_businessServicesCategories.length}");
 
                                   // 5. Get the sublist for this specific page
                                   final List<BusinessProfileCategory> pageItems = _businessServicesCategories.sublist(startIndex, endIndex);
@@ -393,24 +414,21 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
 
   // --- Widget: Grid Page (Reusable) ---
   Widget _buildGridPage(List<BusinessProfileCategory> items) {
-    return GridView.builder(
+    return MasonryGridView.count(
       physics: const NeverScrollableScrollPhysics(),
-      padding: EdgeInsets.zero,
+      crossAxisCount: 3,
+      crossAxisSpacing: 6,
+      mainAxisSpacing: 6,
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
       itemCount: items.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        crossAxisSpacing: 6,
-        mainAxisSpacing: 6,
-        childAspectRatio: 1.2,
-      ),
       itemBuilder: (context, index) {
-        var serviceData = _businessServicesCategories[index];
+        var serviceData = items[index];
         return _buildCategoryItem(
           serviceCategory: serviceData,
           onTap: (c) {
             Get.to(() => BusinessStoreScreen(
               typeOfBusiness: AppConstants.service,
-              selectedStoreCategoryId: c.categoryData?.id,
+              selectedStoreCategoryId: c.slugId,
               selectedStoreCategoryName: c.name,
             ));
           },
@@ -443,7 +461,7 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
       onTap: () {
         if (onTap != null) onTap(serviceCategory);
       },
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(10.0),
       child: Container(
         padding: EdgeInsets.all(SizeConfig.size5),
         decoration: BoxDecoration(
@@ -459,7 +477,7 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
           children: [
             LocalAssets(
               imagePath: serviceCategory.icon,
-              scaleSize: 2.0,
+              height: SizeConfig.size60,
             ),
             SizedBox(height: SizeConfig.paddingXSL),
             CustomText(

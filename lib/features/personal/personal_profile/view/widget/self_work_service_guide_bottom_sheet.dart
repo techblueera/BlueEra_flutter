@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/constants/string_utils.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
+import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/change_profession_warning_dialog.dart';
@@ -15,6 +16,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/widget/horizonat
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
 class SelfWorkServiceGuideBottomSheet extends StatefulWidget {
@@ -27,7 +29,7 @@ class SelfWorkServiceGuideBottomSheet extends StatefulWidget {
 class _SelfWorkServiceGuideBottomSheetState extends State<SelfWorkServiceGuideBottomSheet> {
   final authController = Get.find<AuthController>();
   int? selectedIndex;
-  CollapsibleGridModel? selectedService;
+  OnboardingCategoryModel? selectedService;
 
   @override
   void initState() {
@@ -89,27 +91,28 @@ class _SelfWorkServiceGuideBottomSheetState extends State<SelfWorkServiceGuideBo
             SizedBox(height: SizeConfig.size16),
 
             Flexible(
-              child: GridView.builder(
+              child: MasonryGridView.count(
+                crossAxisCount: 4,
+                crossAxisSpacing: 6,
+                mainAxisSpacing: 6,
+                padding: EdgeInsets.zero,
+                primary: false,
                 shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 4,
-                  childAspectRatio: 1.0,
-                  crossAxisSpacing: 6,
-                  mainAxisSpacing: 6,
-                ),
-                itemCount: selfWorkCategories.length,
+                itemCount: individualOnboardingSkillWorkList.take(12).length,
                 itemBuilder: (_, i) => CommonServiceCard(
-                  service: selfWorkCategories[i],
+                  service: individualOnboardingSkillWorkList[i],
+                  getName: (item) => item.name,
+                  getIcon: (item) => item.flagIcon ?? '',
                   isSelected: selectedIndex == i,
-                  onTap: () {
+                  spacing: 8.0,
+                  onTap: (item) {
                     setState(() {
                       if (selectedIndex == i) {
                         selectedIndex = null;
                         selectedService = null;
                       } else {
                         selectedIndex = i;
-                        selectedService = selfWorkCategories[i];
+                        selectedService = item;
                       }
                     });
                   },

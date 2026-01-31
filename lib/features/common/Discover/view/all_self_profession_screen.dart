@@ -9,7 +9,7 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/Discover/widget/service_category_item.dart';
 import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
-import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
+import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -27,20 +27,20 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class AllSelfProfessionScreen extends StatefulWidget {
-  final List<CollapsibleGridModel> selfEmployedCategories;
-  final CollapsibleGridModel selectedSelfProfessionData;
+  final List<OnboardingCategoryModel> selfEmployedCategories;
+  final OnboardingCategoryModel? selectedSelfProfessionData;
 
   const AllSelfProfessionScreen({
     super.key,
     required this.selfEmployedCategories,
-    required this.selectedSelfProfessionData});
+    this.selectedSelfProfessionData});
 
   @override
   State<AllSelfProfessionScreen> createState() => _AllSelfProfessionScreenState();
 }
 
 class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
-  late List<CollapsibleGridModel> selfEmployedCategories;
+  late List<OnboardingCategoryModel> selfEmployedCategories;
   final controller = getOrPut(() => DiscoverController());
   ScrollController scrollController = ScrollController();
   String serviceSubType = EarnServiceTypes.selfWork.label;
@@ -170,7 +170,7 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
           var item = selfEmployedCategories[index - 1];
 
           return Obx(() => ServiceCategoryItem(
-            icon: item.icon,
+            icon: item.flagIcon ?? '',
             label: item.name,
             selected: controller.selectedEarnServiceData.value?.slugId == item.slugId,
             onTap: () {

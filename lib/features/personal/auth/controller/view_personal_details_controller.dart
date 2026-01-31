@@ -548,7 +548,7 @@ class ViewPersonalDetailsController extends GetxController {
   void partiallyForceToCreateService() {
     final viewProfileController = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
 
-    selfWorkCategories.any(
+    individualOnboardingSkillWorkList.any(
       (service) => service.slugId == userProfessionGlobal,
     );
 
