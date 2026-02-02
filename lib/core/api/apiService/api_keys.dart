@@ -659,4 +659,8 @@ class ApiKeys {
   static const token  = 'token';
   static const coordinates  = 'coordinates';
   static const availabilityStatus  = 'availabilityStatus';
+  static const pickupLatitude  = 'pickupLatitude';
+  static const pickupLongitude  = 'pickupLongitude';
+  static const dropLatitude  = 'dropLatitude';
+  static const dropLongitude  = 'dropLongitude';
 }

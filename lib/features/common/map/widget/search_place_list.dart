@@ -324,7 +324,6 @@ class _SearchPlaceListState extends State<SearchPlaceList> {
                           item.lat ?? widget.lat,
                           item.lng ?? widget.lng,
                           item.description ?? widget.currentAddress,
-
                         );
                       },
                       child: Padding(
