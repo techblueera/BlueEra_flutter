@@ -17,7 +17,7 @@ class S3UploadService {
       }
 
       String fileName = file.path.split('/').last;
-      String mimeType = _getMimeType(file.path);
+      String mimeType = getMimeType(file.path);
 
       Map<String, dynamic> queryParams = {
         "fileName": fileName,
@@ -66,15 +66,16 @@ class S3UploadService {
     }
   }
 
-  // Simple Helper for MimeTypes
-  static String _getMimeType(String path) {
-    final extension = path.split('.').last.toLowerCase();
-    switch (extension) {
-      case 'jpg':
-      case 'jpeg': return 'image/jpeg';
-      case 'png':  return 'image/png';
-      case 'pdf':  return 'application/pdf';
-      default:     return 'application/octet-stream';
-    }
-  }
+
+}
+// Simple Helper for MimeTypes
+ String getMimeType(String path) {
+final extension = path.split('.').last.toLowerCase();
+switch (extension) {
+case 'jpg':
+case 'jpeg': return 'image/jpeg';
+case 'png':  return 'image/png';
+case 'pdf':  return 'application/pdf';
+default:     return 'application/octet-stream';
+}
 }

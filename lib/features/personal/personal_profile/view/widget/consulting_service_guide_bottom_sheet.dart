@@ -13,6 +13,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/widget/horizonat
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
 class ConsultingServiceGuideBottomSheet extends StatefulWidget {
@@ -87,27 +88,29 @@ class _ConsultingServiceGuideBottomSheetState extends State<ConsultingServiceGui
             SizedBox(height: SizeConfig.size16),
 
             Flexible(
-              child: GridView.builder(
+              child: MasonryGridView.count(
+                crossAxisCount: 4,
+                crossAxisSpacing: 6,
+                mainAxisSpacing: 6,
+                padding: EdgeInsets.zero,
+                primary: false,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 4,
-                  childAspectRatio: 1.0,
-                  crossAxisSpacing: 6,
-                  mainAxisSpacing: 6,
-                ),
                 itemCount: consultationServiceList.length,
                 itemBuilder: (_, i) => CommonServiceCard(
                   service: consultationServiceList[i],
+                  getName: (item) => item.name,
+                  getIcon: (item) => item.icon,
                   isSelected: selectedIndex == i,
-                  onTap: () {
+                  spacing: 8.0,
+                  onTap: (item) {
                     setState(() {
                       if (selectedIndex == i) {
                         selectedIndex = null;
                         selectedService = null;
                       } else {
                         selectedIndex = i;
-                        selectedService = consultationServiceList[i];
+                        selectedService = item;
                       }
                     });
                   },

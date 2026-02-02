@@ -11,6 +11,7 @@ import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
 import 'package:BlueEra/features/common/Discover/repo/discover_repo.dart';
+import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/model/rental_service_response.dart';
 import 'package:flutter/material.dart';
@@ -58,7 +59,7 @@ class DiscoverController extends GetxController{
   final List<DiscoverFilter> discoverFilters = DiscoverFilter.values;
   Rx<DiscoverFilter> selectedDiscoverFilter = DiscoverFilter.home.obs;
 
-  Rx<CollapsibleGridModel?> selectedEarnServiceData = Rx<CollapsibleGridModel?>(null);
+  Rx<OnboardingCategoryModel?> selectedEarnServiceData = Rx<OnboardingCategoryModel?>(null);
   RxInt selectedTabIndex = 0.obs;
   final List<CategoryFilter> filters = CategoryFilter.values;
   Rx<CategoryFilter> selectedFilter = CategoryFilter.nearest.obs;
@@ -139,8 +140,8 @@ void onSelectRider(RiderUser rider) {
         List<ServiceData> tempNewItems = [];
 
         for (var service in responseModel.services ?? []) {
-          if (service.businessCategory != null && service.businessCategory!.isNotEmpty) {
-            for (ServiceData item in service.businessCategory!) {
+          if (service.data != null && service.data!.isNotEmpty) {
+            for (ServiceData item in service.data!) {
 
               // Distance Calculation Logic
               double itemLat = double.tryParse(item.userLocation?.lat.toString() ?? "0") ?? 0.0;

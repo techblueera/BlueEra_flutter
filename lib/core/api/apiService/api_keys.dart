@@ -605,7 +605,7 @@ class ApiKeys {
   static const segment = 'segment';
   static const years = 'years';
   static const months = 'months';
-  static const serviceOffered = 'serviceOffered';
+  static const servicesOffered = 'servicesOffered';
   static const typesOfWork = 'typesOfWork';
   static const expertise = 'expertise';
   static const workCategories = 'workCategories';

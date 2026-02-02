@@ -24,6 +24,7 @@ class AskFoodMsgCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final arrFoodData = response.data?.foodData ?? [];
+    print('total food data -- ${arrFoodData.length}');
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -67,7 +68,7 @@ class AskFoodMsgCard extends StatelessWidget {
               crossAxisCount: 2,
               mainAxisSpacing: 12,
               crossAxisSpacing: 12,
-              mainAxisExtent: 272,
+              mainAxisExtent: 300,
             ),
             itemBuilder: (_, i) {
               final foodData = arrFoodData[i];
@@ -76,8 +77,8 @@ class AskFoodMsgCard extends StatelessWidget {
               final price = foodData.price;
 
               final distance = calculateDistance(
-                  location?.coordinates?[1] ?? 0.0,
-                  location?.coordinates?[0] ?? 0.0);
+                  location?.coordinates?[1].toDouble() ?? 0.0,
+                  location?.coordinates?[0].toDouble() ?? 0.0);
 
               return InkWell(
                 onTap: (){
@@ -185,6 +186,7 @@ class AskFoodMsgCard extends StatelessWidget {
                                           fontSize: 11,
                                           fontWeight: FontWeight.w600),
                                     ),
+                                    const SizedBox(height: 4),
 
                                     if(price!=null)
                                       Row(
@@ -240,8 +242,11 @@ class AskFoodMsgCard extends StatelessWidget {
                                 ),
                               ),
                             ),
-                            const Divider(height: 1,color: Colors.grey,),
-                            Row(mainAxisAlignment: MainAxisAlignment.center,
+
+                            const Divider(height: 1,color: Colors.grey),
+
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Expanded(
                                   child: TextButton.icon(

@@ -1,6 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/features/me/professionals_consultant/controller/basic_profile_controller.dart';
+import 'package:BlueEra/features/me/professionals_consultant/controller/ai_professionals_controller.dart';
+import 'package:BlueEra/features/me/professionals_consultant/model/professional_profile_res_model.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
@@ -20,12 +20,24 @@ class PricingEngagementScreen extends StatefulWidget {
 }
 
 class _PricingEngagementScreenState extends State<PricingEngagementScreen> {
-  final controller = Get.find<ProfileController>();
+  final controller = Get.find<AiProfessionalsController>();
 
   @override
   void initState() {
     // TODO: implement initState
     controller.clearPricing();
+
+    ProfessionalPricing? pricing =
+        controller.getProfessionalServiceRes?.value.data?.pricing;
+
+    controller.feeTypeController.text = pricing?.type ?? "";
+
+    controller.feeAmountController.text = pricing?.amount.toString() ?? "";
+
+    controller.minBookingController.text = pricing?.amount.toString() ?? "";
+
+    controller.selectedConsultationMode.value = pricing?.consultationMode.toString() ?? "";
+
     super.initState();
   }
 
@@ -105,7 +117,7 @@ class _PricingEngagementScreenState extends State<PricingEngagementScreen> {
                     title: "Save",
                     isValidate: controller.isPricingValid.value,
                     onTap: controller.isPricingValid.value
-                        ? () => _handleSave(controller)
+                        ? () => controller.savePricingModel()
                         : null,
                   )),
             ],
@@ -113,10 +125,5 @@ class _PricingEngagementScreenState extends State<PricingEngagementScreen> {
         ),
       ),
     );
-  }
-
-  void _handleSave(ProfileController controller) {
-    // Logic to save pricing data
-    commonSnackBar(message: "Success Pricing model updated successfully");
   }
 }

@@ -34,7 +34,6 @@ import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/p
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/service_provider_dialoge.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_callkit_incoming/entities/call_event.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
@@ -67,7 +66,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   final bottomBarController = Get.put(BottomBarController());
   final chatViewController = getOrPut(() => ChatViewController());
   final moreCardsScreenController = Get.put(MoreCardsScreenController());
-  final viewPersonalDetailsController = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
+  final viewPersonalDetailsController =
+      getOrPut(() => ViewPersonalDetailsController(), permanent: true);
   final inventoryController = Get.put(InventoryController());
   final orderController = getOrPut(() => DeliverPartnerOrdersController());
   final dialogService = Get.put(DialogService());
@@ -117,7 +117,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     // _fetchAllAdminVideos();
   }
 
-  void _fetchAllAdminVideos(){
+  void _fetchAllAdminVideos() {
     bottomBarController.fetchAllAdminVideoApi();
   }
 
@@ -263,11 +263,10 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
-      floatingActionButton:kDebugMode? FloatingActionButton(onPressed: () {
-
-        Get.to(() => ProfessionalsMainScreen());
-
-      }):null,
+      // floatingActionButton: kDebugMode
+      //     ? FloatingActionButton(onPressed: () {
+      //       })
+      //     : null,
       body: ValueListenableBuilder(
           valueListenable: bottomBarVisibleNotifier,
           builder: (context, isVisible, _) {
@@ -392,8 +391,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       return const HotelMain();
     } else if (businessTypeGlobal.toUpperCase() ==
         BusinessType.Healthcare.name.toUpperCase()) {
-      return  MedicalMain();
-    }else if (businessTypeGlobal.toUpperCase() ==
+      return MedicalMain();
+    } else if (businessTypeGlobal.toUpperCase() ==
         BusinessType.Service.name.toUpperCase()) {
       return const OthersMain();
     } else {
@@ -406,15 +405,16 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     return Obx(() {
       String currentType = viewPersonalDetailsController.userProfileType.value;
       log("userProfileTypeGlobal inside Obx: $currentType");
-      // print("Hash 2: ${viewPersonalDetailsController.userProfileType.hashCode}");
-
-      return (viewPersonalDetailsController.userProfileType.value == SELF_EMPLOYED
-          || viewPersonalDetailsController.userProfileType.value == GIG_WORKER)
+      return (viewPersonalDetailsController.userProfileType.value ==
+                  SELF_EMPLOYED ||
+              viewPersonalDetailsController.userProfileType.value == GIG_WORKER)
           ? EarnServiceAvailableOptionsScreen(fromBottomNavBar: true)
-          : PersonalProfileSetupNewScreen();
+          : (viewPersonalDetailsController.userProfileType.value ==
+                  PROFESSIONAL)
+              ? ProfessionalsMainScreen()
+              : PersonalProfileSetupNewScreen();
     });
   }
-
 
   void _checkAndShowDialog() async {
     if (await dialogService.shouldShowDialog()) {

@@ -130,31 +130,8 @@ class _EarnServiceScreenState extends State<EarnServiceScreen>
   @override
   Widget build(BuildContext context) {
     return _buildEarnEnabledScaffold(context);
-    // return Obx(() {
-    //   final earnValue = controller.isEarnServiceOpt.value;
-    //
-    //   if (earnValue.isEmpty) {
-    //     return _buildLoadingScaffold();
-    //   }
-    //
-    //   if (earnValue.toLowerCase() == 'true') {
-    //     return _buildEarnEnabledScaffold(context);
-    //   }
-    //
-    //   return _buildEarnDisabledScaffold(context);
-    // });
   }
 
-  Widget _buildLoadingScaffold() {
-    return Scaffold(
-      appBar: CommonBackAppBar(
-        isLeading: isLeading,
-      ),
-      body: const Center(
-        child: CircularProgressIndicator(),
-      ),
-    );
-  }
 
   Widget _buildEarnEnabledScaffold(BuildContext context) {
     return Scaffold(

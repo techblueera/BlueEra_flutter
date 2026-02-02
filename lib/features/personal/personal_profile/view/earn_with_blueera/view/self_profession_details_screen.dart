@@ -14,7 +14,6 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
-import 'package:BlueEra/features/common/map/controller/visiting_hour_selector_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/controller/booking_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/widget/availability_schedule_card.dart';
@@ -744,8 +743,7 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
                       return GetBuilder<SelfWorkServiceController>(
                         id: 'professionPhotos',
                         builder: (controller) {
-                          final apiPhotos = service.photos ?? [];
-
+                          final apiPhotos = service.photos ?? [];;
                           final totalCount = apiPhotos.length;
                           final emptySlots = (8 - totalCount).clamp(0, 8);
 
@@ -755,6 +753,7 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
                           for (int i = 0; i < apiPhotos.length; i++) {
                             allPhotos.add(_buildImageContainer(
                               context,
+                              ValueKey(apiPhotos[i]),
                               apiPhotos[i],
                               i,
                               controller,
@@ -767,6 +766,7 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
                           for (int i = 0; i < emptySlots; i++) {
                             allPhotos.add(_buildImageContainer(
                               context,
+                              ValueKey("empty_${i}"),
                               "",
                               apiPhotos.length + i,
                               controller,
@@ -855,6 +855,7 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
 
   Widget _buildImageContainer(
       BuildContext context,
+      Key key,
       String? imagePath,
       int index,
       SelfWorkServiceController controller,
@@ -864,6 +865,7 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
     final isEmpty = imagePath == null || imagePath.isEmpty;
 
     return Stack(
+      key: key,
       children: [
         GestureDetector(
           onTap: () async {

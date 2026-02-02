@@ -206,6 +206,7 @@ class NewStoreController extends GetxController{
   ///GET STORE PRODUCT ONLY....
   Future<void> getAllProductNearBy({
     required ProviderType providerType,
+    String? productCategory,
     bool isLoadMore = false,
     String? query}
       ) async {
@@ -218,15 +219,14 @@ class NewStoreController extends GetxController{
       productDataHasMore = true;
       productDataList.clear();
 
-      /// fetch local data not for search
-      if(query == null){
-        final cachedProduct = await HiveServices().getAllStoreProduct(userId);
-        if (cachedProduct != null && cachedProduct.isNotEmpty) {
-          productDataList.assignAll(cachedProduct);
-          isProductDataFirstLoading.value = false;
-        }
-      }
-
+      // /// fetch local data not for search
+      // if(query == null){
+      //   final cachedProduct = await HiveServices().getAllStoreProduct(userId);
+      //   if (cachedProduct != null && cachedProduct.isNotEmpty) {
+      //     productDataList.assignAll(cachedProduct);
+      //     isProductDataFirstLoading.value = false;
+      //   }
+      // }
     }
 
     try {
@@ -249,14 +249,15 @@ class NewStoreController extends GetxController{
             long: LocationService.lng != 0.0
                 ? "${LocationService.lng}"
                 : "",
-            ProviderType: providerType
+            ProviderType: providerType,
+            productCategory: productCategory
         );
       }
 
       if (response.isSuccess) {
         getAllStoreProductResponse.value = ApiResponse.complete(response);
         final getOwnProductModel =
-        GetProductModel.fromJson(response.response?.businessCategory);
+        GetProductModel.fromJson(response.response?.data);
 
         final List<GetProductData> newData = getOwnProductModel.data;
 

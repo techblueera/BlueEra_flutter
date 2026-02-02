@@ -159,7 +159,9 @@ class _AskChatScreenState extends State<AskChatScreen> {
                             var items = chatViewController.arrAskForOptions[index];
                             return CommonServiceCard(
                               service: items,
-                              onTap: () {
+                              getName: (item) => item.name,
+                              getIcon: (item) => item.icon,
+                              onTap: (_) {
                                 chatViewController.askAiFor.value = items;
                                 switch(chatViewController.askAiFor.value?.slugId){
                                   case PRODUCT:

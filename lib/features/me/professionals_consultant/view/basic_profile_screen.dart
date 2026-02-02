@@ -3,7 +3,8 @@ import 'dart:io';
 import 'package:BlueEra/core/api/model/place_details.dart';
 import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/features/me/professionals_consultant/controller/basic_profile_controller.dart';
+import 'package:BlueEra/features/me/professionals_consultant/controller/ai_professionals_controller.dart';
+import 'package:BlueEra/features/me/professionals_consultant/model/professional_profile_res_model.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
@@ -23,12 +24,24 @@ class BasicProfileScreen extends StatefulWidget {
 }
 
 class _BasicProfileScreenState extends State<BasicProfileScreen> {
-  final controller = Get.find<ProfileController>();
+  final controller = Get.find<AiProfessionalsController>();
 
   @override
   void initState() {
     // TODO: implement initState
     controller.clearBasicProfile();
+
+    BasicDetails? basicDetails =
+        controller.getProfessionalServiceRes?.value.data?.basicDetails;
+
+    controller.selectedImage.value = File(basicDetails?.profilePhotoUrl ?? "");
+
+    controller.nameController.text = basicDetails?.fullName ?? "";
+    controller.titleController.text = basicDetails?.professionalTitle ?? "";
+    controller.taglineController.text = basicDetails?.shortTagline ?? "";
+    controller.locationController.text = basicDetails?.location ?? "";
+    controller.selectedLanguage.value =
+        basicDetails?.languagesSpoken?.firstOrNull ?? "";
     super.initState();
   }
 
@@ -53,6 +66,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                       dialogTitle: "Upload Picture",
                       onImageUpdate: (path) {
                         controller.selectedImage.value = File(path);
+                        controller.isImageEdit.value=true;
                       },
                       isOwnProfile: true,
                       showProfileBorder: true,

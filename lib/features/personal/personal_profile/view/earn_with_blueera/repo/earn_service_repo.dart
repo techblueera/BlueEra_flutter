@@ -62,12 +62,11 @@ class EarnServiceRepo extends BaseService {
   }
 
   ///Upload Profession Photo...
-  Future<ResponseModel> uploadProfessionImages(
+  Future<ResponseModel> uploadProfessionImage(
       {required String serviceId, required Map<String, dynamic> params}) async {
-    final response = await ApiBaseHelper().putHTTP(
-        isMultipart: true,
+    final response = await ApiBaseHelper().postHTTP(
         params: params,
-        earnServicesById(serviceId),
+        earnServicesImages(serviceId),
         showProgress: false,
         onError: (error) {},
         onSuccess: (data) {});
@@ -79,7 +78,8 @@ class EarnServiceRepo extends BaseService {
       {required String serviceId, required Map<String, dynamic> params}) async {
     final response = await ApiBaseHelper().deleteHTTP(
         params: params,
-        earnServicesById(serviceId),
+        showProgress: false,
+        earnServicesImages(serviceId),
         onError: (error) {},
         onSuccess: (data) {});
 

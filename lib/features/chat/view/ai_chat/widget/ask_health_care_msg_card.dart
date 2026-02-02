@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_theme_controller.dart';
 import 'package:BlueEra/features/chat/auth/model/health_care_ask_ai_model.dart';
@@ -65,15 +66,16 @@ class AskHealthCareMsgCard extends StatelessWidget {
               crossAxisCount: 2,
               mainAxisSpacing: 12,
               crossAxisSpacing: 12,
-              mainAxisExtent: 272,
+              mainAxisExtent: 320,
             ),
             itemBuilder: (_, i) {
               final healthCareData = arrHealthCareData[i];
               final hospitalInfo = healthCareData.hospitalInfo;
+              final businessDetails = healthCareData.businessDetails;
 
-              // final distance = calculateDistance(
-              //     hospitalInfo?.location?.coordinates?[1] ?? 0.0,
-              //     hospitalInfo?.location?.coordinates?[0] ?? 0.0);
+              final distance = calculateDistance(
+                  businessDetails?.business?.businessLocation?.lat ?? 0.0,
+                  businessDetails?.business?.businessLocation?.lon ?? 0.0);
 
               return InkWell(
                 onTap: (){
@@ -107,17 +109,16 @@ class AskHealthCareMsgCard extends StatelessWidget {
                         children: [
                           CircleAvatar(
                             radius: 12,
-                            backgroundImage: healthCareData.photo==null?null: NetworkImage(
+                            backgroundImage: businessDetails?.business?.logo==null?null: NetworkImage(
                               healthCareData.photo ?? "",
                             ),
                           ),
                           const SizedBox(width: 6),
                           Expanded(
                             child: CustomText(
-                              healthCareData.name ?? "",
+                              businessDetails?.business?.businessName ?? "",
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-
                               fontWeight: FontWeight.w600,
                               fontSize: 12,
 
@@ -140,16 +141,16 @@ class AskHealthCareMsgCard extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             // Product Image
-                            // AspectRatio(
-                            //   aspectRatio: 1.8, // square-ish image (adjust if needed)
-                            //   child:  CustomImageSlideshow(
-                            //     isLoading: false,
-                            //     width: double.infinity,
-                            //     height: 110,
-                            //     imagePaths: healthCareData?.media??[],
-                            //     borderRadius: BorderRadius.circular(10),
-                            //   ),
-                            // ),
+                            AspectRatio(
+                              aspectRatio: 1.8, // square-ish image (adjust if needed)
+                              child:  CustomImageSlideshow(
+                                isLoading: false,
+                                width: double.infinity,
+                                height: 110,
+                                imagePaths: [healthCareData.photo ?? ''],
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
 
                             //  Details
                             Container(
@@ -162,12 +163,19 @@ class AskHealthCareMsgCard extends StatelessWidget {
                                     // Hospital Name
                                     CustomText(
                                       hospitalInfo?.hospitalName,
-                                      fontSize: SizeConfig.size12,
+                                      fontSize: SizeConfig.small,
                                       fontWeight: FontWeight.w600,
                                       overflow: TextOverflow.ellipsis,
                                       maxLines: 1,
                                     ),
                                     const SizedBox(height: 4),
+                                    CustomText(
+                                      businessDetails?.business?.subCategoryOfBusiness?.name??'',
+                                      fontSize: SizeConfig.small,
+                                      fontWeight: FontWeight.w600,
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
+                                    ),
 
                                     _buildItem(
                                         Icons.location_on_outlined,
@@ -176,12 +184,12 @@ class AskHealthCareMsgCard extends StatelessWidget {
                                     ),
 
                                     // Distance
-                                    // _buildItem(
-                                    //   Icons.near_me_outlined,
-                                    //   distance!=null
-                                    //       ? "${distance.toStringAsFixed(2)} KM"
-                                    //       : AppStrings.na,
-                                    // ),
+                                    _buildItem(
+                                      Icons.near_me_outlined,
+                                      distance!=null
+                                          ? "${distance.toStringAsFixed(2)} KM"
+                                          : AppStrings.na,
+                                    ),
 
                                   ],
                                 ),

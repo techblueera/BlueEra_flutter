@@ -8,11 +8,11 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import '../controller/timing_controller.dart';
 
 class TimingScreen extends StatelessWidget {
-  const TimingScreen({Key? key}) : super(key: key);
+   TimingScreen({Key? key}) : super(key: key);
+  final controller = Get.put(TimingController());
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(TimingController());
 
     return Scaffold(
       appBar: CommonBackAppBar(

@@ -20,7 +20,6 @@ import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueer
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/repo/earn_service_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/self_profession_desc_selection_dialog.dart';
-import 'package:dio/dio.dart' as dio;
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import '../../../../../../core/api/apiService/api_keys.dart';
@@ -137,6 +136,7 @@ class SelfWorkServiceController extends GetxController{
   Rx<EarnServiceModelResponse> professionData = EarnServiceModelResponse().obs;
   RxBool isProfessionDataLoading = false.obs;
   String? serviceId;
+
 
   RxBool isPredefinedCategoryServiceTypeLoading = false.obs;
   Future<void> fetchPredefinedCategoryServiceType({
@@ -280,7 +280,7 @@ class SelfWorkServiceController extends GetxController{
        // ApiKeys.min: int.tryParse(minPriceCtrl.text.trim()),
        // ApiKeys.max: int.tryParse(maxPriceCtrl.text.trim()),
       };
-      if (selectedServices.isNotEmpty) params[ApiKeys.serviceOffered] = selectedServices;
+      if (selectedServices.isNotEmpty) params[ApiKeys.servicesOffered] = selectedServices;
       if (selectedInstallations.isNotEmpty) params[ApiKeys.typesOfWork] = selectedInstallations;
       if (selectedExpertise.isNotEmpty) params[ApiKeys.expertise] = selectedExpertise;
       if (selectedWorkCategories.isNotEmpty) params[ApiKeys.workCategories] = selectedWorkCategories;
@@ -559,21 +559,44 @@ class SelfWorkServiceController extends GetxController{
 
   ///UPDATE BUSINESS IMAGES....
   saveGalleryImages(String serviceId, String imagePath) async {
-    dio.MultipartFile? imageByPart;
-
-    String fileName = imagePath.split('/').last;
-    imageByPart =
-    await dio.MultipartFile.fromFile(imagePath, filename: fileName);
-
-    Map<String, dynamic> params = {ApiKeys.category_image: imageByPart};
-    uploadGalleryImage(serviceId, params);
-  }
-
-  Future<void> uploadGalleryImage(String serviceId, Map<String, dynamic> params) async {
     try {
-      ResponseModel responseModel = await EarnServiceRepo().uploadProfessionImages(serviceId: serviceId, params: params);
+
+      // Prepare image
+      // List<UploadS3ImageModel> images = [];
+      UploadS3ImageModel? image;
+        final imageInfo = getFileInfo(File(imagePath));
+        if (imageInfo.isNotEmpty) {
+          image = UploadS3ImageModel(
+              path: imagePath,
+              mimeType: imageInfo['mimeType']!
+          );
+      }
+      if(image==null) return;
+
+      Map<String, dynamic> params = {
+        ApiKeys.contentTypeKey: image
+      };
+
+      ResponseModel responseModel = await EarnServiceRepo().uploadProfessionImage(serviceId: serviceId, params: params);
       if (responseModel.isSuccess) {
-        fetchSelfProfessionData();
+
+        // Set preSignedUrls from response
+        String preSignedUrlImages =
+            responseModel.response!.data['uploadData'][0]['url'] ?? [];
+
+        image.preSignedUrl = preSignedUrlImages;
+        await uploadAllImages([image]);
+
+        // if (images.length == preSignedUrlImages.length) {
+        //   for (var i = 0; i < images.length; i++) {
+        //     images[i].preSignedUrl = preSignedUrlImages[i];
+        //   }
+        //
+        //   // Upload all images with combined progress
+        //   await uploadAllImages(images);
+        // }
+
+        fetchSelfProfessionData(isLoading: false);
       } else {
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
@@ -588,7 +611,7 @@ class SelfWorkServiceController extends GetxController{
       ResponseModel responseModel =
       await EarnServiceRepo().deleteProfessionImage(serviceId: serviceId, params: params);
       if (responseModel.isSuccess) {
-        fetchSelfProfessionData();
+        fetchSelfProfessionData(isLoading: false);
       } else {
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);

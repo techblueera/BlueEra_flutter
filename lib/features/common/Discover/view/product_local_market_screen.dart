@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -11,6 +12,7 @@ import 'package:BlueEra/features/business/auth/controller/view_business_details_
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/ai_chat/view/ai_common_search_screen.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
+import 'package:BlueEra/features/common/store/view/new_store/all_product_store_screen.dart';
 import 'package:BlueEra/features/common/store/view/new_store/business_store_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/create_profile_screen.dart';
@@ -439,15 +441,19 @@ class _ProductLocalMarketScreenState extends State<ProductLocalMarketScreen> {
         if(!isStore){
           var productData = _businessProductsCategories[index];
           return _buildCategoryItem(
-            productCategory: productData,
+            productData: productData,
             onTap: (c) {
-              // Handle Product Logic
+              Get.to(() => AllProductScreen(
+                isShowInGrid: true,
+                providerType: ProviderType.user,
+                productCategory: productData.slugId,
+              ));
             },
           );
         }else{
           var productStores = _businessProductStoreCategories[index];
           return _buildCategoryItem(
-            productCategory: productStores,
+            productData: productStores,
             onTap: (c) {
               // Handle Store Logic
               Get.to(() => BusinessStoreScreen(
@@ -508,12 +514,12 @@ class _ProductLocalMarketScreenState extends State<ProductLocalMarketScreen> {
 
   // --- Widget: Category Card ---
   Widget _buildCategoryItem({
-    required OnboardingCategoryModel productCategory,
+    required OnboardingCategoryModel productData,
     required Function(OnboardingCategoryModel item)? onTap,
   }) {
     return InkWell(
       onTap: () {
-        if (onTap != null) onTap(productCategory);
+        if (onTap != null) onTap(productData);
       },
       borderRadius: BorderRadius.circular(12),
       child: Container(
@@ -530,12 +536,12 @@ class _ProductLocalMarketScreenState extends State<ProductLocalMarketScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             LocalAssets(
-              imagePath: productCategory.icon,
+              imagePath: productData.icon,
               height: SizeConfig.size60,
             ),
             SizedBox(height: SizeConfig.paddingXSL),
             CustomText(
-              productCategory.name,
+              productData.name,
               fontSize: SizeConfig.extraSmall,
               color: AppColors.secondaryTextColor,
               fontWeight: FontWeight.w400,

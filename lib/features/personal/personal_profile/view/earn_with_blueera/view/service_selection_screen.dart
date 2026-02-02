@@ -1,7 +1,5 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -200,7 +198,7 @@ class _ServiceSelectionScreenState extends State<ServiceSelectionScreen> {
               final categoryConfig = {
                 SelfWorkServiceController.keyServicesOffered: (
                 msg: 'Please select at least one Service Offered',
-                apiKey: ApiKeys.serviceOffered
+                apiKey: ApiKeys.servicesOffered
                 ),
                 SelfWorkServiceController.keyTypeOfWork: (
                 msg: 'Please add Types of Installations',
@@ -235,6 +233,10 @@ class _ServiceSelectionScreenState extends State<ServiceSelectionScreen> {
               Map<String, dynamic> params = {
                 config.apiKey: selectedDataList
               };
+
+              // Map<String, dynamic> params = {
+              //   _selectedCategoryKey: selectedDataList
+              // };
 
               _controller.updateEarnServiceData(
                   params: params
