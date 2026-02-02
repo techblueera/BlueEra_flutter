@@ -15,7 +15,6 @@ class EarnServiceModelResponse {
   List<String>? workCategories;
   List<String>? whyChooseMe;
   List<String>? serviceType;
-  // String? serviceType;
   bool? isActive;
   bool? isDeleted;
   String? createdAt;
@@ -66,7 +65,6 @@ class EarnServiceModelResponse {
     workCategories = json['workCategories'].cast<String>();
     whyChooseMe = json['whyChooseMe'].cast<String>();
     serviceType = json['serviceType'].cast<String>();
-    // serviceType = json['serviceType'];
     isActive = json['isActive'];
     isDeleted = json['isDeleted'];
     createdAt = json['createdAt'];

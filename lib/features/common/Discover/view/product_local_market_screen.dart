@@ -443,9 +443,10 @@ class _ProductLocalMarketScreenState extends State<ProductLocalMarketScreen> {
           return _buildCategoryItem(
             productData: productData,
             onTap: (c) {
-              Get.to(() => AllProductScreen(
+              Get.to(() => AllProductStoreScreen(
                 isShowInGrid: true,
-                providerType: ProviderType.user,
+                // providerType: ProviderType.business,
+                productCategoryName: productData.name,
                 productCategory: productData.slugId,
               ));
             },

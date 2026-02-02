@@ -58,7 +58,7 @@ class AppImageAssets {
   static String jewelleryLuxuryStore = "${imgPath}jewellery_luxury_store_icon.png";
   static String automotiveStore = "${imgPath}automotive_store_icon.png";
   static String constructionHardware = "${imgPath}construction_hardware_icon.png";
-  static String booksStationaryGifts = "${imgPath}books_stationary_gifts_icon.png";
+  static String booksStationary = "${imgPath}books_stationary.png";
   static String pharmacyMedicalStore = "${imgPath}pharmacy_medical_store_icon.png";
   static String petSuppliesStore = "${imgPath}pet_supplies_store_icon.png";
   static String babyToysProductStore = "${imgPath}baby_toys_product_store_icon.png";
@@ -72,6 +72,9 @@ class AppImageAssets {
   static String agricultureAndFarming = "${imgPath}agriculture_and_farming.png";
   static String industrialWholesale = "${imgPath}industrial_wholesale.png";
   static String religiousAndSpeciality = "${imgPath}religious_and_speciality.png";
+  static String mobileAccessories = "${imgPath}mobile_accessories.png";
+  static String artAndCraft = "${imgPath}art_and_craft.png";
+  static String musicalInstruments = "${imgPath}musical_instruments.png";
 
   /// Business services images
   static String consultingService = "${imgPath}consulting_service_icon.png";

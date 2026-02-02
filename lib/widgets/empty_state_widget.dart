@@ -40,7 +40,7 @@ class EmptyStateWidget extends StatelessWidget {
           CustomText(
             message,
             fontSize: fontSize ?? SizeConfig.large,
-            color: textColor ?? AppColors.grey9A,
+            color: textColor ?? AppColors.secondaryTextColor,
             textAlign: TextAlign.center,
           ),
           if(actionText!=null && actionCallback!=null)

@@ -68,12 +68,14 @@ class DiscoverController extends GetxController{
   var isEarnServiceLoadingMore = false.obs;
   bool hasMoreEarnServiceData = true;
 
+
   /// Rental Services
   RxList<RentalServiceData> rentalServices = <RentalServiceData>[].obs;
   RxBool isRentalServiceLoading = false.obs;
   int rentalServicePage = 1;
   var isRentalServiceLoadingMore = false.obs;
   bool hasMoreRentalServiceData = true;
+  Rxn<OnboardingCategoryModel> selectedStayCategory = Rxn<OnboardingCategoryModel>();
 
   /// fetch Earn service
   Future<void> fetchEarnServices({

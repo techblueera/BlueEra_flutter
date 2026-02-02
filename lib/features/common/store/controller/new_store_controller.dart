@@ -205,7 +205,7 @@ class NewStoreController extends GetxController{
 
   ///GET STORE PRODUCT ONLY....
   Future<void> getAllProductNearBy({
-    required ProviderType providerType,
+    ProviderType? providerType,
     String? productCategory,
     bool isLoadMore = false,
     String? query}
@@ -231,27 +231,42 @@ class NewStoreController extends GetxController{
 
     try {
       log('lat--> ${LocationService.lat}, lng--> ${LocationService.lng}');
+
+      const int limit = 20;
+
+      // Build query parameters dynamically
+      final Map<String, dynamic> queryParams = {
+        ApiKeys.page: productDataPage,
+        ApiKeys.limit: limit,
+        ApiKeys.maxDistance: kmRadius1000,
+      };
+      double lat =  LocationService.lat != 0.0 ? LocationService.lat : 0.0;
+      double long = LocationService.lng != 0.0 ? LocationService.lng : 0.0;
+
+      if ((lat!=0.0) && (long!=0.0)) {
+        queryParams[ApiKeys.latitude] = lat;
+        queryParams[ApiKeys.longitude] = long;
+      }
+      if(providerType!=null) queryParams[ApiKeys.ownerType] = providerType.title;
+      if(productCategory!=null) queryParams[ApiKeys.key] = productCategory;
+
       final response;
       if(query != null){
         response = await StoreRepo().productSearchFilterRepo(
-            page: productDataPage,
-            lat: LocationService.lat != 0.0 ? "${LocationService.lat}" : "",
-            long: LocationService.lng != 0.0
-                ? "${LocationService.lng}"
-                : "",
-            query: query,
-            ProviderType: providerType
+            queryParams: queryParams
         );
       }else{
-        response = await StoreRepo().homePageProductRepo(
-            page: productDataPage,
-            lat: LocationService.lat != 0.0 ? "${LocationService.lat}" : "",
-            long: LocationService.lng != 0.0
-                ? "${LocationService.lng}"
-                : "",
-            ProviderType: providerType,
-            productCategory: productCategory
-        );
+        if(productCategory!=null){
+          response = await StoreRepo().productFilterRepo(
+              queryParams: queryParams
+          );
+        }
+        else{
+          response = await StoreRepo().homePageProductRepo(
+              queryParams: queryParams
+          );
+        }
+
       }
 
       if (response.isSuccess) {

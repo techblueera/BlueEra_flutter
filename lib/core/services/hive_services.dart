@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 
+import 'package:BlueEra/core/api/model/admin_video_model_response.dart';
 import 'package:BlueEra/core/api/model/get_all_store_res_model.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
@@ -21,6 +22,7 @@ class HiveServices{
   static const String _savedAllNearByStoreService = 'savedAllNearByStoreService';
   static const String _savedAllNearByStoresFoodServices = 'savedAllNearByStoresFoodServices';
   static const String _savedBusinessCategoryBox = 'business_categories_box';
+  static const String _savedAdminVideosBox = 'savedAdminVideosBox';
 
   /// Initialize Hive boxes
   static Future<void> init() async {
@@ -32,6 +34,7 @@ class HiveServices{
     await Hive.openBox(_savedAllNearByStoreService);
     await Hive.openBox(_savedAllNearByStoresFoodServices);
     await Hive.openBox(_savedBusinessCategoryBox);
+    await Hive.openBox(_savedAdminVideosBox);
   }
 
   bool isPostSaved(String id) {
@@ -396,7 +399,7 @@ class HiveServices{
       }
     }
 
-    Future<List<GetFoodDetailsModel>?> getAllStoreFoodServices(String userId) async {
+  List<GetFoodDetailsModel>? getAllStoreFoodServices(String userId) {
       try {
         final box = Hive.box(_savedAllNearByStoresFoodServices);
         final String key = 'user_$userId';
@@ -468,5 +471,49 @@ class HiveServices{
       return null;
     }
   }
+
+  /// Save all admin videos
+  Future<void> saveAllAdminVideos(List<AdminVideoData> videos) async {
+    final box = Hive.box(_savedAdminVideosBox);
+
+    final String key = 'videoData';
+
+    final List<Map<String, dynamic>> jsonList = videos.map((item) => item.toJson()).toList();
+
+    await box.put(key, jsonList);
+  }
+
+  /// Get all admin videos
+  List<AdminVideoData>? getAllSavedAdminVideos() {
+    try {
+
+      final box = Hive.box(_savedAdminVideosBox);
+      final String key = 'videoData';
+      final data = box.get(key);
+
+      if (data == null) {
+        print('No cached video data found');
+        return null;
+      }
+
+      if (data is! List) {
+        print('Invalid data type in Hive: ${data.runtimeType}');
+        return null;
+      }
+
+      final List<AdminVideoData> videos = data
+          .map((json) => AdminVideoData.fromJson(jsonDecode(jsonEncode(json)) as Map<String, dynamic>))
+          .toList();
+
+      print('Loaded ${videos.length} videos Data');
+
+      return videos;
+
+    }catch (e) {
+      print('Error loading videos data: $e');
+      return null;
+    }
+  }
+
 
 }

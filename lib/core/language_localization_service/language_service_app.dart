@@ -12,7 +12,7 @@ class LocalizationService extends Translations {
 
   LocalizationService._internal();
 
-  late Box box; // we’ll open it in init()
+  static late Box box; // we’ll open it in init()
 
   final Map<String, Map<String, String>> _translations = {};
 

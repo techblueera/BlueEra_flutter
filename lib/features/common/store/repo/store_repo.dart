@@ -1,9 +1,7 @@
 import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/base_service.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_enum.dart';
 
 class StoreRepo extends BaseService {
   ///GET STORE......
@@ -44,28 +42,8 @@ class StoreRepo extends BaseService {
 
   /// homePageProduct
   Future<ResponseModel> homePageProductRepo({
-    required int page,
-    String? lat,
-    String? long,
-    ProviderType? ProviderType,
-    String? productCategory
+    required Map<String, dynamic> queryParams
   }) async {
-    const int limit = 20;
-
-    // Build query parameters dynamically
-    final Map<String, dynamic> queryParams = {
-      ApiKeys.page: page,
-      ApiKeys.limit: limit,
-      ApiKeys.maxDistance: kmRadius1000,
-    };
-
-    if ((lat?.isNotEmpty ?? false) && (long?.isNotEmpty ?? false)) {
-      queryParams[ApiKeys.latitude] = lat;
-      queryParams[ApiKeys.longitude] = long;
-    }
-    if(ProviderType!=null) queryParams[ApiKeys.ownerType] = ProviderType.title;
-    if(productCategory!=null) queryParams[ApiKeys.key] = productCategory;
-
     final response = await ApiBaseHelper().getHTTP(
       homePageProduct,
       showProgress: false,
@@ -112,27 +90,8 @@ class StoreRepo extends BaseService {
 
   /// productSearchFilterRepo
   Future<ResponseModel> productSearchFilterRepo({
-    required int page,
-    String? lat,
-    String? long,
-    String? query,
-    ProviderType? ProviderType
+   required Map<String, dynamic> queryParams
   }) async {
-    const int limit = 20;
-
-    // Build query parameters dynamically
-    final Map<String, dynamic> queryParams = {
-      ApiKeys.page: page,
-      ApiKeys.limit: limit,
-      ApiKeys.maxDistance: kmRadius1000,
-    };
-    if ((lat?.isNotEmpty ?? false) && (long?.isNotEmpty ?? false)) {
-      queryParams[ApiKeys.latitude] = lat;
-      queryParams[ApiKeys.longitude] = long;
-    }
-    if ((query?.isNotEmpty ?? false)) queryParams[ApiKeys.searchTerm] = query;
-    if(ProviderType!=null) queryParams[ApiKeys.ownerType] = ProviderType.title;
-
 
     final response = await ApiBaseHelper().getHTTP(
       productSearchFilter,
@@ -166,6 +125,23 @@ class StoreRepo extends BaseService {
       onError: (error) {},
       onSuccess: (data) {},
     );
+    return response;
+  }
+
+  /// Product Filter
+  Future<ResponseModel> productFilterRepo({
+    required Map<String, dynamic> queryParams
+  }) async {
+
+
+    final response = await ApiBaseHelper().getHTTP(
+      productFilter,
+      showProgress: false,
+      params: queryParams,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+
     return response;
   }
 

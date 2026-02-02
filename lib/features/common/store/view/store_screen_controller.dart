@@ -341,23 +341,31 @@ class StoreScreenController extends GetxController {
 
     try {
       log('lat--> ${LocationService.lat}, lng--> ${LocationService.lng}');
+
+      const int limit = 20;
+
+      // Build query parameters dynamically
+      final Map<String, dynamic> queryParams = {
+        ApiKeys.page: storeProductDataPage,
+        ApiKeys.limit: limit,
+        ApiKeys.maxDistance: kmRadius1000,
+      };
+      double lat =  LocationService.lat != 0.0 ? LocationService.lat : 0.0;
+      double long = LocationService.lng != 0.0 ? LocationService.lng : 0.0;
+
+      if ((lat!=0.0) && (long!=0.0)) {
+        queryParams[ApiKeys.latitude] = lat;
+        queryParams[ApiKeys.longitude] = long;
+      }
+
       final response;
       if(query != null){
          response = await StoreRepo().productSearchFilterRepo(
-            page: storeProductDataPage,
-            lat: LocationService.lat != 0.0 ? "${LocationService.lat}" : "",
-            long: LocationService.lng != 0.0
-                ? "${LocationService.lng}"
-                : "",
-           query: query
+             queryParams: queryParams
          );
       }else{
         response = await StoreRepo().homePageProductRepo(
-            page: storeProductDataPage,
-            lat: LocationService.lat != 0.0 ? "${LocationService.lat}" : "",
-            long: LocationService.lng != 0.0
-                ? "${LocationService.lng}"
-                : ""
+            queryParams: queryParams
         );
       }
 

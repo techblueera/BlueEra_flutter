@@ -1,43 +1,45 @@
-import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
 import 'package:BlueEra/features/common/store/view/store_product_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class AllProductScreen extends StatefulWidget {
+class AllProductStoreScreen extends StatefulWidget {
   final bool isShowInGrid;
-  final ProviderType providerType;
+  final ProviderType? providerType;
+  final String? productCategoryName;
   final String? productCategory;
 
-  const AllProductScreen({
+  const AllProductStoreScreen({
     super.key,
     required this.isShowInGrid,
-    required this.providerType,
+    this.providerType,
+    this.productCategoryName,
     this.productCategory,
   });
 
   @override
-  State<AllProductScreen> createState() => _AllProductScreenState();
+  State<AllProductStoreScreen> createState() => _AllProductStoreScreenState();
 }
 
-class _AllProductScreenState extends State<AllProductScreen> {
-  final controller = Get.isRegistered<NewStoreController>()
-      ? Get.find<NewStoreController>()
-      : Get.put(NewStoreController());
+class _AllProductStoreScreenState extends State<AllProductStoreScreen> {
+  final controller = getOrPut(() => NewStoreController());
   final ScrollController storesScrollController = ScrollController();
-  late ProviderType _providerType;
+  ProviderType? _providerType;
   String? _productCategory;
+  String? _productCategoryName;
 
   @override
   void initState() {
     _providerType = widget.providerType;
     _productCategory = widget.productCategory;
+    _productCategoryName = widget.productCategoryName;
     controller.getAllProductNearBy(
         providerType: _providerType,
         productCategory: _productCategory
@@ -85,13 +87,10 @@ class _AllProductScreenState extends State<AllProductScreen> {
 
           // Empty state
           if (productList.isEmpty) {
-            return Center(
-              child: CustomText(
-                  AppStrings.notFoundAnyProduct,
-                  fontSize: SizeConfig.large,
-                  color: AppColors.mainTextColor,
-                  fontWeight: FontWeight.w700
-              ),
+            return EmptyStateWidget(
+              message: _productCategoryName==null
+                      ? AppStrings.notFoundAnyProduct
+                      : 'Not found ${_productCategoryName} related product',
             );
           }
 

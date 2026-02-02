@@ -17,6 +17,7 @@ import 'package:BlueEra/features/chat/view/ai_chat/view/ask_chat_screen.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/all_rental_service_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/all_self_profession_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/all_stay_service_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/home_made_food_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/home_service_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/product_local_market_screen.dart';
@@ -608,7 +609,12 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                           SizedBox(
                             width: SizeConfig.size8,
                           ),
-                          _viewAll(),
+                          _viewAll(
+                            () => Get.to(() => ProductLocalMarketScreen(
+                              businessProductsCategories: businessProductsCategories,
+                              businessProductStoreCategories: businessProductStoreCategories,
+                            )),
+                          ),
                         ],
                       ),
                       SizedBox(height: SizeConfig.paddingXSL),
@@ -780,22 +786,31 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                     ),
                     SizedBox(height: SizeConfig.paddingXSL),
                     _buildMasonryGridWithIcons(
-                        items: stayItemsCategories,
+                        items: stayItemsCategories
+                            .where((item) => discoverShownStayCategories.contains(item.slugId))
+                            .toList(),
                         crossAxisCount: 2,
+                        getName: (item)=> item.name,
+                        getIcon: (item)=> item.icon,
                         onTap: (c){
-                          final typeMap = {
-                            Flat_ROOM: RentalServiceType.flatRoom,
-                            HOME_STAY: RentalServiceType.homeStay,
-                            VEHICLE:   RentalServiceType.vehicle,
-                          };
+                          Get.to(() => AllStayServiceScreen(
+                              stayCategories: stayItemsCategories,
+                              selectedStayCategory: c,
+                          ));
 
-                          final type = typeMap[c.slugId];
-
-                          if (type != null) {
-                            Get.to(() => AllRentalServiceScreen(type: type));
-                          } else {
-                            // Handle unknown slug (optional)
-                          }
+                          // final typeMap = {
+                          //   Flat_ROOM: RentalServiceType.flatRoom,
+                          //   HOME_STAY: RentalServiceType.homeStay,
+                          //   VEHICLE:   RentalServiceType.vehicle,
+                          // };
+                          //
+                          // final type = typeMap[c.slugId];
+                          //
+                          // if (type != null) {
+                          //   Get.to(() => AllRentalServiceScreen(type: type));
+                          // } else {
+                          //   // Handle unknown slug (optional)
+                          // }
 
                         }
                     ),
@@ -826,7 +841,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                           }else if(item.slugId == FOOD){
                             Get.to(()=> HomeMadeFoodScreen());
                           }else if(item.slugId == PRODUCT){
-                            Get.to(() => AllProductScreen(
+                            Get.to(() => AllProductStoreScreen(
                               isShowInGrid: true,
                               providerType: ProviderType.user,
                             ));
@@ -995,6 +1010,8 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                       _buildMasonryGridWithIcons(
                           items: transportItemsCategories,
                           crossAxisCount: 2,
+                          getName: (item)=> item.name,
+                          getIcon: (item)=> item.icon,
                           onTap: (_){}
                       ),
                     ],
@@ -1059,6 +1076,8 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                     _buildMasonryGridWithIcons(
                         items: automotiveServiceItemsCategories,
                         crossAxisCount: 3,
+                        getName: (item)=> item.name,
+                        getIcon: (item)=> item.icon,
                         onTap: (_){}
                     ),
                   ],
@@ -1628,8 +1647,10 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   }
 
   Widget _buildMasonryGridWithIcons<T>({
-    required List<CollapsibleGridModel> items,
-    required Function(CollapsibleGridModel) onTap,
+    required List<T> items,
+    required Function(T) getName,
+    required Function(T) getIcon,
+    required Function(T) onTap,
     required int crossAxisCount
    }){
     return MasonryGridView.count(
@@ -1645,10 +1666,10 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
         var item = items[index];
         return CommonServiceCard(
           service: item,
-          getName: (item) => item.name,
-          getIcon: (item) => item.icon,
+          getName: (item) => getName(item),
+          getIcon: (item) => getIcon(item),
           iconHeight: SizeConfig.size60,
-          onTap: (c) => onTap(c),
+          onTap: (item) => onTap(item),
         );
       },
     );

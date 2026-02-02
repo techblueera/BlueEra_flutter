@@ -33,6 +33,7 @@ class _AllRentalServiceScreenState extends State<AllRentalServiceScreen> {
   @override
   initState(){
     super.initState();
+
     controller.fetchRentalServices(
         rentalServiceType: widget.type,
     );

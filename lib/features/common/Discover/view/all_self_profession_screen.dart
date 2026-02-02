@@ -121,6 +121,7 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
 
             Expanded(
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   leftCategoryList(),
                   SizedBox(
@@ -372,40 +373,51 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
 
               SizedBox(height: SizeConfig.size6),
 
-              if(service.bio?.isNotEmpty??false)
-                ...[
-                  CustomText(
-                      service.bio ?? 'No description available...',
-                      fontSize: SizeConfig.small,
-                      color: AppColors.secondaryTextColor,
-                      fontWeight: FontWeight.w400
-                  ),
-                  SizedBox(height: SizeConfig.size6),
-                ],
-
-
-              // Row(
-              //   crossAxisAlignment: CrossAxisAlignment.start,
-              //   children: [
-              //     // Bullet Point
+              // if(service.bio?.isNotEmpty??false)
+              //   ...[
               //     CustomText(
-              //       "• ",
-              //       fontSize: SizeConfig.medium,
-              //       color: AppColors.mainTextColor,
-              //       fontWeight: FontWeight.bold,
-              //     ),
-              //
-              //     // The Text
-              //     Expanded(
-              //       child: CustomText(
-              //         service,
+              //         service.bio ?? 'No description available...',
               //         fontSize: SizeConfig.small,
               //         color: AppColors.secondaryTextColor,
-              //         fontWeight: FontWeight.w400,
-              //       ),
+              //         fontWeight: FontWeight.w400
               //     ),
+              //     SizedBox(height: SizeConfig.size6),
               //   ],
-              // ),
+
+              service.expertise!.isNotEmpty
+                  ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: List.generate(
+                  service.expertise!.take(2).length,
+                      (index) => Padding(
+                    padding: const EdgeInsets.only(bottom: 4.0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          margin:
+                          const EdgeInsets.only(top: 6.0, right: 8.0),
+                          width: 4.0,
+                          height: 4.0,
+                          decoration: BoxDecoration(
+                            color: AppColors.secondaryTextColor,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        Expanded(
+                          child: CustomText(
+                            service.expertise![index],
+                            fontSize: SizeConfig.small,
+                            color: AppColors.secondaryTextColor,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              )
+                  : SizedBox(),
 
               FittedBox(
                 fit: BoxFit.scaleDown,

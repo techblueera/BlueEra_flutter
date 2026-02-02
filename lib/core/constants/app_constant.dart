@@ -1435,18 +1435,18 @@ const String HOME_APPLIANCES_STORE = "HOME_APPLIANCES_STORE";
 const String APPLIANCES = "APPLIANCES";
 const String AUTOMOTIVE = "AUTOMOTIVE";
 const String BABY_PRODUCTS = "BABY_PRODUCTS";
-const String BEAUTY_AND_PERSONAL_CARE = "BEAUTY_&_PERSONAL_CARE";
-const String CELL_PHONES_ACCESSORIES = "CELL_PHONES_&_ACCESSORIES";
+const String BEAUTY_AND_PERSONAL_CARE = "BEAUTY_PERSONAL_CARE";
+const String CELL_PHONES_ACCESSORIES = "CELL_PHONES_ACCESSORIES";
 const String ELECTRONICS = "ELECTRONICS";
-const String FURNITURE_DECOR = "FURNITURE_&_DECOR";
-const String HOME_KITCHEN = "HOME_&_KITCHEN";
-const String INDUSTRIAL_SCIENTIFIC = "INDUSTRIAL_&_SCIENTIFIC";
+const String FURNITURE_DECOR = "FURNITURE_DECOR";
+const String HOME_KITCHEN = "HOME_KITCHEN";
+const String INDUSTRIAL_SCIENTIFIC = "INDUSTRIAL_SCIENTIFIC";
 const String MUSICAL_INSTRUMENTS = "MUSICAL_INSTRUMENTS";
-const String BOOKS_STATIONERY = "BOOKS_&_STATIONERY";
+const String BOOKS_STATIONERY = "BOOKS_STATIONERY";
 const String PET_SUPPLIES = "PET_SUPPLIES";
-const String SPORTS_OUTDOORS = "SPORTS_&_OUTDOORS";
-const String TOOLS_AND_HOME_IMPROVEMENT = "TOOLS_&_HOME_IMPROVEMENT";
-const String TOYS_GAMES = "TOYS_&_GAMES";
+const String SPORTS_OUTDOORS = "SPORTS_OUTDOORS";
+const String TOOLS_AND_HOME_IMPROVEMENT = "TOOLS_HOME_IMPROVEMENT";
+const String TOYS_GAMES = "TOYS_GAMES";
 const String ARTS_CRAFTS_SEWING = "ARTS_CRAFTS_SEWING";
 const String CLOTHING_SHOES_JEWELRY = "CLOTHING_SHOES_JEWELRY";
 const String FARMING_LAWN_GARDEN = "FARMING_LAWN_GARDEN";
@@ -2685,7 +2685,7 @@ final List<OnboardingCategoryModel> findShoppingByContactCate = [
       // name: AppStrings.booksStationaryGifts,
       name: 'Stationery',
       slugId: BOOKS_STATIONERY_GIFTS_STORE,
-      icon: AppImageAssets.booksStationaryGifts,
+      icon: AppImageAssets.booksStationary,
       accountType: AppConstants.business,
       businessType: BusinessType.Product),
   OnboardingCategoryModel(
@@ -2798,7 +2798,7 @@ final List<OnboardingCategoryModel> businessProductStoreCategories = [
     // name: AppStrings.booksStationaryGifts,
       name: 'Stationery',
       slugId: BOOKS_STATIONERY_GIFTS_STORE,
-      icon: AppImageAssets.booksStationaryGifts,
+      icon: AppImageAssets.booksStationary,
       accountType: AppConstants.business,
       businessType: BusinessType.Product),
   OnboardingCategoryModel(
@@ -2882,7 +2882,7 @@ final List<OnboardingCategoryModel> businessProductsCategories = [
   OnboardingCategoryModel(
       name: 'Mobiles &\nAccessories',
       slugId: CELL_PHONES_ACCESSORIES,
-      icon: AppImageAssets.electronicsApplianceStore,
+      icon: AppImageAssets.mobileAccessories,
       accountType: AppConstants.business,
       businessType: BusinessType.Product),
   OnboardingCategoryModel(
@@ -2894,7 +2894,7 @@ final List<OnboardingCategoryModel> businessProductsCategories = [
   OnboardingCategoryModel(
       name: 'Furniture &\nDecor',
       slugId: FURNITURE_DECOR,
-      icon: AppImageAssets.fashionLifestyle,
+      icon: AppImageAssets.furnitureHomeDecor,
       accountType: AppConstants.business,
       businessType: BusinessType.Product),
   OnboardingCategoryModel(
@@ -2912,13 +2912,13 @@ final List<OnboardingCategoryModel> businessProductsCategories = [
   OnboardingCategoryModel(
       name: 'Musical\nInstruments',
       slugId: MUSICAL_INSTRUMENTS,
-      icon: AppImageAssets.industrialWholesale,
+      icon: AppImageAssets.musicalInstruments,
       accountType: AppConstants.business,
       businessType: BusinessType.Product),
   OnboardingCategoryModel(
       name: 'Books &\nStationery',
       slugId: BOOKS_STATIONERY,
-      icon: AppImageAssets.booksStationaryGifts,
+      icon: AppImageAssets.booksStationary,
       accountType: AppConstants.business,
       businessType: BusinessType.Product),
   OnboardingCategoryModel(
@@ -2948,7 +2948,7 @@ final List<OnboardingCategoryModel> businessProductsCategories = [
   OnboardingCategoryModel(
       name: 'Arts, Crafts &\nSewing',
       slugId: ARTS_CRAFTS_SEWING,
-      icon: AppImageAssets.industrialWholesale,
+      icon: AppImageAssets.artAndCraft,
       accountType: AppConstants.business,
       businessType: BusinessType.Product),
   OnboardingCategoryModel(
@@ -3630,20 +3630,57 @@ final List<CollapsibleGridModel> homeMadeItemsCategories = [
       slugId: SERVICE, icon: AppImageAssets.homeServicesBanner),
 ];
 
-final List<CollapsibleGridModel> stayItemsCategories = [
-  CollapsibleGridModel(
-      name: 'Hotel Stay',
-      slugId: Flat_ROOM, icon: AppImageAssets.hotelStay),
-  CollapsibleGridModel(
-      name: 'Home Stay',
-      slugId: HOME_STAY, icon: AppImageAssets.homeStay),
-  CollapsibleGridModel(
-      name: 'House On Rent',
-      slugId: 'HOUSE_ON_RENT', icon: AppImageAssets.houseOnRent),
-  CollapsibleGridModel(
-      name: 'Other Rental',
-      slugId: 'OTHER_RENTAL', icon: AppImageAssets.otherRental),
+final discoverShownStayCategories = [
+  'HOTEL_RESORT',
+  'Property',
+  'Flat',
+  'Vehicle'
 ];
+
+final List<OnboardingCategoryModel> stayItemsCategories = [
+  OnboardingCategoryModel(
+      name: 'Hotel & Resort',
+      slugId: 'HOTEL_RESORT',
+      icon: AppImageAssets.hotelStay,
+      accountType: AppConstants.business),
+  OnboardingCategoryModel(
+      name: 'Home Stay',
+      slugId: 'Property',
+      icon: AppImageAssets.homeStay,
+      accountType: AppConstants.individual
+  ),
+  OnboardingCategoryModel(
+      name: 'Economy Stay',
+      slugId: 'ECONOMY_STAY',
+      icon: AppImageAssets.otherRental,
+      accountType: AppConstants.business
+  ),
+  OnboardingCategoryModel(
+      name: 'Hostel',
+      slugId: 'HOSTEL',
+      icon: AppImageAssets.otherRental,
+      accountType: AppConstants.business
+  ),
+  OnboardingCategoryModel(
+      name: 'Function All',
+      slugId: 'FUNCTION_ALL',
+      icon: AppImageAssets.otherRental,
+      accountType: AppConstants.business
+  ),
+  OnboardingCategoryModel(
+      name: 'House On Rent',
+      slugId: 'Flat',
+      icon: AppImageAssets.houseOnRent,
+      accountType: AppConstants.individual
+  ),
+  OnboardingCategoryModel(
+      name: 'Other Rental',
+      slugId: 'Vehicle',
+      icon: AppImageAssets.otherRental,
+      accountType: AppConstants.individual
+  ),
+];
+
 
 final List<CollapsibleGridModel> transportItemsCategories = [
   CollapsibleGridModel(
