@@ -34,7 +34,7 @@ class AiDescriptionField extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            CustomText(label, fontWeight: FontWeight.w500),
+            CustomText(label.tr, fontWeight: FontWeight.w400),
             AIGeneratorButton(
               type: aiType,
               data: aiData,

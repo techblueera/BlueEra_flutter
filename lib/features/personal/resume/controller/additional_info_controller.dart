@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/personal/resume/controller/profile_pic_controller.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +12,8 @@ class AdditionalInfoController extends GetxController {
   final RxList<Map<String, dynamic>> additionalInfoList =
       <Map<String, dynamic>>[].obs;
 
-  final getResumeController = Get.find<ProfilePicController>();
+  // final getResumeController = Get.find<ProfilePicController>();
+  final getResumeController = getOrPut(() => ProfilePicController());
 
   /// Form fields
   final titleController = TextEditingController();

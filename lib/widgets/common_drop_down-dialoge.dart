@@ -11,6 +11,7 @@ class CommonDropdownDialog<T> extends StatefulWidget {
   final T? selectedValue;
   final String hintText;
   final String title;
+  final String? dialogTitle;
   final String Function(T) displayValue;
   final ValueChanged<T?> onChanged;
   final String? errorText;
@@ -25,7 +26,8 @@ class CommonDropdownDialog<T> extends StatefulWidget {
     required this.displayValue,
     required this.onChanged,
     this.errorText,
-    this.showDownArrow=true,
+    this.dialogTitle,
+    this.showDownArrow = true,
   }) : super(key: key);
 
   @override
@@ -74,7 +76,7 @@ class _CommonDropdownDialogState<T> extends State<CommonDropdownDialog<T>> {
                     itemBuilder: (context, index) {
                       final item = widget.items[index];
                       return ListTile(
-                        leading:item is CommentTypeModel
+                        leading: item is CommentTypeModel
                             ? SvgPicture.asset(item.icon, height: 24, width: 24)
                             : null,
                         title: CustomText(
@@ -119,6 +121,15 @@ class _CommonDropdownDialogState<T> extends State<CommonDropdownDialog<T>> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (widget.dialogTitle?.isNotEmpty ?? false)...[
+            CustomText(widget.dialogTitle,
+
+              fontSize:SizeConfig.medium,
+              fontWeight: FontWeight.w400,
+              color: AppColors.mainTextColor,
+            ),
+            SizedBox(height: SizeConfig.paddingL,),
+          ],
           Container(
             padding: EdgeInsets.symmetric(
                 horizontal: SizeConfig.size15, vertical: SizeConfig.size10),
@@ -144,31 +155,33 @@ class _CommonDropdownDialogState<T> extends State<CommonDropdownDialog<T>> {
                 Expanded(
                   child: widget.selectedValue != null
                       ? Row(
-                    children: [
-                      if (widget.selectedValue is CommentTypeModel)
-                        SvgPicture.asset(
-                          (widget.selectedValue as CommentTypeModel).icon,
-                          height: 22,
-                          width: 22,
-                        ),
-                      if (widget.selectedValue is CommentTypeModel)
-                        const SizedBox(width: 8),
-                      Flexible(
-                        child: CustomText(
-                          widget.displayValue(widget.selectedValue as T).replaceAll('\n', ' '),
-                          color: Colors.black,
+                          children: [
+                            if (widget.selectedValue is CommentTypeModel)
+                              SvgPicture.asset(
+                                (widget.selectedValue as CommentTypeModel).icon,
+                                height: 22,
+                                width: 22,
+                              ),
+                            if (widget.selectedValue is CommentTypeModel)
+                              const SizedBox(width: 8),
+                            Flexible(
+                              child: CustomText(
+                                widget
+                                    .displayValue(widget.selectedValue as T)
+                                    .replaceAll('\n', ' '),
+                                color: Colors.black,
+                                fontWeight: FontWeight.w400,
+                                fontSize: SizeConfig.size15,
+                              ),
+                            ),
+                          ],
+                        )
+                      : CustomText(
+                          widget.hintText,
+                          color: Colors.grey,
                           fontWeight: FontWeight.w400,
                           fontSize: SizeConfig.size15,
-                        ),
-                      ),
-                    ],
-                  )
-                      : CustomText(
-                    widget.hintText,
-                    color: Colors.grey,
-                    fontWeight: FontWeight.w400,
-                    fontSize: SizeConfig.size15,
-                  ), /*widget.selectedValue != null
+                        ), /*widget.selectedValue != null
                       ? CustomText(
                           widget.displayValue(widget.selectedValue as T),
                           color: Colors.black,
@@ -182,7 +195,7 @@ class _CommonDropdownDialogState<T> extends State<CommonDropdownDialog<T>> {
                           fontSize: SizeConfig.size15,
                         ),*/
                 ),
-                if (widget.showDownArrow??false)
+                if (widget.showDownArrow ?? false)
                   const Icon(Icons.keyboard_arrow_down_outlined,
                       color: Colors.grey),
               ],

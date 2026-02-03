@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/personal/resume/controller/profile_pic_controller.dart';
 import 'package:BlueEra/features/personal/resume/repo/resume_repo.dart';
@@ -8,7 +9,8 @@ import 'package:get/get.dart';
 class PublicationsController extends GetxController {
   final ResumeRepo _repo = ResumeRepo();
   
-  final getResumeController = Get.find<ProfilePicController>();
+  // final getResumeController = Get.find<ProfilePicController>();
+  final getResumeController = getOrPut(() => ProfilePicController());
 
   // Form controllers
   final titleController = TextEditingController();

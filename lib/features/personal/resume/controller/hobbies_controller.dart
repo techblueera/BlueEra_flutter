@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/personal/resume/controller/profile_pic_controller.dart';
 import 'package:BlueEra/features/personal/resume/repo/resume_repo.dart';
@@ -13,7 +14,9 @@ class HobbiesController extends GetxController {
   final isValidate = false.obs;
   final isAddHobbyValidate = false.obs;
 
-  final getResumeController = Get.find<ProfilePicController>();
+  // final getResumeController = Get.find<ProfilePicController>();
+  final getResumeController = getOrPut(() => ProfilePicController());
+
   ApiResponse addHobbiesResponse = ApiResponse.initial('Initial');
   ApiResponse fetchHobbiesResponse = ApiResponse.initial('Initial');
   ApiResponse deleteHobbyResponse = ApiResponse.initial('Initial');

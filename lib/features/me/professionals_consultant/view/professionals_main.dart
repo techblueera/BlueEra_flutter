@@ -46,36 +46,36 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
         return SafeArea(
           child: controller.hasProfile.value
               ? Column(
-            children: [
-              TabBar(
-                controller: _tabController,
-                labelColor: AppColors.primaryColor,
-                unselectedLabelColor: AppColors.secondaryTextColor,
-                indicatorColor: AppColors.primaryColor,
-                indicatorWeight: 2,
-                tabAlignment: TabAlignment.fill,
-                indicatorSize: TabBarIndicatorSize.tab,
-                labelStyle: const TextStyle(fontWeight: FontWeight.w400),
-                tabs: [
-                  Tab(text: "Home"),
-                  Tab(text: "Update"),
-                  Tab(text: "Statics"),
-                ],
-              ),
-              Expanded(
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: [
-                      ProfessionalsHomeScreen(),
-                      UpdateProfessionalsServicesScreen(),
-                      const Center(child: CustomText(AppStrings.comingSoon)),
-                    ],
-                  ))
-            ],
-          )
+                  children: [
+                    TabBar(
+                      controller: _tabController,
+                      labelColor: AppColors.primaryColor,
+                      unselectedLabelColor: AppColors.secondaryTextColor,
+                      indicatorColor: AppColors.primaryColor,
+                      indicatorWeight: 2,
+                      tabAlignment: TabAlignment.fill,
+                      indicatorSize: TabBarIndicatorSize.tab,
+                      labelStyle: const TextStyle(fontWeight: FontWeight.w400),
+                      tabs: [
+                        Tab(text: "Home"),
+                        Tab(text: "Update"),
+                        Tab(text: "Statics"),
+                      ],
+                    ),
+                    Expanded(
+                        child: TabBarView(
+                      controller: _tabController,
+                      children: [
+                        ProfessionalsHomeScreen(),
+                        UpdateProfessionalsServicesScreen(),
+                        const Center(child: CustomText(AppStrings.comingSoon)),
+                      ],
+                    ))
+                  ],
+                )
               : ProfessionalServiceNotCreateScreen(
-            controller: controller,
-          ),
+                  controller: controller,
+                ),
         );
       }),
       /*  body: Obx(() {
