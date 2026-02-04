@@ -252,16 +252,16 @@ class _PersonalProfileSetupNewScreenState
       },
       child: Scaffold(
         backgroundColor: AppColors.whiteF3,
-        appBar: CommonBackAppBar(
-          isLeading: true,
-          title: '',
-          isLogout: true,
-          onShareTap: () {},
-          onQrCodeTap: () {},
-          onBackTap: () async {
-            backPressTrigger();
-          },
-        ),
+        // appBar: CommonBackAppBar(
+        //   isLeading: true,
+        //   title: '',
+        //   isLogout: true,
+        //   onShareTap: () {},
+        //   onQrCodeTap: () {},
+        //   onBackTap: () async {
+        //     backPressTrigger();
+        //   },
+        // ),
         body: isGuestUser()
             ? PositiveCustomBtn(onTap: () {}, title: "Logout")
             : Obx(() {

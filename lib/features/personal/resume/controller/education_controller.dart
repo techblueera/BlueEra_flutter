@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/model/get_resume_data_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/personal/resume/controller/profile_pic_controller.dart';
 import 'package:BlueEra/features/personal/resume/repo/resume_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -76,7 +77,6 @@ class EducationController extends GetxController {
     validate();
   }
 
-
   void setEducationListFromModel(List<Education>? education) {
     educationList.clear();
 
@@ -94,7 +94,6 @@ class EducationController extends GetxController {
         continue;
       }
 
-
       educationList.add({
         'title': edu.passingYear != null && edu.passingYear!.isNotEmpty
             ? "Passed Out: ${edu.passingYear}"
@@ -109,37 +108,43 @@ class EducationController extends GetxController {
       });
     }
   }
+
   void setEditFieldsFromCard(Map<String, dynamic> item) {
-  editingId.value = item['_id'] ?? '';
+    editingId.value = item['_id'] ?? '';
 
-  qualification.value = item['subtitle1'] ?? '';
+    qualification.value = item['subtitle1'] ?? '';
 
-  schoolController.text = item['trailing'] ?? '';
-  school.value = schoolController.text;
+    schoolController.text = item['trailing'] ?? '';
+    school.value = schoolController.text;
 
-  boardController.text = item['subtitle2'] ?? '';
-  board.value = boardController.text;
-  if (item['title'] != null && item['title'].toString().contains("Passed Out:")) {
-    final rawYear = item['title'].toString().replaceAll("Passed Out:", "").trim();
-    yearController.text = rawYear;
-    year.value = rawYear;
-  } else {
-    yearController.text = '';
-    year.value = '';
+    boardController.text = item['subtitle2'] ?? '';
+    board.value = boardController.text;
+    if (item['title'] != null &&
+        item['title'].toString().contains("Passed Out:")) {
+      final rawYear =
+          item['title'].toString().replaceAll("Passed Out:", "").trim();
+      yearController.text = rawYear;
+      year.value = rawYear;
+    } else {
+      yearController.text = '';
+      year.value = '';
+    }
+    if (item['subtitle3'] != null &&
+        item['subtitle3'].toString().contains("Percentage:")) {
+      final rawScore =
+          item['subtitle3'].toString().replaceAll("Percentage:", "").trim();
+
+      final cleanedScore = rawScore.endsWith('%')
+          ? rawScore.substring(0, rawScore.length - 1).trim()
+          : rawScore;
+
+      scoreController.text = cleanedScore;
+      score.value = cleanedScore;
+    } else {
+      scoreController.text = '';
+      score.value = '';
+    }
   }
-  if (item['subtitle3'] != null && item['subtitle3'].toString().contains("Percentage:")) {
-    final rawScore = item['subtitle3'].toString().replaceAll("Percentage:", "").trim();
-
-    final cleanedScore = rawScore.endsWith('%') ? rawScore.substring(0, rawScore.length - 1).trim() : rawScore;
-
-    scoreController.text = cleanedScore;
-    score.value = cleanedScore;
-  } else {
-    scoreController.text = '';
-    score.value = '';
-  }
-}
-
 
   Future<void> deleteEducation(String id) async {
     final res = await ResumeRepo().deleteEducation(id: id);
@@ -148,7 +153,10 @@ class EducationController extends GetxController {
       if (editingId.value == id) {
         clearAll();
       }
+
       editingId.value = null;
+      await callAPIGetResume();
+
       commonSnackBar(message: AppStrings.educationDeleted);
     } else {
       commonSnackBar(message: res.message ?? AppStrings.educationDeleteFailed);
@@ -165,7 +173,9 @@ class EducationController extends GetxController {
         // await fetchEducationDetails();
         clearAll();
         Get.back();
-        commonSnackBar(message:AppStrings.educationAdded);
+        await callAPIGetResume();
+
+        commonSnackBar(message: AppStrings.educationAdded);
       } else {
         commonSnackBar(message: res.message ?? AppStrings.educationAddError);
       }
@@ -178,7 +188,9 @@ class EducationController extends GetxController {
         clearAll();
         editingId.value = null;
         Get.back();
-        commonSnackBar(message:AppStrings.educationUpdated);
+        await callAPIGetResume();
+
+        commonSnackBar(message: AppStrings.educationUpdated);
       } else {
         commonSnackBar(message: res.message ?? AppStrings.educationUpdateError);
       }

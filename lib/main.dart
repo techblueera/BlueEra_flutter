@@ -17,7 +17,6 @@ import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/theme/themes.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/app_maintannace/app_maintenance_controller.dart';
-import 'package:BlueEra/features/app_maintannace/maintenance_screen.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/onboarding/view/splash_screen.dart';
 import 'package:BlueEra/widgets/global_message_service.dart';

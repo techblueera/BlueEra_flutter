@@ -36,10 +36,13 @@ class ResumeProfileSectionCard extends StatelessWidget {
     return CommonCardWidget(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          CustomText(title,
-              color: AppColors.grey72, fontSize: SizeConfig.medium),
-          SizedBox(height: SizeConfig.size15),
+          if (title.isNotEmpty) ...[
+            CustomText(title,
+                color: AppColors.grey72, fontSize: SizeConfig.medium),
+            SizedBox(height: SizeConfig.size15),
+          ],
           ...items.asMap().entries.map((entry) {
             final index = entry.key;
             final item = entry.value;
@@ -70,7 +73,6 @@ class ResumeProfileSectionCard extends StatelessWidget {
                               ),
                               Padding(
                                 padding: EdgeInsets.only(top: SizeConfig.size3),
-
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -189,4 +191,3 @@ class ResumeProfileSectionCard extends StatelessWidget {
     );
   }
 }
-

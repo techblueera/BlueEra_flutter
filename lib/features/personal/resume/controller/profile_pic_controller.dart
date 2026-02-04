@@ -5,6 +5,7 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/get_resume_data_model.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/personal/resume/controller/achievements_controller.dart';
 import 'package:BlueEra/features/personal/resume/controller/add_career_obj_controller.dart';
@@ -108,7 +109,7 @@ class ProfilePicController extends GetxController {
     final params = {
       'name': name,
       'email': email,
-      'phone': phone,
+      'contact_no': phone,
       'location': location,
     };
     final response = await ResumeRepo().updateProfile(params);
@@ -735,4 +736,13 @@ class ProfilePicController extends GetxController {
       print('Error updating PatentsController: $e');
     }
   }
+}
+
+
+callAPIGetResume()
+{
+  final controller = getOrPut(() => ProfilePicController());
+
+  controller.getMyResume();
+
 }

@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/personal/resume/controller/profile_pic_controller.dart';
@@ -7,7 +8,6 @@ import 'package:BlueEra/widgets/ai_description_field_screen.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_drop_down-dialoge.dart';
-import 'package:BlueEra/widgets/common_drop_down.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -27,6 +27,8 @@ class _JobSeekerPersonalDetailsScreenState
     extends State<JobSeekerPersonalDetailsScreen> {
   // final ProfileBioController controller = Get.put(ProfileBioController());
   // final ProfilePicController controller = Get.find<ProfilePicController>();
+  final controller = getOrPut(() => ProfilePicController());
+
   final nameController = TextEditingController();
   final emailController = TextEditingController();
   final phoneController = TextEditingController();
@@ -48,11 +50,11 @@ class _JobSeekerPersonalDetailsScreenState
   @override
   void initState() {
     super.initState();
-    // final data = controller.getResumeData.value;
-    // nameController.text = data.name ?? '(No Name)';
-    // emailController.text = data.email ?? '(No Email)';
-    // phoneController.text = data.phone ?? '(No Phone)';
-    // locationController.text = data.location ?? '(No location)';
+    final data = controller.getResumeData.value;
+    nameController.text = data.name ?? '';
+    emailController.text = data.email ?? '';
+    phoneController.text = data.phone ?? '';
+    locationController.text = data.location ?? '';
 
     nameController.addListener(_validate);
     emailController.addListener(_validate);
@@ -92,7 +94,7 @@ class _JobSeekerPersonalDetailsScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title: AppStrings.personalDetails),
+      appBar: CommonBackAppBar(title: AppStrings.personalDetails.tr),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.all(SizeConfig.paddingS),
@@ -268,12 +270,12 @@ class _JobSeekerPersonalDetailsScreenState
                                 phoneController.text.length < 10)
                             ? null
                             : () async {
-                                // await controller.updateProfileDetails(
-                                //   name: nameController.text.trim(),
-                                //   email: emailController.text.trim(),
-                                //   phone: phoneController.text.trim(),
-                                //   location: locationController.text.trim(),
-                                // );
+                                await controller.updateProfileDetails(
+                                  name: nameController.text.trim(),
+                                  email: emailController.text.trim(),
+                                  phone: phoneController.text.trim(),
+                                  location: locationController.text.trim(),
+                                );
                               },
                       ),
                     ],

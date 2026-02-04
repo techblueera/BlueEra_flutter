@@ -2,7 +2,6 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/professionals_consultant/controller/portfolio_professionals_controller.dart';
 import 'package:BlueEra/features/me/professionals_consultant/model/professional_profile_res_model.dart';
 import 'package:BlueEra/widgets/ai_description_field_screen.dart';

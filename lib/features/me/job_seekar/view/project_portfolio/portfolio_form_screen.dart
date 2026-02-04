@@ -7,6 +7,8 @@ import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upl
 import 'package:BlueEra/features/me/professionals_consultant/controller/portfolio_professionals_controller.dart';
 import 'package:BlueEra/widgets/ai_description_field_screen.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
+import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/common_drop_down-dialoge.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -18,156 +20,156 @@ class JobSeekerPortfolioFormScreen extends StatefulWidget {
   const JobSeekerPortfolioFormScreen({super.key});
 
   @override
-  State<JobSeekerPortfolioFormScreen> createState() => _JobSeekerPortfolioFormScreenState();
+  State<JobSeekerPortfolioFormScreen> createState() =>
+      _JobSeekerPortfolioFormScreenState();
 }
 
-class _JobSeekerPortfolioFormScreenState extends State<JobSeekerPortfolioFormScreen> {
+class _JobSeekerPortfolioFormScreenState
+    extends State<JobSeekerPortfolioFormScreen> {
   final portfolioController = Get.put(PortfolioProfessionalsController());
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(body: SafeArea(
-      child: Padding(
-        padding: EdgeInsets.only(
-          left: SizeConfig.size14,
-          right: SizeConfig.size14,
-          top: SizeConfig.size14,
-          bottom: MediaQuery.of(context).viewInsets.bottom +
-              SizeConfig.size14,
-        ),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Scaffold(
+      appBar: CommonBackAppBar(title:"Portfolio Projects",),
+      body: SafeArea(
+        child: CommonCardWidget(
+          child: Padding(
+            padding: EdgeInsets.only(
+              bottom:
+                  MediaQuery.of(context).viewInsets.bottom + SizeConfig.size14,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CustomText("Add More", fontWeight: FontWeight.w600),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Get.back(),
+                  // Row(
+                  //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  //   children: [
+                  //     CustomText("Add More", fontWeight: FontWeight.w600),
+                  //     IconButton(
+                  //       icon: const Icon(Icons.close),
+                  //       onPressed: () => Get.back(),
+                  //     ),
+                  //   ],
+                  // ),
+
+                  CommonTextField(
+                    title: "Project Title",
+                    textEditController: portfolioController.titleController,
+                    hintText: "E.g. Finance & Tax",
+                    onChange: (val) {
+                      setState(() {});
+                    },
                   ),
+
+                  SizedBox(height: SizeConfig.size12),
+                  const CustomText("Consultation Mode",
+                      color: AppColors.mainTextColor),
+                  const SizedBox(height: 10),
+                  Obx(() => CommonDropdownDialog<String>(
+                        title: "Select Mode",
+                        hintText: "E.g. Online",
+                        items: portfolioController.categoryList,
+                        selectedValue:
+                            portfolioController.selectedCategory.value.isEmpty
+                                ? null
+                                : portfolioController.selectedCategory.value,
+                        displayValue: (mode) => mode,
+                        onChanged: (value) {
+                          if (value != null)
+                            portfolioController.selectedCategory.value = value;
+                        },
+                      )),
+                  const SizedBox(height: 10),
+
+                  ///DOB selection
+                  CustomText(
+                    'When the work was completed',
+                    fontSize: SizeConfig.medium,
+                    color: AppColors.mainTextColor,
+                  ),
+                  SizedBox(
+                    height: SizeConfig.size10,
+                  ),
+                  NewDatePicker(
+                    selectedDay: portfolioController.selectedDay,
+                    selectedMonth: portfolioController.selectedMonth,
+                    selectedYear: portfolioController.selectedYear,
+                    isAgeValidation15: false,
+                    onDayChanged: (value) {
+                      setState(() {
+                        portfolioController.selectedDay = value;
+                      });
+                    },
+                    onMonthChanged: (value) {
+                      setState(() {
+                        portfolioController.selectedMonth = value;
+                      });
+                    },
+                    onYearChanged: (value) {
+                      setState(() {
+                        portfolioController.selectedYear = value;
+                      });
+                    },
+                  ),
+                  SizedBox(height: SizeConfig.size12),
+                  // if (!isEdit) ...[
+                  CustomText(
+                    'Upload Image',
+                    fontSize: SizeConfig.medium,
+                    color: AppColors.mainTextColor,
+                  ),
+                  SizedBox(
+                    height: SizeConfig.size10,
+                  ),
+                  _buildImageSection(context, setState(() {})),
+                  SizedBox(height: SizeConfig.size12),
+                  // ],
+                  Obx(() {
+                    return AiDescriptionField(
+                      label: AppStrings.description,
+                      hintText: "Tell us more about the project or case study...",
+                      controller: portfolioController.descriptionController,
+                      rxValue: portfolioController.description,
+                      // Your RX variable from the controller
+                      aiType: "Portfolio,Case Studies",
+                      aiData: {
+                        "category": portfolioController.selectedCategory.value,
+                        "title": portfolioController.titleController.text
+                      },
+                    );
+                  }),
+                  SizedBox(height: SizeConfig.size20),
+                  Obx(() => CustomBtn(
+                        // title: isEdit ? "Update" : "Save",
+                        title: "Save",
+                        isValidate: !(portfolioController.isSaving.value),
+                        onTap: portfolioController.isSaving.value
+                            ? null
+                            : () async {
+                                // if (isEdit == false &&
+                                //     portfolioController
+                                //         .selectedFile.value ==
+                                //         null) {
+                                //   commonSnackBar(
+                                //       message:
+                                //       "Upload image file is required");
+                                //   return;
+                                // }
+                                await portfolioController.save();
+                                Get.back();
+                              },
+                      )),
                 ],
               ),
-
-              CommonTextField(
-                title: "Project Title",
-                textEditController: portfolioController.titleController,
-                hintText: "E.g. Finance & Tax",
-                onChange: (val) {
-                  setState(() {});
-                },
-              ),
-
-              SizedBox(height: SizeConfig.size12),
-              const CustomText("Consultation Mode",
-                  color: AppColors.mainTextColor),
-              const SizedBox(height: 10),
-              Obx(() => CommonDropdownDialog<String>(
-                title: "Select Mode",
-                hintText: "E.g. Online",
-                items: portfolioController.categoryList,
-                selectedValue: portfolioController
-                    .selectedCategory.value.isEmpty
-                    ? null
-                    : portfolioController.selectedCategory.value,
-                displayValue: (mode) => mode,
-                onChanged: (value) {
-                  if (value != null)
-                    portfolioController.selectedCategory.value =
-                        value;
-                },
-              )),
-              const SizedBox(height: 10),
-
-              ///DOB selection
-              CustomText(
-                'When the work was completed',
-                fontSize: SizeConfig.medium,
-                color: AppColors.mainTextColor,
-              ),
-              SizedBox(
-                height: SizeConfig.size10,
-              ),
-              NewDatePicker(
-                selectedDay: portfolioController.selectedDay,
-                selectedMonth: portfolioController.selectedMonth,
-                selectedYear: portfolioController.selectedYear,
-                isAgeValidation15: false,
-                onDayChanged: (value) {
-                  setState(() {
-                    portfolioController.selectedDay = value;
-                  });
-                },
-                onMonthChanged: (value) {
-                  setState(() {
-                    portfolioController.selectedMonth = value;
-                  });
-                },
-                onYearChanged: (value) {
-                  setState(() {
-                    portfolioController.selectedYear = value;
-                  });
-                },
-              ),
-              SizedBox(height: SizeConfig.size12),
-              // if (!isEdit) ...[
-                CustomText(
-                  'Upload Image',
-                  fontSize: SizeConfig.medium,
-                  color: AppColors.mainTextColor,
-                ),
-                SizedBox(
-                  height: SizeConfig.size10,
-                ),
-                _buildImageSection(context, setState(() {})),
-                SizedBox(height: SizeConfig.size12),
-              // ],
-              Obx(() {
-                return AiDescriptionField(
-                  label: AppStrings.description,
-                  hintText:
-                  "Tell us more about the project or case study...",
-                  controller: portfolioController.descriptionController,
-                  rxValue: portfolioController.description,
-                  // Your RX variable from the controller
-                  aiType: "Portfolio,Case Studies",
-                  aiData: {
-                    "category":
-                    portfolioController.selectedCategory.value,
-                    "title": portfolioController.titleController.text
-                  },
-                );
-              }),
-              SizedBox(height: SizeConfig.size20),
-              Obx(() => CustomBtn(
-                // title: isEdit ? "Update" : "Save",
-                title: "Save",
-                isValidate: !(portfolioController.isSaving.value),
-                onTap: portfolioController.isSaving.value
-                    ? null
-                    : () async {
-                  // if (isEdit == false &&
-                  //     portfolioController
-                  //         .selectedFile.value ==
-                  //         null) {
-                  //   commonSnackBar(
-                  //       message:
-                  //       "Upload image file is required");
-                  //   return;
-                  // }
-                  await portfolioController.save();
-                  Get.back();
-                },
-              )),
-              SizedBox(height: SizeConfig.size20),
-              SizedBox(height: SizeConfig.size30),
-            ],
+            ),
           ),
         ),
       ),
-    ),);
+    );
   }
+
   Widget _buildImageSection(BuildContext context, void param1) {
     // If user picked a NEW local file
     if (portfolioController.selectedFile.value != null) {
@@ -244,5 +246,4 @@ class _JobSeekerPortfolioFormScreenState extends State<JobSeekerPortfolioFormScr
       imageFile: portfolioController.selectedFile,
     );
   }
-
 }
