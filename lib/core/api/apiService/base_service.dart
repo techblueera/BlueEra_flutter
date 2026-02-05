@@ -509,6 +509,7 @@ abstract class BaseService {
   final String channelServiceFollower = "channel-service/follower/";
 
   final String rentalService = "booking-enquiry-service/rentals";
+  final String getBookingRiders = "rider-service/fare/riders";
   String deleteRentalService(String rentalId) => "booking-enquiry-service/rentals/$rentalId";
   final String generateHomeDescription = "ai-service/api/ai-property/generate-description";
 

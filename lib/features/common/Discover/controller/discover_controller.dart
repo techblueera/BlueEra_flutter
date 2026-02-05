@@ -15,7 +15,11 @@ import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dar
 import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/model/rental_service_response.dart';
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
+
+import '../model/get_booking_rider_model.dart';
 
 enum CategoryFilter {
   nearest('Nearest'),
@@ -66,17 +70,34 @@ class DiscoverController extends GetxController{
   RxBool isEarnServiceLoading = false.obs;
   int earnServicePage = 1;
   var isEarnServiceLoadingMore = false.obs;
+  Rx<VehicleAllResponse> ridersDetailsList=VehicleAllResponse().obs;
+  var bookingRiderListResponse =
+      ApiResponse.initial('Initial').obs;
+
   bool hasMoreEarnServiceData = true;
 
 
+  RxBool findRiderDetailsLoading = false.obs;
+  RxInt selectedHorizontalTab=0.obs;
+  RxInt selectedVehicleOptionIndex=0.obs;
+  RxDouble? selectedFromLat=0.0.obs;
+  RxDouble? selectedFromLong=0.0.obs;
+  RxDouble? selectedToLat=0.0.obs;
+  RxDouble? selectedToLong=0.0.obs;
+  RxString? selectedFromAddress="".obs;
+  RxString? selectedToAddress="".obs;
   /// Rental Services
   RxList<RentalServiceData> rentalServices = <RentalServiceData>[].obs;
+  Rx<RiderUser> selectedRider = RiderUser().obs;
   RxBool isRentalServiceLoading = false.obs;
   int rentalServicePage = 1;
   var isRentalServiceLoadingMore = false.obs;
   bool hasMoreRentalServiceData = true;
   Rxn<OnboardingCategoryModel> selectedStayCategory = Rxn<OnboardingCategoryModel>();
 
+void onSelectRider(RiderUser rider) {
+  selectedRider.value=rider;
+}
   /// fetch Earn service
   Future<void> fetchEarnServices({
     required String earnServiceType,
@@ -175,7 +196,102 @@ class DiscoverController extends GetxController{
       }
     }
   }
+Future<String> getOrderTypeString()async{
+  switch(selectedHorizontalTab.value){
+    case 0:
+      return "InCity";
+      case 1:
+        return "OutStation";
+        case 2:
+          return "HourlyRental";
+          case 3:
+            return "Parcel";
+            default:
+              return "InCity";
+  }
+}
 
+  Future<String?> getCurrentPostCode() async {
+    try {
+      // 1️⃣ Check & request permission
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied ||
+            permission == LocationPermission.deniedForever) {
+          return null;
+        }
+      }
+
+      // 2️⃣ Get current position
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      // 3️⃣ Reverse geocode
+      List<Placemark> placemarks = await placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
+
+      if (placemarks.isNotEmpty) {
+        return placemarks.first.postalCode;
+      }
+
+      return null;
+    } catch (e) {
+      print("Post code error: $e");
+      return null;
+    }
+  }
+
+  Future<void> getBookingRidersApi()async{
+
+    if(selectedFromLat?.value!=0.0&&selectedFromLong?.value!=0.0&&selectedToLat?.value!=0.0&&selectedToLong?.value!=0.0){
+      findRiderDetailsLoading.value=true;
+      String? postCodeData;
+      if(selectedHorizontalTab.value==0||selectedHorizontalTab.value==1){
+        postCodeData=await getCurrentPostCode();
+
+      }
+      Map<String, dynamic> testingParams= {
+      ApiKeys.orderFor : "InCity",
+      ApiKeys.pickupLatitude : 23.266686,
+      ApiKeys.pickupLongitude : 77.459075,
+      ApiKeys.dropLatitude :23.266686,
+      ApiKeys.dropLongitude :77.459075,
+      ApiKeys.range_in_km: 5,
+        if(selectedHorizontalTab.value==0||selectedHorizontalTab.value==1)
+      ApiKeys.pincode: "462023",
+      };
+      // Map<String, dynamic> queryParams = {
+      //   ApiKeys.orderFor : getOrderTypeString(),
+      //   ApiKeys.pickupLatitude : selectedFromLat?.value,
+      //   ApiKeys.pickupLongitude : selectedFromLong?.value,
+      //   ApiKeys.dropLatitude : selectedToLat?.value,
+      //   ApiKeys.dropLongitude : selectedToLong?.value,
+      //   ApiKeys.range_in_km: 5,
+      //   if(selectedHorizontalTab.value==0||selectedHorizontalTab.value==1)
+      //     ApiKeys.pincode: postCodeData??'',
+      // };
+      final response = await DiscoverRepo().getBookingRidersApi(
+        queryParams: testingParams,
+      );
+
+      if (response.isSuccess) {
+        ridersDetailsList.value = VehicleAllResponse.fromJson(response.response?.data);
+        bookingRiderListResponse.value=ApiResponse.complete(ridersDetailsList.value);
+        findRiderDetailsLoading.value=false;
+
+      }else{
+        bookingRiderListResponse.value=ApiResponse.error('error');
+        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+        findRiderDetailsLoading.value=false;
+
+      }
+    }
+
+  }
   Future<void> fetchRentalServices({
     required RentalServiceType rentalServiceType,
     bool isLoadMore = false

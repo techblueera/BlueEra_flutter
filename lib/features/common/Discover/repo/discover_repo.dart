@@ -27,6 +27,16 @@ class DiscoverRepo extends BaseService {
     );
     return response;
   }
+  Future<ResponseModel> getBookingRidersApi({required Map<String, dynamic> queryParams}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      getBookingRiders,
+      params: queryParams,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 
 }
 
