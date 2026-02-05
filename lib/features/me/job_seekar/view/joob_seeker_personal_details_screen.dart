@@ -1,13 +1,14 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/personal/resume/controller/profile_pic_controller.dart';
+import 'package:BlueEra/features/personal/resume/fields/resume_profile_header.dart';
 import 'package:BlueEra/widgets/ai_description_field_screen.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_drop_down-dialoge.dart';
-import 'package:BlueEra/widgets/common_drop_down.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -25,8 +26,8 @@ class JobSeekerPersonalDetailsScreen extends StatefulWidget {
 
 class _JobSeekerPersonalDetailsScreenState
     extends State<JobSeekerPersonalDetailsScreen> {
-  // final ProfileBioController controller = Get.put(ProfileBioController());
-  // final ProfilePicController controller = Get.find<ProfilePicController>();
+  final controller = getOrPut(() => ProfilePicController());
+
   final nameController = TextEditingController();
   final emailController = TextEditingController();
   final phoneController = TextEditingController();
@@ -41,18 +42,22 @@ class _JobSeekerPersonalDetailsScreenState
   final experienceLevelOptions = [
     "Intern",
     "Fresher",
-    "Min Level",
+    "Mid Level",
     "Senior Level"
   ];
 
   @override
   void initState() {
     super.initState();
-    // final data = controller.getResumeData.value;
-    // nameController.text = data.name ?? '(No Name)';
-    // emailController.text = data.email ?? '(No Email)';
-    // phoneController.text = data.phone ?? '(No Phone)';
-    // locationController.text = data.location ?? '(No location)';
+    final data = controller.getResumeData.value;
+    nameController.text = data.name ?? '';
+    emailController.text = data.email ?? '';
+    phoneController.text = data.phone ?? '';
+    locationController.text = data.location ?? '';
+    descriptionController.text = data.bio ?? '';
+    careerObjController.text = data.careerObjective ?? '';
+    selectedOpenWorkOption = data.openToWork?? '';
+    selectedExpLevelOpt = data.experienceLevel?? '';
 
     nameController.addListener(_validate);
     emailController.addListener(_validate);
@@ -68,7 +73,6 @@ class _JobSeekerPersonalDetailsScreenState
     final valid = nameController.text.trim().isNotEmpty &&
         emailController.text.trim().isNotEmpty &&
         careerObjController.text.trim().isNotEmpty &&
-        descriptionController.text.trim().isNotEmpty &&
         (selectedExpLevelOpt?.isNotEmpty ?? false) &&
         (selectedOpenWorkOption?.isNotEmpty ?? false) &&
         phoneValid &&
@@ -86,13 +90,15 @@ class _JobSeekerPersonalDetailsScreenState
     emailController.dispose();
     phoneController.dispose();
     locationController.dispose();
+    descriptionController.dispose();
+    careerObjController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title: AppStrings.personalDetails),
+      appBar: CommonBackAppBar(title: "Personal Details"),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.all(SizeConfig.paddingS),
@@ -110,6 +116,10 @@ class _JobSeekerPersonalDetailsScreenState
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      SizedBox(
+                        width: double.infinity,
+                        child: ResumeProfileHeader(),
+                      ),
                       CommonTextField(
                         onChange: (val) {
                           setState(() {});
@@ -205,8 +215,7 @@ class _JobSeekerPersonalDetailsScreenState
                         aiData: {
                           "name": nameController.text,
                           "email": emailController.text,
-                          "phone": phoneController.text,
-                          "location": locationController.text,
+                          "phone": phoneController.text
                           // "title": controller.title.value,
                         },
                       ),
@@ -215,6 +224,8 @@ class _JobSeekerPersonalDetailsScreenState
 
                       CommonTextField(
                         onChange: (val) {
+                          _validate();
+
                           setState(() {});
                         },
                         title: AppStrings.careerObjective,
@@ -238,6 +249,8 @@ class _JobSeekerPersonalDetailsScreenState
                         hintText: "Select Work Option",
                         onChanged: (val) {
                           selectedOpenWorkOption = val ?? "";
+                          _validate();
+
                           setState(() {});
                         },
                         displayValue: (item) => item,
@@ -252,6 +265,8 @@ class _JobSeekerPersonalDetailsScreenState
                         hintText: "Select Experience Level",
                         onChanged: (val) {
                           selectedExpLevelOpt = val ?? "";
+                          _validate();
+
                           setState(() {});
                         },
                         displayValue: (item) => item,
@@ -268,12 +283,15 @@ class _JobSeekerPersonalDetailsScreenState
                                 phoneController.text.length < 10)
                             ? null
                             : () async {
-                                // await controller.updateProfileDetails(
-                                //   name: nameController.text.trim(),
-                                //   email: emailController.text.trim(),
-                                //   phone: phoneController.text.trim(),
-                                //   location: locationController.text.trim(),
-                                // );
+                                await controller.updateProfileDetails(
+                                    name: nameController.text.trim(),
+                                    email: emailController.text.trim(),
+                                    phone: phoneController.text.trim(),
+                                    location: locationController.text.trim(),
+                                    openToWork: selectedOpenWorkOption ?? "",
+                                    experienceLevel: selectedExpLevelOpt ?? "",
+                                    bio: descriptionController.text,
+                                    careerObjective: careerObjController.text);
                               },
                       ),
                     ],

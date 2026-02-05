@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/resume/controller/experience_controller.dart';
+import 'package:BlueEra/widgets/ai_description_field_screen.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_drop_down.dart';
@@ -35,17 +36,14 @@ class _AddFullTimeExperienceScreenState
 
     if (!widget.isEdit) {
       controller.clearAllFields();
-    } else {
-    }
+    } else {}
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-          title: widget.isEdit
-              ? AppStrings.editFullTimeExperience
-              :AppStrings.addFullTimeExperience),
+          title: widget.isEdit ? "Edit Experience" : "Add Experience"),
       body: Padding(
         padding: EdgeInsets.all(SizeConfig.paddingM),
         child: SingleChildScrollView(
@@ -62,8 +60,6 @@ class _AddFullTimeExperienceScreenState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(height: SizeConfig.size30),
-
                     CommonTextField(
                       title: AppStrings.previousCompanyName,
                       hintText: AppStrings.previousCompanyHint,
@@ -110,14 +106,15 @@ class _AddFullTimeExperienceScreenState
 
                     CommonTextField(
                       title: AppStrings.location,
-                      hintText:AppStrings.locationHint,
+                      hintText: AppStrings.locationHint,
                       fontSize: SizeConfig.small,
                       textEditController: controller.locationController,
                     ),
 
                     SizedBox(height: SizeConfig.size24),
 
-                    CustomText(AppStrings.startDate, fontSize: SizeConfig.small),
+                    CustomText(AppStrings.startDate,
+                        fontSize: SizeConfig.small),
                     SizedBox(height: SizeConfig.size10),
                     Obx(() => NewDatePicker(
                           selectedDay: controller.selectedStartDay.value,
@@ -148,14 +145,29 @@ class _AddFullTimeExperienceScreenState
                         )),
 
                     SizedBox(height: SizeConfig.size24),
-
-                    CommonTextField(
-                      title: AppStrings.jobRoleDescription,
-                      hintText:AppStrings.jobRoleDescriptionHint,
-                      fontSize: SizeConfig.small,
-                      maxLine: 4,
-                      textEditController: controller.descriptionController,
+                    AiDescriptionField(
+                      label: "Description Of Job Role",
+                      hintText: AppStrings.jobRoleDescriptionHint,
+                      controller: controller.descriptionController,
+                      rxValue: "".obs,
+                      // Your RX variable from the controller
+                      aiType: "job role description",
+                      aiData: {
+                        "name": controller.previousCompanyController.text,
+                        "designation": controller.designationController.text,
+                        "jobtype": controller.selectedJobType.value,
+                        "workmode": controller.selectedWorkType.value,
+                        "location": controller.locationController.text
+                        // "title": controller.title.value,
+                      },
                     ),
+                    // CommonTextField(
+                    //   title: AppStrings.jobRoleDescription,
+                    //   hintText:AppStrings.jobRoleDescriptionHint,
+                    //   fontSize: SizeConfig.small,
+                    //   maxLine: 4,
+                    //   textEditController: controller.descriptionController,
+                    // ),
 
                     SizedBox(height: SizeConfig.size20),
 
@@ -163,7 +175,9 @@ class _AddFullTimeExperienceScreenState
                       children: [
                         Expanded(
                           child: Obx(() => CustomBtn(
-                                title: widget.isEdit ? AppStrings.update : AppStrings.save,
+                                title: widget.isEdit
+                                    ? AppStrings.update
+                                    : AppStrings.save,
                                 isValidate: controller.isFormValid.value,
                                 onTap: controller.isFormValid.value
                                     ? () async {

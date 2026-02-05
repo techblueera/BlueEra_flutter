@@ -26,10 +26,14 @@ void showConfirmDeleteDialog(BuildContext context, VoidCallback onConfirm) {
                 color: Colors.white,
                 fontSize: SizeConfig.large,
                 fontWeight: FontWeight.bold,
+                textAlign: TextAlign.center,
               ),
             ),
             SizedBox(height: SizeConfig.size20),
-            CustomText(AppStrings.areYouSureDelete),
+            CustomText(
+              AppStrings.areYouSureDelete,
+              textAlign: TextAlign.center,
+            ),
             SizedBox(height: SizeConfig.size20),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: SizeConfig.size20),
@@ -41,7 +45,7 @@ void showConfirmDeleteDialog(BuildContext context, VoidCallback onConfirm) {
                       borderColor: AppColors.primaryColor,
                       textColor: AppColors.primaryColor,
                       onTap: onConfirm,
-                      title:AppStrings.yes,
+                      title: AppStrings.yes,
                     ),
                   ),
                   SizedBox(width: SizeConfig.size10),
@@ -141,7 +145,7 @@ void showConfirmDialogForLanguageDeletion(BuildContext context,
       controller.removeLanguageByCategory(language, category);
       Navigator.of(context).pop();
     },
-    title:AppStrings.confirm,
+    title: AppStrings.confirm,
     content:
         'Are you sure you want to remove "${language.label}" from this category?',
   );

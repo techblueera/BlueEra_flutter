@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/resume/controller/education_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/common_drop_down-dialoge.dart';
 import 'package:BlueEra/widgets/common_drop_down.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -68,7 +69,7 @@ class _EducationScreenState extends State<EducationScreen> {
                   ),
                   SizedBox(height: SizeConfig.size10),
   
-                  Obx(() => CommonDropdown<String>(
+                  Obx(() => CommonDropdownDialog<String>(
                         items: qualificationOptions,
                         selectedValue: controller.qualification.value.isEmpty
                             ? null
@@ -79,7 +80,9 @@ class _EducationScreenState extends State<EducationScreen> {
                           controller.validate();
                         },
                         displayValue: (item) => item,
-                      )),
+                    title: AppStrings.education,
+
+                  )),
 
                   SizedBox(height: SizeConfig.size20),
 

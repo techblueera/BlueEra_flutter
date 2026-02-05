@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/personal/resume/controller/profile_pic_controller.dart';
 import 'package:BlueEra/features/personal/resume/repo/resume_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -259,10 +260,14 @@ class ExperienceController extends GetxController {
       res = await repo.updateExperience(
           id: id, params: params, isFullTime: isFullTime);
       commonSnackBar(message: AppStrings.experienceUpdated);
+      await callAPIGetResume();
+
     } else {
       res = await repo.addExperience(params: params, isFullTime: isFullTime);
 
       commonSnackBar(message: AppStrings.experienceAdded);
+      await callAPIGetResume();
+
     }
 
     if (res.isSuccess) {
@@ -279,6 +284,8 @@ class ExperienceController extends GetxController {
       experienceData.clear();
       clearAllFields();
       commonSnackBar(message: AppStrings.experienceDeleted);
+      await callAPIGetResume();
+
     } else {
       commonSnackBar(message: res.message ?? AppStrings.experienceDeleteFailed);
     }

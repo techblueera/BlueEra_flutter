@@ -7,7 +7,6 @@ import 'package:BlueEra/features/me/professionals_consultant/controller/ai_profe
 import 'package:BlueEra/features/me/professionals_consultant/controller/professionals_certificates_controller.dart';
 import 'package:BlueEra/features/me/professionals_consultant/controller/professionals_service_photo_controller.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/professionals_service_gallery/professionals_service_category_details_screen.dart';
-import 'package:BlueEra/features/me/professionals_consultant/view/professionals_service_gallery/professionals_service_photos_screen.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/professionals_service_gallery/upload_professionals_service_photos_screen.dart';
 import 'package:BlueEra/widgets/ai_description_field_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';

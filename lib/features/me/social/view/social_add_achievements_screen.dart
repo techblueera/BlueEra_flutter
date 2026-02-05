@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/personal/resume/controller/add_more_controller.dart';
+import 'package:BlueEra/widgets/ai_description_field_screen.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
@@ -17,35 +18,39 @@ import 'package:get/get.dart';
 
 import '../../../../../widgets/new_common_date_selection_dropdown.dart';
 
-class JobSeekerAddNgoFormScreen extends StatefulWidget {
+class SocialAddAchievementsScreen extends StatefulWidget {
   final bool isEdit;
   final String? experienceId;
-  const JobSeekerAddNgoFormScreen({Key? key, this.isEdit = false, this.experienceId})
+
+  const SocialAddAchievementsScreen(
+      {Key? key, this.isEdit = false, this.experienceId})
       : super(key: key);
 
   @override
-  State<JobSeekerAddNgoFormScreen> createState() => _JobSeekerAddNgoFormScreenState();
+  State<SocialAddAchievementsScreen> createState() =>
+      _JobSeekerAddNgoFormScreenState();
 }
 
-class _JobSeekerAddNgoFormScreenState extends State<JobSeekerAddNgoFormScreen> {
+class _JobSeekerAddNgoFormScreenState
+    extends State<SocialAddAchievementsScreen> {
   final titleCtrl = TextEditingController();
   final descCtrl = TextEditingController();
   int? _selectedDay, _selectedMonth, _selectedYear;
   String? imagePath;
+  RxString descriptionTxt = "".obs;
   bool validate = false;
 
   bool isValidDate(int? day, int? month, int? year) {
-  if (day == null || month == null || year == null) return false;
-  try {
-    final date = DateTime(year, month, day);
-    final today = DateTime.now();
-    final todayOnly = DateTime(today.year, today.month, today.day);
-    return !date.isAfter(todayOnly);
-  } catch (e) {
-    return false;
+    if (day == null || month == null || year == null) return false;
+    try {
+      final date = DateTime(year, month, day);
+      final today = DateTime.now();
+      final todayOnly = DateTime(today.year, today.month, today.day);
+      return !date.isAfter(todayOnly);
+    } catch (e) {
+      return false;
+    }
   }
-}
-
 
   // final EntityController ngoController = Get.find<EntityController>(tag: "ngo");
   final ngoController = getOrPut(() => EntityController(isPatent: false));
@@ -79,8 +84,8 @@ class _JobSeekerAddNgoFormScreenState extends State<JobSeekerAddNgoFormScreen> {
     return Scaffold(
         appBar: CommonBackAppBar(
             title: widget.isEdit
-                ? AppStrings.editNgo
-                : AppStrings.addNgo),
+                ? AppStrings.editAchievement
+                : AppStrings.addAchievement),
         body: SingleChildScrollView(
             child: SafeArea(
                 child: Padding(
@@ -105,7 +110,7 @@ class _JobSeekerAddNgoFormScreenState extends State<JobSeekerAddNgoFormScreen> {
                               onChange: (value) => validateForm(),
                             ),
                             SizedBox(height: SizeConfig.size15),
-                            CustomText(AppStrings.certifiedDate,
+                            CustomText("Issue Date",
                                 color: AppColors.black1A,
                                 fontSize: SizeConfig.small,
                                 fontWeight: FontWeight.w400),
@@ -151,22 +156,31 @@ class _JobSeekerAddNgoFormScreenState extends State<JobSeekerAddNgoFormScreen> {
                               },
                             ),
                             SizedBox(height: SizeConfig.size15),
-                            CommonTextField(
-                              textEditController: descCtrl,
-                              keyBoardType: TextInputType.text,
-                              regularExpression:
-                                  RegularExpressionUtils.alphabetSpacePattern,
-                              title: AppStrings.description,
-                              titleColor: AppColors.black1A,
-                              fontSize: SizeConfig.small,
-                              fontWeight: FontWeight.w400,
-                              hintText: AppStrings.ngoDescriptionHint,
-                              isValidate: true,
-                              maxLine: 4,
-                              onChange: (value) => validateForm(),
+                            // CommonTextField(
+                            //   textEditController: descCtrl,
+                            //   keyBoardType: TextInputType.text,
+                            //   regularExpression:
+                            //       RegularExpressionUtils.alphabetSpacePattern,
+                            //   title: AppStrings.description,
+                            //   titleColor: AppColors.black1A,
+                            //   fontSize: SizeConfig.small,
+                            //   fontWeight: FontWeight.w400,
+                            //   hintText: AppStrings.ngoDescriptionHint,
+                            //   isValidate: true,
+                            //   maxLine: 4,
+                            //   onChange: (value) => validateForm(),
+                            // ),
+                            // Your Journey Field
+                            AiDescriptionField(
+                              label: AppStrings.description,
+                              hintText: "Share your achievement...",
+                              controller: descCtrl,
+                              rxValue: descriptionTxt,
+                              aiType: "description",
+                              aiData: {"title": "achievement"},
                             ),
                             SizedBox(height: SizeConfig.size20),
-                 
+
                             CustomBtn(
                               //...
                               onTap: validate
@@ -190,7 +204,9 @@ class _JobSeekerAddNgoFormScreenState extends State<JobSeekerAddNgoFormScreen> {
                                       Navigator.pop(context);
                                     }
                                   : null,
-                              title: widget.isEdit ? AppStrings.update : AppStrings.save,
+                              title: widget.isEdit
+                                  ? AppStrings.update
+                                  : AppStrings.save,
                               isValidate: validate,
                             )
                           ]))
@@ -198,19 +214,18 @@ class _JobSeekerAddNgoFormScreenState extends State<JobSeekerAddNgoFormScreen> {
   }
 
   void validateForm() {
-  final valid = titleCtrl.text.isNotEmpty &&
-      descCtrl.text.isNotEmpty &&
-      _selectedDay != null &&
-      _selectedMonth != null &&
-      _selectedYear != null &&
-      isValidDate(_selectedDay, _selectedMonth, _selectedYear) &&
-      (imagePath?.isNotEmpty ?? false);
+    final valid = titleCtrl.text.isNotEmpty &&
+        descCtrl.text.isNotEmpty &&
+        _selectedDay != null &&
+        _selectedMonth != null &&
+        _selectedYear != null &&
+        isValidDate(_selectedDay, _selectedMonth, _selectedYear) &&
+        (imagePath?.isNotEmpty ?? false);
 
-  setState(() {
-    validate = valid;
-  });
-}
-
+    setState(() {
+      validate = valid;
+    });
+  }
 
   void selectImage(BuildContext context) async {
     imagePath = await SelectProfilePictureDialog.showLogoDialog(

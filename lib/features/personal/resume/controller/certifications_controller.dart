@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/personal/resume/controller/profile_pic_controller.dart';
 import 'package:BlueEra/features/personal/resume/model/certification_model.dart';
 import 'package:BlueEra/features/personal/resume/repo/resume_repo.dart';
 import 'package:flutter/material.dart';
@@ -59,6 +60,8 @@ class CertificationsController extends GetxController {
         await _repo.addCertification(params: params, photoPath: photoPath);
     if (res.isSuccess) {
       commonSnackBar(message: AppStrings.certificationAdded);
+      await callAPIGetResume();
+
       // await getAllCertifications();
     } else {
       commonSnackBar(message: res.message ??AppStrings.certificationAddFailed);
@@ -71,6 +74,7 @@ class CertificationsController extends GetxController {
         id: id, params: params, photoPath: photoPath);
     if (res.isSuccess) {
       commonSnackBar(message: AppStrings.certificationUpdated);
+     await callAPIGetResume();
       // await getAllCertifications();
     } else {
       commonSnackBar(message: res.message ?? AppStrings.certificationUpdateFailed);
@@ -82,6 +86,8 @@ class CertificationsController extends GetxController {
     if (res.isSuccess) {
       commonSnackBar(message: AppStrings.certificationDeleted);
       certificationsList.removeAt(index);
+      await callAPIGetResume();
+
       // await getAllCertifications();
     } else {
       commonSnackBar(message: res.message ?? AppStrings.certificationDeleteFailed);
