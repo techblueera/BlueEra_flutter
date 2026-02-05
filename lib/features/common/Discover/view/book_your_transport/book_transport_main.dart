@@ -399,7 +399,13 @@ class _BookTransportMainState extends State<BookTransportMain> {
                                 .toList(),
                           );
                         } else {
-                          return const Center(child: CircularProgressIndicator());
+                          if(discoverController.findRiderDetailsLoading.value==true){
+                            return Center(child: CircularProgressIndicator());
+
+                          }else{
+                            return Center(child: CustomText("Choose From And To Address"));
+
+                          }
                         }
                       }),
                       SizedBox(
@@ -518,11 +524,33 @@ class RiderCardWidget extends StatelessWidget {
             ClipRRect(
               borderRadius: BorderRadius.circular(40),
               child: Image.network(
-                rider.profileImage ??
-                    "",
+                rider.profileImage ?? "",
                 height: 48,
                 width: 48,
                 fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    height: 48,
+                    width: 48,
+                    color: Colors.grey.shade300,
+                    child: const Icon(
+                      Icons.person,
+                      color: Colors.grey,
+                    ),
+                  );
+                },
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return SizedBox(
+                    height: 48,
+                    width: 48,
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
 

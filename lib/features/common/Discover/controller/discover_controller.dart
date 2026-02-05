@@ -75,7 +75,7 @@ class DiscoverController extends GetxController{
       ApiResponse.initial('Initial').obs;
 
   bool hasMoreEarnServiceData = true;
-  RxBool findRiderDetailsLoading = true.obs;
+  RxBool findRiderDetailsLoading = false.obs;
   RxInt selectedHorizontalTab=0.obs;
   RxInt selectedVehicleOptionIndex=0.obs;
   RxDouble? selectedFromLat=0.0.obs;

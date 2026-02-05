@@ -73,7 +73,6 @@ class DeliverPartnerOrdersController extends GetxController {
         ApiResponse.complete('');
     stream = await getOrderFromUserStream();
     subscription = stream.listen((event) {
-     log("kadskasdjchnsdkjs ${event}");
       if (event is List) {
         List<RiderOrdersDetailsModel> riderOrdersList = event
             .map((item) => RiderOrdersDetailsModel.fromJson(
@@ -84,12 +83,10 @@ class DeliverPartnerOrdersController extends GetxController {
         updateOrders(riderOrdersList);
 
       } else {
-        log("kadskasdjchnsdkjsEE OOO");
         ordersListResponse.value =
             ApiResponse.error(AppStrings.somethingWentWrong);
       }
     }, onError: (error) {
-      log("kadskasdjchnsdkjsEE ${error}");
       ordersListResponse.value =
           ApiResponse.error(AppStrings.somethingWentWrong);
     }, onDone: () {});
@@ -316,7 +313,6 @@ class DeliverPartnerOrdersController extends GetxController {
       };
       ResponseModel? response = await MakeOrderRepo().createGroceryOrderConvo(
           params: params);
-      log("skdjcksjcsjkdc ${response.response?.data}");
       if (response.isSuccess ) {
 
       } else {
