@@ -1241,6 +1241,7 @@ class AppStrings {
   static const String pleaseSelectVehicleRegType = 'pleaseSelectVehicleRegType';
   static const String pleaseSelectVehicleType = 'pleaseSelectVehicleType';
   static const String pleaseSelectFuelType = 'pleaseSelectFuelType';
+  static const String pleaseSelectVehicleUseType = 'Please select vehicle use type';
   static const String pleaseSelectRcFrontImage = 'pleaseSelectRcFrontImage';
   static const String pleaseSelectRcBackImage = 'pleaseSelectRcBackImage';
   static const String pleaseSelectInsuranceImage = 'pleaseSelectInsuranceImage';

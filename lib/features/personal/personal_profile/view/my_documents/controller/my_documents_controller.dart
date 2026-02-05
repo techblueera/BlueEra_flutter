@@ -156,7 +156,6 @@ class MyDocumentsController extends GetxController {
     return documentStatuses[key] ?? DocStatus.notUploaded;
   }
 
-
   Future<ImageUploadResponseModel?> uploadInit(
       {required String fileType}) async {
     try {

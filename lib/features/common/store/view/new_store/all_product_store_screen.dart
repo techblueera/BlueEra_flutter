@@ -2,7 +2,7 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
+import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/store/view/store_product_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -29,7 +29,7 @@ class AllProductStoreScreen extends StatefulWidget {
 }
 
 class _AllProductStoreScreenState extends State<AllProductStoreScreen> {
-  final controller = getOrPut(() => NewStoreController());
+  final controller = getOrPut(() => DiscoverController());
   final ScrollController storesScrollController = ScrollController();
   ProviderType? _providerType;
   String? _productCategory;
@@ -37,6 +37,7 @@ class _AllProductStoreScreenState extends State<AllProductStoreScreen> {
 
   @override
   void initState() {
+    super.initState();
     _providerType = widget.providerType;
     _productCategory = widget.productCategory;
     _productCategoryName = widget.productCategoryName;
@@ -44,7 +45,6 @@ class _AllProductStoreScreenState extends State<AllProductStoreScreen> {
         providerType: _providerType,
         productCategory: _productCategory
     );
-    super.initState();
 
     storesScrollController.addListener(() {
       if (storesScrollController.position.pixels >=
@@ -101,12 +101,12 @@ class _AllProductStoreScreenState extends State<AllProductStoreScreen> {
               final crossSpacing = 10.0;
               final mainSpacing = 10.0;
 
-              final totalHorizontalSpacing = (crossAxisCount - 1) * crossSpacing;
-              final itemWidth = (constraints.maxWidth - totalHorizontalSpacing) / crossAxisCount;
-
-              final approximateItemHeight = SizeConfig.size265;
-
-              final childAspectRatio = itemWidth / approximateItemHeight;
+              // final totalHorizontalSpacing = (crossAxisCount - 1) * crossSpacing;
+              // final itemWidth = (constraints.maxWidth - totalHorizontalSpacing) / crossAxisCount;
+              //
+              // final approximateItemHeight = SizeConfig.size265;
+              //
+              // final childAspectRatio = itemWidth / approximateItemHeight;
 
               return GridView.builder(
                 controller: storesScrollController,
@@ -118,10 +118,11 @@ class _AllProductStoreScreenState extends State<AllProductStoreScreen> {
                   crossAxisCount: crossAxisCount,
                   crossAxisSpacing: crossSpacing,
                   mainAxisSpacing: mainSpacing,
-                  childAspectRatio: childAspectRatio,
+                  mainAxisExtent: SizeConfig.size265    ,
+                  // childAspectRatio: childAspectRatio,
                 ),
                 itemCount: productList.length +
-                    (controller.isFoodDataLoadingMore.value ? 1 : 0),
+                    (controller.isProductDataLoadingMore.value ? 1 : 0),
                 itemBuilder: (context, index) {
                   if (index >= productList.length) {
                     return const Padding(

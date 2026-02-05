@@ -1031,10 +1031,6 @@ class DeliveryPartnerController extends GetxController {
       if (response.isSuccess) {
         vehicleDataResponse.value = ApiResponse.complete(response);
         vehicleEnumResponse = VehicleEnumResponse.fromJson(response.response?.data);
-        // vehicleType = vehicleEnumResponse.vehicleType ?? [];
-        // vehicleUsesType = vehicleEnumResponse.vehicleType ?? [];
-        // registrationType = vehicleEnumResponse.vehicleType ?? [];
-        // fuelType = vehicleEnumResponse.vehicleType ?? [];
       } else {
         vehicleDataResponse.value = ApiResponse.error('error');
       }

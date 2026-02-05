@@ -49,7 +49,8 @@ class _AddDocumentScreenState extends State<AddDocumentScreen> {
               horizontal: SizeConfig.size8, vertical: SizeConfig.size15),
           child: Obx(() => Column(
                 children: [
-                  if (widget.documentVia == AppConstants.personalDocumentScreen)
+                  if (widget.documentVia == AppConstants.personalDocumentScreen ||
+                      widget.documentVia == AppConstants.businessDocumentScreen)
                     CustomFormCard(
                         padding: EdgeInsets.only(
                             top: SizeConfig.size16, bottom: SizeConfig.size8),
@@ -253,7 +254,6 @@ class _AddDocumentScreenState extends State<AddDocumentScreen> {
                           ],
                         )),
 
-                  // if(isBusinessUser())
                   if (widget.documentVia ==
                       AppConstants.businessDocumentScreen) ...[
                     SizedBox(height: SizeConfig.paddingXSL),

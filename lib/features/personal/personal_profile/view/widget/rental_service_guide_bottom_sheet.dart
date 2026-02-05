@@ -109,6 +109,8 @@ class _RentalServiceGuideBottomSheetState extends State<RentalServiceGuideBottom
               ),
             ),
 
+            SizedBox(height: SizeConfig.paddingL),
+
             CustomBtn(
               height: SizeConfig.size40,
               title:AppStrings.startListingNow,

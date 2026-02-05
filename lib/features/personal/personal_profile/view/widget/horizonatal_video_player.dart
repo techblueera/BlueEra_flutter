@@ -139,7 +139,6 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer>
           itemBuilder: (context, index) {
             final isCurrent = index == _currentPage;
             final controller = _controller;
-            log('isCurrent -- $isCurrent');
 
             return GestureDetector(
               behavior: HitTestBehavior.opaque,

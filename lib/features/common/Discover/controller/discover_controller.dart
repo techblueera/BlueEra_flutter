@@ -6,13 +6,16 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
 import 'package:BlueEra/features/common/Discover/repo/discover_repo.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
-import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
+import 'package:BlueEra/features/common/store/repo/store_repo.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/model/rental_service_response.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -44,6 +47,8 @@ class DiscoverController extends GetxController{
       ApiResponse.initial('Initial').obs;
   var rentalServiceResponse =
       ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> productsResponse =
+      ApiResponse.initial('Initial').obs;
 
   final ScrollController scrollController = ScrollController();
   final GlobalKey headerKey = GlobalKey();
@@ -68,7 +73,6 @@ class DiscoverController extends GetxController{
   var isEarnServiceLoadingMore = false.obs;
   bool hasMoreEarnServiceData = true;
 
-
   /// Rental Services
   RxList<RentalServiceData> rentalServices = <RentalServiceData>[].obs;
   RxBool isRentalServiceLoading = false.obs;
@@ -76,6 +80,120 @@ class DiscoverController extends GetxController{
   var isRentalServiceLoadingMore = false.obs;
   bool hasMoreRentalServiceData = true;
   Rxn<OnboardingCategoryModel> selectedStayCategory = Rxn<OnboardingCategoryModel>();
+
+  /// Consultant Service
+  Rx<OnboardingCategoryModel?> selectedProfessionalConsultantData = Rx<OnboardingCategoryModel?>(null);
+
+  /// Products
+  RxList<GetProductData> productDataList = <GetProductData>[].obs;
+  RxBool isProductDataLoadingMore = false.obs;
+  RxBool isProductDataFirstLoading = false.obs;
+  int productDataPage = 1;
+  bool productDataHasMore = true;
+
+  ///GET STORE PRODUCT ONLY....
+  Future<void> getAllProductNearBy({
+    ProviderType? providerType,
+    String? productCategory,
+    bool isLoadMore = false,
+    String? query}
+      ) async {
+    if (isLoadMore) {
+      if (isProductDataLoadingMore.value || !productDataHasMore) return;
+      isProductDataLoadingMore.value = true;
+    } else {
+      isProductDataFirstLoading.value = true;
+      productDataPage = 1;
+      productDataHasMore = true;
+      productDataList.clear();
+
+      // /// fetch local data not for search
+      // if(query == null){
+      //   final cachedProduct = await HiveServices().getAllStoreProduct(userId);
+      //   if (cachedProduct != null && cachedProduct.isNotEmpty) {
+      //     productDataList.assignAll(cachedProduct);
+      //     isProductDataFirstLoading.value = false;
+      //   }
+      // }
+    }
+
+    try {
+      log('lat--> ${LocationService.lat}, lng--> ${LocationService.lng}');
+
+      const int limit = 20;
+
+      // Build query parameters dynamically
+      final Map<String, dynamic> queryParams = {
+        ApiKeys.page: productDataPage,
+        ApiKeys.limit: limit,
+        ApiKeys.maxDistance: kmRadius1000,
+      };
+      double lat =  LocationService.lat != 0.0 ? LocationService.lat : 0.0;
+      double long = LocationService.lng != 0.0 ? LocationService.lng : 0.0;
+
+      if ((lat!=0.0) && (long!=0.0)) {
+        queryParams[ApiKeys.latitude] = lat;
+        queryParams[ApiKeys.longitude] = long;
+      }
+      if(providerType!=null) queryParams[ApiKeys.ownerType] = providerType.title;
+      if(productCategory!=null) queryParams[ApiKeys.key] = productCategory;
+
+      final response;
+      if(query != null){
+        response = await StoreRepo().productSearchFilterRepo(
+            queryParams: queryParams
+        );
+      }else{
+        if(productCategory!=null){
+          response = await StoreRepo().productFilterRepo(
+              queryParams: queryParams
+          );
+        }
+        else{
+          response = await StoreRepo().homePageProductRepo(
+              queryParams: queryParams
+          );
+        }
+
+      }
+
+      if (response.isSuccess) {
+        productsResponse.value = ApiResponse.complete(response);
+        final getOwnProductModel =
+        GetProductModel.fromJson(response.response?.data);
+
+        final List<GetProductData> newData = getOwnProductModel.data;
+
+        if (newData.isNotEmpty) {
+          if (isLoadMore) {
+            productDataList.addAll(newData);
+          } else {
+            productDataList.assignAll(newData);
+            log('product data length--> ${productDataList.length}');
+            log('loggggg 1--> ${productDataList[0].product.business_name}');
+
+            if(query == null) {
+              await HiveServices().saveAllStoreProduct(
+                  productDataList, userId);
+            }
+          }
+          productDataPage++;
+        }
+      } else {
+        productDataHasMore = false;
+        productsResponse.value = ApiResponse.error('error');
+      }
+    } catch (e, s) {
+      log('stack trace --> $s');
+      productsResponse.value = ApiResponse.error('error');
+    } finally{
+      if (isLoadMore) {
+        isProductDataLoadingMore.value = false;
+      } else {
+        isProductDataFirstLoading.value = false;
+      }
+    }
+  }
 
   /// fetch Earn service
   Future<void> fetchEarnServices({

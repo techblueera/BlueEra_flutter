@@ -659,4 +659,7 @@ class ApiKeys {
   static const token  = 'token';
   static const coordinates  = 'coordinates';
   static const availabilityStatus  = 'availabilityStatus';
+  static const argDocumentVia  = 'argDocumentVia';
+  static const checkInTime  = 'checkInTime';
+  static const checkOutTime  = 'checkOutTime';
 }

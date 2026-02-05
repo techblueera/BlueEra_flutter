@@ -2443,7 +2443,9 @@ class _PersonalProfileSetupNewScreenState
             SizedBox(width: SizeConfig.size6),
             PositiveCustomBtn(
               onTap: () {
-                Get.toNamed(RouteHelper.getAddDocumentScreenRoute());
+                Get.toNamed(RouteHelper.getAddDocumentScreenRoute(),
+                arguments: {ApiKeys.argDocumentVia: AppConstants.personalDocumentScreen}
+                );
               },
               title: AppStrings.addDocument,
               padding: EdgeInsets.symmetric(horizontal: 3),
@@ -2471,7 +2473,10 @@ class _PersonalProfileSetupNewScreenState
               ? ListTile(
                   dense: true,
                   onTap: () =>
-                      Get.toNamed(RouteHelper.getAddDocumentScreenRoute()),
+                      Get.toNamed(
+                          RouteHelper.getAddDocumentScreenRoute(),
+                          arguments: {ApiKeys.argDocumentVia: AppConstants.personalDocumentScreen}
+                      ),
                   leading: Icon(
                     Icons.folder_open,
                     color: AppColors.primaryColor,

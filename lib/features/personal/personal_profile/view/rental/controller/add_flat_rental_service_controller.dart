@@ -6,11 +6,13 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/detail_item.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/rental/controller/stay_images_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/repo/rental_service_repo.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
@@ -35,6 +37,8 @@ class AddFlatRentalServiceController extends GetxController {
   // final landlineCode = TextEditingController();
   final mobile = TextEditingController();
   final charge = TextEditingController();
+  final checkInTimeController = TextEditingController();
+  final checkOutTimeController = TextEditingController();
 
   // ContactType? selectedType = ContactType.Mobile;
   final selectedChargesTypes = Rxn<ChargesTypes>();
@@ -72,14 +76,24 @@ class AddFlatRentalServiceController extends GetxController {
     return '';
   }
 
+  // Time variables - Start Time
+  var checkInHour = RxnInt();
+  var checkInMinute = RxnInt();
+  var checkInPeriod = RxnString();
+
+  // Time variables - End Time
+  var checkOutHour = RxnInt();
+  var checkOutMinute = RxnInt();
+  var checkOutPeriod = RxnString();
 
   /// step 2
-  int maxUploadImages = 4;
-  final RxList<File> roadSideImage = <File>[].obs;
-  final RxList<File> roomImages = <File>[].obs;
-  final RxList<File> kitchenImage = <File>[].obs;
-  final RxList<File> bathroomImage = <File>[].obs;
-  final RxList<File> otherImage = <File>[].obs;
+  final stayImagesController = getOrPut(() => StayImagesController());
+
+  // final RxList<File> roadSideImage = <File>[].obs;
+  // final RxList<File> roomImages = <File>[].obs;
+  // final RxList<File> kitchenImage = <File>[].obs;
+  // final RxList<File> bathroomImage = <File>[].obs;
+  // final RxList<File> otherImage = <File>[].obs;
 
   @override
   void onInit() {
@@ -90,6 +104,27 @@ class AddFlatRentalServiceController extends GetxController {
       // You can trigger animations, validations, or scroll resets here.
     });
 
+  }
+
+  // Update time controllers when dropdown values change
+  void updateCheckInTimeController() {
+    if (checkInHour.value != null &&
+        checkInMinute.value != null &&
+        checkInPeriod.value != null) {
+      final formattedTime =
+          '${checkInHour.value.toString().padLeft(2, '0')}:${checkInMinute.value.toString().padLeft(2, '0')} ${checkInPeriod.value}';
+      checkInTimeController.text = formattedTime;
+    }
+  }
+
+  void updateCheckOutTimeController() {
+    if (checkOutHour.value != null &&
+        checkOutMinute.value != null &&
+        checkOutPeriod.value != null) {
+      final formattedTime =
+          '${checkOutHour.value.toString().padLeft(2, '0')}:${checkOutMinute.value.toString().padLeft(2, '0')} ${checkOutPeriod.value}';
+      checkOutTimeController.text = formattedTime;
+    }
   }
 
   void nextStep() {
@@ -166,18 +201,18 @@ class AddFlatRentalServiceController extends GetxController {
   bool validateBeforePost() {
     final errors = <String>[];
 
-    if (roadSideImage.length < 2) {
-      errors.add(AppStrings.uploadAtLeast2RoadSide);
-    }
-    if (roomImages.length < 4) {
-      errors.add(AppStrings.uploadAtLeast4Room);
-    }
-    if (kitchenImage.length < 2) {
-      errors.add(AppStrings.uploadAtLeast2Kitchen);
-    }
-    if (bathroomImage.length < 2) {
-      errors.add(AppStrings.uploadAtLeast2Bathroom);
-    }
+    // if (stayImagesController.roadSideImage.length < 2) {
+    //   errors.add(AppStrings.uploadAtLeast2RoadSide);
+    // }
+    // if (stayImagesController.roomImages.length < 4) {
+    //   errors.add(AppStrings.uploadAtLeast4Room);
+    // }
+    // if (stayImagesController.kitchenImage.length < 2) {
+    //   errors.add(AppStrings.uploadAtLeast2Kitchen);
+    // }
+    // if (stayImagesController.bathroomImage.length < 2) {
+    //   errors.add(AppStrings.uploadAtLeast2Bathroom);
+    // }
 
     if (errors.isNotEmpty) {
       commonSnackBar(message: errors.first.tr);
@@ -195,27 +230,27 @@ class AddFlatRentalServiceController extends GetxController {
       try {
         isAddFlatRentalServiceLoading.value = true;
 
-        List<dio.MultipartFile> roadsideParts = [];
-        List<dio.MultipartFile> roomParts = [];
-        List<dio.MultipartFile> kitchenParts = [];
-        List<dio.MultipartFile> bathroomParts = [];
-        List<dio.MultipartFile> otherParts = [];
+        // List<dio.MultipartFile> roadsideParts = [];
+        // List<dio.MultipartFile> roomParts = [];
+        // List<dio.MultipartFile> kitchenParts = [];
+        // List<dio.MultipartFile> bathroomParts = [];
+        // List<dio.MultipartFile> otherParts = [];
 
-        if (roadSideImage.isNotEmpty) {
-          roadsideParts = await multiPartMultipleImages(arrImages: roadSideImage);
-        }
-        if (roomImages.isNotEmpty) {
-          roomParts = await multiPartMultipleImages(arrImages: roomImages);
-        }
-        if (kitchenImage.isNotEmpty) {
-          kitchenParts = await multiPartMultipleImages(arrImages: kitchenImage);
-        }
-        if (bathroomImage.isNotEmpty) {
-          bathroomParts = await multiPartMultipleImages(arrImages: bathroomImage);
-        }
-        if (otherImage.isNotEmpty) {
-          otherParts = await multiPartMultipleImages(arrImages: otherImage);
-        }
+        // if (stayImagesController.roadSideImage.isNotEmpty) {
+        //   roadsideParts = await multiPartMultipleImages(arrImages: roadSideImage);
+        // }
+        // if (roomImages.isNotEmpty) {
+        //   roomParts = await multiPartMultipleImages(arrImages: roomImages);
+        // }
+        // if (kitchenImage.isNotEmpty) {
+        //   kitchenParts = await multiPartMultipleImages(arrImages: kitchenImage);
+        // }
+        // if (bathroomImage.isNotEmpty) {
+        //   bathroomParts = await multiPartMultipleImages(arrImages: bathroomImage);
+        // }
+        // if (otherImage.isNotEmpty) {
+        //   otherParts = await multiPartMultipleImages(arrImages: otherImage);
+        // }
 
         Map<String, dynamic> params = {
           ApiKeys.type: 'Property',
@@ -229,6 +264,8 @@ class AddFlatRentalServiceController extends GetxController {
           ApiKeys.contactNumber: mobile.text,
           ApiKeys.priceUnit: selectedChargesTypes.value?.label,
           ApiKeys.price: charge.text,
+          ApiKeys.checkInTime: checkInTimeController.text,
+          ApiKeys.checkOutTime: checkOutTimeController.text,
           if(arrHighlights.isNotEmpty) ApiKeys.highlights: jsonEncode(arrHighlights),
           ApiKeys.restrictions: jsonEncode({
             ApiKeys.unmarriedCoupleAllowed: isUnMarried.value,
@@ -240,11 +277,6 @@ class AddFlatRentalServiceController extends GetxController {
           }),
           if(arrMoreRestriction.isNotEmpty) ApiKeys.additionalRules: jsonEncode(arrMoreRestriction),
           if(arrMoreDetails.isNotEmpty) ApiKeys.additionalDetails: jsonEncode(arrMoreDetails.map((e) => e.toJson()).toList()),
-          if(roadsideParts.isNotEmpty) ApiKeys.roadImages: roadsideParts,
-          if(roomParts.isNotEmpty) ApiKeys.roomImages: roomParts,
-          if(kitchenParts.isNotEmpty) ApiKeys.kitchenImages: kitchenParts,
-          if(bathroomParts.isNotEmpty) ApiKeys.bathroomImages: bathroomParts,
-          if(otherParts.isNotEmpty) ApiKeys.otherImages: otherParts,
         };
 
         ResponseModel response = await RentalServiceRepo().addRentalServiceRepo(

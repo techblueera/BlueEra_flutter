@@ -53,4 +53,16 @@ class RentalServiceRepo extends BaseService{
     return response;
   }
 
+  /// UPLOAD RENTAL IMAGES
+  Future<ResponseModel> uploadRentalImagesRepo({required Map<String, dynamic> params}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      uploadRentalImages,
+      params: params,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
 }

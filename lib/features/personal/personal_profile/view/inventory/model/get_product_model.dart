@@ -95,7 +95,7 @@ class ProductStore {
 }
 
 class ProductDetails {
-  final List<ProductOption> options;
+  // final List<ProductOption> options;
   final List<String> media;
   final List<String> videoUrl;
   final List<String> tags;
@@ -117,7 +117,7 @@ class ProductDetails {
   final String hsn;
 
   ProductDetails({
-    required this.options,
+    // required this.options,
     required this.media,
     required this.videoUrl,
     required this.tags,
@@ -141,9 +141,9 @@ class ProductDetails {
 
   factory ProductDetails.fromJson(Map<String, dynamic> json) {
     return ProductDetails(
-      options: (json['options'] as List<dynamic>? ?? [])
-          .map((e) => ProductOption.fromJson(e))
-          .toList(),
+      // options: (json['options'] as List<dynamic>? ?? [])
+      //     .map((e) => ProductOption.fromJson(e))
+      //     .toList(),
       media: List<String>.from(json['media'] ?? []),
       videoUrl: List<String>.from(json['video_url'] ?? []),
       tags: (json['tags'] as List<dynamic>? ?? [])
@@ -174,7 +174,7 @@ class ProductDetails {
 
   Map<String, dynamic> toJson() {
     return {
-      'options': options.map((e) => e.toJson()).toList(),
+      // 'options': options.map((e) => e.toJson()).toList(),
       'media': media,
       'video_url': videoUrl,
       'tags': tags,

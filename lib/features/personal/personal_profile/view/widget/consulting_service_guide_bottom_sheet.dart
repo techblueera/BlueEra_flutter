@@ -6,7 +6,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/constants/string_utils.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
-import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
+import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/change_profession_warning_dialog.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/horizonatal_video_player.dart';
@@ -26,7 +26,7 @@ class ConsultingServiceGuideBottomSheet extends StatefulWidget {
 class _ConsultingServiceGuideBottomSheetState extends State<ConsultingServiceGuideBottomSheet> {
   final authController = Get.find<AuthController>();
   int? selectedIndex;
-  CollapsibleGridModel? selectedService;
+  OnboardingCategoryModel? selectedService;
 
   @override
   void initState() {
@@ -96,9 +96,9 @@ class _ConsultingServiceGuideBottomSheetState extends State<ConsultingServiceGui
                 primary: false,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: consultationServiceList.length,
+                itemCount: individualOnboardingConsultationList.length,
                 itemBuilder: (_, i) => CommonServiceCard(
-                  service: consultationServiceList[i],
+                  service: individualOnboardingConsultationList[i],
                   getName: (item) => item.name,
                   getIcon: (item) => item.icon,
                   isSelected: selectedIndex == i,
