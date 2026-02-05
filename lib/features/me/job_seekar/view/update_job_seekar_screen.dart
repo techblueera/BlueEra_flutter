@@ -3,9 +3,10 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/me/job_seekar/view/addmore/job_seekar_add_more_screen.dart';
 import 'package:BlueEra/features/me/job_seekar/view/certification/job_seeker_certification_listing_screen.dart';
 import 'package:BlueEra/features/me/job_seekar/view/joob_seeker_personal_details_screen.dart';
-import 'package:BlueEra/features/me/job_seekar/view/project_portfolio/portfolio_form_screen.dart';
+import 'package:BlueEra/features/me/job_seekar/view/project_portfolio/job_seeker_portfolio_screen.dart';
 import 'package:BlueEra/features/me/job_seekar/view/publication/job_seeker_publication_listing_screen.dart';
 import 'package:BlueEra/features/me/job_seekar/view/skills/job_seeker_skill_view_screen.dart';
 import 'package:BlueEra/features/me/school/view/school_update_screen.dart';
@@ -64,20 +65,26 @@ class _UpdateJobSeekerScreenState extends State<UpdateJobSeekerScreen> {
     ServiceMenuItem(
       title: "Portfolio Projects",
       icon: AppIconAssets.engagementModel,
-      page: () => JobSeekerPortfolioFormScreen(),
+      page: () => JobSeekerPortfolioScreen(),
     ),
     ServiceMenuItem(
       title: "Resume",
       icon: AppIconAssets.availability,
       page: () => ComingSoon(),
     ),
-    // ServiceMenuItem(
-    //   title: "Add More",
-    //   icon: AppIconAssets.availability,
-    //   page: () => AddMoreJobSeekerScreen(),
-    // ),
+    ServiceMenuItem(
+      title: "Add More",
+      icon: AppIconAssets.availability,
+      page: () => AddMoreJobSeekerScreen(),
+    ),
   ];
 
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    getResumeController.getMyResume();
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(

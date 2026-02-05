@@ -4,7 +4,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
-import 'package:BlueEra/features/me/professionals_consultant/controller/portfolio_professionals_controller.dart';
+import 'package:BlueEra/features/me/job_seekar/controller/job_seeker_portfolio_professionals_controller.dart';
 import 'package:BlueEra/widgets/ai_description_field_screen.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -26,7 +26,7 @@ class JobSeekerPortfolioFormScreen extends StatefulWidget {
 
 class _JobSeekerPortfolioFormScreenState
     extends State<JobSeekerPortfolioFormScreen> {
-  final portfolioController = Get.put(PortfolioProfessionalsController());
+  final portfolioController = Get.put(JobSeekerPortfolioProfessionalsController());
 
   @override
   Widget build(BuildContext context) {

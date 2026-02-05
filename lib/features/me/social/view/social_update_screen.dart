@@ -4,6 +4,11 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/job_seekar/view/update_job_seekar_screen.dart';
 import 'package:BlueEra/features/me/school/view/school_update_screen.dart';
+import 'package:BlueEra/features/me/social/view/event_schedule_screen.dart';
+import 'package:BlueEra/features/me/social/view/social_activity_form_screen.dart';
+import 'package:BlueEra/features/me/social/view/social_add_achievements_screen.dart';
+import 'package:BlueEra/features/me/social/view/social_profile_identity_screen.dart';
+import 'package:BlueEra/features/me/social/view/social_vision_mission_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -24,7 +29,7 @@ class _SocialUpdateScreenState
     ServiceMenuItem(
       title: "Profile Identity",
       icon: AppIconAssets.basicProfile, // Replace with your actual icon asset
-      page: () => ComingSoon(),
+      page: () => SocialProfileIdentityScreen(),
     ),
     ServiceMenuItem(
       title: "Activity Feed ",
@@ -34,23 +39,23 @@ class _SocialUpdateScreenState
     ServiceMenuItem(
       title: "Events / Schedule",
       icon: AppIconAssets.availability,
-      page: () => ComingSoon(), // Update to your actual page
+      page: () => EventScheduleScreen(), // Update to your actual page
     ),
     ServiceMenuItem(
       title: "Achievements",
       icon: AppIconAssets.galleryCertifications,
-      page: () => ComingSoon(), // Update to your actual page
+      page: () => SocialAddAchievementsScreen(), // Update to your actual page
     ),
 
     ServiceMenuItem(
       title: "Vision & Mission",
       icon: AppIconAssets.vision_mission,
-      page: () => ComingSoon(),
+      page: () => SocialVisionMissionScreen(),
     ),
     ServiceMenuItem(
       title: "Social Activity",
       icon: AppIconAssets.social_activity,
-      page: () => ComingSoon(),
+      page: () => SocialActivityFormScreen(),
     ),
 
     ServiceMenuItem(

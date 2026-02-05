@@ -104,6 +104,10 @@ class ProfilePicController extends GetxController {
     required String email,
     required String phone,
     required String location,
+    required String openToWork,
+    required String experienceLevel,
+    required String bio,
+    required String careerObjective,
   }) async {
     isLoading.value = true;
     final params = {
@@ -111,12 +115,18 @@ class ProfilePicController extends GetxController {
       'email': email,
       'contact_no': phone,
       'location': location,
+      'openToWork': openToWork,
+      'experienceLevel': experienceLevel,
+      'bio': bio,
+      'careerObjective': careerObjective
     };
     final response = await ResumeRepo().updateProfile(params);
     isLoading.value = false;
 
     if (response.isSuccess) {
-      await getMyResume(); 
+      // await getMyResume();
+      callAPIGetResume();
+
       Get.back();
       commonSnackBar(message:AppStrings.personalDetailsUpdated);
     } else {

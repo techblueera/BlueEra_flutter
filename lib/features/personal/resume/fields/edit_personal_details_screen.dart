@@ -190,7 +190,7 @@ class _EditPersonalDetailsScreenState extends State<EditPersonalDetailsScreen> {
                             name: nameController.text.trim(),
                             email: emailController.text.trim(),
                             phone: phoneController.text.trim(),
-                            location: locationController.text.trim(),
+                            location: locationController.text.trim(),careerObjective:'' ,bio: '',experienceLevel: '',openToWork: ''
                           );
                         },
                       ),
