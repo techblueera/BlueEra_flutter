@@ -75,6 +75,7 @@ class AppImageAssets {
   static String mobileAccessories = "${imgPath}mobile_accessories.png";
   static String artAndCraft = "${imgPath}art_and_craft.png";
   static String musicalInstruments = "${imgPath}musical_instruments.png";
+  static String toysAndGames = "${imgPath}toys_and_games.png";
 
   /// Business services images
   static String consultingService = "${imgPath}consulting_service_icon.png";

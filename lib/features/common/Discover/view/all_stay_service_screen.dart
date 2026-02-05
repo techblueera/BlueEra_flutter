@@ -8,7 +8,7 @@ import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/features/common/Discover/widget/service_category_item.dart';
+import 'package:BlueEra/features/common/Discover/widget/generic_left_side_category_list.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/model/rental_service_response.dart';
@@ -149,38 +149,24 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
   }
 
   Widget leftCategoryList() {
-    return Container(
-      width: 94,
-      color: AppColors.white,
-      child: ListView.builder(
-        itemCount: _stayCategories.length,
-        padding: EdgeInsets.only(bottom: SizeConfig.size30),
-        shrinkWrap: true,
-        itemBuilder: (context, index) {
-          var item = _stayCategories[index];
-
-          return Obx(() => ServiceCategoryItem(
-            icon: item.icon,
-            label: item.name,
-            selected: controller.selectedStayCategory.value?.slugId == item.slugId,
-            onTap: () {
-              controller.selectedStayCategory.value = item;
-              controller.selectedTabIndex.value = index;
-              if(controller.selectedStayCategory.value?.accountType ==
-                  AppConstants.individual){
-                var serviceType = controller.selectedStayCategory.value!.slugId.toRentalServiceType();
-                controller.fetchRentalServices(
-                  rentalServiceType: serviceType,
-                );
-              }else{
-                // handle business rental api call
-              }
-
-
-            },
-          ));
-        },
-      ),
+    return CommonGenericLeftSideCategoryList<OnboardingCategoryModel>(
+      items: _stayCategories,
+      getIcon: (item) => item.icon,
+      getLabel: (item) => item.name,
+      isSelected: (item) => controller.selectedStayCategory.value?.slugId == item.slugId,
+      onTap: (item, index) {
+        controller.selectedStayCategory.value = item;
+        controller.selectedTabIndex.value = index;
+        if(controller.selectedStayCategory.value?.accountType ==
+            AppConstants.individual){
+          var serviceType = controller.selectedStayCategory.value!.slugId.toRentalServiceType();
+          controller.fetchRentalServices(
+            rentalServiceType: serviceType,
+          );
+        }else{
+          // handle business rental api call
+        }
+      },
     );
   }
 
@@ -887,6 +873,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
                             // 1. Logic to create the list of strings
                             List<String> rules = [];
                             var restrictions = service.propertyDetails?.restrictions;
+                            // var restrictions = service.propertyDetails?.;
 
                             if (restrictions != null) {
                               if (restrictions.unmarriedCoupleAllowed != null) {

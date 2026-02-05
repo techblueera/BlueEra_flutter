@@ -28,6 +28,9 @@ class HomeServiceGuideBottomSheet extends StatefulWidget {
 class _HomeServiceGuideBottomSheetState extends State<HomeServiceGuideBottomSheet> {
   int? selectedIndex;
   OnboardingCategoryModel? selectedService;
+  List _homeServiceLiteCategories = homeServicesCategories
+      .where((item) => homeServiceLiteCategories.contains(item.slugId))
+      .toList();
 
   @override
   Widget build(BuildContext context) {
@@ -92,9 +95,9 @@ class _HomeServiceGuideBottomSheetState extends State<HomeServiceGuideBottomShee
                 primary: false,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: homeServicesCategories.length,
+                itemCount: _homeServiceLiteCategories.length,
                 itemBuilder: (_, i) => CommonServiceCard(
-                  service: homeServicesCategories[i],
+                  service: _homeServiceLiteCategories[i],
                   getName: (item) => item.name,
                   getIcon: (item) => item.icon,
                   isSelected: selectedIndex == i,

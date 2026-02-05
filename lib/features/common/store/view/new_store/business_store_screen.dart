@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
 import 'package:BlueEra/features/common/store/repo/store_repo.dart';
@@ -30,9 +31,7 @@ class BusinessStoreScreen extends StatefulWidget {
 }
 
 class _BusinessStoreScreenState extends State<BusinessStoreScreen> {
-  final controller = Get.isRegistered<NewStoreController>()
-      ? Get.find<NewStoreController>()
-      : Get.put(NewStoreController());
+  final controller = getOrPut(() => NewStoreController());
   final ScrollController storesScrollController = ScrollController();
 
 

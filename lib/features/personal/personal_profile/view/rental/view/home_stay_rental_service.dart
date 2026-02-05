@@ -11,9 +11,14 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_multiple_image_upload_section.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/languge_list_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/my_documents/controller/my_documents_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/my_documents/widget/hotel_all_documents.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/controller/home_stay_rental_service_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/rental/controller/stay_images_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/widget/add_highlights_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/widget/add_more_restriction_widget.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/rental/widget/custom_switch_card.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/rental/widget/room_images_widget.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -23,6 +28,7 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_switch_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/widgets/time_selection_dropdown.dart';
 import 'package:BlueEra/widgets/update_contact_number.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -35,9 +41,11 @@ class HomeStayRentalService extends StatefulWidget {
 }
 
 class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
-  final controller = Get.put(HomeStayRentalServiceController());
-  final langController = Get.put(LanguageListController());
-  final multipleImageSectionController = Get.put(CommonMultipleImageSectionController());
+  final controller = getOrPut(() => HomeStayRentalServiceController());
+  final langController = getOrPut(() => LanguageListController());
+  final multipleImageSectionController = getOrPut(() => CommonMultipleImageSectionController());
+  final myDocumentController = getOrPut(() => MyDocumentsController());
+  final stayImagesController = getOrPut(() => StayImagesController());
 
   RxString currentAddress = ''.obs;
   double latitude = 0.0;
@@ -46,12 +54,14 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
 
   @override
   void initState() {
+    myDocumentController.fetchAllDocumentStatusApi();
     super.initState();
   }
 
   @override
   void dispose() {
     deleteIfRegistered<HomeStayRentalServiceController>();
+    deleteIfRegistered<StayImagesController>();
     super.dispose();
   }
 
@@ -71,7 +81,7 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
           title: controller.currentStep.value == 0
                        ? AppStrings.homeLocation :
           controller.currentStep.value == 1 ? AppStrings.details : AppStrings.homeImages,
-          onBackTap: controller.previousStep,
+          onBackTap: controller.onBackPressed,
           buildCustomWidget: ()=>
               Obx(() => Padding(
                 padding: const EdgeInsets.only(right: 16),
@@ -362,6 +372,60 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
 
                   children: [
 
+                    // Check In
+                    CustomText(
+                      'Check In Time',
+                      fontSize: SizeConfig.medium,
+                      color: AppColors.mainTextColor,
+                      fontWeight: FontWeight.w400,
+                    ),
+                    SizedBox(height: SizeConfig.size8),
+                    TimeSelectionDropdown(
+                      selectedHour: controller.checkInHour.value,
+                      selectedMinute: controller.checkInMinute.value,
+                      selectedPeriod: controller.checkInPeriod.value,
+                      onHourChanged: (value) {
+                        controller.checkInHour.value = value;
+                        controller.updateCheckInTimeController();
+                      },
+                      onMinuteChanged: (value) {
+                        controller.checkInMinute.value = value;
+                        controller.updateCheckInTimeController();
+                      },
+                      onPeriodChanged: (value) {
+                        controller.checkInPeriod.value = value;
+                        controller.updateCheckInTimeController();
+                      },
+                    ),
+                    SizedBox(height: SizeConfig.paddingM),
+
+                    // Check Out
+                    CustomText(
+                      'Check Out Time',
+                      fontSize: SizeConfig.medium,
+                      color: AppColors.mainTextColor,
+                      fontWeight: FontWeight.w400,
+                    ),
+                    SizedBox(height: SizeConfig.size8),
+                    TimeSelectionDropdown(
+                      selectedHour: controller.checkOutHour.value,
+                      selectedMinute: controller.checkOutMinute.value,
+                      selectedPeriod: controller.checkOutPeriod.value,
+                      onHourChanged: (value) {
+                        controller.checkOutHour.value = value;
+                        controller.updateCheckOutTimeController();
+                      },
+                      onMinuteChanged: (value) {
+                        controller.checkOutMinute.value = value;
+                        controller.updateCheckOutTimeController();
+                      },
+                      onPeriodChanged: (value) {
+                        controller.checkOutPeriod.value = value;
+                        controller.updateCheckOutTimeController();
+                      },
+                    ),
+                    SizedBox(height: SizeConfig.paddingM),
+
                     CustomText(
                       AppStrings.howManyMaxPeople,
                       fontSize: SizeConfig.medium,
@@ -555,96 +619,125 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
     );
   }
 
+  // // ---------------- STEP 3 ----------------
+  // Widget _buildStepThree(){
+  //   return AbsorbPointer(
+  //     absorbing: controller.isHomeStayRentalServiceLoading.value,
+  //     child: SingleChildScrollView(
+  //       padding: EdgeInsets.all(SizeConfig.size15),
+  //       child:  Column(
+  //         children: [
+  //           /// roomImageId
+  //           GetBuilder<CommonMultipleImageSectionController>(
+  //             id: CommonMultipleImageSectionController.roomImageId,
+  //             builder: (ctrl) => CommonMultipleImageUploadSection(
+  //               title: AppStrings.uploadRoomImages,
+  //               minImages: controller.maxHomeImageUpload,
+  //               maxImages: controller.maxHomeImageUpload,
+  //               images: controller.roomImages,
+  //               onAddImage: () async {
+  //                 multipleImageSectionController.addImages(
+  //                   label: AppStrings.roomsImagesLabel,
+  //                   imageList: controller.roomImages,
+  //                   updateId: CommonMultipleImageSectionController.roomImageId,
+  //                   maxUploadImages: controller.maxHomeImageUpload,
+  //                 );
+  //               },
+  //               onRemoveImage: (index) {
+  //                 multipleImageSectionController.removeImageAt(
+  //                   imageList: controller.roomImages,
+  //                   index: index,
+  //                   updateId: CommonMultipleImageSectionController.roomImageId,
+  //                 );
+  //               },
+  //             ),
+  //           ),
+  //           SizedBox(height: SizeConfig.paddingM),
+  //
+  //           /// kitchenImages
+  //           GetBuilder<CommonMultipleImageSectionController>(
+  //             id: CommonMultipleImageSectionController.kitchenImageId,
+  //             builder: (ctrl) => CommonMultipleImageUploadSection(
+  //               title: AppStrings.uploadKitchenImages,
+  //               minImages: 2,
+  //               maxImages: controller.maxHomeImageUpload,
+  //               images: controller.kitchenImages,
+  //               onAddImage: () async {
+  //                 multipleImageSectionController.addImages(
+  //                     label: AppStrings.kitchenImagesLabel,
+  //                     imageList: controller.kitchenImages,
+  //                     updateId: CommonMultipleImageSectionController.kitchenImageId,
+  //                     maxUploadImages: controller.maxHomeImageUpload
+  //                 );
+  //               },
+  //               onRemoveImage: (index) {
+  //                 multipleImageSectionController.removeImageAt(
+  //                   imageList: controller.kitchenImages,
+  //                   index: index,
+  //                   updateId: CommonMultipleImageSectionController.kitchenImageId,
+  //                 );
+  //               },
+  //             ),
+  //           ),
+  //           SizedBox(height: SizeConfig.paddingM),
+  //
+  //           /// bathroomImages
+  //           GetBuilder<CommonMultipleImageSectionController>(
+  //             id: CommonMultipleImageSectionController.bathroomImageId,
+  //             builder: (ctrl) => CommonMultipleImageUploadSection(
+  //               title: AppStrings.uploadBathroomImages,
+  //               minImages: 2,
+  //               maxImages: controller.maxHomeImageUpload,
+  //               images: controller.bathroomImages,
+  //               onAddImage: () async {
+  //                 multipleImageSectionController.addImages(
+  //                     label: AppStrings.bathroomImagesLabel,
+  //                     imageList: controller.bathroomImages,
+  //                     updateId: CommonMultipleImageSectionController.bathroomImageId,
+  //                     maxUploadImages: controller.maxHomeImageUpload
+  //                 );
+  //               },
+  //               onRemoveImage: (index) {
+  //                 multipleImageSectionController.removeImageAt(
+  //                   imageList: controller.bathroomImages,
+  //                   index: index,
+  //                   updateId: CommonMultipleImageSectionController.bathroomImageId,
+  //                 );
+  //               },
+  //             ),
+  //           ),
+  //
+  //           SizedBox(height: SizeConfig.paddingL),
+  //
+  //           CustomBtn(
+  //             // title: controller.isRiderVehicleImagesLoading.value
+  //             //     ? null
+  //             //     : 'Next',
+  //             title: AppStrings.nextButton,
+  //             onTap: controller.validateStepThree,
+  //             radius: 10.0,
+  //             bgColor: AppColors.primaryColor,
+  //             // isLoading: controller.isRiderVehicleImagesLoading.value,
+  //           )
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
+
   // ---------------- STEP 3 ----------------
+
   Widget _buildStepThree(){
     return AbsorbPointer(
      absorbing: controller.isHomeStayRentalServiceLoading.value,
       child: SingleChildScrollView(
         padding: EdgeInsets.all(SizeConfig.size15),
-        child:  Column(
+        child: Column(
           children: [
-            /// roomImageId
-            GetBuilder<CommonMultipleImageSectionController>(
-              id: CommonMultipleImageSectionController.roomImageId,
-              builder: (ctrl) => CommonMultipleImageUploadSection(
-                title: AppStrings.uploadRoomImages,
-                minImages: controller.maxHomeImageUpload,
-                maxImages: controller.maxHomeImageUpload,
-                images: controller.roomImages,
-                onAddImage: () async {
-                  multipleImageSectionController.addImages(
-                    label: AppStrings.roomsImagesLabel,
-                    imageList: controller.roomImages,
-                    updateId: CommonMultipleImageSectionController.roomImageId,
-                    maxUploadImages: controller.maxHomeImageUpload,
-                  );
-                },
-                onRemoveImage: (index) {
-                  multipleImageSectionController.removeImageAt(
-                    imageList: controller.roomImages,
-                    index: index,
-                    updateId: CommonMultipleImageSectionController.roomImageId,
-                  );
-                },
-              ),
+            HotelAllDocumentsScreen(
+              controller: myDocumentController,
             ),
-            SizedBox(height: SizeConfig.paddingM),
-
-            /// kitchenImages
-            GetBuilder<CommonMultipleImageSectionController>(
-              id: CommonMultipleImageSectionController.kitchenImageId,
-              builder: (ctrl) => CommonMultipleImageUploadSection(
-                title: AppStrings.uploadKitchenImages,
-                minImages: 2,
-                maxImages: controller.maxHomeImageUpload,
-                images: controller.kitchenImages,
-                onAddImage: () async {
-                  multipleImageSectionController.addImages(
-                      label: AppStrings.kitchenImagesLabel,
-                      imageList: controller.kitchenImages,
-                      updateId: CommonMultipleImageSectionController.kitchenImageId,
-                      maxUploadImages: controller.maxHomeImageUpload
-                  );
-                },
-                onRemoveImage: (index) {
-                  multipleImageSectionController.removeImageAt(
-                    imageList: controller.kitchenImages,
-                    index: index,
-                    updateId: CommonMultipleImageSectionController.kitchenImageId,
-                  );
-                },
-              ),
-            ),
-            SizedBox(height: SizeConfig.paddingM),
-
-            /// bathroomImages
-            GetBuilder<CommonMultipleImageSectionController>(
-              id: CommonMultipleImageSectionController.bathroomImageId,
-              builder: (ctrl) => CommonMultipleImageUploadSection(
-                title: AppStrings.uploadBathroomImages,
-                minImages: 2,
-                maxImages: controller.maxHomeImageUpload,
-                images: controller.bathroomImages,
-                onAddImage: () async {
-                  multipleImageSectionController.addImages(
-                      label: AppStrings.bathroomImagesLabel,
-                      imageList: controller.bathroomImages,
-                      updateId: CommonMultipleImageSectionController.bathroomImageId,
-                      maxUploadImages: controller.maxHomeImageUpload
-                  );
-                },
-                onRemoveImage: (index) {
-                  multipleImageSectionController.removeImageAt(
-                    imageList: controller.bathroomImages,
-                    index: index,
-                    updateId: CommonMultipleImageSectionController.bathroomImageId,
-                  );
-                },
-              ),
-            ),
-
             SizedBox(height: SizeConfig.paddingL),
-
             CustomBtn(
               // title: controller.isRiderVehicleImagesLoading.value
               //     ? null
@@ -667,56 +760,10 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
       padding: EdgeInsets.all(SizeConfig.size15),
       child: Column(
         children: [
-          /// roadSideImages
-          GetBuilder<CommonMultipleImageSectionController>(
-            id: CommonMultipleImageSectionController.roadSideImageId,
-            builder: (ctrl) => CommonMultipleImageUploadSection(
-              title: AppStrings.uploadRoadSideImages,
-              minImages: 2,
-              maxImages: controller.maxHomeImageUpload,
-              images: controller.roadSideImages,
-              onAddImage: () async {
-                multipleImageSectionController.addImages(
-                  label: AppStrings.roadSideImagesLabel,
-                  imageList: controller.roadSideImages,
-                  updateId: CommonMultipleImageSectionController.roadSideImageId,
-                  maxUploadImages: controller.maxHomeImageUpload,
-                );
-              },
-              onRemoveImage: (index) {
-                multipleImageSectionController.removeImageAt(
-                  imageList: controller.roadSideImages,
-                  index: index,
-                  updateId: CommonMultipleImageSectionController.roadSideImageId,
-                );
-              },
-            ),
-          ),
-          SizedBox(height: SizeConfig.paddingM),
 
-          /// otherImages
-          GetBuilder<CommonMultipleImageSectionController>(
-            id: CommonMultipleImageSectionController.otherImageId,
-            builder: (ctrl) => CommonMultipleImageUploadSection(
-              title: AppStrings.uploadOtherImages,
-              maxImages: controller.maxHomeImageUpload,
-              images: controller.otherImages,
-              onAddImage: () async {
-                multipleImageSectionController.addImages(
-                    label: AppStrings.otherImagesLabel,
-                    imageList: controller.otherImages,
-                    updateId: CommonMultipleImageSectionController.otherImageId,
-                    maxUploadImages: controller.maxHomeImageUpload
-                );
-              },
-              onRemoveImage: (index) {
-                multipleImageSectionController.removeImageAt(
-                  imageList: controller.otherImages,
-                  index: index,
-                  updateId: CommonMultipleImageSectionController.otherImageId,
-                );
-              },
-            ),
+          roomImagesWidget(
+               controller: stayImagesController,
+              multipleImageSectionController: multipleImageSectionController
           ),
 
           SizedBox(height: SizeConfig.paddingL),
@@ -876,159 +923,32 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          padding: EdgeInsets.all(SizeConfig.size12),
-          decoration: BoxDecoration(
-              color: AppColors.whiteFE,
-              borderRadius: BorderRadius.circular(10.0),
-              border: Border.all(
-                  color: AppColors.whiteE5
-              ),
-              boxShadow: [AppShadows.textFieldShadow]
-          ),
-          child:  Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              CustomText(
-                AppStrings.doYouAllowUnmarriedCouples,
-                fontSize: SizeConfig.medium,
-                color: AppColors.secondaryTextColor,
-                fontWeight: FontWeight.w400,
-              ),
-              CustomSwitch(
-                value: controller.isUnMarried.value,
-                onChanged: (val) {
-                  controller.isUnMarried.value = !controller.isUnMarried.value;
-                },
-                containerHeight: SizeConfig.size24,
-                containerWidth: SizeConfig.size50,
-                circleSize: SizeConfig.size18,
-              ),
-            ],
-          ),
+        CommonSwitchCard(
+          title: AppStrings.doYouAllowUnmarriedCouples,
+          value: controller.isUnMarried.value,
+          onChanged: (val) {
+            controller.isUnMarried.value = val;
+          },
         ),
 
         SizedBox(height: SizeConfig.paddingXSL),
 
-        Container(
-          padding: EdgeInsets.all(SizeConfig.size12),
-          decoration: BoxDecoration(
-              color: AppColors.whiteFE,
-              borderRadius: BorderRadius.circular(10.0),
-              border: Border.all(
-                  color: AppColors.whiteE5
-              ),
-              boxShadow: [AppShadows.textFieldShadow]
-          ),
-          child:  Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              CustomText(
-                AppStrings.areYouAllowBachelorOrStudent,
-                fontSize: SizeConfig.medium,
-                color: AppColors.secondaryTextColor,
-                fontWeight: FontWeight.w400,
-              ),
-              CustomSwitch(
-                value: controller.isAllowStudentOrBachelor.value,
-                onChanged: (val) {
-                  controller.isAllowStudentOrBachelor.value = !controller.isAllowStudentOrBachelor.value;
-                },
-                containerHeight: SizeConfig.size24,
-                containerWidth: SizeConfig.size50,
-                circleSize: SizeConfig.size18,
-              ),
-            ],
-          ),
+        CommonSwitchCard(
+          title: AppStrings.areYouAllowBachelorOrStudent,
+          value: controller.isAllowStudentOrBachelor.value,
+          onChanged: (val) {
+            controller.isAllowStudentOrBachelor.value = val;
+          },
         ),
 
         SizedBox(height: SizeConfig.paddingXSL),
 
-        Container(
-          decoration: BoxDecoration(
-              color: AppColors.whiteFE,
-              borderRadius: BorderRadius.circular(10.0),
-              border: Border.all(
-                  color: AppColors.whiteE5
-              ),
-              boxShadow: [AppShadows.textFieldShadow]
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: EdgeInsets.only(
-                    left: SizeConfig.size12,
-                    right: SizeConfig.size12,
-                    top: SizeConfig.size12,
-                    bottom: SizeConfig.size12,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    CustomText(
-                      AppStrings.anyFoodHabitRestrictions,
-                      fontSize: SizeConfig.medium,
-                      color: AppColors.secondaryTextColor,
-                      fontWeight: FontWeight.w400,
-                    ),
-                    CustomSwitch(
-                      value: controller.anyFoodHabitRestriction.value,
-                      onChanged: (val) {
-                        controller.anyFoodHabitRestriction.value = !controller.anyFoodHabitRestriction.value;
-                      },
-                      containerHeight: SizeConfig.size24,
-                      containerWidth: SizeConfig.size50,
-                      circleSize: SizeConfig.size18,
-                    ),
-                  ],
-                ),
-              ),
-
-              if(controller.anyFoodHabitRestriction.value)
-                ...[
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-                    child: CustomText(
-                      AppStrings.kindlyIndicateWhichFoodHabits,
-                      fontSize: SizeConfig.small,
-                      color: AppColors.secondaryTextColor,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                  SizedBox(height: SizeConfig.paddingXSL),
-                  ...controller.foodHabits.map((habit) {
-                    return CheckboxListTile(
-                      value: controller.selectedHabits[habit['id']],
-                      onChanged: (value) {
-                        if (value == true) {
-                          // Uncheck all other habits first
-                          controller.selectedHabits.forEach((key, _) {
-                            controller.selectedHabits[key] = false;
-                          });
-                          // Then check only the selected one
-                          controller.selectedHabits[habit['id']!] = true;
-                        } else {
-                          controller.selectedHabits[habit['id']!] = false;
-                        }                      },
-                      title: CustomText(
-                        habit['label']!,
-                        fontSize: SizeConfig.small,
-                        color: AppColors.secondaryTextColor,
-                        fontWeight: FontWeight.w400,
-                      ),
-                      contentPadding: EdgeInsets.zero,
-                      controlAffinity: ListTileControlAffinity.leading,
-                      checkColor: Colors.white,
-                      dense: true,
-                      visualDensity: VisualDensity(horizontal: -4, vertical: -2),
-                    );
-                  }).toList(),
-
-                ],
-
-            ],
-          ),
+        CommonSwitchCard(
+          title:  AppStrings.anyFoodHabitRestrictions,
+          value: controller.anyFoodHabitRestriction.value,
+          onChanged: (val) {
+            controller.anyFoodHabitRestriction.value = val;
+          },
         ),
 
         SizedBox(height: SizeConfig.paddingL),
@@ -1037,7 +957,6 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
       ],
     );
   }
-
 
   Widget _buildAddMoreRestrictionsSection() {
     return Column(
@@ -1151,7 +1070,6 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
       ],
     );
   }
-
 
 
 }

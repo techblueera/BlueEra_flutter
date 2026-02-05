@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/common/Discover/widget/generic_left_side_category_list.dart';
 import 'package:BlueEra/features/common/food/controller/grocery_controller.dart';
 import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
 import 'package:BlueEra/features/common/food/model/grocery_product_model.dart';
@@ -149,88 +150,105 @@ class _GrocerySubCategoryScreenState extends State<GrocerySubCategoryScreen> {
   }
 
   Widget  leftCategoryList() {
-    return Container(
-      width: 94,
-      color: AppColors.white,
-      child: ListView.builder(
-        itemCount: widget.arrGroceries.length,
-        padding: EdgeInsets.only(bottom: SizeConfig.size30),
-        itemBuilder: (context, index) {
-          return Obx(()=> _categoryItem(
-            widget.arrGroceries[index].icon,
-            widget.arrGroceries[index].name,
-            selected: controller.selectedGroceryData.value?.slugId == widget.arrGroceries[index].slugId,
-            onTap: () {
-              controller.selectedGroceryData.value = widget.arrGroceries[index];
-              controller.selectedTabIndex.value = 0;
-              log('new selection ${controller.selectedGroceryData.value}');
+    return CommonGenericLeftSideCategoryList<CollapsibleGridModel>(
+      items: widget.arrGroceries,
+      getIcon: (item) => item.icon,
+      getLabel: (item) => item.name,
+      isSelected: (item) =>
+      controller.selectedGroceryData.value?.slugId == item.slugId,
+      onTap: (item, index) {
+        controller.selectedGroceryData.value = widget.arrGroceries[index];
+        controller.selectedHorizontalTabIndex.value = 0;
+        log('new selection ${controller.selectedGroceryData.value}');
 
-              /// api call
-              controller.fetchBoth();
-
-            },
-          ));
-        },
-      ),
+        /// api call
+        controller.fetchBoth();
+      },
     );
   }
 
-  Widget _categoryItem(
-      String icon,
-      String label,
-      {bool selected = false, required VoidCallback onTap}) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        child: Container(
-          padding: EdgeInsets.symmetric(vertical: selected ? 11 : 6),
-          decoration: BoxDecoration(
-            color: selected ? AppColors.white : Colors.transparent,
-            gradient: LinearGradient(
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-              colors: [
-                AppColors.skyBlueE4,
-                AppColors.skyBlueE4.withValues(alpha: 0.3),
-              ],
-            ),
-            border: selected
-                ? const Border(
-                    left: BorderSide(
-                        color: AppColors.primaryColor,
-                        width: 3,
-                        style: BorderStyle.solid))
-                : null,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Container(
-                  decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: selected ? null : AppColors.skyBlueE4),
-                  padding: EdgeInsets.all(selected ? 0 : 6),
-                  child: LocalAssets(
-                    imagePath: icon,
-                    // boxFix: BoxFit.cover,
-                    height: 40,
-                    width: 40,
-                  )),
-              const SizedBox(height: 6),
-              CustomText(
-                label,
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
-                color: selected ? AppColors.black : AppColors.grayText,
-                textAlign: TextAlign.center,
-              )
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  //   return Container(
+  //     width: 94,
+  //     color: AppColors.white,
+  //     child: ListView.builder(
+  //       itemCount: widget.arrGroceries.length,
+  //       padding: EdgeInsets.only(bottom: SizeConfig.size30),
+  //       itemBuilder: (context, index) {
+  //         return Obx(()=> _categoryItem(
+  //           widget.arrGroceries[index].icon,
+  //           widget.arrGroceries[index].name,
+  //           selected: controller.selectedGroceryData.value?.slugId == widget.arrGroceries[index].slugId,
+  //           onTap: () {
+  //             controller.selectedGroceryData.value = widget.arrGroceries[index];
+  //             controller.selectedTabIndex.value = 0;
+  //             log('new selection ${controller.selectedGroceryData.value}');
+  //
+  //             /// api call
+  //             controller.fetchBoth();
+  //
+  //           },
+  //         ));
+  //       },
+  //     ),
+  //   );
+  // }
+  //
+  // Widget _categoryItem(
+  //     String icon,
+  //     String label,
+  //     {bool selected = false, required VoidCallback onTap}) {
+  //   return InkWell(
+  //     onTap: onTap,
+  //     child: Container(
+  //       padding: const EdgeInsets.symmetric(vertical: 10),
+  //       child: Container(
+  //         padding: EdgeInsets.symmetric(vertical: selected ? 11 : 6),
+  //         decoration: BoxDecoration(
+  //           color: selected ? AppColors.white : Colors.transparent,
+  //           gradient: LinearGradient(
+  //             begin: Alignment.centerLeft,
+  //             end: Alignment.centerRight,
+  //             colors: [
+  //               AppColors.skyBlueE4,
+  //               AppColors.skyBlueE4.withValues(alpha: 0.3),
+  //             ],
+  //           ),
+  //           border: selected
+  //               ? const Border(
+  //                   left: BorderSide(
+  //                       color: AppColors.primaryColor,
+  //                       width: 3,
+  //                       style: BorderStyle.solid))
+  //               : null,
+  //         ),
+  //         child: Column(
+  //           crossAxisAlignment: CrossAxisAlignment.center,
+  //           children: [
+  //             Container(
+  //                 decoration: BoxDecoration(
+  //                     shape: BoxShape.circle,
+  //                     color: selected ? null : AppColors.skyBlueE4),
+  //                 padding: EdgeInsets.all(selected ? 0 : 6),
+  //                 child: LocalAssets(
+  //                   imagePath: icon,
+  //                   // boxFix: BoxFit.cover,
+  //                   height: 40,
+  //                   width: 40,
+  //                 )),
+  //             const SizedBox(height: 6),
+  //             CustomText(
+  //               label,
+  //               fontSize: 10,
+  //               fontWeight: FontWeight.w600,
+  //               color: selected ? AppColors.black : AppColors.grayText,
+  //               textAlign: TextAlign.center,
+  //             )
+  //           ],
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   Widget rightContent() {
     return Obx(()=> Padding(
@@ -283,7 +301,7 @@ class _GrocerySubCategoryScreenState extends State<GrocerySubCategoryScreen> {
               scrollDirection: Axis.horizontal,
               itemCount: controller.arrChildrenOfGroceryCategory.length + 1,
               itemBuilder: (_, i) {
-                bool selected = controller.selectedTabIndex.value == i;
+                bool selected = controller.selectedHorizontalTabIndex.value == i;
 
                 var item;
                 if(i != 0){
@@ -292,7 +310,7 @@ class _GrocerySubCategoryScreenState extends State<GrocerySubCategoryScreen> {
 
                 return InkWell(
                   onTap: () {
-                      controller.selectedTabIndex.value = i;
+                      controller.selectedHorizontalTabIndex.value = i;
                       controller.fetchGroceryCategoryProducts();
                   },
                   child: Container(

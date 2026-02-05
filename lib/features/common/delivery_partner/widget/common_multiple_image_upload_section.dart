@@ -35,30 +35,44 @@ class CommonMultipleImageUploadSection extends StatelessWidget {
       padding: EdgeInsets.only(bottom: SizeConfig.size20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            children: [
-              Expanded(
+          if (minImages != null)
+            Padding(
+              padding: EdgeInsets.only(left: SizeConfig.size8),
+              child: Align(
+                alignment: Alignment.centerRight,
                 child: CustomText(
-                  title,
-                  fontSize: SizeConfig.medium,
-                  color: AppColors.mainTextColor,
-
-
-                ),
+                    "${AppStrings.min.tr} $minImages ${AppStrings.images.tr}",
+                    // "Min-$minImages Images/Max-${maxImages}Images",
+                    fontSize: SizeConfig.medium,
+                    color: AppColors.mainTextColor,
+                    fontWeight: FontWeight.w400),
               ),
-              if (minImages != null)
-                Padding(
-                  padding: EdgeInsets.only(left: SizeConfig.size8),
-                  child: CustomText(
-                      "${AppStrings.min.tr} $minImages ${AppStrings.images.tr}",
-                      // "Min-$minImages Images/Max-${maxImages}Images",
-                      fontSize: SizeConfig.medium,
-                      color: AppColors.mainTextColor,
-                      fontWeight: FontWeight.w400),
-                ),
-            ],
-          ),
+            ),
+
+          // Row(
+          //   children: [
+          //     Expanded(
+          //       child: CustomText(
+          //         title,
+          //         fontSize: SizeConfig.medium,
+          //         color: AppColors.mainTextColor,
+          //       ),
+          //     ),
+          //     if (minImages != null)
+          //       Padding(
+          //         padding: EdgeInsets.only(left: SizeConfig.size8),
+          //         child: CustomText(
+          //             "${AppStrings.min.tr} $minImages ${AppStrings.images.tr}",
+          //             // "Min-$minImages Images/Max-${maxImages}Images",
+          //             fontSize: SizeConfig.medium,
+          //             color: AppColors.mainTextColor,
+          //             fontWeight: FontWeight.w400),
+          //       ),
+          //   ],
+          // ),
+
           const SizedBox(height: 10),
           LayoutBuilder(
             builder: (context, constraints) {
@@ -145,8 +159,8 @@ class CommonMultipleImageSectionController extends GetxController {
   static const String roomImageId = 'roomImageId';
   static const String kitchenImageId = 'kitchenImageId';
   static const String bathroomImageId = 'bathroomImageId';
-  static const String roadSideImageId = 'bathroomImageId';
-  static const String otherImageId = 'bathroomImageId';
+  static const String roadSideImageId = 'roadSideImageId';
+  static const String otherImageId = 'otherImageId';
   static const String addMoreDepartment = 'addMoreDepartment';
 
   Future<List<String>?> pickImages(String title) async {

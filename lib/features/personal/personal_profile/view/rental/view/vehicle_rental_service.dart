@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/model/place_details.dart';
 import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
@@ -13,25 +12,35 @@ import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
+import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_multiple_image_upload_section.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/email_verification_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/languge_list_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/my_documents/widget/common_document_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/controller/vehicle_rental_service_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/widget/add_highlights_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/widget/add_more_restriction_widget.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/rental/widget/custom_switch_card.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/rental/widget/fitness_certificate_commercial_widget.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/rental/widget/insurance_document_widget.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/rental/widget/pollution_certificate_widget.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/rental/widget/vehicle_rc_widget.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
+import 'package:BlueEra/widgets/common_drop_down-dialoge.dart';
 import 'package:BlueEra/widgets/common_drop_down.dart';
 import 'package:BlueEra/widgets/common_location_search_field.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/update_contact_number.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+import '../../../../../../core/api/model/personal_profile_details_model.dart';
 
 class VehicleRentalService extends StatefulWidget {
   const VehicleRentalService({super.key});
@@ -41,28 +50,29 @@ class VehicleRentalService extends StatefulWidget {
 }
 
 class _VehicleRentalServiceState extends State<VehicleRentalService> {
-  final controller = Get.put(VehicleRentalServiceController());
-  final langController = Get.put(LanguageListController());
-  final multipleImageSectionController = Get.put(CommonMultipleImageSectionController());
+  final controller = getOrPut(() => VehicleRentalServiceController());
+  final langController = getOrPut(() => LanguageListController());
+  final multipleImageSectionController = getOrPut(() => CommonMultipleImageSectionController());
+  final deliveryPartnerController = getOrPut(() => DeliveryPartnerController());
+  final emailVerificationController = getOrPut(() => EmailVerificationController());
+
   final viewProfileController = Get.find<ViewPersonalDetailsController>();
-  final emailVerificationController = Get.put(EmailVerificationController());
 
   @override
   void initState() {
     super.initState();
     loadInitData();
+    deliveryPartnerController.fetchVehicleDataEnum();
   }
 
   Future<void> loadInitData() async {
-    await viewProfileController.viewPersonalProfile();
-    controller.ownerNameCtrl.text =
-        viewProfileController.personalProfileDetails.value.user?.name ?? "";
-    controller.emailCtrl.text =
-        viewProfileController.personalProfileDetails.value.user?.email ?? "";
-    controller.mobileNumberCtrl.text = viewProfileController
-        .personalProfileDetails.value.user?.contactNo??'';
-    controller.locationCtrl.text = viewProfileController.personalProfileDetails.value.user?.location ??
-            "";
+    // await viewProfileController.viewPersonalProfile();
+    User? user = viewProfileController.personalProfileDetails.value.user;
+    controller.ownerNameCtrl.text = user?.name ?? "";
+    controller.emailCtrl.text = user?.email ?? "";
+    controller.mobileNumberCtrl.text = user?.contactNo??'';
+    controller.locationCtrl.text = user?.location ?? "";
+    controller.pinCodeCtrl.text = user?.pincode ?? "";
   }
 
   @override
@@ -379,7 +389,9 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
 
   // ---------------- STEP 2 ----------------
   Widget _buildStepTwo() {
-    return SingleChildScrollView(
+    return Obx(()=> deliveryPartnerController.isVehicleDataEnumLoading.value ?
+    Center(child: CircularProgressIndicator())
+        : SingleChildScrollView(
       padding: EdgeInsets.only(
         left: SizeConfig.size15,
         right: SizeConfig.size15,
@@ -400,17 +412,18 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                   color: AppColors.mainTextColor,
                 ),
                 SizedBox(height: SizeConfig.size8),
-                CommonDropdown<RentalVehicleRegistrationType>(
-                  items: RentalVehicleRegistrationType.values,
-                  selectedValue: controller.selectedVehicleRegistrationType.value,
+                CommonDropdownDialog<String>(
+                  items: deliveryPartnerController.vehicleEnumResponse?.registrationType ?? [],
+                  selectedValue: deliveryPartnerController.selectedVehicleRegistrationType.value,
+                  title: AppStrings.registrationType,
                   hintText: AppStrings.egPersonalCommercial,
-                  displayValue: (value) => value.displayName,
+                  displayValue: (value) => value,
                   onChanged: (value) {
-                    controller.selectedVehicleRegistrationType.value = value;
+                    deliveryPartnerController.selectedVehicleRegistrationType.value = value;
                   },
-                  validator: (value) {
-                    return null;
-                  },
+                  // validator: (value) {
+                  //   return null;
+                  // },
                 ),
                 SizedBox(height: SizeConfig.paddingM),
 
@@ -422,17 +435,41 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                   color: AppColors.mainTextColor,
                 ),
                 SizedBox(height: SizeConfig.size8),
-                CommonDropdown<VehicleType>(
-                  items: VehicleType.values,
-                  selectedValue: controller.selectedVehicleType.value,
+                CommonDropdownDialog<String>(
+                  items: deliveryPartnerController.vehicleEnumResponse?.vehicleType ?? [],
+                  selectedValue: deliveryPartnerController.selectedVehicleType.value,
+                  title: AppStrings.vehicleType,
                   hintText: AppStrings.egTwoThreeWheeler,
-                  displayValue: (value) => value.displayName,
+                  displayValue: (value) => value,
                   onChanged: (value) {
-                    controller.selectedVehicleType.value = value;
+                    deliveryPartnerController.selectedVehicleType.value = value;
                   },
-                  validator: (value) {
-                    return null;
+                  // validator: (value) {
+                  //   return null;
+                  // },
+                ),
+                SizedBox(height: SizeConfig.paddingM),
+
+                /// Vehicle Use Type
+                CustomText(
+                  AppStrings.vehicleUseType,
+                  fontSize: SizeConfig.small,
+                  fontWeight: FontWeight.w400,
+                  color: AppColors.mainTextColor,
+                ),
+                SizedBox(height: SizeConfig.size8),
+                CommonDropdownDialog<String>(
+                  items: deliveryPartnerController.vehicleEnumResponse?.vehicleUsesType ?? [],
+                  selectedValue: deliveryPartnerController.selectedVehicleUseType.value,
+                  title: AppStrings.vehicleUseType,
+                  hintText: AppStrings.egPassengerDeliveryGoods,
+                  displayValue: (value) => value,
+                  onChanged: (value) {
+                    deliveryPartnerController.selectedVehicleUseType.value = value;
                   },
+                  // validator: (value) {
+                  //   return null;
+                  // },
                 ),
                 SizedBox(height: SizeConfig.paddingM),
 
@@ -453,17 +490,18 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                   color: AppColors.mainTextColor,
                 ),
                 SizedBox(height: SizeConfig.size8),
-                CommonDropdown<FuelType>(
-                  items: FuelType.values,
-                  selectedValue: controller.selectedFuelType.value,
+                CommonDropdownDialog<String>(
+                  items: deliveryPartnerController.vehicleEnumResponse?.fuelType ?? [],
+                  selectedValue: deliveryPartnerController.selectedFuelType.value,
+                  title: AppStrings.fuelType,
                   hintText: AppStrings.egPetrolDiesel,
-                  displayValue: (value) => value.displayName,
+                  displayValue: (value) => value,
                   onChanged: (value) {
-                    controller.selectedFuelType.value = value;
+                    deliveryPartnerController.selectedFuelType.value = value;
                   },
-                  validator: (value) {
-                    return null;
-                  },
+                  // validator: (value) {
+                  //   return null;
+                  // },
                 ),
                 SizedBox(height: SizeConfig.paddingM),
 
@@ -477,6 +515,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                   maxLength: 10,
                 ),
                 SizedBox(height: SizeConfig.paddingM),
+
                 /// Vehicle Model
                 CommonTextField(
                   title: AppStrings.vehicleModelYearManufacturing,
@@ -487,7 +526,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                 ),
                 SizedBox(height: SizeConfig.paddingM),
 
-                if(controller.selectedVehicleRegistrationType != RentalVehicleRegistrationType.CommercialGoods)
+                if(deliveryPartnerController.selectedVehicleRegistrationType != 'Commercial Goods')
                   CommonTextField(
                     title: AppStrings.seatingCapacity,
                     hintText: AppStrings.eg10People,
@@ -571,6 +610,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
           ),
         ),
       ),
+    )
     );
   }
 
@@ -578,151 +618,119 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
   Widget _buildStepThree() {
     return SingleChildScrollView(
       padding: EdgeInsets.only(
-        left: SizeConfig.size15,
-        right: SizeConfig.size15,
+        left: SizeConfig.size8,
+        right: SizeConfig.size8,
         top: SizeConfig.size15,
         bottom: SizeConfig.size40,
       ),
       child: Form(
         key: controller.formKeyStep3,
         child: CustomFormCard(
+          padding: EdgeInsets.zero,
           child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children:[
-                /// RC
-                CommonTextField(
-                  textEditController: controller.rcController,
-                  title: AppStrings.rcNumber,
-                  fontSize: SizeConfig.small,
-                  fontWeight: FontWeight.w400,
-                  titleColor: AppColors.mainTextColor,
-                  hintText: AppStrings.egUP32AB12,
-                  keyBoardType: TextInputType.text,
-                  validator: ValidationMethod.validateRC,
-                  isCapitalize: true,
-                  maxLength: 10,
-                ),
+              children: [
                 SizedBox(height: SizeConfig.paddingM),
-                CustomText(
-                  AppStrings.uploadRcBothSide,
-                  fontSize: SizeConfig.small,
-                  color: AppColors.mainTextColor,
-                  fontWeight: FontWeight.w400,
-                ),
-                SizedBox(height: SizeConfig.size8),
-                Row(
-                  children: [
-                    Expanded(
-                      child: CommonImageUploadTile(
-                        title: AppStrings.rcFront,
-                        imageFile: controller.rcFrontImage,
-                        context: context,
-                        onImageSelected: () async {
-                          final selectedPath = await CommonImageUploadTile.pickImage(context: context);
-                          if (selectedPath != null) {
-                            controller.rcFrontImage.value = File(selectedPath);
-                          }
-                        },
-                      ),
-                    ),
-                    SizedBox(width: SizeConfig.size8),
-                    Expanded(
-                      child:
-                      CommonImageUploadTile(
-                        title: AppStrings.rcBack,
-                        imageFile: controller.rcBackImage,
-                        context: context,
-                        onImageSelected: () async {
-                          final selectedPath = await CommonImageUploadTile.pickImage(context: context);
-                          if (selectedPath != null) {
-                            controller.rcBackImage.value = File(selectedPath);
-                          }
-                        },
-                      ),
-                    ),
-                  ],
-                ),
 
-                SizedBox(height: SizeConfig.paddingM),
-                CustomText(
-                  AppStrings.insuranceDocumentUpload,
-                  fontSize: SizeConfig.small,
-                  color: AppColors.mainTextColor,
-                  fontWeight: FontWeight.w400,
+                // Vehicle RC
+                _buildAddButton(
+                  title: AppStrings.uploadRoomImages,
+                  onTap: () {
+                    Get.bottomSheet(
+                      CommonDocumentBottomSheet(
+                        title: AppStrings.uploadRoomImages,
+                        child: VehicleRcWidget(),
+                      ),
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                    );
+                  },
+                    status: controller.vehicleDocStatus[VehicleRentalServiceController.rc] ?? false
+
                 ),
-                SizedBox(height: SizeConfig.size8),
-                CommonImageUploadTile(
+                // SizedBox(height: SizeConfig.paddingM),
+
+               // Insurance Document
+                _buildAddButton(
                   title: AppStrings.insuranceDocumentUpload,
-                  imageFile: controller.insuranceImage,
-                  context: context,
-                  onImageSelected: () async {
-                    final selectedPath = await CommonImageUploadTile.pickImage(context: context);
-                    if (selectedPath != null) {
-                      controller.insuranceImage.value = File(selectedPath);
-                    }
+                  onTap: () {
+                    Get.bottomSheet(
+                      CommonDocumentBottomSheet(
+                        title: AppStrings.insuranceDocumentUpload,
+                        child: InsuranceDocumentWidget(),
+                      ),
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                    );
                   },
-                ),
+                    status: controller.vehicleDocStatus[VehicleRentalServiceController.insurance] ?? false
 
-                SizedBox(height: SizeConfig.paddingM),
-                CustomText(
-                  AppStrings.pollutionCertificateUpload,
-                  fontSize: SizeConfig.small,
-                  color: AppColors.mainTextColor,
-                  fontWeight: FontWeight.w400,
                 ),
-                SizedBox(height: SizeConfig.size8),
-                CommonImageUploadTile(
+                // SizedBox(height: SizeConfig.paddingM),
+
+                // Pollution certificate
+                _buildAddButton(
                   title: AppStrings.pollutionCertificateUpload,
-                  imageFile: controller.pucImage,
-                  context: context,
-                  onImageSelected: () async {
-                    final selectedPath = await CommonImageUploadTile.pickImage(context: context);
-                    if (selectedPath != null) {
-                      controller.pucImage.value = File(selectedPath);
-                    }
+                  onTap: () {
+                    Get.bottomSheet(
+                      CommonDocumentBottomSheet(
+                        title: AppStrings.pollutionCertificateUpload,
+                        child: PollutionCertificateWidget(),
+                      ),
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                    );
                   },
-                ),
+                    status: controller.vehicleDocStatus[VehicleRentalServiceController.puc] ?? false
 
-                SizedBox(height: SizeConfig.paddingM),
-                CustomText(
-                  AppStrings.fitnessCertificateCommercial,
-                  fontSize: SizeConfig.small,
-                  color: AppColors.mainTextColor,
-                  fontWeight: FontWeight.w400,
                 ),
-                SizedBox(height: SizeConfig.size8),
-                CommonImageUploadTile(
+                // SizedBox(height: SizeConfig.paddingM),
+
+                // Fitness Certificate
+                _buildAddButton(
                   title: AppStrings.fitnessCertificateCommercial,
-                  imageFile: controller.vehicleFitnessCertificateImage,
-                  context: context,
-                  onImageSelected: () async {
-                    final selectedPath = await CommonImageUploadTile.pickImage(context: context);
-                    if (selectedPath != null) {
-                      controller.vehicleFitnessCertificateImage.value = File(selectedPath);
-                    }
+                  onTap: () {
+                    Get.bottomSheet(
+                      CommonDocumentBottomSheet(
+                        title: AppStrings.fitnessCertificateCommercial,
+                        child: FitnessCertificateCommercialWidget(),
+                      ),
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                    );
                   },
+                  status: controller.vehicleDocStatus[VehicleRentalServiceController.fitness] ?? false
+
                 ),
                 SizedBox(height: SizeConfig.paddingM),
 
-                CommonTextField(
-                  textEditController: controller.vehicleDesCtrl,
-                  inputLength: AppConstants.inputCharterLimit200,
-                  keyBoardType: TextInputType.text,
-                  title: AppStrings.vehicleConditionDescription,
-                  regularExpression: RegularExpressionUtils.alphabetSpacePattern,
-                  hintText: AppStrings.egGoodCondition,
-                  validator: ValidationMethod().validateVehicleDescription,
-                  maxLine: 3,
-                  maxLength: 200,
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
+                  child: Column(
+                    children: [
+                      CommonTextField(
+                        textEditController: controller.vehicleDesCtrl,
+                        inputLength: AppConstants.inputCharterLimit200,
+                        keyBoardType: TextInputType.text,
+                        title: AppStrings.vehicleConditionDescription,
+                        regularExpression: RegularExpressionUtils.alphabetSpacePattern,
+                        hintText: AppStrings.egGoodCondition,
+                        validator: ValidationMethod().validateVehicleDescription,
+                        maxLine: 3,
+                        maxLength: 200,
+                      ),
+
+                      SizedBox(height: SizeConfig.paddingL),
+                      CustomBtn(
+                        title: AppStrings.nextButton,
+                        onTap: controller.validateStepThree,
+                        radius: 10.0,
+                        bgColor: AppColors.primaryColor,
+                      ),
+                    ],
+                  ),
                 ),
 
-                SizedBox(height: SizeConfig.paddingL),
-                CustomBtn(
-                  title: AppStrings.nextButton,
-                  onTap: controller.validateStepThree,
-                  radius: 10.0,
-                  bgColor: AppColors.primaryColor,
-                ),
                 SizedBox(height: SizeConfig.paddingM),
 
 
@@ -793,6 +801,18 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                       ],
                     ),
                     SizedBox(height: SizeConfig.paddingM),
+                    CommonTextField(
+                      textEditController: controller.securityDepositCtrl,
+                      fontSize: SizeConfig.small,
+                      fontWeight: FontWeight.w400,
+                      title: 'Security Deposit',
+                      titleColor: AppColors.mainTextColor,
+                      hintText: 'E.g. ₹2000',
+                      keyBoardType: TextInputType.number,
+                      isValidate: true,
+                    ),
+                    SizedBox(height: SizeConfig.paddingM),
+
                     CommonLocationSearchField(
                       controller: controller.pickUpLocationCtrl,
                       title: AppStrings.pickupLocation,
@@ -806,37 +826,6 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                       },
                     ),
 
-                    // Row(
-                    //   crossAxisAlignment: CrossAxisAlignment.center,
-                    //   children: [
-                    //     Expanded(
-                    //       child: CommonLocationSearchField(
-                    //         controller: controller.pickUpLocationCtrl,
-                    //         title: "Pickup Location",
-                    //         hintText: "E.g. Subhas Palli, Gomti Nagar, luckn....",
-                    //         onSelected: (placeId, lat, lng, address) async {
-                    //           print("PlaceId: $placeId Selected: $address → ($lat, $lng)");
-                    //           controller.pickUpLocationCtrl.text = address;
-                    //           controller.pickUpLocationAddress.value = address;
-                    //               controller.pickUpLocationLatitude = lat;
-                    //               controller.pickUpLocationLongitude = lng;
-                    //         },
-                    //       ),
-                    //     ),
-                    //
-                    //     if(controller.currentAddress.isNotEmpty)
-                    //       Padding(
-                    //         padding: EdgeInsets.only(left: SizeConfig.size8, top: SizeConfig.size24),
-                    //         child: (controller.isFetchingAddressDetails.value) ?
-                    //         SizedBox(
-                    //           height: 20,
-                    //           width: 20,
-                    //           child: CircularProgressIndicator(strokeWidth: 2),
-                    //         ) :  Icon(Icons.check_circle, color: Colors.green, size: 22),
-                    //       )
-                    //   ],
-                    // ),
-
                   ],
                 ),
               ),
@@ -845,13 +834,52 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
 
               CustomFormCard(
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
 
-                      _buildAddRestrictionsSection(),
+                      CustomText(
+                        'Document Required For Rent',
+                        fontSize: SizeConfig.medium,
+                        color: AppColors.mainTextColor,
+                        fontWeight: FontWeight.w400,
+                      ),
+                      SizedBox(height: SizeConfig.paddingXSL),
 
-                      SizedBox(height: SizeConfig.paddingL),
+                      // 1. Aadhar Card
+                      CommonSwitchCard(
+                        title: 'Aadhar Card',
+                        value: controller.isAllowAadharCard.value,
+                        onChanged: (val) {
+                          controller.isAllowAadharCard.value = val;
+                        },
+                      ),
+                      SizedBox(height: SizeConfig.paddingXSL),
+
+                      // 2. Address Proof
+                      CommonSwitchCard(
+                        title: 'Address Proof',
+                        value: controller.isAllowAddressProof.value,
+                        onChanged: (val) {
+                          controller.isAllowAddressProof.value = val;
+                        },
+                      ),
+                      SizedBox(height: SizeConfig.paddingXSL),
+
+                      // 3. Driving License
+                      CommonSwitchCard(
+                        title: 'Driving Licence',
+                        value: controller.isAllowDrivingLicense.value,
+                        onChanged: (val) {
+                          controller.isAllowDrivingLicense.value = val;
+                        },
+                      ),
+                      SizedBox(height: SizeConfig.paddingM),
 
                       _buildAddHighlightsSection(),
+
+                      SizedBox(height: SizeConfig.paddingM),
+
+                      _buildAddRestrictionsSection(),
 
                       SizedBox(height: SizeConfig.paddingL),
 
@@ -883,135 +911,288 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
         ),
         child: Column(
           children: [
+
             /// vehicleNumberPlateImages
-            GetBuilder<CommonMultipleImageSectionController>(
-              id: CommonMultipleImageSectionController.vehicleNumberPlateImageId,
-              builder: (ctrl) => CommonMultipleImageUploadSection(
-                title: AppStrings.uploadVehicleNumberPlateImage,
-                maxImages: 1,
-                images: controller.vehicleNumberPlateImages,
-                onAddImage: () async {
-                  multipleImageSectionController.addImages(
-                      label: AppStrings.vehicleNumberPlateImages,
-                      imageList: controller.vehicleNumberPlateImages,
-                      updateId: CommonMultipleImageSectionController.vehicleNumberPlateImageId,
-                      maxUploadImages: 1
-                  );
-                },
-                onRemoveImage: (index) {
-                  multipleImageSectionController.removeImageAt(
-                    imageList: controller.vehicleNumberPlateImages,
-                    index: index,
-                    updateId: CommonMultipleImageSectionController.vehicleNumberPlateImageId,
-                  );
-                },
-              ),
+            _buildAddButton(
+              title: AppStrings.uploadVehicleNumberPlateImage,
+              onTap: () {
+                Get.bottomSheet(
+                  CommonDocumentBottomSheet(
+                    title: AppStrings.uploadVehicleNumberPlateImage,
+                    child: Column(
+                      children: [
+                        GetBuilder<CommonMultipleImageSectionController>(
+                          id: CommonMultipleImageSectionController.vehicleNumberPlateImageId,
+                          builder: (ctrl) => CommonMultipleImageUploadSection(
+                            title: AppStrings.uploadVehicleNumberPlateImage,
+                            minImages: 1,
+                            maxImages: 1,
+                            images: controller.vehicleNumberPlateImages,
+                            onAddImage: () async {
+                              multipleImageSectionController.addImages(
+                                  label: AppStrings.vehicleNumberPlateImages,
+                                  imageList: controller.vehicleNumberPlateImages,
+                                  updateId: CommonMultipleImageSectionController.vehicleNumberPlateImageId,
+                                  maxUploadImages: 1
+                              );
+                            },
+                            onRemoveImage: (index) {
+                              multipleImageSectionController.removeImageAt(
+                                imageList: controller.vehicleNumberPlateImages,
+                                index: index,
+                                updateId: CommonMultipleImageSectionController.vehicleNumberPlateImageId,
+                              );
+                            },
+                          ),
+                        ),
+                        SizedBox(height: SizeConfig.paddingXSmall),
+                        CustomBtn(
+                          title: controller.isUploadImagesLoading.value
+                              ? null
+                              : AppStrings.upload,
+                          isLoading: controller.isUploadImagesLoading.value,
+                          onTap: ()=> controller.uploadVehicleImagesApi(
+                              images: controller.vehicleNumberPlateImages,
+                              sectionId: CommonMultipleImageSectionController.vehicleNumberPlateImageId
+                          ),
+                          radius: 10.0,
+                          bgColor: AppColors.primaryColor,
+                        )
+                      ],
+                    ),
+                  ),
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                );
+              },
+              status: controller.vehicleImagesUploadStatus[CommonMultipleImageSectionController.vehicleNumberPlateImageId] ?? false
             ),
+
             SizedBox(height: SizeConfig.paddingM),
 
             /// vehicleRightSideImageId
-            GetBuilder<CommonMultipleImageSectionController>(
-              id: CommonMultipleImageSectionController.vehicleRightSideImageId,
-              builder: (ctrl) => CommonMultipleImageUploadSection(
-                title: AppStrings.uploadVehicleRightSideImages,
-                minImages: 2,
-                maxImages: controller.maxVehicleImageUpload,
-                images: controller.vehicleRightSideImages,
-                onAddImage: () async {
-                  multipleImageSectionController.addImages(
-                      label: AppStrings.vehicleRightSideImages,
-                      imageList: controller.vehicleRightSideImages,
-                      updateId: CommonMultipleImageSectionController.vehicleRightSideImageId,
-                      maxUploadImages: controller.maxVehicleImageUpload
-                  );
-                },
-                onRemoveImage: (index) {
-                  multipleImageSectionController.removeImageAt(
-                    imageList: controller.vehicleRightSideImages,
-                    index: index,
-                    updateId: CommonMultipleImageSectionController.vehicleRightSideImageId,
-                  );
-                },
-              ),
+            _buildAddButton(
+              title: AppStrings.uploadVehicleRightSideImages,
+              onTap: () {
+                Get.bottomSheet(
+                  CommonDocumentBottomSheet(
+                    title: AppStrings.uploadVehicleRightSideImages,
+                    child: Column(
+                      children: [
+                        GetBuilder<CommonMultipleImageSectionController>(
+                          id: CommonMultipleImageSectionController.vehicleRightSideImageId,
+                          builder: (ctrl) => CommonMultipleImageUploadSection(
+                            title: AppStrings.uploadVehicleNumberPlateImage,
+                            minImages: 1,
+                            maxImages: 1,
+                            images: controller.vehicleNumberPlateImages,
+                            onAddImage: () async {
+                              multipleImageSectionController.addImages(
+                                  label: AppStrings.vehicleRightSideImages,
+                                  imageList: controller.vehicleRightSideImages,
+                                  updateId: CommonMultipleImageSectionController.vehicleRightSideImageId,
+                                  maxUploadImages: controller.maxVehicleImageUpload
+                              );
+                            },
+                            onRemoveImage: (index) {
+                              multipleImageSectionController.removeImageAt(
+                                imageList: controller.vehicleRightSideImages,
+                                index: index,
+                                updateId: CommonMultipleImageSectionController.vehicleRightSideImageId,
+                              );
+                            },
+                          ),
+                        ),
+                        SizedBox(height: SizeConfig.paddingXSmall),
+                        CustomBtn(
+                          title: controller.isUploadImagesLoading.value
+                              ? null
+                              : AppStrings.upload,
+                          isLoading: controller.isUploadImagesLoading.value,
+                          onTap: ()=> controller.uploadVehicleImagesApi(
+                              images: controller.vehicleRightSideImages,
+                              sectionId: CommonMultipleImageSectionController.vehicleRightSideImageId
+                          ),
+                          radius: 10.0,
+                          bgColor: AppColors.primaryColor,
+                        )
+                      ],
+                    ),
+                  ),
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                );
+              },
+                status: controller.vehicleImagesUploadStatus[CommonMultipleImageSectionController.vehicleRightSideImageId] ?? false
             ),
             SizedBox(height: SizeConfig.paddingM),
 
             /// vehicleLeftSideImageId
-            GetBuilder<CommonMultipleImageSectionController>(
-              id: CommonMultipleImageSectionController.vehicleLeftSideImageId,
-              builder: (ctrl) => CommonMultipleImageUploadSection(
-                title: AppStrings.uploadVehicleLeftSideImages,
-                minImages: 2,
-                maxImages: controller.maxVehicleImageUpload,
-                images: controller.vehicleLeftSideImages,
-                onAddImage: () async {
-                  multipleImageSectionController.addImages(
-                      label: AppStrings.vehicleLeftSideImages,
-                      imageList: controller.vehicleLeftSideImages,
-                      updateId: CommonMultipleImageSectionController.vehicleLeftSideImageId,
-                      maxUploadImages: controller.maxVehicleImageUpload
-                  );
-                },
-                onRemoveImage: (index) {
-                  multipleImageSectionController.removeImageAt(
-                    imageList: controller.vehicleLeftSideImages,
-                    index: index,
-                    updateId: CommonMultipleImageSectionController.vehicleLeftSideImageId,
-                  );
-                },
-              ),
+            _buildAddButton(
+              title: AppStrings.uploadVehicleLeftSideImages,
+              onTap: () {
+                Get.bottomSheet(
+                  CommonDocumentBottomSheet(
+                    title: AppStrings.uploadVehicleLeftSideImages,
+                    child: Column(
+                      children: [
+                        GetBuilder<CommonMultipleImageSectionController>(
+                          id: CommonMultipleImageSectionController.vehicleLeftSideImageId,
+                          builder: (ctrl) => CommonMultipleImageUploadSection(
+                            title: AppStrings.uploadVehicleNumberPlateImage,
+                            minImages: 1,
+                            maxImages: 1,
+                            images: controller.vehicleNumberPlateImages,
+                            onAddImage: () {
+                              multipleImageSectionController.addImages(
+                                  label: AppStrings.vehicleLeftSideImages,
+                                  imageList: controller.vehicleLeftSideImages,
+                                  updateId: CommonMultipleImageSectionController.vehicleLeftSideImageId,
+                                  maxUploadImages: controller.maxVehicleImageUpload
+                              );
+                            },
+                            onRemoveImage: (index) {
+                              multipleImageSectionController.removeImageAt(
+                                imageList: controller.vehicleLeftSideImages,
+                                index: index,
+                                updateId: CommonMultipleImageSectionController.vehicleLeftSideImageId,
+                              );
+                            },
+                          ),
+                        ),
+                        SizedBox(height: SizeConfig.paddingXSmall),
+                        CustomBtn(
+                          title: controller.isUploadImagesLoading.value
+                              ? null
+                              : AppStrings.upload,
+                          isLoading: controller.isUploadImagesLoading.value,
+                          onTap: ()=> controller.uploadVehicleImagesApi(
+                              images: controller.vehicleLeftSideImages,
+                              sectionId: CommonMultipleImageSectionController.vehicleLeftSideImageId
+                          ),
+                          radius: 10.0,
+                          bgColor: AppColors.primaryColor,
+                        )
+                      ],
+                    ),
+                  ),
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                );
+              },
+              status: controller.vehicleImagesUploadStatus[CommonMultipleImageSectionController.vehicleLeftSideImageId] ?? false
             ),
             SizedBox(height: SizeConfig.paddingM),
 
             /// vehicleFrontImages
-            GetBuilder<CommonMultipleImageSectionController>(
-              id: CommonMultipleImageSectionController.vehicleFrontImageId,
-              builder: (ctrl) => CommonMultipleImageUploadSection(
-                title: AppStrings.uploadVehicleFrontImages,
-                maxImages: 2,
-                images: controller.vehicleFrontImages,
-                onAddImage: () async {
-                  multipleImageSectionController.addImages(
-                      label: AppStrings.vehicleFrontImages,
-                      imageList: controller.vehicleFrontImages,
-                      updateId: CommonMultipleImageSectionController.vehicleFrontImageId,
-                      maxUploadImages: 1
-                  );
-                },
-                onRemoveImage: (index) {
-                  multipleImageSectionController.removeImageAt(
-                    imageList: controller.vehicleFrontImages,
-                    index: index,
-                    updateId: CommonMultipleImageSectionController.vehicleFrontImageId,
-                  );
-                },
-              ),
+            _buildAddButton(
+              title: AppStrings.uploadVehicleFrontImages,
+              onTap: () {
+                Get.bottomSheet(
+                  CommonDocumentBottomSheet(
+                    title: AppStrings.uploadVehicleFrontImages,
+                    child: Column(
+                      children: [
+                        GetBuilder<CommonMultipleImageSectionController>(
+                          id: CommonMultipleImageSectionController.vehicleFrontImageId,
+                          builder: (ctrl) => CommonMultipleImageUploadSection(
+                            title: AppStrings.uploadVehicleFrontImages,
+                            maxImages: 2,
+                            images: controller.vehicleFrontImages,
+                            onAddImage: () async {
+                              multipleImageSectionController.addImages(
+                                  label: AppStrings.vehicleFrontImages,
+                                  imageList: controller.vehicleFrontImages,
+                                  updateId: CommonMultipleImageSectionController.vehicleFrontImageId,
+                                  maxUploadImages: 1
+                              );
+                            },
+                            onRemoveImage: (index) {
+                              multipleImageSectionController.removeImageAt(
+                                imageList: controller.vehicleFrontImages,
+                                index: index,
+                                updateId: CommonMultipleImageSectionController.vehicleFrontImageId,
+                              );
+                            },
+                          ),
+                        ),
+                        SizedBox(height: SizeConfig.paddingXSmall),
+                        CustomBtn(
+                          title: controller.isUploadImagesLoading.value
+                              ? null
+                              : AppStrings.upload,
+                          isLoading: controller.isUploadImagesLoading.value,
+                          onTap: ()=> controller.uploadVehicleImagesApi(
+                              images: controller.vehicleFrontImages,
+                              sectionId: CommonMultipleImageSectionController.vehicleFrontImageId
+                          ),
+                          radius: 10.0,
+                          bgColor: AppColors.primaryColor,
+                        )
+                      ],
+                    ),
+                  ),
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                );
+              },
+              status: controller.vehicleImagesUploadStatus[CommonMultipleImageSectionController.vehicleFrontImageId] ?? false
             ),
             SizedBox(height: SizeConfig.paddingM),
 
             /// vehicleBackImages
-            GetBuilder<CommonMultipleImageSectionController>(
-              id: CommonMultipleImageSectionController.vehicleBackImageId,
-              builder: (ctrl) => CommonMultipleImageUploadSection(
-                title: AppStrings.uploadVehicleBackImages,
-                maxImages: 2,
-                images: controller.vehicleBackImages,
-                onAddImage: () async {
-                  multipleImageSectionController.addImages(
-                      label: AppStrings.vehicleBackImages,
-                      imageList: controller.vehicleBackImages,
-                      updateId: CommonMultipleImageSectionController.vehicleBackImageId,
-                      maxUploadImages: 1
-                  );
-                },
-                onRemoveImage: (index) {
-                  multipleImageSectionController.removeImageAt(
-                    imageList: controller.vehicleBackImages,
-                    index: index,
-                    updateId: CommonMultipleImageSectionController.vehicleBackImageId,
-                  );
-                },
-              ),
+            _buildAddButton(
+              title: AppStrings.uploadVehicleBackImages,
+              onTap: () {
+                Get.bottomSheet(
+                  CommonDocumentBottomSheet(
+                    title: AppStrings.uploadVehicleBackImages,
+                    child: Column(
+                      children: [
+                        GetBuilder<CommonMultipleImageSectionController>(
+                          id: CommonMultipleImageSectionController.vehicleBackImageId,
+                          builder: (ctrl) => CommonMultipleImageUploadSection(
+                            title: AppStrings.uploadVehicleBackImages,
+                            maxImages: 2,
+                            images: controller.vehicleBackImages,
+                            onAddImage: () async {
+                              multipleImageSectionController.addImages(
+                                  label: AppStrings.vehicleBackImages,
+                                  imageList: controller.vehicleBackImages,
+                                  updateId: CommonMultipleImageSectionController.vehicleBackImageId,
+                                  maxUploadImages: 1
+                              );
+                            },
+                            onRemoveImage: (index) {
+                              multipleImageSectionController.removeImageAt(
+                                imageList: controller.vehicleBackImages,
+                                index: index,
+                                updateId: CommonMultipleImageSectionController.vehicleBackImageId,
+                              );
+                            },
+                          ),
+                        ),
+                        SizedBox(height: SizeConfig.paddingXSmall),
+                        CustomBtn(
+                          title: controller.isUploadImagesLoading.value
+                              ? null
+                              : AppStrings.upload,
+                          isLoading: controller.isUploadImagesLoading.value,
+                          onTap: ()=> controller.uploadVehicleImagesApi(
+                              images: controller.vehicleBackImages,
+                              sectionId: CommonMultipleImageSectionController.vehicleBackImageId
+                          ),
+                          radius: 10.0,
+                          bgColor: AppColors.primaryColor,
+                        )
+                      ],
+                    ),
+                  ),
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                );
+              },
+              status: controller.vehicleImagesUploadStatus[CommonMultipleImageSectionController.vehicleBackImageId] ?? false
             ),
             SizedBox(height: SizeConfig.paddingL),
 
@@ -1036,7 +1217,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
         Row(
           children: [
             CustomText(
-              AppStrings.homeHighlightsTitle,
+              'Vehicle Highlights',
               fontSize: SizeConfig.small,
               fontWeight: FontWeight.w400,
               color: AppColors.mainTextColor,
@@ -1278,6 +1459,58 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
 
       ],
     );
+  }
+
+  Widget _buildAddButton({
+    required String title,
+    required VoidCallback onTap,
+    required bool status
+  }) {
+
+    // bool isUploadable = status == DocStatus.notUploaded;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: TextButton(
+            onPressed: status
+                ? null
+                : onTap,
+            style: TextButton.styleFrom(
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                (status)
+                    ? LocalAssets(
+                  imagePath: AppIconAssets.green_tick_icon,
+                  height: 20,
+                  width: 20,
+                ) : Icon(
+                  CupertinoIcons.add,
+                  color: AppColors.primaryColor,
+                  size: 20,
+                ),
+                SizedBox(width: SizeConfig.size8),
+                Flexible(
+                  child: CustomText(
+                    title,
+                    color: status
+                        ? AppColors.secondaryTextColor
+                        : AppColors.primaryColor,
+                    fontWeight: FontWeight.w400,
+                    fontSize: SizeConfig.large,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+
   }
 
 }

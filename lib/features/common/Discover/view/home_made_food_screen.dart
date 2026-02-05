@@ -2,6 +2,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -10,9 +11,8 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
-import 'package:BlueEra/features/common/Discover/widget/service_category_item.dart';
+import 'package:BlueEra/features/common/Discover/widget/generic_left_side_category_list.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
-import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
 import 'package:BlueEra/features/common/map/widget/profile_summary_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
@@ -141,52 +141,87 @@ class _HomeMadeFoodScreenState extends State<HomeMadeFoodScreen> {
   }
 
   Widget leftCategoryList() {
-    return Container(
-      width: 94,
-      color: AppColors.white,
-      child: ListView.builder(
-        // We keep +1 to accommodate the "All" button at the top
-        itemCount: _homeMadeFoodCategories.length + 1,
-        padding: EdgeInsets.only(bottom: SizeConfig.size30),
-        shrinkWrap: true,
-        itemBuilder: (context, index) {
+    final allItem = OnboardingCategoryModel(
+      name: 'All',
+      slugId: 'ALL_OPTION',
+      icon: AppImageAssets.all,
+      accountType: AppConstants.individual,
+    );
 
-          // --- CASE 1: The "All" Item (Index 0) ---
-          if (index == 0) {
-            return Obx(() => ServiceCategoryItem(
-              icon: AppIconAssets.electricianIcon,
-              label: "All",
-              selected: controller.selectedEarnServiceData.value == null,
-              onTap: () {
-                clearSelectedCategory();
-                controller.fetchEarnServices(
-                    earnServiceType: earnServiceType,
-                    subType: serviceSubType
-                );
-              },
-            ));
-          }
+    final fullList = [allItem, ..._homeMadeFoodCategories];
 
-          // --- CASE 2: Actual Categories (Index 1+) ---
-          var item = _homeMadeFoodCategories[index - 1];
-
-          return Obx(() => ServiceCategoryItem(
-            icon: item.icon,
-            label: item.name,
-            selected: controller.selectedEarnServiceData.value?.slugId == item.slugId,
-            onTap: () {
-              controller.selectedEarnServiceData.value = item;
-              controller.selectedTabIndex.value = index;
-              controller.fetchEarnServices(
-                  earnServiceType: earnServiceType,
-                  subType: serviceSubType
-              );
-            },
-          ));
-        },
-      ),
+    return CommonGenericLeftSideCategoryList<OnboardingCategoryModel>(
+      items: fullList,
+      getLabel: (item) => item.name,
+      getIcon: (item) => item.icon,
+      isSelected: (item) {
+        if (item.slugId == 'ALL_OPTION') {
+          return controller.selectedEarnServiceData.value == null;
+        }
+        return controller.selectedEarnServiceData.value?.slugId == item.slugId;
+      },
+      onTap: (item, index) {
+        controller.selectedTabIndex.value = index;
+        if (item.slugId == 'ALL_OPTION') {
+          controller.selectedEarnServiceData.value = null;
+        } else {
+          controller.selectedEarnServiceData.value = item;
+        }
+        controller.fetchEarnServices(
+          earnServiceType: earnServiceType,
+          subType: serviceSubType,
+        );
+      },
     );
   }
+
+  // Widget leftCategoryList() {
+  //   return Container(
+  //     width: 94,
+  //     color: AppColors.white,
+  //     child: ListView.builder(
+  //       // We keep +1 to accommodate the "All" button at the top
+  //       itemCount: _homeMadeFoodCategories.length + 1,
+  //       padding: EdgeInsets.only(bottom: SizeConfig.size30),
+  //       shrinkWrap: true,
+  //       itemBuilder: (context, index) {
+  //
+  //         // --- CASE 1: The "All" Item (Index 0) ---
+  //         if (index == 0) {
+  //           return Obx(() => ServiceCategoryItem(
+  //             icon: AppIconAssets.electricianIcon,
+  //             label: "All",
+  //             selected: controller.selectedEarnServiceData.value == null,
+  //             onTap: () {
+  //               clearSelectedCategory();
+  //               controller.fetchEarnServices(
+  //                   earnServiceType: earnServiceType,
+  //                   subType: serviceSubType
+  //               );
+  //             },
+  //           ));
+  //         }
+  //
+  //         // --- CASE 2: Actual Categories (Index 1+) ---
+  //         var item = _homeMadeFoodCategories[index - 1];
+  //
+  //         return Obx(() => ServiceCategoryItem(
+  //           icon: item.icon,
+  //           label: item.name,
+  //           selected: controller.selectedEarnServiceData.value?.slugId == item.slugId,
+  //           onTap: () {
+  //             controller.selectedEarnServiceData.value = item;
+  //             controller.selectedTabIndex.value = index;
+  //             controller.fetchEarnServices(
+  //                 earnServiceType: earnServiceType,
+  //                 subType: serviceSubType
+  //             );
+  //           },
+  //         ));
+  //       },
+  //     ),
+  //   );
+  // }
 
   Widget rightContent() {
     return Obx(()=> Padding(

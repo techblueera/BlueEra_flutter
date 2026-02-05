@@ -50,11 +50,11 @@ class GroceryController extends GetxController {
 
   RxList<GroceryProductData> selectedGroceries = <GroceryProductData>[].obs;
 
-  RxInt selectedTabIndex = 0.obs;
+  RxInt selectedHorizontalTabIndex = 0.obs;
   String get currentTabKey =>
-      selectedTabIndex.value == 0
+      selectedHorizontalTabIndex.value == 0
           ? (selectedGroceryData.value?.slugId ?? '')
-          : arrChildrenOfGroceryCategory[selectedTabIndex.value - 1].key ?? '';
+          : arrChildrenOfGroceryCategory[selectedHorizontalTabIndex.value - 1].key ?? '';
 
   int maxLimit = 10;
 

@@ -279,7 +279,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
         required VoidCallback onTap}) {
     return InkWell(
       onTap: onTap,
-      child: Container(
+      child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 6),
         child: Container(
           padding: EdgeInsets.symmetric(vertical: selected ? 10 : 6),
@@ -310,9 +310,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
                       shape: BoxShape.circle,
                       color: AppColors.white),
                   padding: EdgeInsets.all(8),
-                  // padding: EdgeInsets.all(selected ? 10 : 0),
-                  child:
-                  AnimatedContainer(
+                  child: AnimatedContainer(
                     duration: const Duration(milliseconds: 300),
                     curve: Curves.easeOutBack, // Gives a "pop" effect
                     height: selected ? 44 : 38, // Grow from 40 to 50

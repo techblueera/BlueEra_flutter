@@ -663,4 +663,7 @@ class ApiKeys {
   static const pickupLongitude  = 'pickupLongitude';
   static const dropLatitude  = 'dropLatitude';
   static const dropLongitude  = 'dropLongitude';
+  static const argDocumentVia  = 'argDocumentVia';
+  static const checkInTime  = 'checkInTime';
+  static const checkOutTime  = 'checkOutTime';
 }

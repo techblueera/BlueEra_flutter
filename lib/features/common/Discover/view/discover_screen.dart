@@ -15,10 +15,12 @@ import 'package:BlueEra/features/business/auth/controller/view_business_details_
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/ai_chat/view/ask_chat_screen.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
+import 'package:BlueEra/features/common/Discover/view/all_professional_consultant_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/all_rental_service_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/all_self_profession_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/all_stay_service_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/home_made_food_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/home_made_product_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/home_service_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/product_local_market_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/services_near_screen.dart';
@@ -795,7 +797,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                         onTap: (c){
                           Get.to(() => AllStayServiceScreen(
                               stayCategories: stayItemsCategories,
-                              selectedStayCategory: c,
+                              selectedStayCategory: c
                           ));
 
                           // final typeMap = {
@@ -841,10 +843,11 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                           }else if(item.slugId == FOOD){
                             Get.to(()=> HomeMadeFoodScreen());
                           }else if(item.slugId == PRODUCT){
-                            Get.to(() => AllProductStoreScreen(
-                              isShowInGrid: true,
-                              providerType: ProviderType.user,
-                            ));
+                            Get.to(()=> HomeMadeProductScreen());
+                            // Get.to(() => AllProductStoreScreen(
+                            //   isShowInGrid: true,
+                            //   providerType: ProviderType.user,
+                            // ));
                           }
                         }
                     )
@@ -870,7 +873,12 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                         SizedBox(
                           width: SizeConfig.size8,
                         ),
-                        _viewAll(),
+                        _viewAll(
+                          () => Get.to(()=> AllProfessionConsultantScreen(
+                              professionalConsultantCategories: individualOnboardingConsultationList,
+                            )
+                          ),
+                        ),
                       ],
                     ),
                     SizedBox(height: SizeConfig.paddingXSL),
@@ -878,7 +886,13 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                         items: individualOnboardingConsultationList.take(6).toList(),
                         icon: (item)=> item.icon,
                         name: (item)=> item.name,
-                        onTap: (_){}
+                        onTap: (c){
+                          Get.to(()=> AllProfessionConsultantScreen(
+                              professionalConsultantCategories: individualOnboardingConsultationList,
+                              selectedProfessionConsultantData: c
+                            )
+                          );
+                        }
                     )
                   ],
                 ),

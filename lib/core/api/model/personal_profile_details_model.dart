@@ -76,7 +76,8 @@ class User {
     this.art,
     this.userLocation,
     this.profileType,
-    this.schoolOrCollegeName
+    this.schoolOrCollegeName,
+    this.pincode
   });
 
   User.fromJson(dynamic json) {
@@ -109,6 +110,7 @@ class User {
     userLocation = json['user_location'] != null ? new UserLocation.fromJson(json['user_location']) : null;
     profileType = json['profileType'];
     schoolOrCollegeName = json['schoolOrCollegeName'];
+    pincode = json['pincode'];
   }
 
   String? id;
@@ -137,6 +139,7 @@ class User {
   UserLocation? userLocation;
   String? profileType;
   String? schoolOrCollegeName;
+  String? pincode;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -173,6 +176,7 @@ class User {
     }
     map['profileType'] = profileType;
     map['schoolOrCollegeName'] = schoolOrCollegeName;
+    map['pincode'] = pincode;
     return map;
   }
 }

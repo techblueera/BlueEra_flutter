@@ -27,22 +27,22 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../core/constants/app_enum.dart';
 
-class AllSelfProfessionScreen extends StatefulWidget {
-  final List<OnboardingCategoryModel> selfEmployedCategories;
-  final OnboardingCategoryModel? selectedSelfProfessionData;
+class AllProfessionConsultantScreen extends StatefulWidget {
+  final List<OnboardingCategoryModel> professionalConsultantCategories;
+  final OnboardingCategoryModel? selectedProfessionConsultantData;
 
-  const AllSelfProfessionScreen({
+  const AllProfessionConsultantScreen({
     super.key,
-    required this.selfEmployedCategories,
-    this.selectedSelfProfessionData});
+    required this.professionalConsultantCategories,
+    this.selectedProfessionConsultantData});
 
   @override
-  State<AllSelfProfessionScreen> createState() => _AllSelfProfessionScreenState();
+  State<AllProfessionConsultantScreen> createState() => _AllProfessionConsultantScreenState();
 }
 
-class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
+class _AllProfessionConsultantScreenState extends State<AllProfessionConsultantScreen> {
   final controller = getOrPut(() => DiscoverController());
-  late List<OnboardingCategoryModel> _selfEmployedCategories;
+  late List<OnboardingCategoryModel> _professionalConsultantCategories;
   ScrollController scrollController = ScrollController();
   String serviceSubType = EarnServiceTypes.selfWork.label;
   String earnServiceType = AppConstants.service;
@@ -50,20 +50,20 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
   @override
   initState(){
     super.initState();
-    _selfEmployedCategories = widget.selfEmployedCategories;
-    controller.selectedEarnServiceData.value = widget.selectedSelfProfessionData;
-    controller.fetchEarnServices(
-        earnServiceType: earnServiceType,
-        subType: serviceSubType
-    );
+    _professionalConsultantCategories = widget.professionalConsultantCategories;
+    controller.selectedProfessionalConsultantData.value = widget.selectedProfessionConsultantData;
+    // controller.fetchEarnServices(
+    //     earnServiceType: earnServiceType,
+    //     subType: serviceSubType
+    // );
 
     // Listener for Pagination
     scrollController.addListener(() {
       if (scrollController.position.pixels == scrollController.position.maxScrollExtent) {
-        controller.fetchEarnServices(
-            earnServiceType: earnServiceType,
-            subType: serviceSubType,
-            isLoadMore: true);
+        // controller.fetchEarnServices(
+        //     earnServiceType: earnServiceType,
+        //     subType: serviceSubType,
+        //     isLoadMore: true);
       }
     });
   }
@@ -146,96 +146,39 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
       slugId: 'ALL_OPTION',
       icon: AppImageAssets.all,
       flagIcon: AppImageAssets.all,
-      individualType: IndividualType.SELF_EMPLOYED,
+      individualType: IndividualType.PROFESSIONAL,
       accountType: AppConstants.individual,
     );
 
-    final fullList = [allItem, ..._selfEmployedCategories];
+    final fullList = [allItem, ..._professionalConsultantCategories];
 
     return CommonGenericLeftSideCategoryList<OnboardingCategoryModel>(
       items: fullList,
       getLabel: (item) => item.name,
       getIcon: (item) => item.flagIcon ?? "",
-
-      // --- SELECTION LOGIC ---
       isSelected: (item) {
-        // If checking the "All" item, return true only if controller value is null
         if (item.slugId == 'ALL_OPTION') {
-          return controller.selectedEarnServiceData.value == null;
+          return controller.selectedProfessionalConsultantData.value == null;
         }
-        // Otherwise compare IDs normally
-        return controller.selectedEarnServiceData.value?.slugId == item.slugId;
+        return controller.selectedProfessionalConsultantData.value?.slugId == item.slugId;
       },
-
-      // --- ON TAP LOGIC ---
       onTap: (item, index) {
         controller.selectedTabIndex.value = index;
 
         if (item.slugId == 'ALL_OPTION') {
-          // "All" logic: Set value to null
-          controller.selectedEarnServiceData.value = null;
+          controller.selectedProfessionalConsultantData.value = null;
         } else {
-          // Normal logic: Set value to item
-          controller.selectedEarnServiceData.value = item;
+          controller.selectedProfessionalConsultantData.value = item;
         }
 
         // Single API Call (Clean & Shared)
-        controller.fetchEarnServices(
-          earnServiceType: earnServiceType,
-          subType: serviceSubType,
-        );
+        // controller.fetchEarnServices(
+        //   earnServiceType: earnServiceType,
+        //   subType: serviceSubType,
+        // );
       },
     );
   }
-
-  // Widget leftCategoryList() {
-  //   return Container(
-  //     width: 94,
-  //     color: AppColors.white,
-  //     child: ListView.builder(
-  //       // We keep +1 to accommodate the "All" button at the top
-  //       itemCount: _selfEmployedCategories.length + 1,
-  //       padding: EdgeInsets.only(bottom: SizeConfig.size30),
-  //       shrinkWrap: true,
-  //       itemBuilder: (context, index) {
-  //
-  //         // --- CASE 1: The "All" Item (Index 0) ---
-  //         if (index == 0) {
-  //           return Obx(() => ServiceCategoryItem(
-  //             icon: AppImageAssets.all,
-  //             label: "All",
-  //             selected: controller.selectedEarnServiceData.value == null,
-  //             onTap: () {
-  //               controller.selectedEarnServiceData.value = null;
-  //               controller.selectedTabIndex.value = index;
-  //               controller.fetchEarnServices(
-  //                   earnServiceType: earnServiceType,
-  //                   subType: serviceSubType
-  //               );
-  //             },
-  //           ));
-  //         }
-  //
-  //         // --- CASE 2: Actual Categories (Index 1+) ---
-  //         var item = _selfEmployedCategories[index - 1];
-  //
-  //         return Obx(() => ServiceCategoryItem(
-  //           icon: item.flagIcon ?? '',
-  //           label: item.name,
-  //           selected: controller.selectedEarnServiceData.value?.slugId == item.slugId,
-  //           onTap: () {
-  //             controller.selectedEarnServiceData.value = item;
-  //             controller.selectedTabIndex.value = index;
-  //             controller.fetchEarnServices(
-  //                 earnServiceType: earnServiceType,
-  //                 subType: serviceSubType
-  //             );
-  //           },
-  //         ));
-  //       },
-  //     ),
-  //   );
-  // }
 
   Widget rightContent() {
     return Obx(()=> Padding(
@@ -369,11 +312,11 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
 
     return InkWell(
       onTap: ()=> showFullProfessionDetails(
-          service,
-          timingMap: timingMap,
-          priceDisplay: priceDisplay,
-          priceBadgeText:badgeText ,
-          priceBadgeColor: badgeColor,
+        service,
+        timingMap: timingMap,
+        priceDisplay: priceDisplay,
+        priceBadgeText:badgeText ,
+        priceBadgeColor: badgeColor,
       ),
       child: CustomFormCard(
           padding: EdgeInsets.all(SizeConfig.size10),
@@ -553,12 +496,12 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
 
   void showFullProfessionDetails(
       ServiceData service,
-  {
-    required Map<String, String> timingMap,
-    required String priceDisplay,
-    required String priceBadgeText,
-    required Color priceBadgeColor,
-  }
+      {
+        required Map<String, String> timingMap,
+        required String priceDisplay,
+        required String priceBadgeText,
+        required Color priceBadgeColor,
+      }
 
       ) {
     showModalBottomSheet(
@@ -874,7 +817,7 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
                       (service.service!=null &&
                           service.service!.facilities!=null &&
                           service.service!.facilities!.isNotEmpty)
-                      ? Column(
+                          ? Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: List.generate(
                           service.service!.facilities!.length,
@@ -905,12 +848,12 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
                           ),
                         ),
                       )
-                      : CustomText(
+                          : CustomText(
                         'No Description available',
                         fontSize: SizeConfig.medium,
                         fontWeight: FontWeight.w400,
                         color: AppColors.secondaryTextColor,
-                        ),
+                      ),
 
                     ],
                   ),
@@ -1075,71 +1018,71 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
                       (service.serviceMedia!=null &&
                           service.serviceMedia!.photos!=null &&
                           service.serviceMedia!.photos!.isNotEmpty)
-                      ? Builder(
-                        builder: (context) {
-                          const crossAxisCount = 4;
-                          const mainAxisSpacing = 8.0;
+                          ? Builder(
+                          builder: (context) {
+                            const crossAxisCount = 4;
+                            const mainAxisSpacing = 8.0;
 
-                          // Split into rows of 4
-                          final rows = <List<String>>[];
+                            // Split into rows of 4
+                            final rows = <List<String>>[];
 
-                          for (int i = 0; i < service.serviceMedia!.photos!.length; i += crossAxisCount) {
-                            rows.add(
-                              service.serviceMedia!.photos!.sublist(
-                                i,
-                                (i + crossAxisCount).clamp(0, service.serviceMedia!.photos!.length),
-                              ),
-                            );
-                          }
-
-                          return Column(
-                            children: List.generate(rows.length, (rowIndex) {
-                              final rowItems = rows[rowIndex];
-                              final isLastRow = rowIndex == rows.length - 1;
-
-                              return Padding(
-                                padding: EdgeInsets.only(bottom: isLastRow ? 0 : mainAxisSpacing),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: List.generate(crossAxisCount * 2 - 1, (i) {
-                                    if (i.isEven) {
-                                      final itemIndex = i ~/ 2;
-
-                                      if (itemIndex < rowItems.length) {
-                                        final photos = rowItems[itemIndex];
-
-                                        return Expanded(
-                                          child:  ClipRRect(
-                                            borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
-                                            child: CachedNetworkImage(
-                                              imageUrl: photos,
-                                              width: SizeConfig.size80,
-                                              height: SizeConfig.size80,
-                                              fit: BoxFit.cover,
-                                              placeholder: (context, url) => Container(
-                                                width: SizeConfig.size80,
-                                                height: SizeConfig.size80,
-                                                color: Colors.grey[300],
-                                              ),
-                                              errorWidget: (context, url, error) =>
-                                                  Icon(Icons.person, size: SizeConfig.size80 / 2),
-                                            ),
-                                          ),
-                                        );
-                                      } else {
-                                        return const Expanded(child: SizedBox.shrink());
-                                      }
-                                    } else {
-                                      return SizedBox(width: SizeConfig.size8);
-                                    }
-                                  }),
+                            for (int i = 0; i < service.serviceMedia!.photos!.length; i += crossAxisCount) {
+                              rows.add(
+                                service.serviceMedia!.photos!.sublist(
+                                  i,
+                                  (i + crossAxisCount).clamp(0, service.serviceMedia!.photos!.length),
                                 ),
                               );
-                            }),
-                          );
-                        }
+                            }
+
+                            return Column(
+                              children: List.generate(rows.length, (rowIndex) {
+                                final rowItems = rows[rowIndex];
+                                final isLastRow = rowIndex == rows.length - 1;
+
+                                return Padding(
+                                  padding: EdgeInsets.only(bottom: isLastRow ? 0 : mainAxisSpacing),
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: List.generate(crossAxisCount * 2 - 1, (i) {
+                                      if (i.isEven) {
+                                        final itemIndex = i ~/ 2;
+
+                                        if (itemIndex < rowItems.length) {
+                                          final photos = rowItems[itemIndex];
+
+                                          return Expanded(
+                                            child:  ClipRRect(
+                                              borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
+                                              child: CachedNetworkImage(
+                                                imageUrl: photos,
+                                                width: SizeConfig.size80,
+                                                height: SizeConfig.size80,
+                                                fit: BoxFit.cover,
+                                                placeholder: (context, url) => Container(
+                                                  width: SizeConfig.size80,
+                                                  height: SizeConfig.size80,
+                                                  color: Colors.grey[300],
+                                                ),
+                                                errorWidget: (context, url, error) =>
+                                                    Icon(Icons.person, size: SizeConfig.size80 / 2),
+                                              ),
+                                            ),
+                                          );
+                                        } else {
+                                          return const Expanded(child: SizedBox.shrink());
+                                        }
+                                      } else {
+                                        return SizedBox(width: SizeConfig.size8);
+                                      }
+                                    }),
+                                  ),
+                                );
+                              }),
+                            );
+                          }
                       )
-                      : CustomText(
+                          : CustomText(
                         'No Photos Available',
                         fontSize: SizeConfig.medium,
                         fontWeight: FontWeight.w400,

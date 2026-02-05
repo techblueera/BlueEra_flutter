@@ -496,7 +496,7 @@ abstract class BaseService {
   final String ridersOnboardingPersonalIdentification = "rider-service/riders/onboarding/personal-identification";      // Onboarding rider (step 3)
   final String ridersOnboardingDrivingVerification = "rider-service/riders/onboarding/driving-verification";            // Onboarding rider (step 4)
   final String ridersOnboardingVehicleImages = "rider-service/riders/onboarding/vehicle-images";                        // Onboarding rider (step 5)
-  final String ridersOnboardingVehicleEnums = "rider-service/riders/onboarding/vehicle-enums";                        // Onboarding rider (step 5)
+  final String vehicleEnums = "rider-service/riders/onboarding/vehicle-enums";                        // Onboarding rider (step 5)
   final String ridersOnboardingVehicleInformation = "rider-service/riders/onboarding/vehicle-information";              // Onboarding rider (step 6)
   final String ridersOnboardingStatus = "rider-service/riders/onboarding/status"; // Fetch onboarding rider status
   final String initRiderServiceUpload = "rider-service/s3/presigned-url";
@@ -510,6 +510,7 @@ abstract class BaseService {
 
   final String rentalService = "booking-enquiry-service/rentals";
   final String getBookingRiders = "rider-service/fare/riders";
+  final String uploadRentalImages = "booking-enquiry-service/rentals/upload-images";
   String deleteRentalService(String rentalId) => "booking-enquiry-service/rentals/$rentalId";
   final String generateHomeDescription = "ai-service/api/ai-property/generate-description";
 

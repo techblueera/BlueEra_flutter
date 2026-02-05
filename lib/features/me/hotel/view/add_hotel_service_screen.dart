@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -6,6 +7,7 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/me/hotel/view/hotel_amenities_screen.dart';
 import 'package:BlueEra/features/me/hotel/view/hotel_career_jobs/hotel_job_listing_screen.dart';
@@ -129,9 +131,10 @@ class _AddHotelServiceScreenState extends State<AddHotelServiceScreen> {
             SizedBox(width: SizeConfig.size6),
             PositiveCustomBtn(
               onTap: () {
-                Get.to(AddDocumentScreen(
-                  documentVia: AppConstants.hotelServiceScreen,
-                ));
+                Get.toNamed(
+                    RouteHelper.getAddDocumentScreenRoute(),
+                    arguments: {ApiKeys.argDocumentVia: AppConstants.hotelServiceScreen}
+                );
               },
               title: AppStrings.addDocument,
               padding: EdgeInsets.symmetric(horizontal: 3),
@@ -160,9 +163,10 @@ class _AddHotelServiceScreenState extends State<AddHotelServiceScreen> {
                 ? ListTile(
                     dense: true,
                     onTap: () {
-                      Get.to(AddDocumentScreen(
-                        documentVia: AppConstants.hotelServiceScreen,
-                      ));
+                      Get.toNamed(
+                          RouteHelper.getAddDocumentScreenRoute(),
+                          arguments: {ApiKeys.argDocumentVia: AppConstants.hotelServiceScreen}
+                      );
                     },
                     leading: Icon(
                       Icons.folder_open,

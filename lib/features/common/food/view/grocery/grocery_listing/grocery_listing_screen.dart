@@ -8,6 +8,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/common/Discover/widget/generic_left_side_category_list.dart';
 import 'package:BlueEra/features/common/food/controller/user_grocery_controller.dart';
 import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
 import 'package:BlueEra/features/common/food/model/grocery_product_model.dart';
@@ -165,38 +166,62 @@ class _GroceryListingScreenState extends State<GroceryListingScreen> {
   }
 
   Widget leftCategoryList() {
-    return Container(
-      width: 94,
-      color: AppColors.white,
-      child: ListView.builder(
-        itemCount: widget.arrGroceries.length,
-        padding: EdgeInsets.only(bottom: SizeConfig.size30),
-        itemBuilder: (context, index) {
-          return Obx(() => _categoryItem(
-                widget.arrGroceries[index].icon,
-                widget.arrGroceries[index].name,
-                selected: controller.selectedGroceryData.value?.slugId ==
-                    widget.arrGroceries[index].slugId,
-            onTap: () {
-              final selected = widget.arrGroceries[index];
+    return CommonGenericLeftSideCategoryList<CollapsibleGridModel>(
+      items: widget.arrGroceries,
+      getIcon: (item) => item.icon,
+      getLabel: (item) => item.name,
+      isSelected: (item) =>
+      controller.selectedGroceryData.value?.slugId == item.slugId,
+      onTap: (item, index) {
+        final selected = widget.arrGroceries[index];
 
-              // If same category already selected → DO NOTHING
-              if (controller.selectedGroceryData.value?.slugId == selected.slugId) {
-                return;
-              }
+        // If same category already selected → DO NOTHING
+        if (controller.selectedGroceryData.value?.slugId == selected.slugId) {
+          return;
+        }
 
-              controller.selectedGroceryData.value = selected;
-              controller.selectedTabIndex.value = 0;
+        controller.selectedGroceryData.value = selected;
+        controller.selectedTabIndex.value = 0;
 
-              log('new selection ${controller.selectedGroceryData.value}');
-              controller.fetchUserGrocery();
-            },
-
-          ));
-        },
-      ),
+        log('new selection ${controller.selectedGroceryData.value}');
+        controller.fetchUserGrocery();
+      },
     );
   }
+
+  // Widget leftCategoryList() {
+  //   return Container(
+  //     width: 94,
+  //     color: AppColors.white,
+  //     child: ListView.builder(
+  //       itemCount: widget.arrGroceries.length,
+  //       padding: EdgeInsets.only(bottom: SizeConfig.size30),
+  //       itemBuilder: (context, index) {
+  //         return Obx(() => _categoryItem(
+  //               widget.arrGroceries[index].icon,
+  //               widget.arrGroceries[index].name,
+  //               selected: controller.selectedGroceryData.value?.slugId ==
+  //                   widget.arrGroceries[index].slugId,
+  //           onTap: () {
+  //             final selected = widget.arrGroceries[index];
+  //
+  //             // If same category already selected → DO NOTHING
+  //             if (controller.selectedGroceryData.value?.slugId == selected.slugId) {
+  //               return;
+  //             }
+  //
+  //             controller.selectedGroceryData.value = selected;
+  //             controller.selectedTabIndex.value = 0;
+  //
+  //             log('new selection ${controller.selectedGroceryData.value}');
+  //             controller.fetchUserGrocery();
+  //           },
+  //
+  //         ));
+  //       },
+  //     ),
+  //   );
+  // }
 
   Widget _categoryItem(String icon, String label,
       {bool selected = false, required VoidCallback onTap}) {
