@@ -686,11 +686,14 @@ class ResumeRepo extends BaseService {
     required Map<String, dynamic> params,
     String? imagePath,
   }) async {
-    if (imagePath != null && File(imagePath).existsSync()) {
-      var data=await MultipartFile.fromFile(imagePath);
-     logs("RUN TIME TYPE ${data.runtimeType}");
-      params['projectImage'] =data;
-
+    try {
+      if (imagePath != null && File(imagePath).existsSync()) {
+        var data=await MultipartFile.fromFile(imagePath);
+        params['projectImage'] =data;
+      }
+    } on Exception catch (e) {
+      logs("ERRO IMG ===${e}");
+      // TODO
     }
     final response = await ApiBaseHelper().postHTTP(
       resumeProjects,

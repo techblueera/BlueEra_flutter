@@ -26,12 +26,23 @@ class JobSeekerPortfolioFormScreen extends StatefulWidget {
 
 class _JobSeekerPortfolioFormScreenState
     extends State<JobSeekerPortfolioFormScreen> {
-  final portfolioController = Get.put(JobSeekerPortfolioProfessionalsController());
+  final portfolioController =
+      Get.put(JobSeekerPortfolioProfessionalsController());
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    portfolioController.isSaving.value = false;
+    portfolioController.selectedFile.value = null;
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title:"Portfolio Projects",),
+      appBar: CommonBackAppBar(
+        title: "Portfolio Projects",
+      ),
       body: SafeArea(
         child: CommonCardWidget(
           child: Padding(
@@ -129,7 +140,8 @@ class _JobSeekerPortfolioFormScreenState
                   Obx(() {
                     return AiDescriptionField(
                       label: AppStrings.description,
-                      hintText: "Tell us more about the project or case study...",
+                      hintText:
+                          "Tell us more about the project or case study...",
                       controller: portfolioController.descriptionController,
                       rxValue: portfolioController.description,
                       // Your RX variable from the controller

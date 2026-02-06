@@ -86,11 +86,11 @@ class JobSeekerPortfolioProfessionalsController extends GetxController {
     // issueDate.value = _parseIsoDate(cert.completionDate);
     List<String>? parts = cert.completionDate?.split('-');
 
-    int day = int.parse(parts?[0]??"");
-    int month = int.parse(parts?[1]??"");
-    int year = int.parse(parts?[2]??"");
+    int day = int.parse(parts?[0] ?? "");
+    int month = int.parse(parts?[1] ?? "");
+    int year = int.parse(parts?[2] ?? "");
     selectedDay = day;
-    selectedMonth =month;
+    selectedMonth = month;
     selectedYear = year;
     selectedFile.value = null;
     isImageEdit.value = false;
@@ -100,11 +100,11 @@ class JobSeekerPortfolioProfessionalsController extends GetxController {
   Future<void> save() async {
     try {
       isSaving.value = true;
-      final payload = {
+      final Map<String, dynamic> payload = {
         "title": titleController.text.trim(),
         "category": selectedCategory.value,
         "description": descriptionController.text.trim(),
-        "completionDate": "${selectedDay}-${selectedMonth}-$selectedYear"
+        "completionDate": "${selectedDay}-${selectedMonth}-$selectedYear",
       };
 
       ResponseModel response;
@@ -113,11 +113,10 @@ class JobSeekerPortfolioProfessionalsController extends GetxController {
             params: payload, imagePath: selectedFile.value?.path);
       } else {
         response = await _repo.updateJobPortfolioResume(
-            projectID: editingCertificateId.value??"",
+            projectID: editingCertificateId.value ?? "",
             params: payload,
             imagePath: selectedFile.value?.path);
       }
-      // [log] RUN TIME TYPE MultipartFile
 
       if (response.isSuccess) {
         callAPIGetResume();
@@ -134,7 +133,6 @@ class JobSeekerPortfolioProfessionalsController extends GetxController {
       isSaving.value = false;
     }
   }
-
 
   ///DELETE NOTICE....
   Future<void> deleteCertificateController({required String certiId}) async {
