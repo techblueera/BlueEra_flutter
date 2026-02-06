@@ -254,28 +254,28 @@ Future<String> getOrderTypeString()async{
         postCodeData=await getCurrentPostCode();
 
       }
-      Map<String, dynamic> testingParams= {
-      ApiKeys.orderFor : "InCity",
-      ApiKeys.pickupLatitude : 23.266686,
-      ApiKeys.pickupLongitude : 77.459075,
-      ApiKeys.dropLatitude :23.266686,
-      ApiKeys.dropLongitude :77.459075,
-      ApiKeys.range_in_km: 5,
-        if(selectedHorizontalTab.value==0||selectedHorizontalTab.value==1)
-      ApiKeys.pincode: "462023",
-      };
-      // Map<String, dynamic> queryParams = {
-      //   ApiKeys.orderFor : getOrderTypeString(),
-      //   ApiKeys.pickupLatitude : selectedFromLat?.value,
-      //   ApiKeys.pickupLongitude : selectedFromLong?.value,
-      //   ApiKeys.dropLatitude : selectedToLat?.value,
-      //   ApiKeys.dropLongitude : selectedToLong?.value,
-      //   ApiKeys.range_in_km: 5,
+      // Map<String, dynamic> queryParams= {
+      // ApiKeys.orderFor : "InCity",
+      // ApiKeys.pickupLatitude : 23.266686,
+      // ApiKeys.pickupLongitude : 77.459075,
+      // ApiKeys.dropLatitude :23.266686,
+      // ApiKeys.dropLongitude :77.459075,
+      // ApiKeys.range_in_km: 5,
       //   if(selectedHorizontalTab.value==0||selectedHorizontalTab.value==1)
-      //     ApiKeys.pincode: postCodeData??'',
+      // ApiKeys.pincode: "462023",
       // };
+      Map<String, dynamic> queryParams = {
+        ApiKeys.orderFor : getOrderTypeString(),
+        ApiKeys.pickupLatitude : selectedFromLat?.value,
+        ApiKeys.pickupLongitude : selectedFromLong?.value,
+        ApiKeys.dropLatitude : selectedToLat?.value,
+        ApiKeys.dropLongitude : selectedToLong?.value,
+        ApiKeys.range_in_km: 5,
+        if(selectedHorizontalTab.value==0||selectedHorizontalTab.value==1)
+          ApiKeys.pincode: postCodeData??'',
+      };
       final response = await DiscoverRepo().getBookingRidersApi(
-        queryParams: testingParams,
+        queryParams: queryParams,
       );
 
       if (response.isSuccess) {

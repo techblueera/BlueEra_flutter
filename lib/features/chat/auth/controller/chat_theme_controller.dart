@@ -1,11 +1,6 @@
-
-import 'dart:developer';
-
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:mappls_gl/mappls_gl.dart';
-
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/constants/app_constant.dart';
 import '../model/GetListOfMessageData.dart';

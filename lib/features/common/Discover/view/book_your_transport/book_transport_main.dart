@@ -149,8 +149,8 @@ class _BookTransportMainState extends State<BookTransportMain> {
                     children: [
                       SizedBox(height: SizeConfig.size10,),
                       Container(
-
                         decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
                             boxShadow: [
                               AppShadows.bottomShadow
                             ],
