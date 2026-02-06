@@ -23,7 +23,6 @@ import 'package:BlueEra/features/common/Discover/view/home_service_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/product_local_market_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/services_near_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/tooltip_generator.dart';
-import 'package:BlueEra/features/common/auth/model/individual_profiile_category.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
 import 'package:BlueEra/features/common/franchise/view/franchise_home.dart';
 import 'package:BlueEra/features/common/jobs/view/jobs_screen.dart';
@@ -1385,52 +1384,52 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     );
   }
 
-  Widget _buildRiderImageWidget() {
-    return Container(
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(color: AppColors.greyE5, width: 1.5),
-      ),
-      child: CircleAvatar(
-        radius: 15,
-        backgroundImage: NetworkImage("https://picsum.photos/200"),
-      ),
-    );
-  }
-
-  Widget _buildVerticalLayout({
-    required String imageUrl,
-    required List<IndividualProfileCategory> items,
-    required Function(IndividualProfileCategory item) onTap,
-  }) {
-    return Expanded(
-      child: CustomFormCard(
-        padding: EdgeInsets.all(SizeConfig.size10),
-        child: Column(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10.0),
-              child: LocalAssets(
-                  imagePath: imageUrl,
-                  width: double.maxFinite,
-                  height: SizeConfig.size190,
-                  boxFix: BoxFit.fill),
-            ),
-            SizedBox(
-              height: SizeConfig.size10,
-            ),
-            genericSquareRow<IndividualProfileCategory>(
-              items: items,
-              itemsPerRow: 3,
-              labelBuilder: (c) => c.name,
-              iconBuilder: (c) => c.icon,
-              onTap: (c) => onTap(c),
-            )
-          ],
-        ),
-      ),
-    );
-  }
+  // Widget _buildRiderImageWidget() {
+  //   return Container(
+  //     decoration: BoxDecoration(
+  //       shape: BoxShape.circle,
+  //       border: Border.all(color: AppColors.greyE5, width: 1.5),
+  //     ),
+  //     child: CircleAvatar(
+  //       radius: 15,
+  //       backgroundImage: NetworkImage("https://picsum.photos/200"),
+  //     ),
+  //   );
+  // }
+  //
+  // Widget _buildVerticalLayout({
+  //   required String imageUrl,
+  //   required List<IndividualProfileCategory> items,
+  //   required Function(IndividualProfileCategory item) onTap,
+  // }) {
+  //   return Expanded(
+  //     child: CustomFormCard(
+  //       padding: EdgeInsets.all(SizeConfig.size10),
+  //       child: Column(
+  //         children: [
+  //           ClipRRect(
+  //             borderRadius: BorderRadius.circular(10.0),
+  //             child: LocalAssets(
+  //                 imagePath: imageUrl,
+  //                 width: double.maxFinite,
+  //                 height: SizeConfig.size190,
+  //                 boxFix: BoxFit.fill),
+  //           ),
+  //           SizedBox(
+  //             height: SizeConfig.size10,
+  //           ),
+  //           genericSquareRow<IndividualProfileCategory>(
+  //             items: items,
+  //             itemsPerRow: 3,
+  //             labelBuilder: (c) => c.name,
+  //             iconBuilder: (c) => c.icon,
+  //             onTap: (c) => onTap(c),
+  //           )
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 
   Widget _buildHorizontalTabs(List<String> arrTabs) {
     final displayTabs = arrTabs.length > 5 ? arrTabs.sublist(0, 5) : arrTabs;
