@@ -1,22 +1,21 @@
-import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/features/common/food/controller/food_upload_controller.dart';
-import 'package:BlueEra/features/common/service/controller/service_controller.dart';
-import 'package:BlueEra/features/me/grocery/view/grocery_category_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/inventory_business_cards_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_business_profile_full_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/repo/inventory_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/product_screen.dart';
-import 'package:BlueEra/features/common/service/view/view_service_list.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product_business_profile_full_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product_service_not_create_screen.dart';
 import 'package:BlueEra/widgets/common_search_bar.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/tab_bar_delegate.dart';
 import 'package:flutter/material.dart';
@@ -25,105 +24,151 @@ import '../../controller/inventory_controller.dart';
 
 class InventoryScreen extends StatefulWidget {
   final bool fromBottomNavBar;
-  final String? isShowScreen;
+  // final String? isShowScreen;
 
   const InventoryScreen(
-      {super.key, this.fromBottomNavBar = false, this.isShowScreen});
+      {
+        super.key,
+        this.fromBottomNavBar = false,
+        // this.isShowScreen
+      });
 
   @override
   State<InventoryScreen> createState() => _InventoryScreenState();
 }
 
 class _InventoryScreenState extends State<InventoryScreen>
-    with SingleTickerProviderStateMixin, RouteAware {
+    with SingleTickerProviderStateMixin
+    // , RouteAware
+{
   final FocusNode _searchFocusNode = FocusNode();
   final TextEditingController searchController = TextEditingController();
   TabController? _tabController;
 
-  String _businessType = BusinessType.Product.name;
+  // String _businessType = BusinessType.Product.name;
   bool _isLoading = true;
   late List<Tab> _tabs;
 
   final inventoryController = getOrPut(() => InventoryController());
-  final serviceController = getOrPut(() => ServiceController());
-  final foodUploadController = getOrPut(() => FoodUploadController());
+  // final serviceController = getOrPut(() => ServiceController());
+  // final foodUploadController = getOrPut(() => FoodUploadController());
+  final controller = getOrPut(() => ProductBusinessProfileFullController());
 
   @override
   void initState() {
-    logs("widget.isShowScreen=== ${widget.isShowScreen}");
-    if (widget.isShowScreen?.isNotEmpty ?? false) {
-      _businessType = widget.isShowScreen ?? "";
-    }
+    // logs("widget.isShowScreen=== ${widget.isShowScreen}");
+    // if (widget.isShowScreen?.isNotEmpty ?? false) {
+    //   _businessType = widget.isShowScreen ?? "";
+    // }
+    apiCalling();
     _initializeData();
     super.initState();
   }
 
+  apiCalling() async {
+    try {
+      if (productBusinessProfileIDGlobal.isEmpty) {
+        ResponseModel response = await InventoryRepo().getBusinessProfileRepo();
+        if (response.isSuccess) {
+          productBusinessProfileIDGlobal = response.response?.data['data']['_id'];
+          if (productBusinessProfileIDGlobal.isNotEmpty) {
+            await setProductBusinessProfileID(productBusinessProfileIDGlobal);
+          } else {
+            await setProductBusinessProfileID("");
+          }
+        }
+      }
+      await getProductBusinessProfileID();
+      setState(() {
+        controller.hasProfile.value = otherServiceIDGlobal.isNotEmpty;
+      });
+    } on Exception {
+      // TODO
+    }
+  }
+
+
   void _initializeData() {
-    final business =  _businessType.toLowerCase();
-    // final business = businessTypeGlobal.toLowerCase();
-    log('business -- $business');
-    log('business 1111 -- ${(isShowProduct.contains(business))}');
-    log('business 222 -- ${(isShowService.contains(business))}');
+    // _businessType = businessTypeGlobal.toLowerCase();
+    // log('business -- $_businessType');
 
-    _businessType = business;
-    _tabs = [];
-
-    if (isShowProduct.contains(business))
-      _tabs.add(Tab(text: AppStrings.myProducts.tr));
-    if (isShowService.contains(business))
-      _tabs.add(Tab(text: AppStrings.myServices.tr));
-    if (isShowFood.contains(business))
-      _tabs.add(Tab(text: AppStrings.foodAndGrocery.tr));
-    _tabs.add(Tab(text: AppStrings.businessCards.tr));
-
+    _tabs = [
+      Tab(text: AppStrings.home.tr),
+      Tab(text: AppStrings.myProducts.tr),
+      Tab(text: AppStrings.statistics.tr),
+    ];
     _tabController = TabController(length: _tabs.length, vsync: this);
-    if (_tabs.isEmpty) {
-      log("No tabs available for business type: $business");
-      setState(() => _isLoading = false);
-      return;
-    }
-
-    final firstTab = _tabs.first.text;
-    if (firstTab == 'My Products') {
-      inventoryController.callApi(forceRefresh: true);
-    } else if (firstTab == 'My Services') {
-      final queryParams = {
-        ApiKeys.all: false,
-        ApiKeys.type: AppConstants.service,
-        ApiKeys.providerType: ProviderType.business.title,
-      };
-      serviceController.getServices(queryParams);
-    } else if (firstTab == 'Food & Grocery') {
-      final queryParams = {
-        ApiKeys.all: false,
-        ApiKeys.type: AppConstants.food,
-        ApiKeys.providerType: ProviderType.business.title,
-      };
-      foodUploadController.getFoodService(queryParams);
-    }
     setState(() => _isLoading = false);
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final route = ModalRoute.of(context);
-    if (route is PageRoute) {
-      RouteHelper.routeObserver.subscribe(this, route);
-    }
-  }
+  // void _initializeData() {
+  //   // final business =  _businessType.toLowerCase();
+  //   final business = businessTypeGlobal.toLowerCase();
+  //   log('business -- $business');
+  //   log('business 1111 -- ${(isShowProduct.contains(business))}');
+  //   log('business 2222 -- ${(isShowService.contains(business))}');
+  //   // log('business 3333 -- ${(isShowFood.contains(business))}');
+  //
+  //   _businessType = business;
+  //   _tabs = [];
+  //
+  //   if (isShowProduct.contains(business))
+  //     _tabs.add(Tab(text: AppStrings.myProducts.tr));
+  //   if (isShowService.contains(business))
+  //     _tabs.add(Tab(text: AppStrings.myServices.tr));
+  //   if (isShowFood.contains(business))
+  //     _tabs.add(Tab(text: AppStrings.foodAndGrocery.tr));
+  //   _tabs.add(Tab(text: AppStrings.statistics.tr));
+  //
+  //   _tabController = TabController(length: _tabs.length, vsync: this);
+  //   if (_tabs.isEmpty) {
+  //     log("No tabs available for business type: $business");
+  //     setState(() => _isLoading = false);
+  //     return;
+  //   }
+  //
+  //   final firstTab = _tabs.first.text;
+  //   if (firstTab == AppStrings.myProducts.tr) {
+  //     inventoryController.callApi(forceRefresh: true);
+  //   } else if (firstTab == AppStrings.myServices.tr) {
+  //     final queryParams = {
+  //       ApiKeys.all: false,
+  //       ApiKeys.type: AppConstants.service,
+  //       ApiKeys.providerType: ProviderType.business.title,
+  //     };
+  //     serviceController.getServices(queryParams);
+  //   }
+  //   else if (firstTab == AppStrings.foodAndGrocery.tr) {
+  //     final queryParams = {
+  //       ApiKeys.all: false,
+  //       ApiKeys.type: AppConstants.food,
+  //       ApiKeys.providerType: ProviderType.business.title,
+  //     };
+  //     foodUploadController.getFoodService(queryParams);
+  //   }
+  //   setState(() => _isLoading = false);
+  // }
 
-  @override
-  void didPopNext() {
-    // Called when coming back to this screen
-    print("Returned to InventoryScreen from: ${Get.previousRoute}");
-  }
+  // @override
+  // void didChangeDependencies() {
+  //   super.didChangeDependencies();
+  //   final route = ModalRoute.of(context);
+  //   if (route is PageRoute) {
+  //     RouteHelper.routeObserver.subscribe(this, route);
+  //   }
+  // }
+  //
+  // @override
+  // void didPopNext() {
+  //   // Called when coming back to this screen
+  //   print("Returned to InventoryScreen from: ${Get.previousRoute}");
+  // }
 
   @override
   void dispose() {
     // deleteIfRegistered<ProductController>();
     // deleteIfRegistered<InventoryController>();
-    RouteHelper.routeObserver.unsubscribe(this);
+    // RouteHelper.routeObserver.unsubscribe(this);
     _tabController?.dispose();
     _searchFocusNode.dispose();
     super.dispose();
@@ -169,48 +214,43 @@ class _InventoryScreenState extends State<InventoryScreen>
       //   ),
       // ),
       backgroundColor: AppColors.whiteF3,
-      floatingActionButton: Builder(builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-              bottom: widget.fromBottomNavBar
-                  ? kBottomNavigationBarHeight + SizeConfig.size20
-                  : 0.0),
-          child: FloatingActionButton(
-            onPressed: () => showPopUpMenu(context, inventoryController),
-            backgroundColor: AppColors.primaryColor,
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: AnimatedRotation(
-              turns: inventoryController.isMenuOpen.value ? 0.25 : 0,
-              duration: const Duration(milliseconds: 500),
-              curve: Curves.easeInOut,
-              child: Obx(() => Icon(
-                    inventoryController.isMenuOpen.value
-                        ? Icons.close
-                        : Icons.add,
-                    key: ValueKey(inventoryController.isMenuOpen.value),
-                    // important for AnimatedSwitcher
-                    size: SizeConfig.size36,
-                  )),
-            ),
+      floatingActionButton: Obx(() => controller.hasProfile.value
+          ? Padding(
+        padding: EdgeInsets.only(
+            bottom: widget.fromBottomNavBar
+                ? kBottomNavigationBarHeight + SizeConfig.size20
+                : 0.0),
+        child: FloatingActionButton(
+          onPressed: () async {
+            await Get.toNamed(RouteHelper.getAddProductScreenRoute(), arguments: {
+              ApiKeys.id: businessId,
+              ApiKeys.providerType: ProviderType.business
+            });
+            inventoryController.callApi(forceRefresh: true);
+          },
+          backgroundColor: AppColors.primaryColor,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
           ),
-        );
-      }),
+          child: Icon(
+            Icons.add,
+            size: SizeConfig.size36,
+          ),
+        ),
+      )
+          : const SizedBox.shrink()),
       body: SafeArea(
-        child: NestedScrollView(
+        child: Obx(()=> controller.hasProfile.value
+            ? NestedScrollView(
           headerSliverBuilder: (context, innerBoxIsScrolled) {
             return [
               SliverAppBar(
                 backgroundColor: Colors.white,
                 elevation: 0,
                 floating: true,
-                // appear on scroll up
                 snap: true,
-                // instantly snap down
                 pinned: false,
-                // don't keep the header fixed
                 automaticallyImplyLeading: false,
                 flexibleSpace: Padding(
                   padding: EdgeInsets.symmetric(vertical: SizeConfig.size15),
@@ -228,15 +268,7 @@ class _InventoryScreenState extends State<InventoryScreen>
                     indicatorColor: AppColors.primaryColor,
                     indicatorWeight: 2,
                     labelStyle: TextStyle(fontWeight: FontWeight.w600),
-                    tabs: [
-                      if (isShowProduct.contains(_businessType))
-                        Tab(text: AppStrings.myProducts.tr),
-                      if (isShowService.contains(_businessType))
-                        Tab(text: AppStrings.myServices.tr),
-                      if (isShowFood.contains(_businessType))
-                        Tab(text: AppStrings.foodAndGrocery.tr),
-                      Tab(text: AppStrings.businessCards.tr),
-                    ],
+                    tabs: _tabs,
                   ),
                 ),
               ),
@@ -244,98 +276,112 @@ class _InventoryScreenState extends State<InventoryScreen>
           },
           body: TabBarView(
             controller: _tabController,
+            // children: [
+            //   if ((isShowProduct.contains(_businessType))) ProductScreen(),
+            //   if ((isShowService.contains(_businessType)))
+            //     ViewServiceList(
+            //       providerType: ProviderType.business,
+            //     ),
+            //   // if ((isShowFood.contains(_businessType)))
+            //   //   GroceryCategoryMenuScreen(),
+            //
+            //   // FoodCategoryPage(),
+            //   // FoodAndGroceryScreen(
+            //   //   providerType: ProductServiceProviderType.business,
+            //   // ),
+            //   CustomText(
+            //     'Coming soon...',
+            //   )
+            // ],
             children: [
-              if ((isShowProduct.contains(_businessType))) ProductScreen(),
-              if ((isShowService.contains(_businessType)))
-                ViewServiceList(
-                  providerType: ProviderType.business,
+              ProductBusinessProfileFullScreen(),
+              ProductScreen(),
+              Center(
+                child: CustomText(
+                  'Coming soon...',
                 ),
-              if ((isShowFood.contains(_businessType)))
-                GroceryCategoryMenuScreen(),
-              // FoodCategoryPage(),
-              // FoodAndGroceryScreen(
-              //   providerType: ProductServiceProviderType.business,
-              // ),
-              InventoryBusinessCardsScreen(
-                showBackAppBar: false,
               )
             ],
           ),
-        ),
+        )
+            : ProductProfileNotCreateScreen(
+          controller: controller,
+        )),
       ),
     );
   }
 
-  void showPopUpMenu(
-      BuildContext context, InventoryController controller) async {
-    final RenderBox button = context.findRenderObject() as RenderBox;
-    final RenderBox overlay =
-        Overlay.of(context).context.findRenderObject() as RenderBox;
-
-    // FAB position & size
-    final Offset fabPosition =
-        button.localToGlobal(Offset.zero, ancestor: overlay);
-    final Size fabSize = button.size;
-
-    // Menu height (approximate based on items * itemHeight)
-    const double itemHeight = 36.0;
-    const int itemCount = 3;
-    const double menuHeight = itemHeight * (itemCount - 1);
-
-    final RelativeRect position = RelativeRect.fromLTRB(
-      fabPosition.dx, // align with FAB left
-      fabPosition.dy - menuHeight + 10, // just above FAB
-      overlay.size.width - fabPosition.dx - fabSize.width,
-      overlay.size.height - fabPosition.dy,
-    );
-
-    controller.isMenuOpen.value = true;
-    final result = await showMenu(
-      context: context,
-      position: position,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      items: popupMenuInventoryItems(_businessType),
-    );
-    controller.isMenuOpen.value = false;
-
-    if (result != null) {
-      log('result--> $result');
-      if (result == InventoryMenuItem.addProduct) {
-        await Get.toNamed(RouteHelper.getAddProductScreenRoute(), arguments: {
-          ApiKeys.id: businessId,
-          ApiKeys.providerType: ProviderType.business
-        });
-        controller.callApi(forceRefresh: true);
-
-        // bool isApiCall = await Get.toNamed(
-        //   RouteHelper.getAddProductScreenRoute(),
-        //   arguments: {
-        //     ApiKeys.id: businessId,
-        //     ApiKeys.providerType: ProductServiceProviderType.business,
-        //   },
-        // );
-        //
-        // log('need api calling--> $isApiCall');
-        //
-        // if (isApiCall) {
-        //   controller.callApi(forceRefresh: true);
-        // }
-      } else if (result == InventoryMenuItem.addService) {
-        Get.toNamed(RouteHelper.getAddServicesScreenRoute(), arguments: {
-          ApiKeys.providerType: ProviderType.business,
-        });
-      } else if (result == InventoryMenuItem.addFood) {
-        Get.toNamed(
-          RouteHelper.getFoodUploadScreenRoute(),
-          arguments: {
-            ApiKeys.providerType: ProviderType.business,
-          },
-        );
-      }
-    }
-  }
+  // void showPopUpMenu(
+  //     BuildContext context, InventoryController controller) async {
+  //   final RenderBox button = context.findRenderObject() as RenderBox;
+  //   final RenderBox overlay =
+  //       Overlay.of(context).context.findRenderObject() as RenderBox;
+  //
+  //   // FAB position & size
+  //   final Offset fabPosition =
+  //       button.localToGlobal(Offset.zero, ancestor: overlay);
+  //   final Size fabSize = button.size;
+  //
+  //   // Menu height (approximate based on items * itemHeight)
+  //   const double itemHeight = 36.0;
+  //   const int itemCount = 3;
+  //   const double menuHeight = itemHeight * (itemCount - 1);
+  //
+  //   final RelativeRect position = RelativeRect.fromLTRB(
+  //     fabPosition.dx, // align with FAB left
+  //     fabPosition.dy - menuHeight + 10, // just above FAB
+  //     overlay.size.width - fabPosition.dx - fabSize.width,
+  //     overlay.size.height - fabPosition.dy,
+  //   );
+  //
+  //   controller.isMenuOpen.value = true;
+  //   final result = await showMenu(
+  //     context: context,
+  //     position: position,
+  //     shape: RoundedRectangleBorder(
+  //       borderRadius: BorderRadius.circular(12),
+  //     ),
+  //     items: popupMenuInventoryItems(_businessType),
+  //   );
+  //   controller.isMenuOpen.value = false;
+  //
+  //   if (result != null) {
+  //     log('result--> $result');
+  //     if (result == InventoryMenuItem.addProduct) {
+  //       await Get.toNamed(RouteHelper.getAddProductScreenRoute(), arguments: {
+  //         ApiKeys.id: businessId,
+  //         ApiKeys.providerType: ProviderType.business
+  //       });
+  //       controller.callApi(forceRefresh: true);
+  //
+  //       // bool isApiCall = await Get.toNamed(
+  //       //   RouteHelper.getAddProductScreenRoute(),
+  //       //   arguments: {
+  //       //     ApiKeys.id: businessId,
+  //       //     ApiKeys.providerType: ProductServiceProviderType.business,
+  //       //   },
+  //       // );
+  //       //
+  //       // log('need api calling--> $isApiCall');
+  //       //
+  //       // if (isApiCall) {
+  //       //   controller.callApi(forceRefresh: true);
+  //       // }
+  //     } else if (result == InventoryMenuItem.addService) {
+  //       Get.toNamed(RouteHelper.getAddServicesScreenRoute(), arguments: {
+  //         ApiKeys.providerType: ProviderType.business,
+  //       });
+  //     } else if (result == InventoryMenuItem.addFood) {
+  //       Get.toNamed(
+  //         RouteHelper.getFoodUploadScreenRoute(),
+  //         arguments: {
+  //           ApiKeys.providerType: ProviderType.business,
+  //         },
+  //       );
+  //     }
+  //
+  //   }
+  // }
 
   Widget? _buildHeader(BuildContext context) {
     return Row(

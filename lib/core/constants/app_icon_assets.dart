@@ -96,7 +96,6 @@ class AppIconAssets {
       '${iconPath}location_outlined_icon.svg';
   static const String savedIcon = '${iconPath}saved_icon.svg';
   static const String audioOutlinedIcon = '${iconPath}audio_outlined_icon.svg';
-  static const String emptyIcon = '${iconPath}empty_icon.svg';
   static const String verifiedIcon = '${iconPath}verified_icon.svg';
   static const String personFollowIcon = '${iconPath}person_follow_icon.svg';
   static const String connectIcon = '${iconPath}connect_icon.svg';

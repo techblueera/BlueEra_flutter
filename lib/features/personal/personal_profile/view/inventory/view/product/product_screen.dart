@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_controller.dart';
@@ -19,16 +20,13 @@ class ProductScreen extends StatefulWidget {
 }
 
 class _ProductScreenState extends State<ProductScreen> {
-  late final InventoryController inventoryController;
+  final inventoryController = getOrPut(() => InventoryController());
 
   @override
   void initState() {
-    if(Get.isRegistered<InventoryController>()){
-      inventoryController = Get.find<InventoryController>();
-    } else {
-      inventoryController = Get.put(InventoryController());
-    }
     inventoryController.fetchProducts();
+    inventoryController.callApi(forceRefresh: true);
+    // inventoryController.fetchProducts();
     super.initState();
   }
 

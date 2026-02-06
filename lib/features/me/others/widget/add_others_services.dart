@@ -1,6 +1,8 @@
 import 'package:BlueEra/core/api/model/service_option_model.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/common/service/view/service_upload_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_contact_us/other_contact_us.dart';
 import 'package:BlueEra/features/me/others/view/other_service_gallery/other_service_photos_screen.dart';
 import 'package:BlueEra/features/me/others/view/timing_screen.dart';
@@ -8,6 +10,7 @@ import 'package:BlueEra/features/me/others/view/about_us/about_us.dart';
 import 'package:BlueEra/features/me/others/view/announcements/announcements_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_career_jobs/other_job_listing_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_privacy_condition/other_privacy_condition_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/add_product_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/inventory_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -32,12 +35,14 @@ class _AddOthersServicesState extends State<AddOthersServices> {
     ServiceMenuItem(
       title: "Products",
       icon: AppIconAssets.other_products,
-      page: () => InventoryScreen(fromBottomNavBar: false,isShowScreen: BusinessType.Product.name,), // Update to your actual page
+      page: () => AddProductScreen(id: businessId, providerType: ProviderType.business),
+      // page: () => InventoryScreen(fromBottomNavBar: false,isShowScreen: BusinessType.Product.name,), // Update to your actual page
     ),
     ServiceMenuItem(
       title: "Services",
       icon: AppIconAssets.other_services,
-      page: () => InventoryScreen(fromBottomNavBar: false,isShowScreen: BusinessType.Service.name,), // Update to your actual page
+      page: () => ServiceUploadScreen(providerType: ProviderType.business),
+      // page: () => InventoryScreen(fromBottomNavBar: false,isShowScreen: BusinessType.Service.name,), // Update to your actual page
     ),
     ServiceMenuItem(
       title: "Announcements",

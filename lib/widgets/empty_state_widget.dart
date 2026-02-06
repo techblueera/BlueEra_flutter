@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -9,7 +10,7 @@ class EmptyStateWidget extends StatelessWidget {
   final String message;
   final String? actionText;
   final VoidCallback? actionCallback;
-  final String imagePath;
+  final String? imagePath;
   final double? imageSize;
   final Color? textColor;
   final double? fontSize;
@@ -19,7 +20,7 @@ class EmptyStateWidget extends StatelessWidget {
     required this.message,
     this.actionText,
     this.actionCallback,
-    this.imagePath = AppIconAssets.emptyIcon,
+    this.imagePath,
     this.imageSize,
     this.textColor,
     this.fontSize,
@@ -32,7 +33,7 @@ class EmptyStateWidget extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           LocalAssets(
-            imagePath: imagePath,
+            imagePath: imagePath ?? AppImageAssets.noMeContent,
             height: imageSize ?? SizeConfig.size80,
             width: imageSize ?? SizeConfig.size80,
           ),

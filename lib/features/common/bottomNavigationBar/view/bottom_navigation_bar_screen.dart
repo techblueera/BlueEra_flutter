@@ -24,7 +24,6 @@ import 'package:BlueEra/features/common/reel/models/channel_model.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/me/food/view/food_main_screen.dart';
 import 'package:BlueEra/features/me/hotel/view/hotel_main.dart';
-import 'package:BlueEra/features/me/job_seekar/view/update_job_seekar_screen.dart';
 import 'package:BlueEra/features/me/others/others_main.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/professionals_main.dart';
 import 'package:BlueEra/features/me/school/view/school_main.dart';
@@ -399,7 +398,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         BusinessType.Service.name.toUpperCase()) {
       return const OthersMain();
     } else {
-      // 3. If it is NOT Food (e.g., Product, Service, etc.)
+      // Product , Manufacturing Unit
       return const InventoryScreen(fromBottomNavBar: true);
     }
   }

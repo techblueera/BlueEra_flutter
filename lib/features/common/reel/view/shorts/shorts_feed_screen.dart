@@ -4,6 +4,7 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/feed/controller/shorts_controller.dart';
 import 'package:BlueEra/features/common/reel/view/shorts/nearby_shorts_view_all.dart';
@@ -148,7 +149,7 @@ class _ShortsFeedScreenState extends State<ShortsFeedScreen>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 LocalAssets(
-                  imagePath: AppIconAssets.emptyIcon,
+                  imagePath: AppImageAssets.noMeContent,
                   height: SizeConfig.size80,
                   width: SizeConfig.size80,
                 ),

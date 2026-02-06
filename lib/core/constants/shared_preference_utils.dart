@@ -52,6 +52,7 @@ String hotelIDGlobal = '';
 String deviceOsVersionGlobal = '';
 String userProfileTypeGlobal = '';
 // String schoolIDGlobal = '6954c5337ca7a9670dc99129';
+String productBusinessProfileIDGlobal = '';
 
 class SharedPreferenceUtils {
   static const FlutterSecureStorage _secureStorage = FlutterSecureStorage(
@@ -102,6 +103,7 @@ class SharedPreferenceUtils {
   static const schoolIDKey = 'schoolIDKey';
   static const hotelIDKey = 'hotelIDKey';
   static const otherServiceIDKey = 'otherServiceIDKey';
+  static const productBusinessProfileIDIDKey = 'productBusinessProfileIDIDKey';
 
   static Future<void> userLoggedInIndividualGuest({
     required String loginUserId_,
@@ -257,6 +259,7 @@ class SharedPreferenceUtils {
       schoolIDGlobal = '';
       hotelIDGlobal = '';
       otherServiceIDGlobal = '';
+      productBusinessProfileIDGlobal = '';
       Get.find<AuthController>().imgPath.value = "";
       await SharedPreferenceUtils.setBaseUrlSecureValue(workManagerBaseUrl);
       AppNotificationHandler.getFcmToken();
@@ -500,6 +503,17 @@ setOtherServiceID(String serviceIDValue) {
 getOtherServiceID() async {
   otherServiceIDGlobal = await SharedPreferenceUtils.getSecureValue(
       SharedPreferenceUtils.otherServiceIDKey);
+}
+
+///SET PRODUCT PROFILE ID....
+setProductBusinessProfileID(String productBusinessIDValue) {
+  SharedPreferenceUtils.setSecureValue(
+      SharedPreferenceUtils.productBusinessProfileIDIDKey, productBusinessIDValue.toString());
+}
+
+getProductBusinessProfileID() async {
+  productBusinessProfileIDGlobal = await SharedPreferenceUtils.getSecureValue(
+      SharedPreferenceUtils.productBusinessProfileIDIDKey);
 }
 
 

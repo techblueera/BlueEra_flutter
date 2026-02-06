@@ -65,4 +65,53 @@ class InventoryRepo extends BaseService {
     return response;
   }
 
+  // GET: Fetch full business profile
+  Future<dynamic> getBusinessProfileFullRepo(String id) async {
+    return await ApiBaseHelper().getHTTP(
+      "other-service/business-profile/$id/full",
+      showProgress: true,
+      onSuccess: (res) {},
+      onError: (error) {},
+    );
+  }
+
+  ///UPDATE PRODUCT BUSINESS....
+  Future<ResponseModel> updateProductBusinessProfileRepo(
+      {required Map<String, dynamic> reqBODY,}) async {
+    final response = await ApiBaseHelper().putHTTP(
+        otherBusinessProfile,
+        params: reqBODY,
+        onError: (error) {},
+        onSuccess: (data) {});
+    return response;
+  }
+
+  /// GENERATED AI PRODUCT DETAILS...
+  Future<ResponseModel> aiGenerateProductServiceFetchDetailsRepo(
+      {required Map<String, dynamic> reqBody}) async {
+    final response = await ApiBaseHelper().postHTTP(generateOtherService,
+        params: reqBody, onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+
+  ///CREATE BUSINESS.......
+  Future<ResponseModel> createProductBusinessProfileRepo(
+      {required dynamic reqBODY,}) async {
+    final response = await ApiBaseHelper().postHTTP(
+        otherBusinessProfile,
+        params: reqBODY,
+        onError: (error) {},
+        onSuccess: (data) {});
+    return response;
+  }
+
+  ///GET BUSINESS PROFILE REPO....
+  Future<ResponseModel> getBusinessProfileRepo() async {
+    final response = await ApiBaseHelper().getHTTP(
+        otherBusinessProfile,
+        onError: (error) {},
+        onSuccess: (data) {});
+    return response;
+  }
+
 }

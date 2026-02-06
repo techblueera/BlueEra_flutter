@@ -1,5 +1,4 @@
 import 'dart:math';
-
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -7,14 +6,13 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
-import 'package:BlueEra/features/me/others/controller/business_profile_full_controller.dart';
 import 'package:BlueEra/features/me/others/model/business_profile_full_model.dart';
 import 'package:BlueEra/features/me/others/view/about_us/about_organization.dart';
 import 'package:BlueEra/features/me/others/view/other_blog/other_blogs_screen.dart';
-import 'package:BlueEra/features/me/others/view/other_header_view.dart';
 import 'package:BlueEra/features/me/others/view/staff/staff_screen.dart';
 import 'package:BlueEra/features/me/others/widget/other_product_widget.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/inventory_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_business_profile_full_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/product_header_view.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
@@ -25,18 +23,16 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../../core/constants/app_enum.dart';
-
-class BusinessProfileFullScreen extends StatefulWidget {
-  BusinessProfileFullScreen({super.key});
+class ProductBusinessProfileFullScreen extends StatefulWidget {
+  ProductBusinessProfileFullScreen({super.key});
 
   @override
-  State<BusinessProfileFullScreen> createState() =>
-      _BusinessProfileFullScreenState();
+  State<ProductBusinessProfileFullScreen> createState() =>
+      _ProductBusinessProfileFullScreenState();
 }
 
-class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
-  final controller = getOrPut(() => BusinessProfileFullController());
+class _ProductBusinessProfileFullScreenState extends State<ProductBusinessProfileFullScreen> {
+  final controller = getOrPut(() => ProductBusinessProfileFullController());
 
   @override
   void initState() {
@@ -66,8 +62,8 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
               flexibleSpace: FlexibleSpaceBar(
                 background: Container(
                   color: AppColors.appBackgroundColor,
-                  child: OtherHeaderView(
-                    schoolAboutUsController: controller,
+                  child: ProductHeaderView(
+                    controller: controller,
                   ),
                 ),
                 collapseMode: CollapseMode.parallax,
@@ -126,8 +122,8 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                           children: [
                             _buildSectionTitle("Our Organisation",
                                 onSeeAll: () {
-                              Get.to(AboutOrganization());
-                            }),
+                                  Get.to(AboutOrganization());
+                                }),
                             const SizedBox(height: 10),
                             _buildServicesList(data.aboutOrganisation!),
                           ],
@@ -197,12 +193,12 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                       child: BusinessLocationWidget(
                           locationText: data.profile?.location?.address,
                           latitude: double.parse(data
-                                  .profile?.location?.coordinates?[0]
-                                  .toString() ??
+                              .profile?.location?.coordinates?[0]
+                              .toString() ??
                               "0.0"),
                           longitude: double.parse(data
-                                  .profile?.location?.coordinates?[1]
-                                  .toString() ??
+                              .profile?.location?.coordinates?[1]
+                              .toString() ??
                               "0.0"),
                           businessName: data.profile?.profileName ?? "",
                           padding: 10,
@@ -218,10 +214,6 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
       }),
     );
   }
-
-
-
-
 
   Widget _buildSectionTitle(String title, {VoidCallback? onSeeAll}) {
     return Row(
@@ -468,7 +460,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
       mainAxisSpacing: 8,
       crossAxisSpacing: 8,
       children:
-          List.generate(allImages.length > 10 ? 10 : allImages.length, (index) {
+      List.generate(allImages.length > 10 ? 10 : allImages.length, (index) {
         // Logic to replicate the pattern in your image:
         // Large Vertical (index 0), Two small (index 1,2), Large Horizontal (index 3)...
         int crossAxisCellCount = 2;

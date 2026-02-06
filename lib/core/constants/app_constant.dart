@@ -901,10 +901,10 @@ List<PopupMenuEntry<String>> popupMenuChatCardItems() {
 
 // List<String> isShowOther = ["product", "service", "both"];
 // List<String> isShowProduct = ["product", "service", "both"];
-List<String> isShowProduct = ["product", ];
-List<String> isShowService = ["service", ];
 // List<String> isShowService = ["product", "service", "both", "food"];
-List<String> isShowFood = ["food"];
+List<String> isShowProduct = [AppConstants.product];
+List<String> isShowService = [AppConstants.service];
+List<String> isShowFood = [AppConstants.food];
 
 String? businessType() {
   final controller = Get.find<ViewBusinessDetailsController>();
@@ -914,9 +914,10 @@ String? businessType() {
 List<PopupMenuEntry<InventoryMenuItem>> popupMenuInventoryItems(
     String businessType) {
   final items = <InventoryMenuItem>[
-    if (isShowProduct.contains(businessType)) InventoryMenuItem.addProduct,
-    if (isShowService.contains(businessType)) InventoryMenuItem.addService,
-    if (isShowFood.contains(businessType)) InventoryMenuItem.addFood,
+    InventoryMenuItem.addProduct,
+    // if (isShowProduct.contains(businessType)) InventoryMenuItem.addProduct,
+    // if (isShowService.contains(businessType)) InventoryMenuItem.addService,
+    // if (isShowFood.contains(businessType)) InventoryMenuItem.addFood,
   ];
 
   final List<PopupMenuEntry<InventoryMenuItem>> entries = [];
