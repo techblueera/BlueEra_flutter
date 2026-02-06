@@ -120,7 +120,6 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     final stepStatus = deliveryPartnerController.stepStatus;
 
     // Check if all completed
-    final allCompleted = stepStatus.values.every((status) => status == true);
     // Find first incomplete step
     final firstIncompleteEntry = stepStatus.entries
         .where((entry) => entry.value == false)

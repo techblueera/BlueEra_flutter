@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/size_config.dart';
 import '../../../../widgets/common_back_app_bar.dart';
 import '../../../../widgets/custom_text_cm.dart';
 

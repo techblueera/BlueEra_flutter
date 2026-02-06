@@ -25,7 +25,6 @@ import '../../../personal/personal_profile/view/help_and_support_screen/help_and
 import '../../../personal/personal_profile/view/payment/view/payment_setting_screen.dart';
 import '../../../personal/personal_profile/view/profile_settings_new_screen.dart';
 import '../../../subscription/view/subscription_screen.dart';
-import '../../../subscription/view/subscrption_new.dart';
 import '../../auth/controller/auth_controller.dart';
 import '../../referral/view/referral_page.dart';
 

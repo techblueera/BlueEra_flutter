@@ -14,7 +14,6 @@ import 'package:BlueEra/features/me/others/view/other_blog/other_blogs_screen.da
 import 'package:BlueEra/features/me/others/view/other_header_view.dart';
 import 'package:BlueEra/features/me/others/view/staff/staff_screen.dart';
 import 'package:BlueEra/features/me/others/widget/other_product_widget.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/inventory_screen.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
@@ -25,7 +24,6 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../../core/constants/app_enum.dart';
 
 class BusinessProfileFullScreen extends StatefulWidget {
   BusinessProfileFullScreen({super.key});

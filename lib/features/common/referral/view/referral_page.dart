@@ -2,7 +2,6 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:get/get_core/src/get_main.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/getx_utils.dart';

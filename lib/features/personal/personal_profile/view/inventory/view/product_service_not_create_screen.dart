@@ -1,8 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/me/others/controller/business_profile_full_controller.dart';
-import 'package:BlueEra/features/me/others/view/ai_other_profile_dialog.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_business_profile_full_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/widget/ai_product_business_profile_dialog.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
