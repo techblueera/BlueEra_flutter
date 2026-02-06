@@ -52,7 +52,7 @@ class _AiSuggestionFieldState extends State<AiSuggestionField> {
 
   @override
   Widget build(BuildContext context) {
-    final bool isEmpty = widget.textController.text.trim().isEmpty;
+    // final bool isEmpty = widget.textController.text.trim().isEmpty;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

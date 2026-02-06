@@ -1,18 +1,15 @@
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 
-import '../../../../../../core/api/apiService/api_keys.dart';
 import '../../../../../../core/constants/app_enum.dart';
 import '../../../../../../core/constants/app_strings.dart';
 import '../../../../../../core/constants/size_config.dart';
-import '../../../../../../core/routes/route_helper.dart';
 import '../../../../../../widgets/custom_text_cm.dart';
 
 import 'package:get/get.dart';
 
 import '../../../../../common/auth/model/adminvideo_model.dart';
 import '../../../../../common/bottomNavigationBar/controller/bottom_bar_controller.dart';
-import '../../../../../common/feed/models/video_feed_model.dart';
 import 'list_of_apptotorial_video_view.dart';
 
 class AppTutorialScreen extends StatefulWidget {

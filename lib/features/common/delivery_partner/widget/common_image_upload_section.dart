@@ -180,7 +180,6 @@ class CommonProfileImageUpload extends StatelessWidget {
   Widget build(BuildContext context) {
     logs("imgUrl?.isNotEmpty === ${imgUrl?.isNotEmpty}");
     return Obx(() {
-      final file = imageFile.value;
 
       return InkWell(
         onTap: () {

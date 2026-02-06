@@ -444,33 +444,33 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
   }
 
   /// small info column
-  Widget _buildInfo(String label, String value) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CustomText(
-          label,
-          fontSize: SizeConfig.size12,
-          fontWeight: FontWeight.w600,
-          color: AppColors.secondaryTextColor,
-        ),
-        const SizedBox(height: 2),
-        CustomText(
-          value,
-          fontSize: SizeConfig.size13,
-          fontWeight: FontWeight.w700,
-          color: AppColors.black,
-        ),
-      ],
-    );
-  }
-
-  /// vertical divider
-  Widget _divider() => Container(
-        height: 30,
-        width: 1,
-        color: const Color(0xFFE5E5E5),
-      );
+  // Widget _buildInfo(String label, String value) {
+  //   return Column(
+  //     crossAxisAlignment: CrossAxisAlignment.start,
+  //     children: [
+  //       CustomText(
+  //         label,
+  //         fontSize: SizeConfig.size12,
+  //         fontWeight: FontWeight.w600,
+  //         color: AppColors.secondaryTextColor,
+  //       ),
+  //       const SizedBox(height: 2),
+  //       CustomText(
+  //         value,
+  //         fontSize: SizeConfig.size13,
+  //         fontWeight: FontWeight.w700,
+  //         color: AppColors.black,
+  //       ),
+  //     ],
+  //   );
+  // }
+  //
+  // /// vertical divider
+  // Widget _divider() => Container(
+  //       height: 30,
+  //       width: 1,
+  //       color: const Color(0xFFE5E5E5),
+  //     );
 
   /// tag (like Shop / Close)
   Widget _buildTag(String text, {Color? bgColor, Color? textColor}) {

@@ -183,7 +183,7 @@ Widget ChatListTile({
   final senderProfileImage = chat?.lastMessage == "Order Message" ? chat
       ?.groupProfileImage : sender?.profileImage;
   final senderDesignation = sender?.designation;
-  final senderBusinessId = sender?.businessId;
+  // final senderBusinessId = sender?.businessId;
 
   final groupName = chat?.groupName;
   final conversationId = chat?.conversationId ?? '';

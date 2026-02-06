@@ -1,12 +1,10 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/user_testimonial_model.dart';
-import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/repo/feed_repo.dart';
-import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/repo/user_repo.dart';
 import 'package:get/get.dart';
 
@@ -70,48 +68,48 @@ class OverviewController extends GetxController {
     }
   }
 
-  Future<void> _getShorts( String userId) async {
-    shortsList.clear();
-    final params = {
-      ApiKeys.limit: 1,
-      ApiKeys.page: 1,
-      ApiKeys.typeFilter: 'short',
-      ApiKeys.sortBy: Shorts.latest.queryValue,
-      ApiKeys.status: VideoStatus.published.queryValue,
-      ApiKeys.postVia: "user",
-    };
+  // Future<void> _getShorts( String userId) async {
+  //   shortsList.clear();
+  //   final params = {
+  //     ApiKeys.limit: 1,
+  //     ApiKeys.page: 1,
+  //     ApiKeys.typeFilter: 'short',
+  //     ApiKeys.sortBy: Shorts.latest.queryValue,
+  //     ApiKeys.status: VideoStatus.published.queryValue,
+  //     ApiKeys.postVia: "user",
+  //   };
+  //
+  //   ResponseModel responseModel = await ChannelRepo().getOwnChannelVideos(authorId: userId, queryParams: params);
+  //
+  //   // ResponseModel responseModel = await ShortsRepo().getShortsByType("latest", channelId, userId);
+  //   if (responseModel.isSuccess) {
+  //     final videoResponse = VideoResponse.fromJson(responseModel.response?.data);
+  //     final List<ShortFeedItem> newShorts = videoResponse.data?.videos ?? [];
+  //
+  //     shortsList.addAll(newShorts);
+  //   }
+  // }
 
-    ResponseModel responseModel = await ChannelRepo().getOwnChannelVideos(authorId: userId, queryParams: params);
-
-    // ResponseModel responseModel = await ShortsRepo().getShortsByType("latest", channelId, userId);
-    if (responseModel.isSuccess) {
-      final videoResponse = VideoResponse.fromJson(responseModel.response?.data);
-      final List<ShortFeedItem> newShorts = videoResponse.data?.videos ?? [];
-
-      shortsList.addAll(newShorts);
-    }
-  }
-
-  Future<void> _getVideos(String videoType, String channelId) async {
-    videosList.clear();
-    final params = {
-      ApiKeys.limit: 1,
-      ApiKeys.page: 1,
-      ApiKeys.typeFilter: 'long',
-      ApiKeys.sortBy: Shorts.latest.queryValue,
-      ApiKeys.status: VideoStatus.published.queryValue,
-      ApiKeys.postVia: "user",
-    };
-
-    ResponseModel responseModel = await ChannelRepo()
-        .getOwnChannelVideos(queryParams: params,  authorId:channelId);
-    if (responseModel.isSuccess) {
-      final videoResponse =
-          VideoResponse.fromJson(responseModel.response?.data);
-
-      videosList.assignAll(videoResponse.data?.videos ?? []);
-    }
-  }
+  // Future<void> _getVideos(String videoType, String channelId) async {
+  //   videosList.clear();
+  //   final params = {
+  //     ApiKeys.limit: 1,
+  //     ApiKeys.page: 1,
+  //     ApiKeys.typeFilter: 'long',
+  //     ApiKeys.sortBy: Shorts.latest.queryValue,
+  //     ApiKeys.status: VideoStatus.published.queryValue,
+  //     ApiKeys.postVia: "user",
+  //   };
+  //
+  //   ResponseModel responseModel = await ChannelRepo()
+  //       .getOwnChannelVideos(queryParams: params,  authorId:channelId);
+  //   if (responseModel.isSuccess) {
+  //     final videoResponse =
+  //         VideoResponse.fromJson(responseModel.response?.data);
+  //
+  //     videosList.assignAll(videoResponse.data?.videos ?? []);
+  //   }
+  // }
 
 
 }

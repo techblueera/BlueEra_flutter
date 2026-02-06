@@ -134,87 +134,87 @@ class LocationService extends GetxService {
 
 
   /// 📌 Get formatted address parts as a list
-  static List<String> _composeAddress(
-      {String? thoroughfare,
-      String? subLocality,
-      String? locality,
-      String? administrativeArea,
-      String? country,
-      String? postalCode}) {
-    final List<String> parts = [];
-
-    if (thoroughfare?.isNotEmpty ?? false) {
-      parts.add(thoroughfare!);
-    }
-    if (subLocality?.isNotEmpty ?? false) {
-      parts.add(subLocality!);
-    }
-    if (locality?.isNotEmpty ?? false) {
-      parts.add(locality!);
-    }
-    if (administrativeArea?.isNotEmpty ?? false) {
-      parts.add(administrativeArea!);
-    }
-    if (country?.isNotEmpty ?? false) {
-      parts.add(country!);
-    }
-    if (postalCode?.isNotEmpty ?? false) {
-      parts.add(postalCode!);
-    }
-
-    return parts;
-  }
+  // static List<String> _composeAddress(
+  //     {String? thoroughfare,
+  //     String? subLocality,
+  //     String? locality,
+  //     String? administrativeArea,
+  //     String? country,
+  //     String? postalCode}) {
+  //   final List<String> parts = [];
+  //
+  //   if (thoroughfare?.isNotEmpty ?? false) {
+  //     parts.add(thoroughfare!);
+  //   }
+  //   if (subLocality?.isNotEmpty ?? false) {
+  //     parts.add(subLocality!);
+  //   }
+  //   if (locality?.isNotEmpty ?? false) {
+  //     parts.add(locality!);
+  //   }
+  //   if (administrativeArea?.isNotEmpty ?? false) {
+  //     parts.add(administrativeArea!);
+  //   }
+  //   if (country?.isNotEmpty ?? false) {
+  //     parts.add(country!);
+  //   }
+  //   if (postalCode?.isNotEmpty ?? false) {
+  //     parts.add(postalCode!);
+  //   }
+  //
+  //   return parts;
+  // }
 
   /// Helper: Show a permission alert dialog with optional settings redirection
-  static Future<void> _showPermissionDialog({
-    required String title,
-    required String message,
-    bool openAppSettingsOnConfirm = false,
-    bool openLocationSettingsOnConfirm = false,
-    String confirmText = "OK",
-  }) async {
-    return Get.dialog(
-      AlertDialog(
-        backgroundColor: AppColors.white,
-        title: CustomText(
-          title,
-          color: AppColors.black28,
-          fontWeight: FontWeight.w700,
-        ),
-        content: CustomText(
-          message,
-          color: AppColors.black28,
-        ),
-        actions: [
-            TextButton(
-              onPressed: () => Get.back(),
-              child: CustomText(
-                "Cancel",
-                color: AppColors.red,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            TextButton(
-            onPressed: () async {
-              Get.back(); // close the dialog first
-              // Perform the required action after closing dialog
-              if (openAppSettingsOnConfirm) {
-                await openAppSettings();
-              } else if (openLocationSettingsOnConfirm) {
-                await Geolocator.openLocationSettings();
-              }
-            },
-            child: CustomText(
-              confirmText,
-              color: AppColors.primaryColor,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-      barrierDismissible: false,
-    );
-  }
+  // static Future<void> _showPermissionDialog({
+  //   required String title,
+  //   required String message,
+  //   bool openAppSettingsOnConfirm = false,
+  //   bool openLocationSettingsOnConfirm = false,
+  //   String confirmText = "OK",
+  // }) async {
+  //   return Get.dialog(
+  //     AlertDialog(
+  //       backgroundColor: AppColors.white,
+  //       title: CustomText(
+  //         title,
+  //         color: AppColors.black28,
+  //         fontWeight: FontWeight.w700,
+  //       ),
+  //       content: CustomText(
+  //         message,
+  //         color: AppColors.black28,
+  //       ),
+  //       actions: [
+  //           TextButton(
+  //             onPressed: () => Get.back(),
+  //             child: CustomText(
+  //               "Cancel",
+  //               color: AppColors.red,
+  //               fontWeight: FontWeight.w600,
+  //             ),
+  //           ),
+  //           TextButton(
+  //           onPressed: () async {
+  //             Get.back(); // close the dialog first
+  //             // Perform the required action after closing dialog
+  //             if (openAppSettingsOnConfirm) {
+  //               await openAppSettings();
+  //             } else if (openLocationSettingsOnConfirm) {
+  //               await Geolocator.openLocationSettings();
+  //             }
+  //           },
+  //           child: CustomText(
+  //             confirmText,
+  //             color: AppColors.primaryColor,
+  //             fontWeight: FontWeight.w600,
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //     barrierDismissible: false,
+  //   );
+  // }
 
   static Position? _lastPosition;
 

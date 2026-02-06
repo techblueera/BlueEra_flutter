@@ -69,18 +69,18 @@ class _SendLocationPageState extends State<SendLocationPage> {
   //   await _addMarker();
   // }
 
-  Future<void> _addMarker() async {
-
-    if (_currentPosition?.latitude != 0.0 && _currentPosition?.longitude != 0.0) {
-      await mapController?.addSymbol(
-        SymbolOptions(
-          geometry: LatLng(_currentPosition?.latitude??0.0, _currentPosition?.longitude??0.0),
-          iconSize: 1.2,
-        ),
-      );
-      setState(() {});
-    }
-  }
+  // Future<void> _addMarker() async {
+  //
+  //   if (_currentPosition?.latitude != 0.0 && _currentPosition?.longitude != 0.0) {
+  //     await mapController?.addSymbol(
+  //       SymbolOptions(
+  //         geometry: LatLng(_currentPosition?.latitude??0.0, _currentPosition?.longitude??0.0),
+  //         iconSize: 1.2,
+  //       ),
+  //     );
+  //     setState(() {});
+  //   }
+  // }
   Symbol? _userSymbol;
   bool _isImageAdded = false;
 

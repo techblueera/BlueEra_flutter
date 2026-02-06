@@ -9,7 +9,6 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import '../../../../core/constants/common_methods.dart' as cmd;
 
@@ -960,43 +959,43 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
       ],
     );
   }
-
-  Row _groupFeature({String? icon, String? title}) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        Container(
-          padding: EdgeInsets.all(10),
-          margin: EdgeInsets.all(10),
-          width: SizeConfig.size80,
-          decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: Colors.grey.shade200,
-              border: Border.all(color: Colors.grey.shade400)),
-          child: Column(
-            children: [
-              if (icon != null && icon.isNotEmpty)
-                SvgPicture.asset(
-                  height: title == "Add" ? SizeConfig.size25 : null,
-                  icon,
-                  color: Colors.black54,
-                )
-              else
-                Icon(
-                  Icons.image_not_supported,
-                  color: Colors.black54,
-                ),
-              // SizedBox(
-              //   height: SizeConfig.size5,
-              // ),
-              // CustomText(title ?? '')
-            ],
-          ),
-        )
-      ],
-    );
-  }
+  //
+  // Row _groupFeature({String? icon, String? title}) {
+  //   return Row(
+  //     crossAxisAlignment: CrossAxisAlignment.center,
+  //     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+  //     children: [
+  //       Container(
+  //         padding: EdgeInsets.all(10),
+  //         margin: EdgeInsets.all(10),
+  //         width: SizeConfig.size80,
+  //         decoration: BoxDecoration(
+  //             borderRadius: BorderRadius.circular(10),
+  //             color: Colors.grey.shade200,
+  //             border: Border.all(color: Colors.grey.shade400)),
+  //         child: Column(
+  //           children: [
+  //             if (icon != null && icon.isNotEmpty)
+  //               SvgPicture.asset(
+  //                 height: title == "Add" ? SizeConfig.size25 : null,
+  //                 icon,
+  //                 color: Colors.black54,
+  //               )
+  //             else
+  //               Icon(
+  //                 Icons.image_not_supported,
+  //                 color: Colors.black54,
+  //               ),
+  //             // SizedBox(
+  //             //   height: SizeConfig.size5,
+  //             // ),
+  //             // CustomText(title ?? '')
+  //           ],
+  //         ),
+  //       )
+  //     ],
+  //   );
+  // }
 }
 //   InkWell(
 //                                         onTap: (){

@@ -1,7 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/model/subscription_offer_model.dart';
-import 'package:BlueEra/core/api/model/subscription_plan_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -474,25 +473,6 @@ class _SubscriptionNewScreenState extends State<SubscriptionNewScreen> {
         ],
       ),
     );
-  }  Widget _featureText(String text, bool isSelected) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(
-        children: [
-          Icon(
-            Icons.check_circle_outline,
-            size: 16,
-            color: isSelected ? Colors.white : AppColors.primaryColor,
-          ),
-          const SizedBox(width: 6),
-          Expanded(
-            child: CustomText(
-              text,
-              fontSize: 12,
-              color: isSelected ? Colors.white : Colors.black,
-            ),
-          ),
-        ],
-      ),
-    );
-  }}
+  }
+
+}

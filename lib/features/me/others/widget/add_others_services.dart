@@ -11,7 +11,6 @@ import 'package:BlueEra/features/me/others/view/announcements/announcements_scre
 import 'package:BlueEra/features/me/others/view/other_career_jobs/other_job_listing_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_privacy_condition/other_privacy_condition_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/add_product_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/inventory/view/product/inventory_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

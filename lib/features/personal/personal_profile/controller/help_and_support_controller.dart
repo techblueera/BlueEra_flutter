@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -256,8 +255,8 @@ commonSnackBar(message:"phone number copied");
       final response = await UserRepo().getQueriesHelp();
 
       if (response.statusCode == 200) {
-        final List list =
-            response.response!.data['faqs'] ?? [];
+        // final List list =
+        //     response.response!.data['faqs'] ?? [];
 
         // final faqs = list
         //     .map((e) => FaqModel.fromJson(e))
@@ -283,8 +282,8 @@ commonSnackBar(message:"phone number copied");
       final response = await UserRepo().getQueriesByIdForHelp(Qid);
 
       if (response.statusCode == 200) {
-        final List list =
-            response.response!.data['faqs'] ?? [];
+        // final List list =
+        //     response.response!.data['faqs'] ?? [];
 
         // final faqs = list
         //     .map((e) => FaqModel.fromJson(e))

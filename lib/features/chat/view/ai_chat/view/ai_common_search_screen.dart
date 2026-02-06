@@ -29,7 +29,6 @@ import 'package:BlueEra/features/chat/view/widget/component_widgets.dart';
 import 'package:BlueEra/features/chat/view/widget/message_bubble.dart';
 import 'package:BlueEra/features/chat/view/widget/picked_media_preview.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -460,24 +459,6 @@ class _AiCommonSearchScreenState extends State<AiCommonSearchScreen> {
                 mediaFiles: [File(pickedFile.path)],
                 onSend: (val, String? commands) async {
                   Navigator.pop(context);
-                  String? imagePath = File(pickedFile.path).path;
-                  String fileName = imagePath
-                      .split('/')
-                      .last;
-                  String fileExtension = fileName
-                      .split('.')
-                      .last
-                      .toLowerCase();
-                  String messageType = ['mp4', 'mov', 'avi', 'mkv'].contains(
-                      fileExtension)
-                      ? 'video'
-                      : 'image';
-
-                  dio.MultipartFile? imageByPart = await dio.MultipartFile
-                      .fromFile(
-                    imagePath,
-                    filename: fileName,
-                  );
 
                   // Map<String, dynamic> data = {
                   //   if(isInitialFlow)

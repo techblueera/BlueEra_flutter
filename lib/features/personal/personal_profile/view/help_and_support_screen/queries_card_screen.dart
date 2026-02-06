@@ -202,21 +202,21 @@ class _QueriesCardState extends State<QueriesCard> {
     );
   }
 
-
-  Widget _buildSelectedTabContent(List<SupportCase> list) {
-    switch (selectedIndex) {
-      case 0:
-        return buildQueryList(list);
-      case 1:
-        return buildQueryList(list);
-      case 2:
-        return buildQueryList(list);
-      case 3:
-        return buildQueryList(list);
-      default:
-        return SizedBox();
-    }
-  }
+  //
+  // Widget _buildSelectedTabContent(List<SupportCase> list) {
+  //   switch (selectedIndex) {
+  //     case 0:
+  //       return buildQueryList(list);
+  //     case 1:
+  //       return buildQueryList(list);
+  //     case 2:
+  //       return buildQueryList(list);
+  //     case 3:
+  //       return buildQueryList(list);
+  //     default:
+  //       return SizedBox();
+  //   }
+  // }
   Color getStatusColor(String? status) {
     switch (status) {
       case 'open':

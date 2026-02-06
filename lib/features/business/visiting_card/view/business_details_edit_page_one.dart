@@ -853,37 +853,37 @@ class _BusinessDetailsEditPageOneState
     };
   }
 
-  Widget _buildAddressField() {
-    return Obx(() {
-      if (locationController.isFetchingAddress.value) {
-        return Padding(
-          padding: const EdgeInsets.only(top: 8.0),
-          child: const SizedBox(
-            width: 16,
-            height: 16,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-        );
-      }
-
-      if (!locationController.fetchAddressFromGeo.value) {
-        return Padding(
-          padding: const EdgeInsets.only(top: 8.0),
-          child: GestureDetector(
-            onTap: () => updateAddressFromLocation(),
-            child: CustomText(
-              'GPS location not found (Tap to fetch)',
-              fontSize: SizeConfig.small,
-              fontWeight: FontWeight.w600,
-              color: AppColors.red,
-              decoration: TextDecoration.underline,
-              decorationColor: AppColors.red,
-            ),
-          ),
-        );
-      }
-
-      return SizedBox();
-    });
-  }
+  // Widget _buildAddressField() {
+  //   return Obx(() {
+  //     if (locationController.isFetchingAddress.value) {
+  //       return Padding(
+  //         padding: const EdgeInsets.only(top: 8.0),
+  //         child: const SizedBox(
+  //           width: 16,
+  //           height: 16,
+  //           child: CircularProgressIndicator(strokeWidth: 2),
+  //         ),
+  //       );
+  //     }
+  //
+  //     if (!locationController.fetchAddressFromGeo.value) {
+  //       return Padding(
+  //         padding: const EdgeInsets.only(top: 8.0),
+  //         child: GestureDetector(
+  //           onTap: () => updateAddressFromLocation(),
+  //           child: CustomText(
+  //             'GPS location not found (Tap to fetch)',
+  //             fontSize: SizeConfig.small,
+  //             fontWeight: FontWeight.w600,
+  //             color: AppColors.red,
+  //             decoration: TextDecoration.underline,
+  //             decorationColor: AppColors.red,
+  //           ),
+  //         ),
+  //       );
+  //     }
+  //
+  //     return SizedBox();
+  //   });
+  // }
 }

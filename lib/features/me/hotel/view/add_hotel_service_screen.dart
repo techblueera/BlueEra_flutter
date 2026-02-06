@@ -18,7 +18,6 @@ import 'package:BlueEra/features/me/hotel/view/room_amenities_screen.dart';
 import 'package:BlueEra/features/me/hotel/view/room_detils_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/controller/my_documents_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/model/upload_document_response.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/my_documents/view/add_document_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/widget/common_document_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/widget/doc_verification_pending_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/widget/view_document_widget.dart';

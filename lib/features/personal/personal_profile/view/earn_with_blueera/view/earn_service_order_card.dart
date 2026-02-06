@@ -382,10 +382,10 @@ class EarnServiceOrderCard extends StatelessWidget {
 
 
 
-  Widget _time() => Text(
-    DateFormat('hh:mm a').format(DateTime.parse(order.createdAt)),
-    style: const TextStyle(fontSize: 12, color: Colors.grey),
-  );
+  // Widget _time() => Text(
+  //   DateFormat('hh:mm a').format(DateTime.parse(order.createdAt)),
+  //   style: const TextStyle(fontSize: 12, color: Colors.grey),
+  // );
 
   Widget _TimeSection() => Chip(
     label: CustomText(
@@ -411,20 +411,20 @@ class EarnServiceOrderCard extends StatelessWidget {
         fontWeight: FontWeight.w400,
       ),
   );
-
-  Widget _otpBoxes() => Row(
-    children: List.generate(
-      4,
-          (_) => Container(
-        margin: const EdgeInsets.only(right: 6),
-        height: 36,
-        width: 36,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: Colors.grey),
-        ),
-      ),
-    ),
-  );
+  //
+  // Widget _otpBoxes() => Row(
+  //   children: List.generate(
+  //     4,
+  //         (_) => Container(
+  //       margin: const EdgeInsets.only(right: 6),
+  //       height: 36,
+  //       width: 36,
+  //       decoration: BoxDecoration(
+  //         borderRadius: BorderRadius.circular(6),
+  //         border: Border.all(color: Colors.grey),
+  //       ),
+  //     ),
+  //   ),
+  // );
 
 }

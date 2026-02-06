@@ -1,12 +1,10 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
-import 'package:BlueEra/widgets/common_drop_down.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 
-import '../../../../../widgets/common_drop_down_icon_dialoge.dart';
 
 class AddPoliticianActivityEvent extends StatefulWidget {
   const AddPoliticianActivityEvent({super.key});

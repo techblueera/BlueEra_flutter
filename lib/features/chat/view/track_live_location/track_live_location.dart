@@ -134,7 +134,6 @@ class _TrackLiveLocationPageState extends State<TrackLiveLocationPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Scaffold(
       appBar: CommonBackAppBar(
         title: "View Live location",

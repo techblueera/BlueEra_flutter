@@ -1,6 +1,5 @@
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/help_and_support_screen/customer_support_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/help_and_support_screen/faq_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/help_and_support_screen/help_and_support__form_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/help_and_support_screen/queries_card_screen.dart';
@@ -9,14 +8,10 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
-
-import '../../../../../core/api/model/support_model.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/app_icon_assets.dart';
-import '../../../../../core/constants/getx_utils.dart';
 import '../../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../../chat/view/ai_chat/view/ai_chat_screen.dart';
-import '../../../../chat/view/ai_chat/view/ask_chat_screen.dart';
 import '../../controller/help_and_support_controller.dart';
 
 class HelpAndSupportScreen extends StatefulWidget {
