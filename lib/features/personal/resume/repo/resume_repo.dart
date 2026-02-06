@@ -799,4 +799,61 @@ class ResumeRepo extends BaseService {
       containerName: fileBaseName,
     );
   }
+
+  /// Add
+  Future<ResponseModel> addJobPortfolioResume({
+    required Map<String, dynamic> params,
+    String? imagePath,
+  }) async {
+    // if (imagePath != null && File(imagePath).existsSync()) {
+    //   params['projectImages'] = await MultipartFile.fromFile(imagePath);
+    // }
+    final formData = FormData.fromMap(params);
+
+    if (imagePath != null && File(imagePath).existsSync()) {
+      formData.files.add(
+        MapEntry(
+          'projectImages',
+          await MultipartFile.fromFile(imagePath),
+        ),
+      );
+    }
+    final response = await ApiBaseHelper().postHTTP(
+      resumeProjects,
+      params: params,
+      isMultipart: true,
+    );
+    return response;
+  }
+
+  /// Update
+  Future<ResponseModel> updateJobPortfolioResume({
+    required Map<String, dynamic> params,
+    String? imagePath,
+    String? projectID,
+  }) async {
+    final formData = FormData.fromMap(params);
+
+    if (imagePath != null && File(imagePath).existsSync()) {
+      formData.files.add(
+        MapEntry(
+          'projectImages',
+          await MultipartFile.fromFile(imagePath),
+        ),
+      );
+    }
+    final response = await ApiBaseHelper().putHTTP(
+      "${resumeProjects}/$projectID",
+      params: params,
+      isMultipart: imagePath?.isNotEmpty ?? false,
+    );
+    return response;
+  }
+
+  /// DELETE
+  Future<ResponseModel> deleteJobPortfolioResume(String projectID) async {
+    return await ApiBaseHelper().deleteHTTP(
+      "${resumeProjects}/$projectID",
+    );
+  }
 }

@@ -1,5 +1,4 @@
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/personal/resume/controller/profile_pic_controller.dart';
 import 'package:BlueEra/features/personal/resume/repo/resume_repo.dart';
@@ -10,7 +9,7 @@ class PublicationsController extends GetxController {
   final ResumeRepo _repo = ResumeRepo();
   
   // final getResumeController = Get.find<ProfilePicController>();
-  final getResumeController = getOrPut(() => ProfilePicController());
+  // final getResumeController = getOrPut(() => ProfilePicController());
 
   // Form controllers
   final titleController = TextEditingController();
@@ -118,7 +117,8 @@ class PublicationsController extends GetxController {
             message: response.response?.data['message'] ??
                 AppStrings.publicationAdded);
         clearForm();
-        await getResumeController.getMyResume();
+        await callAPIGetResume();
+
       } else {
         commonSnackBar(
             message: response.response?.data['message'] ??
@@ -164,7 +164,7 @@ class PublicationsController extends GetxController {
         commonSnackBar(message: AppStrings.publicationUpdated);
         clearForm();
         // await getAllPublicationsApi();
-        await getResumeController.getMyResume();
+        await callAPIGetResume();
       } else {
         commonSnackBar(message: response.data?['message'] ??AppStrings.publicationUpdateFailed);
       }
@@ -188,7 +188,8 @@ class PublicationsController extends GetxController {
                 AppStrings.publicationDeleted);
         publications.removeAt(index);
         // await getAllPublicationsApi();
-       await getResumeController.getMyResume();
+        await callAPIGetResume();
+
       } else {
         commonSnackBar(
             message: response.response?.data['message'] ??

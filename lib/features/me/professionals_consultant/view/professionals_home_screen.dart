@@ -526,7 +526,6 @@ class ProfessionalsHomeScreen extends StatelessWidget {
   Widget _buildGallery(List<String> signedUrls, BuildContext context) {
     final all = List<String>.from(signedUrls);
     all.shuffle(Random());
-    final display = all.length > 6 ? all.sublist(0, 6) : all;
     return StaggeredGrid.count(
       crossAxisCount: 4,
       mainAxisSpacing: 8,

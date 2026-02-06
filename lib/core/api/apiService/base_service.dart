@@ -681,4 +681,5 @@ abstract class BaseService {
   final String professionalsTiming = 'earn-service/professional';
   final String professionalsPortfolio = 'earn-service/professional/portfolio';
   final String productFilter = 'product-service/api/product/sort/filter';
+  final String resumeProjects = 'user-service/resumes/projects';
 }

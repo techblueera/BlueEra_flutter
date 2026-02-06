@@ -27,6 +27,7 @@ import 'package:BlueEra/features/me/hotel/view/hotel_main.dart';
 import 'package:BlueEra/features/me/others/others_main.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/professionals_main.dart';
 import 'package:BlueEra/features/me/school/view/school_main.dart';
+import 'package:BlueEra/features/me/social/view/social_main.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_available_options_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/inventory_controller.dart';
@@ -266,7 +267,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       key: _scaffoldKey,
       // floatingActionButton: kDebugMode
       //     ? FloatingActionButton(onPressed: () {
-      //         Get.to(UpdateJobSeekerScreen());
       //       })
       //     : null,
       body: ValueListenableBuilder(
@@ -407,14 +407,13 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     return Obx(() {
       String currentType = viewPersonalDetailsController.userProfileType.value;
       log("userProfileTypeGlobal inside Obx: $currentType");
-      return (viewPersonalDetailsController.userProfileType.value ==
-                  SELF_EMPLOYED ||
-              viewPersonalDetailsController.userProfileType.value == GIG_WORKER)
+      return (currentType == SELF_EMPLOYED || currentType == GIG_WORKER)
           ? EarnServiceAvailableOptionsScreen(fromBottomNavBar: true)
-          : (viewPersonalDetailsController.userProfileType.value ==
-                  PROFESSIONAL)
-              ? ProfessionalsMainScreen()
-              : PersonalProfileSetupNewScreen();
+          : currentType == SOCIAL_PROFILE
+              ? SocialMainScreen()
+              : (currentType == PROFESSIONAL)
+                  ? ProfessionalsMainScreen()
+                  : PersonalProfileSetupNewScreen();
     });
   }
 

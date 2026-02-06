@@ -3,14 +3,10 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/me/job_seekar/view/additional_information/job_seeker_additional_info_screen.dart';
-import 'package:BlueEra/features/me/job_seekar/view/education/job_seeker_education_screen.dart';
-import 'package:BlueEra/features/me/job_seekar/view/hobbies/job_seeker_hobbies_form_screen.dart';
-import 'package:BlueEra/features/me/job_seekar/view/joob_seeker_personal_details_screen.dart';
-import 'package:BlueEra/features/me/job_seekar/view/ngo_orgamisation/job_seeker_ngo_form_screen.dart';
-import 'package:BlueEra/features/me/job_seekar/view/patent/job_seeker_patents_form_screen.dart';
-import 'package:BlueEra/features/me/job_seekar/view/skills/job_seeker_skills_form_screen.dart';
-import 'package:BlueEra/features/me/job_seekar/view/work_experience/job_seeker_work_exp_form_screen.dart';
+import 'package:BlueEra/features/me/job_seekar/view/addmore/job_seeker_add_more_info_listing_screen.dart';
+import 'package:BlueEra/features/me/job_seekar/view/hobbies/job_seeker_listing_screen.dart';
+import 'package:BlueEra/features/me/job_seekar/view/ngo_orgamisation/ngo_org_listing_screen.dart';
+import 'package:BlueEra/features/me/job_seekar/view/patent/job_seeker_patent_listing_screen.dart';
 import 'package:BlueEra/features/me/laboratory/view/widgets/me_menu_card_design.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
@@ -20,42 +16,41 @@ class AddMoreJobSeekerScreen extends StatefulWidget {
   const AddMoreJobSeekerScreen({super.key});
 
   @override
-  State<AddMoreJobSeekerScreen> createState() =>
-      _AddMoreJobSeekerScreenState();
+  State<AddMoreJobSeekerScreen> createState() => _AddMoreJobSeekerScreenState();
 }
 
-class _AddMoreJobSeekerScreenState
-    extends State<AddMoreJobSeekerScreen> {
-
+class _AddMoreJobSeekerScreenState extends State<AddMoreJobSeekerScreen> {
   final List<ServiceMenuItem> serviceMenus = [
     ServiceMenuItem(
       title: AppStrings.hobbies,
       icon: AppIconAssets.basicProfile, // Replace with your actual icon asset
-      page: () => JobSeekerHobbiesFormScreen(),
+      page: () => JobSeekerListingScreen(),
     ),
     ServiceMenuItem(
       title: AppStrings.addAdditionalInformation,
       icon: AppIconAssets.basicProfile,
-      page: () => JobSeekerAdditionalInfoFormScreen(), // Update to your actual page
+      page: () =>
+          JobSeekerAddMoreInfoListingScreen(), // Update to your actual page
     ),
     ServiceMenuItem(
       title: AppStrings.ngoStudentOrganisations,
       icon: AppIconAssets.servicesOffered,
-      page: () => JobSeekerAddNgoFormScreen(), // Update to your actual page
+      page: () => NgoOrgListingScreen(), // Update to your actual page
     ),
     ServiceMenuItem(
       title: AppStrings.patents,
       icon: AppIconAssets.aboutProfessional,
-      page: () => JobSeekerPatentsFormScreen(), // Update to your actual page
+      page: () => JobSeekerPatentListingScreen(), // Update to your actual page
     ),
-
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.appBackgroundColor,
-      appBar: CommonBackAppBar(title: AppStrings.addMore,),
+      appBar: CommonBackAppBar(
+        title: AppStrings.addMore,
+      ),
       body: SingleChildScrollView(
         child: Column(
           children: [

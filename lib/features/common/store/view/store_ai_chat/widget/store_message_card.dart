@@ -102,7 +102,7 @@ class _StoreMessageCardState extends State<StoreMessageCard>
     return Stack(
       children: [
         Align(
-          alignment: isReceive ? Alignment.centerLeft : Alignment.centerRight,
+          alignment: Alignment.centerLeft,
           child: AnimatedBuilder(
             animation: _shakeAnimation,
             builder: (context, child) {

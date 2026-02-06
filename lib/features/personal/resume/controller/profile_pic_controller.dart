@@ -5,6 +5,7 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/get_resume_data_model.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/personal/resume/controller/achievements_controller.dart';
 import 'package:BlueEra/features/personal/resume/controller/add_career_obj_controller.dart';
@@ -103,19 +104,29 @@ class ProfilePicController extends GetxController {
     required String email,
     required String phone,
     required String location,
+    required String openToWork,
+    required String experienceLevel,
+    required String bio,
+    required String careerObjective,
   }) async {
     isLoading.value = true;
     final params = {
       'name': name,
       'email': email,
-      'phone': phone,
+      'contact_no': phone,
       'location': location,
+      'openToWork': openToWork,
+      'experienceLevel': experienceLevel,
+      'bio': bio,
+      'careerObjective': careerObjective
     };
     final response = await ResumeRepo().updateProfile(params);
     isLoading.value = false;
 
     if (response.isSuccess) {
-      await getMyResume(); 
+      // await getMyResume();
+      callAPIGetResume();
+
       Get.back();
       commonSnackBar(message:AppStrings.personalDetailsUpdated);
     } else {
@@ -735,4 +746,13 @@ class ProfilePicController extends GetxController {
       print('Error updating PatentsController: $e');
     }
   }
+}
+
+
+callAPIGetResume()
+{
+  final controller = getOrPut(() => ProfilePicController());
+
+  controller.getMyResume();
+
 }

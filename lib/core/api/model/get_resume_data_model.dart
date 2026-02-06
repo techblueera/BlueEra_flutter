@@ -35,6 +35,9 @@ class GetResumeDataModel {
     this.languages,
     this.bio,
     this.careerObjective,
+    this.experienceLevel,
+    this.openToWork,
+    this.portfolioProject,
   });
 
   GetResumeDataModel.fromJson(dynamic json) {
@@ -58,6 +61,12 @@ class GetResumeDataModel {
       education = [];
       json['education'].forEach((v) {
         education?.add(Education.fromJson(v));
+      });
+    }
+    if (json['projects'] != null) {
+      portfolioProject = [];
+      json['projects'].forEach((v) {
+        portfolioProject?.add(PortfolioProject.fromJson(v));
       });
     }
     if (json['fullTimeExperience'] != null) {
@@ -132,6 +141,8 @@ class GetResumeDataModel {
     }
     bio = json['bio'];
     careerObjective = json['careerObjective'];
+    experienceLevel = json['experienceLevel'];
+    openToWork = json['openToWork'];
   }
   SalaryDetails? salaryDetails;
   CurrentJob? currentJob;
@@ -155,6 +166,7 @@ class GetResumeDataModel {
   List<AdditionalInformation>? additionalInformation;
   List<Patents>? patents;
   List<NgoOrStudentOrgs>? ngoOrStudentOrgs;
+  List<PortfolioProject>? portfolioProject;
   String? createdAt;
   String? updatedAt;
   int? v;
@@ -162,6 +174,8 @@ class GetResumeDataModel {
   List<Languages>? languages;
   String? bio;
   String? careerObjective;
+  String? experienceLevel;
+  String? openToWork;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -182,6 +196,9 @@ class GetResumeDataModel {
     map['portfolios'] = portfolios;
     if (education != null) {
       map['education'] = education?.map((v) => v.toJson()).toList();
+    }
+    if (portfolioProject != null) {
+      map['projects'] = portfolioProject?.map((v) => v.toJson()).toList();
     }
     if (fullTimeExperience != null) {
       map['fullTimeExperience'] =
@@ -226,6 +243,8 @@ class GetResumeDataModel {
     }
     map['bio'] = bio;
     map['careerObjective'] = careerObjective;
+    map['experienceLevel'] = experienceLevel;
+    map['openToWork'] = openToWork;
     return map;
   }
 }
@@ -1070,6 +1089,44 @@ class SalaryDetails {
     map['monthlyEarningViaFreelancing'] = monthlyEarningViaFreelancing;
     map['monthlyTotalEarning'] = monthlyTotalEarning;
     map['annualPackage'] = annualPackage;
+    return map;
+  }
+}
+
+PortfolioProject portfolioProjectFromJson(String str) => PortfolioProject.fromJson(json.decode(str));
+String portfolioProjectToJson(PortfolioProject data) => json.encode(data.toJson());
+
+class PortfolioProject {
+  PortfolioProject({
+    this.title,
+    this.description,
+    this.category,
+    this.completionDate,
+    this.id,
+  });
+
+  PortfolioProject.fromJson(dynamic json) {
+
+    title = json['title'];
+    description = json['description'];
+    category = json['category'];
+    completionDate = json['completionDate'];
+    id = json['_id'];
+  }
+  String? title;
+  String? description;
+  String? category;
+  String? id;
+  String? completionDate;
+
+  Map<String, dynamic> toJson() {
+    final map = <String, dynamic>{};
+
+    map['title'] = title;
+    map['description'] = description;
+    map['category'] = category;
+    map['completionDate'] = completionDate;
+    map['_id'] = id;
     return map;
   }
 }

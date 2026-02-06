@@ -633,6 +633,9 @@ class AppIconAssets {
   static const String  transport_load_auto= "${iconPath}transport_load_auto.svg";
   static const String  transport_truck= "${iconPath}transport_truck.svg";
   static const String  transport_container= "${iconPath}transport_container.svg";
+  static const String  social_activity= "${iconPath}social_activity.svg";
+  static const String  social_activity_status= "${iconPath}social_activity_status.svg";
+  static const String  job_post_black= "${iconPath}job_post_black.svg";
 
 
 }

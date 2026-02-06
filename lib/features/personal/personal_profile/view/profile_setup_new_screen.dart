@@ -252,16 +252,16 @@ class _PersonalProfileSetupNewScreenState
       },
       child: Scaffold(
         backgroundColor: AppColors.whiteF3,
-        appBar: CommonBackAppBar(
-          isLeading: true,
-          title: '',
-          isLogout: true,
-          onShareTap: () {},
-          onQrCodeTap: () {},
-          onBackTap: () async {
-            backPressTrigger();
-          },
-        ),
+        // appBar: CommonBackAppBar(
+        //   isLeading: true,
+        //   title: '',
+        //   isLogout: true,
+        //   onShareTap: () {},
+        //   onQrCodeTap: () {},
+        //   onBackTap: () async {
+        //     backPressTrigger();
+        //   },
+        // ),
         body: isGuestUser()
             ? PositiveCustomBtn(onTap: () {}, title: "Logout")
             : Obx(() {
@@ -277,6 +277,7 @@ class _PersonalProfileSetupNewScreenState
 
                   return SafeArea(
                     child: Container(
+                      margin: EdgeInsets.only(bottom: 70),
                       child: DefaultTabController(
                         length: PostTabs.postTab.length,
                         child: NestedScrollView(
@@ -1920,7 +1921,7 @@ class _PersonalProfileSetupNewScreenState
                   bottom: SizeConfig.size12),
               child: Row(
                 children: [
-                  Expanded(
+                /*  Expanded(
                     child: GestureDetector(
                       onTap: () {
                         Get.toNamed(RouteHelper.getCreateResumeScreenRoute());
@@ -1964,7 +1965,7 @@ class _PersonalProfileSetupNewScreenState
                       ),
                     ),
                   ),
-                  SizedBox(width: SizeConfig.size10),
+                  SizedBox(width: SizeConfig.size10),*/
                   Expanded(
                     child: Obx(() => GestureDetector(
                           onTap: () {
