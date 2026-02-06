@@ -21,6 +21,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
+import '../../../../../common/cab_and_transport_partner/view/cab_and_transport_partner.dart';
+
+
 class EarnServiceAvailableOptionsScreen extends StatefulWidget {
   final bool fromBottomNavBar;
   const EarnServiceAvailableOptionsScreen({super.key, this.fromBottomNavBar = false});
@@ -84,6 +87,7 @@ class _EarnServiceAvailableOptionsScreenState extends State<EarnServiceAvailable
     return Obx(() {
       final earnValue = controller.isEarnServiceOpt.value;
       final riderValue = deliveryPartnerController.isRiderServiceOpt.value;
+      print("ksdcklscdsc ${earnValue} ___ ${riderValue} __ ${userProfileTypeGlobal}");
 
       if (userProfileTypeGlobal == SELF_EMPLOYED && earnValue.isEmpty) {
         return _buildLoadingScaffold();
@@ -97,6 +101,10 @@ class _EarnServiceAvailableOptionsScreenState extends State<EarnServiceAvailable
         );
       } else if(userProfileTypeGlobal == GIG_WORKER && riderValue.toLowerCase() == 'true'){
         return RiderServiceScreen(
+            fromBottomNavBar: widget.fromBottomNavBar
+        );
+      }else if(userProfileTypeGlobal == GIG_WORKER && userProfessionGlobal==CAR_TAXI){
+        return CabAndTransportPartner(
             fromBottomNavBar: widget.fromBottomNavBar
         );
       }

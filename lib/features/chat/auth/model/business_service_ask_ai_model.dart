@@ -1,5 +1,7 @@
 import 'package:BlueEra/features/chat/auth/model/base_ai_chat_model.dart';
-import 'package:BlueEra/features/me/hospital/model/hospital_main_page_model.dart';
+
+import '../../../me/hospital/model/hospital_main_page_model.dart';
+
 
 class BusinessServicesAskAiModel extends BaseAiChatModel {
   List<String>? suggestions;

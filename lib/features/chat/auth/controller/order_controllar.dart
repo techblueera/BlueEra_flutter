@@ -55,7 +55,6 @@ class OrderNowController extends GetxController {
   RxBool isDefault = false.obs;
   RxBool ownerOtpLoading = false.obs;
   RxInt? selectedIndex;
-  RxString distanceKm = "0.0".obs;
   RxList<Riders?> selectedIndexes = <Riders>[].obs;
   RxString fare = "0.0".obs;
 
@@ -229,19 +228,6 @@ class OrderNowController extends GetxController {
     // }
   }
 
-  Future<void> VerifyPayment({required Map<String, dynamic> params}) async {
-    try {
-      ResponseModel? response = await MakeOrderRepo().verifyPayment(params);
-      if (response.isSuccess) {
-      } else {
-        commonSnackBar(
-            message: response.message ?? AppStrings.somethingWentWrong);
-      }
-    } catch (e) {
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-    }
-  }
-
   Future<void> getAddressApi() async {
     try {
       getAddressResponse.value = ApiResponse.initial("Initial");
@@ -315,7 +301,7 @@ class OrderNowController extends GetxController {
       if (response.isSuccess) {
         Map<String, dynamic> data = response.response?.data;
         fare.value = data['fare'].toString();
-        distanceKm.value = data['distance'].toString();
+        // distanceKm.value = data['distance'].toString();
         getFaireAmountResponse.value = ApiResponse.complete(data);
       } else {
         commonSnackBar(
@@ -671,9 +657,6 @@ ApiKeys.additional_comments: ""
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
-  }
-  Future<void> updateRiderLocation(Map<String,dynamic> params) async {
-
   }
 
 }

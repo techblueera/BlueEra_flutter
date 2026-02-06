@@ -16,6 +16,9 @@ import '../../../../core/constants/common_methods.dart' as cmd;
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_icon_assets.dart';
+import '../../../../widgets/common_back_app_bar.dart';
+import '../../../../widgets/expandable_text.dart';
+import '../../../../widgets/horizontal_tab_selector.dart';
 import '../../../../widgets/local_assets.dart';
 import '../../../common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import '../../auth/controller/chat_view_controller.dart';
@@ -44,6 +47,7 @@ class ViewGroupMembers extends StatefulWidget {
 class _ViewGroupMembersState extends State<ViewGroupMembers> {
   final chatViewController = Get.find<ChatViewController>();
   bool publicGroup = false;
+  int selectedIndex=0;
 
   @override
   void initState() {
@@ -262,8 +266,10 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Scaffold(
 
+    return Scaffold(
+      appBar: CommonBackAppBar(
+      ),
       body: Obx(() {
         if (chatViewController.getGroupMembersResponse.value.status ==
             Status.COMPLETE) {
@@ -272,488 +278,594 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
             
           return SafeArea(
             child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Column(
-                    children: [
-                      Container(
-                        margin: EdgeInsets.only(bottom: 10,left: 10,right: 10),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0,vertical: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
                         decoration: BoxDecoration(
-                            color: Colors.grey.shade100,
-                            borderRadius: BorderRadius.circular(10),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.2),
-                                spreadRadius: 0.5,
-                                blurRadius: 2,
-                                offset: Offset(0, 1),
-                              ),
-                            ]),
+                          borderRadius: BorderRadius.circular(10),
+                          color: AppColors.white,
+                        ),
                         child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            SizedBox(
-                              height: 18,
-                            ),
-                            InkWell(
-                              onTap: (){
-                                Navigator.pop(context);
-                              },
-                              child: Padding(
-                                padding: const EdgeInsets.only(right: 10.0),
-                                child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        const SizedBox(width: 20,),
-                                        Icon(Icons.arrow_back_ios,size: 22,),
-                                        const SizedBox(width: 2,),
-                                        CustomText(AppStrings.groupInfo,
-                                          fontSize: SizeConfig.extraLarge-2,
-                                        fontWeight: FontWeight.bold,
-                                        )
-                                      ],
-                                    ),
-                                    InkWell(
-                                      onTap: (){
-                                        chatViewController.editedGroupFile=null;
-                                        showEditGroupDialog(context);
-                                      },
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(6),
-                                          color: AppColors.primaryColor
-                                        ),
-                                        padding: EdgeInsets.symmetric(horizontal: 8,vertical: 4),
-                                        child: Row(
-                                          children: [
-                                            LocalAssets(
-                                              imagePath: AppIconAssets.editIcon,
-                                              height: SizeConfig.size14,
-                                              width: SizeConfig.size14,
-                                              imgColor: Colors.white,
-                                            ),
-                                            SizedBox(width: 6,),
-                                            CustomText("Edit",color: AppColors.white,),
-                                          ],
-                                        ),
-                                      ),
-                                    )
-                                  ],
-                                ),
-                              ),
-                            ),
-                            SizedBox(
-                              height: 24,
-                            ),
-                            Center(
-                              child: TweenAnimationBuilder<double>(
-                                tween: Tween(begin: 30, end: 60), // radius from 30 → 60
-                                duration: const Duration(milliseconds: 500),
-                                curve: Curves.easeOutBack,
-                                builder: (context, radius, child) {
-                                  return TweenAnimationBuilder<Offset>(
-                                    tween: Tween(begin: const Offset(-1.8, -1), end: Offset.zero),
-                                    duration: const Duration(milliseconds: 500),
-                                    curve: Curves.easeIn,
-                                    builder: (context, offset, innerChild) {
-                                      return Transform.translate(
-                                        offset: Offset(offset.dx * 100, offset.dy * 100),
-                                        child: Stack(
-                                          children: [
-                                            CircleAvatar(
-                                              backgroundColor: theme.colorScheme.primary,
-                                              radius: radius,
-                                              backgroundImage:  (chatViewController.editedGroupFile!=null)?
-                                              FileImage(chatViewController.editedGroupFile!) as ImageProvider:(widget.profileImage != null &&
-                                                  widget.profileImage!.trim().isNotEmpty)
-                                                  ? (widget.profileImage!.startsWith('http')
-                                                  ? NetworkImage(widget.profileImage!)
-                                                  : (File(widget.profileImage!).existsSync()
-                                                  ? FileImage(File(widget.profileImage!)) as ImageProvider
-                                                  : null))
-                                                  : null,
-                                              child:(widget.profileImage != null &&
-                                                  widget.profileImage!.trim().isNotEmpty &&
-                                                  (widget.profileImage!.startsWith('http') ||
-                                                      File(widget.profileImage!).existsSync()))
-                                                  ? null
-                                                  : (widget.name != null && widget.name!.isNotEmpty)
-                                                  ? Center(
-                                                child: CustomText(
-                                                  "${widget.name!.split('')[0]}",
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.w800,
-                                                  fontSize: radius * 0.83, // scale font with avatar
-                                                ),
-                                              )
-                                                  : Center(
-                                                child: Icon(
-                                                  Icons.person,
-                                                  color: theme.colorScheme.surface,
-                                                  size: radius, // scale icon too
-                                                ),
-                                              ),
-                                            ),
-                                            // Positioned(
-                                            //   bottom: 0,
-                                            //   right: 0,
-                                            //   child: InkWell(
-                                            //     onTap: ()async{
-                                            //       var newPath= await SelectProfilePictureDialog.showLogoDialog(
-                                            //       context, "Change Group Profile");
-                                            //       chatViewController.editedGroupFile=File(newPath);
-                                            //       setState(() {
-                                            //
-                                            //       });
-                                            //
-                                            //     },
-                                            //     child: Container(
-                                            //       decoration: BoxDecoration(
-                                            //         shape: BoxShape.circle,
-                                            //         border: Border.all(color: AppColors.white, width: 2) ,
-                                            //       ),
-                                            //       child: Container(
-                                            //
-                                            //         padding: EdgeInsets.all(8),
-                                            //         decoration: BoxDecoration(
-                                            //           shape: BoxShape.circle,
-                                            //           color: AppColors.primaryColor,
-                                            //         ),
-                                            //         child: LocalAssets(
-                                            //           imagePath: AppIconAssets.editIcon,
-                                            //           height: SizeConfig.size14,
-                                            //           width: SizeConfig.size14,
-                                            //           imgColor: Colors.white,
-                                            //         ),
-                                            //       ),
-                                            //     ),
-                                            //   ),
-                                            // ),
-                                          ],
-                                        ),
-                                      );
-                                    },
-                                  );
-                                },
-                              ),
-                            ),
-
-                            SizedBox(
-                              height: SizeConfig.size15,
-                            ),
-                            SizedBox(
-                              child: CustomText(
-                                widget.name != null
-                                    ? GetStringUtils(widget.name!).capitalize
-                                    : '',
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
-                            SizedBox(
-                              height: SizeConfig.size5,
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                CustomText(
-                                  AppStrings.group,
-                                  color: AppColors.grayText,
-                                ),
-                                CustomText(" • ", color: AppColors.grayText),
-                                CustomText(
-                                  "${members.length} ${AppStrings.members.tr}",
-                                  color: AppColors.grayText,
-                                )
-                              ],
-                            ),
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                // _groupFeature(
-                                //     icon: AppIconAssets.chat_call,
-                                //     title: 'Audio'),
-                                // _groupFeature(
-                                //     icon: AppIconAssets.chat_video_call,
-                                //     title: 'Video'),
-                              ],
-                            ),
-                            const SizedBox(height: 10),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 10),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(10),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.2),
-                          spreadRadius: 0.5,
-                          blurRadius: 2,
-                          offset: const Offset(0, 1),
-                        ),
-                      ],
-                    ),
-                    child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          child: CustomText(
-                            "${members.length} ${AppStrings.members.tr}",
-                            // style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey.shade800,
-                            // ),
-                          ),
-                        ),
-                        ListView.builder(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          itemCount: chatViewController.viewAllMembers.value
-                              ? members.length + 1   // +1 for Add Members card
-                              : (members.length > 6 ? 8 : members.length + 1),
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemBuilder: (context, index) {
-                            // First item — Add Members card
-
-                            if (index == 0) {
-                              return InkWell(
-                                onTap: () {
-                                  Get.to(()=>BeAvailableContactsList(isFromAddMember: true,members: members,conversationId: widget.conversationId,));
-                                },
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                  child: Row(
-                                    children: [
-                                      CircleAvatar(
-                                        backgroundColor: AppColors.primaryColor,
-                                        radius: 22,
-                                        child: const Icon(Icons.person_add, color: Colors.white),
+                        _groupBanner(),
+                        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            SizedBox(height: 38,),
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8.0),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(
+                                        color: AppColors.primaryColor
+                                      )
+                                    ),
+                                    padding: EdgeInsets.symmetric(horizontal: 8,vertical: 4),
+                                    child: Center(
+                                      child: CustomText("${members.length}  ${AppStrings.members.tr}",color: AppColors.primaryColor,
+                                      fontSize: 10,
                                       ),
-                                      const SizedBox(width: 12),
-                                      const CustomText(
-                                        AppStrings.addedMembers,
-                                        // style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.black,
-                                        // ),
-                                      ),
-                                    ],
+                                    ),
                                   ),
-                                ),
-                              );
-                            }
+                                  SizedBox(width: 10,),
+                                  LocalAssets(imagePath: AppIconAssets.shareIcon,imgColor: AppColors.black,),
+                                  SizedBox(width: 10,),
+                                ],
+                              ),
+                            )
+                          ],
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              CustomText(widget.name != null
+                                  ? GetStringUtils(widget.name!).capitalize
+                                  : '',
+                                fontSize: 20,
+                                fontWeight: FontWeight.w700,
+                              ),
+                              SizedBox(height: SizeConfig.size8,),
+                              Row(
+                                children: [
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(
+                                        color: AppColors.whiteE5
+                                      )
+                                    ),
+                                    padding: EdgeInsets.symmetric(horizontal: 4,vertical: 2),
+                                    child: Center(
+                                      child: CustomText("01/01/2025",fontSize: 12,),
+                                    ),
+                                  ),
+                                  SizedBox(width: 6,),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(
+                                        color: AppColors.whiteE5
+                                      )
+                                    ),
+                                    padding: EdgeInsets.symmetric(horizontal: 4,vertical: 2),
+                                    child: Center(
+                                      child: CustomText("Manish Kumar (Admin)",fontSize: 12,),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: SizeConfig.size8,),
+                          ExpandableText(
+                            text: "N/A",
+                            trimLines: 4,
+                            style: TextStyle(
+                              fontSize: SizeConfig.small,
+                              fontWeight: FontWeight.w400,
+                              color: AppColors.secondaryTextColor,
+                              height: 1.5,
+                            ),),
+                              SizedBox(height: SizeConfig.size10,),
+                            ],
+                          ),
+                        )
+                      ],
+                    )),
+                    SizedBox(height: 16,),
+                    HorizontalTabSelector(tabs: ["Members","Pinned","Gallery","Add","Documents"],
+                        selectedIndex: selectedIndex, onTabSelected: (index,dd){
+                          selectedIndex=index;
+                          setState(() {
 
-                            // Show current user ("You") right after Add Members
-                            if (index == 1) {
-                              GroupMembersListModel? me = members.firstWhere(
-                                    (m) => m.id == userId,
-                              );
+                          });
+                    }, labelBuilder: (value)=>value),
+                    SizedBox(height: 16,),
 
-                              final String displayName =
-                              (me.name?.trim().isNotEmpty == true) ? me.name!.trim() : "-";
-                              final String initial =
-                              displayName.isNotEmpty ? displayName[0] : '?';
-                              return ListTile(
-                                contentPadding:
-                                const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                                leading: CircleAvatar(
-                                  backgroundColor: theme.colorScheme.primary,
-                                  radius: 22,
-                                  child: (me.profileImage != null)
-                                      ? ClipOval(
-                                    child: CachedNetworkImage(
-                                      imageUrl: me.profileImage!,
-                                      fit: BoxFit.cover,
-                                      width: 44,
-                                      height: 44,
-                                      placeholder: (context, url) => Container(
-                                        color: Colors.grey.shade300,
-                                        child: const Center(
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            color: Colors.grey,
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        color: AppColors.white
+                      ),
+                      height: 500,
+                      child: selectedIndex==0? Container(
+
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              child: CustomText(
+                                "${members.length} ${AppStrings.members.tr}",
+                                // style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey.shade800,
+                                // ),
+                              ),
+                            ),
+                            ListView.builder(
+                              padding: const EdgeInsets.only(bottom: 10),
+                              itemCount: chatViewController.viewAllMembers.value
+                                  ? members.length + 1   // +1 for Add Members card
+                                  : (members.length > 6 ? 8 : members.length + 1),
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemBuilder: (context, index) {
+                                // First item — Add Members card
+
+                                if (index == 0) {
+                                  return InkWell(
+                                    onTap: () {
+                                      Get.to(()=>BeAvailableContactsList(isFromAddMember: true,members: members,conversationId: widget.conversationId,));
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                      child: Row(
+                                        children: [
+                                          CircleAvatar(
+                                            backgroundColor: AppColors.primaryColor,
+                                            radius: 22,
+                                            child: const Icon(Icons.person_add, color: Colors.white),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          const CustomText(
+                                            AppStrings.addedMembers,
+                                            // style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black,
+                                            // ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                }
+
+                                // Show current user ("You") right after Add Members
+                                if (index == 1) {
+                                  GroupMembersListModel? me = members.firstWhere(
+                                        (m) => m.id == userId,
+                                  );
+
+                                  final String displayName =
+                                  (me.name?.trim().isNotEmpty == true) ? me.name!.trim() : "-";
+                                  final String initial =
+                                  displayName.isNotEmpty ? displayName[0] : '?';
+                                  return ListTile(
+                                    contentPadding:
+                                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                                    leading: CircleAvatar(
+                                      backgroundColor: theme.colorScheme.primary,
+                                      radius: 22,
+                                      child: (me.profileImage != null)
+                                          ? ClipOval(
+                                        child: CachedNetworkImage(
+                                          imageUrl: me.profileImage!,
+                                          fit: BoxFit.cover,
+                                          width: 44,
+                                          height: 44,
+                                          placeholder: (context, url) => Container(
+                                            color: Colors.grey.shade300,
+                                            child: const Center(
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                color: Colors.grey,
+                                              ),
+                                            ),
+                                          ),
+                                          errorWidget: (context, url, error) => Center(
+                                            child: CustomText(
+                                              initial,
+                                              // style: const TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w800,
+                                              fontSize: 18,
+                                              // ),
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                      errorWidget: (context, url, error) => Center(
+                                      )
+                                          : Center(
                                         child: CustomText(
                                           initial,
                                           // style: const TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.w800,
-                                            fontSize: 18,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w800,
+                                          fontSize: 18,
                                           // ),
                                         ),
                                       ),
                                     ),
-                                  )
-                                      : Center(
-                                    child: CustomText(
-                                      initial,
-                                      // style: const TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w800,
-                                        fontSize: 18,
+                                    title: const CustomText(
+                                        AppStrings.you,
+                                        // style: TextStyle(
+                                        fontSize: 16, fontWeight: FontWeight.bold
                                       // ),
                                     ),
-                                  ),
-                                ),
-                                title: const CustomText(
-                                    AppStrings.you,
-                                  // style: TextStyle(
-                                      fontSize: 16, fontWeight: FontWeight.bold
-                                  // ),
-                                ),
-                                trailing: (me.isAdmin ?? false)
-                                    ? Container(
-                                  padding:
-                                  const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey.shade200,
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: Colors.grey.shade400),
-                                  ),
-                                  child: const CustomText(
-                                      AppStrings.admin,
-                                    // style: TextStyle(
-                                        fontSize: 14
-                                    // ),
-                                  ),
-                                )
-                                    : null,
-                              );
-                                                        }
+                                    trailing: (me.isAdmin ?? false)
+                                        ? Container(
+                                      padding:
+                                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.shade200,
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(color: Colors.grey.shade400),
+                                      ),
+                                      child: const CustomText(
+                                          AppStrings.admin,
+                                          // style: TextStyle(
+                                          fontSize: 14
+                                        // ),
+                                      ),
+                                    )
+                                        : null,
+                                  );
+                                }
 
-                            // Last item — View All button if more than 6 members
-                            // Last item — View All button if list is collapsed
-                            if (!chatViewController.viewAllMembers.value && members.length > 6 && index == 7) {
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                child: Center(
-                                  child: OutlinedButton.icon(
-                                    onPressed: () {
-                                      setState(() {
-                                        chatViewController.viewAllMembers.value = true;
-                                      });
-                                    },
-                                    icon: const Icon(Icons.expand_more, size: 18),
-                                    label: const CustomText(
-                                      AppStrings.viewAll,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.primaryColor,
-                                    ),
-                                  ),
-                                ),
-                              );
-                            }
-
-
-                            // Normal member tile (excluding "You")
-                            final nonMeMembers =
-                            members.where((m) => m.id != userId).toList(); // exclude current user
-                            final member = nonMeMembers[index - 2]; // shift by 2 (Add + You)
-
-                            final String displayName =
-                            (member.name?.trim().isNotEmpty == true) ? member.name!.trim() : "-";
-                            final String initial = displayName.isNotEmpty ? displayName[0] : '?';
-
-                            return ListTile(
-                              contentPadding:
-                              const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                              leading: CircleAvatar(
-                                backgroundColor: theme.colorScheme.primary,
-                                radius: 22,
-                                child: (member.profileImage != null)
-                                    ? ClipOval(
-                                  child: CachedNetworkImage(
-                                    imageUrl: member.profileImage!,
-                                    fit: BoxFit.cover,
-                                    width: 44,
-                                    height: 44,
-                                    placeholder: (context, url) => Container(
-                                      color: Colors.grey.shade300,
-                                      child: const Center(
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: Colors.grey,
+                                // Last item — View All button if more than 6 members
+                                // Last item — View All button if list is collapsed
+                                if (!chatViewController.viewAllMembers.value && members.length > 6 && index == 7) {
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                    child: Center(
+                                      child: OutlinedButton.icon(
+                                        onPressed: () {
+                                          setState(() {
+                                            chatViewController.viewAllMembers.value = true;
+                                          });
+                                        },
+                                        icon: const Icon(Icons.expand_more, size: 18),
+                                        label: const CustomText(
+                                          AppStrings.viewAll,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppColors.primaryColor,
                                         ),
                                       ),
                                     ),
-                                    errorWidget: (context, url, error) => Center(
+                                  );
+                                }
+
+
+                                // Normal member tile (excluding "You")
+                                final nonMeMembers =
+                                members.where((m) => m.id != userId).toList(); // exclude current user
+                                final member = nonMeMembers[index - 2]; // shift by 2 (Add + You)
+
+                                final String displayName =
+                                (member.name?.trim().isNotEmpty == true) ? member.name!.trim() : "-";
+                                final String initial = displayName.isNotEmpty ? displayName[0] : '?';
+
+                                return ListTile(
+                                  contentPadding:
+                                  const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                                  leading: CircleAvatar(
+                                    backgroundColor: theme.colorScheme.primary,
+                                    radius: 22,
+                                    child: (member.profileImage != null)
+                                        ? ClipOval(
+                                      child: CachedNetworkImage(
+                                        imageUrl: member.profileImage!,
+                                        fit: BoxFit.cover,
+                                        width: 44,
+                                        height: 44,
+                                        placeholder: (context, url) => Container(
+                                          color: Colors.grey.shade300,
+                                          child: const Center(
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
+                                        ),
+                                        errorWidget: (context, url, error) => Center(
+                                          child: CustomText(
+                                            initial,
+                                            // style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w800,
+                                            fontSize: 18,
+                                            // ),
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                        : Center(
                                       child: CustomText(
                                         initial,
                                         // style: const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w800,
-                                          fontSize: 18,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 18,
                                         // ),
                                       ),
                                     ),
                                   ),
-                                )
-                                    : Center(
-                                  child: CustomText(
-                                    initial,
+                                  title: CustomText(
+                                    displayName,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                     // style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 18,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
                                     // ),
                                   ),
-                                ),
-                              ),
-                              title: CustomText(
-                                displayName,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                // style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                // ),
-                              ),
-                              trailing: (member.isAdmin ?? false)
-                                  ? Container(
-                                padding:
-                                const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.shade200,
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: Colors.grey.shade400),
-                                ),
-                                child: const CustomText(
-                                    AppStrings.admin,
-                                  // style: TextStyle(
-                                      fontSize: 14
-                                  // ),
-                                ),
-                              )
-                                  : null,
-                            );
-                          },
-                        )
+                                  trailing: (member.isAdmin ?? false)
+                                      ? Container(
+                                    padding:
+                                    const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.shade200,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(color: Colors.grey.shade400),
+                                    ),
+                                    child: const CustomText(
+                                        AppStrings.admin,
+                                        // style: TextStyle(
+                                        fontSize: 14
+                                      // ),
+                                    ),
+                                  )
+                                      : null,
+                                );
+                              },
+                            )
 
-                      ],
+                          ],
+                        ),
+                      ):Center(
+                        child: CustomText("No Record Found We Update You Soon"),
+                      ),
                     ),
-                  ),
-                  SizedBox(
-                    height: SizeConfig.size12,
-                  )
+                    // Column(
+                    //   children: [
+                    //     Container(
+                    //       margin: EdgeInsets.only(bottom: 10,left: 10,right: 10),
+                    //       decoration: BoxDecoration(
+                    //           color: Colors.grey.shade100,
+                    //           borderRadius: BorderRadius.circular(10),
+                    //           boxShadow: [
+                    //             BoxShadow(
+                    //               color: Colors.black.withValues(alpha: 0.2),
+                    //               spreadRadius: 0.5,
+                    //               blurRadius: 2,
+                    //               offset: Offset(0, 1),
+                    //             ),
+                    //           ]),
+                    //       child: Column(
+                    //         mainAxisAlignment: MainAxisAlignment.center,
+                    //         crossAxisAlignment: CrossAxisAlignment.center,
+                    //         children: [
+                    //           SizedBox(
+                    //             height: 18,
+                    //           ),
+                    //           InkWell(
+                    //             onTap: (){
+                    //               Navigator.pop(context);
+                    //             },
+                    //             child: Padding(
+                    //               padding: const EdgeInsets.only(right: 10.0),
+                    //               child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    //                 children: [
+                    //                   Row(
+                    //                     children: [
+                    //                       const SizedBox(width: 20,),
+                    //                       Icon(Icons.arrow_back_ios,size: 22,),
+                    //                       const SizedBox(width: 2,),
+                    //                       CustomText(AppStrings.groupInfo,
+                    //                         fontSize: SizeConfig.extraLarge-2,
+                    //                       fontWeight: FontWeight.bold,
+                    //                       )
+                    //                     ],
+                    //                   ),
+                    //                   InkWell(
+                    //                     onTap: (){
+                    //                       chatViewController.editedGroupFile=null;
+                    //                       showEditGroupDialog(context);
+                    //                     },
+                    //                     child: Container(
+                    //                       decoration: BoxDecoration(
+                    //                         borderRadius: BorderRadius.circular(6),
+                    //                         color: AppColors.primaryColor
+                    //                       ),
+                    //                       padding: EdgeInsets.symmetric(horizontal: 8,vertical: 4),
+                    //                       child: Row(
+                    //                         children: [
+                    //                           LocalAssets(
+                    //                             imagePath: AppIconAssets.editIcon,
+                    //                             height: SizeConfig.size14,
+                    //                             width: SizeConfig.size14,
+                    //                             imgColor: Colors.white,
+                    //                           ),
+                    //                           SizedBox(width: 6,),
+                    //                           CustomText("Edit",color: AppColors.white,),
+                    //                         ],
+                    //                       ),
+                    //                     ),
+                    //                   )
+                    //                 ],
+                    //               ),
+                    //             ),
+                    //           ),
+                    //           SizedBox(
+                    //             height: 24,
+                    //           ),
+                    //           Center(
+                    //             child: TweenAnimationBuilder<double>(
+                    //               tween: Tween(begin: 30, end: 60), // radius from 30 → 60
+                    //               duration: const Duration(milliseconds: 500),
+                    //               curve: Curves.easeOutBack,
+                    //               builder: (context, radius, child) {
+                    //                 return TweenAnimationBuilder<Offset>(
+                    //                   tween: Tween(begin: const Offset(-1.8, -1), end: Offset.zero),
+                    //                   duration: const Duration(milliseconds: 500),
+                    //                   curve: Curves.easeIn,
+                    //                   builder: (context, offset, innerChild) {
+                    //                     return Transform.translate(
+                    //                       offset: Offset(offset.dx * 100, offset.dy * 100),
+                    //                       child: Stack(
+                    //                         children: [
+                    //                           CircleAvatar(
+                    //                             backgroundColor: theme.colorScheme.primary,
+                    //                             radius: radius,
+                    //                             backgroundImage:  (chatViewController.editedGroupFile!=null)?
+                    //                             FileImage(chatViewController.editedGroupFile!) as ImageProvider:(widget.profileImage != null &&
+                    //                                 widget.profileImage!.trim().isNotEmpty)
+                    //                                 ? (widget.profileImage!.startsWith('http')
+                    //                                 ? NetworkImage(widget.profileImage!)
+                    //                                 : (File(widget.profileImage!).existsSync()
+                    //                                 ? FileImage(File(widget.profileImage!)) as ImageProvider
+                    //                                 : null))
+                    //                                 : null,
+                    //                             child:(widget.profileImage != null &&
+                    //                                 widget.profileImage!.trim().isNotEmpty &&
+                    //                                 (widget.profileImage!.startsWith('http') ||
+                    //                                     File(widget.profileImage!).existsSync()))
+                    //                                 ? null
+                    //                                 : (widget.name != null && widget.name!.isNotEmpty)
+                    //                                 ? Center(
+                    //                               child: CustomText(
+                    //                                 "${widget.name!.split('')[0]}",
+                    //                                 color: Colors.white,
+                    //                                 fontWeight: FontWeight.w800,
+                    //                                 fontSize: radius * 0.83, // scale font with avatar
+                    //                               ),
+                    //                             )
+                    //                                 : Center(
+                    //                               child: Icon(
+                    //                                 Icons.person,
+                    //                                 color: theme.colorScheme.surface,
+                    //                                 size: radius, // scale icon too
+                    //                               ),
+                    //                             ),
+                    //                           ),
+                    //                           // Positioned(
+                    //                           //   bottom: 0,
+                    //                           //   right: 0,
+                    //                           //   child: InkWell(
+                    //                           //     onTap: ()async{
+                    //                           //       var newPath= await SelectProfilePictureDialog.showLogoDialog(
+                    //                           //       context, "Change Group Profile");
+                    //                           //       chatViewController.editedGroupFile=File(newPath);
+                    //                           //       setState(() {
+                    //                           //
+                    //                           //       });
+                    //                           //
+                    //                           //     },
+                    //                           //     child: Container(
+                    //                           //       decoration: BoxDecoration(
+                    //                           //         shape: BoxShape.circle,
+                    //                           //         border: Border.all(color: AppColors.white, width: 2) ,
+                    //                           //       ),
+                    //                           //       child: Container(
+                    //                           //
+                    //                           //         padding: EdgeInsets.all(8),
+                    //                           //         decoration: BoxDecoration(
+                    //                           //           shape: BoxShape.circle,
+                    //                           //           color: AppColors.primaryColor,
+                    //                           //         ),
+                    //                           //         child: LocalAssets(
+                    //                           //           imagePath: AppIconAssets.editIcon,
+                    //                           //           height: SizeConfig.size14,
+                    //                           //           width: SizeConfig.size14,
+                    //                           //           imgColor: Colors.white,
+                    //                           //         ),
+                    //                           //       ),
+                    //                           //     ),
+                    //                           //   ),
+                    //                           // ),
+                    //                         ],
+                    //                       ),
+                    //                     );
+                    //                   },
+                    //                 );
+                    //               },
+                    //             ),
+                    //           ),
+                    //
+                    //           SizedBox(
+                    //             height: SizeConfig.size15,
+                    //           ),
+                    //           SizedBox(
+                    //             child: CustomText(
+                    //               widget.name != null
+                    //                   ? GetStringUtils(widget.name!).capitalize
+                    //                   : '',
+                    //               color: Colors.black,
+                    //               fontWeight: FontWeight.bold,
+                    //               fontSize: 16,
+                    //             ),
+                    //           ),
+                    //           SizedBox(
+                    //             height: SizeConfig.size5,
+                    //           ),
+                    //           Row(
+                    //             mainAxisAlignment: MainAxisAlignment.center,
+                    //             crossAxisAlignment: CrossAxisAlignment.center,
+                    //             children: [
+                    //               CustomText(
+                    //                 AppStrings.group,
+                    //                 color: AppColors.grayText,
+                    //               ),
+                    //               CustomText(" • ", color: AppColors.grayText),
+                    //               CustomText(
+                    //                 "${members.length} ${AppStrings.members.tr}",
+                    //                 color: AppColors.grayText,
+                    //               )
+                    //             ],
+                    //           ),
+                    //           Row(
+                    //             crossAxisAlignment: CrossAxisAlignment.center,
+                    //             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    //             children: [
+                    //               // _groupFeature(
+                    //               //     icon: AppIconAssets.chat_call,
+                    //               //     title: 'Audio'),
+                    //               // _groupFeature(
+                    //               //     icon: AppIconAssets.chat_video_call,
+                    //               //     title: 'Video'),
+                    //             ],
+                    //           ),
+                    //           const SizedBox(height: 10),
+                    //         ],
+                    //       ),
+                    //     ),
+                    //   ],
+                    // ),
 
-                ],
+                    // SizedBox(
+                    //   height: SizeConfig.size12,
+                    // )
+
+                  ],
+                ),
               ),
             ),
           );
@@ -767,6 +879,85 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
           );
         }
       }),
+    );
+  }
+  Widget _groupBanner() {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        /// Banner Image
+        ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+          child: Image.network(
+            "",
+            height: 150,
+            width: double.infinity,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return Container(
+                height: 150,
+                width: double.infinity,
+                decoration: const BoxDecoration(
+                  color: AppColors.greyLite,
+                ),
+                child: const Center(
+                  child: Icon(
+                    Icons.image_not_supported_outlined,
+                    size: 40,
+                    color: Colors.grey,
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+
+        /// Avatar
+        Positioned(
+          left: 16,
+          bottom: -32,
+          child: CircleAvatar(
+            radius: 36,
+            backgroundColor: Colors.white,
+            child: CircleAvatar(
+              // backgroundColor: theme.colorScheme.primary,
+              radius: 32,
+              backgroundImage:  (chatViewController.editedGroupFile!=null)?
+              FileImage(chatViewController.editedGroupFile!) as ImageProvider:(widget.profileImage != null &&
+                  widget.profileImage!.trim().isNotEmpty)
+                  ? (widget.profileImage!.startsWith('http')
+                  ? NetworkImage(widget.profileImage!)
+                  : (File(widget.profileImage!).existsSync()
+                  ? FileImage(File(widget.profileImage!)) as ImageProvider
+                  : null))
+                  : null,
+              child:(widget.profileImage != null &&
+                  widget.profileImage!.trim().isNotEmpty &&
+                  (widget.profileImage!.startsWith('http') ||
+                      File(widget.profileImage!).existsSync()))
+                  ? null
+                  : (widget.name != null && widget.name!.isNotEmpty)
+                  ? Center(
+                child: CustomText(
+                  "${widget.name!.split('')[0]}",
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                  fontSize:32, // scale font with avatar
+                ),
+              )
+                  : Center(
+                child: Icon(
+                  Icons.person,
+                  color:AppColors.white,
+                  size: 24, // scale icon too
+                ),
+              ),
+            ),
+          ),
+        ),
+
+
+      ],
     );
   }
 
@@ -807,3 +998,28 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
     );
   }
 }
+//   InkWell(
+//                                         onTap: (){
+//                                           chatViewController.editedGroupFile=null;
+//                                           showEditGroupDialog(context);
+//                                         },
+//                                         child: Container(
+//                                           decoration: BoxDecoration(
+//                                             borderRadius: BorderRadius.circular(6),
+//                                             color: AppColors.primaryColor
+//                                           ),
+//                                           padding: EdgeInsets.symmetric(horizontal: 8,vertical: 4),
+//                                           child: Row(
+//                                             children: [
+//                                               LocalAssets(
+//                                                 imagePath: AppIconAssets.editIcon,
+//                                                 height: SizeConfig.size14,
+//                                                 width: SizeConfig.size14,
+//                                                 imgColor: Colors.white,
+//                                               ),
+//                                               SizedBox(width: 6,),
+//                                               CustomText("Edit",color: AppColors.white,),
+//                                             ],
+//                                           ),
+//                                         ),
+//                                       )
