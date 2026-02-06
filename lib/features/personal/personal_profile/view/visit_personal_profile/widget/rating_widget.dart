@@ -141,7 +141,7 @@ class _RatingSummaryWidgetState extends State<RatingSummaryWidget> {
   }
 
   void _openRateAndReviewSheet(BuildContext context) async {
-    final result = await showModalBottomSheet(
+    await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,

@@ -9,11 +9,6 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/cab_and_transport_partner/view/widgets/cab_transport_orders_widget.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
-import 'package:BlueEra/features/common/delivery_partner/view/address_location_riding_screen.dart';
-import 'package:BlueEra/features/common/delivery_partner/view/delivery_partner_orders/delivery_partner_orders.dart';
-import 'package:BlueEra/features/common/delivery_partner/view/personal_information_riding_screen.dart';
-import 'package:BlueEra/features/common/delivery_partner/view/rider_profile_status_screen.dart';
-import 'package:BlueEra/features/common/delivery_partner/view/vehicle_information_riding_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/account_setting_screen/account_settings_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/controller/earn_service_controller.dart';
@@ -119,16 +114,9 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
 
 
   Widget _buildRiderEnabled(BuildContext context) {
-    final stepStatus = deliveryPartnerController.stepStatus;
 
     // Check if all completed
-    final allCompleted = stepStatus.values.every((status) => status == true);
     // Find first incomplete step
-    final firstIncompleteEntry = stepStatus.entries
-        .where((entry) => entry.value == false)
-        .cast<MapEntry<RiderProfileStep, bool>>()
-        .toList()
-        .firstOrNull;
 
     // final firstIncompleteEntry = stepStatus.entries.firstWhere(
     //       (entry) => entry.value == false,

@@ -85,15 +85,15 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
       throw 'Could not launch dialer';
     }
   }
-
-  void _navigateToProfile({required String authorId}) {
-    // Navigator.push(context, MaterialPageRoute(builder: (context)=>ViewGroupMembers(
-    //   conversationId: widget.conversationId,
-    //   type: widget.type,
-    //   name: widget.name,
-    //   profileImage: widget.profileImage,
-    // )));
-  }
+  //
+  // void _navigateToProfile({required String authorId}) {
+  //   // Navigator.push(context, MaterialPageRoute(builder: (context)=>ViewGroupMembers(
+  //   //   conversationId: widget.conversationId,
+  //   //   type: widget.type,
+  //   //   name: widget.name,
+  //   //   profileImage: widget.profileImage,
+  //   // )));
+  // }
 
   @override
   Widget build(BuildContext context) {

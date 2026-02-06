@@ -2,7 +2,6 @@ import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:flutter/material.dart';
 
-import '../../../../../core/constants/app_strings.dart';
 import '../../../../../core/constants/size_config.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 import '../../../../../widgets/new_common_date_selection_dropdown.dart';

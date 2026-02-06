@@ -149,7 +149,6 @@ class _DeliveryPartnerOrdersState extends State<DeliveryPartnerOrders> {
 
                     log('firstIncomplete -- $firstIncomplete');
 
-                    String title = AppStrings.stepIncompleteTitle;
                     String message = "";
 
                     switch (firstIncomplete.key) {

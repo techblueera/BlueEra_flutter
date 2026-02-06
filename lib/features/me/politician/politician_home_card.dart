@@ -1,5 +1,4 @@
 
-import 'package:BlueEra/features/me/politician/widget/add_social_activity.dart';
 import 'package:BlueEra/features/me/politician/widget/politician_achivements_page.dart';
 import 'package:BlueEra/features/me/politician/widget/politician_activity_feed.dart';
 import 'package:BlueEra/features/me/politician/widget/politician_event_schedule.dart';

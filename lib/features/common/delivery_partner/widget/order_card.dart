@@ -519,8 +519,8 @@ class OrderCard extends StatelessWidget {
                         itemBuilder: (_, index) {
                           final item = items[index];
                           final product =
-                              item.productDetails.product.name ?? 'Item';
-                          final variant = item.productDetails.variantName ?? '';
+                              item.productDetails.product.name ;
+                          final variant = item.productDetails.variantName ;
 
                           return Container(
                             decoration: BoxDecoration(
