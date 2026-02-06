@@ -51,7 +51,7 @@ class AuthController extends GetxController {
   RxString isOtpType = "".obs;
   RxString errorMessage = "".obs;
   RxString categorySpecializationText = ''.obs;
-
+  RxBool isSearchOpen=false.obs;
   RxInt? selectedDay = 0.obs, selectedMonth = 0.obs, selectedYear = 0.obs;
 
   RxString selectedParentSlug = AppConstants.individual.obs;

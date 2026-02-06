@@ -17,6 +17,7 @@ import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/theme/themes.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/app_maintannace/app_maintenance_controller.dart';
+import 'package:BlueEra/features/app_maintannace/maintenance_screen.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/onboarding/view/splash_screen.dart';
 import 'package:BlueEra/widgets/global_message_service.dart';
@@ -247,24 +248,23 @@ class _MyAppState extends State<MyApp> {
           ],
         );
       },
-      home: SplashScreen()
-      // home: Obx(() {
-      //   // Still loading (null or loading flag)
-      //   if (appController.isLoading.value ||
-      //       appController.isInMaintenance.value == null) {
-      //     return const Scaffold(
-      //       body: Center(child: CircularProgressIndicator()),
-      //     );
-      //   }
-      //
-      //   // App under maintenance
-      //   if (appController.isInMaintenance.value == true) {
-      //     return const MaintenanceScreen();
-      //   }
-      //
-      //   // Normal operation → Go to your normal entry point
-      //   return const SplashScreen(); // or SplashScreen / whatever your entry route is
-      // }),
+      home: Obx(() {
+        // Still loading (null or loading flag)
+        if (appController.isLoading.value ||
+            appController.isInMaintenance.value == null) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        // App under maintenance
+        if (appController.isInMaintenance.value == true) {
+          return const MaintenanceScreen();
+        }
+
+        // Normal operation → Go to your normal entry point
+        return const SplashScreen(); // or SplashScreen / whatever your entry route is
+      }),
     );
   }
 }

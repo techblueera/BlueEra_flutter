@@ -1895,7 +1895,96 @@ final List<OnboardingCategoryModel> businessOnboardingProfilesCategory = [
       accountType: AppConstants.business,
       businessType: BusinessType.Manufacturing),
 ];
+final List<OnboardingCategoryModel> serviceContactCategories = [
+  OnboardingCategoryModel(
+      name: 'All Service',
+      slugId: ALL_PRODUCT_PROFILE,
+      icon: AppIconAssets.find_all_service,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Product),
+  ...findServiceByContactSubCate
+];
+final List<OnboardingCategoryModel> findServiceByContactSubCate = [
+  OnboardingCategoryModel(
+      name: 'Consulting',
+      slugId: CONSULTING_HR_SERVICE,
+      icon: AppImageAssets.find_consulting_img,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Service),
 
+  OnboardingCategoryModel(
+      name: 'Beauty',
+      slugId: BEAUTY_PERSONAL_CARE,
+      icon: AppImageAssets.find_beauty_care,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Service),
+  OnboardingCategoryModel(
+      name: 'Financial',
+      slugId: FINANCIAL_SERVICES,
+      icon: AppImageAssets.find_finance_service,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Service),
+  OnboardingCategoryModel(
+      name: 'Service Centre',
+      slugId: SERVICE_CENTRE_ESSENTIAL_UTILITY,
+      icon: AppImageAssets.find_service_center,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Service),
+  OnboardingCategoryModel(
+      name: 'Home & Utility',
+      slugId: HOME_SERVICES_UTILITY,
+      icon: OnboardingBusinessAssets.homeServiceAndUtility,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Service),
+  OnboardingCategoryModel(
+      name: 'IT & Comm',
+      slugId: IT_COMMUNICATION,
+      icon: AppImageAssets.find_it_and_comm,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Service),
+  OnboardingCategoryModel(
+      name: 'Publicity',
+      slugId: MEDIA_PUBLICITY_CREATIVE,
+      icon: AppImageAssets.find_publicity_img,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Service),
+  OnboardingCategoryModel(
+      name: 'Automotive',
+      slugId: AUTOMOTIVE_SERVICES,
+      icon: AppImageAssets.find_automative_img,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Service),
+  OnboardingCategoryModel(
+      name: 'Logistics',
+      slugId: LOGISTICS_TRANSPORTATION,
+      icon: AppImageAssets.find_logistics_img,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Service),
+  OnboardingCategoryModel(
+      name: 'Events',
+      slugId: CELEBRATION_EVENT_SERVICES,
+      icon: AppImageAssets.find_events_img,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Service),
+  OnboardingCategoryModel(
+      name: 'Tourism',
+      slugId: TOUR_TRAVEL_TOURISM,
+      icon: AppImageAssets.find_tourism_travel,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Service),
+  OnboardingCategoryModel(
+      name: 'Real Estate',
+      slugId: REAL_ESTATE_PROPERTY_SERVICES,
+      icon: AppImageAssets.find_real_estate_img,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Service),
+  OnboardingCategoryModel(
+      name: 'Quality Labs',
+      slugId: TECHNICAL_TESTING_QUALITY_SERVICE,
+      icon: AppImageAssets.find_quality_img,
+      accountType: AppConstants.business,
+      businessType: BusinessType.Service),
+];
 final List<OnboardingCategoryModel> businessOnboardingServicesCategories = [
   OnboardingCategoryModel(
       name: 'Consulting\nFirm / Org.',
@@ -2576,19 +2665,19 @@ final List<OnboardingCategoryModel> othersContactCategories = [
   OnboardingCategoryModel(
       name: 'Healthcare',
       slugId: HEALTHCARE_MEDICAL_SERVICES,
-      icon: OnboardingBusinessAssets.healthcareMedicalServices,
+      icon: AppImageAssets.find_heath_care,
       accountType: AppConstants.business,
       businessType: BusinessType.Healthcare),
   OnboardingCategoryModel(
       name: 'Hotels & Stay',
       slugId: HOTELS_STAY_SERVICE,
-      icon: OnboardingBusinessAssets.hostelsAndStayService,
+      icon: AppImageAssets.find_hotel_and_stay,
       accountType: AppConstants.business,
       businessType: BusinessType.Motel),
   OnboardingCategoryModel(
       name: 'Education',
       slugId: EDUCATION_TRAINING,
-      icon: OnboardingBusinessAssets.educationAndTraining,
+      icon: AppImageAssets.find_education_and_training,
       accountType: AppConstants.business,
       businessType: BusinessType.Siksha),
 

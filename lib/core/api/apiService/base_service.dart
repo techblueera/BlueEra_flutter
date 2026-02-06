@@ -672,6 +672,16 @@ abstract class BaseService {
   final String homeFoodContactUs = 'food-service/api/contact';
   final String homeFoodGallery = 'food-service/api/gallery';
 
+  //help and support
+
+  final String getFaqs = 'earn-service/help-support/faqs';
+  final String createQueries = 'earn-service/help-support/queries';
+  final String mediaUploadUrlEarn = 'earn-service/s3/generate-upload-urls?';
+  final String getMyReferralCode = 'wallet-service/referral/code';
+  final String getMyReferralHistory = 'wallet-service/referral/history';
+  String getQueriesById(String QueriesId) => 'earn-service/help-support/queries/$QueriesId';
+
+
   final String aiProfessionals = 'ai-service/api/ai-professional/generate-ai';
   final String professionalsFull = 'earn-service/professional/full';
   final String professionalsUpdate= 'earn-service/professional/update';

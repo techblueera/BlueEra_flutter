@@ -75,6 +75,8 @@ class User {
     this.skills,
     this.art,
     this.userLocation,
+    this.referral_points,
+    this.referral_code,
     this.profileType,
     this.schoolOrCollegeName,
     this.pincode
@@ -104,6 +106,8 @@ class User {
     location = json['location'];
     emailVerified = json['emailVerified'];
     introVideo = json['introVideo'];
+    referral_code = json['referral_code'];
+    referral_points = json['referral_points'].toString();
     objective = json['objective'];
     skills = json['skills'] != null ? json['skills'].cast<String>() : [];
     art = json['art'] != null ? new Art.fromJson(json['art']) : null;
@@ -119,6 +123,8 @@ class User {
   String? contactNo;
   String? profession;
   String? designation;
+  String? referral_points;
+  String? referral_code;
   String? sector;
   String? profileImage;
   String? coverPicture;
@@ -149,6 +155,8 @@ class User {
     map['contact_no'] = contactNo;
     map['profession'] = profession;
     map['designation'] = designation;
+    map['referral_code'] = referral_code;
+    map['referral_points'] = referral_points;
     map['sector'] = sector;
     map['profile_image'] = profileImage;
     map['coverPicture'] = coverPicture;

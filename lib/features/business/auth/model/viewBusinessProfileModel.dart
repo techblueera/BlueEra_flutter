@@ -64,6 +64,8 @@ class BusinessProfileDetails {
       this.closeTime,
       this.businessNumber,
       this.is_following,
+      this.referral_code,
+      this.referral_points,
       this.category_other,
       this.pincode,
       this.rating,
@@ -81,6 +83,8 @@ class BusinessProfileDetails {
     businessLocation = json['business_location'] != null ? BusinessLocation.fromJson(json['business_location']) : null;
     id = json['_id'];
     businessName = json['business_name'];
+    referral_code = json['referral_code'];
+    referral_points = json['referral_points'].toString();
     typeOfBusiness = json['type_of_business'];
     logo = json['logo'];
     coverimage = json['coverPicture'];
@@ -136,6 +140,8 @@ class BusinessProfileDetails {
   String? businessName;
   String? conversationId;
   String? typeOfBusiness;
+  String? referral_code;
+  String? referral_points;
   String? logo;
   String? coverimage;
   String? categoryOfBusiness;
@@ -182,6 +188,8 @@ class BusinessProfileDetails {
     }
     map['_id'] = id;
     map['pincode'] = pincode;
+    map['referral_points'] = referral_points;
+    map['referral_code'] = referral_code;
     map['username'] = username;
     map['category_other'] = category_other;
     map['business_name'] = businessName;

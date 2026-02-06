@@ -34,7 +34,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
 
   @override
   void initState() {
-    getDataApiCall();
+   // getDataApiCall();
 
     super.initState();
   }

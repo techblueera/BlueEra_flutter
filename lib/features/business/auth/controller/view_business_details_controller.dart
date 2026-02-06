@@ -89,6 +89,7 @@ class ViewBusinessDetailsController extends GetxController {
   RxDouble distanceFromKm = 0.0.obs;
   Rx<BusinessType>? selectedBusinessType = BusinessType.Both.obs;
   RxString? imagePath = "".obs;
+  RxString? referralId = "".obs;
   RxString? coverImage = "".obs;
   RxString conversationId = "".obs;
   RxString? otherUserId = "".obs;
@@ -161,6 +162,7 @@ class ViewBusinessDetailsController extends GetxController {
         await BusinessProfileRepo().viewParticularBusinessProfile();
     if (responseModel.isSuccess) {
       final data = responseModel.response?.data;
+
       businessProfileDetails = ViewBusinessProfileModel.fromJson(data);
 
       selectDay?.value =

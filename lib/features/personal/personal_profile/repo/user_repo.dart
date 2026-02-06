@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 
@@ -196,6 +198,84 @@ class UserRepo extends BaseService {
     );
     return response;
   }
+  //faq
+  Future<ResponseModel> getFaqsForHelp() async {
+    final response = await ApiBaseHelper().getHTTP(
+      getFaqs,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+  //quries
+  Future<ResponseModel> addFQueriesHelp(
+      {required Map<String, dynamic>? reqPar}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      createQueries,
+      onError: (error) {},
+      showProgress: false,
+      params: reqPar,
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 
+
+  Future<ResponseModel> getQueriesHelp() async {
+    final response = await ApiBaseHelper().getHTTP(
+      createQueries,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+  Future<ResponseModel> getQueriesByIdForHelp(String Qid) async {
+    final response = await ApiBaseHelper().getHTTP(
+      getQueriesById(Qid),
+      showProgress: true,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+  Future<ResponseModel> uploadUserImageDocument(Map<String,dynamic> params) async {
+    final response = await ApiBaseHelper().getHTTP(
+        mediaUploadUrlEarn,
+        params: params,
+        showProgress: false,
+        onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+
+  Future<ResponseModel> getMyReferralCodeApi() async {
+    final response = await ApiBaseHelper().getHTTP(
+        getMyReferralCode,
+        showProgress: false,
+        onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+
+  Future<ResponseModel> getMyReferralHistoryApi() async {
+    final response = await ApiBaseHelper().getHTTP(
+        getMyReferralHistory,
+        showProgress: false,
+        onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+
+
+
+  Future<ResponseModel?> uploadVideoToS3({required Function(double progress) onProgress, required File file, required String fileType, required String preSignedUrl}) async {
+    final response = await ApiBaseHelper().uploadVideoToS3(
+      preSignedUrl,
+      file: file,
+      fileType: fileType,
+      showProgress: false,
+      onProgress: onProgress,
+    );
+    return response;
+  }
 
 }
