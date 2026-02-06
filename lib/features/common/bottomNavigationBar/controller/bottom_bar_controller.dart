@@ -9,88 +9,42 @@ import 'package:BlueEra/features/common/auth/model/business_profile_category.dar
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:get/get.dart';
 
+import '../../auth/model/adminvideo_model.dart';
+
 class BottomBarController extends GetxController {
   RxInt currentIndex = 0.obs;
   void onChangeIndex(int index) => currentIndex.value = index;
-
+// already existing controller
+  final RxBool adminVideoLoading = false.obs;
+  final RxList<AdminVideo> adminVideos = <AdminVideo>[].obs;
 
 List<CategoryData> businessCategoriesList = [];
-// Future<void> getAllCategories() async {
-//
-//   businessCategoriesList = await HiveServices().getAllCategories() ?? await _fetchFromApi();
-//   log('[getAllCategories]  ${businessCategoriesList.length} items');
-//
-//   // single pass – Add Category Data
-//   for (final api in businessCategoriesList) {
-//     final list = _selectList(api.type);
-//     if (list == null) continue;
-//
-//     final idx = list.indexWhere((c) => c.slugId.toLowerCase() == (api.name ?? '').toLowerCase());
-//     if (idx != -1) {
-//       log('[slug] ${api.name}  ${list[idx].slugId} → ${api.id}');
-//       list[idx] = list[idx].copyWith(categoryData: api);
-//     }
-//   }
-//   log('[getAllCategories] slug update complete');
-// }
 
- Future<void> fetchAllAdminVideoApi() async {
-  try {
-    Map<String, dynamic> queryParams = {};
-    final res = await ChannelRepo().fetchAllAdminVideoRepo(queryParams: queryParams);
-    if (res.isSuccess) {
-      final data = CategoryModel.fromJson(res.response?.data).data ?? [];
 
+  Future<void> fetchAllAdminVideoApiMenu() async {
+    try {
+      adminVideoLoading.value = true;
+
+      final res = await ChannelRepo().fetchAllAdminVideoRepo(
+        queryParams: {},
+      );
+
+      if (res.isSuccess) {
+        // ✅ correct response model
+        final response =
+        AdminVideoResponse.fromJson(res.response?.data);
+
+        adminVideos.clear();
+        adminVideos.addAll(response.data ?? []);
+      } else {
+        commonSnackBar(
+          message: res.message ?? AppStrings.somethingWentWrong.tr,
+        );
+      }
+    } catch (e) {
+      log('[fetchAllAdminVideoApiMenu] $e');
+    } finally {
+      adminVideoLoading.value = false;
     }
-    commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong.tr);
-  } catch (e) {
-    log('[getAllCategories] $e');
   }
-}
-
-
-  // List<CategoryData> businessCategoriesList = [];
-  //
-  // Future<void> getAllCategories() async {
-  //
-  //   businessCategoriesList = await HiveServices().getAllCategories() ?? await _fetchFromApi();
-  //   log('[getAllCategories]  ${businessCategoriesList.length} items');
-  //
-  //   // single pass – Add Category Data
-  //   for (final api in businessCategoriesList) {
-  //     final list = _selectList(api.type);
-  //     if (list == null) continue;
-  //
-  //     final idx = list.indexWhere((c) => c.slugId.toLowerCase() == (api.name ?? '').toLowerCase());
-  //     if (idx != -1) {
-  //       log('[slug] ${api.name}  ${list[idx].slugId} → ${api.id}');
-  //       list[idx] = list[idx].copyWith(categoryData: api);
-  //     }
-  //   }
-  //   log('[getAllCategories] slug update complete');
-  // }
-  //
-  // Future<List<CategoryData>> _fetchFromApi() async {
-  //   try {
-  //     final res = await AuthRepo().getBusinessCategoriesRepo();
-  //     if (res.isSuccess) {
-  //       final data = CategoryModel.fromJson(res.response?.data).data ?? [];
-  //       await HiveServices().saveCategoryList(data);
-  //       return data;
-  //     }
-  //     commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong.tr);
-  //   } catch (e) {
-  //     log('[getAllCategories] $e');
-  //   }
-  //   return [];
-  // }
-  //
-  // List<BusinessProfileCategory>? _selectList(String? type) {
-  //   switch (type) {
-  //     case AppConstants.service: return businessServicesCategories;
-  //     case AppConstants.food:    return businessFoodsCategories;
-  //     case AppConstants.product: return businessProductsCategories;
-  //     default:                   return null;
-  //   }
-  // }
 }

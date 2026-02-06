@@ -248,23 +248,24 @@ class _MyAppState extends State<MyApp> {
           ],
         );
       },
-      home: Obx(() {
-        // Still loading (null or loading flag)
-        if (appController.isLoading.value ||
-            appController.isInMaintenance.value == null) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
-
-        // App under maintenance
-        if (appController.isInMaintenance.value == true) {
-          return const MaintenanceScreen();
-        }
-
-        // Normal operation → Go to your normal entry point
-        return const SplashScreen(); // or SplashScreen / whatever your entry route is
-      }),
+      home: SplashScreen()
+      // Obx(() {
+      //   // Still loading (null or loading flag)
+      //   if (appController.isLoading.value ||
+      //       appController.isInMaintenance.value == null) {
+      //     return const Scaffold(
+      //       body: Center(child: CircularProgressIndicator()),
+      //     );
+      //   }
+      //
+      //   // App under maintenance
+      //   if (appController.isInMaintenance.value == true) {
+      //     return const MaintenanceScreen();
+      //   }
+      //
+      //   // Normal operation → Go to your normal entry point
+      //   return const SplashScreen(); // or SplashScreen / whatever your entry route is
+      // }),
     );
   }
 }

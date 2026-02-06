@@ -654,6 +654,10 @@ class ApiKeys {
   static const batches  = 'batches';
   static const quantity  = 'quantity';
   static const categoryId  = 'categoryId';
+  static const subject  = 'subject';
+  static const priority  = 'priority';
+  static const attachments  = 'attachments';
+  static const mimeType  = 'mimeType';
 
 
 

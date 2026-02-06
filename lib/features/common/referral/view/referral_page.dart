@@ -2,15 +2,57 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get_core/src/get_main.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/getx_utils.dart';
+import '../../../../core/constants/shared_preference_utils.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../../../core/constants/snackbar_helper.dart';
 import '../../../../widgets/custom_text_cm.dart';
+import '../../../business/auth/controller/view_business_details_controller.dart';
+import '../../../personal/auth/controller/view_personal_details_controller.dart';
+import '../controller/referral_controller.dart';
 
 
-class ReferralPage extends StatelessWidget {
+class ReferralPage extends StatefulWidget {
   const ReferralPage({super.key});
+
+  @override
+  State<ReferralPage> createState() => _ReferralPageState();
+}
+
+class _ReferralPageState extends State<ReferralPage> {
+  final controller = getOrPut(()=>ReferralController());
+  final viewProfileController = getOrPut(() => ViewPersonalDetailsController());
+  final viewBusinessProfileController =  getOrPut(() =>ViewBusinessDetailsController());
+  String referralCode(){
+    if (accountTypeGlobal != "BUSINESS") {
+      return viewProfileController
+          .personalProfileDetails.value.user?.referral_code??'';
+    }else{
+      return
+        viewBusinessProfileController.businessProfileDetails?.data?.referral_code??"";
+    }
+  }  String referralPoint(){
+    if (accountTypeGlobal != "BUSINESS") {
+      return viewProfileController
+          .personalProfileDetails.value.user?.referral_points??'';
+    }else{
+      return
+        viewBusinessProfileController.businessProfileDetails?.data?.referral_points??"";
+    }
+  }
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+   // loadDetails();
+  }
+  void loadDetails()async{
+   // await controller.fetchMyReferralId();
+   await controller.getMyReferralHistoryApi();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,12 +73,15 @@ class ReferralPage extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
             SizedBox(height: SizeConfig.size12),
-            Expanded(
-              child: ListView.builder(
-                itemCount: 5,
-                itemBuilder: (context, index) => _referredUserCard(),
-              ),
+            Center(
+              child: CustomText("No Referral Record Found"),
             )
+            // Expanded(
+            //   child: ListView.builder(
+            //     itemCount: 5,
+            //     itemBuilder: (context, index) => _referredUserCard(),
+            //   ),
+            // )
           ],
         ),
       ),
@@ -68,7 +113,7 @@ class ReferralPage extends StatelessWidget {
           Row(mainAxisAlignment: MainAxisAlignment.center,
             children: [
               CustomText(
-                "REK003612",
+                "${referralCode()}",
                 fontSize: 28,
                 fontWeight: FontWeight.w700,
                 color: AppColors.primaryColor,
@@ -79,7 +124,7 @@ class ReferralPage extends StatelessWidget {
                   commonSnackBar(
                       message: AppStrings.referralCodeCopied);
 
-                  Clipboard.setData(ClipboardData(text: "REK003612"));
+                  Clipboard.setData(ClipboardData(text: "${referralCode()}"));
                 },
                 child: Icon(
                   Icons.copy,
@@ -93,8 +138,8 @@ class ReferralPage extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _subSummary(AppStrings.referralPoints, "120"),
-              _subSummary(AppStrings.referralCount, "12"),
+              _subSummary(AppStrings.referralPoints, "${referralPoint()}"),
+              _subSummary(AppStrings.referralCount, "0"),
             ],
           )
         ],

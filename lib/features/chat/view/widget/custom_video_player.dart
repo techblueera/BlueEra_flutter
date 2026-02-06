@@ -30,35 +30,36 @@ class _ChatCustomVideoPlayerState extends State<ChatCustomVideoPlayer> {
   late VideoPlayerController _controller;
   bool _initialized = false;
   final chatViewController = Get.find<ChatViewController>();
-
+  bool _hasError = false;
   @override
   void initState() {
     super.initState();
 
-    if(!(widget.videoUrl.contains('http'))){
-      _controller = VideoPlayerController.file(File(widget.videoUrl))
-        ..initialize().then((_) {
-          setState(() {
-            _initialized = true;
-          });
-        });
+    late Future<void> initFuture;
 
-    }else if (widget.isFromFile == true && widget.filePath != null) {
-      _controller = VideoPlayerController.file(widget.filePath!)
-        ..initialize().then((_) {
-          setState(() {
-            _initialized = true;
-          });
-        });
+    if (!widget.videoUrl.contains('http')) {
+      _controller = VideoPlayerController.file(File(widget.videoUrl));
+    } else if (widget.isFromFile == true && widget.filePath != null) {
+      _controller = VideoPlayerController.file(widget.filePath!);
     } else {
-      _controller = VideoPlayerController.network(widget.videoUrl)
-        ..initialize().then((_) {
-          setState(() {
-            _initialized = true;
-          });
-        });
+      _controller = VideoPlayerController.network(widget.videoUrl);
     }
-    
+
+    initFuture = _controller.initialize();
+
+    initFuture.then((_) {
+      if (!mounted) return;
+      setState(() {
+        _initialized = true;
+        _hasError = false;
+      });
+    }).catchError((e) {
+      if (!mounted) return;
+      setState(() {
+        _initialized = true; // stop loader
+        _hasError = true;
+      });
+    });
   }
 
 
@@ -76,7 +77,8 @@ class _ChatCustomVideoPlayerState extends State<ChatCustomVideoPlayer> {
         alignment: Alignment.center,
         child: ClipRRect(
           borderRadius: BorderRadius.circular(10),
-          child: ((widget.isFromFile == true)?true:_initialized)
+          child: (_hasError||_controller.value.hasError) ? _videoErrorWidget():
+          ((widget.isFromFile == true)?true:_initialized)
               ? Stack(
             children: [
               (widget.isFromComment??false)?Positioned(
@@ -149,13 +151,45 @@ class _ChatCustomVideoPlayerState extends State<ChatCustomVideoPlayer> {
           )
               : Container(
             color: Colors.white,
+                padding: EdgeInsets.symmetric(vertical: 18),
                 child: Stack(
                   children: [
-                    Center(child: Icon(Icons.play_arrow,size: 18,)),
+
+                    Positioned(
+                        bottom: 74,
+                        left: 0,
+                        right: 0,
+                        child: Icon(Icons.play_arrow,size: 18,)),
+                    Center(child: CircularProgressIndicator())
                   ],
                 ),
               ),
         ),
+      ),
+    );
+  }
+  Widget _videoErrorWidget() {
+    return Container(
+      color: Colors.black12,
+      alignment: Alignment.center,
+      padding: EdgeInsets.symmetric(vertical: 12),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: const [
+          Icon(
+            Icons.play_disabled,
+            color: AppColors.grayText,
+            size: 40,
+          ),
+          SizedBox(height: 6),
+          CustomText(
+            "Video unavailable",
+              color: AppColors.grayText,
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+
+          ),
+        ],
       ),
     );
   }

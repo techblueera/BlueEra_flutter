@@ -195,6 +195,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildCustomAppBar() {
     return CommonBackAppBar(
+      isDrawerMenu:true,
       isLeading: false,
       isMore: true,
       isSearch: true,

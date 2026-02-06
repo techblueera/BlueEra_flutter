@@ -25,7 +25,7 @@ class PaymentSettingScreen extends StatelessWidget {
               title: 'Payment Setting',
               isLeading: true,
             ),
-            body: SingleChildScrollView(
+            body: SingleChildScrollView (
               padding: EdgeInsets.all(SizeConfig.size16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

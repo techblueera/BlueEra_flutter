@@ -13,7 +13,11 @@ import 'package:get/get.dart';
 import '../../../../../core/api/model/support_model.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/app_icon_assets.dart';
-import 'help_and_support_controller.dart';
+import '../../../../../core/constants/getx_utils.dart';
+import '../../../../chat/auth/controller/chat_view_controller.dart';
+import '../../../../chat/view/ai_chat/view/ai_chat_screen.dart';
+import '../../../../chat/view/ai_chat/view/ask_chat_screen.dart';
+import '../../controller/help_and_support_controller.dart';
 
 class HelpAndSupportScreen extends StatefulWidget {
   const HelpAndSupportScreen({super.key});
@@ -23,7 +27,6 @@ class HelpAndSupportScreen extends StatefulWidget {
 }
 
 class _HelpAndSupportScreenState extends State<HelpAndSupportScreen> {
-  List<SupportCase> allList = [];
 
   @override
   Widget build(BuildContext context) {
@@ -31,16 +34,19 @@ class _HelpAndSupportScreenState extends State<HelpAndSupportScreen> {
       init: HelpAndSupportController(),
       builder: (helpController) {
         return Scaffold(
-          backgroundColor: Colors.grey[50],
+
           appBar: CommonBackAppBar(
             onBackTap: () {
+
               Navigator.pop(context);
             },
+            isShadowShow: false,
             title: AppStrings.helpAndSupport,
+
             isLeading: true,
           ),
           body: Padding(
-            padding: EdgeInsets.all(SizeConfig.size16),
+            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8,),
             child: Column(
               children: [
                 SizedBox(height: SizeConfig.size20),
@@ -48,10 +54,20 @@ class _HelpAndSupportScreenState extends State<HelpAndSupportScreen> {
                   AppIconAssets.helpIcon,
                   AppStrings.customerSupport,
                   () {
-                    Get.to(CustomerSupportScreen());
+                    // Get.to(CustomerSupportScreen());
+                    final chat =ChatViewController.personalAiChatModule;
+                    Get.to(()=> AiChatScreen(
+                      profileImage: chat?.sender?.profileImage,
+                      name: chat?.sender?.name,
+                      contactNo: chat?.sender?.contactNo,
+                      conversationId: '',
+                      userId: '',
+                      businessId: '',
+                      type: chat?.sender?.accountType,
+                      isInitialMessage: false,));
                   },
                 ),
-                SizedBox(height: SizeConfig.size20),
+                SizedBox(height: SizeConfig.size10),
                 _helpServiceCard(
                   AppIconAssets.mailIcon,
                   AppStrings.mailUs,
@@ -59,7 +75,7 @@ class _HelpAndSupportScreenState extends State<HelpAndSupportScreen> {
                     Get.to(HelpAndSupportFormScreen());
                   },
                 ),
-                SizedBox(height: SizeConfig.size20),
+                SizedBox(height: SizeConfig.size10),
                 _helpServiceCard(
                   AppIconAssets.queriIcon,
                   AppStrings.queries,
@@ -67,7 +83,15 @@ class _HelpAndSupportScreenState extends State<HelpAndSupportScreen> {
                     Get.to(QueriesCard());
                   },
                 ),
-                SizedBox(height: SizeConfig.size20),
+                SizedBox(height: SizeConfig.size10),
+                _helpServiceCard(
+                  AppIconAssets.queriIcon,
+                  "Complaint",
+                  () {
+                   // Get.to(QueriesCard());
+                  },
+                ),
+                SizedBox(height: SizeConfig.size10),
                 _helpServiceCard(
                   AppIconAssets.FAQIcon,
                   AppStrings.faq,
@@ -89,36 +113,36 @@ Widget _helpServiceCard(String value1, value2, GestureTapCallback? onTap) {
     onTap: onTap,
     child: Container(
       padding: EdgeInsets.symmetric(
-          vertical: SizeConfig.size4, horizontal: SizeConfig.size4),
+          vertical: SizeConfig.size16, horizontal: SizeConfig.size16),
       margin: EdgeInsets.symmetric(horizontal: 1),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
       ),
+
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
             children: [
               Container(
-                margin: EdgeInsets.all(SizeConfig.size10),
-                padding: EdgeInsets.all(SizeConfig.size10),
+                padding: EdgeInsets.all(SizeConfig.size16),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(100),
-                  color: AppColors.primaryColor.withValues(alpha: 0.3),
+                  color: AppColors.primaryColor.withValues(alpha: 0.2),
                 ),
                 child: SvgPicture.asset(
                   value1,
-                  height: 18,
-                  width: 18,
+                  height: 24,
+                  width: 24,
                 ),
               ),
-              SizedBox(width: SizeConfig.size10),
+              SizedBox(width: SizeConfig.size16),
               CustomText(
                 value2,
-                fontSize: SizeConfig.large,
-                fontWeight: FontWeight.w600,
-                color: Colors.black87,
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: Colors.black,
               ),
             ],
           ),

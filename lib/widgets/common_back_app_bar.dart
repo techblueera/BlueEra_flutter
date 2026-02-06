@@ -28,11 +28,13 @@ import 'package:get/get.dart';
 
 import '../../../../../core/constants/shared_preference_utils.dart';
 import '../features/business/visiting_card/view/business_own_profile_screen.dart';
+import '../features/common/home/widgets/drawer.dart';
 import '../features/me/medical/view/widget/add_product_common_dialog.dart';
+import '../features/me/politician/widget/add_politician_activity_event.dart';
+import '../features/me/politician/widget/add_social_activity.dart';
 
 class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const CommonBackAppBar({
-    super.key,
+  const CommonBackAppBar({super.key,
     this.title,
     this.isLeading = true,
     this.isFilter = false,
@@ -83,6 +85,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.onRefreshContact,
     this.onProfileTap,
     this.isPDFExport,
+    this.isDrawerMenu=false,
     this.onPDFExportTap,
     this.jobID,
     this.jobStatus,
@@ -107,14 +110,16 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.isCurrentAddress,
     this.onTabAcceptBtn,
     this.orderAcceptText,
+    this.backArrowColor,
     this.orderAcceptBgColor,
     this.orderAcceptBorderColor,
     this.orderAcceptTextColor,
     this.isRejectButton,
     this.rejectButton,
     this.isAddProductButton,
-    this.categoryId
-  });
+    this.isCreateButton,
+    this.isCreateEventBtn,
+    this.categoryId});
 
   // final AppBar? appBar;
   final String? title;
@@ -154,6 +159,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
   final OnTab? onQrCodeTap;
   final Color? appBarColor;
   final Color? actionTextColor;
+  final Color? backArrowColor;
   final bool? isTrimmedButton;
   final OnTab? onTrimmedTap;
   final bool? isSaveButton;
@@ -162,6 +168,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
   final OnTab? onClearNotificationsTap;
   final bool? isSettingButton;
   final bool? isAddPlace;
+  final bool? isDrawerMenu;
   final bool? isEndJourney;
   final OnTab? onEndJourneyTap;
   final OnTab? onAddPlaceTap;
@@ -199,6 +206,8 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Widget Function()? rejectButton;
   final String? categoryId;
   final bool? isAddProductButton;
+  final bool? isCreateButton;
+  final bool? isCreateEventBtn;
 
   @override
   Widget build(BuildContext context) {
@@ -212,279 +221,365 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
       centerTitle: (isLeading ?? false) ? true : false,
       title: Padding(
         padding: EdgeInsets.only(
-            // left: SizeConfig.paddingL,
+          // left: SizeConfig.paddingL,
             right: SizeConfig.paddingXSL,
             // top: SizeConfig.paddingXSL,
             bottom: SizeConfig.paddingXSL),
-        child: Row(
-          // mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (isLeading ?? false)
-              IconButton(
-                  padding: EdgeInsets.zero,
-                  onPressed: onBackTap ??
-                      () async {
-                        Navigator.of(context).pop();
-                      },
-                  icon: LocalAssets(
-                    imagePath: AppIconAssets.back_arrow,
-                    height: SizeConfig.paddingL,
-                    width: SizeConfig.paddingL,
-                    imgColor: Colors.black,
-                  )),
+        child: Obx(() {
+          bool isSearchOn=Get
+              .find<AuthController>()
+              .isSearchOpen
+              .value;
+          return Row(
+            // mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (isLeading ?? false)
+                IconButton(
+                    padding: EdgeInsets.zero,
+                    onPressed: onBackTap ??
+                            () async {
+                          Navigator.of(context).pop();
+                        },
+                    icon: LocalAssets(
+                      imagePath: AppIconAssets.back_arrow,
+                      height: SizeConfig.paddingL,
+                      width: SizeConfig.paddingL,
+                      imgColor:backArrowColor?? Colors.black,
+                    )),
 
-            // if (isLeading ?? false) SizedBox(width: SizeConfig.paddingXSL),
-            if (isProfile ?? false)
-              Builder(
-                builder: (context) {
-                  return InkWell(onTap: () {
-                    if (onProfileTap != null) {
-                      onProfileTap!();
-                    } else {
-                      if (isGuestUser()) {
-                        createProfileScreen();
-                      } else if (isIndividualUser()) {
-                        navigatePushTo(
-                            context, PersonalProfileSetupNewScreen());
-                      } else if (isBusinessUser()) {
-                        navigatePushTo(context, BusinessOwnProfileScreen());
-                      }
-                    }
-                  }, child: Obx(() {
-                    return Padding(
-                      padding: EdgeInsets.only(left: SizeConfig.size15),
-                      child: CachedAvatarWidget(
-                          imageUrl: Get.find<AuthController>().imgPath.value,
-                          size: SizeConfig.size30,
-                          borderRadius: 5.0,
-                          showProfileOnFullScreen: false),
-                    );
-                  }));
-                },
-              ),
-
-            if (isStoreProfile ?? false)
-              Builder(
-                builder: (BuildContext context) {
-                  return InkWell(
+              // if (isLeading ?? false) SizedBox(width: SizeConfig.paddingXSL),
+              if (isDrawerMenu ?? false)
+                Padding(
+                  padding: const EdgeInsets.only(left: 8.0),
+                  child: InkWell(
                     onTap: () {
-                      if (isGuestUser()) {
-                        createProfileScreen();
-                      } else if (isIndividualUser()) {
-                        Get.to(() => PersonalProfileSetupNewScreen());
-                      } else if (isBusinessUser()) {
-                        navigatePushTo(context, BusinessOwnProfileScreen());
-                      }
+                      Get.dialog(
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: SizedBox(
+                            width: Get.width * 0.65, // 👈 40% of screen
+                            height: double.infinity,
+                            child: Drawer(
+                              child: ProfileMenuDrawer(),
+                            ),
+                          ),
+                        ),
+                        barrierDismissible: true,
+                        barrierColor: Colors.black.withOpacity(0.3),
+                      );
                     },
-                    child: Padding(
+                    child: const Icon(
+                      Icons.menu_open,
+                      size: 28,
+                    ),
+                  ),
+                ),
+
+              if (isProfile ?? false)
+                Builder(
+                  builder: (context) {
+                    return InkWell(onTap: () {
+                      if (onProfileTap != null) {
+                        onProfileTap!();
+                      } else {
+                        if (isGuestUser()) {
+                          createProfileScreen();
+                        } else if (isIndividualUser()) {
+                          navigatePushTo(
+                              context, PersonalProfileSetupNewScreen());
+                        } else if (isBusinessUser()) {
+                          navigatePushTo(context, BusinessOwnProfileScreen());
+                        }
+                      }
+                    }, child: Obx(() {
+                      return Padding(
                         padding: EdgeInsets.only(left: SizeConfig.size15),
                         child: CachedAvatarWidget(
-                            imageUrl: userProfileGlobal,
+                            imageUrl: Get
+                                .find<AuthController>()
+                                .imgPath
+                                .value,
                             size: SizeConfig.size30,
-                            borderRadius: SizeConfig.size15,
-                            showProfileOnFullScreen: false)),
-                  );
-                },
-              ),
-
-            if (title?.isNotEmpty ?? false)
-              Flexible(
-                child: Padding(
-                  padding: EdgeInsets.only(
-                    top: SizeConfig.paddingXSL,
-                    bottom: SizeConfig.paddingXSL,
-                    left: (isLeading == true) ? 0 : SizeConfig.size20,
-                  ),
-                  child: CustomText(
-                    title ?? "",
-                    fontSize: SizeConfig.large,
-                    color: titleColor ?? AppColors.black,
-                    fontWeight: FontWeight.w600,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                            borderRadius: 5.0,
+                            showProfileOnFullScreen: false),
+                      );
+                    }));
+                  },
                 ),
-              ),
 
-            if (isSearch ?? false)
-              (controller == null)
-                  ? SizedBox()
-                  : Expanded(
+              if (isStoreProfile ?? false)
+                Builder(
+                  builder: (BuildContext context) {
+                    return InkWell(
+                      onTap: () {
+                        if (isGuestUser()) {
+                          createProfileScreen();
+                        } else if (isIndividualUser()) {
+                          Get.to(() => PersonalProfileSetupNewScreen());
+                        } else if (isBusinessUser()) {
+                          navigatePushTo(context, BusinessOwnProfileScreen());
+                        }
+                      },
                       child: Padding(
-                        padding: EdgeInsets.only(
-                            left:
-                                (isLeading ?? false) ? 0.0 : SizeConfig.size15),
-                        child: CommonSearchBar(
-                            controller: controller!,
-                            isShowCursor: isShowCursor,
-                            onSearchTap: onSearchTap ?? () {},
-                            onClearCallback: onClearCallback,
-                            hintText: searchHintText),
-                      ),
-                    ),
-
-            if (isGoLive ?? false)
-              Builder(
-                builder: (context) => Row(
-                  children: [
-                    isGoLiveWidget!(),
-                  ],
+                          padding: EdgeInsets.only(left: SizeConfig.size15),
+                          child: CachedAvatarWidget(
+                              imageUrl: userProfileGlobal,
+                              size: SizeConfig.size30,
+                              borderRadius: SizeConfig.size15,
+                              showProfileOnFullScreen: false)),
+                    );
+                  },
                 ),
-              ),
 
-            if (isLocation ?? false)
-              Builder(
-                builder: (context) => Container(
-                  height: SizeConfig.size45,
-                  width: SizeConfig.size45,
-                  margin: EdgeInsets.only(left: SizeConfig.size5),
-                  child: IconButton(
-                    onPressed: () {
-                      Navigator.pushNamed(
-                          context, RouteHelper.getCustomizeMapScreenRoute());
-                    },
-                    icon: LocalAssets(imagePath: AppIconAssets.earth),
+              if (title?.isNotEmpty ?? false)
+                Flexible(
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      top: SizeConfig.paddingXSL,
+                      bottom: SizeConfig.paddingXSL,
+                      left: (isLeading == true) ? 0 : SizeConfig.size20,
+                    ),
+                    child: CustomText(
+                      title ?? "",
+                      fontSize: SizeConfig.large,
+                      color: titleColor ?? AppColors.black,
+                      fontWeight: FontWeight.w600,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 ),
-              ),
 
-            if (isNotification ?? false)
-              Builder(builder: (context) {
-                return Padding(
-                  padding: EdgeInsets.only(left: SizeConfig.size15),
+              if(isSearch == true && Get
+                  .find<AuthController>()
+                  .isSearchOpen
+                  .value == false)
+                Spacer(),
+              if (isSearch ?? false)
+                if(controller == null)
+                  SizedBox()
+                else
+                  (Get
+                      .find<AuthController>()
+                      .isSearchOpen
+                      .value) ? Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.only(
+                          left:
+                          (isLeading ?? false) ? 0.0 : SizeConfig.size15),
+                      child: CommonSearchBar(
+                          controller: controller!,
+                          isShowCursor: isShowCursor,
+                          onSearchTap: onSearchTap ?? () {},
+                          onClearCallback: onClearCallback,
+                          hintText: searchHintText),
+                    ),
+                  ) : SizedBox(),
+
+              if(isSearch == true && isSearchOn==false)
+                InkWell(
+                    onTap: () {
+                      Get
+                          .find<AuthController>()
+                          .isSearchOpen
+                          .value = !Get
+                          .find<AuthController>()
+                          .isSearchOpen
+                          .value;
+                    },
+                    child: LocalAssets(
+                      imagePath: AppIconAssets.search, height: 28, width: 28,)),
+                if(isSearch == true &&isSearchOn)
+                  Padding(
+                  padding: EdgeInsetsGeometry.only(left: 12),
                   child: InkWell(
-                      onTap: () => onNotificationTap?.call(),
-                      child: LocalAssets(
-                          imagePath: AppIconAssets.notificationOutlineIcon)),
-                );
-              }),
-
-            if (iClearButton ?? false)
-              Builder(
-                builder: (context) => Padding(
-                  padding: EdgeInsets.only(left: SizeConfig.size10),
-                  child: IconButton(
-                    onPressed: onClearNotificationsTap ?? () {},
-                    icon: CustomText(
-                      AppStrings.clear,
-                      fontSize: SizeConfig.small,
-                      color: AppColors.primaryColor,
-                    ),
-                  ),
+                      onTap: () {
+                        Get
+                            .find<AuthController>()
+                            .isSearchOpen
+                            .value = !Get
+                            .find<AuthController>()
+                            .isSearchOpen
+                            .value;
+                      },
+                      child: Icon(Icons.search_off, size: 25,)),
                 ),
-              ),
-
-            if (isSettingButton ?? false)
-              Builder(
-                builder: (context) => Container(
-                  margin: EdgeInsets.only(left: SizeConfig.size10),
-                  height: SizeConfig.size30,
-                  width: SizeConfig.size30,
-                  child: IconButton(
-                    padding: EdgeInsets.zero,
-                    onPressed: () {},
-                    icon: LocalAssets(
-                      imagePath: AppIconAssets.settingIcon,
-                      imgColor: AppColors.black,
-                    ),
-                  ),
+              if (isGoLive ?? false)
+                Builder(
+                  builder: (context) =>
+                      Row(
+                        children: [
+                          isGoLiveWidget!(),
+                        ],
+                      ),
                 ),
-              ),
 
-            if (isMore ?? false)
-              PopupMenuButton<PostCreationMenu>(
-                padding: EdgeInsets.zero,
-                offset: const Offset(-6, 36),
-                color: AppColors.white,
-                elevation: 8,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
-                onSelected: (value) async {
-                  if (isGuestUser()) {
-                    createProfileScreen();
-                  } else if (/*value == PostCreationMenu.videos ||
+              if (isLocation ?? false)
+                Builder(
+                  builder: (context) =>
+                      Container(
+                        height: SizeConfig.size45,
+                        width: SizeConfig.size45,
+                        margin: EdgeInsets.only(left: SizeConfig.size5),
+                        child: IconButton(
+                          onPressed: () {
+                            Navigator.pushNamed(
+                                context,
+                                RouteHelper.getCustomizeMapScreenRoute());
+                          },
+                          icon: LocalAssets(imagePath: AppIconAssets.earth),
+                        ),
+                      ),
+                ),
+
+              if (isNotification == true && Get
+                  .find<AuthController>()
+                  .isSearchOpen
+                  .value == false)
+                Builder(builder: (context) {
+                  return Padding(
+                    padding: EdgeInsets.only(left: SizeConfig.size15),
+                    child: InkWell(
+                        onTap: () => onNotificationTap?.call(),
+                        child: LocalAssets(
+                            imagePath: AppIconAssets.notificationOutlineIcon)),
+                  );
+                }),
+
+              if (iClearButton ?? false)
+                Builder(
+                  builder: (context) =>
+                      Padding(
+                        padding: EdgeInsets.only(left: SizeConfig.size10),
+                        child: IconButton(
+                          onPressed: onClearNotificationsTap ?? () {},
+                          icon: CustomText(
+                            AppStrings.clear,
+                            fontSize: SizeConfig.small,
+                            color: AppColors.primaryColor,
+                          ),
+                        ),
+                      ),
+                ),
+
+              if (isSettingButton ?? false)
+                Builder(
+                  builder: (context) =>
+                      Container(
+                        margin: EdgeInsets.only(left: SizeConfig.size10),
+                        height: SizeConfig.size30,
+                        width: SizeConfig.size30,
+                        child: IconButton(
+                          padding: EdgeInsets.zero,
+                          onPressed: () {},
+                          icon: LocalAssets(
+                            imagePath: AppIconAssets.settingIcon,
+                            imgColor: AppColors.black,
+                          ),
+                        ),
+                      ),
+                ),
+
+              if (isMore ?? false)
+                PopupMenuButton<PostCreationMenu>(
+                  padding: EdgeInsets.zero,
+                  offset: const Offset(-6, 36),
+                  color: AppColors.white,
+                  elevation: 8,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                  onSelected: (value) async {
+                    if (isGuestUser()) {
+                      createProfileScreen();
+                    } else if (/*value == PostCreationMenu.videos ||
                       value == PostCreationMenu.photos ||*/
-                      value == PostCreationMenu.message ||
-                          value == PostCreationMenu.poll) {
-                    postVia(context, value);
-                  } else if (value == PostCreationMenu.jobPost) {
-                    Get.toNamed(RouteHelper.getCreateJobPostScreenRoute(),
-                        arguments: {
-                          'isEditMode': false,
-                          'jobId': '',
-                          'createJobVia': 'business',
-                        });
-                  }
-                },
-                icon: LocalAssets(imagePath: AppIconAssets.addOutlinedIcon),
-                itemBuilder: (context) => popupMenuItems(),
-              ),
-
-            if (isResumeCardButton ?? false)
-              PopupMenuButton<String>(
-                padding: EdgeInsets.zero,
-                offset: const Offset(-6, 36),
-                color: AppColors.white,
-                elevation: 8,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
-                onSelected: (value) {},
-                icon: LocalAssets(imagePath: AppIconAssets.resumeCardIcon),
-                itemBuilder: (context) => popupMenuResumeCardItems(),
-              ),
-
-            if (isGuestLogout ?? false)
-              Builder(
-                builder: (context) => Container(
-                  height: SizeConfig.size30,
-                  width: SizeConfig.size30,
-                  margin: EdgeInsets.only(right: SizeConfig.size20),
-                  child: IconButton(
-                    padding: EdgeInsets.symmetric(horizontal: SizeConfig.size5),
-                    onPressed: () async {
-                      await showCommonDialog(
-                          context: context,
-                          text: AppStrings.logoutConfirmationMessage,
-                          confirmCallback: () async {
-                            await SharedPreferenceUtils.clearPreference();
-                            Navigator.of(context).pushNamedAndRemoveUntil(
-                                RouteHelper.getMobileNumberLoginRoute(),
-                                (Route<dynamic> route) => false);
-                          },
-                          cancelCallback: () {
-                            Navigator.of(context).pop(); // Close the dialog
-                          },
-                          confirmText: AppStrings.yes,
-                          cancelText: AppStrings.no);
-                    },
-                    icon: LocalAssets(
-                      imagePath: AppIconAssets.logout_new,
-                      // height: SizeConfig.size15,
-                      // width: SizeConfig.size15,
-                    ),
-                  ),
+                    value == PostCreationMenu.message ||
+                        value == PostCreationMenu.poll) {
+                      postVia(context, value);
+                    } else if (value == PostCreationMenu.jobPost) {
+                      Get.toNamed(RouteHelper.getCreateJobPostScreenRoute(),
+                          arguments: {
+                            'isEditMode': false,
+                            'jobId': '',
+                            'createJobVia': 'business',
+                          });
+                    }
+                  },
+                  icon: LocalAssets(imagePath: AppIconAssets.addOutlinedIcon),
+                  itemBuilder: (context) => popupMenuItems(),
                 ),
-              ),
 
-            if (isInventoryPopUpMenu ?? false)
-              PopupMenuButton<String>(
-                padding: EdgeInsets.zero,
-                offset: const Offset(-6, 36),
-                color: AppColors.white,
-                elevation: 8,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
-                icon: Icon(Icons.more_vert),
-                itemBuilder: (context) => inventoryPopupMenuItems(),
-              ),
-          ],
-        ),
+              if (isResumeCardButton ?? false)
+                PopupMenuButton<String>(
+                  padding: EdgeInsets.zero,
+                  offset: const Offset(-6, 36),
+                  color: AppColors.white,
+                  elevation: 8,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                  onSelected: (value) {},
+                  icon: LocalAssets(imagePath: AppIconAssets.resumeCardIcon),
+                  itemBuilder: (context) => popupMenuResumeCardItems(),
+                ),
+
+              if (isGuestLogout ?? false)
+                Builder(
+                  builder: (context) =>
+                      Container(
+                        height: SizeConfig.size30,
+                        width: SizeConfig.size30,
+                        margin: EdgeInsets.only(right: SizeConfig.size20),
+                        child: IconButton(
+                          padding: EdgeInsets.symmetric(
+                              horizontal: SizeConfig.size5),
+                          onPressed: () async {
+                            await showCommonDialog(
+                                context: context,
+                                text: AppStrings.logoutConfirmationMessage,
+                                confirmCallback: () async {
+                                  await SharedPreferenceUtils.clearPreference();
+                                  Navigator.of(context).pushNamedAndRemoveUntil(
+                                      RouteHelper.getMobileNumberLoginRoute(),
+                                          (Route<dynamic> route) => false);
+                                },
+                                cancelCallback: () {
+                                  Navigator
+                                      .of(context)
+                                      .pop(); // Close the dialog
+                                },
+                                confirmText: AppStrings.yes,
+                                cancelText: AppStrings.no);
+                          },
+                          icon: LocalAssets(
+                            imagePath: AppIconAssets.logout_new,
+                            // height: SizeConfig.size15,
+                            // width: SizeConfig.size15,
+                          ),
+                        ),
+                      ),
+                ),
+
+              if (isInventoryPopUpMenu ?? false)
+                PopupMenuButton<String>(
+                  padding: EdgeInsets.zero,
+                  offset: const Offset(-6, 36),
+                  color: AppColors.white,
+                  elevation: 8,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                  icon: Icon(Icons.more_vert),
+                  itemBuilder: (context) => inventoryPopupMenuItems(),
+                ),
+            ],
+          );
+        }),
       ),
       actions: [
-        if (actionText?.isNotEmpty ?? false) Padding(
-          padding: const EdgeInsets.only(right: 25),
-          child: CustomText(actionText),
-        ),
+        if (actionText?.isNotEmpty ?? false)
+          Padding(
+            padding: const EdgeInsets.only(right: 25),
+            child: CustomText(actionText),
+          ),
         if (isRejectButton ?? false)
           Builder(
             builder: (context) => rejectButton!(),
@@ -495,110 +590,118 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
           ),
         if (isLogout ?? false)
           Builder(
-            builder: (context) => Container(
-              height: SizeConfig.size30,
-              width: SizeConfig.size30,
-              margin: EdgeInsets.only(right: SizeConfig.size20),
-              child: IconButton(
-                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size5),
-                onPressed: () async {
-                  Get.to(() => ProfileSettingsNewScreen());
-                },
-                icon: LocalAssets(
-                  imagePath: AppIconAssets.more_setting,
-                  imgColor: AppColors.black,
+            builder: (context) =>
+                Container(
+                  height: SizeConfig.size30,
+                  width: SizeConfig.size30,
+                  margin: EdgeInsets.only(right: SizeConfig.size20),
+                  child: IconButton(
+                    padding: EdgeInsets.symmetric(horizontal: SizeConfig.size5),
+                    onPressed: () async {
+                      Get.to(() => ProfileSettingsNewScreen());
+                    },
+                    icon: LocalAssets(
+                      imagePath: AppIconAssets.more_setting,
+                      imgColor: AppColors.black,
+                    ),
+                  ),
                 ),
-              ),
-            ),
           ),
         if (isShareButton ?? false)
           Builder(
-            builder: (context) => Container(
-              height: SizeConfig.size30,
-              width: SizeConfig.size30,
-              margin: EdgeInsets.only(right: SizeConfig.size20),
-              child: IconButton(
-                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size5),
-                onPressed: onShareTap ?? () {},
-                icon: LocalAssets(
-                  imagePath: AppIconAssets.share,
-                  height: SizeConfig.size15,
-                  width: SizeConfig.size15,
+            builder: (context) =>
+                Container(
+                  height: SizeConfig.size30,
+                  width: SizeConfig.size30,
+                  margin: EdgeInsets.only(right: SizeConfig.size20),
+                  child: IconButton(
+                    padding: EdgeInsets.symmetric(horizontal: SizeConfig.size5),
+                    onPressed: onShareTap ?? () {},
+                    icon: LocalAssets(
+                      imagePath: AppIconAssets.share,
+                      height: SizeConfig.size15,
+                      width: SizeConfig.size15,
+                    ),
+                  ),
                 ),
-              ),
-            ),
           ),
         if (isTrimmedButton ?? false)
           Builder(
-            builder: (context) => Container(
-              height: SizeConfig.size30,
-              width: SizeConfig.size30,
-              margin: EdgeInsets.only(right: SizeConfig.size20),
-              child: IconButton(
-                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size5),
-                onPressed: onTrimmedTap ?? () {},
-                icon: LocalAssets(
-                  imagePath: AppIconAssets.trimmedIcon,
+            builder: (context) =>
+                Container(
                   height: SizeConfig.size30,
                   width: SizeConfig.size30,
-                  imgColor: AppColors.black,
+                  margin: EdgeInsets.only(right: SizeConfig.size20),
+                  child: IconButton(
+                    padding: EdgeInsets.symmetric(horizontal: SizeConfig.size5),
+                    onPressed: onTrimmedTap ?? () {},
+                    icon: LocalAssets(
+                      imagePath: AppIconAssets.trimmedIcon,
+                      height: SizeConfig.size30,
+                      width: SizeConfig.size30,
+                      imgColor: AppColors.black,
+                    ),
+                  ),
                 ),
-              ),
-            ),
           ),
         if (isSaveButton ?? false)
           Builder(
-            builder: (context) => Padding(
-              padding: EdgeInsets.only(right: SizeConfig.size20),
-              child: CustomBtn(
-                width: SizeConfig.size90,
-                height: SizeConfig.size30,
-                onTap: onSavedTap ?? () {},
-                title: AppStrings.save,
-                isValidate: true,
-              ),
-            ),
+            builder: (context) =>
+                Padding(
+                  padding: EdgeInsets.only(right: SizeConfig.size20),
+                  child: CustomBtn(
+                    width: SizeConfig.size90,
+                    height: SizeConfig.size30,
+                    onTap: onSavedTap ?? () {},
+                    title: AppStrings.save,
+                    isValidate: true,
+                  ),
+                ),
           ),
         if (isCancelButton ?? false)
           Builder(
-            builder: (context) => InkWell(
-              onTap: onCancelTap ?? () {},
-              child: Padding(
-                padding: EdgeInsets.only(right: SizeConfig.size10),
-                child: CustomText(
-                  AppStrings.cancel,
-                  fontSize: SizeConfig.medium,
-                  color: AppColors.primaryColor,
+            builder: (context) =>
+                InkWell(
+                  onTap: onCancelTap ?? () {},
+                  child: Padding(
+                    padding: EdgeInsets.only(right: SizeConfig.size10),
+                    child: CustomText(
+                      AppStrings.cancel,
+                      fontSize: SizeConfig.medium,
+                      color: AppColors.primaryColor,
+                    ),
+                  ),
                 ),
-              ),
-            ),
           ),
         if (isAddPlace ?? false)
           Builder(
-            builder: (context) => Padding(
-              padding: EdgeInsets.only(right: SizeConfig.size20),
-              child: commonButtonWithIcon(
-                  height: SizeConfig.size30,
-                  width: SizeConfig.size110,
-                  onTap: onAddPlaceTap ?? () {},
-                  title: "Add Place",
-                  icon: AppIconAssets.add,
-                  borderColor: AppColors.primaryColor,
-                  textColor: AppColors.primaryColor,
-                  iconColor: AppColors.primaryColor,
-                  isPrefix: true),
-            ),
+            builder: (context) =>
+                Padding(
+                  padding: EdgeInsets.only(right: SizeConfig.size20),
+                  child: commonButtonWithIcon(
+                      height: SizeConfig.size30,
+                      width: SizeConfig.size110,
+                      onTap: onAddPlaceTap ?? () {},
+                      title: "Add Place",
+                      icon: AppIconAssets.add,
+                      borderColor: AppColors.primaryColor,
+                      textColor: AppColors.primaryColor,
+                      iconColor: AppColors.primaryColor,
+                      isPrefix: true),
+                ),
           ),
         if (isEndJourney ?? false)
           Builder(
-            builder: (context) => Padding(
-              padding: EdgeInsets.only(right: SizeConfig.size20),
-              child: PositiveCustomBtn(
-                  padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
-                  width: SizeConfig.screenWidth / 3,
-                  onTap: onEndJourneyTap ?? () {},
-                  title: "End journey"),
-            ),
+            builder: (context) =>
+                Padding(
+                  padding: EdgeInsets.only(right: SizeConfig.size20),
+                  child: PositiveCustomBtn(
+                      padding: EdgeInsets.symmetric(
+                          horizontal: SizeConfig.size10),
+                      width: SizeConfig.screenWidth / 3,
+                      onTap: onEndJourneyTap ?? () {},
+                      title: "End journey"),
+                ),
           ),
         if (isReloadContactButton ?? false)
           Padding(
@@ -634,7 +737,8 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
             ),
-            itemBuilder: (context) => [
+            itemBuilder: (context) =>
+            [
               PopupMenuItem(
                 value: AppConstants.exportPDF,
                 child: CustomText(
@@ -689,30 +793,31 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
           ),
         if (isCurrentAddress ?? false)
           Builder(
-            builder: (context) => Expanded(
-              child: Padding(
-                padding: EdgeInsets.only(left: SizeConfig.size15),
-                child: Row(children: [
-                  LocalAssets(
-                    imagePath: AppIconAssets.currentLocationIcon,
-                    height: SizeConfig.size24,
-                    width: SizeConfig.size24,
+            builder: (context) =>
+                Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.only(left: SizeConfig.size15),
+                    child: Row(children: [
+                      LocalAssets(
+                        imagePath: AppIconAssets.currentLocationIcon,
+                        height: SizeConfig.size24,
+                        width: SizeConfig.size24,
+                      ),
+                      SizedBox(width: SizeConfig.size10),
+                      CustomText(
+                        [
+                          LocationService.userCurrentAddress.value.city,
+                          LocationService.userCurrentAddress.value.state,
+                        ].where((e) => e.isNotEmpty).join(', '),
+                        fontSize: SizeConfig.large,
+                        color: AppColors.primaryColor,
+                        fontWeight: FontWeight.w600,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ]),
                   ),
-                  SizedBox(width: SizeConfig.size10),
-                  CustomText(
-                    [
-                      LocationService.userCurrentAddress.value.city,
-                      LocationService.userCurrentAddress.value.state,
-                    ].where((e) => e.isNotEmpty).join(', '),
-                    fontSize: SizeConfig.large,
-                    color: AppColors.primaryColor,
-                    fontWeight: FontWeight.w600,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ]),
-              ),
-            ),
+                ),
           ),
         if (isShowMoreInfoIcon ?? false)
           Padding(
@@ -751,20 +856,70 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
           ),
         if (isAddProductButton ?? false)
-        Padding(
-          padding: const EdgeInsets.only(right: 10.0),
-          child: CustomBtn(
-            width: 80,
-            isValidate: true,
+          Padding(
+            padding: const EdgeInsets.only(right: 10.0),
+            child: CustomBtn(
+              width: 80,
+              isValidate: true,
+              onTap: () {
+                AddProductCommonDialog.showAddProduct(
+                  context: context,
+                  categoryId: categoryId ?? "",
+                );
+              },
+              title: "Add Product",
+            ),
+          ),
+        if (isCreateButton ?? false)
+
+          InkWell(
             onTap: () {
-              AddProductCommonDialog.showAddProduct(
+              Get.to(() => SocialActivityForm());
+            },
+            child: Container(
+              margin: EdgeInsets.only(right: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.primaryColor),
+              ),
+              child: CustomText(
+                "Create New",
+                color: AppColors.primaryColor,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        if(isCreateEventBtn ?? false)
+          InkWell(
+            onTap: () {
+              showModalBottomSheet(
                 context: context,
-                categoryId:categoryId??"",
+                isScrollControlled: true,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                ),
+                builder: (_) => const AddPoliticianActivityEvent(),
               );
             },
-            title: "Add Product",
+            child: Container(
+              width: 94,
+              height: 34,
+              // padding: EdgeInsets.all(10),
+              margin: EdgeInsets.only(right:
+              10),
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.primaryColor)
+              ),
+              child: Center(
+                child: CustomText(
+                  "Create Event", color: AppColors.primaryColor,),
+              ),
+            ),
           ),
-        ),
+
       ],
       bottom: bottomWidget,
     );
@@ -782,7 +937,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
 
       if (response.statusCode == 200) {
         JourneyStatusModel journeyStatusModel =
-            JourneyStatusModel.fromJson(response.response?.data);
+        JourneyStatusModel.fromJson(response.response?.data);
         return journeyStatusModel;
       } else {
         return null;

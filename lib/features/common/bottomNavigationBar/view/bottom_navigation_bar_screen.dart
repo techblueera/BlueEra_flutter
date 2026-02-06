@@ -120,9 +120,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     // _fetchAllAdminVideos();
   }
 
-  void _fetchAllAdminVideos(){
-    bottomBarController.fetchAllAdminVideoApi();
-  }
+
 
   Future<void> checkByRiderCall() async {
     String? orderId = await getCurrentCall();

@@ -666,4 +666,14 @@ abstract class BaseService {
   final String otherKitchenInventory = 'food-service/api/kitchen-inventory';
   final String homeFood = 'food-service/api/home/';
 
+  //help and support
+
+  final String getFaqs = 'earn-service/help-support/faqs';
+  final String createQueries = 'earn-service/help-support/queries';
+  final String mediaUploadUrlEarn = 'earn-service/s3/generate-upload-urls?';
+  final String getMyReferralCode = 'wallet-service/referral/code';
+  final String getMyReferralHistory = 'wallet-service/referral/history';
+  String getQueriesById(String QueriesId) => 'earn-service/help-support/queries/$QueriesId';
+
+
 }
