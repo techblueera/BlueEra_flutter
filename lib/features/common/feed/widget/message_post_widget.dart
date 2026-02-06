@@ -9,6 +9,7 @@ import 'package:BlueEra/core/constants/block_report_selection_dialog.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/constants/translator_function.dart';
 import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile_new.dart';
@@ -39,6 +40,11 @@ import 'package:get/get.dart';
 
 import '../../../../core/constants/shared_preference_utils.dart';
 import 'social_message_post_grid_widget.dart';
+
+bool shouldShowTranslate(String text) {
+  // Returns true if the text contains non-English characters
+  return RegExp(r'[^\x00-\x7F]+').hasMatch(text);
+}
 
 class MessagePostWidget extends StatefulWidget {
   final Post? post;
@@ -81,7 +87,9 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
   void initState() {
     super.initState();
     videoData = getVideoData(widget.post!);
+
     updateData();
+
   }
 
   @override
@@ -97,9 +105,20 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
     subTitle = _post.subTitle ?? '';
     natureOfPost = _post.natureOfPost ?? '';
   }
-
+  // final transController = Get.put(FeedTranslationController(), );
   @override
   Widget build(BuildContext context) {
+// Use Get.put with a unique tag for each post
+    final transController = Get.put(
+      FeedTranslationController(),
+      tag: _post.id.toString(),
+    );
+
+    // Initialize data BEFORE returning the widget tree
+    // Use a check to prevent overwriting if the widget rebuilds
+    if (transController.originalText.isEmpty) {
+      transController.loadText(subTitle.trim());
+    }
     return IgnorePointer(
       ignoring: widget.isRepost == true ? true : false,
       child: InkWell(
@@ -141,7 +160,56 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                               ),
                             ),
                           ],
+                          // Inside your Column
+                          // ... inside your Widget tree
                           if (subTitle.isNotEmpty) ...[
+                            Obx(() => Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: EdgeInsets.only(left: SizeConfig.size15, right: SizeConfig.size15),
+                                  child: ExpandableText(
+                                    // Use the text from the controller
+                                    text: transController.currentText.value,
+                                    trimLines: 5,
+                                    expandMode: ExpandMode.dialog,
+                                    style: TextStyle(
+                                        color: AppColors.mainTextColor,
+                                        fontFamily: AppConstants.OpenSans,
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: SizeConfig.size15),
+                                  ),
+                                ),
+
+                                // Show Translate Option if NOT English OR if already translated (to allow toggle back)
+                                if (!transController.translator.isEnglishText(subTitle) || transController.isTranslated.value)
+                                  Padding(
+                                    padding: EdgeInsets.only(left: SizeConfig.size15, top: 4),
+                                    child: InkWell(
+                                      onTap: () => transController.toggleTranslation(),
+                                      child: transController.isLoading.value
+                                          ? SizedBox(
+                                          height: 12,
+                                          width: 12,
+                                          child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primaryColor)
+                                      )
+                                          : Text(
+                                        transController.isTranslated.value
+                                            ? "Show Original"
+                                            : "Translate to English",
+                                        style: TextStyle(
+                                            color: AppColors.primaryColor,
+                                            fontSize: SizeConfig.size12,
+                                            fontWeight: FontWeight.bold
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            )),
+                            SizedBox(height: SizeConfig.size5),
+                          ],
+                          /*  if (subTitle.isNotEmpty) ...[
                             Container(
                               child: Padding(
                                 padding: EdgeInsets.only(
@@ -163,7 +231,7 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                             SizedBox(
                               height: SizeConfig.size5,
                             ),
-                          ],
+                          ],*/
                         ],
                       ),
                       if (_post.referenceLink?.isNotEmpty ?? false)
@@ -670,8 +738,8 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                                         if (responseModel
                                                             .isSuccess) {
                                                           commonSnackBar(
-                                                              message:
-                                                              AppStrings.repostedSuccessfully);
+                                                              message: AppStrings
+                                                                  .repostedSuccessfully);
                                                           Get.find<
                                                                   NavigationHelperController>()
                                                               .shouldRefreshBottomBar
@@ -683,8 +751,8 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                                                   .getBottomNavigationBarScreenRoute());
                                                         } else {
                                                           commonSnackBar(
-                                                              message:
-                                                              AppStrings.alreadyReposted);
+                                                              message: AppStrings
+                                                                  .alreadyReposted);
                                                         }
                                                       },
                                                       child: Row(
@@ -720,7 +788,8 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                                                               .size10),
                                                                   child:
                                                                       CustomText(
-                                                                        AppStrings.Repost,
+                                                                    AppStrings
+                                                                        .Repost,
                                                                     textAlign:
                                                                         TextAlign
                                                                             .left,
@@ -739,7 +808,8 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                                                               .size10),
                                                                   child:
                                                                       CustomText(
-                                                                        AppStrings.sharePostWithFollowers,
+                                                                    AppStrings
+                                                                        .sharePostWithFollowers,
                                                                     textAlign:
                                                                         TextAlign
                                                                             .left,
@@ -811,7 +881,8 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                                                               .size10),
                                                                   child:
                                                                       CustomText(
-                                                                    AppStrings.addYourThings,
+                                                                    AppStrings
+                                                                        .addYourThings,
                                                                     textAlign:
                                                                         TextAlign
                                                                             .left,
@@ -830,7 +901,8 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                                                               .size10),
                                                                   child:
                                                                       CustomText(
-                                                                        AppStrings.addCommentBeforeShare,
+                                                                    AppStrings
+                                                                        .addCommentBeforeShare,
                                                                     textAlign:
                                                                         TextAlign
                                                                             .left,

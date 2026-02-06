@@ -109,7 +109,7 @@ class JobSeekerPortfolioProfessionalsController extends GetxController {
 
       ResponseModel response;
       if (editingCertificateId.value == null) {
-        response = await _repo.addJobPortfolioResume(
+        response = await _repo.addEntity1(
             params: payload, imagePath: selectedFile.value?.path);
       } else {
         response = await _repo.updateJobPortfolioResume(
@@ -117,6 +117,7 @@ class JobSeekerPortfolioProfessionalsController extends GetxController {
             params: payload,
             imagePath: selectedFile.value?.path);
       }
+      // [log] RUN TIME TYPE MultipartFile
 
       if (response.isSuccess) {
         callAPIGetResume();

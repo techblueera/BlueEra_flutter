@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
 import 'package:BlueEra/core/api/apiService/base_service.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:dio/dio.dart';
 
 class ResumeRepo extends BaseService {
@@ -663,12 +664,36 @@ class ResumeRepo extends BaseService {
     String? imagePath,
   }) async {
     if (imagePath != null && File(imagePath).existsSync()) {
+      var data=await MultipartFile.fromFile(imagePath);
+      logs("RUN TIME TYPE ${data.runtimeType}");
+
+
       params[isPatent ? 'patentCertification' : 'attachment'] =
-          await MultipartFile.fromFile(imagePath);
+          data;
+
     }
     final url = getEntityUrl(isPatent);
     final response = await ApiBaseHelper().postHTTP(
       url,
+      params: params,
+      isMultipart: true,
+    );
+    return response;
+  }
+
+  /// Add
+  Future<ResponseModel> addEntity1({
+    required Map<String, dynamic> params,
+    String? imagePath,
+  }) async {
+    if (imagePath != null && File(imagePath).existsSync()) {
+      var data=await MultipartFile.fromFile(imagePath);
+     logs("RUN TIME TYPE ${data.runtimeType}");
+      params['projectImage'] =data;
+
+    }
+    final response = await ApiBaseHelper().postHTTP(
+      resumeProjects,
       params: params,
       isMultipart: true,
     );
@@ -805,19 +830,19 @@ class ResumeRepo extends BaseService {
     required Map<String, dynamic> params,
     String? imagePath,
   }) async {
-    // if (imagePath != null && File(imagePath).existsSync()) {
-    //   params['projectImages'] = await MultipartFile.fromFile(imagePath);
-    // }
-    final formData = FormData.fromMap(params);
-
     if (imagePath != null && File(imagePath).existsSync()) {
-      formData.files.add(
-        MapEntry(
-          'projectImages',
-          await MultipartFile.fromFile(imagePath),
-        ),
-      );
+      params['patentCertification'] = await MultipartFile.fromFile(imagePath);
     }
+    // final formData = FormData.fromMap(params);
+
+    // if (imagePath != null && File(imagePath).existsSync()) {
+    //   formData.files.add(
+    //     MapEntry(
+    //       'projectImages',
+    //       await MultipartFile.fromFile(imagePath),
+    //     ),
+    //   );
+    // }
     final response = await ApiBaseHelper().postHTTP(
       resumeProjects,
       params: params,
@@ -837,7 +862,7 @@ class ResumeRepo extends BaseService {
     if (imagePath != null && File(imagePath).existsSync()) {
       formData.files.add(
         MapEntry(
-          'projectImages',
+          'projectImage',
           await MultipartFile.fromFile(imagePath),
         ),
       );
