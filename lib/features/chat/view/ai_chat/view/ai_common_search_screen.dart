@@ -459,15 +459,6 @@ class _AiCommonSearchScreenState extends State<AiCommonSearchScreen> {
                 mediaFiles: [File(pickedFile.path)],
                 onSend: (val, String? commands) async {
                   Navigator.pop(context);
-                  String? imagePath = File(pickedFile.path).path;
-                  String fileName = imagePath
-                      .split('/')
-                      .last;
-                  String fileExtension = fileName
-                      .split('.')
-                      .last
-                      .toLowerCase();
-
 
                   // Map<String, dynamic> data = {
                   //   if(isInitialFlow)
