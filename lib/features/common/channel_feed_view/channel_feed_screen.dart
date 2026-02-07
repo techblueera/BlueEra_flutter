@@ -13,6 +13,7 @@ import 'package:BlueEra/features/common/channel_feed_view/channel_feed_post_list
 import 'package:BlueEra/features/common/channel_feed_view/unjoin_channel_card_widget.dart';
 import 'package:BlueEra/features/common/channel_feed_view/view_all_joined_channel_list_screen.dart';
 import 'package:BlueEra/features/common/channel_feed_view/whats_new_channel_list_screen.dart';
+import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -20,7 +21,8 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/setup_scroll_visibility_notification.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
+DateTime? _lastChannelFetchTime;
+bool _isChannelFetching = false;
 class ChannelFeedScreen extends StatefulWidget {
   final Function(bool)? onHeaderVisibilityChanged;
   final double headerHeight;
@@ -38,13 +40,39 @@ class ChannelFeedScreen extends StatefulWidget {
 class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
   final channelFeedController = Get.put(ChannelFeedController());
   final scrollController = ScrollController();
+  Future<void> _guardedChannelFetch() async {
+    final currentTime = DateTime.now();
 
+    // Check if we are already in the middle of a request OR if we fetched recently
+    if (_isChannelFetching) return;
+    if (_lastChannelFetchTime != null &&
+        currentTime.difference(_lastChannelFetchTime!) < fetchThreshold) {
+      debugPrint("Channel API call skipped: Too frequent.");
+      return;
+    }
+
+    _isChannelFetching = true;
+    _lastChannelFetchTime = currentTime;
+
+    try {
+      // Run both calls in parallel for better performance
+      await Future.wait([
+        channelFeedController.fetchChannelData(loadMore: false),
+        channelFeedController.fetchUnJoinChannelData(loadMore: false),
+      ]);
+    } catch (e) {
+      debugPrint("Error fetching channel data: $e");
+    } finally {
+      _isChannelFetching = false;
+    }
+  }
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    channelFeedController.fetchChannelData(loadMore: false);
-    channelFeedController.fetchUnJoinChannelData(loadMore: false);
+    _guardedChannelFetch();
+    // channelFeedController.fetchChannelData(loadMore: false);
+    // channelFeedController.fetchUnJoinChannelData(loadMore: false);
   }
 
   @override

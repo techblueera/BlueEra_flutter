@@ -1,150 +1,154 @@
+import 'dart:io';
+
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
-import 'package:BlueEra/features/personal/resume/controller/add_more_controller.dart';
+import 'package:BlueEra/features/me/social/controller/social_vision_mission_controller.dart';
 import 'package:BlueEra/widgets/ai_description_field_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/common_card_widget.dart';
-import 'package:BlueEra/widgets/common_document_picker.dart';
-import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class SocialVisionMissionScreen extends StatefulWidget {
-  final bool isEdit;
-  final String? experienceId;
-
-  const SocialVisionMissionScreen(
-      {Key? key, this.isEdit = false, this.experienceId})
-      : super(key: key);
-
-  @override
-  State<SocialVisionMissionScreen> createState() =>
-      _SocialVisionMissionScreenState();
-}
-
-class _SocialVisionMissionScreenState extends State<SocialVisionMissionScreen> {
-  final descCtrl = TextEditingController();
-  String? imagePath;
-  RxString descriptionTxt = "".obs;
-  bool validate = false;
-
-  bool isValidDate(int? day, int? month, int? year) {
-    if (day == null || month == null || year == null) return false;
-    try {
-      final date = DateTime(year, month, day);
-      final today = DateTime.now();
-      final todayOnly = DateTime(today.year, today.month, today.day);
-      return !date.isAfter(todayOnly);
-    } catch (e) {
-      return false;
-    }
-  }
-
-  // final EntityController ngoController = Get.find<EntityController>(tag: "ngo");
-  final ngoController = getOrPut(() => EntityController(isPatent: false));
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.isEdit && widget.experienceId != null) {
-      final existing = ngoController.entityList
-          .firstWhereOrNull((e) => e['_id'] == widget.experienceId);
-      if (existing != null) {
-        descCtrl.text = existing['subtitle2'] ?? '';
-
-        final docs = (existing['document'] as List<dynamic>?)?.cast<String>();
-        if (docs != null && docs.isNotEmpty) imagePath = docs.first;
-      }
-    }
-
-    validateForm();
-  }
+class SocialVisionMissionScreen extends StatelessWidget {
+  final controller = Get.put(SocialVisionMissionController());
 
   @override
   Widget build(BuildContext context) {
+    // Ensure SizeConfig is initialized
+    // SizeConfig.init(context);
+
     return Scaffold(
-        appBar: CommonBackAppBar(
-            title: widget.isEdit ? "Vision & Mission" : "Vision & Mission"),
-        body: SingleChildScrollView(
-            child: SafeArea(
-                child: CommonCardWidget(
-          padding: 0,
-          child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size20),
-              child: Column(children: [
-                AiDescriptionField(
-                  label: "Our Vision & Mission",
-                  hintText: "Share Your Vision & Mission...",
-                  controller: descCtrl,
-                  rxValue: descriptionTxt,
-                  aiType: "vision mission",
-                  aiData: {"title": "vision mission"},
+      backgroundColor: Colors.white,
+      appBar: CommonBackAppBar(
+        title: "Mission & Vision",
+      ),
+      body: Obx(() {
+        if (controller.isLoading.value) {
+          return Center(child: CircularProgressIndicator());
+        }
+        return SingleChildScrollView(
+          padding: EdgeInsets.all(SizeConfig.paddingM),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AiDescriptionField(
+                label: "Our Vision & Mission",
+                hintText: "Tell us more about the Our Vision & Mission...",
+                controller: controller.descriptionController,
+                rxValue: controller.description,
+                // Your RX variable from the controller
+                aiType: "vision mission",
+                aiData: {
+                  "for": "social profile vision mission",
+                },
+              ),
+              SizedBox(height: SizeConfig.paddingL),
+
+              CustomText(
+                "Upload Image",
+                fontSize: SizeConfig.medium,
+              ),
+              SizedBox(height: SizeConfig.paddingXS),
+
+              // Image Picker Area
+              Center(
+                child: InkWell(
+                  onTap: controller.pickImage,
+                  child: Container(
+                    height: 200,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade300),
+                      image: _getImageProvider(),
+                    ),
+                    child: _buildImagePlaceholder(),
+                  ),
                 ),
-                SizedBox(height: SizeConfig.size20),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: CustomText("Upload Photos Or Videos",
-                      color: AppColors.black1A,
-                      fontSize: SizeConfig.small,
-                      fontWeight: FontWeight.w400),
+              ),
+
+              if (controller.selectedImage.value != null ||
+                  controller.serverImageUrl.value != null)
+                Padding(
+                  padding: EdgeInsets.only(top: 8.0),
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: InkWell(
+                      onTap: controller.removeImage,
+                      child: CustomText("Remove Image",
+                          color: AppColors.red, fontWeight: FontWeight.w600),
+                    ),
+                  ),
                 ),
-                SizedBox(height: SizeConfig.size8),
-                CommonDocumentPicker(
-                  imagePath: imagePath,
-                  onClear: () {
-                    setState(() {
-                      imagePath = null;
-                    });
-                    validateForm();
-                  },
-                  onSelect: (context) {
-                    selectImage(context);
-                  },
+
+              SizedBox(height: SizeConfig.paddingXL),
+
+              // Save Button
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: controller.isSaving.value ? null : controller.save,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: controller.isSaving.value
+                      ? SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(
+                              color: Colors.white, strokeWidth: 2),
+                        )
+                      : CustomText(
+                          "Save Changes",
+                          color: Colors.white,
+                          fontSize: SizeConfig.medium,
+                          fontWeight: FontWeight.bold,
+                        ),
                 ),
-                SizedBox(height: SizeConfig.size15),
-                CustomBtn(
-                  //...
-                  onTap: validate
-                      ? () async {
-                          final params = {
-                            'description': descCtrl.text.trim(),
-                          };
-                          if (widget.isEdit && widget.experienceId != null) {
-                            await ngoController.updateEntity(
-                                widget.experienceId!, params,
-                                imagePath: imagePath);
-                          } else {
-                            await ngoController.addEntity(params,
-                                imagePath: imagePath);
-                          }
-                          Navigator.pop(context);
-                        }
-                      : null,
-                  title: widget.isEdit ? AppStrings.update : AppStrings.save,
-                  isValidate: validate,
-                ),
-                SizedBox(height: SizeConfig.size20),
-              ])),
-        ))));
+              ),
+            ],
+          ),
+        );
+      }),
+    );
   }
 
-  void validateForm() {
-    final valid = descCtrl.text.isNotEmpty && (imagePath?.isNotEmpty ?? false);
-
-    setState(() {
-      validate = valid;
-    });
-  }
-
-  void selectImage(BuildContext context) async {
-    imagePath = await SelectProfilePictureDialog.showLogoDialog(
-        context, AppStrings.uploadYourDocumentPhoto);
-    if (imagePath?.isNotEmpty ?? false) {
-      validateForm();
+  DecorationImage? _getImageProvider() {
+    if (controller.selectedImage.value != null) {
+      return DecorationImage(
+        image: FileImage(controller.selectedImage.value!),
+        fit: BoxFit.cover,
+      );
+    } else if (controller.serverImageUrl.value != null &&
+        controller.serverImageUrl.value!.isNotEmpty) {
+      return DecorationImage(
+        image: NetworkImage(controller.serverImageUrl.value!),
+        fit: BoxFit.cover,
+      );
     }
+    return null;
+  }
+
+  Widget? _buildImagePlaceholder() {
+    if (controller.selectedImage.value == null &&
+        controller.serverImageUrl.value == null) {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.add_photo_alternate_outlined,
+              size: 48, color: Colors.grey),
+          SizedBox(height: 8),
+          CustomText("Tap to upload image",
+              color: AppColors.secondaryTextColor),
+        ],
+      );
+    }
+    return null;
   }
 }

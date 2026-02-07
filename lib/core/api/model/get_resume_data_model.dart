@@ -1102,6 +1102,7 @@ class PortfolioProject {
     this.description,
     this.category,
     this.completionDate,
+    this.projectImage,
     this.id,
   });
 
@@ -1111,6 +1112,7 @@ class PortfolioProject {
     description = json['description'];
     category = json['category'];
     completionDate = json['completionDate'];
+    projectImage = json['projectImage'];
     id = json['_id'];
   }
   String? title;
@@ -1118,6 +1120,7 @@ class PortfolioProject {
   String? category;
   String? id;
   String? completionDate;
+  String? projectImage;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -1126,6 +1129,7 @@ class PortfolioProject {
     map['description'] = description;
     map['category'] = category;
     map['completionDate'] = completionDate;
+    map['projectImage'] = projectImage;
     map['_id'] = id;
     return map;
   }

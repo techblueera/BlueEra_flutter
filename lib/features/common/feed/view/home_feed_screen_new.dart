@@ -20,6 +20,10 @@ import 'package:BlueEra/widgets/setup_scroll_visibility_notification.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+DateTime? _lastHomeFetchTime;
+// Define the threshold (e.g., 5 seconds)
+final Duration fetchThreshold = const Duration(seconds: 90);
+
 class HomeFeedScreenNew extends StatefulWidget {
   final PostType postFilterType;
   final String? id;
@@ -55,8 +59,24 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
       ? Get.find<HomeScreenController>()
       : Get.put(HomeScreenController());
 
-  final viewPersonalDetailsController = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
+  final viewPersonalDetailsController =
+      getOrPut(() => ViewPersonalDetailsController(), permanent: true);
 
+  void _guardedFetchData({bool refreshFlag = false}) {
+    final currentTime = DateTime.now();
+
+    if (_lastHomeFetchTime != null &&
+        currentTime.difference(_lastHomeFetchTime!) < fetchThreshold) {
+      // Too soon! Ignore the request.
+      debugPrint(
+          "API call ignored: executed less than ${fetchThreshold.inSeconds}s ago.");
+      return;
+    }
+
+    // Update the timestamp and execute
+    _lastHomeFetchTime = currentTime;
+    fetchPostData(refreshFlag: refreshFlag);
+  }
 
   @override
   void initState() {
@@ -67,14 +87,16 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
       shortsController = Get.put(ShortsController());
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      fetchPostData(refreshFlag: true);
+      _guardedFetchData(refreshFlag: true); // Guarded call
+      // fetchPostData(refreshFlag: true);
       _scrollController.addListener(_scrollListener);
 
       /// forcefully we are calling api due to page is already loaded but we want to call api due to some new post is added by us
       ever(Get.find<NavigationHelperController>().shouldRefreshBottomBar,
           (shouldRefresh) {
         if (shouldRefresh == true) {
-          fetchPostData(refreshFlag: true);
+          _guardedFetchData(refreshFlag: true); // Guarded call
+          // fetchPostData(refreshFlag: true);
           Get.find<NavigationHelperController>().shouldRefreshBottomBar.value =
               false;
         }
@@ -134,9 +156,9 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
       //   buffer.add(item);
       //   // keep buffering consecutive grid-type items
       // } else {
-        // encountered a normal item -> flush any grid buffer first
-        flushBuffer();
-        blocks.add(FeedBlock(isGrid: false, items: [item]));
+      // encountered a normal item -> flush any grid buffer first
+      flushBuffer();
+      blocks.add(FeedBlock(isGrid: false, items: [item]));
       // }
     }
 
@@ -189,11 +211,10 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
               ? const NeverScrollableScrollPhysics()
               : const AlwaysScrollableScrollPhysics(),
           itemBuilder: (context, indexFeed) {
-
             int index = indexFeed;
             final block = blocks[index];
 
-           /* if (block.isGrid) {
+            /* if (block.isGrid) {
               // Render a 4-column grid of thumbnails inside the list
               // We use shrinkWrap + NeverScrollableScrollPhysics so ListView handles scrolling
               return Padding(
@@ -504,78 +525,76 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
     });
   }
 
-  // Widget _buildProductCard() {
-  //   return Padding(
-  //     padding: EdgeInsets.only(
-  //         left: SizeConfig.size8,
-  //         right: SizeConfig.size8,
-  //         top: SizeConfig.size8),
-  //     child: BusinessAllProductCard(
-  //         allProducts: Get.find<InventoryController>().allProducts),
-  //   );
-  // }
+// Widget _buildProductCard() {
+//   return Padding(
+//     padding: EdgeInsets.only(
+//         left: SizeConfig.size8,
+//         right: SizeConfig.size8,
+//         top: SizeConfig.size8),
+//     child: BusinessAllProductCard(
+//         allProducts: Get.find<InventoryController>().allProducts),
+//   );
+// }
 
-  // Widget _buildEarnWithBlueEraWidget() {
-  //   return Container(
-  //     margin: EdgeInsets.only(
-  //         bottom: SizeConfig.paddingXS,
-  //         left: SizeConfig.paddingXS,
-  //         right: SizeConfig.paddingXS),
-  //     decoration: BoxDecoration(
-  //         color: AppColors.white,
-  //         boxShadow: [AppShadows.cardShadow],
-  //         borderRadius: BorderRadius.circular(12)),
-  //     child: Padding(
-  //       padding: EdgeInsets.only(
-  //           left: SizeConfig.size8,
-  //           right: SizeConfig.size8,
-  //           top: SizeConfig.size10,
-  //           bottom: SizeConfig.size10),
-  //       child: Column(children: [
-  //         Row(
-  //           children: [
-  //             _buildCircleIcon(AppIconAssets.earnWithBlueEra),
-  //             SizedBox(width: SizeConfig.size6),
-  //             _buildTitleWidget(AppStrings.earnWithBlueEra),
-  //           ],
-  //         ),
-  //         SizedBox(height: SizeConfig.size16),
-  //         HorizontalVideoPlayer(
-  //           isAutoPlay: true,
-  //         ),
-  //         SizedBox(height: SizeConfig.size16),
-  //         Align(
-  //           alignment: Alignment.bottomRight,
-  //           child: CustomBtn(
-  //             width: SizeConfig.size160,
-  //             title: AppStrings.letsStartEarningNow,
-  //             onTap: () {
-  //               // Get.to(() => ShareServiceScreen(serviceId: '68f319ca6e8f907aadee126d'));
-  //               final ViewPersonalDetailsController
-  //                   viewPersonalDetailsController =
-  //                   Get.isRegistered<ViewPersonalDetailsController>()
-  //                       ? Get.find<ViewPersonalDetailsController>()
-  //                       : Get.put(ViewPersonalDetailsController());
-  //               if (viewPersonalDetailsController
-  //                       .personalProfileDetails.value.isProfileCreated ==
-  //                   false) {
-  //                 Get.to(()=> CreateProfileScreen());
-  //               } else {
-  //                 Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
-  //               }
-  //             },
-  //             bgColor: AppColors.primaryColor,
-  //             textColor: AppColors.white,
-  //             height: SizeConfig.size34,
-  //             radius: 10.0,
-  //           ),
-  //         ),
-  //       ]),
-  //     ),
-  //   );
-  // }
-
-
+// Widget _buildEarnWithBlueEraWidget() {
+//   return Container(
+//     margin: EdgeInsets.only(
+//         bottom: SizeConfig.paddingXS,
+//         left: SizeConfig.paddingXS,
+//         right: SizeConfig.paddingXS),
+//     decoration: BoxDecoration(
+//         color: AppColors.white,
+//         boxShadow: [AppShadows.cardShadow],
+//         borderRadius: BorderRadius.circular(12)),
+//     child: Padding(
+//       padding: EdgeInsets.only(
+//           left: SizeConfig.size8,
+//           right: SizeConfig.size8,
+//           top: SizeConfig.size10,
+//           bottom: SizeConfig.size10),
+//       child: Column(children: [
+//         Row(
+//           children: [
+//             _buildCircleIcon(AppIconAssets.earnWithBlueEra),
+//             SizedBox(width: SizeConfig.size6),
+//             _buildTitleWidget(AppStrings.earnWithBlueEra),
+//           ],
+//         ),
+//         SizedBox(height: SizeConfig.size16),
+//         HorizontalVideoPlayer(
+//           isAutoPlay: true,
+//         ),
+//         SizedBox(height: SizeConfig.size16),
+//         Align(
+//           alignment: Alignment.bottomRight,
+//           child: CustomBtn(
+//             width: SizeConfig.size160,
+//             title: AppStrings.letsStartEarningNow,
+//             onTap: () {
+//               // Get.to(() => ShareServiceScreen(serviceId: '68f319ca6e8f907aadee126d'));
+//               final ViewPersonalDetailsController
+//                   viewPersonalDetailsController =
+//                   Get.isRegistered<ViewPersonalDetailsController>()
+//                       ? Get.find<ViewPersonalDetailsController>()
+//                       : Get.put(ViewPersonalDetailsController());
+//               if (viewPersonalDetailsController
+//                       .personalProfileDetails.value.isProfileCreated ==
+//                   false) {
+//                 Get.to(()=> CreateProfileScreen());
+//               } else {
+//                 Get.toNamed(RouteHelper.getEarnWithBlueEraNewScreenRoute());
+//               }
+//             },
+//             bgColor: AppColors.primaryColor,
+//             textColor: AppColors.white,
+//             height: SizeConfig.size34,
+//             radius: 10.0,
+//           ),
+//         ),
+//       ]),
+//     ),
+//   );
+// }
 }
 
 ShortFeedItem getVideoData(Post video) {

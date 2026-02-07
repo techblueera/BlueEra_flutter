@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -12,6 +13,7 @@ import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/common_drop_down-dialoge.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/new_common_date_selection_dropdown.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -20,7 +22,7 @@ import 'package:intl/intl.dart';
 class PortfolioProjectCardWidget extends StatelessWidget {
   final ProfessionalPortfolio project;
   final bool isShowMore;
- final bool isDateFormateReq;
+  final bool isDateFormateReq;
 
   PortfolioProjectCardWidget(
       {Key? key,
@@ -127,10 +129,8 @@ class PortfolioProjectCardWidget extends StatelessWidget {
                     color: Colors.grey.shade100,
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: CustomText(
-                    formattedDate??"",
-                   color: AppColors.secondaryTextColor, fontSize: 12
-                  ),
+                  child: CustomText(formattedDate ?? "",
+                      color: AppColors.secondaryTextColor, fontSize: 12),
                 ),
                 const SizedBox(height: 8),
 
@@ -333,10 +333,11 @@ class PortfolioProjectCardWidget extends StatelessWidget {
     );
   }
 }
+
 class JobSeekerPortfolioProjectCardWidget extends StatefulWidget {
   final ProfessionalPortfolio project;
   final bool isShowMore;
- final bool isDateFormateReq;
+  final bool isDateFormateReq;
 
   JobSeekerPortfolioProjectCardWidget(
       {Key? key,
@@ -346,13 +347,16 @@ class JobSeekerPortfolioProjectCardWidget extends StatefulWidget {
       : super(key: key);
 
   @override
-  State<JobSeekerPortfolioProjectCardWidget> createState() => _JobSeekerPortfolioProjectCardWidgetState();
+  State<JobSeekerPortfolioProjectCardWidget> createState() =>
+      _JobSeekerPortfolioProjectCardWidgetState();
 }
 
-class _JobSeekerPortfolioProjectCardWidgetState extends State<JobSeekerPortfolioProjectCardWidget> {
+class _JobSeekerPortfolioProjectCardWidgetState
+    extends State<JobSeekerPortfolioProjectCardWidget> {
   // final portfolioController = Get.find<PortfolioProfessionalsController>();
-  final portfolioController =
-      getOrPut(() => JobSeekerPortfolioProfessionalsController(), permanent: true);
+  final portfolioController = getOrPut(
+      () => JobSeekerPortfolioProfessionalsController(),
+      permanent: true);
 
   String? formattedDate;
 
@@ -384,15 +388,20 @@ class _JobSeekerPortfolioProjectCardWidgetState extends State<JobSeekerPortfolio
           // Left: Image Section
           Stack(
             children: [
-              Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  image: DecorationImage(
-                    image: NetworkImage(widget.project.media?.first.url ??
-                        'https://via.placeholder.com/150'),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  width: 120,
+                  height: 120,
+                  child: Image.network(
+                    widget.project.projectImage ?? '',
                     fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return LocalAssets(
+                        imagePath: AppIconAssets.place_holder_image,
+                        boxFix: BoxFit.cover,
+                      );
+                    },
                   ),
                 ),
               ),
@@ -449,10 +458,8 @@ class _JobSeekerPortfolioProjectCardWidgetState extends State<JobSeekerPortfolio
                     color: Colors.grey.shade100,
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: CustomText(
-                    formattedDate??"",
-                   color: AppColors.secondaryTextColor, fontSize: 12
-                  ),
+                  child: CustomText(formattedDate ?? "",
+                      color: AppColors.secondaryTextColor, fontSize: 12),
                 ),
                 const SizedBox(height: 8),
 
@@ -489,7 +496,8 @@ class _JobSeekerPortfolioProjectCardWidgetState extends State<JobSeekerPortfolio
               confirmCallback: () async {
                 Navigator.of(context).pop(); // Close the dialog
 
-                final controller = Get.find<JobSeekerPortfolioProfessionalsController>();
+                final controller =
+                    Get.find<JobSeekerPortfolioProfessionalsController>();
 
                 controller.deleteCertificateController(
                     certiId: widget.project.id ?? "");

@@ -1,208 +1,284 @@
+import 'package:BlueEra/core/api/model/social_event_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/social/controller/social__event_controller.dart';
-import 'package:BlueEra/widgets/commom_textfield.dart';
+import 'package:BlueEra/features/me/social/view/social_create_event_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/common_location_search_field.dart';
+import 'package:BlueEra/widgets/common_card_widget.dart';
+import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/new_common_date_selection_dropdown.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
 class EventScheduleScreen extends StatelessWidget {
   final controller = Get.put(SocialEventController());
 
   @override
   Widget build(BuildContext context) {
+    // Ensure SizeConfig is initialized if not already (though usually done in main)
+    // SizeConfig.init(context);
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      // backgroundColor: Colors.white,
       appBar: CommonBackAppBar(
         title: "Events / Schedule",
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(16),
+      body: Padding(
+        padding: const EdgeInsets.only(bottom: 30.0),
+        child: CommonCardWidget(
+          padding: 0,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: EdgeInsets.all(SizeConfig.paddingM),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    CustomText(
+                      "Events",
+                        fontSize: SizeConfig.large18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                    ),
+                    InkWell(
+                      onTap: () {
+                        controller.resetForm();
+                        Get.to(() => SocialCreateEventScreen());
+                      },
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: SizeConfig.paddingXS,
+                            vertical: SizeConfig.paddingXSmall),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.add,
+                                color: AppColors.primaryColor,
+                                size: SizeConfig.large),
+                            SizedBox(width: 4),
+                            CustomText(
+                              "Add More",
+                              color: AppColors.primaryColor,
+                              fontWeight: FontWeight.w600,
+                              fontSize: SizeConfig.small,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: Obx(() {
+                  if (controller.isListLoading.value) {
+                    return Center(child: CircularProgressIndicator());
+                  }
+                  if (controller.eventList.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.event_busy,
+                              size: 64, color: Colors.grey.shade300),
+                          SizedBox(height: 16),
+                          CustomText(
+                            "No events found",
+                              color:AppColors.secondaryTextColor,
+                              fontSize: SizeConfig.medium,
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                  return ListView.builder(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: SizeConfig.paddingM),
+                    itemCount: controller.eventList.length,
+                    itemBuilder: (context, index) {
+                      final event = controller.eventList[index];
+                      return _buildEventCard(context, event);
+                    },
+                  );
+                }),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEventCard(BuildContext context, SocialEventData event) {
+    return Container(
+      margin: EdgeInsets.only(bottom: SizeConfig.paddingM),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: Offset(0, 2),
+          ),
+        ],
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(SizeConfig.paddingM),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CommonTextField(
-              textEditController: controller.titleController,
-              title: "Event Title",
-              hintText: "E.g. Virendra Kishor",
-            ),
-            const SizedBox(height: 16),
+            // Header
 
-            _buildSectionTitle("Starting Date"),
-            _buildDatePicker(isStart: true),
-            const SizedBox(height: 16),
-
-            _buildSectionTitle("End Date"),
-            _buildDatePicker(isStart: false),
-            const SizedBox(height: 16),
-
-            // Inside your build method:
-            const CustomText("Time", fontWeight: FontWeight.bold),
-            const SizedBox(height: 10),
+            // --- HEADER WITH POPUP MENU ---
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                  child: _buildSingleTimeDropdown(
-                      "From", controller.selectedFromTime),
+                  child: CustomText(
+                    event.title ?? "No Title",
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Colors.black87,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child:
-                      _buildSingleTimeDropdown("To", controller.selectedToTime),
+                SizedBox(
+                  height: 24,
+                  width: 24,
+                  child: PopupMenuButton<String>(
+                    // 1. Remove the default padding
+                    padding: EdgeInsets.zero,
+
+                    // 2. Override default constraints to remove the minimum touch target margin
+                    constraints: const BoxConstraints(),
+                    icon: Icon(Icons.more_vert, color: Colors.grey[600]),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
+                    onSelected: (value) {
+                      if (value == 'edit') {
+                        controller.initForEdit(event);
+                        Get.to(() => SocialCreateEventScreen());
+                      } else if (value == 'delete') {
+                        _showDeleteConfirmation(context, event);
+                      }
+                    },
+                    itemBuilder: (BuildContext context) => [
+                      PopupMenuItem(
+                        value: 'edit',
+                        child: Row(
+                          children: [
+                            Icon(Icons.edit_outlined,
+                                color: Colors.blue, size: 20),
+                            SizedBox(width: 10),
+                            CustomText("Edit Event"),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            Icon(Icons.delete_outline,
+                                color: Colors.red, size: 20),
+                            SizedBox(width: 10),
+                            CustomText("Delete", color: Colors.red),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
 
-            CommonLocationSearchField(
-              controller: controller.venueController,
-              hintText: "E.g. Lucknow, Uttar Pradesh...",
-              isShowLeading: false,
-              title: "Venue",
-              onSelected: (placeId, lat, lng, address) async {
-                controller.venueController.text = address;
-                controller.lat.value = lat;
-                controller.lng.value = lng;
-                // Basic trigger for validation logic if needed
-              },
-            ),
-            const SizedBox(height: 16),
-
-            CommonTextField(
-              textEditController: controller.eventTypeController,
-              title: "Event Type",
-              hintText: "E.g. Meeting / Show / Live..",
-            ),
-            const SizedBox(height: 16),
-
-            HttpsTextField(
-              title: "Registration Link",
-              controller: controller.linkController,
-              hintText: "E.g. https://registrationlink..",
-            ),
-            const SizedBox(height: 30),
-
-            // REACTIVE BUTTON
-            Obx(() => SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: controller.isFormValid.value
-                        ? () => controller.saveEvent()
-                        : null,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFF3B82F6),
-                      disabledBackgroundColor: Colors.grey.shade300,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8)),
-                    ),
-                    child: Text("Save",
-                        style: TextStyle(color: Colors.white, fontSize: 16)),
-                  ),
-                )),
+            Divider(
+                height: SizeConfig.paddingM,
+                thickness: 1,
+                color: Colors.grey.shade100),
+            // Details
+            _buildDetailRow("Title", event.title ?? "No Title"),
+            SizedBox(height: SizeConfig.paddingXS),
+            _buildDetailRow(
+                "Date",
+                event.startDate != null
+                    ? _formatDate(event.startDate!)
+                    : "N/A"),
+            SizedBox(height: SizeConfig.paddingXS),
+            _buildDetailRow("Time",
+                "${event.timing?.from ?? ''} to ${event.timing?.to ?? ''}"),
+            SizedBox(height: SizeConfig.paddingXS),
+            _buildDetailRow("Ticket", "Free"),
+            SizedBox(height: SizeConfig.paddingXS),
+            _buildDetailRow("Location", event.venue?.name ?? "N/A"),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSectionTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: Text(title,
-          style: TextStyle(fontWeight: FontWeight.w500, color: Colors.black87)),
-    );
-  }
-
-  Widget _buildDatePicker({required bool isStart}) {
-    return Obx(() {
-      return NewDatePicker(
-        selectedDay:
-            isStart ? controller.startDay.value : controller.endDay.value,
-        selectedMonth:
-            isStart ? controller.startMonth.value : controller.endMonth.value,
-        selectedYear:
-            isStart ? controller.startYear.value : controller.endYear.value,
-        onDayChanged: (val) {
-          isStart
-              ? controller.startDay.value = val!
-              : controller.endDay.value = val!;
-          controller.validateForm();
-        },
-        onMonthChanged: (val) {
-          isStart
-              ? controller.startMonth.value = val!
-              : controller.endMonth.value = val!;
-          controller.validateForm();
-        },
-        onYearChanged: (val) {
-          isStart
-              ? controller.startYear.value = val!
-              : controller.endYear.value = val!;
-          controller.validateForm();
-        },
-      );
-    });
-  }
-
-  Widget _buildSingleTimeDropdown(String label, RxString selectedValue) {
-    return Column(
+  Widget _buildDetailRow(String label, String value) {
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CustomText(label, fontSize: 12, fontWeight: FontWeight.w400),
-        const SizedBox(height: 8),
-        Obx(() => Container(
-              width: double.infinity, // Makes it responsive
-              child: _buildDropdown(controller.timeSlots, selectedValue.value,
-                  (val) {
-                selectedValue.value = val!;
-                controller.validateForm();
-              }),
-            )),
+        SizedBox(
+          width: 80,
+          child: CustomText(
+            "$label:",
+              color: Colors.grey.shade600,
+              fontSize: SizeConfig.small,
+              fontWeight: FontWeight.w500,
+          ),
+        ),
+        Expanded(
+          child: CustomText(
+            value,
+              color: Colors.black87,
+              fontSize: SizeConfig.small,
+              fontWeight: FontWeight.w600,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildDropdown(
-      List<String> items, String currentValue, Function(String?) onChanged) {
-    return Container(
-      height: 35,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF0F0F5),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: items.contains(currentValue) ? currentValue : null,
-          icon: const Icon(
-            Icons.keyboard_arrow_down,
-            size: 16,
-            color: AppColors.mainTextColor,
-          ),
-          isDense: true,
-          style: TextStyle(
-            fontSize: 12,
-            fontFamily: AppConstants.OpenSans,
-            color: AppColors.mainTextColor,
-            fontWeight: FontWeight.w500,
-          ),
-          items: items.map((String value) {
-            return DropdownMenuItem<String>(
-              value: value,
-              child: CustomText(
-                value,
-                fontSize: 12,
-              ),
-            );
-          }).toList(),
-          onChanged: onChanged,
-        ),
-      ),
-    );
+  Future<void> _showDeleteConfirmation(
+      BuildContext context, SocialEventData event) async {
+    await showCommonDialog(
+        context: context,
+        text:
+            "Are you sure you want to delete this event?\nThis action cannot be undone.",
+        confirmCallback: () async {
+          Get.back();
+          controller.eventId = event.sId;
+          controller.deleteEvent();
+        },
+        cancelCallback: () {
+          Navigator.of(context).pop(); // Close the dialog
+        },
+        confirmText: AppStrings.yes,
+        cancelText: AppStrings.no);
+  }
+
+  String _formatDate(String dateStr) {
+    try {
+      final date = DateTime.parse(dateStr);
+      return DateFormat('dd/MM/yyyy').format(date);
+    } catch (e) {
+      return dateStr;
+    }
   }
 }
