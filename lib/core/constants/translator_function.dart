@@ -51,34 +51,30 @@ class FeedTranslationController extends GetxController {
   // final CustomTranslator translator = CustomTranslator();
 
   var isTranslated = false.obs;
+  var currentTitleText = "".obs;
   var currentText = "".obs;
   var isLoading = false.obs;
   String originalText = "";
+  String originalTitleText = "";
 
   // Set the text safely
-  void loadText(String text) {
+  void loadText(String title,String text) {
     originalText = text;
+    originalTitleText = title;
     // Use .value but don't trigger logic that calls refresh during build
+    if (currentTitleText.value.isEmpty) {
+      currentTitleText.value = text;
+    }
     if (currentText.value.isEmpty) {
       currentText.value = text;
     }
   }
-  // // Observables to track state
-  // var isTranslated = false.obs;
-  // var currentText = "".obs;
-  // var isLoading = false.obs;
-  //
-  // // Store the original text to allow toggling back
-  // String originalText = "";
-  //
-  // void init(String text) {
-  //   originalText = text;
-  //   currentText.value = text;
-  // }
+
 
   void toggleTranslation() async {
     if (isTranslated.value) {
       // Toggle back to original
+      currentTitleText.value = originalTitleText;
       currentText.value = originalText;
       isTranslated.value = false;
     } else {
@@ -88,10 +84,13 @@ class FeedTranslationController extends GetxController {
 
       // Determine target language based on current content
       String targetLanguage = translator.isEnglishText(originalText) ? 'hi' : 'en';
+      String targetTitleLanguage = translator.isEnglishText(originalTitleText) ? 'hi' : 'en';
 
       String result = await translator.translateToOtherLanguage(originalText, targetLanguage);
+      String resultTitle = await translator.translateToOtherLanguage(originalTitleText, targetTitleLanguage);
 
       currentText.value = result;
+      currentTitleText.value = resultTitle;
       isTranslated.value = true;
       isLoading.value = false;
     }

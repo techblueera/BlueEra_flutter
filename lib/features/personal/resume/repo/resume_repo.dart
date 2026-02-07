@@ -857,16 +857,10 @@ class ResumeRepo extends BaseService {
     String? imagePath,
     String? projectID,
   }) async {
-    final formData = FormData.fromMap(params);
-
     if (imagePath != null && File(imagePath).existsSync()) {
-      formData.files.add(
-        MapEntry(
-          'projectImage',
-          await MultipartFile.fromFile(imagePath),
-        ),
-      );
+      params['projectImage'] = await MultipartFile.fromFile(imagePath);
     }
+
     final response = await ApiBaseHelper().putHTTP(
       "${resumeProjects}/$projectID",
       params: params,

@@ -100,7 +100,7 @@ class JobSeekerPortfolioProfessionalsController extends GetxController {
   Future<void> save() async {
     try {
       isSaving.value = true;
-      final payload = {
+      Map<String,dynamic> payload = {
         "title": titleController.text.trim(),
         "category": selectedCategory.value,
         "description": descriptionController.text.trim(),
@@ -154,20 +154,4 @@ class JobSeekerPortfolioProfessionalsController extends GetxController {
     }
   }
 
-  ///DELETE NOTICE....
-  Future<void> getProjectPortfolioController({required String certiId}) async {
-    try {
-      ResponseModel response = await _repo.deleteJobPortfolioResume(certiId);
-
-      if (response.isSuccess) {
-        commonSnackBar(
-            message:
-                response.response?.data['message'] ?? AppStrings.successful);
-      } else {
-        commonSnackBar(message: AppStrings.somethingWentWrong);
-      }
-    } on Exception catch (e) {
-      logs("ERROR ${e}");
-    }
-  }
 }

@@ -19,6 +19,7 @@ abstract class BaseService {
   final String subcategories = '/user-service/business/getAllSubcategories';
   final String channels = 'channel-service/channels';
   final String socialLinks = 'channel-service/channels/$channelId/social-links';
+  final String missionVision = 'social-service/mission-vision';
   String viewChannelProfile(String channelId) =>
       "channel-service/channels/$channelId";
   final String postVerifyBusinessDocs =
@@ -98,6 +99,7 @@ abstract class BaseService {
 
   final String addCareerObjectiveUrl = "user-service/resumes/career-objective";
   final String getCareerObjectiveUrl = "user-service/resumes/career-objective";
+  final String events = 'social-service/events';
   final String updateCareerObjectiveUrl =
       "user-service/resumes/career-objective";
   final String deleteCareerObjectiveUrl =
@@ -392,6 +394,7 @@ abstract class BaseService {
   final String checkUsername = "user-service/user/checkUsername";
   final String followersList = "user-service/followers/followers/";
   final String followingList = "user-service/followers/following/";
+  final String personalIdentity = "social-service/personal-identity";
 
   // final String deleteUserAccount="user-service/user/checkUsername";
 

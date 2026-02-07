@@ -34,92 +34,94 @@ import '../features/me/politician/widget/add_politician_activity_event.dart';
 import '../features/me/politician/widget/add_social_activity.dart';
 
 class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const CommonBackAppBar({super.key,
-    this.title,
-    this.isLeading = true,
-    this.isFilter = false,
-    this.isShowMoreInfoIcon = false,
-    this.isNotification = false,
-    this.bellIconNotEmpty = false,
-    this.onNotificationTap,
-    this.onBackTap,
-    this.appBarColor,
-    this.isTextButton = false,
-    this.isShadowShow = true,
-    this.actionText,
-    this.actionTextColor,
-    this.isShareButton,
-    this.isLogout,
-    this.isDownloadButton,
-    this.isChangeToEditMode = false,
-    this.isQrCodeButton,
-    this.onQrCodeTap,
-    this.onShareTap,
-    this.isLocation,
-    this.isMore,
-    this.isSearch,
-    this.controller,
-    this.onSearchTap,
-    this.onClearCallback,
-    this.searchHintText,
-    this.onLocationTap,
-    this.onMoreTap,
-    this.isTrimmedButton,
-    this.onTrimmedTap,
-    this.isSaveButton,
-    this.onSavedTap,
-    this.iClearButton,
-    this.onClearNotificationsTap,
-    this.isSettingButton,
-    this.isAddPlace,
-    this.onAddPlaceTap,
-    this.isEndJourney,
-    this.onEndJourneyTap,
-    this.titleColor,
-    this.isCancelButton,
-    this.onCancelTap,
-    this.isJobPopUpMenuButton,
-    this.isProfile,
-    this.isResumeCardButton,
-    this.isReloadContactButton,
-    this.onRefreshContact,
-    this.onProfileTap,
-    this.isPDFExport,
-    this.isDrawerMenu=false,
-    this.onPDFExportTap,
-    this.jobID,
-    this.jobStatus,
-    this.showRightTextButton = false,
-    this.rightTextButtonText,
-    this.rightTextButtonColor,
-    this.onRightTextButtonTap,
-    this.isShowCursor,
-    this.currentCity,
-    this.isGuestLogout,
-    this.buildCustomWidget,
-    // this.isAddProduct = false,
-    // this.isAddProductCategory = false,
-    this.bottomWidget,
-    this.isGoLiveWidget,
-    this.isShowAcceptOrRejectBtn,
-    this.isFollowRefreshWidget,
-    this.isFollowRefresh = false,
-    this.isGoLive = false,
-    this.isInventoryPopUpMenu = false,
-    this.isStoreProfile,
-    this.isCurrentAddress,
-    this.onTabAcceptBtn,
-    this.orderAcceptText,
-    this.backArrowColor,
-    this.orderAcceptBgColor,
-    this.orderAcceptBorderColor,
-    this.orderAcceptTextColor,
-    this.isRejectButton,
-    this.rejectButton,
-    this.isAddProductButton,
-    this.isCreateButton,
-    this.isCreateEventBtn,
-    this.categoryId});
+  const CommonBackAppBar(
+      {super.key,
+      this.title,
+      this.isLeading = true,
+      this.isFilter = false,
+      this.isShowMoreInfoIcon = false,
+      this.isNotification = false,
+      this.bellIconNotEmpty = false,
+      this.onNotificationTap,
+      this.onBackTap,
+      this.appBarColor,
+      this.isTextButton = false,
+      this.isShadowShow = true,
+      this.actionText,
+      this.actionTextColor,
+      this.isShareButton,
+      this.isLogout,
+      this.isDownloadButton,
+      this.isChangeToEditMode = false,
+      this.isQrCodeButton,
+      this.onQrCodeTap,
+      this.onShareTap,
+      this.isLocation,
+      this.isMore,
+      this.isSearch,
+      this.controller,
+      this.onSearchTap,
+      this.onClearCallback,
+      this.searchHintText,
+      this.onLocationTap,
+      this.onMoreTap,
+      this.isTrimmedButton,
+      this.onTrimmedTap,
+      this.isSaveButton,
+      this.onSavedTap,
+      this.iClearButton,
+      this.onClearNotificationsTap,
+      this.isSettingButton,
+      this.isAddPlace,
+      this.onAddPlaceTap,
+      this.isEndJourney,
+      this.onEndJourneyTap,
+      this.titleColor,
+      this.isCancelButton,
+      this.onCancelTap,
+      this.isJobPopUpMenuButton,
+      this.isProfile,
+      this.isResumeCardButton,
+      this.isReloadContactButton,
+      this.onRefreshContact,
+      this.onProfileTap,
+      this.isPDFExport,
+      this.isDrawerMenu = false,
+      this.onPDFExportTap,
+      this.jobID,
+      this.jobStatus,
+      this.showRightTextButton = false,
+      this.rightTextButtonText,
+      this.rightTextButtonColor,
+      this.onRightTextButtonTap,
+      this.isShowCursor,
+      this.currentCity,
+      this.isGuestLogout,
+      this.buildCustomWidget,
+      // this.isAddProduct = false,
+      // this.isAddProductCategory = false,
+      this.bottomWidget,
+      this.isGoLiveWidget,
+      this.isShowAcceptOrRejectBtn,
+      this.isFollowRefreshWidget,
+      this.isFollowRefresh = false,
+      this.isGoLive = false,
+      this.isInventoryPopUpMenu = false,
+      this.isStoreProfile,
+      this.isCurrentAddress,
+      this.onTabAcceptBtn,
+      this.orderAcceptText,
+      this.backArrowColor,
+      this.orderAcceptBgColor,
+      this.orderAcceptBorderColor,
+      this.orderAcceptTextColor,
+      this.isRejectButton,
+      this.rejectButton,
+      this.isAddProductButton,
+      this.isCreateButton,
+      this.isCreateEventBtn,
+      this.showElevation,
+      this.categoryId});
 
   // final AppBar? appBar;
   final String? title;
@@ -208,11 +210,12 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool? isAddProductButton;
   final bool? isCreateButton;
   final bool? isCreateEventBtn;
+  final double? showElevation;
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      elevation: 4,
+      elevation: showElevation??4,
       shadowColor: (isShadowShow == true) ? Colors.black26 : null,
       surfaceTintColor: AppColors.white,
       backgroundColor: appBarColor ?? Colors.white,
@@ -221,15 +224,12 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
       centerTitle: (isLeading ?? false) ? true : false,
       title: Padding(
         padding: EdgeInsets.only(
-          // left: SizeConfig.paddingL,
+            // left: SizeConfig.paddingL,
             right: SizeConfig.paddingXSL,
             // top: SizeConfig.paddingXSL,
             bottom: SizeConfig.paddingXSL),
         child: Obx(() {
-          bool isSearchOn=Get
-              .find<AuthController>()
-              .isSearchOpen
-              .value;
+          bool isSearchOn = Get.find<AuthController>().isSearchOpen.value;
           return Row(
             // mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -237,20 +237,20 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                 IconButton(
                     padding: EdgeInsets.zero,
                     onPressed: onBackTap ??
-                            () async {
+                        () async {
                           Navigator.of(context).pop();
                         },
                     icon: LocalAssets(
                       imagePath: AppIconAssets.back_arrow,
                       height: SizeConfig.paddingL,
                       width: SizeConfig.paddingL,
-                      imgColor:backArrowColor?? Colors.black,
+                      imgColor: backArrowColor ?? Colors.black,
                     )),
 
               // if (isLeading ?? false) SizedBox(width: SizeConfig.paddingXSL),
               if (isDrawerMenu ?? false)
                 Padding(
-                  padding: const EdgeInsets.only(left: 8.0),
+                  padding: const EdgeInsets.only(left: 15.0,top: 10),
                   child: InkWell(
                     onTap: () {
                       Get.dialog(
@@ -268,9 +268,11 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                         barrierColor: Colors.black.withOpacity(0.3),
                       );
                     },
-                    child: const Icon(
-                      Icons.menu_open,
-                      size: 28,
+                    child: LocalAssets(
+                        imagePath: "assets/icons/app_logo_shadow.png",
+
+                    height: 40,
+                      width:40 ,
                     ),
                   ),
                 ),
@@ -295,10 +297,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                       return Padding(
                         padding: EdgeInsets.only(left: SizeConfig.size15),
                         child: CachedAvatarWidget(
-                            imageUrl: Get
-                                .find<AuthController>()
-                                .imgPath
-                                .value,
+                            imageUrl: Get.find<AuthController>().imgPath.value,
                             size: SizeConfig.size30,
                             borderRadius: 5.0,
                             showProfileOnFullScreen: false),
@@ -350,95 +349,87 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                   ),
                 ),
 
-              if(isSearch == true && Get
-                  .find<AuthController>()
-                  .isSearchOpen
-                  .value == false)
+              if (isSearch == true &&
+                  Get.find<AuthController>().isSearchOpen.value == false)
                 Spacer(),
               if (isSearch ?? false)
-                if(controller == null)
+                if (controller == null)
                   SizedBox()
                 else
-                  (Get
-                      .find<AuthController>()
-                      .isSearchOpen
-                      .value) ? Expanded(
-                    child: Padding(
-                      padding: EdgeInsets.only(
-                          left:
-                          (isLeading ?? false) ? 0.0 : SizeConfig.size15),
-                      child: CommonSearchBar(
-                          controller: controller!,
-                          isShowCursor: isShowCursor,
-                          onSearchTap: onSearchTap ?? () {},
-                          onClearCallback: onClearCallback,
-                          hintText: searchHintText),
-                    ),
-                  ) : SizedBox(),
+                  (Get.find<AuthController>().isSearchOpen.value)
+                      ? Expanded(
+                          child: Padding(
+                            padding: EdgeInsets.only(
+                                left: (isLeading ?? false)
+                                    ? 0.0
+                                    : SizeConfig.size15,top: 10),
+                            child: CommonSearchBar(
+                                controller: controller!,
+                                isShowCursor: isShowCursor,
+                                onSearchTap: onSearchTap ?? () {},
+                                onClearCallback: onClearCallback,
+                                hintText: searchHintText),
+                          ),
+                        )
+                      : SizedBox(),
 
-              if(isSearch == true && isSearchOn==false)
+              if (isSearch == true && isSearchOn == false)
                 InkWell(
                     onTap: () {
-                      Get
-                          .find<AuthController>()
-                          .isSearchOpen
-                          .value = !Get
-                          .find<AuthController>()
-                          .isSearchOpen
-                          .value;
+                      Get.find<AuthController>().isSearchOpen.value =
+                          !Get.find<AuthController>().isSearchOpen.value;
                     },
-                    child: LocalAssets(
-                      imagePath: AppIconAssets.search, height: 28, width: 28,)),
-                if(isSearch == true &&isSearchOn)
-                  Padding(
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 10.0),
+                      child: LocalAssets(
+                        imagePath: AppIconAssets.search,
+                        height: 28,
+                        width: 28,
+                      ),
+                    )),
+              if (isSearch == true && isSearchOn)
+                Padding(
                   padding: EdgeInsetsGeometry.only(left: 12),
                   child: InkWell(
                       onTap: () {
-                        Get
-                            .find<AuthController>()
-                            .isSearchOpen
-                            .value = !Get
-                            .find<AuthController>()
-                            .isSearchOpen
-                            .value;
+                        Get.find<AuthController>().isSearchOpen.value =
+                            !Get.find<AuthController>().isSearchOpen.value;
                       },
-                      child: Icon(Icons.search_off, size: 25,)),
+                      child: Icon(
+                        Icons.search_off,
+                        size: 25,
+                      )),
                 ),
               if (isGoLive ?? false)
                 Builder(
-                  builder: (context) =>
-                      Row(
-                        children: [
-                          isGoLiveWidget!(),
-                        ],
-                      ),
+                  builder: (context) => Row(
+                    children: [
+                      isGoLiveWidget!(),
+                    ],
+                  ),
                 ),
 
               if (isLocation ?? false)
                 Builder(
-                  builder: (context) =>
-                      Container(
-                        height: SizeConfig.size45,
-                        width: SizeConfig.size45,
-                        margin: EdgeInsets.only(left: SizeConfig.size5),
-                        child: IconButton(
-                          onPressed: () {
-                            Navigator.pushNamed(
-                                context,
-                                RouteHelper.getCustomizeMapScreenRoute());
-                          },
-                          icon: LocalAssets(imagePath: AppIconAssets.earth),
-                        ),
-                      ),
+                  builder: (context) => Container(
+                    height: SizeConfig.size45,
+                    width: SizeConfig.size45,
+                    margin: EdgeInsets.only(left: SizeConfig.size5),
+                    child: IconButton(
+                      onPressed: () {
+                        Navigator.pushNamed(
+                            context, RouteHelper.getCustomizeMapScreenRoute());
+                      },
+                      icon: LocalAssets(imagePath: AppIconAssets.earth),
+                    ),
+                  ),
                 ),
 
-              if (isNotification == true && Get
-                  .find<AuthController>()
-                  .isSearchOpen
-                  .value == false)
+              if (isNotification == true &&
+                  Get.find<AuthController>().isSearchOpen.value == false)
                 Builder(builder: (context) {
                   return Padding(
-                    padding: EdgeInsets.only(left: SizeConfig.size15),
+                    padding: EdgeInsets.only(left: SizeConfig.size15,top: 10),
                     child: InkWell(
                         onTap: () => onNotificationTap?.call(),
                         child: LocalAssets(
@@ -448,36 +439,34 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
 
               if (iClearButton ?? false)
                 Builder(
-                  builder: (context) =>
-                      Padding(
-                        padding: EdgeInsets.only(left: SizeConfig.size10),
-                        child: IconButton(
-                          onPressed: onClearNotificationsTap ?? () {},
-                          icon: CustomText(
-                            AppStrings.clear,
-                            fontSize: SizeConfig.small,
-                            color: AppColors.primaryColor,
-                          ),
-                        ),
+                  builder: (context) => Padding(
+                    padding: EdgeInsets.only(left: SizeConfig.size10),
+                    child: IconButton(
+                      onPressed: onClearNotificationsTap ?? () {},
+                      icon: CustomText(
+                        AppStrings.clear,
+                        fontSize: SizeConfig.small,
+                        color: AppColors.primaryColor,
                       ),
+                    ),
+                  ),
                 ),
 
               if (isSettingButton ?? false)
                 Builder(
-                  builder: (context) =>
-                      Container(
-                        margin: EdgeInsets.only(left: SizeConfig.size10),
-                        height: SizeConfig.size30,
-                        width: SizeConfig.size30,
-                        child: IconButton(
-                          padding: EdgeInsets.zero,
-                          onPressed: () {},
-                          icon: LocalAssets(
-                            imagePath: AppIconAssets.settingIcon,
-                            imgColor: AppColors.black,
-                          ),
-                        ),
+                  builder: (context) => Container(
+                    margin: EdgeInsets.only(left: SizeConfig.size10),
+                    height: SizeConfig.size30,
+                    width: SizeConfig.size30,
+                    child: IconButton(
+                      padding: EdgeInsets.zero,
+                      onPressed: () {},
+                      icon: LocalAssets(
+                        imagePath: AppIconAssets.settingIcon,
+                        imgColor: AppColors.black,
                       ),
+                    ),
+                  ),
                 ),
 
               if (isMore ?? false)
@@ -493,8 +482,8 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                       createProfileScreen();
                     } else if (/*value == PostCreationMenu.videos ||
                       value == PostCreationMenu.photos ||*/
-                    value == PostCreationMenu.message ||
-                        value == PostCreationMenu.poll) {
+                        value == PostCreationMenu.message ||
+                            value == PostCreationMenu.poll) {
                       postVia(context, value);
                     } else if (value == PostCreationMenu.jobPost) {
                       Get.toNamed(RouteHelper.getCreateJobPostScreenRoute(),
@@ -505,7 +494,10 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                           });
                     }
                   },
-                  icon: LocalAssets(imagePath: AppIconAssets.addOutlinedIcon),
+                  icon: Padding(
+                    padding: const EdgeInsets.only(top: 10.0),
+                    child: LocalAssets(imagePath: AppIconAssets.addOutlinedIcon,imgColor: AppColors.primaryColor,),
+                  ),
                   itemBuilder: (context) => popupMenuItems(),
                 ),
 
@@ -524,39 +516,36 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
 
               if (isGuestLogout ?? false)
                 Builder(
-                  builder: (context) =>
-                      Container(
-                        height: SizeConfig.size30,
-                        width: SizeConfig.size30,
-                        margin: EdgeInsets.only(right: SizeConfig.size20),
-                        child: IconButton(
-                          padding: EdgeInsets.symmetric(
-                              horizontal: SizeConfig.size5),
-                          onPressed: () async {
-                            await showCommonDialog(
-                                context: context,
-                                text: AppStrings.logoutConfirmationMessage,
-                                confirmCallback: () async {
-                                  await SharedPreferenceUtils.clearPreference();
-                                  Navigator.of(context).pushNamedAndRemoveUntil(
-                                      RouteHelper.getMobileNumberLoginRoute(),
-                                          (Route<dynamic> route) => false);
-                                },
-                                cancelCallback: () {
-                                  Navigator
-                                      .of(context)
-                                      .pop(); // Close the dialog
-                                },
-                                confirmText: AppStrings.yes,
-                                cancelText: AppStrings.no);
-                          },
-                          icon: LocalAssets(
-                            imagePath: AppIconAssets.logout_new,
-                            // height: SizeConfig.size15,
-                            // width: SizeConfig.size15,
-                          ),
-                        ),
+                  builder: (context) => Container(
+                    height: SizeConfig.size30,
+                    width: SizeConfig.size30,
+                    margin: EdgeInsets.only(right: SizeConfig.size20),
+                    child: IconButton(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: SizeConfig.size5),
+                      onPressed: () async {
+                        await showCommonDialog(
+                            context: context,
+                            text: AppStrings.logoutConfirmationMessage,
+                            confirmCallback: () async {
+                              await SharedPreferenceUtils.clearPreference();
+                              Navigator.of(context).pushNamedAndRemoveUntil(
+                                  RouteHelper.getMobileNumberLoginRoute(),
+                                  (Route<dynamic> route) => false);
+                            },
+                            cancelCallback: () {
+                              Navigator.of(context).pop(); // Close the dialog
+                            },
+                            confirmText: AppStrings.yes,
+                            cancelText: AppStrings.no);
+                      },
+                      icon: LocalAssets(
+                        imagePath: AppIconAssets.logout_new,
+                        // height: SizeConfig.size15,
+                        // width: SizeConfig.size15,
                       ),
+                    ),
+                  ),
                 ),
 
               if (isInventoryPopUpMenu ?? false)
@@ -590,118 +579,110 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
           ),
         if (isLogout ?? false)
           Builder(
-            builder: (context) =>
-                Container(
-                  height: SizeConfig.size30,
-                  width: SizeConfig.size30,
-                  margin: EdgeInsets.only(right: SizeConfig.size20),
-                  child: IconButton(
-                    padding: EdgeInsets.symmetric(horizontal: SizeConfig.size5),
-                    onPressed: () async {
-                      Get.to(() => ProfileSettingsNewScreen());
-                    },
-                    icon: LocalAssets(
-                      imagePath: AppIconAssets.more_setting,
-                      imgColor: AppColors.black,
-                    ),
-                  ),
+            builder: (context) => Container(
+              height: SizeConfig.size30,
+              width: SizeConfig.size30,
+              margin: EdgeInsets.only(right: SizeConfig.size20),
+              child: IconButton(
+                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size5),
+                onPressed: () async {
+                  Get.to(() => ProfileSettingsNewScreen());
+                },
+                icon: LocalAssets(
+                  imagePath: AppIconAssets.more_setting,
+                  imgColor: AppColors.black,
                 ),
+              ),
+            ),
           ),
         if (isShareButton ?? false)
           Builder(
-            builder: (context) =>
-                Container(
-                  height: SizeConfig.size30,
-                  width: SizeConfig.size30,
-                  margin: EdgeInsets.only(right: SizeConfig.size20),
-                  child: IconButton(
-                    padding: EdgeInsets.symmetric(horizontal: SizeConfig.size5),
-                    onPressed: onShareTap ?? () {},
-                    icon: LocalAssets(
-                      imagePath: AppIconAssets.share,
-                      height: SizeConfig.size15,
-                      width: SizeConfig.size15,
-                    ),
-                  ),
+            builder: (context) => Container(
+              height: SizeConfig.size30,
+              width: SizeConfig.size30,
+              margin: EdgeInsets.only(right: SizeConfig.size20),
+              child: IconButton(
+                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size5),
+                onPressed: onShareTap ?? () {},
+                icon: LocalAssets(
+                  imagePath: AppIconAssets.share,
+                  height: SizeConfig.size15,
+                  width: SizeConfig.size15,
                 ),
+              ),
+            ),
           ),
         if (isTrimmedButton ?? false)
           Builder(
-            builder: (context) =>
-                Container(
+            builder: (context) => Container(
+              height: SizeConfig.size30,
+              width: SizeConfig.size30,
+              margin: EdgeInsets.only(right: SizeConfig.size20),
+              child: IconButton(
+                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size5),
+                onPressed: onTrimmedTap ?? () {},
+                icon: LocalAssets(
+                  imagePath: AppIconAssets.trimmedIcon,
                   height: SizeConfig.size30,
                   width: SizeConfig.size30,
-                  margin: EdgeInsets.only(right: SizeConfig.size20),
-                  child: IconButton(
-                    padding: EdgeInsets.symmetric(horizontal: SizeConfig.size5),
-                    onPressed: onTrimmedTap ?? () {},
-                    icon: LocalAssets(
-                      imagePath: AppIconAssets.trimmedIcon,
-                      height: SizeConfig.size30,
-                      width: SizeConfig.size30,
-                      imgColor: AppColors.black,
-                    ),
-                  ),
+                  imgColor: AppColors.black,
                 ),
+              ),
+            ),
           ),
         if (isSaveButton ?? false)
           Builder(
-            builder: (context) =>
-                Padding(
-                  padding: EdgeInsets.only(right: SizeConfig.size20),
-                  child: CustomBtn(
-                    width: SizeConfig.size90,
-                    height: SizeConfig.size30,
-                    onTap: onSavedTap ?? () {},
-                    title: AppStrings.save,
-                    isValidate: true,
-                  ),
-                ),
+            builder: (context) => Padding(
+              padding: EdgeInsets.only(right: SizeConfig.size20),
+              child: CustomBtn(
+                width: SizeConfig.size90,
+                height: SizeConfig.size30,
+                onTap: onSavedTap ?? () {},
+                title: AppStrings.save,
+                isValidate: true,
+              ),
+            ),
           ),
         if (isCancelButton ?? false)
           Builder(
-            builder: (context) =>
-                InkWell(
-                  onTap: onCancelTap ?? () {},
-                  child: Padding(
-                    padding: EdgeInsets.only(right: SizeConfig.size10),
-                    child: CustomText(
-                      AppStrings.cancel,
-                      fontSize: SizeConfig.medium,
-                      color: AppColors.primaryColor,
-                    ),
-                  ),
+            builder: (context) => InkWell(
+              onTap: onCancelTap ?? () {},
+              child: Padding(
+                padding: EdgeInsets.only(right: SizeConfig.size10),
+                child: CustomText(
+                  AppStrings.cancel,
+                  fontSize: SizeConfig.medium,
+                  color: AppColors.primaryColor,
                 ),
+              ),
+            ),
           ),
         if (isAddPlace ?? false)
           Builder(
-            builder: (context) =>
-                Padding(
-                  padding: EdgeInsets.only(right: SizeConfig.size20),
-                  child: commonButtonWithIcon(
-                      height: SizeConfig.size30,
-                      width: SizeConfig.size110,
-                      onTap: onAddPlaceTap ?? () {},
-                      title: "Add Place",
-                      icon: AppIconAssets.add,
-                      borderColor: AppColors.primaryColor,
-                      textColor: AppColors.primaryColor,
-                      iconColor: AppColors.primaryColor,
-                      isPrefix: true),
-                ),
+            builder: (context) => Padding(
+              padding: EdgeInsets.only(right: SizeConfig.size20),
+              child: commonButtonWithIcon(
+                  height: SizeConfig.size30,
+                  width: SizeConfig.size110,
+                  onTap: onAddPlaceTap ?? () {},
+                  title: "Add Place",
+                  icon: AppIconAssets.add,
+                  borderColor: AppColors.primaryColor,
+                  textColor: AppColors.primaryColor,
+                  iconColor: AppColors.primaryColor,
+                  isPrefix: true),
+            ),
           ),
         if (isEndJourney ?? false)
           Builder(
-            builder: (context) =>
-                Padding(
-                  padding: EdgeInsets.only(right: SizeConfig.size20),
-                  child: PositiveCustomBtn(
-                      padding: EdgeInsets.symmetric(
-                          horizontal: SizeConfig.size10),
-                      width: SizeConfig.screenWidth / 3,
-                      onTap: onEndJourneyTap ?? () {},
-                      title: "End journey"),
-                ),
+            builder: (context) => Padding(
+              padding: EdgeInsets.only(right: SizeConfig.size20),
+              child: PositiveCustomBtn(
+                  padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+                  width: SizeConfig.screenWidth / 3,
+                  onTap: onEndJourneyTap ?? () {},
+                  title: "End journey"),
+            ),
           ),
         if (isReloadContactButton ?? false)
           Padding(
@@ -737,8 +718,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
             ),
-            itemBuilder: (context) =>
-            [
+            itemBuilder: (context) => [
               PopupMenuItem(
                 value: AppConstants.exportPDF,
                 child: CustomText(
@@ -793,31 +773,30 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
           ),
         if (isCurrentAddress ?? false)
           Builder(
-            builder: (context) =>
-                Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.only(left: SizeConfig.size15),
-                    child: Row(children: [
-                      LocalAssets(
-                        imagePath: AppIconAssets.currentLocationIcon,
-                        height: SizeConfig.size24,
-                        width: SizeConfig.size24,
-                      ),
-                      SizedBox(width: SizeConfig.size10),
-                      CustomText(
-                        [
-                          LocationService.userCurrentAddress.value.city,
-                          LocationService.userCurrentAddress.value.state,
-                        ].where((e) => e.isNotEmpty).join(', '),
-                        fontSize: SizeConfig.large,
-                        color: AppColors.primaryColor,
-                        fontWeight: FontWeight.w600,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ]),
+            builder: (context) => Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(left: SizeConfig.size15),
+                child: Row(children: [
+                  LocalAssets(
+                    imagePath: AppIconAssets.currentLocationIcon,
+                    height: SizeConfig.size24,
+                    width: SizeConfig.size24,
                   ),
-                ),
+                  SizedBox(width: SizeConfig.size10),
+                  CustomText(
+                    [
+                      LocationService.userCurrentAddress.value.city,
+                      LocationService.userCurrentAddress.value.state,
+                    ].where((e) => e.isNotEmpty).join(', '),
+                    fontSize: SizeConfig.large,
+                    color: AppColors.primaryColor,
+                    fontWeight: FontWeight.w600,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ]),
+              ),
+            ),
           ),
         if (isShowMoreInfoIcon ?? false)
           Padding(
@@ -871,7 +850,6 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
           ),
         if (isCreateButton ?? false)
-
           InkWell(
             onTap: () {
               Get.to(() => SocialActivityForm());
@@ -891,7 +869,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
           ),
-        if(isCreateEventBtn ?? false)
+        if (isCreateEventBtn ?? false)
           InkWell(
             onTap: () {
               showModalBottomSheet(
@@ -907,19 +885,18 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
               width: 94,
               height: 34,
               // padding: EdgeInsets.all(10),
-              margin: EdgeInsets.only(right:
-              10),
+              margin: EdgeInsets.only(right: 10),
               decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.primaryColor)
-              ),
+                  border: Border.all(color: AppColors.primaryColor)),
               child: Center(
                 child: CustomText(
-                  "Create Event", color: AppColors.primaryColor,),
+                  "Create Event",
+                  color: AppColors.primaryColor,
+                ),
               ),
             ),
           ),
-
       ],
       bottom: bottomWidget,
     );
@@ -937,7 +914,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
 
       if (response.statusCode == 200) {
         JourneyStatusModel journeyStatusModel =
-        JourneyStatusModel.fromJson(response.response?.data);
+            JourneyStatusModel.fromJson(response.response?.data);
         return journeyStatusModel;
       } else {
         return null;

@@ -176,6 +176,7 @@ class ProfessionalPortfolio {
     this.updatedAt,
     this.v,
     this.media,
+    this.projectImage,
   });
 
   ProfessionalPortfolio.fromJson(dynamic json) {
@@ -187,6 +188,7 @@ class ProfessionalPortfolio {
     completionDate = json['completionDate'];
     description = json['description'];
     projectLink = json['projectLink'];
+    projectImage = json['projectImage'];
     if (json['mediaKeys'] != null) {
       mediaKeys = [];
       json['mediaKeys'].forEach((v) {
@@ -215,6 +217,7 @@ class ProfessionalPortfolio {
   List<MediaKeys>? mediaKeys;
   String? createdAt;
   String? updatedAt;
+  String? projectImage;
   int? v;
   List<ProfessionalMedia>? media;
 
@@ -223,6 +226,7 @@ class ProfessionalPortfolio {
     map['_id'] = id;
     map['userId'] = userId;
     map['projectTitle'] = projectTitle;
+    map['projectImage'] = projectImage;
     map['category'] = category;
     map['teamSize'] = teamSize;
     map['completionDate'] = completionDate;

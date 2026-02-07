@@ -89,7 +89,6 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
     videoData = getVideoData(widget.post!);
 
     updateData();
-
   }
 
   @override
@@ -105,6 +104,7 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
     subTitle = _post.subTitle ?? '';
     natureOfPost = _post.natureOfPost ?? '';
   }
+
   // final transController = Get.put(FeedTranslationController(), );
   @override
   Widget build(BuildContext context) {
@@ -117,7 +117,7 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
     // Initialize data BEFORE returning the widget tree
     // Use a check to prevent overwriting if the widget rebuilds
     if (transController.originalText.isEmpty) {
-      transController.loadText(subTitle.trim());
+      transController.loadText(_post.title?.trim() ?? "", subTitle.trim());
     }
     return IgnorePointer(
       ignoring: widget.isRepost == true ? true : false,
@@ -152,61 +152,73 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                 left: SizeConfig.size15,
                                 right: SizeConfig.size15,
                               ),
-                              child: CustomText(
-                                _post.title,
-                                color: AppColors.secondaryTextColor,
-                                fontWeight: FontWeight.bold,
-                                // fontSize: SizeConfig.large,
-                              ),
+                              child: Obx(() {
+                                return CustomText(
+                                  // _post.title,
+                                  transController.currentTitleText.value,
+                                  color: AppColors.secondaryTextColor,
+                                  fontWeight: FontWeight.bold,
+                                  // fontSize: SizeConfig.large,
+                                );
+                              }),
                             ),
                           ],
                           // Inside your Column
                           // ... inside your Widget tree
                           if (subTitle.isNotEmpty) ...[
-                            Obx(() => Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Padding(
-                                  padding: EdgeInsets.only(left: SizeConfig.size15, right: SizeConfig.size15),
-                                  child: ExpandableText(
-                                    // Use the text from the controller
-                                    text: transController.currentText.value,
-                                    trimLines: 5,
-                                    expandMode: ExpandMode.dialog,
-                                    style: TextStyle(
-                                        color: AppColors.mainTextColor,
-                                        fontFamily: AppConstants.OpenSans,
-                                        fontWeight: FontWeight.w400,
-                                        fontSize: SizeConfig.size15),
-                                  ),
-                                ),
-
-                                // Show Translate Option if NOT English OR if already translated (to allow toggle back)
-                                if (!transController.translator.isEnglishText(subTitle) || transController.isTranslated.value)
-                                  Padding(
-                                    padding: EdgeInsets.only(left: SizeConfig.size15, top: 4),
-                                    child: InkWell(
-                                      onTap: () => transController.toggleTranslation(),
-                                      child: transController.isLoading.value
-                                          ? SizedBox(
-                                          height: 12,
-                                          width: 12,
-                                          child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primaryColor)
-                                      )
-                                          : Text(
-                                        transController.isTranslated.value
-                                            ? "Show Original"
-                                            : "Translate to English",
+                            Obx(() =>
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Padding(
+                                      padding: EdgeInsets.only(
+                                          left: SizeConfig.size15,
+                                          right: SizeConfig.size15),
+                                      child: ExpandableText(
+                                        // Use the text from the controller
+                                        text: transController.currentText.value,
+                                        trimLines: 5,
+                                        expandMode: ExpandMode.dialog,
                                         style: TextStyle(
-                                            color: AppColors.primaryColor,
-                                            fontSize: SizeConfig.size12,
-                                            fontWeight: FontWeight.bold
-                                        ),
+                                            color: AppColors.mainTextColor,
+                                            fontFamily: AppConstants.OpenSans,
+                                            fontWeight: FontWeight.w400,
+                                            fontSize: SizeConfig.size15),
                                       ),
                                     ),
-                                  ),
-                              ],
-                            )),
+
+                                    // Show Translate Option if NOT English OR if already translated (to allow toggle back)
+                                    if (!transController.translator
+                                        .isEnglishText(subTitle) ||
+                                        transController.isTranslated.value)
+                                      Padding(
+                                        padding: EdgeInsets.only(
+                                            left: SizeConfig.size15, top: 4,bottom: 5),
+                                        child: InkWell(
+                                          onTap: () =>
+                                              transController
+                                                  .toggleTranslation(),
+                                          child: transController.isLoading.value
+                                              ? SizedBox(
+                                              height: 12,
+                                              width: 12,
+                                              child:
+                                              CircularProgressIndicator(
+                                                  strokeWidth: 2,
+                                                  color: AppColors
+                                                      .primaryColor))
+                                              : CustomText(
+                                              transController
+                                                  .isTranslated.value
+                                                  ? "Show Original"
+                                                  : "Translate to English",
+                                              color: AppColors.primaryColor,
+                                              fontSize: SizeConfig.size12,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                      ),
+                                  ],
+                                )),
                             SizedBox(height: SizeConfig.size5),
                           ],
                           /*  if (subTitle.isNotEmpty) ...[
@@ -255,10 +267,11 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                             children: [
                               // Show first 3 users
                               ...?_post.taggedUsers?.take(2).map(
-                                    (user) => UserChipFeed(
+                                    (user) =>
+                                    UserChipFeed(
                                       user: user,
                                     ),
-                                  ),
+                              ),
 
                               // If more than 3, show +remaining count
                               if ((_post.taggedUsers?.length ?? 0) > 2)
@@ -271,7 +284,7 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                       builder: (context) =>
                                           FeedTagPeopleBottomSheet(
                                               taggedUser:
-                                                  _post.taggedUsers ?? []),
+                                              _post.taggedUsers ?? []),
                                     );
                                   },
                                   child: Container(
@@ -283,7 +296,8 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                       borderRadius: BorderRadius.circular(20),
                                     ),
                                     child: CustomText(
-                                      '+${(_post.taggedUsers?.length ?? 0) - 2}',
+                                      '+${(_post.taggedUsers?.length ?? 0) -
+                                          2}',
                                       color: AppColors.mainTextColor,
                                       fontWeight: FontWeight.w600,
                                       fontSize: SizeConfig.size12,
@@ -296,8 +310,8 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                       ],
                       if (_post.media?.isNotEmpty ?? false) ...[
                         if ((_post.media_types?.firstOrNull
-                                    ?.startsWith("video/") ??
-                                false) ||
+                            ?.startsWith("video/") ??
+                            false) ||
                             isVideoUrl(_post.media?.firstOrNull)) ...[
                           Padding(
                             padding: EdgeInsets.only(
@@ -319,24 +333,24 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                           .userBlocked(
                                         videoType: VideoType.videoFeed,
                                         otherUserId:
-                                            videoData?.video?.userId ?? '',
+                                        videoData?.video?.userId ?? '',
                                       );
                                     },
                                     reportCallback: (params) {
                                       Get.find<VideoController>()
                                           .videoPostReport(
-                                              videoId:
-                                                  videoData?.video?.id ?? '',
-                                              videoType: VideoType.videoFeed,
-                                              params: params);
+                                          videoId:
+                                          videoData?.video?.id ?? '',
+                                          videoType: VideoType.videoFeed,
+                                          params: params);
                                     });
                               },
                             ),
                           ),
                         ],
                         if ((_post.media_types?.firstOrNull
-                                    ?.startsWith("image/") ??
-                                false) ||
+                            ?.startsWith("image/") ??
+                            false) ||
                             isImageUrl(_post.media?.firstOrNull))
                           Padding(
                             padding: EdgeInsets.only(
@@ -353,258 +367,261 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                         if (widget.post?.is_reposted ?? false) ...[
                           // if (widget.isRepost ?? false) ...[
                           ((widget.post?.children_post?.media?.isNotEmpty ??
-                                  false))
+                              false))
                               ? Padding(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: SizeConfig.size15,
-                                    vertical: SizeConfig.size8,
-                                  ),
-                                  child: InkWell(
-                                    onTap: () {
-                                      openProfileToClickUser();
-                                    },
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(
-                                            color: AppColors.secondaryTextColor
-                                                .withValues(alpha: 0.2)),
-                                        color:
-                                            AppColors.white, // light background
-                                      ),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
+                            padding: EdgeInsets.symmetric(
+                              horizontal: SizeConfig.size15,
+                              vertical: SizeConfig.size8,
+                            ),
+                            child: InkWell(
+                              onTap: () {
+                                openProfileToClickUser();
+                              },
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                      color: AppColors.secondaryTextColor
+                                          .withValues(alpha: 0.2)),
+                                  color:
+                                  AppColors.white, // light background
+                                ),
+                                child: Column(
+                                  crossAxisAlignment:
+                                  CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      padding: EdgeInsets.only(
+                                          top: SizeConfig.size10,
+                                          left: SizeConfig.size10),
+                                      child: Row(
                                         children: [
-                                          Container(
-                                            padding: EdgeInsets.only(
-                                                top: SizeConfig.size10,
-                                                left: SizeConfig.size10),
-                                            child: Row(
-                                              children: [
-                                                CachedAvatarWidget(
-                                                    imageUrl: widget
-                                                        .post
-                                                        ?.children_post
-                                                        ?.user
-                                                        ?.profileImage,
-                                                    size: 30.0,
-                                                    borderRadius: 25),
-                                                SizedBox(
-                                                  width: SizeConfig.size10,
-                                                ),
-                                                Expanded(
-                                                  child: SizedBox(
-                                                    width: Get.width,
-                                                    child: Row(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .center,
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .start,
-                                                      children: [
-                                                        Flexible(
-                                                          child: CustomText(
-                                                            widget
-                                                                .post
-                                                                ?.children_post
-                                                                ?.user
-                                                                ?.name,
-                                                            fontSize: SizeConfig
-                                                                .large,
-                                                            fontWeight:
-                                                                FontWeight.w600,
-                                                            maxLines: 1,
-                                                            overflow:
-                                                                TextOverflow
-                                                                    .ellipsis,
-                                                            color: AppColors
-                                                                .secondaryTextColor,
-                                                          ),
-                                                        ),
-                                                        if (widget
-                                                                    .post
-                                                                    ?.children_post
-                                                                    ?.user
-                                                                    ?.username !=
-                                                                null &&
-                                                            (widget
-                                                                    .post
-                                                                    ?.children_post
-                                                                    ?.user
-                                                                    ?.username
-                                                                    ?.isNotEmpty ??
-                                                                false))
-                                                          Expanded(
-                                                            child: Padding(
-                                                              padding: EdgeInsets
-                                                                  .only(top: 0),
-                                                              child: CustomText(
-                                                                " @${widget.post?.children_post?.user?.username}",
-                                                                fontSize:
-                                                                    SizeConfig
-                                                                        .medium,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w600,
-                                                                overflow:
-                                                                    TextOverflow
-                                                                        .ellipsis,
-                                                                color: AppColors
-                                                                    .shadowColor,
-                                                              ),
-                                                            ),
-                                                          ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
+                                          CachedAvatarWidget(
+                                              imageUrl: widget
+                                                  .post
+                                                  ?.children_post
+                                                  ?.user
+                                                  ?.profileImage,
+                                              size: 30.0,
+                                              borderRadius: 25),
                                           SizedBox(
-                                            height: SizeConfig.size10,
+                                            width: SizeConfig.size10,
                                           ),
-                                          Row(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.start,
-                                            children: [
-                                              Container(
-                                                width: 110,
-                                                height: 110,
-                                                child: Padding(
-                                                  padding: EdgeInsets.only(
-                                                      left: 8.0),
-                                                  child: ClipRRect(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            12),
-                                                    child: Container(
-                                                      color: Colors.black,
-                                                      child: CachedNetworkImage(
-                                                        imageUrl: ((_post
-                                                                        .children_post
-                                                                        ?.media_types
-                                                                        ?.firstOrNull
-                                                                        ?.startsWith(
-                                                                            "video/") ??
-                                                                    false) ||
-                                                                isVideoUrl(_post
-                                                                    .children_post
-                                                                    ?.media
-                                                                    ?.firstOrNull))
-                                                            ? widget
-                                                                    .post
-                                                                    ?.children_post
-                                                                    ?.thumbnail ??
-                                                                ""
-                                                            : widget
-                                                                    .post
-                                                                    ?.children_post
-                                                                    ?.media
-                                                                    ?.first ??
-                                                                "",
-                                                        width: 110,
-                                                        height: 110,
-                                                        fit: BoxFit.cover,
-                                                        placeholder:
-                                                            (context, url) =>
-                                                                Container(
-                                                          width: 110,
-                                                          height: 110,
-                                                          color:
-                                                              Colors.grey[300],
-                                                          // child: const Center(child: CircularProgressIndicator(strokeWidth: 1.5)),
-                                                        ),
-                                                        errorWidget: (context,
-                                                                url, error) =>
-                                                            Icon(Icons.person,
-                                                                size: 42 / 2),
-                                                      ),
+                                          Expanded(
+                                            child: SizedBox(
+                                              width: Get.width,
+                                              child: Row(
+                                                crossAxisAlignment:
+                                                CrossAxisAlignment
+                                                    .center,
+                                                mainAxisAlignment:
+                                                MainAxisAlignment
+                                                    .start,
+                                                children: [
+                                                  Flexible(
+                                                    child: CustomText(
+                                                      widget
+                                                          .post
+                                                          ?.children_post
+                                                          ?.user
+                                                          ?.name,
+                                                      fontSize: SizeConfig
+                                                          .large,
+                                                      fontWeight:
+                                                      FontWeight.w600,
+                                                      maxLines: 1,
+                                                      overflow:
+                                                      TextOverflow
+                                                          .ellipsis,
+                                                      color: AppColors
+                                                          .secondaryTextColor,
                                                     ),
                                                   ),
-                                                ),
-                                              ),
-
-                                              // RIGHT: Text Section
-                                              Expanded(
-                                                child: Padding(
-                                                  padding: EdgeInsets.only(
-                                                      left: SizeConfig.size10,
-                                                      right: SizeConfig.size10),
-                                                  child: Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      if ((widget
-                                                              .post
-                                                              ?.children_post
-                                                              ?.title
-                                                              ?.isNotEmpty ??
+                                                  if (widget
+                                                      .post
+                                                      ?.children_post
+                                                      ?.user
+                                                      ?.username !=
+                                                      null &&
+                                                      (widget
+                                                          .post
+                                                          ?.children_post
+                                                          ?.user
+                                                          ?.username
+                                                          ?.isNotEmpty ??
                                                           false))
-                                                        CustomText(
-                                                          widget
-                                                                  .post
-                                                                  ?.children_post
-                                                                  ?.title ??
-                                                              "",
-                                                          maxLines: 1,
-                                                          overflow: TextOverflow
-                                                              .ellipsis,
+                                                    Expanded(
+                                                      child: Padding(
+                                                        padding: EdgeInsets
+                                                            .only(top: 0),
+                                                        child: CustomText(
+                                                          " @${widget.post
+                                                              ?.children_post
+                                                              ?.user
+                                                              ?.username}",
+                                                          fontSize:
+                                                          SizeConfig
+                                                              .medium,
                                                           fontWeight:
-                                                              FontWeight.bold,
+                                                          FontWeight
+                                                              .w600,
+                                                          overflow:
+                                                          TextOverflow
+                                                              .ellipsis,
                                                           color: AppColors
-                                                              .mainTextColor,
+                                                              .shadowColor,
                                                         ),
-                                                      SizedBox(height: 4),
-                                                      CustomText(
-                                                        widget
-                                                                .post
-                                                                ?.children_post
-                                                                ?.subTitle ??
-                                                            "",
-                                                        maxLines: 4,
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
-                                                        color: AppColors
-                                                            .secondaryTextColor,
-                                                        fontSize:
-                                                            SizeConfig.size13,
                                                       ),
-                                                    ],
-                                                  ),
-                                                ),
+                                                    ),
+                                                ],
                                               ),
-                                            ],
-                                          ),
-                                          SizedBox(
-                                            height: SizeConfig.size10,
+                                            ),
                                           ),
                                         ],
                                       ),
                                     ),
-                                  ),
-                                )
-                              : InkWell(
-                                  onTap: () {
-                                    openProfileToClickUser();
-                                  },
-                                  child: Padding(
-                                    padding: EdgeInsets.only(
-                                      left: SizeConfig.size15,
+                                    SizedBox(
+                                      height: SizeConfig.size10,
                                     ),
-                                    child: FeedCard(
-                                        post: widget.post?.children_post,
-                                        index: 0,
-                                        postFilteredType: PostType.otherPosts,
-                                        horizontalPadding: 0,
-                                        isRepost: true),
-                                  ),
+                                    Row(
+                                      crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                      mainAxisAlignment:
+                                      MainAxisAlignment.start,
+                                      children: [
+                                        Container(
+                                          width: 110,
+                                          height: 110,
+                                          child: Padding(
+                                            padding: EdgeInsets.only(
+                                                left: 8.0),
+                                            child: ClipRRect(
+                                              borderRadius:
+                                              BorderRadius.circular(
+                                                  12),
+                                              child: Container(
+                                                color: Colors.black,
+                                                child: CachedNetworkImage(
+                                                  imageUrl: ((_post
+                                                      .children_post
+                                                      ?.media_types
+                                                      ?.firstOrNull
+                                                      ?.startsWith(
+                                                      "video/") ??
+                                                      false) ||
+                                                      isVideoUrl(_post
+                                                          .children_post
+                                                          ?.media
+                                                          ?.firstOrNull))
+                                                      ? widget
+                                                      .post
+                                                      ?.children_post
+                                                      ?.thumbnail ??
+                                                      ""
+                                                      : widget
+                                                      .post
+                                                      ?.children_post
+                                                      ?.media
+                                                      ?.first ??
+                                                      "",
+                                                  width: 110,
+                                                  height: 110,
+                                                  fit: BoxFit.cover,
+                                                  placeholder:
+                                                      (context, url) =>
+                                                      Container(
+                                                        width: 110,
+                                                        height: 110,
+                                                        color:
+                                                        Colors.grey[300],
+                                                        // child: const Center(child: CircularProgressIndicator(strokeWidth: 1.5)),
+                                                      ),
+                                                  errorWidget: (context,
+                                                      url, error) =>
+                                                      Icon(Icons.person,
+                                                          size: 42 / 2),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+
+                                        // RIGHT: Text Section
+                                        Expanded(
+                                          child: Padding(
+                                            padding: EdgeInsets.only(
+                                                left: SizeConfig.size10,
+                                                right: SizeConfig.size10),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                              CrossAxisAlignment
+                                                  .start,
+                                              children: [
+                                                if ((widget
+                                                    .post
+                                                    ?.children_post
+                                                    ?.title
+                                                    ?.isNotEmpty ??
+                                                    false))
+                                                  CustomText(
+                                                    widget
+                                                        .post
+                                                        ?.children_post
+                                                        ?.title ??
+                                                        "",
+                                                    maxLines: 1,
+                                                    overflow: TextOverflow
+                                                        .ellipsis,
+                                                    fontWeight:
+                                                    FontWeight.bold,
+                                                    color: AppColors
+                                                        .mainTextColor,
+                                                  ),
+                                                SizedBox(height: 4),
+                                                CustomText(
+                                                  widget
+                                                      .post
+                                                      ?.children_post
+                                                      ?.subTitle ??
+                                                      "",
+                                                  maxLines: 4,
+                                                  overflow: TextOverflow
+                                                      .ellipsis,
+                                                  color: AppColors
+                                                      .secondaryTextColor,
+                                                  fontSize:
+                                                  SizeConfig.size13,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    SizedBox(
+                                      height: SizeConfig.size10,
+                                    ),
+                                  ],
                                 ),
+                              ),
+                            ),
+                          )
+                              : InkWell(
+                            onTap: () {
+                              openProfileToClickUser();
+                            },
+                            child: Padding(
+                              padding: EdgeInsets.only(
+                                left: SizeConfig.size15,
+                              ),
+                              child: FeedCard(
+                                  post: widget.post?.children_post,
+                                  index: 0,
+                                  postFilteredType: PostType.otherPosts,
+                                  horizontalPadding: 0,
+                                  isRepost: true),
+                            ),
+                          ),
                         ],
                       ],
                       if (widget.isRepost == false) ...[
@@ -627,7 +644,7 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                               ViewFeedActionWidget(
                                 iconPath: AppIconAssets.eye_new,
                                 data:
-                                    formatNumberLikePost(_post.viewsCount ?? 0),
+                                formatNumberLikePost(_post.viewsCount ?? 0),
                               ),
                               InkWell(
                                 onTap: () {
@@ -652,7 +669,7 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                 },
                                 child: Padding(
                                   padding:
-                                      EdgeInsets.only(right: SizeConfig.size10),
+                                  EdgeInsets.only(right: SizeConfig.size10),
                                   child: Row(
                                     children: [
                                       LocalAssets(
@@ -660,9 +677,9 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                         width: SizeConfig.size18,
                                         height: SizeConfig.size18,
                                         imgColor:
-                                            (widget.post?.isLiked ?? false)
-                                                ? AppColors.primaryColor
-                                                : AppColors.secondaryTextColor,
+                                        (widget.post?.isLiked ?? false)
+                                            ? AppColors.primaryColor
+                                            : AppColors.secondaryTextColor,
                                       ),
                                       SizedBox(
                                         width: SizeConfig.size5,
@@ -696,24 +713,24 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                           backgroundColor: AppColors.white,
                                           shape: RoundedRectangleBorder(
                                               borderRadius:
-                                                  BorderRadius.circular(12)),
+                                              BorderRadius.circular(12)),
                                           child: ClipRRect(
                                             borderRadius:
-                                                BorderRadius.circular(12),
+                                            BorderRadius.circular(12),
                                             child: ConstrainedBox(
                                               constraints:
-                                                  BoxConstraints(maxWidth: 800),
+                                              BoxConstraints(maxWidth: 800),
                                               child: Padding(
                                                 padding: EdgeInsets.symmetric(
                                                     horizontal:
-                                                        SizeConfig.size15),
+                                                    SizeConfig.size15),
                                                 child: Column(
                                                   mainAxisSize:
-                                                      MainAxisSize.min,
+                                                  MainAxisSize.min,
                                                   children: [
                                                     SizedBox(
                                                         height:
-                                                            SizeConfig.size20),
+                                                        SizeConfig.size20),
                                                     InkWell(
                                                       onTap: () async {
                                                         Get.put(
@@ -722,17 +739,17 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                                         ///REPOST MESSAGE AND POLL POST...
                                                         Get.back();
                                                         ResponseModel
-                                                            responseModel =
-                                                            await PostRepo()
-                                                                .addRePostNewRepo(
+                                                        responseModel =
+                                                        await PostRepo()
+                                                            .addRePostNewRepo(
                                                           reqDataData: {
                                                             ApiKeys.type:
-                                                                AppConstants
-                                                                    .MESSAGE_POST,
+                                                            AppConstants
+                                                                .MESSAGE_POST,
                                                             ApiKeys.repostId:
-                                                                widget.post
-                                                                        ?.id ??
-                                                                    ""
+                                                            widget.post
+                                                                ?.id ??
+                                                                ""
                                                           },
                                                         );
                                                         if (responseModel
@@ -740,13 +757,14 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                                           commonSnackBar(
                                                               message: AppStrings
                                                                   .repostedSuccessfully);
-                                                          Get.find<
-                                                                  NavigationHelperController>()
+                                                          Get
+                                                              .find<
+                                                              NavigationHelperController>()
                                                               .shouldRefreshBottomBar
                                                               .value = true;
                                                           Get.until((route) =>
-                                                              route.settings
-                                                                  .name ==
+                                                          route.settings
+                                                              .name ==
                                                               RouteHelper
                                                                   .getBottomNavigationBarScreenRoute());
                                                         } else {
@@ -757,8 +775,8 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                                       },
                                                       child: Row(
                                                         crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
+                                                        CrossAxisAlignment
+                                                            .start,
                                                         children: [
                                                           Container(
                                                             width: SizeConfig
@@ -767,8 +785,8 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                                                 .size30,
                                                             child: LocalAssets(
                                                               imagePath:
-                                                                  AppIconAssets
-                                                                      .repost_new,
+                                                              AppIconAssets
+                                                                  .repost_new,
                                                               width: SizeConfig
                                                                   .size30,
                                                               height: SizeConfig
@@ -778,46 +796,48 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                                           Expanded(
                                                             child: Column(
                                                               crossAxisAlignment:
-                                                                  CrossAxisAlignment
-                                                                      .start,
+                                                              CrossAxisAlignment
+                                                                  .start,
                                                               children: [
                                                                 Padding(
-                                                                  padding: EdgeInsets.symmetric(
+                                                                  padding: EdgeInsets
+                                                                      .symmetric(
                                                                       horizontal:
-                                                                          SizeConfig
-                                                                              .size10),
+                                                                      SizeConfig
+                                                                          .size10),
                                                                   child:
-                                                                      CustomText(
+                                                                  CustomText(
                                                                     AppStrings
                                                                         .Repost,
                                                                     textAlign:
-                                                                        TextAlign
-                                                                            .left,
+                                                                    TextAlign
+                                                                        .left,
                                                                     fontWeight:
-                                                                        FontWeight
-                                                                            .bold,
+                                                                    FontWeight
+                                                                        .bold,
                                                                     fontSize:
-                                                                        SizeConfig
-                                                                            .size16,
+                                                                    SizeConfig
+                                                                        .size16,
                                                                   ),
                                                                 ),
                                                                 Padding(
-                                                                  padding: EdgeInsets.symmetric(
+                                                                  padding: EdgeInsets
+                                                                      .symmetric(
                                                                       horizontal:
-                                                                          SizeConfig
-                                                                              .size10),
+                                                                      SizeConfig
+                                                                          .size10),
                                                                   child:
-                                                                      CustomText(
+                                                                  CustomText(
                                                                     AppStrings
                                                                         .sharePostWithFollowers,
                                                                     textAlign:
-                                                                        TextAlign
-                                                                            .left,
+                                                                    TextAlign
+                                                                        .left,
                                                                     color: AppColors
                                                                         .secondaryTextColor,
                                                                     fontSize:
-                                                                        SizeConfig
-                                                                            .size13,
+                                                                    SizeConfig
+                                                                        .size13,
                                                                   ),
                                                                 ),
                                                               ],
@@ -829,7 +849,7 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                                     Padding(
                                                       padding: EdgeInsets.only(
                                                           top:
-                                                              SizeConfig.size10,
+                                                          SizeConfig.size10,
                                                           bottom: SizeConfig
                                                               .size10),
                                                       child: Divider(
@@ -842,14 +862,14 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                                         Get.back();
                                                         Get.to(
                                                             CreateMessagePostScreenRepost(
-                                                          isEdit: false,
-                                                          post: widget.post,
-                                                        ));
+                                                              isEdit: false,
+                                                              post: widget.post,
+                                                            ));
                                                       },
                                                       child: Row(
                                                         crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
+                                                        CrossAxisAlignment
+                                                            .start,
                                                         children: [
                                                           Container(
                                                             width: SizeConfig
@@ -858,8 +878,8 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                                                 .size30,
                                                             child: LocalAssets(
                                                               imagePath:
-                                                                  AppIconAssets
-                                                                      .pencilIcon,
+                                                              AppIconAssets
+                                                                  .pencilIcon,
                                                               width: SizeConfig
                                                                   .size20,
                                                               height: SizeConfig
@@ -871,46 +891,48 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                                             flex: 2,
                                                             child: Column(
                                                               crossAxisAlignment:
-                                                                  CrossAxisAlignment
-                                                                      .start,
+                                                              CrossAxisAlignment
+                                                                  .start,
                                                               children: [
                                                                 Padding(
-                                                                  padding: EdgeInsets.symmetric(
+                                                                  padding: EdgeInsets
+                                                                      .symmetric(
                                                                       horizontal:
-                                                                          SizeConfig
-                                                                              .size10),
+                                                                      SizeConfig
+                                                                          .size10),
                                                                   child:
-                                                                      CustomText(
+                                                                  CustomText(
                                                                     AppStrings
                                                                         .addYourThings,
                                                                     textAlign:
-                                                                        TextAlign
-                                                                            .left,
+                                                                    TextAlign
+                                                                        .left,
                                                                     fontWeight:
-                                                                        FontWeight
-                                                                            .bold,
+                                                                    FontWeight
+                                                                        .bold,
                                                                     fontSize:
-                                                                        SizeConfig
-                                                                            .size16,
+                                                                    SizeConfig
+                                                                        .size16,
                                                                   ),
                                                                 ),
                                                                 Padding(
-                                                                  padding: EdgeInsets.symmetric(
+                                                                  padding: EdgeInsets
+                                                                      .symmetric(
                                                                       horizontal:
-                                                                          SizeConfig
-                                                                              .size10),
+                                                                      SizeConfig
+                                                                          .size10),
                                                                   child:
-                                                                      CustomText(
+                                                                  CustomText(
                                                                     AppStrings
                                                                         .addCommentBeforeShare,
                                                                     textAlign:
-                                                                        TextAlign
-                                                                            .left,
+                                                                    TextAlign
+                                                                        .left,
                                                                     color: AppColors
                                                                         .secondaryTextColor,
                                                                     fontSize:
-                                                                        SizeConfig
-                                                                            .size13,
+                                                                    SizeConfig
+                                                                        .size13,
                                                                   ),
                                                                 ),
                                                               ],
@@ -921,7 +943,7 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                                     ),
                                                     SizedBox(
                                                         height:
-                                                            SizeConfig.size20),
+                                                        SizeConfig.size20),
                                                   ],
                                                 ),
                                               ),
@@ -938,7 +960,7 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                 ),
                               Padding(
                                 padding:
-                                    EdgeInsets.only(left: SizeConfig.size5),
+                                EdgeInsets.only(left: SizeConfig.size5),
                                 child: InkWell(
                                   onTap: () => widget.onShareButtonPressed(),
                                   child: LocalAssets(
@@ -976,7 +998,8 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
       if (userId == authorId) {
         navigatePushTo(context, PersonalProfileSetupNewScreen());
       } else {
-        Get.to(() => NewVisitProfileScreen(
+        Get.to(() =>
+            NewVisitProfileScreen(
               authorId: authorId ?? "",
               screenFromName: AppConstants.feedScreen,
             ));
@@ -986,7 +1009,8 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
       if (businessId == userBusinessId) {
         navigatePushTo(context, BusinessOwnProfileScreen());
       } else {
-        Get.to(() => VisitBusinessProfileNew(
+        Get.to(() =>
+            VisitBusinessProfileNew(
               businessId: userBusinessId ?? "",
               screenName: AppConstants.feedScreen,
             ));

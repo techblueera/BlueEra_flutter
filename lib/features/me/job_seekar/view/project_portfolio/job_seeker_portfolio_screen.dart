@@ -37,6 +37,7 @@ class JobSeekerPortfolioScreen extends StatelessWidget {
               return JobSeekerPortfolioProjectCardWidget(
                 project: ProfessionalPortfolio(
                   id: portfolioController.certificates[index].id,
+                    projectImage:  portfolioController.certificates[index].projectImage,
                     projectTitle: portfolioController.certificates[index].title,
                     category: portfolioController.certificates[index].category,
                     description:

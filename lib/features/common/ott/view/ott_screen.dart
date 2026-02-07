@@ -2,6 +2,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_controllar.dart';
 import 'package:BlueEra/features/common/channel_feed_view/view_all_joined_channel_list_screen.dart';
+import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
 import 'package:BlueEra/features/common/ott/controller/ott_home_controller.dart';
 import 'package:BlueEra/features/common/ott/view/view_all_channel_screen.dart';
@@ -14,6 +15,9 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/setup_scroll_visibility_notification.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+DateTime? lastOTTFetchTime;
+bool isChannelOTTFetching = false;
 
 class OttScreen extends StatefulWidget {
   final Function(bool)? onHeaderVisibilityChanged;
@@ -33,15 +37,47 @@ class _OttScreenState extends State<OttScreen> {
   final ottHomeController = Get.put(OttHomeController());
   final channelFeedController = Get.put(ChannelFeedController());
 
+  Future<void> _refreshChannelContent() async {
+    final now = DateTime.now();
+
+    // Guard: If already fetching or within the 5s window, do nothing
+    if (isChannelOTTFetching) return;
+    if (lastOTTFetchTime != null &&
+        now.difference(lastOTTFetchTime!) < fetchThreshold) {
+      return;
+    }
+
+    isChannelOTTFetching = true;
+    lastOTTFetchTime = now;
+
+    try {
+      // Fire both APIs at the same time for maximum speed
+      await Future.wait([
+        channelFeedController.fetchChannelData(loadMore: false),
+        channelFeedController.getAllChannelData(loadMore: false),
+      ]);
+    } catch (e) {
+      debugPrint("Channel Fetch Error: $e");
+    } finally {
+      isChannelOTTFetching = false;
+    }
+  }
+
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-
-    ///GET ALL JOIN CHANNEL....
-    channelFeedController.fetchChannelData(loadMore: false);
-    channelFeedController.getAllChannelData(loadMore: false);
+    _refreshChannelContent();
   }
+
+  // @override
+  // void initState() {
+  //   // TODO: implement initState
+  //   super.initState();
+  //
+  //   ///GET ALL JOIN CHANNEL....
+  //   channelFeedController.fetchChannelData(loadMore: false);
+  //   channelFeedController.getAllChannelData(loadMore: false);
+  // }
 
   final scrollController = ScrollController();
 
@@ -103,7 +139,7 @@ class _OttScreenState extends State<OttScreen> {
 
                 // 3. CONTINUE WATCHING (Horizontal List)
                 BuildSectionHeaderWidget(
-                  title:AppStrings.continueWatching,
+                  title: AppStrings.continueWatching,
                   isShowArrow: false,
                 ),
                 const SizedBox(height: 10),
@@ -115,7 +151,7 @@ class _OttScreenState extends State<OttScreen> {
 
                 // 4. RECOMMENDED FOR YOU (Horizontal List)
                 BuildSectionHeaderWidget(
-                  title:AppStrings.recommendedForYou,
+                  title: AppStrings.recommendedForYou,
                   isShowArrow: false,
                 ),
                 const SizedBox(height: 10),
