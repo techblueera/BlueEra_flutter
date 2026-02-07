@@ -68,7 +68,7 @@ class InventoryRepo extends BaseService {
   // GET: Fetch full business profile
   Future<dynamic> getBusinessProfileFullRepo(String id) async {
     return await ApiBaseHelper().getHTTP(
-      "other-service/business-profile/$id/full",
+      "product-service/api/business-profile/$id/full",
       showProgress: true,
       onSuccess: (res) {},
       onError: (error) {},
@@ -79,7 +79,7 @@ class InventoryRepo extends BaseService {
   Future<ResponseModel> updateProductBusinessProfileRepo(
       {required Map<String, dynamic> reqBODY,}) async {
     final response = await ApiBaseHelper().putHTTP(
-        otherBusinessProfile,
+        productBusinessProfile,
         params: reqBODY,
         onError: (error) {},
         onSuccess: (data) {});
@@ -87,10 +87,10 @@ class InventoryRepo extends BaseService {
   }
 
   /// GENERATED AI PRODUCT DETAILS...
-  Future<ResponseModel> aiGenerateProductServiceFetchDetailsRepo(
+  Future<ResponseModel> aiGenerateProductFetchDetailsRepo(
       {required Map<String, dynamic> reqBody}) async {
-    final response = await ApiBaseHelper().postHTTP(generateOtherService,
-        params: reqBody, onError: (error) {}, onSuccess: (data) {});
+    final response = await ApiBaseHelper().postHTTP(
+        generateProductBusiness, params: reqBody, onError: (error) {}, onSuccess: (data) {});
     return response;
   }
 
@@ -98,7 +98,7 @@ class InventoryRepo extends BaseService {
   Future<ResponseModel> createProductBusinessProfileRepo(
       {required dynamic reqBODY,}) async {
     final response = await ApiBaseHelper().postHTTP(
-        otherBusinessProfile,
+        productBusinessProfile,
         params: reqBODY,
         onError: (error) {},
         onSuccess: (data) {});
@@ -108,7 +108,7 @@ class InventoryRepo extends BaseService {
   ///GET BUSINESS PROFILE REPO....
   Future<ResponseModel> getBusinessProfileRepo() async {
     final response = await ApiBaseHelper().getHTTP(
-        otherBusinessProfile,
+        productBusinessProfile,
         onError: (error) {},
         onSuccess: (data) {});
     return response;

@@ -36,7 +36,6 @@ class _ProductBusinessProfileFullScreenState extends State<ProductBusinessProfil
 
   @override
   void initState() {
-    // TODO: implement initState
     controller.getBusinessProfileFull();
     super.initState();
   }
@@ -331,7 +330,7 @@ class _ProductBusinessProfileFullScreenState extends State<ProductBusinessProfil
                       end: Alignment.bottomCenter,
                       colors: [
                         Colors.transparent,
-                        Colors.black.withOpacity(0.8)
+                        Colors.black.withValues(alpha: 0.8)
                       ],
                     ),
                   ),
@@ -404,7 +403,7 @@ class _ProductBusinessProfileFullScreenState extends State<ProductBusinessProfil
                       end: Alignment.bottomCenter,
                       colors: [
                         Colors.transparent,
-                        Colors.black.withOpacity(0.8)
+                        Colors.black.withValues(alpha: 0.8)
                       ],
                     ),
                   ),

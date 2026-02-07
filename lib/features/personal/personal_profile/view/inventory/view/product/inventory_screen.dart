@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -67,6 +69,7 @@ class _InventoryScreenState extends State<InventoryScreen>
 
   apiCalling() async {
     try {
+      log('id -- $productBusinessProfileIDGlobal');
       if (productBusinessProfileIDGlobal.isEmpty) {
         ResponseModel response = await InventoryRepo().getBusinessProfileRepo();
         if (response.isSuccess) {
@@ -80,7 +83,7 @@ class _InventoryScreenState extends State<InventoryScreen>
       }
       await getProductBusinessProfileID();
       setState(() {
-        controller.hasProfile.value = otherServiceIDGlobal.isNotEmpty;
+        controller.hasProfile.value = productBusinessProfileIDGlobal.isNotEmpty;
       });
     } on Exception {
       // TODO

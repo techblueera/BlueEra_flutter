@@ -433,7 +433,7 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
               //     SizedBox(height: SizeConfig.size6),
               //   ],
 
-              service.expertise!.isNotEmpty
+              (service.expertise?.isNotEmpty ?? false)
                   ? Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: List.generate(

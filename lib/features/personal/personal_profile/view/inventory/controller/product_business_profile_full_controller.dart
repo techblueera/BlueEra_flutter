@@ -9,8 +9,9 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/me/others/model/ai_other_service_res_model.dart';
 import 'package:BlueEra/features/me/others/model/business_profile_full_model.dart';
-import 'package:BlueEra/features/me/others/view/other_service_preview_detials_screen.dart';
 import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/controller/product_service_preview_details_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/ai_product_res_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/repo/inventory_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -39,10 +40,10 @@ class ProductBusinessProfileFullController extends GetxController {
     lng.value = 0.0;
   }
 
-  Rx<AiOtherServiceResModel>? aiOtherServiceRes = AiOtherServiceResModel().obs;
-  Rx<ApiResponse> generateSchoolViaAIResponse =
+  Rx<AiProductResModel>? aiProductRes = AiProductResModel().obs;
+  Rx<ApiResponse> generateProductViaAIResponse =
       ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> createSchoolResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> createStoreResponse = ApiResponse.initial('Initial').obs;
 
   @override
   void onClose() {
@@ -56,18 +57,18 @@ class ProductBusinessProfileFullController extends GetxController {
     isLoading.value = true;
     try {
       final response =
-      await _repo.getBusinessProfileFullRepo(otherServiceIDGlobal);
+      await _repo.getBusinessProfileFullRepo(productBusinessProfileIDGlobal);
       if (response != null && response.isSuccess) {
         final model =
-        BusinessProfileFullModel.fromJson(response.response?.healthCareData);
+        BusinessProfileFullModel.fromJson(response.response?.data);
         if (model.success == true && model.data != null) {
           businessProfile.value = model.data;
         }
       } else {
         commonSnackBar(message: response?.message ?? "Failed to fetch profile");
       }
-    } catch (e) {
-      print("Error fetching profile: $e");
+    } catch (e, s) {
+      print("Error fetching profile: $s");
       // commonSnackBar(message: "Error: $e");
     } finally {
       isLoading.value = false;
@@ -104,55 +105,54 @@ class ProductBusinessProfileFullController extends GetxController {
     Get.back();
     try {
       ResponseModel response =
-      await _repo.aiGenerateProductServiceFetchDetailsRepo(reqBody: {
+      await _repo.aiGenerateProductFetchDetailsRepo(reqBody: {
         ApiKeys.name: serviceName,
         "websiteUrl": website,
         ApiKeys.address: serviceName,
       });
       if (response.isSuccess) {
         final data = response.response?.data;
-        aiOtherServiceRes?.value = AiOtherServiceResModel.fromJson(data);
-        generateSchoolViaAIResponse.value =
-            ApiResponse.complete(aiOtherServiceRes);
-        Get.to(OtherServicePreviewDetailsScreen());
+        aiProductRes?.value = AiProductResModel.fromJson(data);
+        generateProductViaAIResponse.value = ApiResponse.complete(aiProductRes);
+        Get.to(()=> ProductPreviewDetailsScreen());
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
-        generateSchoolViaAIResponse.value =
+        generateProductViaAIResponse.value =
             ApiResponse.error(AppStrings.somethingWentWrong);
       }
     } on Exception {
-      // TODO
-      generateSchoolViaAIResponse.value =
+      generateProductViaAIResponse.value =
           ApiResponse.error(AppStrings.somethingWentWrong);
     }
   }
 
-  Future<void> createOtherProfileController() async {
+  Future<void> createProductProfileController() async {
     // Logic for AI generation goes here
     try {
-      aiOtherServiceRes?.value.data?.locationReq = {
+      aiProductRes?.value.data?.locationReq = {
         "name": searchController.text,
         "type": "Point",
         "coordinates": [lat.value, lng.value]
       };
-      aiOtherServiceRes?.value.data?.profileName =
-          aiOtherServiceRes?.value.data?.name;
+      aiProductRes?.value.data?.profileName =
+          aiProductRes?.value.data?.name;
 
       ResponseModel response = await _repo.createProductBusinessProfileRepo(
-          reqBODY: (aiOtherServiceRes?.value.data ?? {}));
+          reqBODY: (aiProductRes?.value.data ?? {}));
       if (response.isSuccess) {
-        commonSnackBar(message: "Other service create successfully");
-        createSchoolResponse.value =
+        commonSnackBar(message: "Store create successfully");
+        createStoreResponse.value =
             ApiResponse.complete(response.response?.data);
-        otherServiceIDGlobal = response.response?.data['data']['_id'];
+        productBusinessProfileIDGlobal = response.response?.data['data']['_id'];
 
-        if (otherServiceIDGlobal.isNotEmpty) {
-          await setOtherServiceID(otherServiceIDGlobal);
+        if (productBusinessProfileIDGlobal.isNotEmpty) {
+          await setProductBusinessProfileID(productBusinessProfileIDGlobal);
         } else {
-          await setOtherServiceID("");
+          await setProductBusinessProfileID("");
         }
-        await getOtherServiceID();
-        hasProfile.value = otherServiceIDGlobal.isNotEmpty;
+        await getProductBusinessProfileID();
+        hasProfile.value = productBusinessProfileIDGlobal.isNotEmpty;
+        print('has profile -- ${hasProfile.value}');
         await getBusinessProfileFull();
         // await controller.updateAboutInfo();
         await Future.delayed(Duration(milliseconds: 500));
@@ -161,12 +161,11 @@ class ProductBusinessProfileFullController extends GetxController {
             RouteHelper.getBottomNavigationBarScreenRoute());
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
-        createSchoolResponse.value =
+        createStoreResponse.value =
             ApiResponse.error(AppStrings.somethingWentWrong);
       }
     } on Exception {
-      // TODO
-      createSchoolResponse.value =
+      createStoreResponse.value =
           ApiResponse.error(AppStrings.somethingWentWrong);
     }
   }

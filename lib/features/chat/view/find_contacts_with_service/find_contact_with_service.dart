@@ -1,9 +1,11 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/chat/view/find_contacts_with_service/professionals/professionals_main.dart';
 import 'package:BlueEra/features/chat/view/find_contacts_with_service/services/service_main.dart';
 import 'package:BlueEra/features/chat/view/find_contacts_with_service/shopping/shopping_main.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:get/get.dart';
@@ -14,7 +16,8 @@ import '../../auth/service/contact_store_service.dart';
 import 'others/find_by_other_service_main.dart';
 
 class FindContactWithService extends StatefulWidget {
-  const FindContactWithService({super.key});
+  final bool fromBottomNav;
+  const FindContactWithService({super.key, this.fromBottomNav = false});
 
   @override
   State<FindContactWithService> createState() => _FindContactWithServiceState();
@@ -27,7 +30,6 @@ class _FindContactWithServiceState extends State<FindContactWithService>
 
   @override
   void initState() {
-    // TODO: implement initState
     tabController = TabController(length: 4, vsync: this, initialIndex: 0);
     loadContacts();
     chatViewController.selectedIndex.value=0;
@@ -121,7 +123,8 @@ class _FindContactWithServiceState extends State<FindContactWithService>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(
+      backgroundColor: AppColors.whiteF3,
+      appBar: widget.fromBottomNav ? null : CommonBackAppBar(
         isShadowShow: false,
         title: "Find In Your Contact",
         isReloadContactButton: true,
@@ -129,36 +132,59 @@ class _FindContactWithServiceState extends State<FindContactWithService>
           releadContacts();
         },
       ),
-      body:Column(
+      body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             color: AppColors.white,
-            child: TabBar(
+            child: widget.fromBottomNav
+                ? Padding(
+                  padding: EdgeInsets.only(
+                      top: SizeConfig.size15,
+                      bottom: SizeConfig.size10,
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: HorizontalTabSelector(
+                          tabs: const ["Professionals", "Shopping", "Essential", "Services"],
+                          selectedIndex: tabController?.index ?? 0,
+                          isFilterIconShow: false,
+                          onTabSelected: (index, value) {
+                            tabController?.animateTo(index);
+                            _handleTabSelection(index); // Call your API logic
+                          },
+                          labelBuilder: (label) => label,
+                        ),
+                      ),
+                      SizedBox(width: SizeConfig.size8),
+                      InkWell(
+                        onTap: () {
+                          releadContacts();
+                        },
+                        child: Center(
+                          child: Icon(
+                            Icons.refresh,
+                            size: 24,
+                            color: Colors.black,
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                )
+                : TabBar(
               physics: NeverScrollableScrollPhysics(),
               tabAlignment: TabAlignment.start,
               indicatorPadding: EdgeInsets.zero,
               padding: EdgeInsets.zero,
               isScrollable: true,
-              onTap: (index) async {
-
-                if(index==0){
-                  chatViewController.findServiceByContacts(professionalContactCategories.first.slugId, null);
-                }else if(index==1){
-                  chatViewController.findServiceByContacts(
-                      fashionContactCategories.first.slugId, null);
-                }else if(index==2){
-                  chatViewController.findServiceByContacts(
-                      othersContactCategories.first.slugId, null);
-                }else if(index==3){
-                  chatViewController.findServiceByContacts(
-                      serviceContactCategories.first.slugId, null);
-                }
-                chatViewController.selectedIndex.value=0;
+              onTap: (index) {
+                _handleTabSelection(index);
               },
               indicatorSize: TabBarIndicatorSize.tab,
               controller: tabController,
-              dividerColor: AppColors.primaryColor.withOpacity(0.10),
+              dividerColor: AppColors.primaryColor.withValues(alpha: 0.10),
               labelColor: Colors.black,
               unselectedLabelColor: Colors.black54,
               indicatorColor: AppColors.primaryColor,
@@ -171,7 +197,6 @@ class _FindContactWithServiceState extends State<FindContactWithService>
                 Tab(text: "Shopping"),
                 Tab(text: "Essential"),
                 Tab(text: "Services"),
-
               ],
             ),
           ),
@@ -189,5 +214,21 @@ class _FindContactWithServiceState extends State<FindContactWithService>
         ],
       ),
     );
+  }
+
+  void _handleTabSelection(int index) {
+    if(index==0){
+      chatViewController.findServiceByContacts(professionalContactCategories.first.slugId, null);
+    }else if(index==1){
+      chatViewController.findServiceByContacts(
+          fashionContactCategories.first.slugId, null);
+    }else if(index==2){
+      chatViewController.findServiceByContacts(
+          othersContactCategories.first.slugId, null);
+    }else if(index==3){
+      chatViewController.findServiceByContacts(
+          serviceContactCategories.first.slugId, null);
+    }
+    chatViewController.selectedIndex.value=0;
   }
 }

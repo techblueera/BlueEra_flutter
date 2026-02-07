@@ -11,7 +11,6 @@ class TooltipGenerator {
   /// Generates a composite image: Tooltip Bubble (Top) + SVG Icon (Bottom)
   static Future<Uint8List> createTooltipWithSvg({
     required String title,
-
     required String svgAssetPath, // e.g., 'assets/images/marker.svg'
   }) async {
 
@@ -19,7 +18,7 @@ class TooltipGenerator {
     const double bubbleWidth = 250;
     const double bubbleHeight = 90;
     const double gap = 10; // Space between bubble and icon
-    const double iconTargetWidth = 80; // How big you want the SVG to look
+    const double iconTargetWidth = 75; // How big you want the SVG to look
 
     // 2. Load and Rasterize the SVG
     final ui.Image iconImage = await _rasterizeSvg(svgAssetPath, iconTargetWidth);
@@ -35,34 +34,34 @@ class TooltipGenerator {
     // STEP A: Draw the Text Bubble
     // -----------------------------------------------------------------------
 
-    final double bubbleOffsetX = (totalWidth - bubbleWidth) / 2;
-
-    final Paint bubblePaint = Paint()..color = const Color(0xFFE0E9EA)..style = PaintingStyle.fill;
-    final Paint borderPaint = Paint()..color = AppColors.primaryColor..style = PaintingStyle.stroke..strokeWidth = 3.0;
-
-    final RRect bubbleRect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(bubbleOffsetX, 0, bubbleWidth, bubbleHeight),
-      const Radius.circular(10),
-    );
-
-    canvas.drawRRect(bubbleRect, bubblePaint);
-    canvas.drawRRect(bubbleRect, borderPaint);
-
-    // Draw Title
-    TextPainter titlePainter = TextPainter(
-      text: TextSpan(
-        text: title,
-        style: TextStyle(
-            color: AppColors.primaryColor,
-            fontSize: SizeConfig.title,
-            fontWeight: FontWeight.w600),
-
-      ),
-      textAlign: TextAlign.center,
-      textDirection: TextDirection.ltr,
-    );
-    titlePainter.layout();
-    titlePainter.paint(canvas, Offset(bubbleOffsetX + (bubbleWidth - titlePainter.width) / 2, 15));
+    // final double bubbleOffsetX = (totalWidth - bubbleWidth) / 2;
+    //
+    // final Paint bubblePaint = Paint()..color = const Color(0xFFE0E9EA)..style = PaintingStyle.fill;
+    // final Paint borderPaint = Paint()..color = AppColors.primaryColor..style = PaintingStyle.stroke..strokeWidth = 3.0;
+    //
+    // final RRect bubbleRect = RRect.fromRectAndRadius(
+    //   Rect.fromLTWH(bubbleOffsetX, 0, bubbleWidth, bubbleHeight),
+    //   const Radius.circular(10),
+    // );
+    //
+    // canvas.drawRRect(bubbleRect, bubblePaint);
+    // canvas.drawRRect(bubbleRect, borderPaint);
+    //
+    // // Draw Title
+    // TextPainter titlePainter = TextPainter(
+    //   text: TextSpan(
+    //     text: title,
+    //     style: TextStyle(
+    //         color: AppColors.primaryColor,
+    //         fontSize: SizeConfig.title,
+    //         fontWeight: FontWeight.w600),
+    //
+    //   ),
+    //   textAlign: TextAlign.center,
+    //   textDirection: TextDirection.ltr,
+    // );
+    // titlePainter.layout();
+    // titlePainter.paint(canvas, Offset(bubbleOffsetX + (bubbleWidth - titlePainter.width) / 2, 15));
 
 
     // -----------------------------------------------------------------------

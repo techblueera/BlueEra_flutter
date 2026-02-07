@@ -672,8 +672,10 @@ abstract class BaseService {
   final String homeFoodContactUs = 'food-service/api/contact';
   final String homeFoodGallery = 'food-service/api/gallery';
 
-  //help and support
+  final String productBusinessProfile = "product-service/api/business-profile";
+  final String generateProductBusiness = "ai-service/api/ai-store/generate-store";
 
+  //help and support
   final String getFaqs = 'earn-service/help-support/faqs';
   final String createQueries = 'earn-service/help-support/queries';
   final String mediaUploadUrlEarn = 'earn-service/s3/generate-upload-urls?';
