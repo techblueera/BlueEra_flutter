@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/subscription_create_model.dart';
@@ -6,8 +8,10 @@ import 'package:BlueEra/core/api/model/subscription_plan_model.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/features/subscription/subscription_repo.dart';
+import 'package:BlueEra/features/subscription/auth/repo/subscription_repo.dart';
 import 'package:get/get.dart';
+
+import '../model/subscription_list_details_model.dart';
 
 class SubscriptionController extends GetxController {
   Rx<ApiResponse> createSubscriptionResponse =
@@ -81,6 +85,7 @@ class SubscriptionController extends GetxController {
   ///GET PLAN OFFER..
   Rx<SubscriptionOfferModel> subscriptionOfferModel =
       SubscriptionOfferModel().obs;
+  Rx<SubscriptionPlanDetailsNewModel> subscriptionPlanDetailsNewModel = SubscriptionPlanDetailsNewModel().obs;
 
   Future getSubscriptionOffer() async {
     try {
@@ -90,6 +95,24 @@ class SubscriptionController extends GetxController {
       if (response.isSuccess) {
         subscriptionOfferModel.value =
             SubscriptionOfferModel.fromJson(response.response?.data);
+        getSubscriptionOfferResponse.value = ApiResponse.complete(response);
+      } else {
+        commonSnackBar(message: AppStrings.somethingWentWrong);
+        getSubscriptionOfferResponse.value = ApiResponse.error('error');
+      }
+    } catch (e) {
+      getSubscriptionOfferResponse.value = ApiResponse.error('error');
+    }
+  }
+
+  Future<void> subscriptionPlansGetApi() async {
+    try {
+      getSubscriptionOfferResponse.value = ApiResponse.initial('Initial');
+
+      ResponseModel response = await SubscriptionRepo().subscriptionPlansGetApi();
+      if (response.isSuccess) {
+        subscriptionPlanDetailsNewModel.value =
+            SubscriptionPlanDetailsNewModel.fromJson(response.response?.data);
         getSubscriptionOfferResponse.value = ApiResponse.complete(response);
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);

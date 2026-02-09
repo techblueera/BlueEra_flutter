@@ -7,11 +7,15 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import '../../../../../core/constants/snackbar_helper.dart';
 
 class HelpAndSupportFormScreen extends StatelessWidget {
   HelpAndSupportFormScreen({super.key});
 
   final controller = Get.find<HelpAndSupportController>();
+
 
   @override
   Widget build(BuildContext context) {
@@ -21,13 +25,13 @@ class HelpAndSupportFormScreen extends StatelessWidget {
         ),
         body: Container(
           padding: EdgeInsets.symmetric(
-              vertical: SizeConfig.size10, horizontal: SizeConfig.size10),
-          margin: EdgeInsets.symmetric(horizontal: 1),
+              vertical: SizeConfig.size20, horizontal: SizeConfig.size14),
+          margin: EdgeInsets.symmetric(horizontal: 8,vertical: 16),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Column(
+          child: Column(mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CustomText(
@@ -41,7 +45,6 @@ class HelpAndSupportFormScreen extends StatelessWidget {
               CommonTextField(
                 textEditController: controller.emailController,
                 keyBoardType: TextInputType.emailAddress,
-                onChange: controller.setEmail,
                 hintText: AppStrings.enterYourEmail,
                 title: AppStrings.email,
               ),

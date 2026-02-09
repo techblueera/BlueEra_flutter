@@ -12,7 +12,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/razor_pay_services.dart';
-import 'package:BlueEra/features/subscription/subscription_controller.dart';
+import 'package:BlueEra/features/subscription/auth/controller/subscription_controller.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_drop_down.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';

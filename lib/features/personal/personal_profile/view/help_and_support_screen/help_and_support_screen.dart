@@ -1,7 +1,7 @@
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/help_and_support_screen/faq_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/help_and_support_screen/help_and_support__form_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/help_and_support_screen/help_and_support__mail_us.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/help_and_support_screen/queries_card_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';

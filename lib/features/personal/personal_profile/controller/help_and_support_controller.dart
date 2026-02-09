@@ -17,7 +17,7 @@ import '../repo/user_repo.dart';
 
 class HelpAndSupportController extends GetxController {
   RxString phoneNumber = '1234567890'.obs;
-  RxString email = ''.obs;
+
   RxString message = ''.obs;
   RxBool isLoading = false.obs;
   String index = '0';
@@ -44,9 +44,7 @@ class HelpAndSupportController extends GetxController {
     emailController.clear();
     messageController.clear();
   }
-  void setEmail(String value) {
-    email.value = value;
-  }
+
 
   void setMessage(String value) {
     message.value = value;
@@ -85,6 +83,7 @@ class HelpAndSupportController extends GetxController {
       );
     }
   }
+
   Future<void> addEmailSupport({required Map<String, dynamic> params}) async {
     FocusManager.instance.primaryFocus?.unfocus();
     try {
@@ -166,7 +165,7 @@ commonSnackBar(message:"phone number copied");
   }
 
   void submitForm() {
-    if (email.value.trim().isEmpty) {
+    if (emailController.text.trim().isEmpty) {
       Get.snackbar(
         'Error',
         'Please enter your email address',
@@ -189,7 +188,7 @@ commonSnackBar(message:"phone number copied");
     }
 
     // Validate email format
-    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email.value)) {
+    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(emailController.text)) {
       Get.snackbar(
         'Error',
         'Please enter a valid email address',
@@ -200,30 +199,29 @@ commonSnackBar(message:"phone number copied");
       return;
     }
 
-    isLoading.value = true;
+      sendEmail(email: '${emailController.text}', subject: 'Query About BlueEra Account', message: '${messageController.text}');
 
-    // Simulate API call
-    Future.delayed(Duration(seconds: 2), () {
-      isLoading.value = false;
-      Map<String,dynamic> params = {
-        ApiKeys.type: "Email",
-        ApiKeys.email: "${email.value}",
-        ApiKeys.message: "${message.value}",
-        ApiKeys.status: "In Progress",
-      };
-      // Get.snackbar(
-      //   'Success',
-      //   'Your message has been submitted successfully!',
-      //   snackPosition: SnackPosition.BOTTOM,
-      //   backgroundColor: Colors.green,
-      //   colorText: Colors.white,
-      // );
-
-      addEmailSupport(params: params);
-
-    });
   }
-//faq
+  Future<void> sendEmail({
+    required String email,
+    required String subject,
+    required String message,
+  }) async {
+    final Uri emailUri = Uri(
+      scheme: 'mailto',
+      path: email,
+      queryParameters: {
+        'subject': subject,
+        'body': message,
+      },
+    );
+
+    if (await canLaunchUrl(emailUri)) {
+      await launchUrl(emailUri);
+    } else {
+      commonSnackBar(message: "Unable to open mail app");
+    }
+  }
   Future<void> getFaqsForHelp() async {
     try {
 

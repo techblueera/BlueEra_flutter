@@ -702,4 +702,5 @@ abstract class BaseService {
   final String socialActivityFeed = 'social-service/activity-feed';
   final String socialAchievements = 'social-service/achievements';
   final String socialContact = 'social-service/contact';
+  final String subscriptionPlansGet = 'subscription-service/subscription/subscription-plans';
 }

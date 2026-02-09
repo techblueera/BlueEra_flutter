@@ -1032,7 +1032,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
                 Row(
                   children: [
                     CustomText(
-                      '${(type == AppStrings.PersonalChatAi||type==AppStrings.BusinessChatAi)?"BlueCs Limited":(name == "BlueEra Orders") ? "BlueCs Ltd" : (type !=
+                      '${(type == AppConstants.personal_Chat_Type||type==AppConstants.business_Chat_Type)?"BlueCs Limited":(name == "BlueEra Orders") ? "BlueCs Ltd" : (type !=
                           AppStrings.Admin) ? (type == "business") ? chatViewController
                           .userOnlineStatus.value == "Online"
                           ? "Shop Open"

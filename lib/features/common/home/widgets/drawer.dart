@@ -1,7 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +7,8 @@ import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_instance/src/extension_instance.dart';
 import 'package:get/get_navigation/src/extension_navigation.dart';
 import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
+import 'package:hive/hive.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/constants/app_constant.dart';
@@ -17,16 +17,22 @@ import '../../../../core/constants/getx_utils.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
 import '../../../../core/routes/route_helper.dart';
 import '../../../../environment_config.dart';
+import '../../../../widgets/common_dialog.dart';
+import '../../../../widgets/custom_btn.dart';
 import '../../../../widgets/webview_common.dart';
 import '../../../business/auth/controller/view_business_details_controller.dart';
+import '../../../chat/auth/controller/chat_view_controller.dart';
+import '../../../chat/auth/service/location_update_service.dart';
 import '../../../personal/auth/controller/view_personal_details_controller.dart';
 import '../../../personal/personal_profile/view/account_setting_screen/account_settings_screen.dart';
 import '../../../personal/personal_profile/view/create_profile_screen.dart';
 import '../../../personal/personal_profile/view/app_tutorial/view/app_tutorial.dart';
+import '../../../personal/personal_profile/view/documents.dart';
 import '../../../personal/personal_profile/view/help_and_support_screen/help_and_support_screen.dart';
 import '../../../personal/personal_profile/view/payment/view/payment_setting_screen.dart';
 import '../../../personal/personal_profile/view/profile_settings_new_screen.dart';
 import '../../../subscription/view/subscription_screen.dart';
+import '../../../subscription/view/subscrption_new.dart';
 import '../../auth/controller/auth_controller.dart';
 import '../../referral/view/referral_page.dart';
 
@@ -159,7 +165,24 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
       ),
     );
   }
+  final LiveLocationService locationService = LiveLocationService();
 
+  Future<void> clearAllLocalDataOnLogout() async {
+    try {
+      // 1️⃣ Clear all Hive boxes
+      await Hive.deleteFromDisk();
+
+      // 2️⃣ Clear stored media files
+      final dir = await getApplicationDocumentsDirectory();
+      if (dir.existsSync()) {
+        await dir.delete(recursive: true);
+      }
+
+
+    } catch (e) {
+
+    }
+  }
   Widget _walletRow() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -228,6 +251,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
         title: "Refer & Earn",
         onTap: () => Get.to(() => ReferralPage()),
       ),
+      if(accountTypeGlobal!="BUSINESS")
       MenuItemModel(
         title: "Earn with BlueEra",
         onTap: () {
@@ -248,7 +272,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
       ),
       MenuItemModel(
           title: "Subscription",
-          onTap: () => Get.to(() => SubscriptionScreen())
+          onTap: () => Get.to(() => SubscriptionScreenNew())
       ),
       MenuItemModel(
         title: "Payment",
@@ -280,7 +304,8 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
       ),
       MenuItemModel(
         title: "My Documents",
-        onTap: () {},
+          onTap: () => Get.to(() => AddYourDocumentScreen())
+
       ),
       MenuItemModel(
         title: "Franchise Inquiry",
@@ -297,20 +322,11 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
         title: "Account Settings",
         onTap: () => Get.to(() => AccountSettingScreen()),
       ),
-      MenuItemModel(
-        title: "Profile Settings",
-        onTap: () {
-          if (isGuestUser()) {
-            createProfileScreen();
-          } else if (isIndividualUser()) {
-            navigatePushTo(context, PersonalProfileSetupNewScreen());
-          } else if (isBusinessUser()) {
-            navigatePushTo(context, BusinessOwnProfileScreen());
-          }
-          // Get.to(() => ProfileSettingsNewScreen());
-        },
-
-      ),
+      // MenuItemModel(
+      //   title: "Profile Settings",
+      //   onTap: () => Get.to(() => ProfileSettingsNewScreen()),
+      //
+      // ),
       MenuItemModel(
         title: "Manage Notification",
         onTap: () => Get.toNamed(RouteHelper.getNotificationScreenRoute()),
@@ -321,6 +337,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
         title: "Help & Support",
         onTap: () => Get.to(HelpAndSupportScreen()),
       ),
+
     ];
 
     return ListView.separated(
@@ -382,6 +399,32 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
       child: Column(
         children: [
+          CustomBtn(
+              onTap: () async {
+                await showCommonDialog(
+                    context: context,
+                    text: AppStrings.logoutConfirmationMessage,
+                    confirmCallback: () async {
+                      deleteIfRegistered<ChatViewController>();
+                      await SharedPreferenceUtils.clearPreference();
+                      locationService.stop();
+                      await clearAllLocalDataOnLogout();
+                      Navigator.of(context).pushNamedAndRemoveUntil(
+                          RouteHelper.getMobileNumberLoginRoute(),
+                              (Route<dynamic> route) => false);
+                    },
+                    cancelCallback: () {
+                      Navigator.of(context).pop(); // Close the dialog
+                    },
+                    confirmText: AppStrings.yes,
+                    cancelText: AppStrings.no);
+              },
+              title: AppStrings.logout,
+              bgColor: Colors.white,
+              textColor: AppColors.red,
+              borderColor: AppColors.red,
+              radius: 10.0),
+          SizedBox(height: 10,),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: const [

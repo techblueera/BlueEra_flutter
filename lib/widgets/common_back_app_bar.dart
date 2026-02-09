@@ -259,20 +259,24 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                   padding: const EdgeInsets.only(left: 15.0,top: 10),
                   child: InkWell(
                     onTap: () {
-                      Get.dialog(
-                        Align(
+                      showDialog(
+                          barrierDismissible: true,
+                          barrierColor: Colors.black.withOpacity(0.3),
+                          context: context, builder: (BuildContext context){
+
+                        return   Align(
                           alignment: Alignment.centerLeft,
                           child: SizedBox(
-                            width: Get.width * 0.65, // 👈 40% of screen
+                            width: Get.width * 0.85, // 👈 40% of screen
                             height: double.infinity,
                             child: Drawer(
                               child: ProfileMenuDrawer(),
                             ),
                           ),
-                        ),
-                        barrierDismissible: true,
-                        barrierColor: Colors.black.withOpacity(0.3),
-                      );
+                        );
+
+                      });
+
                     },
                     child: LocalAssets(
                         imagePath: "assets/icons/app_logo_shadow.png",

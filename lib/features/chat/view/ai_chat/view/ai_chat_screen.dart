@@ -72,6 +72,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+
     return PopScope(
       canPop: true,
       child: Obx(() {
