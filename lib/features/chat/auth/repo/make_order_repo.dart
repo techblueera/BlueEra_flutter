@@ -89,6 +89,32 @@ class MakeOrderRepo extends BaseService {
     final response = await ApiBaseHelper().patchHTTP(
         updateOrderStatusFromPialot(orderId),
         showProgress: true,
+
+     params: params,
+     onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+  Future<ResponseModel> updateRideOrParcelOrderStatusApi(Map<String,dynamic> params,String orderId) async {
+    final response = await ApiBaseHelper().patchHTTP(
+        updateRideOrParcelOrderStatus(orderId),
+        showProgress: true,
+
+     params: params,
+     onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+  Future<ResponseModel> verifyPickupOtpRideOrParcelApi(Map<String,dynamic> params,String orderId) async {
+    final response = await ApiBaseHelper().postHTTP(
+        verifyPickupOtpRideOrParcel(orderId),
+        showProgress: false,
+     params: params,
+     onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+  Future<ResponseModel> completePickupRiderApi(Map<String,dynamic> params,String orderId) async {
+    final response = await ApiBaseHelper().postHTTP(
+        completePickupRider(orderId),
+        showProgress: true,
      params: params,
      onError: (error) {}, onSuccess: (data) {});
     return response;

@@ -521,6 +521,9 @@ abstract class BaseService {
   final String getRiderBookingList = "rider-service/riders/orders/requested";
   final String getRiderRejectOrder = "rider-service/riders/orders/rejected";
   String updateOrderStatusFromPialot(String orderId) => 'rider-service/riders/orders/$orderId/status';
+  String updateRideOrParcelOrderStatus(String orderId) => 'rider-service/fare/orders/${orderId}/status';
+  String verifyPickupOtpRideOrParcel(String orderId) => 'rider-service/fare/orders/${orderId}/start';
+  String completePickupRider(String orderId) => 'rider-service/fare/orders/${orderId}/complete';
   String updatePaymentStaus(String orderId) => 'rider-service/riders/orders/$orderId/confirm-payment';
   String cancelOrderForceFully(String orderId) => 'rider-service/riders/orders/$orderId/admin/status';
   String deliverOtpVerify(String orderId) => "rider-service/riders/orders/$orderId/deliver";
@@ -703,4 +706,5 @@ abstract class BaseService {
   final String socialAchievements = 'social-service/achievements';
   final String socialContact = 'social-service/contact';
   final String subscriptionPlansGet = 'subscription-service/subscription/subscription-plans';
+  final String makeTransportBookOrder = 'rider-service/fare/orders';
 }

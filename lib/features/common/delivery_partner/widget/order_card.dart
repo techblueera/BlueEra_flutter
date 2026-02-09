@@ -12,6 +12,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -246,7 +247,7 @@ class OrderCard extends StatelessWidget {
         _buildTimeText(),
         SizedBox(height: SizeConfig.size8),
         InkWell(
-          onTap: () => _handleCancelOrder(controller),
+          // onTap: () => _handleCancelOrder(controller),
           borderRadius: BorderRadius.circular(100.0),
           child: Container(
             padding: EdgeInsets.symmetric(
@@ -287,6 +288,12 @@ class OrderCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if((order.orderFor==AppConstants.InCity
+                  ||order.orderFor==AppConstants.OutStation
+                  ||order.orderFor==AppConstants.HourlyRental
+                  ||order.orderFor==AppConstants.Parcel)&& order.status=='in-progress')
+                SizedBox()
+              else
               _buildPickupLocation(),
               _buildDivider(),
               _buildDropLocation(),
@@ -466,7 +473,6 @@ class OrderCard extends StatelessWidget {
             final selectedIds = <String>{};
 
             void toggleItem(OrderItem item, bool value) {
-              log("ksjdcksjdnc ${item.toJson()}");
               setState(() {
                 if (value) {
                   selectedIds.add(item.inventoryId);
@@ -762,7 +768,19 @@ class OrderCard extends StatelessWidget {
         Spacer(),
         SizedBox(width: SizeConfig.size6),
         _buildActionButton(
-          onTap: () => _handleRejectOrder(controller),
+          onTap: () {
+            if(order.orderFor==AppConstants.InCity
+                ||order.orderFor==AppConstants.OutStation
+                ||order.orderFor==AppConstants.HourlyRental
+                ||order.orderFor==AppConstants.Parcel){
+              controller.updateRideOrParcelOrderStatusApi(
+                {ApiKeys.action:AppConstants.reject},
+                order.id ?? "",
+              );
+            }else{
+              _handleRejectOrder(controller);
+            }
+          },
           text: AppStrings.reject,
           bgColor: AppColors.redLite.withValues(alpha: 0.1),
           borderColor: AppColors.redLite,
@@ -771,11 +789,24 @@ class OrderCard extends StatelessWidget {
         SizedBox(width: SizeConfig.size6),
         _buildActionButton(
           onTap: () {
-            if(order.orderFor?.toLowerCase()==AppConstants.grocery){
+
+
+
+            if(order.orderFor==AppConstants.InCity
+                ||order.orderFor==AppConstants.OutStation
+                ||order.orderFor==AppConstants.HourlyRental
+                ||order.orderFor==AppConstants.Parcel){
+              controller.updateRideOrParcelOrderStatusApi(
+                {ApiKeys.action:AppConstants.accept},
+                order.id ?? "",
+              );
+            }else if(order.orderFor?.toLowerCase()==AppConstants.grocery){
               Get.to(DeliveryPickupShopsList(
                 order: order,
                 orderId: order.orderId??'', rideOrderId: order.id??'',));
-            }else if(order.orderFor?.toLowerCase()==AppConstants.product){
+            }else if(order.orderFor?.toLowerCase()==AppConstants.product
+                ||order.orderFor?.toLowerCase()==AppConstants.food
+                ||order.orderFor?.toLowerCase()==AppConstants.medical){
               _handleAcceptOrder(controller);
             }
            },
@@ -792,6 +823,10 @@ class OrderCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if(!(order.orderFor==AppConstants.InCity
+            ||order.orderFor==AppConstants.OutStation
+            ||order.orderFor==AppConstants.HourlyRental
+            ||order.orderFor==AppConstants.Parcel)&& order.status=='in-progress')
         CustomText(
           AppStrings.deliveryOTP,
           fontSize: SizeConfig.small,
@@ -803,6 +838,18 @@ class OrderCard extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
+            if((order.orderFor==AppConstants.InCity
+                ||order.orderFor==AppConstants.OutStation
+                ||order.orderFor==AppConstants.HourlyRental
+                ||order.orderFor==AppConstants.Parcel)&& order.status=='in-progress')
+              CustomBtn(
+                width: 160,
+                  height: 40,
+                  isValidate: true,
+                  onTap: ()async{
+                 await controller.completePickupRiderApi(order.id??'');
+              }, title: "Complete")
+            else
             Flexible(
               fit: FlexFit.loose,
               child: _buildOtpInputSection(controller),
@@ -1012,21 +1059,21 @@ class OrderCard extends StatelessWidget {
 
   void _handleCancelOrder(DeliverPartnerOrdersController controller) {
     controller.cancelOrderFromPialot(
-      {ApiKeys.status: "cancelled"},
+      {ApiKeys.status: AppConstants.cancelled},
       order.id ?? "",
     );
   }
 
   void _handleRejectOrder(DeliverPartnerOrdersController controller) {
     controller.updateOrderStatusFromPialot(
-      {ApiKeys.action: "reject"},
+      {ApiKeys.action: AppConstants.reject},
       order.id ?? "",
     );
   }
 
   void _handleAcceptOrder(DeliverPartnerOrdersController controller) {
     controller.updateOrderStatusFromPialot(
-      {ApiKeys.action: "accept"},
+      {ApiKeys.action:AppConstants.accept},
       order.id ?? "",
     );
   }
@@ -1059,11 +1106,17 @@ class OrderCard extends StatelessWidget {
       DeliverPartnerOrdersController controller,
       ) {
     if (pin.length == 4) {
-      log('is correct--> ${pin == order.deliveryOTP}');
-      if (pin == order.deliveryOTP) {
+      log('is correct--> ${pin}');
+      if(order.orderFor==AppConstants.InCity
+          ||order.orderFor==AppConstants.OutStation
+          ||order.orderFor==AppConstants.HourlyRental
+          ||order.orderFor==AppConstants.Parcel){
+        controller.verifyPickupOtpRideOrParcelApi(
+          {ApiKeys.pickupOTP: pin},
+          order.id ?? "",
+        );
+      }else {
         controller.verifyDeliveredOtp(orderId, pin);
-      } else {
-        commonSnackBar(message: AppStrings.otpIsNotCorrect.tr);
       }
     }
   }

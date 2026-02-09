@@ -87,7 +87,6 @@ class _EarnServiceAvailableOptionsScreenState extends State<EarnServiceAvailable
     return Obx(() {
       final earnValue = controller.isEarnServiceOpt.value;
       final riderValue = deliveryPartnerController.isRiderServiceOpt.value;
-      print("ksdcklscdsc ${earnValue} ___ ${riderValue} __ ${userProfileTypeGlobal}");
 
       if (userProfileTypeGlobal == SELF_EMPLOYED && earnValue.isEmpty) {
         return _buildLoadingScaffold();

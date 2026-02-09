@@ -81,6 +81,7 @@ class DiscoverController extends GetxController{
 
 
   RxBool findRiderDetailsLoading = false.obs;
+  RxBool bookRiderBtnLoading = false.obs;
   RxInt selectedHorizontalTab=0.obs;
   RxInt selectedVehicleOptionIndex=0.obs;
   RxDouble? selectedFromLat=0.0.obs;
@@ -371,26 +372,26 @@ Future<String> getOrderTypeString()async{
         postCodeData=await getCurrentPostCode();
 
       }
-      // Map<String, dynamic> queryParams= {
-      // ApiKeys.orderFor : "InCity",
-      // ApiKeys.pickupLatitude : 23.266686,
-      // ApiKeys.pickupLongitude : 77.459075,
-      // ApiKeys.dropLatitude :23.266686,
-      // ApiKeys.dropLongitude :77.459075,
-      // ApiKeys.range_in_km: 5,
-      //   if(selectedHorizontalTab.value==0||selectedHorizontalTab.value==1)
-      // ApiKeys.pincode: "462023",
-      // };
-      Map<String, dynamic> queryParams = {
-        ApiKeys.orderFor : getOrderTypeString(),
-        ApiKeys.pickupLatitude : selectedFromLat?.value,
-        ApiKeys.pickupLongitude : selectedFromLong?.value,
-        ApiKeys.dropLatitude : selectedToLat?.value,
-        ApiKeys.dropLongitude : selectedToLong?.value,
-        ApiKeys.range_in_km: 5,
+      Map<String, dynamic> queryParams= {
+      ApiKeys.orderFor : "InCity",
+      ApiKeys.pickupLatitude : 23.266686,
+      ApiKeys.pickupLongitude : 77.459075,
+      ApiKeys.dropLatitude :23.266686,
+      ApiKeys.dropLongitude :77.459075,
+      ApiKeys.range_in_km: 5,
         if(selectedHorizontalTab.value==0||selectedHorizontalTab.value==1)
-          ApiKeys.pincode: postCodeData??'',
+      ApiKeys.pincode: "462023",
       };
+      // Map<String, dynamic> queryParams = {
+      //   ApiKeys.orderFor : getOrderTypeString(),
+      //   ApiKeys.pickupLatitude : selectedFromLat?.value,
+      //   ApiKeys.pickupLongitude : selectedFromLong?.value,
+      //   ApiKeys.dropLatitude : selectedToLat?.value,
+      //   ApiKeys.dropLongitude : selectedToLong?.value,
+      //   ApiKeys.range_in_km: 5,
+      //   if(selectedHorizontalTab.value==0||selectedHorizontalTab.value==1)
+      //     ApiKeys.pincode: postCodeData??'',
+      // };
       final response = await DiscoverRepo().getBookingRidersApi(
         queryParams: queryParams,
       );
@@ -406,6 +407,71 @@ Future<String> getOrderTypeString()async{
         findRiderDetailsLoading.value=false;
 
       }
+    }
+
+  }
+
+  String getTabName(int index) {
+    switch (index) {
+      case 0:
+        return 'InCity';
+      case 1:
+        return 'OutStation';
+      case 2:
+        return 'HourlyRental';
+      case 3:
+        return 'Parcel';
+      default:
+        return '';
+    }
+  }
+  String getSelectedVehicleFare(int index) {
+    switch (index) {
+      case 0:
+        return '${ridersDetailsList.value.twoWheelerRider?.fare}';
+      case 1:
+        return '${ridersDetailsList.value.carMini?.fare}';
+      case 2:
+        return '${ridersDetailsList.value.autoTempo?.fare}';
+      case 3:
+        return '${ridersDetailsList.value.eRickshaw?.fare}';
+      default:
+        return '';
+    }
+  }
+
+  Future<void> makeTransportBookOrderApi()async{
+    bookRiderBtnLoading.value=true;
+    Map<String,dynamic> params ={
+      ApiKeys.selectedRiders: [
+        selectedRider.value.riderId
+      ],
+      ApiKeys.pickupLocation: {
+      ApiKeys.address: "${selectedFromAddress?.value}",
+      ApiKeys.latitude: selectedFromLat?.value,
+      ApiKeys.longitude:  selectedFromLong?.value
+      },
+        ApiKeys.dropLocation: {
+    ApiKeys.address: "${selectedToAddress?.value}",
+    ApiKeys.latitude: selectedToLat?.value,
+    ApiKeys.longitude: selectedToLong?.value
+      },
+  ApiKeys.receiverUserId: "${selectedRider.value.riderId}",
+  ApiKeys.orderFor: "${getTabName(selectedHorizontalTab.value)}",
+  ApiKeys.modeOfPayment: "prepaid",
+  ApiKeys.fare:  ridersDetailsList.value.twoWheelerRider?.fare
+    };
+
+    final response = await DiscoverRepo().makeTransportBookOrderApi(
+    params: params,
+    );
+
+    if (response.isSuccess) {
+      bookRiderBtnLoading.value=false;
+      commonSnackBar(message: response.message ?? "Your Booking Request Send To Rider,Wait Rider Accept Soon");
+    }else{
+      bookRiderBtnLoading.value=false;
+      commonSnackBar(message: response.message ?? "Unable to Book a Rider");
     }
 
   }

@@ -100,7 +100,8 @@ class Messages {
       this.pendingFilePaths,
       this.deleteForMe,
       this.deleteFromEveryone, 
-      this.isSaveMessage, 
+      this.visible_to,
+      this.isSaveMessage,
       this.myMessage, 
       this.sendLoadingFile,
       this.sender,
@@ -153,6 +154,7 @@ class Messages {
     isSaveMessage = json['is_save_message'];
     myMessage = json['my_message'];
     userId = json['userId'];
+    visible_to = json['visible_to'];
     pendingFilePaths = json['pendingFilePaths'];
     likes_count = json['likes_count'].toString();
     forwards_count = json['forwards_count'].toString();
@@ -184,6 +186,7 @@ class Messages {
   List<dynamic>? whoSeenTheMessage;
   int? messageRead;
   String? videoTime;
+  String? visible_to;
   List<dynamic>? pendingFilePaths;
   String? audioTime;
   String? sendStatus;
@@ -256,6 +259,7 @@ class Messages {
     map['delete_from_everyone'] = deleteFromEveryone;
     map['is_save_message'] = isSaveMessage;
     map['my_message'] = myMessage;
+    map['visible_to'] = visible_to;
     map['likes_count'] = likes_count;
     map['forwards_count'] = forwards_count;
     map['replies_count'] = replies_count;

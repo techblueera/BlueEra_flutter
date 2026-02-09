@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
@@ -187,7 +188,12 @@ class _MessageCardState extends State<MessageCard>
 
         break;
       case "date":
-        return _buildDateDivider(formatChatHistoryTime(text));
+
+        return (widget.message.visible_to!=null&&widget.message.visible_to!='')?
+        (widget.message.visible_to==userId)?
+        _buildDateDivider(formatChatHistoryTime(text)):
+        SizedBox():
+        _buildDateDivider(formatChatHistoryTime(text));
       case "document":
         messageWidget = PdfPreviewCard(
           message: widget.message,
@@ -281,7 +287,15 @@ class _MessageCardState extends State<MessageCard>
         messageWidget = RiderLiveLocationMsgCard(message: widget.message, time: time,);
 
       default:
-        messageWidget = _buildReceivedMessage(
+
+        messageWidget = (widget.message.visible_to!=null&&widget.message.visible_to!='')?
+        (widget.message.visible_to==userId)?
+        _buildReceivedMessage(
+          widget.message,
+          text,
+          time,
+          isReceive,
+        ):SizedBox():_buildReceivedMessage(
           widget.message,
           text,
           time,

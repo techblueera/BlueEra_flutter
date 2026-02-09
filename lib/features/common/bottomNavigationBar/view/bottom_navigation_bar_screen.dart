@@ -90,6 +90,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   @override
   void initState() {
     super.initState();
+
     if (isGuestUser()) {
       logs("DIALOGE CALL");
       _checkAndShowDialog();
@@ -213,15 +214,20 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   // }
 
   void _handlePostFrameInitialization() {
-    if (isBusiness()) {
-      bottomBarController.currentIndex.value = widget.initialIndex ?? 0;
 
+    if (isBusiness()) {
+        bottomBarController.currentIndex.value = widget.initialIndex ?? 0;
       final viewProfileController = Get.put(ViewBusinessDetailsController());
       if (viewProfileController.viewBusinessResponse.status !=
           Status.COMPLETE) {
         viewProfileController.viewBusinessProfile();
       }
     } else {
+      if(userDesignationGlobal == DELIVERY_RIDER){
+        bottomBarController.currentIndex.value=2;
+      }else{
+        bottomBarController.currentIndex.value = widget.initialIndex ?? 0;
+      }
       if (viewPersonalDetailsController.viewPersonalResponse.value.status !=
           Status.COMPLETE) {
         viewPersonalDetailsController.viewPersonalProfile();
