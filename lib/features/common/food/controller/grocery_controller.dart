@@ -7,10 +7,12 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/food/model/children_of_grocery_category_response.dart';
 import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
+import 'package:BlueEra/features/common/food/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/common/food/model/grocery_product_model.dart';
 import 'package:BlueEra/features/common/food/model/my_grocery_products_reponse.dart';
 import 'package:BlueEra/features/common/food/model/my_grocery_super_category_model.dart';
@@ -46,14 +48,14 @@ class GroceryController extends GetxController {
   Rx<ApiResponse> fetchMyGroceryCategoryResponse =
       ApiResponse.initial('Initial').obs;
 
-  final selectedGroceryData = Rxn<CollapsibleGridModel>();
+  final selectedGroceryData = Rxn<GroceryNestedCategoryModel>();
 
   RxList<GroceryProductData> selectedGroceries = <GroceryProductData>[].obs;
 
   RxInt selectedHorizontalTabIndex = 0.obs;
   String get currentTabKey =>
       selectedHorizontalTabIndex.value == 0
-          ? (selectedGroceryData.value?.slugId ?? '')
+          ? (selectedGroceryData.value?.key ?? '')
           : arrChildrenOfGroceryCategory[selectedHorizontalTabIndex.value - 1].key ?? '';
 
   int maxLimit = 10;
@@ -486,7 +488,7 @@ class GroceryController extends GetxController {
   Future<void> fetchMyGroceryCategory() async {
     try {
       myGroceryCategoryLoading.value = true;
-      ResponseModel responseModel = await GroceryRepo().fetchGroceryCategoryRepo();
+      ResponseModel responseModel = await GroceryRepo().fetchGroceryCategoryWithVariantRepo();
       if (responseModel.isSuccess) {
         fetchMyGroceryCategoryResponse.value = ApiResponse.complete(responseModel);
         final List listData = responseModel.response?.data ?? [];
@@ -579,6 +581,42 @@ class GroceryController extends GetxController {
       }
     }
   }
+
+  /// Fetch Grocery Products
+  RxBool groceryNestedCategoryLoading = true.obs;
+  RxList<GroceryNestedCategoryModel> groceryNestedCategoryList = <GroceryNestedCategoryModel>[].obs;
+
+  Future<void> fetchGroceryNestedCategory(String groceryTagId) async {
+    try {
+      groceryNestedCategoryLoading.value = true;
+      groceryNestedCategoryList.clear();
+
+      final cachedFood = await HiveServices().getGroceryNestedCategories(groceryTagId);
+      if (cachedFood != null && cachedFood.isNotEmpty) {
+        groceryNestedCategoryLoading.value = false;
+        groceryNestedCategoryList.assignAll(cachedFood);
+        return;
+      }
+
+      ResponseModel responseModel = await GroceryRepo().fetchGroceryNestedCategoryRepo(
+          queryParams: {ApiKeys.categoryKey: groceryTagId}
+      );
+      if (responseModel.isSuccess) {
+        fetchMyGroceryCategoryResponse.value = ApiResponse.complete(responseModel);
+        final GroceryNestedCategoryModel groceryNestedCategoryModel = GroceryNestedCategoryModel.fromJson(responseModel.response?.data);
+        groceryNestedCategoryList.value = groceryNestedCategoryModel.children ?? [];
+        await HiveServices().saveGroceryNestedCategories(groceryTagId, groceryNestedCategoryList);
+      } else {
+        fetchMyGroceryCategoryResponse.value = ApiResponse.error('error');
+      }
+    } catch (e, s) {
+      log('stack trace -- $s');
+      fetchMyGroceryCategoryResponse.value = ApiResponse.error('error');
+    } finally{
+      groceryNestedCategoryLoading.value = false;
+    }
+  }
+
 
   /// if variant  has image then it will work
   // void extractAllVariantsFromResponse(

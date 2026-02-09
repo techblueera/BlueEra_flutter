@@ -264,6 +264,7 @@ class ViewPersonalDetailsController extends GetxController {
       // ResponseModel response = await UserRepo().getUserById(userId: userId);
 
       if (responseModel.isSuccess) {
+        log('jbfsdjbfdskljbfkldsj');
         final data = responseModel.response?.data;
 
         personalProfileDetails.value =
@@ -314,38 +315,38 @@ class ViewPersonalDetailsController extends GetxController {
 
           myProfileCompletionPercent.value = percent;
         }
-        if (personalProfileDetails.value.user?.emailVerified ?? false) {
-          verifiedEmail.value = personalProfileDetails.value.user?.email ?? "";
+        if (user?.emailVerified ?? false) {
+          verifiedEmail.value = user?.email ?? "";
         }
 
         ///SET SOCIAL DATA LINK...
         setSocialLink(data);
         personalController.imagePath?.value =
-            personalProfileDetails.value.user?.profileImage ?? "";
+            user?.profileImage ?? "";
         personalController.coverImagePath?.value =
-            personalProfileDetails.value.user?.coverPicture ?? "";
+            user?.coverPicture ?? "";
 
         ///SET SKILL...
         personalController.skillsList.clear();
         personalController.skillsList
-            .addAll(personalProfileDetails.value.user?.skills ?? []);
+            .addAll(user?.skills ?? []);
 
         ///SET OVERVIEW
-        overView.value = personalProfileDetails.value.user?.objective ?? "";
+        overView.value = user?.objective ?? "";
 
         Get.find<AuthController>().imgPath.value =
-            personalProfileDetails.value.user?.profileImage ?? "";
-        // await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.userProfile, personalProfileDetails.value.user?.profileImage??"");
+            user?.profileImage ?? "";
+        // await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.userProfile, user?.profileImage??"");
         await SharedPreferenceUtils.userLoggedInIndividualGuest(
           businesId: "",
-          loginUserId_: "${personalProfileDetails.value.user?.id}",
-          contactNo: "${personalProfileDetails.value.user?.contactNo}",
-          getUserName: "${personalProfileDetails.value.user?.name}",
-          profileImage: "${personalProfileDetails.value.user?.profileImage}",
-          profileType: "${personalProfileDetails.value.user?.profileType}",
-          profession: "${personalProfileDetails.value.user?.profession}",
-          designation: "${personalProfileDetails.value.user?.designation}",
-          userNameAt: "${personalProfileDetails.value.user?.username}",
+          loginUserId_: "${user?.id}",
+          contactNo: "${user?.contactNo}",
+          getUserName: "${user?.name}",
+          profileImage: "${user?.profileImage}",
+          profileType: "${user?.profileType}",
+          profession: "${user?.profession}",
+          designation: "${user?.designation}",
+          userNameAt: "${user?.username}",
         );
         await getUserLoginData();
         userProfileType.value = userProfileTypeGlobal;
@@ -363,8 +364,8 @@ class ViewPersonalDetailsController extends GetxController {
         // await getEarnServiceOptData();
 
         /// need to verify (for checking is service exists or not)
-        if (personalProfileDetails.value.user?.profession?.toUpperCase() == SELF_EMPLOYED ||
-            personalProfileDetails.value.user?.profession?.toUpperCase() == GIG_WORKER
+        if (user?.profession?.toUpperCase() == SELF_EMPLOYED ||
+            user?.profession?.toUpperCase() == GIG_WORKER
         ) {
           await getServiceProviderStatusUtils();
           if (serviceProviderStatusGlobal.isNotEmpty) {
@@ -384,8 +385,8 @@ class ViewPersonalDetailsController extends GetxController {
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
-    } catch (e) {
-      log('open');
+    } catch (e, s) {
+      log('stack trace -- $s');
       viewPersonalResponse.value = ApiResponse.error('error');
     }
   }

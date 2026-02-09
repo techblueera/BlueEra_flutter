@@ -72,7 +72,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
     controller.emailCtrl.text = user?.email ?? "";
     controller.mobileNumberCtrl.text = user?.contactNo??'';
     controller.locationCtrl.text = user?.location ?? "";
-    controller.pinCodeCtrl.text = user?.pincode ?? "";
+    controller.pinCodeCtrl.text = user?.pincode.toString() ?? "0.0";
   }
 
   @override

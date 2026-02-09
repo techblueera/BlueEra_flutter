@@ -101,13 +101,7 @@ class ServiceData {
   List<String>? skills;
   List<String>? projects;
   List<String>? experiences;
-  List<String>? expertise;
   String? experienceStartDate;
-  List<String>? serviceOffered;
-  List<String>? typesOfWork;
-  List<String>? workCategories;
-  List<String>? whyChooseMe;
-  List<String>? serviceType;
 
   ServiceData(
       {
@@ -232,21 +226,6 @@ class ServiceData {
     if (json['experiences'] != null) {
       experiences = List<String>.from(json['experiences']);
     }
-    if(json['serviceOffered'] != null){
-      serviceOffered = List<String>.from(json['serviceOffered']);
-    }
-    if(json['typesOfWork'] != null){
-      typesOfWork = List<String>.from(json['typesOfWork']);
-    }
-    if(json['workCategories'] != null){
-      workCategories = List<String>.from(json['workCategories']);
-    }
-    if(json['whyChooseMe'] != null){
-      whyChooseMe = List<String>.from(json['whyChooseMe']);
-    }
-    if(json['serviceType'] != null){
-      serviceType = List<String>.from(json['serviceType']);
-    }
   }
 
   Map<String, dynamic> toJson() {
@@ -318,21 +297,6 @@ class ServiceData {
     }
     if (experiences != null) {
       data['experiences'] = experiences;
-    }
-    if (serviceOffered != null) {
-      data['serviceOffered'] = experiences;
-    }
-    if (typesOfWork != null) {
-      data['typesOfWork'] = typesOfWork;
-    }
-    if (workCategories != null) {
-      data['workCategories'] = workCategories;
-    }
-    if (whyChooseMe != null) {
-      data['whyChooseMe'] = whyChooseMe;
-    }
-    if (serviceType != null) {
-      data['serviceType'] = serviceType;
     }
 
     return data;
@@ -474,8 +438,23 @@ class PriceData {
 class ServiceInfo {
   List<Timings>? timings;
   List<String>? facilities;
+  List<String>? expertise;
+  List<String>? serviceOffered;
+  List<String>? typesOfWork;
+  List<String>? workCategories;
+  List<String>? whyChooseMe;
+  List<String>? serviceType;
 
-  ServiceInfo({this.timings, this.facilities});
+  ServiceInfo({
+    this.timings,
+    this.facilities,
+    this.expertise,
+    this.serviceOffered,
+    this.typesOfWork,
+    this.workCategories,
+    this.whyChooseMe,
+    this.serviceType,
+  });
 
   ServiceInfo.fromJson(Map<String, dynamic> json) {
     if (json['timings'] != null) {
@@ -487,6 +466,24 @@ class ServiceInfo {
     if (json['facilities'] != null) {
       facilities = List<String>.from(json['facilities']);
     }
+    if (json['expertise'] != null) {
+      expertise = List<String>.from(json['expertise']);
+    }
+    if(json['serviceOffered'] != null){
+      serviceOffered = List<String>.from(json['serviceOffered']);
+    }
+    if(json['typesOfWork'] != null){
+      typesOfWork = List<String>.from(json['typesOfWork']);
+    }
+    if(json['workCategories'] != null){
+      workCategories = List<String>.from(json['workCategories']);
+    }
+    if(json['whyChooseMe'] != null){
+      whyChooseMe = List<String>.from(json['whyChooseMe']);
+    }
+    if(json['serviceType'] != null){
+      serviceType = List<String>.from(json['serviceType']);
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -496,6 +493,24 @@ class ServiceInfo {
     }
     if (facilities != null) {
       data['facilities'] = facilities;
+    }
+    if (expertise != null) {
+      data['expertise'] = expertise;
+    }
+    if (serviceOffered != null) {
+      data['serviceOffered'] = serviceOffered;
+    }
+    if (typesOfWork != null) {
+      data['typesOfWork'] = typesOfWork;
+    }
+    if (workCategories != null) {
+      data['workCategories'] = workCategories;
+    }
+    if (whyChooseMe != null) {
+      data['whyChooseMe'] = whyChooseMe;
+    }
+    if (serviceType != null) {
+      data['serviceType'] = serviceType;
     }
     return data;
   }

@@ -724,7 +724,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProvid
                         width: SizeConfig.size8,
                       ),
                       _viewAll(
-                              ()=>  Get.to(()=> AllSelfProfessionScreen(
+                              ()=> Get.to(()=> AllSelfProfessionScreen(
                             selfEmployedCategories: individualOnboardingSkillWorkList.take(12).toList(),
                           ))
                       ),

@@ -376,11 +376,15 @@ class _AllProfessionConsultantScreenState extends State<AllProfessionConsultantS
               //     SizedBox(height: SizeConfig.size6),
               //   ],
 
-              service.expertise!.isNotEmpty
+              (service.service!=null &&
+                  service.service!.expertise!=null &&
+                  service.service!.expertise!.isNotEmpty)
                   ? Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: List.generate(
-                  service.expertise!.take(2).length,
+                children: [
+                  SizedBox(height: SizeConfig.size6),
+                  ...List.generate(
+                  service.service!.expertise!.take(2).length,
                       (index) => Padding(
                     padding: const EdgeInsets.only(bottom: 4.0),
                     child: Row(
@@ -398,7 +402,7 @@ class _AllProfessionConsultantScreenState extends State<AllProfessionConsultantS
                         ),
                         Expanded(
                           child: CustomText(
-                            service.expertise![index],
+                            service.service!.expertise![index],
                             fontSize: SizeConfig.small,
                             color: AppColors.secondaryTextColor,
                             fontWeight: FontWeight.w400,
@@ -408,6 +412,8 @@ class _AllProfessionConsultantScreenState extends State<AllProfessionConsultantS
                     ),
                   ),
                 ),
+                  SizedBox(height: SizeConfig.size6),
+                ]
               )
                   : SizedBox(),
 

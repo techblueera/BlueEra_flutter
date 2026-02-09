@@ -62,8 +62,9 @@ class GrocerySuperCategoryScreen extends StatelessWidget {
                 RouteHelper.getGroceryCategoryScreenRoute(),
                 arguments: {
                   ApiKeys.argMyGrocery: isMyGrocery,
-                  ApiKeys.argPageHeading: groceryData.name,
-                  ApiKeys.argArrGroceryCat: categoryMap,
+                  ApiKeys.argArrGrocerySuperCategory: superCategories,
+                  ApiKeys.argArrGroceryCatKey: groceryData.slugId,
+                  ApiKeys.argArrGroceryCatName: groceryData.name,
                 },
               );
             },

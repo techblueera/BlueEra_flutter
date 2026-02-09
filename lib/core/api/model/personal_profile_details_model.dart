@@ -145,7 +145,7 @@ class User {
   UserLocation? userLocation;
   String? profileType;
   String? schoolOrCollegeName;
-  String? pincode;
+  num? pincode;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};

@@ -20,6 +20,7 @@ import 'package:BlueEra/widgets/common_search_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/tab_bar_delegate.dart';
+import 'package:BlueEra/widgets/user_profile_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controller/inventory_controller.dart';
@@ -401,14 +402,13 @@ class _InventoryScreenState extends State<InventoryScreen>
                 width: SizeConfig.paddingL,
                 imgColor: Colors.black,
               )),
+        // SizedBox(width: !(widget.fromBottomNavBar) ? 0.0 : SizeConfig.size15),
+        CommonProfileAvatar(),
+        SizedBox(width: SizeConfig.size15),
         Expanded(
-          child: Padding(
-            padding: EdgeInsets.only(
-                left: (!widget.fromBottomNavBar) ? 0.0 : SizeConfig.size15),
-            child: CommonSearchBar(
-              controller: searchController,
-              onClearCallback: () => searchController.clear(),
-            ),
+          child: CommonSearchBar(
+            controller: searchController,
+            onClearCallback: () => searchController.clear(),
           ),
         ),
         PopupMenuButton<String>(

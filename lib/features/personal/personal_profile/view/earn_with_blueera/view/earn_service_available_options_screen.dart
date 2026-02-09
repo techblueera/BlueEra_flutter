@@ -129,6 +129,7 @@ class _EarnServiceAvailableOptionsScreenState extends State<EarnServiceAvailable
       appBar: CommonBackAppBar(
         isLeading: !widget.fromBottomNavBar,
         title: userProfessionGlobal,
+        isProfile: true
       ),
       body: SafeArea(
         child: SingleChildScrollView(

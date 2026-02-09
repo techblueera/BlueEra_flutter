@@ -206,8 +206,9 @@ class _RiderStoreScreenState extends State<RiderStoreScreen> {
                             RouteHelper.getGroceryCategoryScreenRoute(),
                             arguments: {
                               ApiKeys.argMyGrocery: false,
-                              ApiKeys.argPageHeading: item.name,
-                              ApiKeys.argArrGroceryCat: categoryMap,
+                              ApiKeys.argArrGrocerySuperCategory: grocerySuperCategories,
+                              ApiKeys.argArrGroceryCatKey: item.slugId,
+                              ApiKeys.argArrGroceryCatName: item.name,
                             },
                           );
                         },

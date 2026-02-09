@@ -1,3 +1,5 @@
+import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -81,7 +83,19 @@ class CommonGenericLeftSideCategoryList<T> extends StatelessWidget {
                           shape: BoxShape.circle,
                           color: selected ? null : AppColors.skyBlueE4,
                         ),
-                        child: LocalAssets(
+                        child: isNetworkImage(icon)
+                            ? CachedNetworkImage(
+                          imageUrl: icon,
+                          height: selected ? 60 : 50,
+                          width: selected ? 60 : 50,
+                          // fit: BoxFit.cover,
+                          placeholder: (context, url) => const Padding(
+                            padding: EdgeInsets.all(8.0),
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                          errorWidget: (context, url, error) => const Icon(Icons.error),
+                        )
+                      : LocalAssets(
                           imagePath: icon,
                           height: selected ? 60 : 50,
                           width: selected ? 60 : 50,
