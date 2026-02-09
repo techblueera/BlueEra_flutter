@@ -20,6 +20,7 @@ abstract class BaseService {
   final String channels = 'channel-service/channels';
   final String socialLinks = 'channel-service/channels/$channelId/social-links';
   final String missionVision = 'social-service/mission-vision';
+  final String socialActivities = 'social-service/social-activities';
   String viewChannelProfile(String channelId) =>
       "channel-service/channels/$channelId";
   final String postVerifyBusinessDocs =
@@ -697,4 +698,7 @@ abstract class BaseService {
   final String professionalsPortfolio = 'earn-service/professional/portfolio';
   final String productFilter = 'product-service/api/product/sort/filter';
   final String resumeProjects = 'user-service/resumes/projects';
+  final String socialActivityFeed = 'social-service/activity-feed';
+  final String socialAchievements = 'social-service/achievements';
+  final String socialContact = 'social-service/contact';
 }

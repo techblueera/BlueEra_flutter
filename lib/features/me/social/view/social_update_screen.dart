@@ -5,8 +5,12 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/job_seekar/view/update_job_seekar_screen.dart';
 import 'package:BlueEra/features/me/school/view/school_update_screen.dart';
 import 'package:BlueEra/features/me/social/view/event_schedule_screen.dart';
+import 'package:BlueEra/features/me/social/view/social_achievements/social_certificates_screen.dart';
 import 'package:BlueEra/features/me/social/view/social_activity_form_screen.dart';
+import 'package:BlueEra/features/me/social/view/social_activity_list_screen.dart';
 import 'package:BlueEra/features/me/social/view/social_add_achievements_screen.dart';
+import 'package:BlueEra/features/me/social/view/social_contact_us/soical_contact_us_view_screen.dart';
+import 'package:BlueEra/features/me/social/view/social_feed/social_feed_screen.dart';
 import 'package:BlueEra/features/me/social/view/social_profile_identity_screen.dart';
 import 'package:BlueEra/features/me/social/view/social_vision_mission_screen.dart';
 import 'package:flutter/material.dart';
@@ -34,7 +38,7 @@ class _SocialUpdateScreenState
     ServiceMenuItem(
       title: "Activity Feed ",
       icon: AppIconAssets.social_activity_status,
-      page: () => ComingSoon(), // Update to your actual page
+      page: () => SocialFeedScreen(), // Update to your actual page
     ),
     ServiceMenuItem(
       title: "Events / Schedule",
@@ -44,7 +48,7 @@ class _SocialUpdateScreenState
     ServiceMenuItem(
       title: "Achievements",
       icon: AppIconAssets.galleryCertifications,
-      page: () => SocialAddAchievementsScreen(), // Update to your actual page
+      page: () => SocialCertificatesScreen(), // Update to your actual page
     ),
 
     ServiceMenuItem(
@@ -55,7 +59,7 @@ class _SocialUpdateScreenState
     ServiceMenuItem(
       title: "Social Activity",
       icon: AppIconAssets.social_activity,
-      page: () => SocialActivityFormScreen(),
+      page: () => SocialActivityListScreen(),
     ),
 
     ServiceMenuItem(
@@ -66,7 +70,7 @@ class _SocialUpdateScreenState
     ServiceMenuItem(
       title: "Contact",
       icon: AppIconAssets.contact_us,
-      page: () => ComingSoon(),
+      page: () => SocialContactUsViewScreen(),
     ),
 
   ];

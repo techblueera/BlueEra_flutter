@@ -13,7 +13,7 @@ class AiDescriptionField extends StatelessWidget {
   final String aiType;
   final Map<String, dynamic> aiData;
   final int maxChars;
-
+  final Function(String)? onChanged; // Add this
   const AiDescriptionField({
     super.key,
     required this.label,
@@ -21,6 +21,7 @@ class AiDescriptionField extends StatelessWidget {
     required this.rxValue,
     required this.aiType,
     required this.aiData,
+    this.onChanged,
     this.hintText = "Enter description...",
     this.maxChars = 1000,
   });
@@ -41,6 +42,7 @@ class AiDescriptionField extends StatelessWidget {
               onSelected: (generatedText) {
                 controller.text = generatedText;
                 rxValue.value = generatedText;
+                if (onChanged != null) onChanged!(generatedText); // Trigger callback
               },
             )
           ],

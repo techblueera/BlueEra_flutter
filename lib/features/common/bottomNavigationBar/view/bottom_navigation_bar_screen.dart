@@ -264,6 +264,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       key: _scaffoldKey,
       // floatingActionButton: kDebugMode
       //     ? FloatingActionButton(onPressed: () {
+      //       Get.to(PersonalProfileSetupNewScreen());
       //       })
       //     : null,
       body: ValueListenableBuilder(

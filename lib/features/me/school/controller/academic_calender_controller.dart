@@ -24,7 +24,6 @@ class AcademicCalenderController extends GetxController {
   String initialTitleText = "";
   String initialDescriptionText = "";
   String initialNoticeImageUrl = "";
-
   ///GET BRANCH CONTACT DETAILS...
   RxList<AcademicCalenderData> noticeNewsDataList =
       <AcademicCalenderData>[].obs;

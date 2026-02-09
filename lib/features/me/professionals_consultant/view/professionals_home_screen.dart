@@ -176,7 +176,6 @@ class ProfessionalsHomeScreen extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: SizeConfig.size40),
-                SizedBox(height: SizeConfig.size40),
               ],
             ),
           ),
