@@ -110,25 +110,87 @@ class _PickupOrderScreenState extends State<PickupOrderScreen> {
   }
 
   Widget _buildOrderList(List<RiderOrdersDetailsModel> ordersList) {
+    final groupedOrders = groupOrdersByOrderFor(ordersList);
+    final orderForKeys = groupedOrders.keys.toList();
+
     return
       ordersList.isEmpty
         ? Center(
       child: CustomText(AppStrings.noOrdersFound),
     )
         : ListView.builder(
-        itemCount: ordersList.length,
-        // reverse: true,
         padding: EdgeInsets.only(
-            top: SizeConfig.size10,
-            bottom: kBottomNavigationBarHeight + SizeConfig.size40,
-            left: SizeConfig.size15,
-            right: SizeConfig.size15),
+          top: SizeConfig.size10,
+          bottom: kBottomNavigationBarHeight + SizeConfig.size40,
+          left: SizeConfig.size15,
+          right: SizeConfig.size15,
+        ),
+        itemCount: orderForKeys.length,
         itemBuilder: (context, index) {
-          RiderOrdersDetailsModel rider = ordersList[index];
-          return OrderCard(
-              order: rider,
-              selectedPickUp: controller.selectedPickUp.value);
-        });
+          final orderFor = orderForKeys[index];
+          final orders = groupedOrders[orderFor]!;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              /// 🔹 TITLE
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: CustomText(
+                  getOrderForTitle(orderFor),
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              /// 🔹 LIST UNDER TITLE
+              ...orders.map((rider) {
+                return OrderCard(
+                  order: rider,
+                  selectedPickUp: controller.selectedPickUp.value,
+                );
+              }).toList(),
+            ],
+          );
+        },
+      );
+    ;
+  }
+  Map<String, List<RiderOrdersDetailsModel>> groupOrdersByOrderFor(
+      List<RiderOrdersDetailsModel> orders) {
+    final Map<String, List<RiderOrdersDetailsModel>> grouped = {};
+
+    for (var order in orders) {
+      final key = order.orderFor ?? 'unknown';
+
+      if (!grouped.containsKey(key)) {
+        grouped[key] = [];
+      }
+      grouped[key]!.add(order);
+    }
+
+    return grouped;
+  }
+  String getOrderForTitle(String orderFor) {
+    switch (orderFor) {
+      case 'product':
+        return 'PRODUCT';
+      case 'grocery':
+        return 'GROCERY';
+      case 'food':
+        return 'FOOD';
+      case 'medical':
+        return 'MEDICAL';
+      case 'InCity':
+        return 'PASSENGER';
+      case 'OutStation':
+        return 'PASSENGER';
+      case 'HourlyRental':
+        return 'HOURLY RENTAL';
+      case 'Parcel':
+        return 'PARCEL';
+      default:
+        return orderFor.toUpperCase();
+    }
   }
 
 }

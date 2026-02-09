@@ -10,6 +10,7 @@ import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/snackbar_helper.dart';
 import '../../../../core/services/location/location_service.dart';
+import '../../../../core/services/location_permission_handler.dart';
 import '../../../chat/auth/model/rider_orders_details_model.dart';
 import '../../../chat/auth/repo/make_order_repo.dart';
 import '../../../chat/auth/stream/get_orders_stream.dart';
@@ -116,6 +117,62 @@ class DeliverPartnerOrdersController extends GetxController {
       if (response.isSuccess ) {
         commonSnackBar(
             message: response.message ?? "${params[ApiKeys.action]=='reject'?"Your Ride Order Rejected Successfully":"Your Ride Order Accepted Successfully" }");
+      return true;
+      } else {
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
+        return false;
+      }
+    } catch (e) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+      return false;
+    }
+  }
+  Future<bool> updateRideOrParcelOrderStatusApi(Map<String,dynamic> params,String orderId) async {
+    try {
+      ResponseModel? response = await MakeOrderRepo().updateRideOrParcelOrderStatusApi(params,orderId);
+      if (response.isSuccess ) {
+        commonSnackBar(
+            message: response.message ?? "${params[ApiKeys.action]=='reject'?"Your Ride Order Rejected Successfully":"Your Ride Order Accepted Successfully" }");
+      return true;
+      } else {
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
+        return false;
+      }
+    } catch (e) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+      return false;
+    }
+  }
+  Future<bool> verifyPickupOtpRideOrParcelApi(Map<String,dynamic> params,String orderId) async {
+    try {
+      ResponseModel? response = await MakeOrderRepo().verifyPickupOtpRideOrParcelApi(params,orderId);
+      if (response.isSuccess ) {
+        commonSnackBar(
+            message: response.message ?? "OTP successfully verified.");
+      return true;
+      } else {
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
+        return false;
+      }
+    } catch (e) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+      return false;
+    }
+  }
+  Future<bool> completePickupRiderApi(String orderId) async {
+    try {
+      final locationResult = await LocationPermissionHandler().getCurrentLocation();
+      Map<String,dynamic> params={
+        ApiKeys.latitude: locationResult.position?.latitude ?? 0,
+        ApiKeys.longitude:locationResult.position?.longitude??0
+      };
+      ResponseModel? response = await MakeOrderRepo().completePickupRiderApi(params,orderId);
+      if (response.isSuccess ) {
+        commonSnackBar(
+            message: response.message ?? "OTP successfully verified.");
       return true;
       } else {
         commonSnackBar(

@@ -1,4 +1,3 @@
-
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -94,11 +93,25 @@ class _BookTransportMainState extends State<BookTransportMain> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CommonBackAppBar(),
-      backgroundColor: AppColors.white,
-      body: Obx(() {
-        return Stack(
+    return Obx(() {
+      return Scaffold(
+        appBar: CommonBackAppBar(),
+        backgroundColor: AppColors.white,
+        bottomNavigationBar: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(14.0),
+            child: CustomBtn(
+                isLoading: discoverController.bookRiderBtnLoading.value,
+                height: 44,
+                isValidate: discoverController.selectedRider.value.riderId !=
+                    null,
+                onTap: () {
+                  discoverController.makeTransportBookOrderApi();
+                },
+                title: "Book"),
+          ),
+        ),
+        body: Stack(
           children: [
             Container(
               decoration: BoxDecoration(
@@ -125,7 +138,12 @@ class _BookTransportMainState extends State<BookTransportMain> {
                 const SizedBox(height: 10,),
                 HorizontalTabSelector(
                     unSelectedBackgroundColor: AppColors.white,
-                    tabs: ['In City', "Out Station", "Hourly Rental", "Parcel"],
+                    tabs: [
+                      'In City',
+                      "Out Station",
+                      "Hourly Rental",
+                      "Parcel"
+                    ],
                     selectedIndex: discoverController.selectedHorizontalTab
                         .value,
                     onTabSelected: (index, d) {
@@ -149,7 +167,7 @@ class _BookTransportMainState extends State<BookTransportMain> {
                       SizedBox(height: SizeConfig.size10,),
                       Container(
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(10),
                             boxShadow: [
                               AppShadows.bottomShadow
                             ],
@@ -195,15 +213,18 @@ class _BookTransportMainState extends State<BookTransportMain> {
                                                 onPlaceSelected: (lat, long,
                                                     address) {
                                                   discoverController
-                                                      .selectedFromLat?.value =
+                                                      .selectedFromLat
+                                                      ?.value =
                                                       lat ?? 0;
                                                   discoverController
-                                                      .selectedFromLong?.value =
+                                                      .selectedFromLong
+                                                      ?.value =
                                                       long ?? 0;
                                                   discoverController
                                                       .selectedFromAddress
                                                       ?.value = address ?? "";
-                                                  discoverController.getBookingRidersApi();
+                                                  discoverController
+                                                      .getBookingRidersApi();
                                                 },
                                                 fromScreen: '',
                                               ),
@@ -213,9 +234,12 @@ class _BookTransportMainState extends State<BookTransportMain> {
                                     child: CustomText(
                                       (discoverController.selectedFromAddress
                                           ?.value == '' ||
-                                          discoverController.selectedFromAddress
-                                              ?.value == null) ?
-                                      "Select From Address" : discoverController
+                                          discoverController
+                                              .selectedFromAddress
+                                              ?.value == null)
+                                          ?
+                                      "Select From Address"
+                                          : discoverController
                                           .selectedFromAddress?.value,
                                       fontSize: 12,
                                     ),
@@ -243,13 +267,13 @@ class _BookTransportMainState extends State<BookTransportMain> {
                                                   discoverController
                                                       .selectedToAddress
                                                       ?.value = address ?? "";
-                                                  discoverController.getBookingRidersApi();
+                                                  discoverController
+                                                      .getBookingRidersApi();
                                                 },
                                                 fromScreen: '',
                                               ),
                                         ),
                                       );
-
                                     },
                                     child: CustomText(
                                       (discoverController.selectedToAddress
@@ -289,7 +313,8 @@ class _BookTransportMainState extends State<BookTransportMain> {
                               InkWell(
                                 borderRadius: BorderRadius.circular(10),
                                 onTap: () {
-                                  discoverController.selectedVehicleOptionIndex
+                                  discoverController
+                                      .selectedVehicleOptionIndex
                                       .value = i;
                                 },
                                 child: Container(
@@ -319,7 +344,8 @@ class _BookTransportMainState extends State<BookTransportMain> {
                                         child: Container(
                                           // height: 0,
                                           decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(
+                                            borderRadius: BorderRadius
+                                                .circular(
                                                 10),
                                             gradient: discoverController
                                                 .selectedVehicleOptionIndex
@@ -347,7 +373,8 @@ class _BookTransportMainState extends State<BookTransportMain> {
                                               const SizedBox(height: 2),
                                               CustomText(
                                                 (optionList[i].charge != null)
-                                                    ? "₹${optionList[i].charge}"
+                                                    ? "₹${optionList[i]
+                                                    .charge}"
                                                     : "${optionList[i].name}",
                                                 textAlign: TextAlign.center,
                                                 fontSize: 12,
@@ -372,49 +399,48 @@ class _BookTransportMainState extends State<BookTransportMain> {
 
                       // for(int i = 0; i < optionList.length; i++)
                       Obx(() {
-
-                        if (discoverController.bookingRiderListResponse.value.status ==
+                        if (discoverController.bookingRiderListResponse.value
+                            .status ==
                             Status.COMPLETE) {
-
                           final VehicleAllResponse response =
                               discoverController.ridersDetailsList.value;
 
                           final vehicleData = getSelectedVehicleData(
                             response,
                             discoverController.selectedHorizontalTab.value,
-                            discoverController.selectedVehicleOptionIndex.value,
+                            discoverController.selectedVehicleOptionIndex
+                                .value,
                           );
 
                           final riders = vehicleData?.users ?? [];
 
                           if (riders.isEmpty) {
-                            return const Center(child: Text("No riders available"));
+                            return const Center(
+                                child: Text("No riders available"));
                           }
 
-                          return (discoverController.findRiderDetailsLoading.value)?
-                          Center(child: CircularProgressIndicator(),):Column(
+                          return (discoverController.findRiderDetailsLoading
+                              .value)
+                              ?
+                          Center(child: CircularProgressIndicator(),)
+                              : Column(
                             children: riders
                                 .map((rider) => RiderCardWidget(rider: rider))
                                 .toList(),
                           );
                         } else {
-                          if(discoverController.findRiderDetailsLoading.value==true){
+                          if (discoverController.findRiderDetailsLoading
+                              .value == true) {
                             return Center(child: CircularProgressIndicator());
-
-                          }else{
-                            return Center(child: CustomText("Choose From And To Address"));
-
+                          } else {
+                            return Center(child: CustomText(
+                                "Choose From And To Address"));
                           }
                         }
                       }),
                       SizedBox(
                         height: SizeConfig.size30,
                       ),
-                      CustomBtn(
-                          isValidate: discoverController.selectedRider.value.riderId!=null,
-                          onTap: (){
-
-                      }, title: "Book")
 
 
                     ],
@@ -425,9 +451,9 @@ class _BookTransportMainState extends State<BookTransportMain> {
 
 
           ],
-        );
-      }),
-    );
+        ),
+      );
+    });
   }
 }
 
@@ -459,11 +485,9 @@ class TransportCategoryDetailsModel {
   }
 }
 
-VehicleData? getSelectedVehicleData(
-    VehicleAllResponse response,
+VehicleData? getSelectedVehicleData(VehicleAllResponse response,
     int selectedTab,
-    int selectedIndex,
-    ) {
+    int selectedIndex,) {
   // In City
   if (selectedTab == 0) {
     switch (selectedIndex) {
@@ -480,7 +504,12 @@ VehicleData? getSelectedVehicleData(
 
   // Out Station
   if (selectedTab == 1) {
-    return response.carSedan;
+    switch (selectedIndex) {
+      case 0:
+        return response.suvCar;
+      case 1:
+        return response.suvCar;
+    }
   }
 
   // Parcel
@@ -504,7 +533,7 @@ class RiderCardWidget extends StatelessWidget {
     final discoverController = getOrPut(() => DiscoverController());
 
     return InkWell(
-      onTap: (){
+      onTap: () {
         discoverController.onSelectRider(rider);
       },
       child: Container(
@@ -514,11 +543,12 @@ class RiderCardWidget extends StatelessWidget {
           color: AppColors.white,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(color:
-          discoverController.selectedRider.value==rider?
-          AppColors.primaryColor: AppColors.whiteE5),
+          discoverController.selectedRider.value == rider ?
+          AppColors.primaryColor : AppColors.whiteE5),
         ),
         child: Row(
           children: [
+
             /// Profile image
             ClipRRect(
               borderRadius: BorderRadius.circular(40),
@@ -568,6 +598,7 @@ class RiderCardWidget extends StatelessWidget {
                   const SizedBox(height: 6),
                   Row(
                     children: [
+
                       /// Rating
                       Container(
                         padding: const EdgeInsets.symmetric(
@@ -600,7 +631,10 @@ class RiderCardWidget extends StatelessWidget {
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: CustomText(
-                          (rider.vehicleInformation?.vehicleName ==null||rider.vehicleInformation?.vehicleName =='')?"N/A":rider.vehicleInformation?.vehicleName,
+                          (rider.vehicleInformation?.vehicleName == null ||
+                              rider.vehicleInformation?.vehicleName == '')
+                              ? "N/A"
+                              : rider.vehicleInformation?.vehicleName,
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                         ),

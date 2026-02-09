@@ -520,6 +520,9 @@ abstract class BaseService {
   final String getRiderBookingList = "rider-service/riders/orders/requested";
   final String getRiderRejectOrder = "rider-service/riders/orders/rejected";
   String updateOrderStatusFromPialot(String orderId) => 'rider-service/riders/orders/$orderId/status';
+  String updateRideOrParcelOrderStatus(String orderId) => 'rider-service/fare/orders/${orderId}/status';
+  String verifyPickupOtpRideOrParcel(String orderId) => 'rider-service/fare/orders/${orderId}/start';
+  String completePickupRider(String orderId) => 'rider-service/fare/orders/${orderId}/complete';
   String updatePaymentStaus(String orderId) => 'rider-service/riders/orders/$orderId/confirm-payment';
   String cancelOrderForceFully(String orderId) => 'rider-service/riders/orders/$orderId/admin/status';
   String deliverOtpVerify(String orderId) => "rider-service/riders/orders/$orderId/deliver";
@@ -697,4 +700,5 @@ abstract class BaseService {
   final String professionalsPortfolio = 'earn-service/professional/portfolio';
   final String productFilter = 'product-service/api/product/sort/filter';
   final String resumeProjects = 'user-service/resumes/projects';
+  final String makeTransportBookOrder = 'rider-service/fare/orders';
 }

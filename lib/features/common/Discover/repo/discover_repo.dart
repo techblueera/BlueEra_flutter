@@ -36,6 +36,15 @@ class DiscoverRepo extends BaseService {
       onSuccess: (data) {},
     );
     return response;
+  }  Future<ResponseModel> makeTransportBookOrderApi({required Map<String, dynamic> params}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      makeTransportBookOrder,
+      params: params,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
   }
 
 }

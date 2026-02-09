@@ -673,4 +673,5 @@ class ApiKeys {
   static const argDocumentVia  = 'argDocumentVia';
   static const checkInTime  = 'checkInTime';
   static const checkOutTime  = 'checkOutTime';
+  static const fare  = 'fare';
 }

@@ -101,6 +101,7 @@ class AppConstants {
   static const String WhatsApp = 'WhatsApp';
 
 
+
   static const String group_Chat_Type = 'group';
   static const String order_Chat_Type = 'order';
   static const String emergency = 'Emergency';
@@ -194,6 +195,7 @@ class AppConstants {
   static const String feedScreen = "feedScreen";
   static const String storeFeedScreen = "storeFeedScreen";
   static const String food = "food";
+  static const String medical = "medical";
   static const String product = "product";
   static const String service = "service";
   static const String grocery = "grocery";
@@ -266,6 +268,16 @@ class AppConstants {
   static const hotelServiceScreen = "hotelServiceScreen";
   static const personalDocumentScreen = "personalDocumentScreen";
   static const businessDocumentScreen = "businessDocumentScreen";
+
+  static const reject = "reject";
+  static const accept = "accept";
+  static const cancelled = "cancelled";
+
+
+  static const InCity = "InCity";
+  static const OutStation = "OutStation";
+  static const HourlyRental = "HourlyRental";
+  static const Parcel = "Parcel";
 }
 
 class DocumentKeys {
