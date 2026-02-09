@@ -20,6 +20,7 @@ import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/tab_bar_delegate.dart';
+import 'package:BlueEra/widgets/user_profile_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -328,9 +329,12 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
               width: SizeConfig.paddingL,
               imgColor: Colors.black,
             ),
-          )
-        else
-          const SizedBox(width: 16),
+          ),
+
+        SizedBox(width: SizeConfig.size15),
+
+        CommonProfileAvatar(),
+        SizedBox(width: SizeConfig.size15),
 
         // 2. trailing – Go-Live switch (always at the end)
         Builder(builder: (_) {

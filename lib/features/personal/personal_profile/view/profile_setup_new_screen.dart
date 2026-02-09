@@ -42,6 +42,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/widget/horizonat
 import 'package:BlueEra/features/personal/personal_profile/view/widget/introduction_video_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/update_profile_view.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
+import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/common_drop_down-dialoge.dart';
@@ -251,16 +252,16 @@ class _PersonalProfileSetupNewScreenState
       },
       child: Scaffold(
         backgroundColor: AppColors.whiteF3,
-        // appBar: CommonBackAppBar(
-        //   isLeading: true,
-        //   title: '',
-        //   isLogout: true,
-        //   onShareTap: () {},
-        //   onQrCodeTap: () {},
-        //   onBackTap: () async {
-        //     backPressTrigger();
-        //   },
-        // ),
+        appBar: CommonBackAppBar(
+          isLeading: true,
+          title: '',
+          isLogout: true,
+          onShareTap: () {},
+          onQrCodeTap: () {},
+          onBackTap: () async {
+            backPressTrigger();
+          },
+        ),
         body: isGuestUser()
             ? PositiveCustomBtn(onTap: () {}, title: "Logout")
             : Obx(() {
@@ -276,7 +277,6 @@ class _PersonalProfileSetupNewScreenState
 
                   return SafeArea(
                     child: Container(
-                      margin: EdgeInsets.only(bottom: 70),
                       child: DefaultTabController(
                         length: PostTabs.postTab.length,
                         child: NestedScrollView(

@@ -24,6 +24,7 @@ import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/tab_bar_delegate.dart';
+import 'package:BlueEra/widgets/user_profile_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -518,23 +519,30 @@ class _EarnServiceScreenState extends State<EarnServiceScreen>
           ),
 
         Expanded(
-          child: InkWell(
-            onTap: ()=> Get.to(()=> ProfessionDetailsScreen()),
-            child: Padding(
-              padding: EdgeInsets.only(
-                top: SizeConfig.paddingXSL,
-                bottom: SizeConfig.paddingXSL,
-                left: (isLeading == true) ? 0 : SizeConfig.size20,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+
+              CommonProfileAvatar(),
+              SizedBox(width: SizeConfig.size15),
+              InkWell(
+                onTap: ()=> Get.to(()=> ProfessionDetailsScreen()),
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    top: SizeConfig.paddingXSL,
+                    bottom: SizeConfig.paddingXSL,
+                  ),
+                  child: CustomText(
+                    userDesignationGlobal,
+                    fontSize: SizeConfig.large,
+                    color: AppColors.primaryColor,
+                    fontWeight: FontWeight.w600,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
               ),
-              child: CustomText(
-                userDesignationGlobal,
-                fontSize: SizeConfig.large,
-                color: AppColors.primaryColor,
-                fontWeight: FontWeight.w600,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
+            ],
           ),
         ),
 

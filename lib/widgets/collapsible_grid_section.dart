@@ -1,36 +1,37 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
 import 'package:BlueEra/widgets/circle_icon_grid_item.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class CollapsibleGridSection extends StatefulWidget {
+class CollapsibleGridSection<T> extends StatefulWidget {
   final String title;
-  final List<CollapsibleGridModel> categories;
-  final void Function(CollapsibleGridModel item)? onTap;
+  final List<T> items;
+  final String Function(T item) itemLabelBuilder;
+  final String Function(T item)? itemIconBuilder;
+  final void Function(T item)? onTap;
 
   const CollapsibleGridSection({
     super.key,
     required this.title,
-    required this.categories,
+    required this.items,
+    required this.itemLabelBuilder,
+    this.itemIconBuilder,
     this.onTap,
   });
 
   @override
-  State<CollapsibleGridSection> createState() => _CollapsibleGridSectionState();
+  State<CollapsibleGridSection<T>> createState() => _CollapsibleGridSectionState<T>();
 }
 
-class _CollapsibleGridSectionState extends State<CollapsibleGridSection> {
+class _CollapsibleGridSectionState<T> extends State<CollapsibleGridSection<T>> {
   final ValueNotifier<bool> isExpanded = ValueNotifier(false);
 
   static const int crossAxisCount = 4;
-  static const double mainAxisSpacing = 16.0;
 
-  List<Widget> _buildRows(List<CollapsibleGridModel> source) {
-    final rows = <List<CollapsibleGridModel>>[];
+  List<Widget> _buildRows(List<T> source) {
+    final rows = <List<T>>[];
 
     for (int i = 0; i < source.length; i += crossAxisCount) {
       rows.add(
@@ -40,26 +41,23 @@ class _CollapsibleGridSectionState extends State<CollapsibleGridSection> {
 
     return rows.map((rowItems) {
       return Padding(
-        padding: const EdgeInsets.only(bottom: mainAxisSpacing),
+        padding: const EdgeInsets.only(bottom: 16.0),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: List.generate(crossAxisCount * 2 - 1, (i) {
-            if (i.isEven) {
-              final index = i ~/ 2;
-
+          children: List.generate(crossAxisCount, (index) {
+            if (index < rowItems.length) {
+              final item = rowItems[index];
               return Expanded(
-                child: index < rowItems.length
-                    ? CircleIconGridItem(
-                  label: rowItems[index].name,
-                  icon: rowItems[index].icon,
-                  onTap: () => widget.onTap?.call(rowItems[index]),
-                )
-                    : const SizedBox.shrink(),
+                child: CircleIconGridItem(
+                  label: widget.itemLabelBuilder(item),
+                  icon: widget.itemIconBuilder?.call(item) ?? "",
+                  onTap: () => widget.onTap?.call(item),
+                ),
               );
             } else {
-              return SizedBox(width: SizeConfig.size20);
+              return const Expanded(child: SizedBox());
             }
-          }),
+          }).expand((widget) => [widget, const SizedBox(width: 10)]).take(crossAxisCount * 2 - 1).toList(),
         ),
       );
     }).toList();
@@ -67,14 +65,14 @@ class _CollapsibleGridSectionState extends State<CollapsibleGridSection> {
 
   @override
   Widget build(BuildContext context) {
-    final firstEight = widget.categories.take(8).toList();
-    final remaining = widget.categories.skip(8).toList();
+    final firstEight = widget.items.take(8).toList();
+    final remaining = widget.items.skip(8).toList();
     final hasMore = remaining.isNotEmpty;
 
     return ValueListenableBuilder<bool>(
       valueListenable: isExpanded,
       builder: (_, expanded, __) {
-        final visibleList = expanded ? widget.categories : firstEight;
+        final visibleList = expanded ? widget.items : firstEight;
 
         return Container(
           margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
@@ -83,11 +81,12 @@ class _CollapsibleGridSectionState extends State<CollapsibleGridSection> {
             color: Colors.white,
             borderRadius: BorderRadius.circular(10),
           ),
-
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Header Row
               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   CustomText(
                     widget.title,

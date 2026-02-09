@@ -14,7 +14,7 @@ import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/chat/auth/model/GetBlueeraPiolotModel.dart';
 import 'package:BlueEra/features/common/food/model/add_grocery_order_response.dart';
 import 'package:BlueEra/features/common/food/model/children_of_grocery_category_response.dart';
-import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
+import 'package:BlueEra/features/common/food/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/common/food/model/grocery_product_model.dart';
 import 'package:BlueEra/features/common/food/repo/grocery_repo.dart';
 import 'package:BlueEra/features/common/food/stream/rider_grocery_stream.dart';
@@ -38,14 +38,14 @@ class UserGroceryController extends GetxController{
   // Rx<ApiResponse> userGroceryCategoryResponse =
   //     ApiResponse.initial('Initial').obs;
 
-  final selectedGroceryData = Rxn<CollapsibleGridModel>();
+  final selectedGroceryData = Rxn<GroceryNestedCategoryModel>();
 
   RxBool isInitialLoading = false.obs;
 
   RxInt selectedTabIndex = 0.obs;
   String get currentTabKey =>
       selectedTabIndex.value == 0
-          ? (selectedGroceryData.value?.slugId ?? '')
+          ? (selectedGroceryData.value?.key ?? '')
           : arrChildrenOfGroceryCategory[selectedTabIndex.value - 1].key ?? '';
 
   RxList<VariantsData> selectedGroceriesVariants = <VariantsData>[].obs;

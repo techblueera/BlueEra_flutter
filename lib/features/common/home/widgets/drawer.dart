@@ -1,5 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
@@ -297,7 +299,16 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
       ),
       MenuItemModel(
         title: "Profile Settings",
-        onTap: () => Get.to(() => ProfileSettingsNewScreen()),
+        onTap: () {
+          if (isGuestUser()) {
+            createProfileScreen();
+          } else if (isIndividualUser()) {
+            navigatePushTo(context, PersonalProfileSetupNewScreen());
+          } else if (isBusinessUser()) {
+            navigatePushTo(context, BusinessOwnProfileScreen());
+          }
+          // Get.to(() => ProfileSettingsNewScreen());
+        },
 
       ),
       MenuItemModel(

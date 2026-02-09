@@ -29,6 +29,7 @@ import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
 import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
+import 'package:BlueEra/features/common/food/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/common/food/view/food_upload_screen.dart';
 import 'package:BlueEra/features/common/food/view/grocery/add_grocery_screen.dart';
 import 'package:BlueEra/features/common/food/view/grocery/add_grocery_variant_screen.dart';
@@ -1332,26 +1333,28 @@ class RouteHelper {
       case RouteConstant.groceryCategoryScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final bool argMyGrocery = args[ApiKeys.argMyGrocery] as bool;
-        final String pageHeading = args[ApiKeys.argPageHeading] as String;
-        final Map<String, List<CollapsibleGridModel>> argArrGroceryCat =
-            args[ApiKeys.argArrGroceryCat]
-                as Map<String, List<CollapsibleGridModel>>;
+        final String argArrGroceryCatName = args[ApiKeys.argArrGroceryCatName] as String;
+        final String argArrGroceryCatKey = args[ApiKeys.argArrGroceryCatKey] as String;
+        final List<CollapsibleGridModel> argArrGrocerySuperCat =
+            args[ApiKeys.argArrGrocerySuperCategory] as List<CollapsibleGridModel>;
         return MaterialPageRoute(
             builder: (_) => GroceryCategoryScreen(
-                arrGroceryCat: argArrGroceryCat,
-                pageHeading: pageHeading,
+                argArrGrocerySuperCat: argArrGrocerySuperCat,
+                argArrGroceryCatKey: argArrGroceryCatKey,
+                argArrGroceryCatName: argArrGroceryCatName,
                 isMyGrocery: argMyGrocery),
             settings: RouteSettings(name: getGroceryCategoryScreenRoute()));
       case RouteConstant.grocerySubCategoryScreen:
         final args = settings.arguments as Map<String, dynamic>;
-        final List<CollapsibleGridModel> argGroceries =
-            args[ApiKeys.argGroceries] as List<CollapsibleGridModel>;
-        final CollapsibleGridModel argSelectedGroceryData =
-            args[ApiKeys.argSelectedGroceryData] as CollapsibleGridModel;
+        final List<GroceryNestedCategoryModel> argGroceries =
+            args[ApiKeys.argGroceries] as List<GroceryNestedCategoryModel>;
+        // final GroceryNestedCategoryModel argSelectedGroceryData =
+        //     args[ApiKeys.argSelectedGroceryData] as GroceryNestedCategoryModel;
         return MaterialPageRoute(
             builder: (_) => GrocerySubCategoryScreen(
                 arrGroceries: argGroceries,
-                selectedGroceryData: argSelectedGroceryData),
+                // selectedGroceryData: argSelectedGroceryData
+            ),
             settings: RouteSettings(name: getGrocerySubCategoryScreenRoute()));
       case RouteConstant.addGroceryScreen:
         return MaterialPageRoute(
@@ -1382,14 +1385,15 @@ class RouteHelper {
             settings: RouteSettings(name: getMyGroceryVariantScreenRoute()));
       case RouteConstant.groceryListingScreen:
         final args = settings.arguments as Map<String, dynamic>;
-        final List<CollapsibleGridModel> argGroceries =
-            args[ApiKeys.argGroceries] as List<CollapsibleGridModel>;
-        final CollapsibleGridModel argSelectedGroceryData =
-            args[ApiKeys.argSelectedGroceryData] as CollapsibleGridModel;
+        final List<GroceryNestedCategoryModel> argGroceries =
+            args[ApiKeys.argGroceries] as List<GroceryNestedCategoryModel>;
+        // final GroceryNestedCategoryModel argSelectedGroceryData =
+        //     args[ApiKeys.argSelectedGroceryData] as GroceryNestedCategoryModel;
         return MaterialPageRoute(
             builder: (_) => GroceryListingScreen(
                 arrGroceries: argGroceries,
-                selectedGroceryData: argSelectedGroceryData),
+                // selectedGroceryData: argSelectedGroceryData
+            ),
             settings: RouteSettings(name: getGroceryListingScreenRoute()));
       case RouteConstant.riderServiceScreen:
         // final args = settings.arguments as Map<String, dynamic>;

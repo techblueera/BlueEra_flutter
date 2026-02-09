@@ -22,6 +22,7 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/post_via_dialog.dart';
+import 'package:BlueEra/widgets/user_profile_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
@@ -122,7 +123,9 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
       this.isCreateButton,
       this.isCreateEventBtn,
       this.showElevation,
-      this.categoryId});
+      this.categoryId,
+      this.isCustomTitleWidget
+      });
 
   // final AppBar? appBar;
   final String? title;
@@ -213,6 +216,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool? isCreateButton;
   final bool? isCreateEventBtn;
   final double? showElevation;
+  final Widget Function()? isCustomTitleWidget;
 
   @override
   Widget build(BuildContext context) {
@@ -280,33 +284,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ),
 
               if (isProfile ?? false)
-                Builder(
-                  builder: (context) {
-                    return InkWell(onTap: () {
-                      if (onProfileTap != null) {
-                        onProfileTap!();
-                      } else {
-                        if (isGuestUser()) {
-                          createProfileScreen();
-                        } else if (isIndividualUser()) {
-                          navigatePushTo(
-                              context, PersonalProfileSetupNewScreen());
-                        } else if (isBusinessUser()) {
-                          navigatePushTo(context, BusinessOwnProfileScreen());
-                        }
-                      }
-                    }, child: Obx(() {
-                      return Padding(
-                        padding: EdgeInsets.only(left: SizeConfig.size15),
-                        child: CachedAvatarWidget(
-                            imageUrl: Get.find<AuthController>().imgPath.value,
-                            size: SizeConfig.size30,
-                            borderRadius: 5.0,
-                            showProfileOnFullScreen: false),
-                      );
-                    }));
-                  },
-                ),
+               CommonProfileAvatar(),
 
               if (isStoreProfile ?? false)
                 Builder(
@@ -561,6 +539,12 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                   icon: Icon(Icons.more_vert),
                   itemBuilder: (context) => inventoryPopupMenuItems(),
                 ),
+
+              if(isCustomTitleWidget!=null)
+                Builder(
+                  builder: (context) => isCustomTitleWidget!(),
+                ),
+
             ],
           );
         }),

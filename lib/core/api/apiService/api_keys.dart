@@ -566,7 +566,9 @@ class ApiKeys {
 
   static const argArrGroceryCat = 'argArrGroceryCat';
   static const argCategoryName = 'argCategoryName';
-  static const argPageHeading = 'argPageHeading';
+  static const argArrGroceryCatName = 'argArrGroceryCatName';
+  static const argArrGroceryCatKey = 'argArrGroceryCatKey';
+  static const argArrGrocerySuperCategory = 'argArrGrocerySuperCategory';
   static const medicalOtcChildren = 'medicalOtcItems';
   static const documentType = 'documentType';
   static const value = 'value';
@@ -673,4 +675,5 @@ class ApiKeys {
   static const argDocumentVia  = 'argDocumentVia';
   static const checkInTime  = 'checkInTime';
   static const checkOutTime  = 'checkOutTime';
+  static const categoryKey  = 'categoryKey';
 }

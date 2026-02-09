@@ -11,6 +11,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/Discover/widget/generic_left_side_category_list.dart';
 import 'package:BlueEra/features/common/food/controller/user_grocery_controller.dart';
 import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
+import 'package:BlueEra/features/common/food/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/common/food/model/grocery_product_model.dart';
 import 'package:BlueEra/features/common/jobs/create_job_post/create_job.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -26,13 +27,14 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class GroceryListingScreen extends StatefulWidget {
-  final List<CollapsibleGridModel> arrGroceries;
-  final CollapsibleGridModel selectedGroceryData;
+  final List<GroceryNestedCategoryModel> arrGroceries;
+  // final GroceryNestedCategoryModel selectedGroceryData;
 
   GroceryListingScreen(
       {super.key,
       required this.arrGroceries,
-      required this.selectedGroceryData});
+      // required this.selectedGroceryData
+      });
 
   @override
   State<GroceryListingScreen> createState() => _GroceryListingScreenState();
@@ -40,14 +42,14 @@ class GroceryListingScreen extends StatefulWidget {
 
 class _GroceryListingScreenState extends State<GroceryListingScreen> {
   final controller = getOrPut(() => UserGroceryController());
-  // final groceryController = getOrPut(() => GroceryController());
   final ScrollController scrollController = ScrollController();
 
   @override
   void initState() {
     scrollController.addListener(_onScrollListener);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      controller.selectedGroceryData.value = widget.selectedGroceryData;
+      controller.selectedGroceryData.value = widget.arrGroceries.first;
+      // controller.selectedGroceryData.value = widget.selectedGroceryData;
       controller.fetchUserGrocery();
     });
     super.initState();
@@ -157,6 +159,7 @@ class _GroceryListingScreenState extends State<GroceryListingScreen> {
               );
           }),
           body: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               leftCategoryList(),
               Expanded(child: rightContent()),
@@ -166,17 +169,17 @@ class _GroceryListingScreenState extends State<GroceryListingScreen> {
   }
 
   Widget leftCategoryList() {
-    return CommonGenericLeftSideCategoryList<CollapsibleGridModel>(
+    return CommonGenericLeftSideCategoryList<GroceryNestedCategoryModel>(
       items: widget.arrGroceries,
-      getIcon: (item) => item.icon,
-      getLabel: (item) => item.name,
+      getIcon: (item) => item.image ?? '',
+      getLabel: (item) => item.name ?? '',
       isSelected: (item) =>
-      controller.selectedGroceryData.value?.slugId == item.slugId,
+      controller.selectedGroceryData.value?.sId == item.sId,
       onTap: (item, index) {
         final selected = widget.arrGroceries[index];
 
         // If same category already selected → DO NOTHING
-        if (controller.selectedGroceryData.value?.slugId == selected.slugId) {
+        if (controller.selectedGroceryData.value?.sId == selected.sId) {
           return;
         }
 

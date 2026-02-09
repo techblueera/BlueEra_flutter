@@ -50,7 +50,7 @@ class _SplashScreenState extends State<SplashScreen> {
         SharedPreferenceUtils.accountType);
     accountTypeGlobal = tempLoginType.toString();
 
-    dynamic isLoginStatus = await SharedPreferenceUtils.getSecureValue(
+    var isLoginStatus = await SharedPreferenceUtils.getSecureValue(
         SharedPreferenceUtils.isUserLogin);
     if (isLoginStatus == null) isLoginStatus = "false";
 

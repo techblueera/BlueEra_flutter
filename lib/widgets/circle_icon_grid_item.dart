@@ -2,6 +2,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 class CircleIconGridItem extends StatelessWidget {
@@ -41,11 +42,22 @@ class CircleIconGridItem extends StatelessWidget {
                     color: AppColors.skyBlueE4,
                     shape: BoxShape.circle,
                   ),
-                  child: LocalAssets(
-                    imagePath: icon,
-                    imgColor: imgColor,
+                  child: CachedNetworkImage(
+                    imageUrl: icon,
                     height: iconSize,
                     width: iconSize,
+                    color: imgColor,
+                    // fit: BoxFit.contain,
+                    placeholder: (context, url) => SizedBox(
+                      height: iconSize,
+                      width: iconSize,
+                      child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                    ),
+                    errorWidget: (context, url, error) => Icon(
+                      Icons.broken_image,
+                      size: iconSize,
+                      color: Colors.grey,
+                    ),
                   ),
                 ),
                 SizedBox(height: SizeConfig.size6),

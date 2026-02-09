@@ -8,6 +8,7 @@ import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/food/model/get_food_details_model.dart';
+import 'package:BlueEra/features/common/food/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/common/service/model/get_service_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/all_stores_feed_response_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/inventory/model/get_product_model.dart';
@@ -23,6 +24,7 @@ class HiveServices{
   static const String _savedAllNearByStoresFoodServices = 'savedAllNearByStoresFoodServices';
   static const String _savedBusinessCategoryBox = 'business_categories_box';
   static const String _savedAdminVideosBox = 'savedAdminVideosBox';
+  static const String _savedGroceryNestedCategoryBox = 'savedGroceryNestedCategoryBox';
 
   /// Initialize Hive boxes
   static Future<void> init() async {
@@ -35,6 +37,7 @@ class HiveServices{
     await Hive.openBox(_savedAllNearByStoresFoodServices);
     await Hive.openBox(_savedBusinessCategoryBox);
     await Hive.openBox(_savedAdminVideosBox);
+    await Hive.openBox(_savedGroceryNestedCategoryBox);
   }
 
   bool isPostSaved(String id) {
@@ -508,6 +511,46 @@ class HiveServices{
       print('Loaded ${videos.length} videos Data');
 
       return videos;
+
+    }catch (e) {
+      print('Error loading videos data: $e');
+      return null;
+    }
+  }
+
+  /// Save all nested categories
+  Future<void> saveGroceryNestedCategories(String groceryCategoryKey, List<GroceryNestedCategoryModel> nestedCategories) async {
+    final box = Hive.box(_savedGroceryNestedCategoryBox);
+
+    final List<Map<String, dynamic>> jsonList = nestedCategories.map((item) => item.toJson()).toList();
+
+    await box.put(groceryCategoryKey, jsonList);
+  }
+
+  /// Get all nested categories
+  List<GroceryNestedCategoryModel>? getGroceryNestedCategories(String groceryCategoryKey) {
+    try {
+
+      final box = Hive.box(_savedGroceryNestedCategoryBox);
+      final data = box.get(groceryCategoryKey);
+
+      if (data == null) {
+        print('No cached nested categories data found');
+        return null;
+      }
+
+      if (data is! List) {
+        print('Invalid data type in Hive: ${data.runtimeType}');
+        return null;
+      }
+
+      final List<GroceryNestedCategoryModel> nestedCategories = data
+          .map((json) => GroceryNestedCategoryModel.fromJson(jsonDecode(jsonEncode(json)) as Map<String, dynamic>))
+          .toList();
+
+      print('Loaded ${nestedCategories.length} Nested Category Data');
+
+      return nestedCategories;
 
     }catch (e) {
       print('Error loading videos data: $e');

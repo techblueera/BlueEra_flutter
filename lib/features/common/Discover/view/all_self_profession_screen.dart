@@ -43,9 +43,9 @@ class AllSelfProfessionScreen extends StatefulWidget {
 class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
   final controller = getOrPut(() => DiscoverController());
   late List<OnboardingCategoryModel> _selfEmployedCategories;
-  ScrollController scrollController = ScrollController();
-  String serviceSubType = EarnServiceTypes.selfWork.label;
-  String earnServiceType = AppConstants.service;
+  final ScrollController scrollController = ScrollController();
+  final String serviceSubType = EarnServiceTypes.selfWork.label;
+  final String earnServiceType = AppConstants.service;
 
   @override
   initState(){
@@ -332,7 +332,7 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
       Timings? latest = timingsList.first;
 
       for (final t in timingsList) {
-        final startTime = parse12HourTime(t.start ?? "00:00 AM");
+        final startTime = parse12HourTime(t.start  ?? "00:00 AM");
         final earliestStart = parse12HourTime(earliest?.start ?? "00:00 AM");
         if (startTime.isBefore(earliestStart)) earliest = t;
 
@@ -420,7 +420,6 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
                 ],
               ),
 
-              SizedBox(height: SizeConfig.size6),
 
               // if(service.bio?.isNotEmpty??false)
               //   ...[
@@ -433,38 +432,45 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
               //     SizedBox(height: SizeConfig.size6),
               //   ],
 
-              (service.expertise?.isNotEmpty ?? false)
+              (service.service!=null &&
+                  service.service!.expertise!=null &&
+                  service.service!.expertise!.isNotEmpty)
                   ? Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: List.generate(
-                  service.expertise!.take(2).length,
-                      (index) => Padding(
-                    padding: const EdgeInsets.only(bottom: 4.0),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          margin:
-                          const EdgeInsets.only(top: 6.0, right: 8.0),
-                          width: 4.0,
-                          height: 4.0,
-                          decoration: BoxDecoration(
-                            color: AppColors.secondaryTextColor,
-                            shape: BoxShape.circle,
+                children: [
+                  SizedBox(height: SizeConfig.size6),
+                  ...List.generate(
+                    service.service!.expertise!.take(2).length,
+                        (index) => Padding(
+                      padding: const EdgeInsets.only(bottom: 4.0),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            margin:
+                            const EdgeInsets.only(top: 6.0, right: 8.0),
+                            width: 4.0,
+                            height: 4.0,
+                            decoration: BoxDecoration(
+                              color: AppColors.secondaryTextColor,
+                              shape: BoxShape.circle,
+                            ),
                           ),
-                        ),
-                        Expanded(
-                          child: CustomText(
-                            service.expertise![index],
-                            fontSize: SizeConfig.small,
-                            color: AppColors.secondaryTextColor,
-                            fontWeight: FontWeight.w400,
+                          Expanded(
+                            child: CustomText(
+                              service.service!.expertise![index],
+                              fontSize: SizeConfig.small,
+                              color: AppColors.secondaryTextColor,
+                              fontWeight: FontWeight.w400,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
+                  SizedBox(height: SizeConfig.size6),
+                ]
+
               )
                   : SizedBox(),
 
