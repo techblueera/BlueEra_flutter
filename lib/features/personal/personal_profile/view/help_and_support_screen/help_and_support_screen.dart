@@ -13,6 +13,7 @@ import '../../../../../core/constants/app_icon_assets.dart';
 import '../../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../../chat/view/ai_chat/view/ai_chat_screen.dart';
 import '../../controller/help_and_support_controller.dart';
+import '../complaint/complaint_main_page.dart';
 
 class HelpAndSupportScreen extends StatefulWidget {
   const HelpAndSupportScreen({super.key});
@@ -83,7 +84,7 @@ class _HelpAndSupportScreenState extends State<HelpAndSupportScreen> {
                   AppIconAssets.queriIcon,
                   "Complaint",
                   () {
-                   // Get.to(QueriesCard());
+                   Get.to(ComplaintMainPage());
                   },
                 ),
                 SizedBox(height: SizeConfig.size10),

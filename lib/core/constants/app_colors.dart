@@ -149,4 +149,5 @@ class AppColors {
   static const blueGrayShade = Color(0xFFD6EAFF);
   static const redE4 = Color(0xFFFFE6E4);
   static const boxBg = Color(0xFFF2F2F2);
+  static const circleBg = Color(0xFFF0F0F0);
 }

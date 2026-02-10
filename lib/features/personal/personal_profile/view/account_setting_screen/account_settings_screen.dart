@@ -12,6 +12,11 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../../core/constants/getx_utils.dart';
+import '../../../../../core/constants/shared_preference_utils.dart';
+import '../../../../../core/routes/route_helper.dart';
+import '../../../../../widgets/common_dialog.dart';
+import '../../../../../widgets/custom_btn.dart';
 import '../widget/changes_languages_screen.dart';
 
 class AccountSettingScreen extends StatefulWidget {
@@ -24,7 +29,8 @@ class AccountSettingScreen extends StatefulWidget {
 class _AccountSettingScreenState extends State<AccountSettingScreen> {
   final AccountSettingsController accountController =
       Get.put(AccountSettingsController());
-  final controller = Get.put(LanguageControllerNew());
+  final controller = getOrPut(() => LanguageControllerNew());
+
 
   @override
   void initState() {
@@ -162,10 +168,39 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
                     //     },
                     //   ),
                     // ),
+                    SizedBox(height: SizeConfig.size24),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: CustomBtn(
+                          onTap: () async {
+                            await showCommonDialog(
+                                context: context,
+                                text: AppStrings.deleteAccountConfirmationMessage,
+                                confirmCallback: () async {
+                                  await SharedPreferenceUtils.clearPreference();
+                                  Navigator.of(context).pushNamedAndRemoveUntil(
+                                      RouteHelper.getMobileNumberLoginRoute(),
+                                          (Route<dynamic> route) => false);
+                                },
+                                cancelCallback: () {
+                                  Navigator.of(context).pop(); // Close the dialog
+                                },
+                                confirmText: AppStrings.yes,
+                                cancelText: AppStrings.no);
+                          },
+                          title: AppStrings.deleteAccount,
+                          bgColor: Colors.white,
+                          textColor: AppColors.red00,
+                          borderColor: AppColors.red00,
+                          radius: 10.0),
+                    ),
+                    SizedBox(height: SizeConfig.size20),
                   ],
                 ),
               ),
-              SizedBox(height: SizeConfig.size20),
+              SizedBox(height: SizeConfig.size28),
+              // SizedBox(height: 14,),
+
               /*   Container(
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -207,7 +242,7 @@ Widget _helpServiceCard(
     String iconPath, String title, GestureTapCallback? onTap,
     {String? slugId}) {
   Get.put(AccountSettingsController());
-  final lang = Get.put(LanguageControllerNew());
+  final lang = getOrPut(() => LanguageControllerNew());
 
   return InkWell(
     onTap: onTap,

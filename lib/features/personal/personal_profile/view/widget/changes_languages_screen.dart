@@ -7,8 +7,10 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../../core/constants/getx_utils.dart';
+
 class ChangeLanguageScreen extends StatelessWidget {
-  final controller = Get.find<LanguageControllerNew>();
+  final controller = getOrPut(() => LanguageControllerNew());
 
   ChangeLanguageScreen({super.key});
 
