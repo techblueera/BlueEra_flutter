@@ -12,6 +12,7 @@ import 'package:get/get.dart';
 import '../../../../../core/api/apiService/api_response.dart';
 import '../../../../../core/constants/app_enum.dart';
 import '../../../../chat/auth/model/rider_orders_details_model.dart';
+import '../../controller/floating_controller.dart';
 
 class PickupOrderScreen extends StatefulWidget {
   const PickupOrderScreen({super.key});
@@ -52,6 +53,14 @@ class _PickupOrderScreenState extends State<PickupOrderScreen> {
                   padding: EdgeInsets.only(right: SizeConfig.size14),
                   child: GestureDetector(
                     onTap: () {
+                      // FloatingController().show(
+                      //   canClose: true,
+                      //   child: OngoingRideCard(),
+                      //   context: context,
+                      //   onMaximize: () {
+                      //     FloatingController().hide();
+                      //   },
+                      // );
                       controller.selectedPickUp.value = tab;
                       if(controller.selectedPickUp.value != PickUpTab.newOrder && controller.selectedPickUp.value != PickUpTab.onGoing&& controller.selectedPickUp.value != PickUpTab.rejected){
                         controller.getRidersBookingOrders();
@@ -193,4 +202,139 @@ class _PickupOrderScreenState extends State<PickupOrderScreen> {
     }
   }
 
+}
+
+
+class OngoingRideCard extends StatefulWidget {
+  const OngoingRideCard({super.key});
+
+  @override
+  State<OngoingRideCard> createState() => _OngoingRideCardState();
+}
+
+class _OngoingRideCardState extends State<OngoingRideCard> {
+  double dragX = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return  Container(
+      padding: const EdgeInsets.symmetric(vertical: 16,horizontal: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          /// Title
+
+          CustomText(
+            "Ongoing Ride",
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+
+          const SizedBox(height: 8),
+
+          /// Drop Location
+          Container(
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: AppColors.whiteE5
+              ),
+              borderRadius: BorderRadius.circular(10)
+            ),
+            padding: EdgeInsets.symmetric(horizontal: 8,vertical: 4),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const CustomText(
+                  "DROP LOCATION",
+                    fontSize: 12,
+                    color: Colors.grey,
+                    letterSpacing: 1,
+                ),
+                const SizedBox(height: 4),
+                const CustomText(
+                  "No. 21, 1st Floor, Near Metro Station, Bengaluru",
+                  fontSize: 13,
+                  color: Colors.black54,
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          /// Slide to Complete
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final sliderWidth = constraints.maxWidth;
+              const buttonWidth = 56;
+
+              return Container(
+                height: 56,
+                width:310,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                child: Stack(
+                  children: [
+                    /// Center text
+                    Center(
+                      child: CustomText(
+                        "Slide to complete",
+                        // style: TextStyle(
+                          color: Colors.grey.shade600,
+                          fontWeight: FontWeight.w500,
+                        // ),
+                      ),
+                    ),
+
+                    /// Draggable button
+                    Positioned(
+                      left: dragX,
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onHorizontalDragUpdate: (details) {
+                          setState(() {
+                            dragX += details.delta.dx;
+                            if (dragX < 0) dragX = 0;
+                            if (dragX > sliderWidth - buttonWidth) {
+                              dragX = sliderWidth - buttonWidth;
+                            }
+                          });
+                        },
+                        onHorizontalDragEnd: (details) {
+                          if (dragX > (sliderWidth - buttonWidth) * 0.7) {
+                            /// ✅ Completed
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text("Order Completed")),
+                            );
+                          }
+                          setState(() => dragX = 0);
+                        },
+                        child: Container(
+                          height: 56,
+                          width: buttonWidth.toDouble(),
+                          decoration: BoxDecoration(
+                            color: Colors.green,
+                            borderRadius: BorderRadius.circular(28),
+                          ),
+                          child: const Icon(
+                            Icons.arrow_forward_ios,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
 }

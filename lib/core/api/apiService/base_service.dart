@@ -192,6 +192,7 @@ abstract class BaseService {
   final String getOneToOneMedia = 'chat-service/chat/get-one-to-one-media';
   final String addToArchive = 'chat-service/chat/add-to-archive';
   final String messageLikeUnlike = 'chat-service/chat/message-like-unlike';
+  String checkTrackOrderStatus(String orderId) => 'rider-service/fare/orders/${orderId}/status';
   final String getChatRequest = 'chat-service/connections/requests';
   final String getLatestChat = 'chat-service/chat/latest-chat';
   final String reactChatRequest = 'chat-service/connections/respond';

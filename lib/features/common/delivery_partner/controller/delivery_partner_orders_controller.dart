@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -73,6 +74,7 @@ class DeliverPartnerOrdersController extends GetxController {
         ApiResponse.complete('');
     stream = await getOrderFromUserStream();
     subscription = stream.listen((event) {
+      log("jklnclsdjknclskjcnsldcjn ${event}");
       if (event is List) {
         List<RiderOrdersDetailsModel> riderOrdersList = event
             .map((item) => RiderOrdersDetailsModel.fromJson(
