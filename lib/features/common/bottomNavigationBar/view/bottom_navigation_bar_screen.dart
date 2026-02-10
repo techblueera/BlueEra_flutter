@@ -9,7 +9,6 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/chat/view/ai_chat/view/ask_chat_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
@@ -392,16 +391,16 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       return const SchoolMain();
     } else if (businessTypeGlobal.toUpperCase() ==
         BusinessType.Healthcare.name.toUpperCase()) {
-      log('category of business -- $businessCategoryGlobal');
-      if(businessCategoryGlobal.toUpperCase() == 'Hospitals'.toUpperCase()){
+      if(businessCategoryGlobal.toUpperCase() ==
+          AppConstants.HOSPITALS.toUpperCase()){
         return const HospitalMain();
-      } else if(businessCategoryGlobal.toUpperCase() == 'Medical Education Institutions'.toUpperCase()){
+      } else if(businessCategoryGlobal.toUpperCase() ==
+          AppConstants.MEDICAL_EDUCATION_INSTITUTIONS.toUpperCase()){
         return const MedicalScreen(fromBottomNavBar: true);
-      } return SizedBox();
-
-    } else if (businessCategoryGlobal.toUpperCase() ==
-        AppConstants.DIAGNOSTICTESTINGCENTERS) {
-      return const LaboratoryMain();
+      } else if (businessCategoryGlobal.toUpperCase() ==
+          AppConstants.DIAGNOSTIC_TESTING_CENTERS) {
+        return const LaboratoryMain();
+      }return SizedBox();
     } else if (businessCategoryGlobal ==
         AppConstants.healthcareMedicalServices) {
       return const HospitalMain();
