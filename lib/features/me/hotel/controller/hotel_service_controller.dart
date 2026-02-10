@@ -113,11 +113,6 @@ class HotelServiceController extends GetxController {
     try {
       ResponseModel response =
           await HotelServiceRepo().aiHotelFetchDetailsRepo(reqBody: {
-        // "name":
-        //     "MAHARAJA HOTEL, Reemapark Society, Mahavirnagar, Harikurpa Society, Motera, Ahmedabad, Gujarat, India",
-        // "url": "https://maharaja.ahmedabadhotels.net/en/",
-        // "address":
-        //     "MAHARAJA HOTEL, Reemapark Society, Mahavirnagar, Harikurpa Society, Motera, Ahmedabad, Gujarat, India"
         ApiKeys.name: hotelName,
         ApiKeys.url: website,
         ApiKeys.address: hotelName,
