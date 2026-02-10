@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_instance/src/extension_instance.dart';
 import 'package:get/get_navigation/src/extension_navigation.dart';
+import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
@@ -15,6 +16,7 @@ import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/getx_utils.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
+import '../../../../core/language_localization_service/language_controller_new.dart';
 import '../../../../core/routes/route_helper.dart';
 import '../../../../environment_config.dart';
 import '../../../../widgets/common_dialog.dart';
@@ -31,6 +33,7 @@ import '../../../personal/personal_profile/view/documents.dart';
 import '../../../personal/personal_profile/view/help_and_support_screen/help_and_support_screen.dart';
 import '../../../personal/personal_profile/view/payment/view/payment_setting_screen.dart';
 import '../../../personal/personal_profile/view/profile_settings_new_screen.dart';
+import '../../../personal/personal_profile/view/widget/changes_languages_screen.dart';
 import '../../../subscription/view/subscription_screen.dart';
 import '../../../subscription/view/subscrption_new.dart';
 import '../../auth/controller/auth_controller.dart';
@@ -119,6 +122,9 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
             _walletRow(),
             const SizedBox(height: 6),
             Expanded(child: _menuList()),
+            Divider(
+              color: AppColors.whiteE5,
+            ),
             _footer(),
           ],
         ),
@@ -151,7 +157,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
                 ),
-                SizedBox(height: 4),
+                SizedBox(height: 2),
                 CustomText(
                   userDesigination(),
                   fontSize: 14,
@@ -212,7 +218,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
                     color: AppColors.secondaryTextColor,
                   ),
                   CustomText(
-                    "  ₹522",
+                    "  ₹0",
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
                     color: AppColors.black,
@@ -244,12 +250,12 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
     final List<MenuItemModel> menus = [
       MenuItemModel(
           title: "App Tutorial",
-          onTap: () => Get.to(() => AppTutorialScreen())
+          onTap: () => Get.to(AppTutorialScreen())
 
       ),
       MenuItemModel(
         title: "Refer & Earn",
-        onTap: () => Get.to(() => ReferralPage()),
+        onTap: () => Get.to( ReferralPage()),
       ),
       if(accountTypeGlobal!="BUSINESS")
       MenuItemModel(
@@ -272,15 +278,15 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
       ),
       MenuItemModel(
           title: "Subscription",
-          onTap: () => Get.to(() => SubscriptionScreenNew())
+          onTap: () => Get.to( SubscriptionScreenNew())
       ),
       MenuItemModel(
         title: "Payment",
-        onTap: () => Get.to(() => PaymentSettingScreen()),
+        onTap: () => Get.to( PaymentSettingScreen()),
 
       ),
       MenuItemModel(
-        title: "My Channel",
+        title: "Channel & Community",
         onTap: () {
           if (channelId.isNotEmpty) {
             Get.toNamed(
@@ -304,14 +310,13 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
       ),
       MenuItemModel(
         title: "My Documents",
-          onTap: () => Get.to(() => AddYourDocumentScreen())
+          onTap: () => Get.to( AddYourDocumentScreen())
 
       ),
       MenuItemModel(
         title: "Franchise Inquiry",
         onTap: () =>
             Get.to(
-                  () =>
                   CommonWebView(
                     urlLink: takeFranchise,
                     urlTitle: AppStrings.applyForFranchise,
@@ -320,11 +325,11 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
       ),
       MenuItemModel(
         title: "Account Settings",
-        onTap: () => Get.to(() => AccountSettingScreen()),
+        onTap: () => Get.to( AccountSettingScreen()),
       ),
       // MenuItemModel(
       //   title: "Profile Settings",
-      //   onTap: () => Get.to(() => ProfileSettingsNewScreen()),
+      //   onTap: () => Get.to( ProfileSettingsNewScreen()),
       //
       // ),
       MenuItemModel(
@@ -339,7 +344,24 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
       ),
 
     ];
+List icons=[
+  'assets/images/tutorial.png',
+  'assets/images/refer.png',
+  'assets/images/earn.png',
+  'assets/images/subscrption.png',
+  'assets/images/payment.png',
+  'assets/images/channel.png',
 
+  'assets/images/documents.png',
+
+  'assets/images/franchise.png',
+  'assets/images/profilesetting.png',
+  'assets/images/notify.png',
+  'assets/images/help.png'
+
+
+
+];
     return ListView.separated(
       itemCount: menus.length,
       separatorBuilder: (_, __) =>
@@ -351,17 +373,16 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
           onTap: item.onTap,
           child: ListTile(
             leading: Container(
+              padding: EdgeInsets.all(8),
               height: 40,
               width: 40,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.whiteE5,
+                color: AppColors.circleBg,
               ),
-              child: const Icon(
-                Icons.receipt_long,
-                size: 20,
-                color: AppColors.secondaryTextColor,
-              ),
+              child:  LocalAssets(imagePath:icons[index]
+
+                , height: 24, width: 24,),
             ),
 
             title: GestureDetector(
@@ -393,12 +414,14 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
       },
     );
   }
+  final lang = getOrPut(() => LanguageControllerNew());
 
   Widget _footer() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
       child: Column(
         children: [
+
           CustomBtn(
               onTap: () async {
                 await showCommonDialog(
@@ -421,10 +444,33 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
               },
               title: AppStrings.logout,
               bgColor: Colors.white,
-              textColor: AppColors.red,
-              borderColor: AppColors.red,
+              textColor: AppColors.primaryColor,
+              borderColor: AppColors.primaryColor,
               radius: 10.0),
-          SizedBox(height: 10,),
+          // SizedBox(height: 14,),
+          // CustomBtn(
+          //     onTap: () async {
+          //       await showCommonDialog(
+          //           context: context,
+          //           text: AppStrings.deleteAccountConfirmationMessage,
+          //           confirmCallback: () async {
+          //             await SharedPreferenceUtils.clearPreference();
+          //             Navigator.of(context).pushNamedAndRemoveUntil(
+          //                 RouteHelper.getMobileNumberLoginRoute(),
+          //                     (Route<dynamic> route) => false);
+          //           },
+          //           cancelCallback: () {
+          //             Navigator.of(context).pop(); // Close the dialog
+          //           },
+          //           confirmText: AppStrings.yes,
+          //           cancelText: AppStrings.no);
+          //     },
+          //     title: AppStrings.deleteAccount,
+          //     bgColor: Colors.white,
+          //     textColor: AppColors.red00,
+          //     borderColor: AppColors.red00,
+          //     radius: 10.0),
+          SizedBox(height: 14,),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: const [
@@ -448,16 +494,21 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
           const SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
-              CustomText(
-                "English",
-                fontSize: 10,
-              ),
+            children:  [
+              CustomText(lang.selectedLang.toUpperCase(),fontSize: 10,),
               SizedBox(width: 6),
-              CustomText(
-                "Change Language?",
-                fontSize: 10,
-                color: AppColors.primaryColor,
+              InkWell(
+                onTap: (){
+                  Future.microtask(() {
+
+                    navigatePushTo(context, ChangeLanguageScreen());
+                  });
+                },
+                child: CustomText(
+                  "Change Language?",
+                  fontSize: 10,
+                  color: AppColors.primaryColor,
+                ),
               ),
             ],
           ),

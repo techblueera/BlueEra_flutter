@@ -25,7 +25,7 @@ class AppStrings {
   static const privacyPolicy = "privacyPolicy";
   static const makeInIndia = "makeInIndia";
   static const confirm = "confirm";
-  static const logoutConfirmationMessage = "logoutConfirmationMessage";
+  static const logoutConfirmationMessage = "Are you sure want to Exit?";
   static const yes = "yes";
   static const no = "no";
   static const deleteAccountConfirmationMessage =
