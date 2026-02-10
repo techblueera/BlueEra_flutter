@@ -9,6 +9,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/chat/view/ai_chat/view/ask_chat_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
@@ -23,6 +24,7 @@ import 'package:BlueEra/features/common/reel/models/channel_model.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/me/food/view/food_main_screen.dart';
 import 'package:BlueEra/features/me/hotel/view/hotel_main.dart';
+import 'package:BlueEra/features/me/laboratory/view/laboratory_main.dart';
 import 'package:BlueEra/features/me/others/others_main.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/professionals_main.dart';
 import 'package:BlueEra/features/me/school/view/school_main.dart';
@@ -119,7 +121,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     // _fetchAllAdminVideos();
   }
 
-
   Future<void> checkByRiderCall() async {
     String? orderId = await getCurrentCall();
     if (orderId != null) {
@@ -214,18 +215,17 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   // }
 
   void _handlePostFrameInitialization() {
-
     if (isBusiness()) {
-        bottomBarController.currentIndex.value = widget.initialIndex ?? 0;
+      bottomBarController.currentIndex.value = widget.initialIndex ?? 0;
       final viewProfileController = Get.put(ViewBusinessDetailsController());
       if (viewProfileController.viewBusinessResponse.status !=
           Status.COMPLETE) {
         viewProfileController.viewBusinessProfile();
       }
     } else {
-      if(userDesignationGlobal == DELIVERY_RIDER){
-        bottomBarController.currentIndex.value=2;
-      }else{
+      if (userDesignationGlobal == DELIVERY_RIDER) {
+        bottomBarController.currentIndex.value = 2;
+      } else {
         bottomBarController.currentIndex.value = widget.initialIndex ?? 0;
       }
       if (viewPersonalDetailsController.viewPersonalResponse.value.status !=
@@ -269,7 +269,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       key: _scaffoldKey,
       // floatingActionButton: kDebugMode
       //     ? FloatingActionButton(onPressed: () {
-      //       Get.to(PersonalProfileSetupNewScreen());
+      //         // Get.to(PersonalProfileSetupNewScreen());
+      //         Get.to(BusinessOwnProfileScreen());
       //       })
       //     : null,
       body: ValueListenableBuilder(
@@ -377,6 +378,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
 
   Widget resolveBusinessScreen() {
     log('Resolving Screen... Type: ${businessTypeGlobal.toUpperCase()}');
+    log('Resolving Screen. businessCategoryGlobal .. Type: ${businessCategoryGlobal.toUpperCase()}');
 
     // 1. First, check if it is a Food business
     if (businessTypeGlobal.toUpperCase() ==
@@ -388,6 +390,9 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     } else if (businessTypeGlobal.toUpperCase() ==
         BusinessType.Siksha.name.toUpperCase()) {
       return const SchoolMain();
+    } else if (businessCategoryGlobal.toUpperCase() ==
+        AppConstants.DIAGNOSTICTESTINGCENTERS) {
+      return const LaboratoryMain();
     } else if (businessCategoryGlobal ==
         AppConstants.healthcareMedicalServices) {
       return const HospitalMain();

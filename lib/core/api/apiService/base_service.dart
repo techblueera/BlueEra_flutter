@@ -707,4 +707,7 @@ abstract class BaseService {
   final String socialContact = 'social-service/contact';
   final String subscriptionPlansGet = 'subscription-service/subscription/subscription-plans';
   final String makeTransportBookOrder = 'rider-service/fare/orders';
+
+
+  final String aiLabsService = 'ai-service/api/ai-labs/generate-lab';
 }

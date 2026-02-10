@@ -13,8 +13,74 @@ import androidx.annotation.NonNull
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import android.app.PictureInPictureParams
+import android.os.Build
+import android.util.Rational
 
-class MainActivity : FlutterActivity() {
+
+class MainActivity: FlutterActivity() {
+    private val CHANNEL = "com.vahcare.lab/pip"
+    // The Master Switch: False by default
+    private var isPipEnabled = false
+
+    override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
+        super.configureFlutterEngine(flutterEngine)
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
+            if (call.method == "updatePipStatus") {
+                // Flutter will tell Android when to enable/disable PiP
+                isPipEnabled = call.argument<Boolean>("isEnabled") ?: false
+                result.success(null)
+            } else if (call.method == "enterPip") {
+                enterPipMode()
+                result.success(true)
+            }
+        }
+    }
+
+    // This triggers when Home or Center button is clicked
+    override fun onUserLeaveHint() {
+        if (isPipEnabled) {
+            enterPipMode()
+        } else {
+            super.onUserLeaveHint() // Normal minimize behavior
+        }
+    }
+
+    private fun enterPipMode() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val params = PictureInPictureParams.Builder()
+                .setAspectRatio(Rational(1, 1))
+                .build()
+            enterPictureInPictureMode(params)
+        }
+    }
+}
+
+/*class MainActivity : FlutterActivity() {
+//    override fun onUserLeaveHint() {
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//            // Set the aspect ratio (e.g., 16:9 for video or 1:1 for a lab report)
+//            val aspectRatio = Rational(16, 9)
+//            val params = PictureInPictureParams.Builder()
+//                .setAspectRatio(aspectRatio)
+//                .build()
+//            enterPictureInPictureMode(params)
+//        }
+//    }
+
+
+    private val CHANNEL = "com.vahcare.lab/pip"
+
+
+    private fun enterPipMode() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val aspectRatio = Rational(16, 9)
+            val params = PictureInPictureParams.Builder()
+                .setAspectRatio(aspectRatio) // Square ratio for lab stats
+                .build()
+            enterPictureInPictureMode(params)
+        }
+    }
 
     private val SCREEN_CHANNEL = "com.bluehr.screenshot/channel"
     private val VIDEO_CHANNEL = "com.bluehr.video/keep_screen_on"
@@ -27,6 +93,18 @@ class MainActivity : FlutterActivity() {
 
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            CHANNEL
+        ).setMethodCallHandler { call, result ->
+            if (call.method == "enterPip") {
+                enterPipMode()
+                result.success(true)
+            } else {
+                result.notImplemented()
+            }
+        }
 
         // ------------------------------
         // EXISTING SCREENSHOT CHANNEL
@@ -41,10 +119,12 @@ class MainActivity : FlutterActivity() {
                         )
                         result.success(null)
                     }
+
                     "disableSecureScreen" -> {
                         window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
                         result.success(null)
                     }
+
                     else -> result.notImplemented()
                 }
             }
@@ -59,10 +139,12 @@ class MainActivity : FlutterActivity() {
                         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                         result.success(null)
                     }
+
                     "keepOff" -> {
                         window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                         result.success(null)
                     }
+
                     else -> result.notImplemented()
                 }
             }
@@ -77,10 +159,12 @@ class MainActivity : FlutterActivity() {
                         playDefaultRingtone()
                         result.success(null)
                     }
+
                     "stopRingtone" -> {
                         stopDefaultRingtone()
                         result.success(null)
                     }
+
                     else -> result.notImplemented()
                 }
             }
@@ -101,4 +185,4 @@ class MainActivity : FlutterActivity() {
     private fun stopDefaultRingtone() {
         ringtone?.stop()
     }
-}
+}*/

@@ -221,6 +221,7 @@ class AppConstants {
   static const financial = "Financial Services";
   static const healthcareMedicalServices = "Healthcare & Medical Services";
   static const hostelsStayService = "Hostels & Stay Service";
+  static const DIAGNOSTICTESTINGCENTERS = "DIAGNOSTIC AND TESTING CENTERS";
 
   // static const hostelsStayService = "Hotels Hostels & Stay Service";
 

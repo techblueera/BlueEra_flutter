@@ -1,20 +1,18 @@
-
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/me/laboratory/view/widgets/add_lab_services.dart';
+import 'package:BlueEra/features/me/laboratory/view/no_lab_create_screen.dart';
+import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:BlueEra/features/me/school/view/school_update_screen.dart';
 import 'package:get/get.dart';
-
-import '../../../../widgets/common_search_bar.dart';
-import '../../medical/view/widget/otc_items.dart';
-
+import 'package:flutter/services.dart';
 
 class LaboratoryMain extends StatefulWidget {
-
-
-  const LaboratoryMain({super.key,});
+  const LaboratoryMain({
+    super.key,
+  });
 
   @override
   State<LaboratoryMain> createState() => _LaboratoryMainState();
@@ -23,98 +21,145 @@ class LaboratoryMain extends StatefulWidget {
 class _LaboratoryMainState extends State<LaboratoryMain>
     with SingleTickerProviderStateMixin, RouteAware {
   late TabController _tabController;
-
-
+  bool hasLabCreated = false;
 
   @override
   void initState() {
-
-    _tabController = TabController(length: 2, vsync: this);
+    // apiCalling();
+    _tabController = TabController(length: 3, vsync: this);
 
     super.initState();
   }
+
+  //
+  // apiCalling() async {
+  //   try {
+  //     if (hotelIDGlobal.isEmpty) {
+  //       ResponseModel response = await HotelServiceRepo().getHotelRepo();
+  //       if (response.isSuccess) {
+  //         String? hotelIDGlobal = response.response?.data['data']['_id'];
+  //         if (hotelIDGlobal != null && hotelIDGlobal.isNotEmpty) {
+  //           await setHotelID(hotelIDGlobal);
+  //         } else {
+  //           await setHotelID("");
+  //         }
+  //       }
+  //     }
+  //     await getHotelID();
+  //     setState(() {
+  //       // Check if global ID was successfully populated
+  //       hasHotel = hotelIDGlobal.isNotEmpty;
+  //       // controller.hasSchool.value = schoolIDGlobal.isNotEmpty;
+  //     });
+  //     // await schoolAboutUsController.getSchoolByIdController();
+  //   } on Exception {
+  //     // TODO
+  //   }
+  // }
+
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body:SafeArea(
-        child: Column(
-          children: [
-            SizedBox(
-              height: SizeConfig.size12,
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 26.0,vertical: 10),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: CommonSearchBar(
-                        controller: TextEditingController(),
-                        isShowCursor: false,
-                        onSearchTap: (){
-
-                        },
-                        onClearCallback: (){
-
-                        },
-                        hintText: "Search Products..."),
-                  ),
-                  SizedBox(
-                    width: SizeConfig.size12,
-                  ),
-                  InkWell(
-                    onTap: (){
-                      Get.to(()=>AddLabServices());
-                    },
-                    child: Container(
-                      height: SizeConfig.size40,
-                      width: SizeConfig.size40,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        color: AppColors.primaryColor
-                      ),
-                      child: Center(
-                        child:Icon(Icons.add,size: 28,color: AppColors.white,),
-                      ),
-                    ),
-                  )
-                ],
-              ),
-            ),
-            TabBar(
-              controller: _tabController,
-              labelColor: AppColors.primaryColor,
-              unselectedLabelColor: Colors.grey[600],
-              indicatorColor: AppColors.primaryColor,
-              indicatorWeight: 4,
-              tabAlignment: TabAlignment.fill,
-              indicatorSize: TabBarIndicatorSize.tab,
-              labelStyle: const TextStyle(fontWeight: FontWeight.w600),
-              tabs: [
-                Tab(text: AppStrings.myStore.tr),
-                Tab(text: "Statics"),
-              ],
-            ),
-            Expanded(child: TabBarView(
-              controller: _tabController,
-              children: [
-                CategoryListView(),
-                const Center(child: CustomText(AppStrings.comingSoon)),
-              ],
-            ))
-          ],
+        floatingActionButton: Padding(
+          padding: EdgeInsetsGeometry.only(bottom: 100),
+          child: FloatingActionButton(onPressed: () {
+            Get.to(ServiceProgressScreen());
+          }),
         ),
-      )
+        body: SafeArea(
+          child: hasLabCreated
+              ? Column(
+                  children: [
+                    SizedBox(
+                      height: SizeConfig.size12,
+                    ),
+                    TabBar(
+                      controller: _tabController,
+                      labelColor: AppColors.primaryColor,
+                      unselectedLabelColor: Colors.grey[600],
+                      indicatorColor: AppColors.primaryColor,
+                      indicatorWeight: 4,
+                      tabAlignment: TabAlignment.fill,
+                      indicatorSize: TabBarIndicatorSize.tab,
+                      labelStyle: const TextStyle(fontWeight: FontWeight.w600),
+                      tabs: [
+                        Tab(text: "Home"),
+                        Tab(text: "Update"),
+                        Tab(text: "Statics"),
+                      ],
+                    ),
+                    Expanded(
+                        child: TabBarView(
+                      controller: _tabController,
+                      children: [
+                        ComingSoon(),
+                        ComingSoon(),
+                        ComingSoon(),
+                      ],
+                    ))
+                  ],
+                )
+              : NoLabCreateScreen(),
+        ));
+  }
+}
 
+class ServiceProgressScreen extends StatefulWidget {
+  @override
+  _ServiceProgressScreenState createState() => _ServiceProgressScreenState();
+}
+
+class _ServiceProgressScreenState extends State<ServiceProgressScreen> {
+  final controller = Get.put(AiLabControllerPIP());
+
+  @override
+  void initState() {
+    super.initState();
+    // Enable PiP because service is starting
+    controller.setPipStatus(true);
+  }
+
+  @override
+  void dispose() {
+    // Disable PiP when leaving this screen
+    controller.setPipStatus(false);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        // Also trigger PiP if they click the Back button
+        await controller.platformData.invokeMethod('enterPip');
+      },
+      child: Scaffold(
+        appBar: CommonBackAppBar(
+          title: "data",
+          onBackTap: () {
+            Get.back();
+          },
+        ),
+        body: Center(child: CustomText("Welcome To PIP Mode")),
+      ),
     );
   }
-  
+}
 
+class AiLabControllerPIP extends GetxController {
+  final platformData = MethodChannel('com.vahcare.lab/pip');
+
+  // This updates the Android Master Switch
+  Future<void> setPipStatus(bool isEnabled) async {
+    await platformData
+        .invokeMethod('updatePipStatus', {"isEnabled": isEnabled});
+  }
 }

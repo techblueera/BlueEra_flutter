@@ -85,6 +85,7 @@ dependencies:
   connectivity_plus: any
   http: any
   translator: ^1.0.4+1
+#  pip_view: ^0.9.7
 
 dependency_overrides:
   intl: ^0.19.0
