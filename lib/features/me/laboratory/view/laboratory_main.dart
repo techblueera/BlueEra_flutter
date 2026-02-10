@@ -66,12 +66,7 @@ class _LaboratoryMainState extends State<LaboratoryMain>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        floatingActionButton: Padding(
-          padding: EdgeInsetsGeometry.only(bottom: 100),
-          child: FloatingActionButton(onPressed: () {
-            Get.to(ServiceProgressScreen());
-          }),
-        ),
+     
         body: SafeArea(
           child: hasLabCreated
               ? Column(
