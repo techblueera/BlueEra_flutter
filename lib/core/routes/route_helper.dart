@@ -28,19 +28,7 @@ import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
-import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
-import 'package:BlueEra/features/common/food/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/common/food/view/food_upload_screen.dart';
-import 'package:BlueEra/features/common/food/view/grocery/add_grocery_screen.dart';
-import 'package:BlueEra/features/common/food/view/grocery/add_grocery_variant_screen.dart';
-import 'package:BlueEra/features/common/food/view/grocery/grocery_category_screen.dart';
-import 'package:BlueEra/features/common/food/view/grocery/grocery_listing/grocery_cart_screen.dart';
-import 'package:BlueEra/features/common/food/view/grocery/grocery_listing/grocery_confirm_screen.dart';
-import 'package:BlueEra/features/common/food/view/grocery/grocery_listing/grocery_listing_screen.dart';
-import 'package:BlueEra/features/common/food/view/grocery/grocery_subcategory_screen.dart';
-import 'package:BlueEra/features/common/food/view/grocery/grocery_super_category_screen.dart';
-import 'package:BlueEra/features/common/food/view/grocery/my_grocery_listing/grocery_screen.dart';
-import 'package:BlueEra/features/common/food/view/grocery/my_grocery_listing/my_grocery_products_screen.dart';
 import 'package:BlueEra/features/common/home/view/home_screen.dart';
 import 'package:BlueEra/features/common/jobs/create_job_post/create_job.dart';
 import 'package:BlueEra/features/common/jobs/create_job_post/create_job_post_step2.dart';
@@ -79,6 +67,30 @@ import 'package:BlueEra/features/common/service/view/service_upload_screen.dart'
 import 'package:BlueEra/features/common/store/view/newstore_screen.dart';
 import 'package:BlueEra/features/journey/view/journey_planning_screen.dart';
 import 'package:BlueEra/features/journey/view/update_journy_screen.dart';
+import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
+import 'package:BlueEra/features/me/grocery/view/add_grocery_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/add_grocery_variant_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/grocery_listing/grocery_cart_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/grocery_listing/grocery_confirm_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/grocery_listing/grocery_listing_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/grocery_category_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/grocery_subcategory_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/grocery_super_category_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/my_grocery_listing/grocery_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/my_grocery_listing/my_grocery_products_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/my_grocery_listing/my_grocery_variant_screen.dart';
+import 'package:BlueEra/features/me/medical_new/model/medical_nested_category_model.dart';
+import 'package:BlueEra/features/me/medical_new/model/my_medical_products_response.dart';
+import 'package:BlueEra/features/me/medical_new/view/add_medical_screen.dart';
+import 'package:BlueEra/features/me/medical_new/view/add_medical_variant_screen.dart';
+import 'package:BlueEra/features/me/medical_new/view/medical_category_screen.dart';
+import 'package:BlueEra/features/me/medical_new/view/medical_listing/medical_cart_screen.dart';
+import 'package:BlueEra/features/me/medical_new/view/medical_listing/medical_confirm_screen.dart';
+import 'package:BlueEra/features/me/medical_new/view/medical_listing/medical_listing_screen.dart';
+import 'package:BlueEra/features/me/medical_new/view/medical_subcategory_screen.dart';
+import 'package:BlueEra/features/me/medical_new/view/my_medical_listing/medical_screen.dart';
+import 'package:BlueEra/features/me/medical_new/view/my_medical_listing/my_medical_products_screen.dart';
+import 'package:BlueEra/features/me/medical_new/view/my_medical_listing/my_medical_variant_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/my_enquires_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/received_enquiries_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/send_enquiry_screen.dart';
@@ -113,11 +125,11 @@ import 'package:BlueEra/features/personal/personal_profile/view/wallet/wallet_sc
 import 'package:BlueEra/features/personal/resume/create_resume_screen.dart';
 import 'package:BlueEra/features/personal/resume/sections/resume_templates_screen.dart';
 import 'package:BlueEra/permissionCentralize/permission_gate.dart';
+import 'package:BlueEra/widgets/collapsible_grid_model.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import '../../features/chat/view/contacts/contact_list_page.dart';
-import '../../features/common/food/model/my_grocery_products_reponse.dart';
-import '../../features/common/food/view/grocery/my_grocery_listing/my_grocery_variant_screen.dart';
+import '../../features/me/grocery/model/my_grocery_products_reponse.dart';
 import '../../features/common/store/add_update_product/add_update_product_screen.dart';
 import '../../features/common/store/models/get_channel_product_model.dart';
 import '../../features/me/hospital/view/category/ipd_in_patient_department_page.dart';
@@ -475,6 +487,37 @@ class RouteHelper {
 
   static String getEarnServiceAvailableOptionsScreenRoute() =>
       RouteConstant.earnServiceAvailableOptionsScreen;
+
+  static String getMedicalScreenRoute() =>
+      RouteConstant.medicalScreen;
+
+  static String getMedicalCategoryScreenRoute() =>
+      RouteConstant.medicalCategoryScreen;
+
+  static String getMedicalSubCategoryScreenRoute() =>
+      RouteConstant.medicalSubCategoryScreen;
+
+  static String getAddMedicalScreenRoute  () =>
+      RouteConstant.addMedicalScreen;
+
+  static String getAddMedicalVariantScreenRoute() =>
+      RouteConstant.addMedicalVariantScreen;
+
+  static String getMyMedicalProductsScreenRoute() =>
+      RouteConstant.myMedicalProductsScreen;
+
+  static String getMyMedicalVariantScreenRoute() =>
+      RouteConstant.myMedicalVariantScreen;
+
+  static String getMedicalListingScreenRoute() =>
+      RouteConstant.medicalListingScreen;
+
+  static String getMedicalCartScreenRoute() =>
+      RouteConstant.medicalCartScreen;
+
+  static String getMedicalConfirmScreenRoute() =>
+      RouteConstant.medicalConfirmScreen;
+
 
   ///REDIRECT ROUTING SETUP.....
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -1417,10 +1460,9 @@ class RouteHelper {
       // );
       case RouteConstant.grocerySuperCategoryScreen:
         final args = settings.arguments as Map<String, dynamic>;
-        final bool argMyGrocery = args[ApiKeys.argMyGrocery] as bool;
         return MaterialPageRoute(
             builder: (_) =>
-                GrocerySuperCategoryScreen(isMyGrocery: argMyGrocery),
+                GrocerySuperCategoryScreen(),
             settings:
                 RouteSettings(name: getGrocerySuperCategoryScreenRoute()));
       case RouteConstant.paymentSettingScreen:
@@ -1500,6 +1542,89 @@ class RouteHelper {
         return MaterialPageRoute(
             builder: (_) => EarnServiceAvailableOptionsScreen(),
             settings: RouteSettings(name: getEarnServiceAvailableOptionsScreenRoute())
+        );
+
+
+      case RouteConstant.medicalScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        final bool? argFromBottomNavBar =
+        args[ApiKeys.argFromBottomNavBar] as bool?;
+        return MaterialPageRoute(
+            builder: (_) =>
+                MedicalScreen(fromBottomNavBar: argFromBottomNavBar),
+            settings: RouteSettings(name: getMedicalScreenRoute()));
+
+      case RouteConstant.medicalCategoryScreen:
+        return MaterialPageRoute(
+            builder: (_) => MedicalCategoryScreen(),
+            settings: RouteSettings(name: getMedicalCategoryScreenRoute()));
+
+      case RouteConstant.medicalSubCategoryScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        final List<MedicalNestedCategoryModel> argGroceries =
+             args[ApiKeys.argGroceries] as List<MedicalNestedCategoryModel>;
+        // final GroceryNestedCategoryModel argSelectedGroceryData =
+        //     args[ApiKeys.argSelectedGroceryData] as GroceryNestedCategoryModel;
+        return MaterialPageRoute(
+            builder: (_) => MedicalSubCategoryScreen(
+              arrLevel3Category: argGroceries,
+            ),
+            settings: RouteSettings(name: getMedicalSubCategoryScreenRoute()));
+
+      case RouteConstant.addMedicalScreen:
+        return MaterialPageRoute(
+            builder: (_) => AddMedicalScreen(),
+            settings: RouteSettings(name: getAddMedicalScreenRoute()));
+
+      case RouteConstant.addMedicalVariantScreen:
+        return MaterialPageRoute(
+            builder: (_) => AddMedicalVariantScreen(),
+            settings: RouteSettings(name: getAddMedicalVariantScreenRoute()));
+
+      case RouteConstant.myMedicalProductsScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        final String argCategoryId = args[ApiKeys.argCategoryId] as String;
+        final String argCategoryName = args[ApiKeys.argCategoryName] as String;
+        return MaterialPageRoute(
+            builder: (_) => MyMedicalProductsScreen(
+              categoryId: argCategoryId,
+              categoryName: argCategoryName,
+            ),
+            settings: RouteSettings(name: getMyMedicalProductsScreenRoute()));
+
+      case RouteConstant.myMedicalVariantScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        final List<MedicalProductVariants> variants =
+        args[ApiKeys.argVariants] as List<MedicalProductVariants>;
+        final bool? argIsShowInGrid = args[ApiKeys.argIsShowInGrid] as bool?;
+        return MaterialPageRoute(
+            builder: (_) => MyMedicalVariantScreen(
+                variants: variants,
+                isShowInGrid: argIsShowInGrid
+            ),
+            settings: RouteSettings(name: getMyMedicalVariantScreenRoute()));
+
+      case RouteConstant.medicalListingScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        final List<MedicalNestedCategoryModel> argGroceries =
+            args[ApiKeys.argGroceries] as List<MedicalNestedCategoryModel>;
+        return MaterialPageRoute(
+            builder: (_) => MedicalListingScreen(
+              arrLevel3Category: argGroceries,
+            ),
+            settings: RouteSettings(name: getMedicalListingScreenRoute()));
+
+      case RouteConstant.medicalCartScreen:
+        return MaterialPageRoute(
+            builder: (_) => MedicalCartScreen(),
+            settings: RouteSettings(name: getMedicalCartScreenRoute()));
+
+      case RouteConstant.medicalConfirmScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        final String argOrderId = args[ApiKeys.argOrderId] as String;
+        return MaterialPageRoute(
+            builder: (_) => MedicalConfirmScreen(orderId: argOrderId),
+            settings: RouteSettings(name: getMedicalConfirmScreenRoute())
         );
 
 

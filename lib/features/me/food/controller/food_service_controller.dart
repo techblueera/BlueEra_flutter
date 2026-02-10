@@ -8,7 +8,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/me/food/repo/food_repo.dart';
-import 'package:BlueEra/features/me/grocery/model/category_food_product_res_model.dart';
+import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
 import 'package:BlueEra/features/me/food/model/food_gen_ai_res_model.dart';
 import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:flutter/material.dart';

@@ -1,5 +1,5 @@
 import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
-import 'package:BlueEra/features/me/grocery/model/category_food_product_res_model.dart';
+import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';

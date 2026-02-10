@@ -16,15 +16,16 @@ import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_scree
 import 'package:BlueEra/features/common/bottomNavigationBar/controller/ai_chat_guest_controller.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_widget.dart';
-import 'package:BlueEra/features/common/food/view/grocery/my_grocery_listing/grocery_screen.dart';
 import 'package:BlueEra/features/common/home/view/home_screen.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/more/controller/more_cards_screen_controller.dart';
 import 'package:BlueEra/features/common/reel/models/channel_model.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/me/food/view/food_main_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/my_grocery_listing/grocery_screen.dart';
 import 'package:BlueEra/features/me/hotel/view/hotel_main.dart';
 import 'package:BlueEra/features/me/laboratory/view/laboratory_main.dart';
+import 'package:BlueEra/features/me/medical_new/view/my_medical_listing/medical_screen.dart';
 import 'package:BlueEra/features/me/others/others_main.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/professionals_main.dart';
 import 'package:BlueEra/features/me/school/view/school_main.dart';
@@ -269,8 +270,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       key: _scaffoldKey,
       // floatingActionButton: kDebugMode
       //     ? FloatingActionButton(onPressed: () {
-      //         // Get.to(PersonalProfileSetupNewScreen());
-      //         Get.to(BusinessOwnProfileScreen());
+      //       Get.to(PersonalProfileSetupNewScreen());
       //       })
       //     : null,
       body: ValueListenableBuilder(
@@ -390,6 +390,15 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     } else if (businessTypeGlobal.toUpperCase() ==
         BusinessType.Siksha.name.toUpperCase()) {
       return const SchoolMain();
+    } else if (businessTypeGlobal.toUpperCase() ==
+        BusinessType.Healthcare.name.toUpperCase()) {
+      log('category of business -- $businessCategoryGlobal');
+      if(businessCategoryGlobal.toUpperCase() == 'Hospitals'.toUpperCase()){
+        return const HospitalMain();
+      } else if(businessCategoryGlobal.toUpperCase() == 'Medical Education Institutions'.toUpperCase()){
+        return const MedicalScreen(fromBottomNavBar: true);
+      } return SizedBox();
+
     } else if (businessCategoryGlobal.toUpperCase() ==
         AppConstants.DIAGNOSTICTESTINGCENTERS) {
       return const LaboratoryMain();
@@ -399,10 +408,12 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     } else if (businessTypeGlobal.toUpperCase() ==
         BusinessType.Motel.name.toUpperCase()) {
       return const HotelMain();
-    } else if (businessTypeGlobal.toUpperCase() ==
-        BusinessType.Healthcare.name.toUpperCase()) {
-      return MedicalMain();
-    } else if (businessTypeGlobal.toUpperCase() ==
+    }
+    // else if (businessTypeGlobal.toUpperCase() ==
+    //     BusinessType.Healthcare.name.toUpperCase()) {
+    //   return MedicalMain();
+    // }
+    else if (businessTypeGlobal.toUpperCase() ==
         BusinessType.Service.name.toUpperCase()) {
       return const OthersMain();
     } else {

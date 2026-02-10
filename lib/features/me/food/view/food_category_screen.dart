@@ -2,7 +2,7 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
-import 'package:BlueEra/features/me/grocery/view/grocery_product_selection_screen.dart';
+import 'package:BlueEra/features/me/food/view/grocery_product_selection_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';

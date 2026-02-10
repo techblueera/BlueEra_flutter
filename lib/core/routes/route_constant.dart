@@ -144,5 +144,15 @@ class RouteConstant {
   static const String createAccountTypeScreen = "/CreateAccountTypeScreen";
   static const String earnServiceAvailableOptionsScreen = "/EarnServiceAvailableOptionsScreen";
 
-
+  /// Medical
+  static const String medicalScreen = "/MedicalScreen";
+  static const String medicalCategoryScreen = "/MedicalCategoryScreen";
+  static const String medicalSubCategoryScreen = "/MedicalSubCategoryScreen";
+  static const String addMedicalScreen = "/AddMedicalScreen";
+  static const String addMedicalVariantScreen = "/AddMedicalVariantScreen";
+  static const String myMedicalProductsScreen = "/MyMedicalProductsScreen";
+  static const String myMedicalVariantScreen = "/MyMedicalVariantScreen";
+  static const String medicalListingScreen = "/MedicalListingScreen";
+  static const String medicalCartScreen = "/MedicalCartScreen";
+  static const String medicalConfirmScreen = "/MedicalConfirmScreen";
 }

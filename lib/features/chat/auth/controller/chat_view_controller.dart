@@ -17,7 +17,7 @@ import 'package:BlueEra/features/chat/auth/model/health_care_ask_ai_model.dart';
 import 'package:BlueEra/features/chat/auth/model/messageMediaUrl.dart';
 import 'package:BlueEra/features/chat/auth/model/service_ask_ai_model.dart';
 import 'package:BlueEra/features/chat/auth/model/travel_and_stay_ask_ai_model.dart';
-import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
+import 'package:BlueEra/widgets/collapsible_grid_model.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
