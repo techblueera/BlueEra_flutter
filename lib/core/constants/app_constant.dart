@@ -19,12 +19,12 @@ import 'package:BlueEra/features/business/visiting_card/view/business_own_profil
 import 'package:BlueEra/features/common/auth/model/business_profile_category.dart';
 import 'package:BlueEra/features/common/auth/model/mixed_profile_categrory.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
-import 'package:BlueEra/features/common/food/model/collapsible_grid_model.dart';
 import 'package:BlueEra/features/common/post/repo/post_repo.dart';
 import 'package:BlueEra/features/common/reel/models/social_input_fields_model.dart';
 import 'package:BlueEra/features/common/store/repo/store_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
+import 'package:BlueEra/widgets/collapsible_grid_model.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/foundation.dart';
@@ -32,7 +32,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
-
 import '../../features/business/visit_business_profile/view/visit_business_profile_new.dart';
 import '../../features/chat/auth/controller/add_chat_symbol_controller.dart';
 import '../../features/chat/view/chat_theme/chat_theme.dart';
@@ -3926,7 +3925,7 @@ final List<CollapsibleGridModel> earnWithBlueEraAddOptionsList = [
 //   )
 // ];
 
-List<PopupMenuEntry<String>> groceryPopupMenuItems() {
+List<PopupMenuEntry<String>> groceryPopUpMenuItems() {
   final List<Map<String, String>> items = [
     {
       'id': AppConstants.EDIT,
@@ -3983,44 +3982,39 @@ List<PopupMenuEntry<String>> groceryPopupMenuItems() {
   return entries;
 }
 
-List<PopupMenuEntry<String>> groceryPopUpMenuItems() {
-  final items = <Map<String, dynamic>>[
-    {"id": AppConstants.ADD, 'title': AppStrings.addManually},
+List<PopupMenuEntry<String>> medicalPopUpMenuItems() {
+  final List<Map<String, String>> items = [
+    {
+      'id': AppConstants.EDIT,
+      'title': 'Edit Product',
+      'icon': AppIconAssets.pen_line
+    },
+    {
+      'id': AppConstants.REMOVE,
+      'title': 'Remove From List',
+      'icon': AppIconAssets.removeOutlinedIcon
+    },
   ];
 
   final List<PopupMenuEntry<String>> entries = [];
 
-  for (int i = 0; i < items.length; i++) {
+  for (var i = 0; i < items.length; i++) {
+    final menu = items[i];
     entries.add(
       PopupMenuItem<String>(
         height: SizeConfig.size35,
-        value: items[i]['id'],
-        onTap: () {
-          if (items[i]['id'] == AppConstants.ADD) {
-            // Get.toNamed(RouteHelper.getCreateResumeScreenRoute());
-          }
-        },
-        child: CustomText(
-          items[i]['title'],
-          fontSize: SizeConfig.medium,
-          color: AppColors.black30,
+        value: menu['id'],
+        child: Row(
+          children: [
+            LocalAssets(imagePath: menu['icon']!),
+            SizedBox(width: SizeConfig.size5),
+            CustomText(
+              menu['title'],
+              fontSize: SizeConfig.medium,
+              color: AppColors.black30,
+            ),
+          ],
         ),
-
-        // Row(
-        //   mainAxisSize: MainAxisSize.min,
-        //   children: [
-        //     LocalAssets(
-        //         imagePath: items[i]['icon'],
-        //         height: SizeConfig.size20,
-        //         width: SizeConfig.size20),
-        //     SizedBox(width: SizeConfig.size5),
-        //     CustomText(
-        //       items[i]['title'],
-        //       fontSize: SizeConfig.medium,
-        //       color: AppColors.black30,
-        //     ),
-        //   ],
-        // ),
       ),
     );
 

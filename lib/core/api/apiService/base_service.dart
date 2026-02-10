@@ -707,4 +707,22 @@ abstract class BaseService {
   final String socialContact = 'social-service/contact';
   final String subscriptionPlansGet = 'subscription-service/subscription/subscription-plans';
   final String makeTransportBookOrder = 'rider-service/fare/orders';
+
+  final String searchMedicalCategory = 'health-service/api/ms/products/search';
+  final String userSearchMedicalCategory = 'health-service/api/ms/products/user/search';
+  String createNewMedicalProductVariant(String productId) => 'health-service/api/ms/products/$productId/variants';
+  final String myMedicalProducts = 'health-service/api/ms/inventory/my-products';
+  final String addMedicalProductVariant = 'health-service/api/ms/inventory';
+  final String medicalCategoryWithVariant = 'health-service/api/ms/categories/with-inventory';
+  final String medicalOrder = "health-service/api/ms/orders";
+  String updateMedicalOrder(String orderId) => "health-service/api/ms/orders/$orderId";
+  String medicalServiceOrder(String orderId) =>  'health-service/api/ms/orders/$orderId/alternatives';
+  final String medicalNestedCategory = 'health-service/api/ms/categories/nested';
+  final String medicalOrderUpdatePaymentStatus = 'rider-service/medical/orders/payment-status';
+  final String medicalOrderAvailableItem = 'rider-service/medical/orders/available-items';
+  final String myMedicalOrders = 'rider-service/medical/orders/business';
+  final String ridersMedicalOrders = 'rider-service/riders/orders/medical/';
+  static final String medicalRiderOrderStream = "riders/orders/stream/medical/$userId";
+
+
 }

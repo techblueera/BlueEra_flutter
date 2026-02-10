@@ -22,7 +22,7 @@ class CommonGenericLeftSideCategoryList<T> extends StatelessWidget {
     required this.getIcon,
     required this.isSelected,
     required this.onTap,
-    this.width = 94.0,
+    this.width = 80.0,
     this.padding,
   });
 
@@ -30,6 +30,7 @@ class CommonGenericLeftSideCategoryList<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: width,
+      height: SizeConfig.screenHeight,
       color: AppColors.white,
       child: ListView.builder(
         itemCount: items.length,
