@@ -1,7 +1,7 @@
 import 'package:BlueEra/core/api/model/place_details.dart';
 import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
 import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
-import 'package:BlueEra/features/me/social/controller/social_contact_us_controller.dart';
+import 'package:BlueEra/features/me/laboratory/controller/lab_contact_us_controller.dart';
 import 'package:BlueEra/features/me/social/model/social_contact_us_res_model.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -11,19 +11,19 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class SocialContactUsScreen extends StatefulWidget {
-  const SocialContactUsScreen({super.key, this.profile});
+class LabContactUsScreen extends StatefulWidget {
+  const LabContactUsScreen({super.key, this.profile});
 
   final SocialContactUsData? profile;
 
   @override
-  State<SocialContactUsScreen> createState() =>
-      _SocialContactUsScreenState();
+  State<LabContactUsScreen> createState() =>
+      _LabContactUsScreenState();
 }
 
-class _SocialContactUsScreenState
-    extends State<SocialContactUsScreen> {
-  final controller = Get.put(SocialContactUsController());
+class _LabContactUsScreenState
+    extends State<LabContactUsScreen> {
+  final controller = Get.put(LabContactUsController());
 
   // Controllers
    TextEditingController branchNameController=TextEditingController();

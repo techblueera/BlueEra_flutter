@@ -1,6 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/me/laboratory/view/lab_update_screen.dart';
 import 'package:BlueEra/features/me/laboratory/view/no_lab_create_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -66,14 +66,10 @@ class _LaboratoryMainState extends State<LaboratoryMain>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        floatingActionButton: Padding(
-          padding: EdgeInsetsGeometry.only(bottom: 100),
-          child: FloatingActionButton(onPressed: () {
-            Get.to(ServiceProgressScreen());
-          }),
-        ),
+        backgroundColor: AppColors.white,
+
         body: SafeArea(
-          child: hasLabCreated
+          child: !hasLabCreated
               ? Column(
                   children: [
                     SizedBox(
@@ -99,7 +95,7 @@ class _LaboratoryMainState extends State<LaboratoryMain>
                       controller: _tabController,
                       children: [
                         ComingSoon(),
-                        ComingSoon(),
+                        LabUpdateScreen(),
                         ComingSoon(),
                       ],
                     ))

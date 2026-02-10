@@ -5,7 +5,7 @@ import 'package:BlueEra/features/me/social/model/social_contact_us_res_model.dar
 import 'package:BlueEra/features/me/social/repo/social_profile_repo.dart';
 import 'package:get/get.dart';
 
-class SocialContactUsController extends GetxController {
+class LabContactUsController extends GetxController {
   // Observables
   var isLoading = true.obs;
   var contactUsData = Rxn<SocialContactUsResModel>();

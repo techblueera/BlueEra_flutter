@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:BlueEra/core/api/model/social_vision_mission_model.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:BlueEra/features/me/social/repo/social_profile_repo.dart';

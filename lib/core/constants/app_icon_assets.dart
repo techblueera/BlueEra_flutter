@@ -637,5 +637,10 @@ class AppIconAssets {
   static const String  social_activity_status= "${iconPath}social_activity_status.svg";
   static const String  job_post_black= "${iconPath}job_post_black.svg";
 
-
+  static const String  OphthalmologyENT= "${iconPath}OphthalmologyENT.svg";
+  static const String  BasicBloodTest= "${iconPath}BasicBloodTest.svg";
+  static const String  Pathology= "${iconPath}Pathology.svg";
+  static const String PulmonologyDiagnostics = "${iconPath}PulmonologyDiagnostics.svg";
+  static const String Radiology = "${iconPath}Radiology.svg";
+  static const String OthersLab = "${iconPath}OthersLab.svg";
 }
