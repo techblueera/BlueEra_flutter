@@ -20,6 +20,7 @@ import 'package:BlueEra/features/chat/auth/model/travel_and_stay_ask_ai_model.da
 import 'package:BlueEra/widgets/collapsible_grid_model.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -46,7 +47,6 @@ import '../model/visit_chat_view_model.dart';
 import '../repo/chat_view_repo.dart';
 import '../socket/ai_socket.dart';
 import '../socket/chat_socket.dart';
-import 'package:mappls_gl/mappls_gl.dart';
 import '../socket/live_location_track_socket.dart';
 
 class ChatViewController extends GetxController {
@@ -1412,7 +1412,10 @@ class ChatViewController extends GetxController {
     final permission = await Permission.locationWhenInUse.request();
     if (!permission.isGranted) return;
     Position pos = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high);
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
+    );
     await LiveTrackingSocketService().connectToSocket(LatLng(pos.latitude, pos.longitude));
 
      Geolocator.getPositionStream(

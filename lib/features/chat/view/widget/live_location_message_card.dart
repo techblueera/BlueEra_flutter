@@ -1,7 +1,9 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
-import 'package:mappls_gl/mappls_gl.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../widgets/custom_text_cm.dart';
 import '../../auth/controller/chat_theme_controller.dart';
@@ -41,7 +43,8 @@ class LiveLocationMessageCard extends StatefulWidget {
       _LiveLocationMessageCardState();
 }
 class _LiveLocationMessageCardState extends State<LiveLocationMessageCard> {
-  MapplsMapController? mapController;
+  GoogleMapController? mapController;
+  Set<Marker> _markers = {};
   late LatLng _currentPosition;
 
   @override
@@ -144,51 +147,74 @@ class _LiveLocationMessageCardState extends State<LiveLocationMessageCard> {
     );
   }
 
-  Future<void> _onStyleLoadedCallback() async {
+  Future<void> _onMapCreated(GoogleMapController controller) async {
+    mapController = controller;
+
     try {
         final Uint8List profileBytes =
         await ProfileLocationMarkerGenerator.createMarker(
           imageUrl:(widget.messages?.myMessage==true)?
           Get.find<AuthController>().imgPath.value:
           widget.messages?.sender?.profileImage ?? "",
-          imageSize: 130,
-        );
-        await mapController?.addImage(
-          "profile-circle-icon",
-          profileBytes,
+          imageSize: 60,
+          borderWidth: 2
         );
 
-        await mapController?.addSymbol(
-          SymbolOptions(
-            geometry: _currentPosition,
-            iconImage: "profile-circle-icon",
-            iconSize: 1.0,
-          ),
+        final Marker customMarker = Marker(
+          markerId: const MarkerId("profile-circle-icon"),
+          position: _currentPosition,
+          icon: BitmapDescriptor.bytes(profileBytes),
+          anchor: const Offset(0.5, 0.5),
         );
+
+        setState(() {
+          _markers.add(customMarker);
+        });
+
+        await mapController?.animateCamera(
+          CameraUpdate.newLatLngZoom(_currentPosition, 15.0),
+        );
+
+
+        // await mapController?.addImage(
+        //   "profile-circle-icon",
+        //   profileBytes,
+        // );
+        //
+        // await mapController?.addSymbol(
+        //   SymbolOptions(
+        //     geometry: _currentPosition,
+        //     iconImage: "profile-circle-icon",
+        //     iconSize: 1.0,
+        //   ),
+        // );
 
     } catch (e) {
       debugPrint("Marker error: $e");
     }
   }
+
   Widget _buildMapView(BuildContext context) {
     return SizedBox(
       height: widget.message != null ? 160 : 238,
       width: 254,
-      child: MapplsMap(onMapClick: (lat,long) {
-        Get.to(()=>TrackLiveLocationPage(messages: widget.messages,));
+      child: GoogleMap(
+        onTap: (latLng) {
+          log('clicked');
+        Get.to(()=> TrackLiveLocationPage(messages: widget.messages));
       },
-        onMapCreated: (controller) {
-          mapController = controller;
-        },
-        onStyleLoadedCallback: () async {
-          _onStyleLoadedCallback();
-        },
+        onMapCreated: _onMapCreated,
+        markers: _markers,
+        // onStyleLoadedCallback: () async {
+        //   _onStyleLoadedCallback();
+        // },
         initialCameraPosition: CameraPosition(
           target: _currentPosition,
           zoom: 15,
         ),
         myLocationEnabled: false,
         compassEnabled: false,
+        zoomControlsEnabled: false,
         zoomGesturesEnabled: true,
         rotateGesturesEnabled: true,
         tiltGesturesEnabled: true,
@@ -196,6 +222,7 @@ class _LiveLocationMessageCardState extends State<LiveLocationMessageCard> {
       ),
     );
   }
+
   String calculateExpiredAtTime({
     required String createdAtIso,
     required String durationLabel,

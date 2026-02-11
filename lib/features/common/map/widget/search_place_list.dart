@@ -1,10 +1,10 @@
 import 'dart:developer';
-
 import 'package:BlueEra/core/api/model/place_details.dart';
 import 'package:BlueEra/core/api/model/place_prediction.dart';
 import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
@@ -14,8 +14,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:mappls_gl/mappls_gl.dart';
-
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../../core/constants/snackbar_helper.dart';
 
 class SearchPlaceList extends StatefulWidget {
@@ -46,7 +45,10 @@ class _SearchPlaceListState extends State<SearchPlaceList> {
   bool isGettingCurrentLocation = false; // New state for current location loading
   String? errorMessage;
   List<PlacePrediction> predictions = [];
-  MapplsMapController? mapController;
+  late GoogleMapController mapController;
+  Set<Marker> _markers = {};
+  LatLng? targetLocation;
+
   @override
   void didUpdateWidget(covariant SearchPlaceList oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -55,12 +57,41 @@ class _SearchPlaceListState extends State<SearchPlaceList> {
       _fetchPredictions();
     }
   }
-   LatLng? targetLocation ;
+
+
   @override
   void initState() {
     super.initState();
     _handleCurrentLocationTap();
     targetLocation=LatLng(widget.lat, widget.lng);
+  }
+
+  Future<void> _onMapCreated(GoogleMapController controller) async {
+    mapController = controller;
+    try {
+      final BitmapDescriptor customIcon = await BitmapDescriptor.asset(
+        const ImageConfiguration(size: Size(30, 30)),
+        AppImageAssets.markerBlue,
+      );
+
+      final Marker customMarker = Marker(
+        markerId: const MarkerId("custom_marker_id"),
+        position: LatLng(widget.lat, widget.lng),
+        icon: customIcon,
+      );
+
+      setState(() {
+        _markers.add(customMarker);
+      });
+
+      // Smoothly animate camera to marker
+      await mapController.animateCamera(
+        CameraUpdate.newLatLngZoom(LatLng(widget.lat, widget.lng), 14.0),
+      );
+
+    } catch (e) {
+      debugPrint("Error loading marker: $e");
+    }
   }
 
   Future<void> _fetchPredictions() async {
@@ -154,26 +185,7 @@ class _SearchPlaceListState extends State<SearchPlaceList> {
       // }
     }
   }
-  Future<void> _showMarkerAndZoom() async {
-    if (mapController == null) return;
 
-    // Clear old markers (if any)
-    await mapController!.clearSymbols();
-
-    // Add marker at your location
-    await mapController!.addSymbol(
-      SymbolOptions(
-        geometry: LatLng(widget.lat, widget.lng),
-        iconImage: "marker-15",
-        iconSize: 1.8,
-      ),
-    );
-
-    // Smoothly animate camera to marker
-    await mapController!.animateCamera(
-      CameraUpdate.newLatLngZoom(LatLng(widget.lat, widget.lng), 16.0),
-    );
-  }
   @override
   Widget build(BuildContext context) {
 
@@ -289,18 +301,14 @@ class _SearchPlaceListState extends State<SearchPlaceList> {
                 height: 240,
                 color: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: MapplsMap(
+                child: GoogleMap(
+                  onMapCreated: _onMapCreated,
                   initialCameraPosition: CameraPosition(
                     target: LatLng(widget.lat, widget.lng),
                     zoom: 14.0,
                   ),
                   myLocationEnabled: true,
-                  onMapCreated: (controller) async {
-                    mapController = controller;
-                  },
-                  onStyleLoadedCallback: () async {
-                    await _showMarkerAndZoom();
-                  },
+                  markers: _markers,
                 )
               )
 

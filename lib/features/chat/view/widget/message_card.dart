@@ -1,7 +1,7 @@
 import 'dart:convert';
-
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -22,11 +22,10 @@ import 'package:flutter_contacts/properties/name.dart';
 import 'package:flutter_contacts/properties/phone.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
-import 'package:mappls_gl/mappls_gl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
-
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/constants/app_icon_assets.dart';
 import '../../../../widgets/common_box_shadow.dart';
@@ -1018,10 +1017,45 @@ class _MessageCardState extends State<MessageCard>
     );
   }
 
+  GoogleMapController? mapController;
+  LatLng? _currentPosition;
+  Set<Marker> _markers = {};
+
+  Future<void> _onMapCreated(GoogleMapController controller) async {
+    mapController = controller;
+
+    if(_currentPosition!=null && _currentPosition?.latitude != 0.0 && _currentPosition?.longitude != 0.0){
+      try {
+        final BitmapDescriptor customIcon = await BitmapDescriptor.asset(
+          const ImageConfiguration(size: Size(30, 30)),
+          AppImageAssets.markerBlue,
+        );
+
+        final Marker customMarker = Marker(
+          markerId: const MarkerId("custom_marker_id"),
+          position: LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
+          icon: customIcon,
+        );
+
+        setState(() {
+          _markers.add(customMarker);
+        });
+
+        await mapController?.animateCamera(
+          CameraUpdate.newLatLngZoom(LatLng(_currentPosition!.latitude, _currentPosition!.longitude), 15.0),
+        );
+
+      } catch (e) {
+        debugPrint("Error loading marker: $e");
+      }
+    }
+
+  }
+
+
   Widget _buildMapMessage(Messages? messages, String? message, double lat,
       double long, String time, bool isReceiveMsg) {
-    MapplsMapController? mapController;
-    LatLng _currentPosition = LatLng(lat, long);
+    _currentPosition = LatLng(lat, long);
     Theme.of(context);
     return GestureDetector(
       onLongPress: () {
@@ -1068,26 +1102,10 @@ class _MessageCardState extends State<MessageCard>
                           width: 254,
                           child: Stack(
                             children: [
-                              MapplsMap(
-                                onStyleLoadedCallback: () async {
-                                  if (_currentPosition.latitude != 0.0 &&
-                                      _currentPosition.longitude != 0.0) {
-                                    await mapController?.addSymbol(
-                                      SymbolOptions(
-                                        geometry: _currentPosition,
-                                        iconSize: 1.2,
-                                        // iconImage: "marker-15"
-                                      ),
-                                    );
-                                    setState(() {});
-                                  }
-                                },
-                                onMapCreated:
-                                    (MapplsMapController controller) async {
-                                  mapController = controller;
-                                },
+                              GoogleMap(
+                                onMapCreated: _onMapCreated,
                                 initialCameraPosition: CameraPosition(
-                                  target: _currentPosition,
+                                  target: _currentPosition ?? LatLng(lat, long),
                                   zoom: 15.0,
                                 ),
                                 myLocationEnabled: false,
@@ -1103,7 +1121,7 @@ class _MessageCardState extends State<MessageCard>
                                 child: InkWell(
                                   onTap: () async {
                                     final Uri googleMapUrl = Uri.parse(
-                                        "https://www.google.com/maps/search/?api=1&query=${_currentPosition.latitude},${_currentPosition.longitude}");
+                                        "https://www.google.com/maps/search/?api=1&query=${_currentPosition?.latitude},${_currentPosition?.longitude}");
 
                                     if (await canLaunchUrl(googleMapUrl)) {
                                       await launchUrl(googleMapUrl,

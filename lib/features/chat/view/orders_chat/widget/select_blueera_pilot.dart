@@ -1,10 +1,8 @@
 import 'dart:async';
-
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/chat/view/orders_chat/widget/waiting_for_payment_dialog.dart';
-import 'package:flutter/services.dart'; // For rootBundle and ByteData
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -12,8 +10,8 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
-import 'package:mappls_gl/mappls_gl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../../../core/api/apiService/api_response.dart';
 import '../../../../../core/constants/common_methods.dart';
 import '../../../../../core/constants/snackbar_helper.dart';
@@ -42,27 +40,69 @@ class DeliveryPilotScreen extends StatefulWidget {
 
 class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
   final orderController = Get.find<OrderNowController>();
-  MapplsMapController? mapController;
+  GoogleMapController? mapController;
+  Set<Marker> _markers = {};
   late Stream<dynamic> _stream;
   StreamSubscription? _subscription;
   List<dynamic> orders = [];
 
+  Future<void> _onMapCreated(GoogleMapController controller) async {
+    mapController = controller;
+    _showMarkerAndZoom();
+  }
+
   Future<void> _showMarkerAndZoom() async {
     if (mapController == null) return;
-    final ByteData bytes = await rootBundle.load('assets/svg/2_wheeler.svg');
-    final Uint8List list = bytes.buffer.asUint8List();
-    await mapController!.addImage('customMarker', list);
-    await mapController!.addSymbol(
-      SymbolOptions(
-        geometry: LatLng(widget.dropLat, widget.dropLong),
-        iconImage: 'customMarker', // must match the name above
-        iconSize: 1.8,
-      ),
-    );
-    await mapController!.animateCamera(
-      CameraUpdate.newLatLngZoom(LatLng(widget.dropLat, widget.dropLong), 14.0),
-    );
+
+    try {
+      final markerBytes = await getBytesFromSvgAsset(
+        'assets/svg/2_wheeler.svg',
+        35,
+      );
+
+      if (markerBytes.isEmpty) {
+        throw Exception("Marker bytes are empty");
+      }
+
+      final markerIcon = BitmapDescriptor.bytes(markerBytes);
+
+      final Marker customMarker = Marker(
+        markerId: const MarkerId("customMarker"),
+        position: LatLng(widget.dropLat, widget.dropLong),
+        icon: markerIcon,
+      );
+
+
+      setState(() {
+        _markers.add(customMarker);
+      });
+
+      await mapController!.animateCamera(
+        CameraUpdate.newLatLngZoom(LatLng(widget.dropLat, widget.dropLong), 14.0),
+      );
+
+    } catch (e, stackTrace) {
+      debugPrint("Error: $e");
+      debugPrint("StackTrace: $stackTrace");
+    }
   }
+
+  // Future<void> _showMarkerAndZoom() async {
+  //   if (mapController == null) return;
+  //   final ByteData bytes = await rootBundle.load('assets/svg/2_wheeler.svg');
+  //   final Uint8List list = bytes.buffer.asUint8List();
+  //   await mapController!.addImage('customMarker', list);
+  //   await mapController!.addSymbol(
+  //     SymbolOptions(
+  //       geometry: LatLng(widget.dropLat, widget.dropLong),
+  //       iconImage: 'customMarker', // must match the name above
+  //       iconSize: 1.8,
+  //     ),
+  //   );
+  //   await mapController!.animateCamera(
+  //     CameraUpdate.newLatLngZoom(LatLng(widget.dropLat, widget.dropLong), 14.0),
+  //   );
+  // }
 
   bool paymentDialogShow = false;
 
@@ -167,19 +207,14 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
               Container(
                   height: 240,
                   color: AppColors.white,
-                  child: MapplsMap(
+                  child: GoogleMap(
                     initialCameraPosition: CameraPosition(
                       target: LatLng(widget.dropLat, widget.dropLong),
                       zoom: 14.0,
                     ),
                     myLocationEnabled: true,
-                    onMapCreated: (controller) async {
-                      mapController = controller;
-                    },
-                    onStyleLoadedCallback: () async {
-                      await Future.delayed(const Duration(milliseconds: 300));
-                      await _showMarkerAndZoom();
-                    },
+                    onMapCreated: _onMapCreated,
+                    markers: _markers,
                   )),
               SizedBox(height: SizeConfig.size20),
 
@@ -224,7 +259,7 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
                                     height: 150,
                                     decoration: BoxDecoration(
                                       color:
-                                          AppColors.grayText.withOpacity(0.3),
+                                          AppColors.grayText.withValues(alpha: 0.3),
                                       borderRadius: const BorderRadius.only(
                                         topLeft: Radius.circular(12),
                                         topRight: Radius.circular(12),
@@ -493,7 +528,7 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
     showDialog(
       context: context,
       barrierDismissible: false, // ❌ cannot close manually
-      barrierColor: Colors.black.withOpacity(0.4), // dim background
+      barrierColor: Colors.black.withValues(alpha: 0.4), // dim background
       builder: (BuildContext context) {
         return Dialog(
           shape:
@@ -508,7 +543,7 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: AppColors.primaryColor.withOpacity(0.1),
+                    color: AppColors.primaryColor.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Center(

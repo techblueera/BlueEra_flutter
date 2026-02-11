@@ -1,13 +1,13 @@
+import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/contact.dart';
 import 'package:flutter_contacts/properties/name.dart';
 import 'package:flutter_contacts/properties/phone.dart';
 import 'package:get/get.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
-import 'package:mappls_gl/mappls_gl.dart';
 import 'package:permission_handler/permission_handler.dart';
-
 import '../../../../core/constants/shared_preference_utils.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../../../widgets/custom_text_cm.dart';
@@ -267,10 +267,45 @@ class _GroupMessageCardState extends State<GroupMessageCard>  with SingleTickerP
     );
   }
 
+
+  GoogleMapController? mapController;
+  LatLng? _currentPosition;
+  Set<Marker> _markers = {};
+
+  Future<void> _onMapCreated(GoogleMapController controller) async {
+    mapController = controller;
+
+    if(_currentPosition!=null && _currentPosition?.latitude != 0.0 && _currentPosition?.longitude != 0.0){
+      try {
+        final BitmapDescriptor customIcon = await BitmapDescriptor.asset(
+          const ImageConfiguration(size: Size(30, 30)),
+          AppImageAssets.markerBlue,
+        );
+
+        final Marker customMarker = Marker(
+          markerId: const MarkerId("custom_marker_id"),
+          position: LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
+          icon: customIcon,
+        );
+
+        setState(() {
+          _markers.add(customMarker);
+        });
+
+        await mapController?.animateCamera(
+          CameraUpdate.newLatLngZoom(LatLng(_currentPosition!.latitude, _currentPosition!.longitude), 15.0),
+        );
+
+      } catch (e) {
+        debugPrint("Error loading marker: $e");
+      }
+    }
+
+  }
+
   Widget _buildMapMessage(Messages? messages,String? message, double lat, double long, String time,
       bool isReceiveMsg) {
-    MapplsMapController? mapController;
-    LatLng _currentPosition = LatLng(lat, long);
+    _currentPosition = LatLng(lat, long);
     Theme.of(context);
     // Marker _currentMarker = Marker(
     //   markerId: const MarkerId('me'),
@@ -293,7 +328,7 @@ class _GroupMessageCardState extends State<GroupMessageCard>  with SingleTickerP
         mainAxisAlignment: (!isReceiveMsg)?MainAxisAlignment.end:MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          (!isReceiveMsg)?SizedBox():Container(
+          (!isReceiveMsg) ? SizedBox():Container(
             margin: EdgeInsets.only(right: 6),
             height: 26,
             width: 26,
@@ -349,25 +384,10 @@ class _GroupMessageCardState extends State<GroupMessageCard>  with SingleTickerP
                             SizedBox(
                               height: (message != null) ? 154 : 218,
                               width:  SizeConfig.screenWidth*0.72,
-                              child: MapplsMap(
-                                onStyleLoadedCallback: () async {
-                                  if (_currentPosition.latitude != 0.0 && _currentPosition.longitude != 0.0) {
-                                    await mapController?.addSymbol(
-                                       SymbolOptions(
-                                      geometry: _currentPosition,
-                                      iconSize: 1.2,
-                                      // iconImage: "marker-15"
-                                    ),
-                                  );
-                                  setState(() {});
-                                }
-                                },
-                                onMapCreated: (MapplsMapController controller) async {
-                                  mapController = controller;
-
-                                },
+                              child: GoogleMap(
+                                onMapCreated: _onMapCreated,
                                 initialCameraPosition: CameraPosition(
-                                  target: _currentPosition,
+                                  target: _currentPosition ?? LatLng(lat, long),
                                   zoom: 15.0,
                                 ),
                                 myLocationEnabled: false,
