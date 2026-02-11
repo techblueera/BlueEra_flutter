@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -16,6 +15,10 @@ import '../../../chat/auth/model/rider_orders_details_model.dart';
 import '../../../chat/auth/repo/make_order_repo.dart';
 import '../../../chat/auth/stream/get_orders_stream.dart';
 import '../model/rider_shops_list_grocery.dart';
+import 'package:flutter/services.dart';
+import 'package:get/get_rx/src/rx_types/rx_types.dart';
+
+
 
 class DeliverPartnerOrdersController extends GetxController {
   final List<DeliveryPartnerOrdersTab> deliveryPartnerOrdersTabs =
@@ -37,7 +40,8 @@ class DeliverPartnerOrdersController extends GetxController {
   RxList<RiderOrdersDetailsModel> rejectedOrders = <RiderOrdersDetailsModel>[].obs;
   RxList<BusinessListModel> riderBusinessList = <BusinessListModel>[].obs;
   RxList<BusinessListModel> selectedShops = <BusinessListModel>[].obs;
-
+  final MethodChannel platformData =
+  const MethodChannel('com.vahcare.lab/pip');
   late Stream<dynamic> stream;
   StreamSubscription? subscription;
 
@@ -74,7 +78,6 @@ class DeliverPartnerOrdersController extends GetxController {
         ApiResponse.complete('');
     stream = await getOrderFromUserStream();
     subscription = stream.listen((event) {
-      log("jklnclsdjknclskjcnsldcjn ${event}");
       if (event is List) {
         List<RiderOrdersDetailsModel> riderOrdersList = event
             .map((item) => RiderOrdersDetailsModel.fromJson(
@@ -108,11 +111,18 @@ class DeliverPartnerOrdersController extends GetxController {
                    || e.status == 'picked-up'
                      || e.status == 'accepted'|| e.status == 'confirmed'
                       || e.status == 'payment-pending').toList();
-
+    if(onGoingOrders.isEmpty){
+      setPipStatus(false);
+    }
     ordersListResponse.value = ApiResponse.complete(riderOrdersList);
 
   }
-
+  Future<void> setPipStatus(bool isEnabled) async {
+    await platformData.invokeMethod(
+      'updatePipStatus',
+      {"isEnabled": isEnabled},
+    );
+  }
   Future<bool> updateOrderStatusFromPialot(Map<String,dynamic> params,String orderId) async {
     try {
       ResponseModel? response = await MakeOrderRepo().updateOrderStatusFromPt(params,orderId);

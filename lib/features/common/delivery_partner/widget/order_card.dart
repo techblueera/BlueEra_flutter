@@ -12,7 +12,6 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
-import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -28,15 +27,23 @@ import '../controller/delivery_partner_orders_controller.dart';
 import '../model/grocery_order_details.dart';
 import 'delivery_pickup_shops_list.dart';
 
-class OrderCard extends StatelessWidget {
+class OrderCard extends StatefulWidget {
   final PickUpTab selectedPickUp;
   final RiderOrdersDetailsModel order;
+  final bool? isPipModeOn;
 
   const OrderCard({
     super.key,
     required this.selectedPickUp,
-    required this.order,
+    required this.order, this.isPipModeOn=false,
   });
+
+  @override
+  State<OrderCard> createState() => _OrderCardState();
+}
+
+class _OrderCardState extends State<OrderCard> {
+  double dragX = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -45,25 +52,25 @@ class OrderCard extends StatelessWidget {
     return CustomFormCard(
       margin: EdgeInsets.only(bottom: SizeConfig.size10),
       padding: EdgeInsets.all(SizeConfig.size10),
-      child: Column(
-        children: [
-          _buildHeaderSection(context, controller),
-          SizedBox(height: SizeConfig.size14),
-          _buildLocationSection(context),
-          if (_shouldShowActions())
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            if(widget.isPipModeOn==false)
+            _buildHeaderSection(context, controller),
             SizedBox(height: SizeConfig.size14),
-          _buildActionSection(controller),
-        ],
+            _buildLocationSection(context),
+            if (_shouldShowActions())
+              SizedBox(height: SizeConfig.size14),
+            _buildActionSection(controller),
+          ],
+        ),
       ),
     );
   }
 
   // ============================================
-  // HEADER SECTION BUILDERS
-  // ============================================
-
   Widget _buildHeaderSection(BuildContext context, DeliverPartnerOrdersController controller) {
-    switch (selectedPickUp) {
+    switch (widget.selectedPickUp) {
       case PickUpTab.newOrder:
         return _buildNewOrderHeader(context);
       case PickUpTab.onGoing:
@@ -130,12 +137,12 @@ class OrderCard extends StatelessWidget {
         context,
         ImageViewScreen(
           appBarTitle: '',
-          imageUrls: [order.user?.profileImage ?? ''],
+          imageUrls: [widget.order.user?.profileImage ?? ''],
           initialIndex: 0,
         ),
       ),
       child: CachedAvatarWidget(
-        imageUrl: order.user?.profileImage,
+        imageUrl: widget.order.user?.profileImage,
         size: SizeConfig.size40,
         borderRadius: SizeConfig.size20,
       ),
@@ -144,7 +151,7 @@ class OrderCard extends StatelessWidget {
 
   Widget _buildUserName() {
     return CustomText(
-      order.user?.name,
+      widget.order.user?.name,
       fontSize: SizeConfig.large,
       fontWeight: FontWeight.w600,
       color: AppColors.mainTextColor,
@@ -199,7 +206,7 @@ class OrderCard extends StatelessWidget {
 
   Widget _buildTimeText() {
     return CustomText(
-      _formatTime(order.createdAt ?? ''),
+      _formatTime(widget.order.createdAt ?? ''),
       fontSize: SizeConfig.extraSmall,
       fontWeight: FontWeight.w400,
       color: AppColors.grey9A,
@@ -211,7 +218,7 @@ class OrderCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         CustomText(
-          '${AppStrings.orderNo.tr} - ${order.orderNo}',
+          '${AppStrings.orderNo.tr} - ${widget.order.orderNo}',
           fontSize: SizeConfig.large,
           fontWeight: FontWeight.w600,
           color: AppColors.mainTextColor,
@@ -228,7 +235,7 @@ class OrderCard extends StatelessWidget {
               color: AppColors.secondaryTextColor,
             ),
             CustomText(
-              '${order.pickupOTP}',
+              '${widget.order.pickupOTP}',
               fontSize: SizeConfig.small11,
               fontWeight: FontWeight.w600,
               overflow: TextOverflow.ellipsis,
@@ -260,7 +267,7 @@ class OrderCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(100.0),
             ),
             child: CustomText(
-              order.status,
+              widget.order.status,
               fontSize: SizeConfig.small11,
               fontWeight: FontWeight.w600,
               color: AppColors.mainTextColor,
@@ -272,9 +279,6 @@ class OrderCard extends StatelessWidget {
   }
 
   // ============================================
-  // LOCATION SECTION BUILDERS
-  // ============================================
-
   Widget _buildLocationSection(BuildContext context) {
     return Column(
       children: [
@@ -288,10 +292,10 @@ class OrderCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if((order.orderFor==AppConstants.InCity
-                  ||order.orderFor==AppConstants.OutStation
-                  ||order.orderFor==AppConstants.HourlyRental
-                  ||order.orderFor==AppConstants.Parcel)&& order.status=='in-progress')
+              if((widget.order.orderFor==AppConstants.InCity
+                  ||widget.order.orderFor==AppConstants.OutStation
+                  ||widget.order.orderFor==AppConstants.HourlyRental
+                  ||widget.order.orderFor==AppConstants.Parcel)&& widget.order.status=='in-progress')
                 SizedBox()
               else
               _buildPickupLocation(),
@@ -300,7 +304,7 @@ class OrderCard extends StatelessWidget {
             ],
           ),
         ),
-        if(order.orderFor==AppConstants.grocery&&selectedPickUp ==PickUpTab.onGoing)
+        if(widget.order.orderFor==AppConstants.grocery&&widget.selectedPickUp ==PickUpTab.onGoing)
         Container(
           margin: EdgeInsets.only(top: 10),
           decoration: BoxDecoration(
@@ -321,7 +325,7 @@ class OrderCard extends StatelessWidget {
   }
 
   Widget _buildPickupLocation() {
-    if(order.pickupLocation?.location?.coordinates?.isNotEmpty??false){
+    if(widget.order.pickupLocation?.location?.coordinates?.isNotEmpty??false){
       return Padding(
         padding: EdgeInsets.all(SizeConfig.size10),
         child: Column(
@@ -331,14 +335,14 @@ class OrderCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(child: _buildPickupLocationInfo()),
-                if (selectedPickUp == PickUpTab.onGoing)
-                  _buildCallButton(order.receiverUser?.contactNo),
+                if (widget.selectedPickUp == PickUpTab.onGoing)
+                  _buildCallButton(widget.order.receiverUser?.contactNo),
               ],
             ),
             SizedBox(height: SizeConfig.size6),
             _buildLocationText(
-              latitude: order.pickupLocation?.location?.coordinates?[1].toDouble() ?? 0.0,
-              longitude: order.pickupLocation?.location?.coordinates?[0].toDouble() ?? 0.0,
+              latitude: widget.order.pickupLocation?.location?.coordinates?[1].toDouble() ?? 0.0,
+              longitude: widget.order.pickupLocation?.location?.coordinates?[0].toDouble() ?? 0.0,
             ),
           ],
         ),
@@ -362,7 +366,7 @@ class OrderCard extends StatelessWidget {
             color: AppColors.secondaryTextColor,
           ),
           CustomText(
-            '${order.distanceToPickup}',
+            '${widget.order.distanceToPickup}',
             fontSize: SizeConfig.small11,
             fontWeight: FontWeight.w400,
             color: AppColors.primaryColor,
@@ -390,7 +394,7 @@ class OrderCard extends StatelessWidget {
             ],
           ),
            SizedBox(height: SizeConfig.size10),
-          ...order.groceryOrderDetails?.businesses.map((business) {
+          ...widget.order.groceryOrderDetails?.businesses.map((business) {
             return InkWell(
               onTap: (){
                 showItemsReceivedDialog(
@@ -458,6 +462,7 @@ class OrderCard extends StatelessWidget {
       ),
     );
   }
+
   void showItemsReceivedDialog(
       BuildContext context, {
         required String businessName,
@@ -662,8 +667,9 @@ class OrderCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(child: _buildDropLocationInfo()),
-              if (selectedPickUp == PickUpTab.onGoing)
-                _buildCallButton(order.user?.contactNo),
+
+              if (widget.selectedPickUp == PickUpTab.onGoing&&widget.isPipModeOn==false)
+                _buildCallButton(widget.order.user?.contactNo),
             ],
           ),
           SizedBox(height: SizeConfig.size6),
@@ -686,13 +692,13 @@ class OrderCard extends StatelessWidget {
             color: AppColors.secondaryTextColor,
           ),
           CustomText(
-            ' ${(order.distancePickupToDrop=="N/A"||order.distancePickupToDrop==''||order.distancePickupToDrop=="null")?"":order.distancePickupToDrop}',
+            ' ${(widget.order.distancePickupToDrop=="N/A"||widget.order.distancePickupToDrop==''||widget.order.distancePickupToDrop=="null")?"":widget.order.distancePickupToDrop}',
             fontSize: SizeConfig.small11,
             fontWeight: FontWeight.w400,
             color: AppColors.primaryColor,
           ),
           SizedBox(width: SizeConfig.size2),
-          if((order.distancePickupToDrop=="N/A"||order.distancePickupToDrop==''||order.distancePickupToDrop=="null"))
+          if((widget.order.distancePickupToDrop=="N/A"||widget.order.distancePickupToDrop==''||widget.order.distancePickupToDrop=="null"))
             SizedBox()
           else
             Icon(
@@ -709,12 +715,12 @@ class OrderCard extends StatelessWidget {
     return Wrap(
       children: [
         _buildLocationText(
-          latitude: order.dropLocation?.location?.coordinates?[1].toDouble() ?? 0.0,
-          longitude: order.dropLocation?.location?.coordinates?[0].toDouble() ?? 0.0,
+          latitude: widget.order.dropLocation?.location?.coordinates?[1].toDouble() ?? 0.0,
+          longitude: widget.order.dropLocation?.location?.coordinates?[0].toDouble() ?? 0.0,
         ),
         if (_shouldShowContactNumber())
           CustomText(
-            '  +91 ${order.user?.contactNo}',
+            '  +91 ${widget.order.user?.contactNo}',
             fontSize: SizeConfig.small11,
             fontWeight: FontWeight.w400,
             color: AppColors.secondaryTextColor,
@@ -745,11 +751,8 @@ class OrderCard extends StatelessWidget {
   }
 
   // ============================================
-  // ACTION SECTION BUILDERS
-  // ============================================
-
   Widget _buildActionSection(DeliverPartnerOrdersController controller) {
-    switch (selectedPickUp) {
+    switch (widget.selectedPickUp) {
       case PickUpTab.newOrder:
         return _buildNewOrderActions(controller);
       case PickUpTab.onGoing:
@@ -769,13 +772,13 @@ class OrderCard extends StatelessWidget {
         SizedBox(width: SizeConfig.size6),
         _buildActionButton(
           onTap: () {
-            if(order.orderFor==AppConstants.InCity
-                ||order.orderFor==AppConstants.OutStation
-                ||order.orderFor==AppConstants.HourlyRental
-                ||order.orderFor==AppConstants.Parcel){
+            if(widget.order.orderFor==AppConstants.InCity
+                ||widget.order.orderFor==AppConstants.OutStation
+                ||widget.order.orderFor==AppConstants.HourlyRental
+                ||widget.order.orderFor==AppConstants.Parcel){
               controller.updateRideOrParcelOrderStatusApi(
                 {ApiKeys.action:AppConstants.reject},
-                order.id ?? "",
+                widget.order.id ?? "",
               );
             }else{
               _handleRejectOrder(controller);
@@ -792,21 +795,21 @@ class OrderCard extends StatelessWidget {
 
 
 
-            if(order.orderFor==AppConstants.InCity
-                ||order.orderFor==AppConstants.OutStation
-                ||order.orderFor==AppConstants.HourlyRental
-                ||order.orderFor==AppConstants.Parcel){
+            if(widget.order.orderFor==AppConstants.InCity
+                ||widget.order.orderFor==AppConstants.OutStation
+                ||widget.order.orderFor==AppConstants.HourlyRental
+                ||widget.order.orderFor==AppConstants.Parcel){
               controller.updateRideOrParcelOrderStatusApi(
                 {ApiKeys.action:AppConstants.accept},
-                order.id ?? "",
+                widget.order.id ?? "",
               );
-            }else if(order.orderFor?.toLowerCase()==AppConstants.grocery){
+            }else if(widget.order.orderFor?.toLowerCase()==AppConstants.grocery){
               Get.to(DeliveryPickupShopsList(
-                order: order,
-                orderId: order.orderId??'', rideOrderId: order.id??'',));
-            }else if(order.orderFor?.toLowerCase()==AppConstants.product
-                ||order.orderFor?.toLowerCase()==AppConstants.food
-                ||order.orderFor?.toLowerCase()==AppConstants.medical){
+                order: widget.order,
+                orderId: widget.order.orderId??'', rideOrderId: widget.order.id??'',));
+            }else if(widget.order.orderFor?.toLowerCase()==AppConstants.product
+                ||widget.order.orderFor?.toLowerCase()==AppConstants.food
+                ||widget.order.orderFor?.toLowerCase()==AppConstants.medical){
               _handleAcceptOrder(controller);
             }
            },
@@ -820,51 +823,134 @@ class OrderCard extends StatelessWidget {
   }
 
   Widget _buildOnGoingOrderActions(DeliverPartnerOrdersController controller) {
+    print("kdjckjcnsdc ${widget.order.orderFor} ___ ${widget.order.status}");
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if(!(order.orderFor==AppConstants.InCity
-            ||order.orderFor==AppConstants.OutStation
-            ||order.orderFor==AppConstants.HourlyRental
-            ||order.orderFor==AppConstants.Parcel)&& order.status=='in-progress')
+        if(!(widget.order.orderFor==AppConstants.InCity
+            ||widget.order.orderFor==AppConstants.OutStation
+            ||widget.order.orderFor==AppConstants.HourlyRental
+            ||widget.order.orderFor==AppConstants.Parcel))
         CustomText(
           AppStrings.deliveryOTP,
           fontSize: SizeConfig.small,
           fontWeight: FontWeight.w400,
           color: AppColors.secondaryTextColor,
         ),
-        SizedBox(height: SizeConfig.size8),
+        if(widget.isPipModeOn==false)
+        SizedBox(height:SizeConfig.size8),
+
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.end,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            if((order.orderFor==AppConstants.InCity
-                ||order.orderFor==AppConstants.OutStation
-                ||order.orderFor==AppConstants.HourlyRental
-                ||order.orderFor==AppConstants.Parcel)&& order.status=='in-progress')
-              CustomBtn(
-                width: 160,
-                  height: 40,
-                  isValidate: true,
-                  onTap: ()async{
-                 await controller.completePickupRiderApi(order.id??'');
-              }, title: "Complete")
+            if((widget.order.orderFor==AppConstants.InCity
+                ||widget.order.orderFor==AppConstants.OutStation
+                ||widget.order.orderFor==AppConstants.HourlyRental
+                ||widget.order.orderFor==AppConstants.Parcel)&& widget.order.status=='in-progress')
+              Expanded(
+                child: slideToComplete(
+                  dragX: dragX,
+                  onDragUpdate: (val) => setState(() => dragX = val),
+                  onComplete: () async{
+                    await controller.completePickupRiderApi(widget.order.id??'');
+                  },
+                ),
+              )
+
+            // CustomBtn(
+              //   width: 160,
+              //     height: 40,
+              //     isValidate: true,
+              //     onTap: ()async{
+              //    await controller.completePickupRiderApi(order.id??'');
+              // }, title: "Complete")
             else
             Flexible(
               fit: FlexFit.loose,
               child: _buildOtpInputSection(controller),
             ),
-            SizedBox(width: SizeConfig.size6),
-            _buildFareWidget(),
+            if(widget.isPipModeOn==false)
+            Padding(
+              padding: const EdgeInsets.only(left: 8.0),
+              child: _buildFareWidget(),
+            ),
           ],
         ),
       ],
     );
   }
 
+  Widget slideToComplete({
+    required double dragX,
+    required Function(double) onDragUpdate,
+    required VoidCallback onComplete,
+    double height = 44,
+    String text = "Slide to complete",
+  }) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final sliderWidth = constraints.maxWidth;
+        final buttonWidth = height;
+
+        return Container(
+          height: height,
+          decoration: BoxDecoration(
+            color: Colors.grey.shade100,
+            borderRadius: BorderRadius.circular(height / 2),
+          ),
+          child: Stack(
+            alignment: Alignment.centerLeft,
+            children: [
+              Center(
+                child: Text(
+                  text,
+                  style: TextStyle(
+                    color: Colors.grey.shade600,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              Positioned(
+                left: dragX,
+                child: GestureDetector(
+                  onHorizontalDragUpdate: (details) {
+                    double newDrag =
+                    (dragX + details.delta.dx).clamp(0, sliderWidth - buttonWidth);
+                    onDragUpdate(newDrag);
+                  },
+                  onHorizontalDragEnd: (_) {
+                    if (dragX > (sliderWidth - buttonWidth) * 0.7) {
+                      onComplete();
+                    }
+                    onDragUpdate(0);
+                  },
+                  child: Container(
+                    height: height,
+                    width: buttonWidth,
+                    decoration: BoxDecoration(
+                      color: Colors.green,
+                      borderRadius: BorderRadius.circular(height / 2),
+                    ),
+                    child: const Icon(
+                      Icons.arrow_forward_ios,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+
+
   Widget _buildOtpInputSection(DeliverPartnerOrdersController controller) {
     return Obx(() {
-      final orderId = order.id ?? '';
+      final orderId = widget.order.id ?? '';
       final isVerifying = controller.verifyingOtpMap[orderId] ?? false;
       final isVerified = controller.otpVerifiedMap[orderId] ?? false;
 
@@ -934,9 +1020,6 @@ class OrderCard extends StatelessWidget {
   }
 
   // ============================================
-  // REUSABLE COMPONENT BUILDERS
-  // ============================================
-
   Widget _buildBadge({
     required String text,
     required Color borderColor,
@@ -971,7 +1054,7 @@ class OrderCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(10.0),
       ),
       child: CustomText(
-        '${AppStrings.fare.tr} ₹ ${order.fare}',
+        '${AppStrings.fare.tr} ₹ ${widget.order.fare}',
         fontSize: SizeConfig.small,
         fontWeight: FontWeight.w600,
         color: AppColors.secondaryTextColor,
@@ -1040,41 +1123,35 @@ class OrderCard extends StatelessWidget {
   }
 
   // ============================================
-  // HELPER METHODS
-  // ============================================
-
   bool _shouldShowActions() {
-    return selectedPickUp == PickUpTab.newOrder ||
-        selectedPickUp == PickUpTab.onGoing;
+    return widget.selectedPickUp == PickUpTab.newOrder ||
+        widget.selectedPickUp == PickUpTab.onGoing;
   }
 
   bool _shouldShowContactNumber() {
-    return selectedPickUp == PickUpTab.newOrder ||
-        selectedPickUp == PickUpTab.onGoing;
+    return widget.selectedPickUp == PickUpTab.newOrder ||
+        widget.selectedPickUp == PickUpTab.onGoing;
   }
 
   // ============================================
-  // ACTION HANDLERS
-  // ============================================
-
   void _handleCancelOrder(DeliverPartnerOrdersController controller) {
     controller.cancelOrderFromPialot(
       {ApiKeys.status: AppConstants.cancelled},
-      order.id ?? "",
+      widget.order.id ?? "",
     );
   }
 
   void _handleRejectOrder(DeliverPartnerOrdersController controller) {
     controller.updateOrderStatusFromPialot(
       {ApiKeys.action: AppConstants.reject},
-      order.id ?? "",
+      widget.order.id ?? "",
     );
   }
 
   void _handleAcceptOrder(DeliverPartnerOrdersController controller) {
     controller.updateOrderStatusFromPialot(
       {ApiKeys.action:AppConstants.accept},
-      order.id ?? "",
+      widget.order.id ?? "",
     );
   }
 
@@ -1088,15 +1165,15 @@ class OrderCard extends StatelessWidget {
 
   void _handleOpenPickupLocation() {
     openGoogleMaps(
-      latitude: order.pickupLocation?.location?.coordinates?[1].toDouble() ?? 0.0,
-      longitude: order.pickupLocation?.location?.coordinates?[0].toDouble() ?? 0.0,
+      latitude: widget.order.pickupLocation?.location?.coordinates?[1].toDouble() ?? 0.0,
+      longitude: widget.order.pickupLocation?.location?.coordinates?[0].toDouble() ?? 0.0,
     );
   }
 
   void _handleOpenDropLocation() {
     openGoogleMaps(
-      latitude: order.dropLocation?.location?.coordinates?[1].toDouble() ?? 0.0,
-      longitude: order.dropLocation?.location?.coordinates?[0].toDouble() ?? 0.0,
+      latitude: widget.order.dropLocation?.location?.coordinates?[1].toDouble() ?? 0.0,
+      longitude: widget.order.dropLocation?.location?.coordinates?[0].toDouble() ?? 0.0,
     );
   }
 
@@ -1107,13 +1184,13 @@ class OrderCard extends StatelessWidget {
       ) {
     if (pin.length == 4) {
       log('is correct--> ${pin}');
-      if(order.orderFor==AppConstants.InCity
-          ||order.orderFor==AppConstants.OutStation
-          ||order.orderFor==AppConstants.HourlyRental
-          ||order.orderFor==AppConstants.Parcel){
+      if(widget.order.orderFor==AppConstants.InCity
+          ||widget.order.orderFor==AppConstants.OutStation
+          ||widget.order.orderFor==AppConstants.HourlyRental
+          ||widget.order.orderFor==AppConstants.Parcel){
         controller.verifyPickupOtpRideOrParcelApi(
           {ApiKeys.pickupOTP: pin},
-          order.id ?? "",
+          widget.order.id ?? "",
         );
       }else {
         controller.verifyDeliveredOtp(orderId, pin);
@@ -1122,9 +1199,6 @@ class OrderCard extends StatelessWidget {
   }
 
   // ============================================
-  // UTILITY METHODS
-  // ============================================
-
   String _formatTime(String isoString) {
     final dateTime = DateTime.parse(isoString).toLocal();
     return DateFormat('hh:mm a').format(dateTime);
